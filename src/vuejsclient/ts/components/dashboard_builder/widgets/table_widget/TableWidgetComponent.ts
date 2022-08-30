@@ -1328,7 +1328,15 @@ export default class TableWidgetComponent extends VueComponentBase {
 
         for (let i in this.columns) {
             let column = this.columns[i];
-            res[column.datatable_field_uid] = this.t(column.get_translatable_name_code_text(this.page_widget.id));
+
+            if (column.type == TableColumnDescVO.TYPE_header) {
+                for (const key in column.children) {
+                    let child = column.children[key];
+                    res[child.datatable_field_uid] = this.t(child.get_translatable_name_code_text(this.page_widget.id));
+                }
+            } else {
+                res[column.datatable_field_uid] = this.t(column.get_translatable_name_code_text(this.page_widget.id));
+            }
         }
 
         return res;
@@ -1359,12 +1367,23 @@ export default class TableWidgetComponent extends VueComponentBase {
 
         for (let i in this.columns) {
             let column: TableColumnDescVO = this.columns[i];
+            if (column.type == TableColumnDescVO.TYPE_header) {
+                for (const key in column.children) {
+                    let child = column.children[key];
+                    if (!child.exportable) {
+                        continue;
+                    }
+                    res.push(child.datatable_field_uid);
+                }
+            }
 
             if (!column.exportable) {
                 continue;
             }
+            if (column.type != TableColumnDescVO.TYPE_header) {
 
-            res.push(column.datatable_field_uid);
+                res.push(column.datatable_field_uid);
+            }
         }
 
         return res;

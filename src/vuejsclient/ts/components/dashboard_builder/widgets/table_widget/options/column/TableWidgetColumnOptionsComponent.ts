@@ -57,6 +57,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     private tmp_font_color_header: string = null;
 
     private show_options: boolean = false;
+    private error: boolean = false;
 
     get vo_ref_tooltip(): string {
         if (!this.column) {
@@ -214,16 +215,8 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
                 }
             }
         }
-        if (this.object_column.type == TableColumnDescVO.TYPE_header && this.object_column.children.length > 0) {
-            for (const key in this.object_column.children) {
-                let child = this.object_column.children[key];
-                this.tmp_bg_color_header = child ? child.bg_color_header : null;
-                this.tmp_font_color_header = child ? child.font_color_header : null;
-            }
-        } else {
-            this.tmp_bg_color_header = this.object_column ? this.object_column.bg_color_header : null;
-            this.tmp_font_color_header = this.object_column ? this.object_column.font_color_header : null;
-        }
+        this.tmp_bg_color_header = this.object_column ? this.object_column.bg_color_header : null;
+        this.tmp_font_color_header = this.object_column ? this.object_column.font_color_header : null;
     }
 
     @Watch('column_width', { immediate: true })
@@ -353,11 +346,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
         this.$emit('add_column', new_column);
     }
-    // @Watch('new_header_columns', { immediate: true })
-    // private async onchange_new_header_columns() {
-    //     this.new_header_columns = this.new_header_columns;
-    //     console.log(this.new_header_columns);
-    // }
+
     @Watch('new_column_select_type_var_ref')
     private async onchange_new_column_select_type_var_ref() {
         if (!this.new_column_select_type_var_ref) {
@@ -433,8 +422,18 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     }
     // creation de la column
     private add_header(event) {
-
+        this.error = false;
         this.new_header_columns = event.target.previousElementSibling._value;
+
+        for (const key in this.widget_options.columns) {
+            let col = this.widget_options.columns[key];
+            if (col.type == TableColumnDescVO.TYPE_header) {
+                if (col.header_name === this.new_header_columns) {
+                    this.error = true;
+                    return;
+                }
+            }
+        }
 
         if (!this.new_header_columns) {
             return;

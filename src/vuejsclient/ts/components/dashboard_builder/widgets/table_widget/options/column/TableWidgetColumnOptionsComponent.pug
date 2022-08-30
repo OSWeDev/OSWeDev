@@ -5,7 +5,8 @@
             template
             .d-flex.justify-content-between.mb-2
                 form
-                    input.form.control.mr-3(type="text" placeholder="..." v-model="new_header_columns")
+                    input.form.control.mr-3(:class='{"is-invalid": error}' type="text" placeholder="..." v-model="new_header_columns")
+                    p.text-danger(v-if='error') l'entête existe déja
                     button.btn.btn-success(type="submit" @click="add_header") Valider l'entête
 
 
@@ -81,7 +82,7 @@
                 template(v-else)
                     i.fa.fa-sort(@click="change_default_sort_field" aria-hidden="true")
 
-            template(v-if='!show_options && column.type != 5')
+            template(v-if='!show_options')
                 .show_options(@click="unhide_options")
                     i.fa.fa-plus(aria-hidden="true")
 
@@ -89,107 +90,108 @@
                 .hide_options(@click="hide_options")
                     i.fa.fa-minus(aria-hidden="true")
 
-                .column_width
-                    input(type='number' min='0' v-model='column_width' v-tooltip='label("table_widget_column_conf.column_width")')
+                template(v-if='column.type != 5')
+                    .column_width
+                        input(type='number' min='0' v-model='column_width' v-tooltip='label("table_widget_column_conf.column_width")')
 
-                .editable_column(v-if='can_be_editable')
-                    toggle-button(
-                        @change="switch_readonly" 
-                        :value="!column.readonly" 
-                        :sync="true"
-                        :width="100"
-                        :labels="{checked: label('table_widget_column_conf.editable_column.editable'), unchecked: label('table_widget_column_conf.editable_column.readonly')}")
+                    .editable_column(v-if='can_be_editable')
+                        toggle-button(
+                            @change="switch_readonly" 
+                            :value="!column.readonly" 
+                            :sync="true"
+                            :width="100"
+                            :labels="{checked: label('table_widget_column_conf.editable_column.editable'), unchecked: label('table_widget_column_conf.editable_column.readonly')}")
 
-                .exportable_column
-                    toggle-button(
-                        @change="switch_exportable" 
-                        :value="column.exportable" 
-                        :sync="true"
-                        :width="105"
-                        :labels="{checked: label('table_widget_column_conf.editable_column.exportable'), unchecked: label('table_widget_column_conf.editable_column.not_exportable')}")
+                    .exportable_column
+                        toggle-button(
+                            @change="switch_exportable" 
+                            :value="column.exportable" 
+                            :sync="true"
+                            :width="105"
+                            :labels="{checked: label('table_widget_column_conf.editable_column.exportable'), unchecked: label('table_widget_column_conf.editable_column.not_exportable')}")
 
-                .hide_from_table_column
-                    toggle-button(
-                        @change="switch_hide_from_table" 
-                        :value="!column.hide_from_table" 
-                        :sync="true"
-                        :width="75"
-                        :labels="{checked: label('table_widget_column_conf.editable_column.show_in_table'), unchecked: label('table_widget_column_conf.editable_column.hide_from_table')}")
+                    .hide_from_table_column
+                        toggle-button(
+                            @change="switch_hide_from_table" 
+                            :value="!column.hide_from_table" 
+                            :sync="true"
+                            :width="75"
+                            :labels="{checked: label('table_widget_column_conf.editable_column.show_in_table'), unchecked: label('table_widget_column_conf.editable_column.hide_from_table')}")
 
-                .can_filter_by_column(v-if='can_filter_by_table && (column.datatable_field_uid != "__crud_actions")')
-                    toggle-button(
-                        @change="switch_can_filter_by" 
-                        :value="column.can_filter_by" 
-                        :sync="true"
-                        :width="100"
-                        :labels="{checked: label('table_widget_column_conf.editable_column.can_filter_by'), unchecked: label('table_widget_column_conf.editable_column.cannot_filter_by')}")
+                    .can_filter_by_column(v-if='can_filter_by_table && (column.datatable_field_uid != "__crud_actions")')
+                        toggle-button(
+                            @change="switch_can_filter_by" 
+                            :value="column.can_filter_by" 
+                            :sync="true"
+                            :width="100"
+                            :labels="{checked: label('table_widget_column_conf.editable_column.can_filter_by'), unchecked: label('table_widget_column_conf.editable_column.cannot_filter_by')}")
 
-                .many_to_many_aggregate.mt-2
-                    toggle-button(
-                        @change="switch_many_to_many_aggregate" 
-                        :value="column.many_to_many_aggregate" 
-                        :sync="true"
-                        :width="160"
-                        :labels="{checked: label('table_widget_column_conf.editable_column.many_to_many_aggregate.show'), unchecked: label('table_widget_column_conf.editable_column.many_to_many_aggregate.hide')}")
+                    .many_to_many_aggregate.mt-2
+                        toggle-button(
+                            @change="switch_many_to_many_aggregate" 
+                            :value="column.many_to_many_aggregate" 
+                            :sync="true"
+                            :width="160"
+                            :labels="{checked: label('table_widget_column_conf.editable_column.many_to_many_aggregate.show'), unchecked: label('table_widget_column_conf.editable_column.many_to_many_aggregate.hide')}")
 
-                .is_nullable.mt-2
-                    toggle-button(
-                        @change="switch_is_nullable" 
-                        :value="column.is_nullable" 
-                        :sync="true"
-                        :width="320"
-                        :labels="{checked: label('table_widget_column_conf.editable_column.is_nullable.show'), unchecked: label('table_widget_column_conf.editable_column.is_nullable.hide')}")
+                    .is_nullable.mt-2
+                        toggle-button(
+                            @change="switch_is_nullable" 
+                            :value="column.is_nullable" 
+                            :sync="true"
+                            :width="320"
+                            :labels="{checked: label('table_widget_column_conf.editable_column.is_nullable.show'), unchecked: label('table_widget_column_conf.editable_column.is_nullable.hide')}")
 
-                .show_tooltip.mt-2
-                    toggle-button(
-                        @change="switch_show_tooltip" 
-                        :value="column.show_tooltip" 
-                        :sync="true"
-                        :width="160"
-                        :labels="{checked: label('table_widget_column_conf.editable_column.show_tooltip.show'), unchecked: label('table_widget_column_conf.editable_column.show_tooltip.hide')}")
+                    .show_tooltip.mt-2
+                        toggle-button(
+                            @change="switch_show_tooltip" 
+                            :value="column.show_tooltip" 
+                            :sync="true"
+                            :width="160"
+                            :labels="{checked: label('table_widget_column_conf.editable_column.show_tooltip.show'), unchecked: label('table_widget_column_conf.editable_column.show_tooltip.hide')}")
 
-                .filter_by_access
-                    multiselect(
-                        :preselect-first="false"
-                        :multiple="false"
-                        v-model="column.filter_by_access"
-                        :placeholder="label('table_widget_column.filter_by_access')"
-                        :options="filter_by_access_options"
-                        :custom-label="filter_by_access_label"
-                        :allow-empty="true",
-                        autocomplete="off"
+                    .filter_by_access
+                        multiselect(
+                            :preselect-first="false"
+                            :multiple="false"
+                            v-model="column.filter_by_access"
+                            :placeholder="label('table_widget_column.filter_by_access')"
+                            :options="filter_by_access_options"
+                            :custom-label="filter_by_access_label"
+                            :allow-empty="true",
+                            autocomplete="off"
 
-                        :searchable="true"
-                        :internal-search="true"
+                            :searchable="true"
+                            :internal-search="true"
 
-                        id="filter_by_access"
+                            id="filter_by_access"
 
-                        :select-label='label("multiselect.selectLabel")'
-                        :select-group-label='label("multiselect.selectGroupLabel")'
-                        :selected-label='label("multiselect.selectedLabel")'
-                        :deselect-label='label("multiselect.deselectLabel")'
-                        :deselect-group-label='label("multiselect.deselectGroupLabel")'
-                    )
+                            :select-label='label("multiselect.selectLabel")'
+                            :select-group-label='label("multiselect.selectGroupLabel")'
+                            :selected-label='label("multiselect.selectedLabel")'
+                            :deselect-label='label("multiselect.deselectLabel")'
+                            :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                        )
 
-                //- template(v-if='column.is_enum')
-                .enum_color_options 
-                    .enum_color_option(v-for='(enum_option_label, enum_option_index) in enum_options')
-                        .enum_bg_color
-                            color-picker(v-model="enum_bg_colors[enum_option_index]" @change='throttled_update_enum_colors')
-                        .enum_fg_color
-                            color-picker(v-model="enum_fg_colors[enum_option_index]" @change='throttled_update_enum_colors')
-                        .enum_preview(:style='{width: (column.column_width ? column.column_width + "rem" : null), background: enum_bg_colors[enum_option_index], color: enum_fg_colors[enum_option_index]}') {{ t(enum_option_label) }}
+                template
+                    .enum_color_options 
+                        .enum_color_option(v-for='(enum_option_label, enum_option_index) in enum_options')
+                            .enum_bg_color
+                                color-picker(v-model="enum_bg_colors[enum_option_index]" @change='throttled_update_enum_colors')
+                            .enum_fg_color
+                                color-picker(v-model="enum_fg_colors[enum_option_index]" @change='throttled_update_enum_colors')
+                            .enum_preview(:style='{width: (column.column_width ? column.column_width + "rem" : null), background: enum_bg_colors[enum_option_index], color: enum_fg_colors[enum_option_index]}') {{ t(enum_option_label) }}
 
-                .bg_color_header.mt-3
-                    .label.mb-0
-                        label {{ label('table_widget_column_conf.editable_column.bg_color_header') }}
-                    color-picker.mr-2(v-model="tmp_bg_color_header")
-                    template(v-if="tmp_bg_color_header")
-                        i.fa.fa-times(@click="clear_tmp_bg_color_header")
+                    .bg_color_header.mt-3
+                        .label.mb-0
+                            label {{ label('table_widget_column_conf.editable_column.bg_color_header') }}
+                        color-picker.mr-2(v-model="tmp_bg_color_header")
+                        template(v-if="tmp_bg_color_header")
+                            i.fa.fa-times(@click="clear_tmp_bg_color_header")
 
-                .font_color_header.mt-3
-                    .label.mb-0
-                        label {{ label('table_widget_column_conf.editable_column.font_color_header') }}
-                    color-picker.mr-2(v-model="tmp_font_color_header")
-                    template(v-if="tmp_font_color_header")
-                        i.fa.fa-times(@click="clear_tmp_font_color_header")
+                    .font_color_header.mt-3
+                        .label.mb-0
+                            label {{ label('table_widget_column_conf.editable_column.font_color_header') }}
+                        color-picker.mr-2(v-model="tmp_font_color_header")
+                        template(v-if="tmp_font_color_header")
+                            i.fa.fa-times(@click="clear_tmp_font_color_header")

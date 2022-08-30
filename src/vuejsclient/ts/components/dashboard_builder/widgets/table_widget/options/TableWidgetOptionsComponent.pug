@@ -174,7 +174,7 @@
         template(v-if='columns && (columns.length > 1)')
             Vuenestable.nested_field_refs(
                 v-model="editable_columns"
-                max_depth="0" 
+                max_depth="1" 
                 :hooks="{'beforeMove': beforeMove}"
                 @change="changed_columns"
                 key-prop="id"

@@ -19,6 +19,19 @@ export default class TableWidgetOptions {
         for (let i in options.columns) {
             let column = options.columns[i];
 
+            if (column.type == TableColumnDescVO.TYPE_header && column.children.length > 0) {
+                for (const key in column.children) {
+                    const child = column.children[key];
+                    if ((!child.api_type_id) || (!child.field_id)) {
+                        continue;
+                    }
+                    if (!res[child.api_type_id]) {
+                        res[child.api_type_id] = {};
+                    }
+                    res[child.api_type_id][child.field_id] = true;
+                }
+            }
+
             if ((!column.api_type_id) || (!column.field_id)) {
                 continue;
             }
