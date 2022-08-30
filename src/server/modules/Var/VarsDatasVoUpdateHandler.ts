@@ -1034,7 +1034,6 @@ export default class VarsDatasVoUpdateHandler {
                 }
                 delete VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes[bdd_var_registered.index];
             }
-            await VarsDatasProxy.getInstance().prepend_var_datas(bdd_vars_registered, false);
 
             // // bdd_vars_registered à la place de registered_var_datas : pourquoi on remettrait en calcul les imports et denied ?
             // // si on les remet en calcul, c'est pour mettre à jour les calculs en bdd à la fin donc on indique cela (avec false)
@@ -1100,9 +1099,13 @@ export default class VarsDatasVoUpdateHandler {
                     delete VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes[var_to_append.index];
                 }
 
-                await VarsDatasProxy.getInstance().append_var_datas(vars_to_append);
+                /**
+                 * Ok pour la suppression mais pourquoi on recalcule, puisqu'on a personne registered ? A priori on supprime et puis osef tout simplement.
+                 */
+                // await VarsDatasProxy.getInstance().append_var_datas(vars_to_append);
                 if (env.DEBUG_VARS) {
-                    ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_unregistered_var_datas:RECALC  ' + unregistered_var_datas.length + ' vars from BDD cache.');
+                    // ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_unregistered_var_datas:RECALC  ' + unregistered_var_datas.length + ' vars from BDD cache.');
+                    ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_unregistered_var_datas:IGNORE (unregistered)  ' + unregistered_var_datas.length + ' vars from BDD cache.');
                 }
             }
         }

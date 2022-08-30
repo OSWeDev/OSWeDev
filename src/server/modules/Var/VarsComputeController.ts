@@ -859,7 +859,7 @@ export default class VarsComputeController {
                     let selected_var_datas: VarDataBaseVO[] = selected_slow_var ? [selected_slow_var] : [];
 
                     if (!!selected_slow_var) {
-                        ConsoleHandler.getInstance().error('SELECTED SLOW VAR : ' + selected_slow_var.index);
+                        ConsoleHandler.getInstance().error('SELECTED SLOW VAR :' + selected_slow_var.index);
                     }
 
                     /**
@@ -876,6 +876,18 @@ export default class VarsComputeController {
                         let wrapped_select_var: VarDataProxyWrapperVO<VarDataBaseVO> = VarsDatasProxy.getInstance().select_var_from_buffer();
                         let i = 0;
                         while ((wrapped_select_var) && (i < var_selection_pack_size)) {
+
+                            if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+                                ConsoleHandler.getInstance().log('SELECTED WRAPPED VAR :' + wrapped_select_var.var_data.index +
+                                    ':is_client_var:' + wrapped_select_var.is_client_var +
+                                    ':is_requested:' + wrapped_select_var.is_requested +
+                                    ':creation_date:' + Dates.format(wrapped_select_var.creation_date, 'DD/MM/YYYY HH:mm:ss') +
+                                    ':var_data_origin_value:' + wrapped_select_var.var_data_origin_value +
+                                    ':var_data_origin_type:' + wrapped_select_var.var_data_origin_type +
+                                    ':last_insert_or_update:' + Dates.format(wrapped_select_var.last_insert_or_update, 'DD/MM/YYYY HH:mm:ss') +
+                                    ':'
+                                );
+                            }
                             selected_var_datas.push(wrapped_select_var.var_data);
                             i++;
                             wrapped_select_var = VarsDatasProxy.getInstance().select_var_from_buffer();
