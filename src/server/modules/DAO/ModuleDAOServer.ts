@@ -1146,7 +1146,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
      *  - on ne fait que des inserts, pas d'update avec un COPY
      *  - on ne gère pas les segmentations
      */
-    public async insert_without_triggers_using_COPY(vos: IDistantVOBase[]): Promise<void> {
+    public async insert_without_triggers_using_COPY(vos: IDistantVOBase[], segmented_value: number = null): Promise<void> {
         if (this.global_update_blocker) {
             let uid: number = StackContext.getInstance().get('UID');
             let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
@@ -1211,11 +1211,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
         vos = insert_vos;
 
         let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[vos[0]._type];
-        let table_name: string = moduleTable.full_name;
 
-        if (moduleTable.is_segmented) {
+        if (moduleTable.is_segmented && !segmented_value) {
             throw new Error('Not implemented');
         }
+        let table_name: string = moduleTable.is_segmented ? moduleTable.get_segmented_full_name(segmented_value) : moduleTable.full_name;
 
         let debug_insert_without_triggers_using_COPY = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleDAOServer.PARAM_NAME_insert_without_triggers_using_COPY, true);
 
