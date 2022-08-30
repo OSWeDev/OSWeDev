@@ -1,23 +1,23 @@
 import { performance } from 'perf_hooks';
-import * as  moment from 'moment';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import MatroidController from '../../../shared/modules/Matroid/MatroidController';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import VarsController from '../../../shared/modules/Var/VarsController';
-import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
+import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
+import VarDataInvalidatorVO from '../../../shared/modules/Var/vos/VarDataInvalidatorVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import ConfigurationService from '../../env/ConfigurationService';
-import VarsDatasProxy from './VarsDatasProxy';
-import VarsServerController from './VarsServerController';
-import PerfMonServerController from '../PerfMon/PerfMonServerController';
-import PerfMonConfController from '../PerfMon/PerfMonConfController';
-import VarsPerfMonServerController from './VarsPerfMonServerController';
-import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
-import VarServerControllerBase from './VarServerControllerBase';
 import RangeHandler from '../../../shared/tools/RangeHandler';
+import ConfigurationService from '../../env/ConfigurationService';
+import PerfMonConfController from '../PerfMon/PerfMonConfController';
+import PerfMonServerController from '../PerfMon/PerfMonServerController';
+import VarsDatasProxy from './VarsDatasProxy';
+import VarsDatasVoUpdateHandler from './VarsDatasVoUpdateHandler';
+import VarServerControllerBase from './VarServerControllerBase';
+import VarsPerfMonServerController from './VarsPerfMonServerController';
+import VarsServerController from './VarsServerController';
 
 /**
  * On se fixe 3 stratégies de cache :
@@ -63,68 +63,68 @@ export default class VarsCacheController {
             return false;
         }
 
-        return this.do_cache(var_data, controller.var_cache_conf, 'cache_seuil_bdd');
+        switch (controller.var_cache_conf.cache_startegy) {
+            case VarCacheConfVO.VALUE_CACHE_STRATEGY_CACHE_ALL_NEVER_LOAD_CHUNKS:
+                return true;
+            case VarCacheConfVO.VALUE_CACHE_STRATEGY_CACHE_NONE:
+                return false;
+            case VarCacheConfVO.VALUE_CACHE_STRATEGY_PIXEL:
+
+                /**
+                 * En stratégie pixel, on stocke en bdd si card dimension pixellisée == 1.
+                 *  Du coup de la même manière, le cache exacte ne peut être demandé que si card dimension pixellisée == 1
+                 *  tout le reste est géré en amont, donc à ce niveau on doit refuser les cache C et C element
+                 */
+                if (!controller.varConf.pixel_activated) {
+                    ConsoleHandler.getInstance().error('Une var ne peut pas être en stratégie VALUE_CACHE_STRATEGY_PIXEL et ne pas avoir de pixellisation déclarée');
+                    throw new Error('Not Implemented');
+                }
+
+                for (let i in controller.varConf.pixel_fields) {
+                    let pixel_field = controller.varConf.pixel_fields[i];
+
+                    if (RangeHandler.getInstance().getCardinalFromArray(var_data[pixel_field.pixel_param_field_id]) != 1) {
+                        return false;
+                    }
+                }
+                return true;
+            default:
+                return true;
+        }
     }
 
     /**
-     * Cas A - insert en base d'un cache de var calculé mais unregistered
+     * doit-on chercher un cache partiel pour ce type de var ?
+     *  Attention en ce moment il n'y a aucun type de cache qui utilise du cache partiel, à voir comment on réintroduit le principe
      */
-    public A_do_cache_param(node: VarDAGNode): boolean {
+    public use_partial_cache(node: VarDAGNode): boolean {
 
-        /**
-         * Stratégie naïve :
-         *  on calcul une estimation de charge de calcu : CARD * cout moyen pour 1000 card / 1000
-         *  si sup à un seuil => cache, sinon pas de cache
-         */
+        let var_cache_conf = VarsServerController.getInstance().varcacheconf_by_var_ids[node.var_data.var_id];
 
-        let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
-
-        return this.do_cache(node.var_data, controller.var_cache_conf, 'cache_seuil_a');
+        switch (var_cache_conf.cache_startegy) {
+            case VarCacheConfVO.VALUE_CACHE_STRATEGY_CACHE_ALL_NEVER_LOAD_CHUNKS:
+            case VarCacheConfVO.VALUE_CACHE_STRATEGY_CACHE_NONE:
+            case VarCacheConfVO.VALUE_CACHE_STRATEGY_PIXEL:
+            default:
+                return false;
+        }
     }
 
     /**
-     * Cas B - chargement du cache exacte d'une var en cours de déploiement dans l'arbre
+     * sur chaque élément du cache partiel, doit-on l'utiliser ?
+     *  Attention en ce moment il n'y a aucun type de cache qui utilise du cache partiel, à voir comment on réintroduit le principe
      */
-    public B_use_cache(node: VarDAGNode): boolean {
+    public use_partial_cache_element(node: VarDAGNode, partial_cache: VarDataBaseVO): boolean {
 
-        /**
-         * Stratégie naïve :
-         *  on calcul une estimation de charge de calcu : CARD * cout moyen pour 1000 card / 1000
-         *  si sup à un seuil => on tente de charger le cache, sinon non
-         */
-        let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
+        let var_cache_conf = VarsServerController.getInstance().varcacheconf_by_var_ids[node.var_data.var_id];
 
-        return this.do_cache(node.var_data, controller.var_cache_conf, 'cache_seuil_b');
-    }
-
-    /**
-     * Cas C - doit-on chercher un cache partiel
-     */
-    public C_use_partial_cache(node: VarDAGNode): boolean {
-
-        /**
-         * Stratégie naïve :
-         *  on calcul une estimation de charge de calcu : CARD * cout moyen pour 1000 card / 1000
-         *  si sup à un seuil => on accepte d'utiliser ce shard, sinon non
-         */
-        let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
-
-        return this.do_cache(node.var_data, controller.var_cache_conf, 'cache_seuil_c');
-    }
-
-    /**
-     * Cas C : sur chaque élément du cache partiel, doit-on l'utiliser ?
-     */
-    public C_use_partial_cache_element(node: VarDAGNode, partial_cache: VarDataBaseVO): boolean {
-
-        /**
-         * Stratégie naïve :
-         *  on calcul une estimation de charge de calcu : CARD * cout moyen pour 1000 card / 1000
-         *  si sup à un seuil => on accepte d'utiliser ce shard, sinon non
-         */
-        let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
-
-        return this.do_cache(node.var_data, controller.var_cache_conf, 'cache_seuil_c_element');
+        switch (var_cache_conf.cache_startegy) {
+            case VarCacheConfVO.VALUE_CACHE_STRATEGY_CACHE_ALL_NEVER_LOAD_CHUNKS:
+            case VarCacheConfVO.VALUE_CACHE_STRATEGY_CACHE_NONE:
+            case VarCacheConfVO.VALUE_CACHE_STRATEGY_PIXEL:
+            default:
+                return false;
+        }
     }
 
     /**
@@ -148,10 +148,10 @@ export default class VarsCacheController {
                 let min_third_earliest_read_days: number = 11;
 
                 let max_thourth_earliest_read_days: number = 36;
+                let var_ids = Object.keys(VarsController.getInstance().var_conf_by_id);
 
                 while (performance.now() < timeout) {
 
-                    let var_ids = Object.keys(VarsController.getInstance().var_conf_by_id);
                     if (this.partially_clean_bdd_cache_var_id_i > (var_ids.length - 1)) {
                         this.partially_clean_bdd_cache_var_id_i = 0;
                     }
@@ -206,7 +206,7 @@ export default class VarsCacheController {
                         }
 
                         if ((!var_data.last_reads_ts) || (!var_data.last_reads_ts.length)) {
-                            if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
+                            if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
                                 ConsoleHandler.getInstance().log('Invalidation:!last_reads_ts:' + var_data._type + ':' + var_data.id + ':' + var_data.index + ':');
                             }
                             invalidateds.push(var_data);
@@ -214,7 +214,7 @@ export default class VarsCacheController {
                         }
 
                         if (var_data.last_reads_ts[var_data.last_reads_ts.length - 1] < Dates.add(Dates.now(), -max_earliest_read_days, TimeSegment.TYPE_DAY)) {
-                            if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
+                            if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
                                 ConsoleHandler.getInstance().log('Invalidation:<max_earliest_read_days:' + var_data._type + ':' + var_data.id + ':' + var_data.index + ':');
                             }
                             invalidateds.push(var_data);
@@ -226,7 +226,7 @@ export default class VarsCacheController {
                         }
 
                         if ((var_data.last_reads_ts.length > 1) && (var_data.last_reads_ts[var_data.last_reads_ts.length - 2] < Dates.add(Dates.now(), -max_second_earliest_read_days, TimeSegment.TYPE_DAY))) {
-                            if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
+                            if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
                                 ConsoleHandler.getInstance().log('Invalidation:<max_second_earliest_read_days:' + var_data._type + ':' + var_data.id + ':' + var_data.index + ':');
                             }
                             invalidateds.push(var_data);
@@ -238,7 +238,7 @@ export default class VarsCacheController {
                         }
 
                         if ((var_data.last_reads_ts.length > 2) && (var_data.last_reads_ts[var_data.last_reads_ts.length - 3] < Dates.add(Dates.now(), -max_third_earliest_read_days, TimeSegment.TYPE_DAY))) {
-                            if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
+                            if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
                                 ConsoleHandler.getInstance().log('Invalidation:<max_third_earliest_read_days:' + var_data._type + ':' + var_data.id + ':' + var_data.index + ':');
                             }
                             invalidateds.push(var_data);
@@ -250,7 +250,7 @@ export default class VarsCacheController {
                         }
 
                         if ((var_data.last_reads_ts.length > 3) && (var_data.last_reads_ts[var_data.last_reads_ts.length - 4] < Dates.add(Dates.now(), -max_thourth_earliest_read_days, TimeSegment.TYPE_DAY))) {
-                            if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
+                            if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
                                 ConsoleHandler.getInstance().log('Invalidation:<max_thourth_earliest_read_days:' + var_data._type + ':' + var_data.id + ':' + var_data.index + ':');
                             }
                             invalidateds.push(var_data);
@@ -258,9 +258,14 @@ export default class VarsCacheController {
                         }
                     }
 
-                    if (invalidateds && invalidateds.length) {
-                        await ModuleDAO.getInstance().deleteVOs(invalidateds);
+                    let invalidators: VarDataInvalidatorVO[] = [];
+                    for (let i in invalidateds) {
+                        let invalidated = invalidateds[i];
+
+                        let invalidator = new VarDataInvalidatorVO(invalidated, VarDataInvalidatorVO.INVALIDATOR_TYPE_EXACT, false, false, false);
+                        invalidators.push(invalidator);
                     }
+                    await VarsDatasVoUpdateHandler.getInstance().push_invalidators(invalidators);
 
                     if (go_to_next_table) {
                         this.partially_clean_bdd_cache_offset = 0;
@@ -272,41 +277,5 @@ export default class VarsCacheController {
             },
             this
         );
-    }
-
-    private do_cache(var_data: VarDataBaseVO, var_cache_conf: VarCacheConfVO, cache_seuil_field: string): boolean {
-        switch (var_cache_conf.cache_startegy) {
-            case VarCacheConfVO.VALUE_CACHE_STRATEGY_CARDINAL:
-                let seuila = var_cache_conf[cache_seuil_field];
-                let carda = MatroidController.getInstance().get_cardinal(var_data);
-                return carda >= seuila;
-            case VarCacheConfVO.VALUE_CACHE_STRATEGY_ESTIMATED_TIME:
-                let seuilb = var_cache_conf[cache_seuil_field];
-                let cardb = MatroidController.getInstance().get_cardinal(var_data);
-                return (cardb * var_cache_conf.calculation_cost_for_1000_card / 1000) >= seuilb;
-            case VarCacheConfVO.VALUE_CACHE_STRATEGY_PIXEL:
-
-                /**
-                 * En stratégie pixel, on stocke en bdd si card dimension pixellisée == 1.
-                 *  Du coup de la même manière, le cache exacte ne peut être demandé que si card dimension pixellisée == 1
-                 *  tout le reste est géré en amont, donc à ce niveau on doit refuser les cache C et C element
-                 */
-                let varconf = VarsController.getInstance().var_conf_by_id[var_cache_conf.var_id];
-                if (!varconf.pixel_activated) {
-                    ConsoleHandler.getInstance().error('Une var ne peut pas être en stratégie VALUE_CACHE_STRATEGY_PIXEL et ne pas avoir de pixellisation déclarée');
-                    throw new Error('Not Implemented');
-                }
-
-                let is_pixel = true;
-                for (let i in varconf.pixel_fields) {
-                    let pixel_field = varconf.pixel_fields[i];
-
-                    if (RangeHandler.getInstance().getCardinalFromArray(var_data[pixel_field.pixel_param_field_id]) != 1) {
-                        is_pixel = false;
-                        break;
-                    }
-                }
-                return ((cache_seuil_field == 'cache_seuil_b') || (cache_seuil_field == 'cache_seuil_a') || (cache_seuil_field == 'cache_seuil_bdd')) && is_pixel;
-        }
     }
 }

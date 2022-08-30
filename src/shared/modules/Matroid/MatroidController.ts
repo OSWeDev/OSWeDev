@@ -26,6 +26,22 @@ export default class MatroidController {
     public async initialize() {
     }
 
+    public check_bases_not_max_ranges(matroid: IMatroid): boolean {
+        let matroid_bases = this.getMatroidBases(matroid);
+
+        for (let i in matroid_bases) {
+            let matroid_base = matroid_bases[i];
+
+            for (let j in matroid_base.ranges) {
+                let range = matroid_base.ranges[j];
+                if (RangeHandler.getInstance().is_one_max_range(range)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     /**
      * TODO FIXME ASAP TU VARS
      * On définit le cardinal du matroid par la multiplication des cardinaux des bases

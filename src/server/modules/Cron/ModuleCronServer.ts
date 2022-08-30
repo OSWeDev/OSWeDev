@@ -63,6 +63,34 @@ export default class ModuleCronServer extends ModuleServerBase {
             'fr-fr': 'Mise à jour supervision {supervised_uid} terminée'
         }, 'CronComponent.info.update_supervised.ended.___LABEL___'));
 
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Non planifié'
+        }, 'cronworkplan.TYPE_RECURRENCE.AUCUNE'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Année.s'
+        }, 'cronworkplan.TYPE_RECURRENCE.ANNEES'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Mois'
+        }, 'cronworkplan.TYPE_RECURRENCE.MOIS'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Semaine.s'
+        }, 'cronworkplan.TYPE_RECURRENCE.SEMAINES'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Jour.s'
+        }, 'cronworkplan.TYPE_RECURRENCE.JOURS'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Heure.s'
+        }, 'cronworkplan.TYPE_RECURRENCE.HEURES'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Minute.s'
+        }, 'cronworkplan.TYPE_RECURRENCE.MINUTES'));
+
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Tâche manuelle en cours'

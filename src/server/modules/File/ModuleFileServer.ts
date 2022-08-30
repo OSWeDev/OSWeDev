@@ -1,3 +1,4 @@
+import { existsSync, fstat, mkdirSync } from 'fs';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
@@ -75,6 +76,15 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
         ));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Année' },
+            'filter_file.FILTER_TYPE.YEAR'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Mois' },
+            'filter_file.FILTER_TYPE.MONTH'
+        ));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Le chemin d\'accès actuel du fichier semble invalide, il devrait commencer par [' + ModuleFile.FILES_ROOT + '] ou [' + ModuleFile.SECURED_FILES_ROOT + ']. Les fichiers temporaires ne peuvent pas être sécurisés.' },
             'ModuleFileServer.check_secured_files_conf.f_path_start_unknown'
         ));
@@ -88,6 +98,12 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
         let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         preCreateTrigger.registerHandler(FileVO.API_TYPE_ID, this.check_secured_files_conf);
         preUpdateTrigger.registerHandler(FileVO.API_TYPE_ID, this.check_secured_files_conf_update);
+    }
+
+    public create_folder_if_not_exists(folder: string) {
+        if (!existsSync(folder)) {
+            mkdirSync(folder);
+        }
     }
 
     protected getNewVo(): FileVO {

@@ -1,4 +1,8 @@
 .table_widget_component {
+    table.has_sticky_cols {
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
+    }
 
     .table_header {
         font-size: 1.2em;
@@ -83,6 +87,11 @@
                     .order_by {
                         float: left;
                     }
+
+                }
+
+                th.position-sticky {
+                    z-index: 10;
                 }
             }
 
@@ -134,8 +143,21 @@
                         border-radius: 4px;
                         text-align: center;
                     }
+
+                }
+
+                td.position-sticky {
+                    background: rgb(245, 245, 245);
+                    z-index: 5;
+                }
+            }
+
+            tr:nth-of-type(odd) {
+                td.position-sticky {
+                    background: rgb(232, 232, 232);
                 }
             }
         }
     }
+    
 }

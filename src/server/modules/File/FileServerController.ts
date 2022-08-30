@@ -99,7 +99,7 @@ export default class FileServerController {
 
     public async readFile(filepath: string): Promise<string> {
         return new Promise((resolve, reject) => {
-            fs.readFile(filepath, ConfigurationService.getInstance().getNodeConfiguration().SERVER_ENCODING, function (err, data: string) {
+            fs.readFile(filepath, ConfigurationService.getInstance().node_configuration.SERVER_ENCODING, function (err, data: string) {
                 if (err) {
                     console.error(err);
                     resolve(null);

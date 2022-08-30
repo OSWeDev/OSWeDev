@@ -57,6 +57,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private show_pagination_slider: boolean = true;
     private show_pagination_form: boolean = true;
     private can_filter_by: boolean = true;
+    private is_sticky: boolean = false;
     private limit: string = TableWidgetOptions.DEFAULT_LIMIT.toString();
     private limit_selectable: string = TableWidgetOptions.DEFAULT_LIMIT_SELECTABLE;
 
@@ -245,6 +246,23 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         }
     }
 
+    // private async changed_columns() {
+
+    //     /**
+    //      * On applique les nouveaux poids
+    //      */
+    //     for (let i in this.editable_columns) {
+    //         let column = this.editable_columns[i];
+
+    //         this.columns.find((c) => c.id == column.id).weight = parseInt(i.toString());
+    //     }
+
+    //     await ModuleDAO.getInstance().insertOrUpdateVOs(this.columns);
+    //     this.next_update_options = this.widget_options;
+    //     this.next_update_options.columns = this.editable_columns;
+    //     // this.next_update_options.columns = this.columns;
+    //     await this.throttled_update_options();
+    // }
     private async changed_columns() {
 
         /**
@@ -335,8 +353,8 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private get_default_options(): TableWidgetOptions {
         return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null);
     }
-
     private async add_column(add_column: TableColumnDescVO) {
+        console.log(add_column);
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -368,7 +386,6 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
         await this.throttled_update_options();
     }
-
     get columns(): TableColumnDescVO[] {
         let options: TableWidgetOptions = this.widget_options;
 
@@ -406,6 +423,12 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         this.editable_columns = res.map((e) => Object.assign(new TableColumnDescVO(), e));
 
         return res;
+    }
+
+    private update_header_array({ dragItem, pathFrom, pathTo }) {
+        console.log("dragItem: " + dragItem);
+        console.log("pathForm: " + pathFrom);
+        console.log("pathTo: " + pathTo);
     }
 
     private async update_options() {

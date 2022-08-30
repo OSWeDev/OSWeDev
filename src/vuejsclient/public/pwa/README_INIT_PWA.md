@@ -58,7 +58,7 @@ import WorkboxPlugin = require('workbox-webpack-plugin');
 Créer une variable plugins_client pour pouvoir remplir le default plugins avec des conditions
 Exemple :
 
-const config = ConfigurationService.getInstance().getNodeConfiguration();
+const config = ConfigurationService.getInstance().node_configuration;
 
 var plugins_client = [
     new VueLoaderPlugin(),
@@ -94,7 +94,7 @@ import WorkboxPlugin = require('workbox-webpack-plugin');
 Créer une variable plugins_login pour pouvoir remplir le default plugins avec des conditions
 Exemple :
 
-const config = ConfigurationService.getInstance().getNodeConfiguration();
+const config = ConfigurationService.getInstance().node_configuration;
 
 var plugins_login = [
     new VueLoaderPlugin(),

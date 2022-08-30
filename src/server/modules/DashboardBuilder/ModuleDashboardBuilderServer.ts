@@ -68,6 +68,13 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'table_widget_column_conf.editable_column.cannot_filter_by.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Figer'
+        }, 'table_widget_column_conf.editable_column.is_sticky.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Ne pas figer'
+        }, 'table_widget_column_conf.editable_column.is_not_sticky.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Conditionner au droit'
         }, 'table_widget_column.filter_by_access.___LABEL___'));
 
@@ -504,6 +511,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'table_widget_column.new_column_select_type_label.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Ajouter une entête'
+        }, 'table_widget_column.new_header_column_select_type_label.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Glisser/déposer un champs'
         }, 'single_vo_field_ref_holder.vo_ref_field_receiver_placeholder.___LABEL___'));
 
@@ -645,7 +656,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'TableWidgetComponent.onchange_column.failed.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Largeur du contenu de la colonne, en rem'
+            'fr-fr': 'Largeur du contenu de la colonne, en rem (requis si colonne figée)'
         }, 'table_widget_column_conf.column_width.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
