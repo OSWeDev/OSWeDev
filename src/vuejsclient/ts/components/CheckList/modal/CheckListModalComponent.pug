@@ -42,7 +42,7 @@
                     .checkpoint_description
                         div(v-html="checkpoint_description")
 
-            template(v-if="checklist && checklist.show_finalized_btn && is_last_checklist_item && all_steps_done")
+            template(v-if="checklist && checklist.show_finalized_btn && is_last_checklist_item && all_steps_done && !checklist_item.finalized")
                 .row
                     .col-md-12.text-center.mt-5
                         button.btn.btn-primary(@click="finalize_checklist") 

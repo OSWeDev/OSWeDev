@@ -4,8 +4,15 @@ import ICheckList from '../../../../../shared/modules/CheckList/interfaces/IChec
 import ICheckListItem from '../../../../../shared/modules/CheckList/interfaces/ICheckListItem';
 import ICheckPoint from '../../../../../shared/modules/CheckList/interfaces/ICheckPoint';
 import CheckPointVO from '../../../../../shared/modules/CheckList/vos/CheckPointVO';
+import ModuleContextFilter from '../../../../../shared/modules/ContextFilter/ModuleContextFilter';
+import ContextFilterVO from '../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextQueryVO, { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import SortByVO from '../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
+import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
+import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
+import { ModuleDAOAction, ModuleDAOGetter } from '../../dao/store/DaoStore';
 import VueComponentBase from '../../VueComponentBase';
 import CheckListControllerBase from '../CheckListControllerBase';
 import "./CheckListModalComponent.scss";
@@ -14,6 +21,12 @@ import "./CheckListModalComponent.scss";
     template: require('./CheckListModalComponent.pug')
 })
 export default class CheckListModalComponent extends VueComponentBase {
+
+    @ModuleDAOGetter
+    public getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
+
+    @ModuleDAOAction
+    public storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
 
     @Prop({ default: null })
     private checklist: ICheckList;
@@ -29,6 +42,9 @@ export default class CheckListModalComponent extends VueComponentBase {
 
     @Prop({ default: null })
     private ordered_checkpoints: ICheckPoint[];
+
+    @Prop({ default: false })
+    private do_async_loading: boolean;
 
     private all_steps_done: boolean = false;
     private state_steps: { [step_name: string]: number } = {};
@@ -72,6 +88,12 @@ export default class CheckListModalComponent extends VueComponentBase {
         promises.push((async () => {
             this.all_editable_fields = await this.checklist_controller.get_ordered_editable_fields();
         })());
+
+        if (this.do_async_loading) {
+            promises.push((async () => {
+                await this.async_loading();
+            })());
+        }
 
         for (let i in this.ordered_checkpoints) {
             let checkpoint = this.ordered_checkpoints[i];
@@ -160,6 +182,7 @@ export default class CheckListModalComponent extends VueComponentBase {
                         },
                     });
 
+                    await this.async_loading();
                 } else {
                     reject({
                         body: this.label('checklist.finalize.failed'),
@@ -176,6 +199,35 @@ export default class CheckListModalComponent extends VueComponentBase {
 
                 this.$emit('finalize', this.checklist_item, res);
             })
+        );
+    }
+
+    private async async_loading() {
+
+        let filter = new ContextFilterVO();
+        filter.field_id = 'checklist_id';
+        filter.vo_type = this.checklist_controller.checklist_shared_module.checklistitem_type_id;
+        filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+        filter.param_numeric = this.checklist.id;
+
+        let query_: ContextQueryVO = query(this.checklist_controller.checklist_shared_module.checklistitem_type_id).set_limit(this.checklist.limit_affichage ? this.checklist.limit_affichage : 0, 0);
+        query_.base_api_type_id = this.checklist_controller.checklist_shared_module.checklistitem_type_id;
+        query_.active_api_type_ids = [this.checklist_controller.checklist_shared_module.checklistitem_type_id];
+        query_.filters = [filter];
+        query_.set_sort(new SortByVO(this.checklist_controller.checklist_shared_module.checklistitem_type_id, 'id', false));
+
+        /**
+         * On utilise pas l'offset par ce que le filtrage va déjà avoir cet effet, les states sont mis à jour
+         */
+        let items: ICheckListItem[] = await ModuleContextFilter.getInstance().select_vos<ICheckListItem>(query_);
+        items = (items && items.length) ? items.filter((e) => !e.archived) : [];
+
+        await this.checklist_controller.component_hook_onAsyncLoading(
+            this.getStoredDatas,
+            this.storeDatas,
+            this.checklist,
+            (items && items.length) ? VOsTypesManager.getInstance().vosArray_to_vosByIds(items) : {},
+            this.ordered_checkpoints
         );
     }
 
