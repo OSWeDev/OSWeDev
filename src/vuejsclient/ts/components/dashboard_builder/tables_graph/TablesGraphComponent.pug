@@ -3,14 +3,13 @@
         .col-md-9.container_wrapper
             .container(ref="container")
     
-        .col-md-3.fields_wrapper
+        .col-md-3.fields_wrapper 
             .sidebar(ref="sidebar")
-                h2 {{toggle}}
-            
-                    
+                
                 Tablesgrapheditformcomponent(
                     ref="form" 
                     @delete_cell="delete_cell" 
-                    @toggleCheck="toggleCheck"
-                    :cell-data="current_cell" )
+                    @toggle_check="toggle_check"
+                    :cell-data="current_cell"
+                    :toggle ="toggle" )
             Droppablevoscomponent(ref="droppables")

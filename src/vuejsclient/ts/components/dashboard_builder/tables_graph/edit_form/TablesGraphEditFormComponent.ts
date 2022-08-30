@@ -14,6 +14,10 @@ export default class TablesGraphEditFormComponent extends VueComponentBase {
     @Prop()
     private cellData: any;
 
+    @Prop()
+    private toggle: boolean;
+
+    private toggle_output: boolean = true;
     get cell_name(): string {
         if ((!this.cellData) || (!this.cellData.value)) {
             return null;
@@ -28,9 +32,6 @@ export default class TablesGraphEditFormComponent extends VueComponentBase {
 
     private delete_cell() {
         this.$emit('delete_cell', this.cellData);
-    }
-    private toggleCheck() {
-        this.$emit('toggleCheck', this.cellData);
     }
     private async confirm_delete_cell() {
 
@@ -66,34 +67,10 @@ export default class TablesGraphEditFormComponent extends VueComponentBase {
     }
     private async confirm_delete_arrow() {
 
-        let self = this;
-
-        // On demande confirmation avant toute chose.
-        // si on valide, on lance la suppression
-        self.snotify.confirm(self.label('TablesGraphEditFormComponent.confirm_delete_cell.body'), self.label('TablesGraphEditFormComponent.confirm_delete_cell.title'), {
-            timeout: 10000,
-            showProgressBar: true,
-            closeOnClick: false,
-            pauseOnHover: true,
-            buttons: [
-                {
-                    text: self.t('YES'),
-                    action: async (toast) => {
-                        self.$snotify.remove(toast.id);
-                        self.snotify.info(self.label('TablesGraphEditFormComponent.confirm_delete_cell.start'));
-
-                        await self.toggleCheck();
-                        self.snotify.success(self.label('TablesGraphEditFormComponent.confirm_delete_cell.ok'));
-                    },
-                    bold: false
-                },
-                {
-                    text: self.t('NO'),
-                    action: (toast) => {
-                        self.$snotify.remove(toast.id);
-                    }
-                }
-            ]
-        });
+        if (!this.toggle) {
+            this.$emit('toggle_check', true);
+        } else {
+            this.$emit('toggle_check', false);
+        }
     }
 }

@@ -75,8 +75,7 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('width', ModuleTableField.FIELD_TYPE_int, 'largeur', true),
             new ModuleTableField('height', ModuleTableField.FIELD_TYPE_int, 'hauteur', true),
             new ModuleTableField('vo_type', ModuleTableField.FIELD_TYPE_string, 'VOType', true),
-            new ModuleTableField('values_to_exclude', ModuleTableField.FIELD_TYPE_string_array, 'Nom des liens à exclure')
-
+            new ModuleTableField('values_to_exclude', ModuleTableField.FIELD_TYPE_string_array, 'field_id des liens à exclure'),
         ];
 
         let res = new ModuleTable(this, DashboardGraphVORefVO.API_TYPE_ID, () => new DashboardGraphVORefVO(), datatable_fields, null, "Cellule du graph de vos de Dashboard");

@@ -1,10 +1,15 @@
 .tables_graph_edit_form
     .tables_graph_edit_form_title {{ label('tables_graph_edit_form.title') }}
     .tables_graph_edit_form_cell(v-if="cellData && cellData.value")
-        label(class="switch")
-            input(type="checkbox" id="myCheckbox" @change="confirm_delete_arrow" unchecked :cell-data="current_cell")
-            span(class="slider round")
-                    
+        toggle-button(
+                type="checkbox" 
+                id="myCheckbox"
+                @change="confirm_delete_arrow" 
+                :value= "toggle" 
+                :sync="false"
+                :width="100"
+                )
+                
         .name {{ cell_name }}
         .delete(@click='confirm_delete_cell')
             i.fa.fa-trash.fa-fw(aria-hidden="true")
