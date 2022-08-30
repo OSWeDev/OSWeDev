@@ -78,6 +78,8 @@ export default class FieldValueFilterWidgetOptions {
         public default_boolean_values: number[],
         public hide_filter: boolean,
         public no_inter_filter: boolean,
+        public has_other_ref_api_type_id: boolean,
+        public other_ref_api_type_id: string,
     ) { }
 
     public get_placeholder_name_code_text(page_widget_id: number): string {

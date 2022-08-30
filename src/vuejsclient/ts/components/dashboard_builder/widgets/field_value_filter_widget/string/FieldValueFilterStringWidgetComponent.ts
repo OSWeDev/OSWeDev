@@ -610,8 +610,10 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             }
         }
 
-        let query_ = query(this.vo_field_ref.api_type_id)
-            .field(this.vo_field_ref.field_id, 'label')
+        let query_api_type_id: string = (this.has_other_ref_api_type_id && this.other_ref_api_type_id) ? this.other_ref_api_type_id : this.vo_field_ref.api_type_id;
+
+        let query_ = query(query_api_type_id)
+            .field(this.vo_field_ref.field_id, 'label', this.vo_field_ref.api_type_id)
             .add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(active_field_filters_query))
             .set_limit(this.widget_options.max_visible_options)
             .set_sort(new SortByVO(field_sort.api_type_id, field_sort.field_id, true))
@@ -1385,6 +1387,24 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         return !!this.widget_options.no_inter_filter;
     }
 
+    get has_other_ref_api_type_id(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.has_other_ref_api_type_id;
+    }
+
+    get other_ref_api_type_id(): string {
+
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.other_ref_api_type_id;
+    }
+
     get hide_advanced_string_filter_type(): boolean {
         return this.widget_options.hide_advanced_string_filter_type;
     }
@@ -1464,6 +1484,8 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                     options.default_boolean_values,
                     options.hide_filter,
                     options.no_inter_filter,
+                    options.has_other_ref_api_type_id,
+                    options.other_ref_api_type_id,
                 ) : null;
             }
         } catch (error) {

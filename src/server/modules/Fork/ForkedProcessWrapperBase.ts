@@ -88,7 +88,7 @@ export default abstract class ForkedProcessWrapperBase {
 
     public async run() {
 
-        const envParam: EnvParam = ConfigurationService.getInstance().getNodeConfiguration();
+        const envParam: EnvParam = ConfigurationService.getInstance().node_configuration;
 
         let connectionString = envParam.CONNECTION_STRING;
 

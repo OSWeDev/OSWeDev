@@ -177,7 +177,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
                 null,
                 null,
                 'code_lang',
-                [ConfigurationService.getInstance().getNodeConfiguration().DEFAULT_LOCALE]
+                [ConfigurationService.getInstance().node_configuration.DEFAULT_LOCALE]
             );
             let lang: LangVO = langs ? langs[0] : null;
 

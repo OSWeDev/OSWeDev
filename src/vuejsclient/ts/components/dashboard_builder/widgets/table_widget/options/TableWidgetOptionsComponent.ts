@@ -57,6 +57,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private show_pagination_slider: boolean = true;
     private show_pagination_form: boolean = true;
     private can_filter_by: boolean = true;
+    private is_sticky: boolean = false;
     private limit: string = TableWidgetOptions.DEFAULT_LIMIT.toString();
     private limit_selectable: string = TableWidgetOptions.DEFAULT_LIMIT_SELECTABLE;
 

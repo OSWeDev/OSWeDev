@@ -63,7 +63,7 @@ export default abstract class ExportHandlerBase implements IExportHandler {
                 return false;
             }
 
-            let envParam: EnvParam = ConfigurationService.getInstance().getNodeConfiguration();
+            let envParam: EnvParam = ConfigurationService.getInstance().node_configuration;
 
             let user_id: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
             let user: UserVO = null;

@@ -1,3 +1,5 @@
+import { Readable } from 'stream';
+import { from as copyFrom } from 'pg-copy-streams';
 import INamedVO from '../../../shared/interfaces/INamedVO';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
@@ -47,7 +49,6 @@ import ConfigurationService from '../../env/ConfigurationService';
 import ServerBase from '../../ServerBase';
 import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
-import ModuleAnonymizationServer from '../Anonymization/ModuleAnonymizationServer';
 import ServerAnonymizationController from '../Anonymization/ServerAnonymizationController';
 import ContextQueryInjectionCheckHandler from '../ContextFilter/ContextQueryInjectionCheckHandler';
 import ModuleServerBase from '../ModuleServerBase';
@@ -66,8 +67,12 @@ import DAOPreCreateTriggerHook from './triggers/DAOPreCreateTriggerHook';
 import DAOPreDeleteTriggerHook from './triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
+import ModuleParams from '../../../shared/modules/Params/ModuleParams';
+import { Pool } from 'pg';
 
 export default class ModuleDAOServer extends ModuleServerBase {
+
+    public static PARAM_NAME_insert_without_triggers_using_COPY: string = 'ModuleDAOServer.insert_without_triggers_using_COPY';
 
     public static TASK_NAME_add_segmented_known_databases: string = ModuleDAO.getInstance().name + ".add_segmented_known_databases";
 
@@ -81,8 +86,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private static instance: ModuleDAOServer = null;
 
     public check_foreign_keys: boolean = true;
-
     public global_update_blocker: boolean = false;
+
+    private copy_dedicated_pool = null;
+
     private throttled_refuse = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.refuse.bind(this), 1000, { leading: false, trailing: true });
 
     private constructor() {
@@ -149,7 +156,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         // On doit déclarer les access policies de tous les VO
         let lang: LangVO = await ModuleTranslation.getInstance().getLang(DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION);
         let promises = [];
-        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL - 1));
+        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL - 1));
 
         for (let i in VOsTypesManager.getInstance().moduleTables_by_voType) {
             let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[i];
@@ -769,8 +776,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     public async deleteVOsMulticonnections<T extends IDistantVOBase>(vos: T[], max_connections_to_use: number = 0): Promise<InsertOrDeleteQueryResult[]> {
 
-        // max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL));
-        max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL - 1));
+        // max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL));
+        max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL - 1));
 
         let res: InsertOrDeleteQueryResult[] = [];
         let promises = [];
@@ -799,8 +806,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     public async insertOrUpdateVOsMulticonnections<T extends IDistantVOBase>(vos: T[], max_connections_to_use: number = 0): Promise<InsertOrDeleteQueryResult[]> {
 
-        // max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL));
-        max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL - 1));
+        // max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL));
+        max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL - 1));
 
         let res: InsertOrDeleteQueryResult[] = [];
         let promises = [];
@@ -913,7 +920,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         let vos_by_vo_tablename_and_ids: { [tablename: string]: { moduletable: ModuleTable<any>, vos: { [id: number]: IDistantVOBase[] } } } = {};
 
-        max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL - 1));
+        max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL - 1));
 
         let promises = [];
 
@@ -985,14 +992,15 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }
             }
 
-            for (let vo_id in vos_by_vo_tablename_and_ids[tablename].vos) {
+            let vos_by_ids = vos_by_vo_tablename_and_ids[tablename].vos;
+            for (let vo_id in vos_by_ids) {
                 let values = [];
                 let setters: any[] = [];
                 let is_update: boolean = false;
                 let cpt_field: number = 1;
 
-                for (let i in vos_by_vo_tablename_and_ids[tablename].vos[vo_id]) {
-                    let vo: IDistantVOBase = moduleTable.get_bdd_version(vos_by_vo_tablename_and_ids[tablename].vos[vo_id][i]);
+                for (let i in vos_by_ids[vo_id]) {
+                    let vo: IDistantVOBase = moduleTable.get_bdd_version(vos_by_ids[vo_id][i]);
 
                     let vo_values = [];
                     let setters_vo: any[] = [];
@@ -1015,7 +1023,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         if ((fieldValue == null) && field.field_required) {
                             ConsoleHandler.getInstance().error("Champ requis sans valeur, on essaye pas d'enregistrer le VO :field_id: " + field.field_id + ' :table:' + tablename + ' :vo:' + JSON.stringify(vo));
                             is_valid = false;
-                            continue;
+                            break;
                         }
 
                         setters_vo.push(field.field_id + ' = $' + cpt_field_vo);
@@ -1123,6 +1131,240 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         return res;
+    }
+
+    /**
+     * Insert de masse sans trigger / sans check de cohérence, en utilisant la fonction COPY => un fichier qui contient les inserts à faire
+     * On ne renvoie rien
+     *
+     * Attention :
+     *  - on utilise donc aucun trigger,
+     *  - on ne check pas les foreign keys non plus,
+     *  - on ne check pas les doublons non plus,
+     *  - on considère que les vos sont tous du même type,
+     *  - on ne check pas les vos qui ont déjà un id ou une clé unique en base (un index déjà en base par exemple),
+     *  - on ne fait que des inserts, pas d'update avec un COPY
+     *  - on ne gère pas les segmentations
+     */
+    public async insert_without_triggers_using_COPY(vos: IDistantVOBase[]): Promise<void> {
+        if (this.global_update_blocker) {
+            let uid: number = StackContext.getInstance().get('UID');
+            let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
+            if (uid && CLIENT_TAB_ID) {
+                this.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
+            }
+            return null;
+        }
+
+        // On vérifie qu'on peut faire un insert ou update
+        if ((!vos) || (!vos.length)) {
+            return null;
+        }
+
+        vos = vos.filter((vo) =>
+            (!!vo) && vo._type && VOsTypesManager.getInstance().moduleTables_by_voType[vo._type] &&
+            this.checkAccessSync(VOsTypesManager.getInstance().moduleTables_by_voType[vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE));
+
+        if ((!vos) || (!vos.length)) {
+            return null;
+        }
+
+        // On ajoute un filtrage via hook
+        let tmp_vos = [];
+        for (let i in vos) {
+            let vo = vos[i];
+            let tmp_vo = await this.filterVOAccess(VOsTypesManager.getInstance().moduleTables_by_voType[vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, vo);
+
+            if (!!tmp_vo) {
+                tmp_vos.push(tmp_vo);
+            }
+        }
+        if ((!tmp_vos) || (!tmp_vos.length)) {
+            return null;
+        }
+        vos = tmp_vos;
+
+        /**
+         * On check aussi que l'on a pas des updates à faire et uniquement des inserts, sinon on fait un update des vos concernés avant de faire les inserts (on pourrait le faire en // mais c'est plus compliqué)
+         */
+        let update_vos: IDistantVOBase[] = [];
+        let insert_vos: IDistantVOBase[] = [];
+
+        for (let i in vos) {
+            let vo = vos[i];
+
+            if (!!vo.id) {
+                update_vos.push(vo);
+            } else {
+                insert_vos.push(vo);
+            }
+        }
+
+        if (!!update_vos.length) {
+            await this.insertOrUpdateVOs_without_triggers(update_vos);
+        }
+
+        if (!insert_vos.length) {
+            return null;
+        }
+
+        vos = insert_vos;
+
+        let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[vos[0]._type];
+        let table_name: string = moduleTable.full_name;
+
+        if (moduleTable.is_segmented) {
+            throw new Error('Not implemented');
+        }
+
+        let debug_insert_without_triggers_using_COPY = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleDAOServer.PARAM_NAME_insert_without_triggers_using_COPY, true);
+
+        if (debug_insert_without_triggers_using_COPY) {
+            ConsoleHandler.getInstance().log('insert_without_triggers_using_COPY:start');
+        }
+
+        let tableFields: string[] = [];
+        let fields = moduleTable.get_fields();
+
+        for (let i in fields) {
+            let field: ModuleTableField<any> = fields[i];
+
+            tableFields.push(field.field_id);
+
+            /**
+             * Cas des ranges
+             */
+            if ((field.field_type == ModuleTableField.FIELD_TYPE_numrange) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_tsrange) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_hourrange) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_numrange_array) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_refrange_array) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_isoweekdays) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)) {
+
+                tableFields.push(field.field_id + '_ndx');
+            }
+        }
+
+        let lines: string[] = [];
+        for (let i in vos) {
+            let vo: IDistantVOBase = moduleTable.get_bdd_version(vos[i]);
+
+            let setters: any[] = [];
+            let is_valid: boolean = true;
+
+            for (let f in fields) {
+                let field: ModuleTableField<any> = fields[f];
+
+                let fieldValue = vo[field.field_id];
+
+                if (typeof fieldValue == "undefined") {
+                    if (field.has_default && typeof field.field_default == 'undefined') {
+                        fieldValue = field.field_default;
+                    } else {
+                        fieldValue = null;
+                    }
+                }
+
+                if ((fieldValue == null) && field.field_required) {
+                    ConsoleHandler.getInstance().error("Champ requis sans valeur et !has_default, on essaye pas d'enregistrer le VO :field_id: " + field.field_id + ' :table:' + table_name + ' :vo:' + JSON.stringify(vo));
+                    is_valid = false;
+                    break;
+                }
+
+                let stringified = (fieldValue == null) ? '' : JSON.stringify(fieldValue);
+                if ((!!stringified) && (typeof fieldValue == 'string')) {
+                    if (stringified.length == 2) {
+                        stringified = "''";
+                    } else {
+                        stringified = "'" + stringified.substring(1, stringified.length - 1).replace(/\\"/g, '"') + "'";
+                    }
+                }
+                setters.push(stringified);
+
+                /**
+                 * Cas des ranges
+                 */
+                if ((field.field_type == ModuleTableField.FIELD_TYPE_numrange) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_tsrange) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_hourrange) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_numrange_array) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_refrange_array) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_isoweekdays) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)) {
+
+                    let fieldValue_ndx = vo[field.field_id + '_ndx'];
+
+                    stringified = (fieldValue_ndx == null) ? '' : JSON.stringify(fieldValue_ndx);
+                    if ((!!stringified) && (typeof fieldValue_ndx == 'string')) {
+                        if (stringified.length == 2) {
+                            stringified = "''";
+                        } else {
+                            stringified = "'" + stringified.substring(1, stringified.length - 1).replace(/\\"/g, '"') + "'";
+                        }
+                    }
+                    setters.push(stringified);
+                }
+            }
+
+            if (!is_valid) {
+                continue;
+            }
+
+
+            let line = setters.join(';');
+            if (debug_insert_without_triggers_using_COPY) {
+                ConsoleHandler.getInstance().log('insert_without_triggers_using_COPY:line:' + line);
+            }
+            lines.push(line);
+        }
+
+        if ((!lines) || (!lines.length)) {
+            if (debug_insert_without_triggers_using_COPY) {
+                ConsoleHandler.getInstance().log('insert_without_triggers_using_COPY:end');
+            }
+            return;
+        }
+
+        if (!this.copy_dedicated_pool) {
+            this.copy_dedicated_pool = new Pool({
+                connectionString: ConfigurationService.getInstance().node_configuration.CONNECTION_STRING,
+                max: 1,
+            });
+        }
+
+        return new Promise(async (resolve, reject) => {
+
+            this.copy_dedicated_pool.connect(function (err, client, done) {
+
+                let cb = () => {
+                    if (debug_insert_without_triggers_using_COPY) {
+                        ConsoleHandler.getInstance().log('insert_without_triggers_using_COPY:end');
+                    }
+                    done();
+                    resolve();
+                };
+
+                let query_string = "COPY " + table_name + " (" + tableFields.join(", ") + ") FROM STDIN WITH (FORMAT csv, DELIMITER ';', QUOTE '''')";
+                ConsoleHandler.getInstance().log('insert_without_triggers_using_COPY:query_string:' + query_string);
+                var stream = client.query(copyFrom(query_string));
+                var rs = new Readable();
+
+                for (let i in lines) {
+                    let line: string = lines[i];
+                    rs.push(line + "\n");
+                }
+                rs.push(null);
+                rs.on('error', cb);
+
+                rs.pipe(stream).on('finish', cb).on('error', function (error) {
+                    ConsoleHandler.getInstance().error('insert_without_triggers_using_COPY:' + error);
+                    cb();
+                });
+            });
+        });
     }
 
     public async truncate_api(api_type_id: string) {
@@ -1572,7 +1814,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let res: T[] = [];
         let promises = [];
 
-        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 10));
+        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 10));
 
         for (let i in vos) {
             let vo = vos[i];
@@ -2439,7 +2681,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     private async getBaseUrl(): Promise<string> {
-        return ConfigurationService.getInstance().getNodeConfiguration().BASE_URL;
+        return ConfigurationService.getInstance().node_configuration.BASE_URL;
     }
 
     private async getVosByRefFieldIds<T extends IDistantVOBase>(API_TYPE_ID: string, field_name: string, ids: number[]): Promise<T[]> {

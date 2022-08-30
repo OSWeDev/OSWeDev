@@ -18,7 +18,7 @@ export default class VersionUpdater {
     /* istanbul ignore next: really difficult test depending on files */
     public async update_version() {
 
-        if (!ConfigurationService.getInstance().getNodeConfiguration().ACTIVATE_PWA) {
+        if (!ConfigurationService.getInstance().node_configuration.ACTIVATE_PWA) {
             return;
         }
 

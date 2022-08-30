@@ -5,7 +5,7 @@ include ../../../../../views/mixins/loading.pug
         template(v-if='columns')
 
             template(v-if='loaded_once && is_busy')
-                .is_busy 
+                .is_busy
                     i.fa.fa-refresh.fa-spin(aria-hidden="true")
 
             .table_header {{ table_header_title }}
@@ -25,7 +25,7 @@ include ../../../../../views/mixins/loading.pug
                         button.btn.btn-sm.btn-success(v-if='can_create' @click="open_create")
                             i.fa.fa-plus-circle.fa-lg.btn_icon
                             | {{ label('crud.actions.create') }}
-                            
+
                 Tablepaginationcomponent(
                     :pagination_offset='pagination_offset'
                     :pagination_pagesize='limit'
@@ -40,18 +40,14 @@ include ../../../../../views/mixins/loading.pug
                 )
 
             .table_wrapper
-                table.table-striped.table-hover
+                table.table-striped.table-hover(:class='{"has_sticky_cols": has_sticky_cols}')
                     thead
-                        tr
-                            template.table_header(
-                                v-for='column in columns'
-                                )
-                                //- debut de la colonne d'entete
-                                th(v-if="column.type == 5 && column.children.length > 0"
-                                    :class="{ order_asc: order_asc_on_id == column.id, order_desc: order_desc_on_id == column.id }"
-                                    :style="get_style_column(column)"
-                                    :colspan="column.children.length"
-                                )
+                        th.table_header(
+                            v-for='column in columns' 
+                            :class="{ order_asc: order_asc_on_id == column.id, order_desc: order_desc_on_id == column.id }"
+                            :style="get_style_column(column)"
+                            @click="sort_by(column)"
+                            )
 
                                     Inlinetranslatabletext.text-center( :code_text="column.get_translatable_name_code_text(page_widget.id)")
                                 
@@ -98,94 +94,65 @@ include ../../../../../views/mixins/loading.pug
                     template(v-if="update_cpt_live <= 1")
                         tbody
                             tr.table_row(v-for='row in data_rows' :class='{"is_filtering": is_filtering_by, "filtered_value": is_filtering_by && !is_row_filter_ok(row)}')
-                                template(v-for='column in columns')
-                                    td.table_col(
-                                        v-if="column.type != 5"
-                                        :class='{["type_" + column.type]: true, "can_filter": can_filter_by(column) && (is_filtering_by_col(column) || !is_filtering_by), "is_filtering_by": is_filtering_by_col(column) }'
-                                        @click="can_filter_by(column) ? (is_filtering_by_col(column) ? filter_by(column, column.datatable_field_uid, null) : (is_filtering_by ? null : filter_by(column, column.datatable_field_uid, row))) : null"
-                                        v-tooltip='can_filter_by(column) ? ((!is_filtering_by_col(column)) ? (is_filtering_by ? null : (((!column.field_id) || (column.field_id == "id")) ? label("table_widget_component.filter_by.id") : label("table_widget_component.filter_by.column_value"))) : label("table_widget_component.filter_by.unfilter")) : null'
-                                        )
-                                            //- If it's a select box
-                                            template(v-if="column.type == 3")
-                                                input.d-print-none.form-control(type="checkbox" v-model="selected_rows[row.__crud_actions]" :style="{width: (column.column_width ? column.column_width + 'rem' : null)}")
+                                td.table_col(
+                                    v-for='column in columns'
+                                    :class='{["type_" + column.type]: true, "can_filter": can_filter_by(column) && (is_filtering_by_col(column) || !is_filtering_by), "is_filtering_by": is_filtering_by_col(column) }'
+                                    @click="can_filter_by(column) ? (is_filtering_by_col(column) ? filter_by(column, column.datatable_field_uid, null) : (is_filtering_by ? null : filter_by(column, column.datatable_field_uid, row))) : null"
+                                    v-tooltip='can_filter_by(column) ? ((!is_filtering_by_col(column)) ? (is_filtering_by ? null : (((!column.field_id) || (column.field_id == "id")) ? label("table_widget_component.filter_by.id") : label("table_widget_component.filter_by.column_value"))) : label("table_widget_component.filter_by.unfilter")) : null'
+                                    )
 
-                                            //- If it's the crud actions
-                                            template(v-if="(column.type == 0) && !column.hide_from_table")
-                                                .btn-group.d-print-none(v-tooltip='label("table_widget_component.id", {id : row.__crud_actions})' :style="{width: (column.column_width ? column.column_width + 'rem' : null)}")
-                                                    template(v-if='update_button')
-                                                        .btn.btn-sm.btn-primary(@click="open_update(column.api_type_id, row.__crud_actions)")
-                                                            i.fa.fa-pencil
-                                                    template(v-if="can_open_vocus")
-                                                        .btn.btn-xs.btn-secondary(@click="open_vocus(column.api_type_id, row.__crud_actions)")
-                                                            i.fa.fa-search
-                                                    template(v-if="delete_button")
-                                                        .btn.btn-sm.btn-danger(@click="confirm_delete(column.api_type_id, row.__crud_actions)")
-                                                            i.fa.fa-trash
-                                                                
-                                            //- If it's a component
-                                            //-  or any other type of fields
-                                            template(v-else)
-                                                template(v-if='column.readonly')
-                                                    template(v-if='column.is_enum')
-                                                        Datatablecomponentfield.is_enum(
-                                                            :field="fields[column.id]"
-                                                            :vo="row"
-                                                            :columns="columns"
-                                                            :style="{width: (column.column_width ? column.column_width + 'rem' : null), background: (column.enum_bg_colors ? column.enum_bg_colors[row[column.datatable_field_uid + '__raw']] : ''), color: (column.enum_fg_colors ? column.enum_fg_colors[row[column.datatable_field_uid + '__raw']] : '') }"
-                                                        )
-                                                    template(v-else)
-                                                        template(v-if="column.type != 5")
-                                                            Datatablecomponentfield(
-                                                                :field="fields[column.id]"
-                                                                :vo="row"
-                                                                :columns="columns"
-                                                                :style="'width: ' + (column.column_width ? column.column_width + 'rem' : null)"
-                                                                :is_dashboard_builder="true"
-                                                                :show_tooltip="column.show_tooltip"
-                                                            )
-                                                template(v-else)
-                                                    Crudcomponentfield(
-                                                        @onchangevo='onchange_column'
-                                                        :field="fields[column.id]"
-                                                        :vo="row"
-                                                        :style="'width: ' + (column.column_width ? column.column_width + 'rem' : null)"
-                                                        :ask_confirmation_to_delete='true'
-                                                        :inline_input_mode='true'
-                                                        :inline_input_read_value="row[column.datatable_field_uid]"
-                                                        :key='"crudcomponentfield_" + column.datatable_field_uid + "___" + row.__crud_actions'
-                                                        :is_dashboard_builder="true"
-                                                    )
-                                    template.table_col(
-                                        v-if="column.type == 5 && column.children.length > 0"
-                                        :class='{["type_" + column.type]: true, "can_filter": can_filter_by(column) && (is_filtering_by_col(column) || !is_filtering_by), "is_filtering_by": is_filtering_by_col(column) }'
-                                        @click="can_filter_by(column) ? (is_filtering_by_col(column) ? filter_by(column, column.datatable_field_uid, null) : (is_filtering_by ? null : filter_by(column, column.datatable_field_uid, row))) : null"
-                                        v-tooltip='can_filter_by(column) ? ((!is_filtering_by_col(column)) ? (is_filtering_by ? null : (((!column.field_id) || (column.field_id == "id")) ? label("table_widget_component.filter_by.id") : label("table_widget_component.filter_by.column_value"))) : label("table_widget_component.filter_by.unfilter")) : null'
-                                        )
-                                        template(v-for='child in column.children')
-                                            td.table_col(v-if="child.type == 1")
-                                                Datatablecomponentfield(
-                                                    :field="fields[child.id]"
+                                    //- If it's a select box
+                                    template(v-if="column.type == 3")
+                                        input.d-print-none.form-control(type="checkbox" v-model="selected_rows[row.__crud_actions]" :style="{width: (column.column_width ? column.column_width + 'rem' : null)}")
+
+                                    //- If it's the crud actions
+                                    template(v-if="(column.type == 0) && !column.hide_from_table")
+                                        .btn-group.d-print-none(v-tooltip='label("table_widget_component.id", {id : row.__crud_actions})' :style="{width: (column.column_width ? column.column_width + 'rem' : null)}")
+                                            template(v-if='update_button')
+                                                .btn.btn-sm.btn-primary(@click="open_update(column.api_type_id, row.__crud_actions)")
+                                                    i.fa.fa-pencil
+                                            template(v-if="can_open_vocus")
+                                                .btn.btn-xs.btn-secondary(@click="open_vocus(column.api_type_id, row.__crud_actions)")
+                                                    i.fa.fa-search
+                                            template(v-if="delete_button")
+                                                .btn.btn-sm.btn-danger(@click="confirm_delete(column.api_type_id, row.__crud_actions)")
+                                                    i.fa.fa-trash
+                                                        
+                                    //- If it's a component
+                                    //-  or any other type of fields
+                                    template(v-else)
+                                        template(v-if='column.readonly')
+                                            template(v-if='column.is_enum')
+                                                Datatablecomponentfield.is_enum(
+                                                    :field="fields[column.id]"
                                                     :vo="row"
                                                     :columns="columns"
-                                                    :style="'width: ' + (child.column_width ? child.column_width + 'rem' : null)"
+                                                    :style="{width: (column.column_width ? column.column_width + 'rem' : null), background: (column.enum_bg_colors ? column.enum_bg_colors[row[column.datatable_field_uid + '__raw']] : ''), color: (column.enum_fg_colors ? column.enum_fg_colors[row[column.datatable_field_uid + '__raw']] : '') }"
+                                                )
+                                            template(v-else)
+                                                Datatablecomponentfield(
+                                                    :field="fields[column.id]"
+                                                    :vo="row"
+                                                    :columns="columns"
+                                                    :style="'width: ' + (column.column_width ? column.column_width + 'rem' : null)"
                                                     :is_dashboard_builder="true"
-                                                    :show_tooltip="child.show_tooltip"
-                                                    )
-                                            template(v-if="child.type == 0 && !child.hide_from_table")
-                                                td.btn-group.d-print-none(
-                                                    v-tooltip='label("table_widget_component.id", {id : row.__crud_actions})' :style="{width: (child.column_width ? child.column_width + 'rem' : null)}" 
-                                                    )
-                                                    template(v-if='update_button')
-                                                        .btn.btn-sm.btn-primary(@click="open_update(child.api_type_id, row.__crud_actions)")
-                                                            i.fa.fa-pencil
-                                                    template(v-if="can_open_vocus")
-                                                        .btn.btn-xs.btn-secondary(@click="open_vocus(child.api_type_id, row.__crud_actions)")
-                                                            i.fa.fa-search
-                                                    template(v-if="delete_button")
-                                                        .btn.btn-sm.btn-danger(@click="confirm_delete(child.api_type_id, row.__crud_actions)")
-                                                            i.fa.fa-trash
+                                                    :show_tooltip="column.show_tooltip"
+                                                )
 
-            .lower_pagination 
+                                        template(v-else)
+                                            Crudcomponentfield(
+                                                @onchangevo='onchange_column'
+                                                :field="fields[column.id]"
+                                                :vo="row"
+                                                :style="'width: ' + (column.column_width ? column.column_width + 'rem' : null)"
+                                                :ask_confirmation_to_delete='true'
+                                                :inline_input_mode='true'
+                                                :inline_input_read_value="row[column.datatable_field_uid]"
+                                                :key='"crudcomponentfield_" + column.datatable_field_uid + "___" + row.__crud_actions'
+                                                :is_dashboard_builder="true"
+                                            )
+
+            .lower_pagination
                 Tablepaginationcomponent(
                     :pagination_offset='pagination_offset'
                     :pagination_pagesize='limit'

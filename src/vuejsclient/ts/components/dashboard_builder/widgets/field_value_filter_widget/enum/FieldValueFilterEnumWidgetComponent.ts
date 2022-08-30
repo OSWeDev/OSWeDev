@@ -120,7 +120,9 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             active_field_filters = this.get_active_field_filters;
         }
 
-        let query_ = query(this.vo_field_ref.api_type_id).set_limit(this.widget_options.max_visible_options, 0);
+        let query_api_type_id: string = (this.has_other_ref_api_type_id && this.other_ref_api_type_id) ? this.other_ref_api_type_id : this.vo_field_ref.api_type_id;
+
+        let query_ = query(query_api_type_id).set_limit(this.widget_options.max_visible_options, 0);
         query_.fields = [new ContextQueryFieldVO(this.vo_field_ref.api_type_id, this.vo_field_ref.field_id, 'label')];
         query_.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
             ContextFilterHandler.getInstance().clean_context_filters_for_request(active_field_filters));
@@ -267,6 +269,14 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         return this.widget_options.no_inter_filter;
     }
 
+    get has_other_ref_api_type_id(): boolean {
+        return this.widget_options.has_other_ref_api_type_id;
+    }
+
+    get other_ref_api_type_id(): string {
+        return this.widget_options.other_ref_api_type_id;
+    }
+
     get default_values(): DataFilterOption[] {
         let options: FieldValueFilterWidgetOptions = this.widget_options;
 
@@ -326,6 +336,8 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
                     options.default_boolean_values,
                     options.hide_filter,
                     options.no_inter_filter,
+                    options.has_other_ref_api_type_id,
+                    options.other_ref_api_type_id,
                 ) : null;
             }
         } catch (error) {

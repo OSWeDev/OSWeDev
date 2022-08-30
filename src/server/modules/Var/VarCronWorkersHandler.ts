@@ -1,5 +1,8 @@
 import CronWorkerPlanification from '../../../shared/modules/Cron/vos/CronWorkerPlanification';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleCronServer from '../Cron/ModuleCronServer';
+import UpdateEstimatedDurationsCronWorker from './workers/UpdateEstimatedDurations/UpdateEstimatedDurationsCronWorker';
 // import CachedinfoCronWorker from './cachedinfo/CachedinfoCronWorker';
 
 export default class VarCronWorkersHandler {
@@ -14,22 +17,13 @@ export default class VarCronWorkersHandler {
     private static instance: VarCronWorkersHandler = null;
 
     private constructor() {
-        // ModuleCronServer.getInstance().registerCronWorker(CacheableinfoCronWorker.getInstance());
-        // let planCronWorker: CronWorkerPlanification = new CronWorkerPlanification();
-        // planCronWorker.date_heure_planifiee = null;
-        // planCronWorker.intervale_recurrence = 0;
-        // planCronWorker.planification_uid = "CacheableinfoCronWorker";
-        // planCronWorker.type_recurrence = CronWorkerPlanification.TYPE_RECURRENCE_AUCUNE;
-        // planCronWorker.worker_uid = CacheableinfoCronWorker.getInstance().worker_uid;
-        // ModuleCronServer.getInstance().planCronWorker(planCronWorker);
-
-        // ModuleCronServer.getInstance().registerCronWorker(CachedinfoCronWorker.getInstance());
-        // let planCronWorker = new CronWorkerPlanification();
-        // planCronWorker.date_heure_planifiee = null;
-        // planCronWorker.intervale_recurrence = 0;
-        // planCronWorker.planification_uid = "CachedinfoCronWorker";
-        // planCronWorker.type_recurrence = CronWorkerPlanification.TYPE_RECURRENCE_AUCUNE;
-        // planCronWorker.worker_uid = CachedinfoCronWorker.getInstance().worker_uid;
-        // ModuleCronServer.getInstance().planCronWorker(planCronWorker);
+        ModuleCronServer.getInstance().registerCronWorker(UpdateEstimatedDurationsCronWorker.getInstance());
+        let planCronWorker: CronWorkerPlanification = new CronWorkerPlanification();
+        planCronWorker.date_heure_planifiee = Dates.add(Dates.startOf(Dates.now(), TimeSegment.TYPE_DAY), 1, TimeSegment.TYPE_HOUR);
+        planCronWorker.intervale_recurrence = 1;
+        planCronWorker.planification_uid = "UpdateEstimatedDurationsCronWorker";
+        planCronWorker.type_recurrence = CronWorkerPlanification.TYPE_RECURRENCE_JOURS;
+        planCronWorker.worker_uid = UpdateEstimatedDurationsCronWorker.getInstance().worker_uid;
+        ModuleCronServer.getInstance().planCronWorker(planCronWorker);
     }
 }

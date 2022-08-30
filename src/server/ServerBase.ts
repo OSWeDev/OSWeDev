@@ -121,7 +121,7 @@ export default abstract class ServerBase {
 
         this.version = this.getVersion();
 
-        this.envParam = ConfigurationService.getInstance().getNodeConfiguration();
+        this.envParam = ConfigurationService.getInstance().node_configuration;
         EnvHandler.getInstance().BASE_URL = this.envParam.BASE_URL;
         EnvHandler.getInstance().NODE_VERBOSE = !!this.envParam.NODE_VERBOSE;
         EnvHandler.getInstance().IS_DEV = !!this.envParam.ISDEV;
@@ -143,7 +143,7 @@ export default abstract class ServerBase {
             max: this.envParam.MAX_POOL,
         });
 
-        this.db.$pool.options.max = ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL;
+        this.db.$pool.options.max = ConfigurationService.getInstance().node_configuration.MAX_POOL;
         this.db.$pool.options.idleTimeoutMillis = 120000;
 
         let GM = this.modulesService;
@@ -972,7 +972,7 @@ export default abstract class ServerBase {
         // this.initializePushApis(this.app);
         this.registerApis(this.app);
 
-        if (!!ConfigurationService.getInstance().getNodeConfiguration().ACTIVATE_LONG_JOHN) {
+        if (!!ConfigurationService.getInstance().node_configuration.ACTIVATE_LONG_JOHN) {
             require('longjohn');
         }
 
@@ -1022,10 +1022,20 @@ export default abstract class ServerBase {
 
                 await ServerBase.getInstance().hook_on_ready();
 
+                // //TODO DELETE TEST JNE
+                // let fake_file: FileVO = new FileVO();
+                // fake_file.file_access_policy_name = null;
+                // fake_file.path = 'test.txt';
+                // fake_file.is_secured = false;
+
+                // await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY([
+                //     fake_file
+                // ]);
+
                 await ForkServerController.getInstance().fork_threads();
                 BGThreadServerController.getInstance().server_ready = true;
 
-                if (ConfigurationService.getInstance().getNodeConfiguration().AUTO_END_MAINTENANCE_ON_START) {
+                if (ConfigurationService.getInstance().node_configuration.AUTO_END_MAINTENANCE_ON_START) {
                     await ModuleMaintenance.getInstance().end_planned_maintenance();
                 }
 

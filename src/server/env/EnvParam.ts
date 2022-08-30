@@ -24,10 +24,11 @@ export default class EnvParam implements IEnvParam {
     public SERVER_ENCODING: string;
     public CONSOLE_LOG_TO_FILE: boolean = true;
     public DEBUG_FORKS: boolean = false;
-    public VARS_PERF_MONITORING?: boolean = true;
     public START_MAINTENANCE_ACCEPTATION_CODE: string;
     public AUTO_END_MAINTENANCE_ON_START: boolean = true;
     public CODE_GOOGLE_ANALYTICS: string = null;
     public DEBUG_VARS: boolean = false;
+    public DEBUG_IMPORTS?: boolean = false;
     public ACTIVATE_PWA: boolean = false;
+    public RETRY_FAILED_FAST_TRACK_IMPORTS_WITH_NORMAL_IMPORTATION?: boolean = true;
 }

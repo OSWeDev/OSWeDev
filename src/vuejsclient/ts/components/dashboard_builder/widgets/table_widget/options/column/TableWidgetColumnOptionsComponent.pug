@@ -11,7 +11,7 @@
 
 
             .new_column_select_type_label {{ label('table_widget_column.new_column_select_type_label') }}
-        
+
             .new_column_select_type_vo_field_ref
                 .vo_ref_field_receiver(@dragover="allowDrop" @drop="drop")
                     .vo_ref_field_receiver_placeholder {{ label('single_vo_field_ref_holder.vo_ref_field_receiver_placeholder') }}
@@ -67,8 +67,8 @@
     template(v-else)
         .table_widget_column_conf
             .column_label(v-if='!!translatable_name_code_text')
-                Inlinetranslatabletext(                    
-                    :code_text="translatable_name_code_text" 
+                Inlinetranslatabletext(
+                    :code_text="translatable_name_code_text"
                     :is_editable="true"
                     :default_translation="default_column_label")
 
@@ -173,25 +173,25 @@
                             :deselect-group-label='label("multiselect.deselectGroupLabel")'
                         )
 
-                template
-                    .enum_color_options 
-                        .enum_color_option(v-for='(enum_option_label, enum_option_index) in enum_options')
-                            .enum_bg_color
-                                color-picker(v-model="enum_bg_colors[enum_option_index]" @change='throttled_update_enum_colors')
-                            .enum_fg_color
-                                color-picker(v-model="enum_fg_colors[enum_option_index]" @change='throttled_update_enum_colors')
-                            .enum_preview(:style='{width: (column.column_width ? column.column_width + "rem" : null), background: enum_bg_colors[enum_option_index], color: enum_fg_colors[enum_option_index]}') {{ t(enum_option_label) }}
+                //- template(v-if='column.is_enum')
+                .enum_color_options 
+                    .enum_color_option(v-for='(enum_option_label, enum_option_index) in enum_options')
+                        .enum_bg_color
+                            color-picker(v-model="enum_bg_colors[enum_option_index]" @change='throttled_update_enum_colors')
+                        .enum_fg_color
+                            color-picker(v-model="enum_fg_colors[enum_option_index]" @change='throttled_update_enum_colors')
+                        .enum_preview(:style='{width: (column.column_width ? column.column_width + "rem" : null), background: enum_bg_colors[enum_option_index], color: enum_fg_colors[enum_option_index]}') {{ t(enum_option_label) }}
 
-                    .bg_color_header.mt-3
-                        .label.mb-0
-                            label {{ label('table_widget_column_conf.editable_column.bg_color_header') }}
-                        color-picker.mr-2(v-model="tmp_bg_color_header")
-                        template(v-if="tmp_bg_color_header")
-                            i.fa.fa-times(@click="clear_tmp_bg_color_header")
+                .bg_color_header.mt-3
+                    .label.mb-0
+                        label {{ label('table_widget_column_conf.editable_column.bg_color_header') }}
+                    color-picker.mr-2(v-model="tmp_bg_color_header")
+                    template(v-if="tmp_bg_color_header")
+                        i.fa.fa-times(@click="clear_tmp_bg_color_header")
 
-                    .font_color_header.mt-3
-                        .label.mb-0
-                            label {{ label('table_widget_column_conf.editable_column.font_color_header') }}
-                        color-picker.mr-2(v-model="tmp_font_color_header")
-                        template(v-if="tmp_font_color_header")
-                            i.fa.fa-times(@click="clear_tmp_font_color_header")
+                .font_color_header.mt-3
+                    .label.mb-0
+                        label {{ label('table_widget_column_conf.editable_column.font_color_header') }}
+                    color-picker.mr-2(v-model="tmp_font_color_header")
+                    template(v-if="tmp_font_color_header")
+                        i.fa.fa-times(@click="clear_tmp_font_color_header")

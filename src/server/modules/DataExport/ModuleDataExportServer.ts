@@ -234,7 +234,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         }
 
         let promises = [];
-        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2));
+        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 2));
         for (let i in datas) {
             let data = datas[i];
 
@@ -660,17 +660,15 @@ export default class ModuleDataExportServer extends ModuleServerBase {
      * @returns Objet Date
      */
     private format_date_utc(timestamp: number): Date {
-        let date_locate = timestamp ? new Date(timestamp * 1000) : null;
-        if (date_locate) {
-            let timestmp_locate: number = Date.parse(date_locate.toDateString());
-            let diff_timestmp: number = (timestamp * 1000) - timestmp_locate;
-            let final_timestmp: number = timestmp_locate - diff_timestmp;
-            let date_white_timestmp_date_not_locate = new Date(final_timestmp);
-            return date_white_timestmp_date_not_locate;
-        } else {
-            return null;
+        if (timestamp) {
+            /**
+             * On soustrait le timezone local, et les 21 secondes pour Excel ... cf https://github.com/SheetJS/sheetjs/issues/2152 pour les 21 seconds en dur....
+             */
+            return new Date(Date.UTC(Dates.year(timestamp), Dates.month(timestamp), Dates.day(timestamp), 0, 0, 0) + ((new Date()).getTimezoneOffset() * 60 * 1000) - 21000);
         }
+        return null;
     }
+
     /**
      * Traduire le champs field.field_id de src_vo dans dest_vo dans l'optique d'un export excel
      * @param field le descriptif du champs à traduire
@@ -770,7 +768,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     ) {
 
         let promises = [];
-        let max_connections_to_use = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2));
+        let max_connections_to_use = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 2));
         for (let field_id in exportable_datatable_custom_field_columns) {
             let custom_field_translatable_name = exportable_datatable_custom_field_columns[field_id];
             let cb = TableWidgetCustomFieldsController.getInstance().custom_components_export_cb_by_translatable_title[custom_field_translatable_name];

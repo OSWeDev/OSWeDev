@@ -9,35 +9,25 @@ import TranslatableTextVO from '../../../shared/modules/Translation/vos/Translat
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
 import IGeneratorWorker from '../../IGeneratorWorker';
 
-export default class Patch20200924UpgradeUserVOPost implements IGeneratorWorker {
+export default class Patch20220809ChangeDbbTrad implements IGeneratorWorker {
 
-    public static getInstance(): Patch20200924UpgradeUserVOPost {
-        if (!Patch20200924UpgradeUserVOPost.instance) {
-            Patch20200924UpgradeUserVOPost.instance = new Patch20200924UpgradeUserVOPost();
+    public static getInstance(): Patch20220809ChangeDbbTrad {
+        if (!Patch20220809ChangeDbbTrad.instance) {
+            Patch20220809ChangeDbbTrad.instance = new Patch20220809ChangeDbbTrad();
         }
-        return Patch20200924UpgradeUserVOPost.instance;
+        return Patch20220809ChangeDbbTrad.instance;
     }
 
-    private static instance: Patch20200924UpgradeUserVOPost = null;
+    private static instance: Patch20220809ChangeDbbTrad = null;
 
     get uid(): string {
-        return 'Patch20200924UpgradeUserVOPost';
+        return 'Patch20220809ChangeDbbTrad';
     }
 
     private constructor() { }
 
     public async work(db: IDatabase<any>) {
-        /**
-         * Changement trad par défaut sur user pour l'expiration du mdp
-         */
-        await this.update_trad('fields.labels.ref.user.invalidated.___LABEL___', 'Mot de passe expiré');
-
-        /**
-         * Changement trad par défaut sur user pour la récupération du mdp
-         */
-        await this.update_trad('login.recover.answer.___LABEL___', 'Vous devriez recevoir un mail d\'ici quelques minutes pour réinitialiser votre compte. Si vous n\'avez reçu aucun mail, vérifiez vos spams, et que le mail saisi est bien celui du compte et réessayez.');
-
-        await this.update_trad('login.recover.submit.___LABEL___', 'Envoyer le mail');
+        await this.update_trad('table_widget_column_conf.column_width.___LABEL___', 'Largeur du contenu de la colonne, en rem (requis si colonne figée)');
     }
 
     private async update_trad(code: string, text: string) {

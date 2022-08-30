@@ -96,6 +96,11 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
      */
     public can_filter_by: boolean;
 
+    /**
+     * Permet de figer la colonne (tjrs visible)
+     */
+    public is_sticky: boolean;
+
     public bg_color_header: string;
     public font_color_header: string;
 

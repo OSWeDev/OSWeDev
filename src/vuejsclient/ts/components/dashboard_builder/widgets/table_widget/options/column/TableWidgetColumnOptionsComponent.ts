@@ -489,6 +489,15 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.column);
     }
 
+    private async switch_is_sticky() {
+        if (!this.column) {
+            return;
+        }
+
+        this.column.is_sticky = !this.column.is_sticky;
+        this.$emit('update_column', this.column);
+    }
+
     private async switch_many_to_many_aggregate() {
         if (!this.column) {
             return;
@@ -525,6 +534,14 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.column);
     }
 
+    private async is_sticky_table() {
+        if (!this.column) {
+            return;
+        }
+
+        this.column.is_sticky = !this.column.is_sticky;
+        this.$emit('update_column', this.column);
+    }
 
     /**
      * On peut éditer si c'est un certain type de champs et directement sur le VO du crud type paramétré

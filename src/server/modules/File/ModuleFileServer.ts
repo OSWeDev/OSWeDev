@@ -1,3 +1,4 @@
+import { existsSync, fstat, mkdirSync } from 'fs';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
@@ -97,6 +98,12 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
         let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         preCreateTrigger.registerHandler(FileVO.API_TYPE_ID, this.check_secured_files_conf);
         preUpdateTrigger.registerHandler(FileVO.API_TYPE_ID, this.check_secured_files_conf_update);
+    }
+
+    public create_folder_if_not_exists(folder: string) {
+        if (!existsSync(folder)) {
+            mkdirSync(folder);
+        }
     }
 
     protected getNewVo(): FileVO {

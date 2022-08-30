@@ -189,6 +189,7 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('many_to_many_aggregate', ModuleTableField.FIELD_TYPE_boolean, 'Aggrégation des liens ManyToMany'),
             new ModuleTableField('is_nullable', ModuleTableField.FIELD_TYPE_boolean, "La donnée peut-être null"),
             new ModuleTableField('show_tooltip', ModuleTableField.FIELD_TYPE_boolean, "Afficher la popup"),
+            new ModuleTableField('is_sticky', ModuleTableField.FIELD_TYPE_boolean, "Figer", false, true, false),
             new ModuleTableField('header_name', ModuleTableField.FIELD_TYPE_string, "Entête de colonne"),
         ];
 

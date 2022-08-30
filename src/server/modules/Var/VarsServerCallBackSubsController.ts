@@ -25,7 +25,7 @@ export default class VarsServerCallBackSubsController {
     private static instance: VarsServerCallBackSubsController = null;
 
     public notify_vardatas = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(
-        this.notify_vardatas_throttled.bind(this), 20, { leading: true, trailing: true });
+        this.notify_vardatas_throttled.bind(this), 10, { leading: true, trailing: true });
 
     /**
      * Les callbacks à appeler dès que possible
@@ -59,7 +59,7 @@ export default class VarsServerCallBackSubsController {
             }
 
             let waiting_nb = params.length;
-            if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
+            if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
                 ConsoleHandler.getInstance().log("get_vars_datas:waiting_nb:IN:" + waiting_nb);
             }
 
@@ -67,7 +67,7 @@ export default class VarsServerCallBackSubsController {
                 res[data.index] = data;
                 waiting_nb--;
 
-                if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
+                if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
                     ConsoleHandler.getInstance().log("get_vars_datas:waiting_nb:OUT:" + waiting_nb);
                 }
 

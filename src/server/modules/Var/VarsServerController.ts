@@ -13,6 +13,7 @@ import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import ConfigurationService from '../../env/ConfigurationService';
 import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import VarServerControllerBase from './VarServerControllerBase';
@@ -93,10 +94,15 @@ export default class VarsServerController {
                 return;
             }
         }
+
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+            ConsoleHandler.getInstance().log('update_registered_varconf:UPDATED VARCConf VAR_ID:' + conf.id + ':' + JSON.stringify(conf));
+        }
     }
 
     public delete_registered_varconf(id: number) {
         delete this._registered_vars_by_ids[id];
+        let deleted_var = null;
 
         for (let i in this._registered_vars) {
             let registered_var = this._registered_vars[i];
@@ -106,9 +112,14 @@ export default class VarsServerController {
             }
 
             if (registered_var.id == id) {
+                deleted_var = registered_var;
                 delete this._registered_vars[i];
                 return;
             }
+        }
+
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+            ConsoleHandler.getInstance().log('delete_registered_varconf:DELETED VARCConf VAR_ID:' + (deleted_var ? deleted_var.id : 'N/A') + ':' + (deleted_var ? JSON.stringify(deleted_var) : 'N/A'));
         }
     }
 
@@ -124,6 +135,10 @@ export default class VarsServerController {
             this.varcacheconf_by_api_type_ids[conf.var_data_vo_type] = {};
         }
         this.varcacheconf_by_api_type_ids[conf.var_data_vo_type][cacheconf.var_id] = cacheconf;
+
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+            ConsoleHandler.getInstance().log('update_registered_varcacheconf:UPDATED VARCacheConf VAR_ID:' + cacheconf.var_id + ':' + JSON.stringify(cacheconf));
+        }
     }
 
     public delete_registered_varcacheconf(id: number) {
@@ -139,6 +154,10 @@ export default class VarsServerController {
             return;
         }
         delete this.varcacheconf_by_api_type_ids[conf.var_data_vo_type][cacheconf.var_id];
+
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+            ConsoleHandler.getInstance().log('delete_registered_varcacheconf:DELETED VARCacheConf VAR_ID:' + cacheconf.var_id + ':' + JSON.stringify(cacheconf));
+        }
     }
 
     public async init_varcontrollers_dag_depths() {
@@ -231,16 +250,7 @@ export default class VarsServerController {
         }
 
         if ((typeof param.value !== 'undefined') && (!!param.value_ts)) {
-
-            let var_cache_conf = this.varcacheconf_by_var_ids[param.var_id];
-            if (var_cache_conf && !!var_cache_conf.cache_timeout_secs) {
-                let timeout: number = Dates.add(Dates.now(), -var_cache_conf.cache_timeout_secs);
-                if (param.value_ts >= timeout) {
-                    return true;
-                }
-            } else {
-                return true;
-            }
+            return true;
         }
 
         return false;
