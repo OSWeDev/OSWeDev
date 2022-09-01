@@ -60,6 +60,7 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
      * Si TYPE_header
      */
     public header_name: string;
+    public children: TableColumnDescVO[] = [];
     /**
      * Si TYPE_component
      */
@@ -143,14 +144,5 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
                     )
                 )
             );
-        // return DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX + page_widget_id + '.' + this.type + '.' +
-        //     ((this.type == TableColumnDescVO.TYPE_crud_actions) ? '_' :
-        //         ((this.type == TableColumnDescVO.TYPE_vo_field_ref) ? this.api_type_id + '.' + this.field_id :
-        //             ((this.type == TableColumnDescVO.TYPE_var_ref) ? this.var_id :
-        //                 ((this.type == TableColumnDescVO.TYPE_select_box) ? '_' : this.component_name
-        //                 )
-        //             )
-        //         )
-        //     );
     }
 }

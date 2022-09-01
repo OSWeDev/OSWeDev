@@ -770,6 +770,13 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             this.filter_visible_options = [];
             this.filter_visible_options_lvl2 = {};
         } else {
+            for (const key in this.tmp_filter_active_options) {
+                let tfao = this.tmp_filter_active_options[key];
+                let index_opt = tmp.findIndex((e) => e.label == tfao.label);
+                if (index_opt > -1) {
+                    tmp.splice(index_opt, 1);
+                }
+            }
             this.filter_visible_options = tmp;
             this.filter_visible_options_lvl2 = tmp_lvl2;
         }
@@ -906,13 +913,16 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         }
 
         let opt_index: number = tmp_filter_active_options.findIndex((e) => e.label == opt.label);
+        let opt_splice: number = this.filter_visible_options.findIndex((e) => e.label == opt.label);
 
         if (opt_index >= 0) {
             Vue.set(this.active_option_lvl1, opt.label, false);
             tmp_filter_active_options.splice(opt_index, 1);
+            this.filter_visible_options.push(opt);
         } else {
             Vue.set(this.active_option_lvl1, opt.label, true);
             tmp_filter_active_options.push(opt);
+            this.filter_visible_options.splice(opt_splice, 1);
         }
 
         if (!this.can_select_multiple) {

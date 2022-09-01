@@ -66,6 +66,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private tmp_nbpages_pagination_list: number = TableWidgetOptions.DEFAULT_NBPAGES_PAGINATION_LIST;
 
     private editable_columns: TableColumnDescVO[] = null;
+    private current_column: TableColumnDescVO = null;
 
     get crud_api_type_id_select_options(): string[] {
         return this.dashboard.api_type_ids;
@@ -291,17 +292,30 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
          */
         for (let i in this.editable_columns) {
             let column = this.editable_columns[i];
-
-            this.columns.find((c) => c.id == column.id).weight = parseInt(i.toString());
+            this.columns.find((c) => {
+                if (column.type == 5) {
+                    for (let r in column.children) {
+                        let child = column.children[r];
+                        if (c.id == child.id) {
+                            c.weight = parseInt(r.toString());
+                        }
+                    }
+                } else {
+                    if (c.id == column.id) {
+                        c.weight = parseInt(i.toString());
+                    }
+                }
+            });
         }
 
         await ModuleDAO.getInstance().insertOrUpdateVOs(this.columns);
         this.next_update_options = this.widget_options;
-        this.next_update_options.columns = this.columns;
+        this.next_update_options.columns = this.editable_columns;
         await this.throttled_update_options();
     }
 
     private async update_column(update_column: TableColumnDescVO) {
+
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
@@ -314,12 +328,23 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
         let old_column: TableColumnDescVO = null;
 
+        let k: number;
         let i = this.next_update_options.columns.findIndex((column) => {
+
             if (column.id == update_column.id) {
                 old_column = column;
                 return true;
             }
-
+            if (column.type == TableColumnDescVO.TYPE_header) {
+                for (let u in column.children) {
+                    let child = column.children[u];
+                    if (child.id == update_column.id) {
+                        old_column = child;
+                        k = parseInt(u);
+                        return true;
+                    }
+                }
+            }
             return false;
         });
 
@@ -340,8 +365,11 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                 }
             }
         }
-
-        this.next_update_options.columns[i] = update_column;
+        if (typeof (k) != 'undefined') {
+            this.next_update_options.columns[i].children[k] = update_column;
+        } else {
+            this.next_update_options.columns[i] = update_column;
+        }
 
         await this.throttled_update_options();
     }
@@ -357,8 +385,21 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             return null;
         }
 
+        let k: number;
         let i = this.next_update_options.columns.findIndex((column) => {
-            return column.id == del_column.id;
+
+            if (column.id == del_column.id) {
+                return column.id == del_column.id;
+            }
+            if (column.type == TableColumnDescVO.TYPE_header) {
+                for (let u in column.children) {
+                    let child = column.children[u];
+                    if (child.id == del_column.id) {
+                        k = parseInt(u);
+                        return child.id == del_column.id;
+                    }
+                }
+            }
         });
 
         if (i < 0) {
@@ -366,7 +407,11 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             return null;
         }
 
-        this.next_update_options.columns.splice(i, 1);
+        if (typeof (k) != 'undefined') {
+            this.next_update_options.columns[i].children.splice(k);
+        } else {
+            this.next_update_options.columns.splice(i, 1);
+        }
 
         await this.throttled_update_options();
     }
@@ -375,9 +420,8 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, true);
     }
     private async add_column(add_column: TableColumnDescVO) {
-        console.log(add_column);
-        this.next_update_options = this.widget_options;
 
+        this.next_update_options = this.widget_options;
         if (!this.next_update_options) {
             this.next_update_options = this.get_default_options();
         }
@@ -446,11 +490,27 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         return res;
     }
 
-    private update_header_array({ dragItem, pathFrom, pathTo }) {
-        console.log("dragItem: " + dragItem);
-        console.log("pathForm: " + pathFrom);
-        console.log("pathTo: " + pathTo);
+    private beforeMove({ dragItem, pathFrom, pathTo }) {
+        if (pathTo.length > 2) {
+            return false;
+        }
+        if (dragItem.type == TableColumnDescVO.TYPE_header) {
+            return pathTo.length === 1;
+        }
+        // on rentre
+        if (pathFrom.length === 1 && dragItem.type == TableColumnDescVO.TYPE_vo_field_ref && this.columns[pathTo[0]].type == TableColumnDescVO.TYPE_vo_field_ref) {
+            return false;
+        }
+        // on sort
+        if (pathFrom.length === 2 && dragItem.type == TableColumnDescVO.TYPE_vo_field_ref) {
+            return true;
+        }
+        // if (dragItem.type == TableColumnDescVO.TYPE_vo_field_ref) {
+        //     return pathTo.length === 2 || pathTo.length === 1;
+        // }
+        return true;
     }
+
 
     private async update_options() {
         try {
