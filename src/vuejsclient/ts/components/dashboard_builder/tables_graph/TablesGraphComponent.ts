@@ -15,6 +15,7 @@ import TablesGraphEditFormComponent from './edit_form/TablesGraphEditFormCompone
 import TablesGraphItemComponent from './item/TablesGraphItemComponent';
 import './TablesGraphComponent.scss';
 import { watch } from 'fs';
+import { keys } from 'lodash';
 const graphConfig = {
     mxBasePath: '/mx/', //Specifies the path in mxClient.basePath.
     mxImageBasePath: '/mx/images', // Specifies the path in mxClient.imageBasePath.
@@ -81,12 +82,22 @@ export default class TablesGraphComponent extends VueComponentBase {
 
         try {
             if (cell.edge == true) { //Si la cellule selectionnée est une flèche.
+                //Est-ce n/n ?
+                let is_n_n: boolean; // lien n/n ou non
+                let vo_type: string;
+                if (typeof (cell['field_id']) == 'string') {
+                    vo_type = cell.source.value.tables_graph_vo_type;
+                    is_n_n = false;
+                } else {
+                    vo_type = cell['field_id']['intermediaire'];
+                    is_n_n = true;
+                }
                 let db_cells_source = await ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString<DashboardGraphVORefVO>(
                     DashboardGraphVORefVO.API_TYPE_ID,
                     'dashboard_id',
                     [this.dashboard.id],
                     'vo_type',
-                    [cell.source.value.tables_graph_vo_type]
+                    [vo_type]
                 );
 
                 if ((!db_cells_source) || (!db_cells_source.length)) {
@@ -95,9 +106,10 @@ export default class TablesGraphComponent extends VueComponentBase {
                 }
 
                 let db_cell_source = db_cells_source[0];
-
-                this.toggle = db_cell_source.values_to_exclude.includes(cell.value); //On vérifie que l'attribut existe à minima
-                if (this.toggle === undefined) { this.toggle = false; } //C'est possible que la ligne du dessus fonctionne...
+                if (!is_n_n) {
+                    this.toggle = db_cell_source.values_to_exclude.includes(cell['field_id']); //On vérifie que l'attribut existe à minima
+                } else { this.toggle = db_cell_source.values_to_exclude.includes(cell['field_id']['field_id_1']) && db_cell_source.values_to_exclude.includes(cell['field_id']['field_id_2']); }
+                if (this.toggle === undefined) { this.toggle = false; } //Indéfini si les interrupteurs n'ont jamais été touchés...
             }
         } catch { this.toggle = false; } //Si l'état de l'interrupteur n'est toujours pas enregistré.
         this.$set(this, 'current_cell', cell);
@@ -117,13 +129,25 @@ export default class TablesGraphComponent extends VueComponentBase {
             return console.log("Ce n'est pas une flèche !");
         }
         let source_cell: typeof mxCell = arrowValue.source; //Cellule source de la flèche selectionnée.
+
+        //La flèche est-elle n/n ou non ?
+        let vo_type: string;
+        let is_n_n: boolean; // lien n/n ou non
+
+        if (typeof (arrowValue['field_id']) == 'string') {
+            vo_type = arrowValue.source.value.tables_graph_vo_type;
+            is_n_n = false;
+        } else {
+            vo_type = arrowValue['field_id']['intermediaire'];
+            is_n_n = true;
+        }
         //Récupération de la cellule en base SQL
         let db_cells_source = await ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString<DashboardGraphVORefVO>(
             DashboardGraphVORefVO.API_TYPE_ID,
             'dashboard_id',
             [this.dashboard.id],
             'vo_type',
-            [arrowValue.source.value.tables_graph_vo_type]
+            [vo_type]
         );
 
         if ((!db_cells_source) || (!db_cells_source.length)) {
@@ -132,16 +156,47 @@ export default class TablesGraphComponent extends VueComponentBase {
         }
 
         let db_cell_source = db_cells_source[0];
+
         if ((!checked) && db_cell_source.values_to_exclude.length > 0) {
             //Désactive la suppression si le champs à en effet été supprimé.
-            const startIndex = db_cell_source.values_to_exclude.indexOf(arrowValue.value);
-            const deleteCount = 1;
 
-            if (startIndex !== -1) {
-                db_cell_source.values_to_exclude.splice(startIndex, deleteCount);
-                this.toggle = false;
-                await ModuleDAO.getInstance().insertOrUpdateVO(db_cell_source); //Mise à jour de la base.
-                this.initgraph(); //TODO Peut être que cela est trop brutal, on peut essayer simplement avec initcell je pense.
+            // On retire les valeurs Null dans values_to_exclude pouvant apparaître de manière impromptue.
+            const results: string[] = [];
+
+            db_cell_source.values_to_exclude.forEach((element) => {
+                if (element !== null) {
+                    results.push(element);
+                }
+            });
+
+            db_cell_source.values_to_exclude = results;
+
+            switch (is_n_n) {
+                case false:
+                    const startIndex = db_cell_source.values_to_exclude.indexOf(arrowValue['field_id']);
+                    const deleteCount = 1;
+                    if (startIndex !== -1) {
+                        db_cell_source.values_to_exclude.splice(startIndex, deleteCount);
+                        this.toggle = false;
+                        await ModuleDAO.getInstance().insertOrUpdateVO(db_cell_source); //Mise à jour de la base.
+                        this.initgraph(); //TODO Peut être que cela est trop brutal, on peut essayer simplement avec initcell je pense.
+                    }
+                    break;
+                case true:
+                    const startIndex_nn = db_cell_source.values_to_exclude.indexOf(arrowValue['field_id']['field_id_1']);
+                    const deleteCount_nn = 1;
+                    if (startIndex_nn !== -1) {
+                        db_cell_source.values_to_exclude.splice(startIndex_nn, deleteCount_nn);
+                        await ModuleDAO.getInstance().insertOrUpdateVO(db_cell_source); //Mise à jour de la base.
+                    }
+                    const startIndex_nn_2 = db_cell_source.values_to_exclude.indexOf(arrowValue['field_id']['field_id_2']);
+                    if (startIndex_nn_2 !== -1) {
+                        db_cell_source.values_to_exclude.splice(startIndex_nn_2, deleteCount_nn);
+                        this.toggle = false;
+                        await ModuleDAO.getInstance().insertOrUpdateVO(db_cell_source); //Mise à jour de la base.
+                        this.initgraph(); //TODO Peut être que cela est trop brutal, on peut essayer simplement avec initcell je pense.
+                    }
+                    break;
             }
 
         } else if (checked) {
@@ -152,12 +207,30 @@ export default class TablesGraphComponent extends VueComponentBase {
             }
             //Rajout des flèches à éliminer dans ces champs.
             //On rajoute une cible à éliminer.
-            if (!db_cell_source.values_to_exclude.includes(arrowValue.value)) { //On évite les doublons
-                db_cell_source.values_to_exclude.push(arrowValue.value);
-                this.toggle = true;
-                await ModuleDAO.getInstance().insertOrUpdateVO(db_cell_source); //Mise à jour de la base.
+            switch (is_n_n) {
+
+                case false:
+                    if (!db_cell_source.values_to_exclude.includes(arrowValue['field_id'])) { //On évite les doublons
+                        db_cell_source.values_to_exclude.push(arrowValue['field_id']);
+                        this.toggle = true;
+                        await ModuleDAO.getInstance().insertOrUpdateVO(db_cell_source); //Mise à jour de la base.
+                    }
+                    this.initgraph(); //On relance le graphe.
+                    break;
+                case true:
+                    if (!db_cell_source.values_to_exclude.includes(arrowValue['field_id']['field_id_1'])) { //On évite les doublons
+                        db_cell_source.values_to_exclude.push(arrowValue['field_id']['field_id_1']);
+                        this.toggle = true;
+                    }
+                    if (!db_cell_source.values_to_exclude.includes(arrowValue['field_id']['field_id_2'])) { //On évite les doublons
+                        db_cell_source.values_to_exclude.push(arrowValue['field_id']['field_id_2']);
+                        this.toggle = true;
+                    }
+                    await ModuleDAO.getInstance().insertOrUpdateVO(db_cell_source); //Mise à jour de la base.
+
+                    this.initgraph(); //On relance le graphe.
+                    break;
             }
-            this.initgraph(); //On relance le graphe.
         }
     }
 
@@ -180,19 +253,21 @@ export default class TablesGraphComponent extends VueComponentBase {
         // editor.graph.removeSelectionCell
 
         delete this.cells[cellValue.value.tables_graph_vo_type];
-        delete this.graphic_cells[cellValue.value.tables_graph_vo_type];
         editor.graph.removeCells([cellValue]);
+
+        this.initgraph(); //On relance le graphe afin de réafficher les relations n/n si des cellules intermédiaires ont été supprimée.
+
         this.$emit("del_api_type_id", cellValue.value.tables_graph_vo_type);
     }
 
-    private check_doublon(source: string, target: string, field: string) {
-        //Supprime la flèche en question de champs field allant de source vers target , si elle existe.
+    private check_doublon(source: string, target: string, values: string) {
+        //Supprime la flèche en question de champs values allant de source vers target , si elle existe.
         let number_arrows: number;
         try {
             number_arrows = this.cells[source].edges.length;
             if (number_arrows > 0) {
                 for (let cell of this.cells[source].edges) {
-                    if (cell.target.value.tables_graph_vo_type == target && cell.value == field) {
+                    if (cell.target.value.tables_graph_vo_type == target && cell.value == values) {
                         editor.graph.removeCells([cell]); //On retire cette flèche.
                     }
                 }
@@ -220,32 +295,9 @@ export default class TablesGraphComponent extends VueComponentBase {
             cell.vo_type = api_type_id;
             cell.dashboard_id = this.dashboard.id;
             await ModuleDAO.getInstance().insertOrUpdateVO(cell);
-            //Adding the cell graphically
 
-            let parent = graph.getDefaultParent();
-            let model = graph.getModel();
-
-            let v1 = model.cloneCell(this.cell_prototype);
-            model.beginUpdate();
-            try {
-
-                // v1.style.strokeColor = '#F5F5F5';
-                // v1.style.fillColor = '#FFF';
-
-                editor.graph.setCellStyles('strokeColor', '#555', [v1]);
-                editor.graph.setCellStyles('fillColor', '#444', [v1]);
-                v1.geometry.x = cell.x;
-                v1.geometry.y = cell.y;
-                // v1.style = editor.graph.stylesheet.getDefaultEdgeStyle();
-                v1.geometry.alternateBounds = new mxRectangle(0, 0, cell.width, cell.height, '');
-                v1.value.tables_graph_vo_type = cell.vo_type;
-                editor.graph.addCell(v1, parent); //Adding the cell
-            } finally {
-                model.endUpdate();
-            }
-            this.graphic_cells[cell.vo_type] = v1;
-            v1 = this.initcell(cell, v1);
-
+            await this.initgraph(); //Le await est important , on relance le graphe afin d'annhiler les relations n/n affichées inutilement.
+            let v1 = this.graphic_cells[cell.vo_type];
             graph.setSelectionCell(v1);
             this.$emit("add_api_type_id", api_type_id);
             // del_api_type_id
@@ -499,6 +551,7 @@ export default class TablesGraphComponent extends VueComponentBase {
 
         let graph = editor.graph;
         let graph_layout: InstanceType<typeof Graph> = editor.graph_layout;
+        let field_values: { [target: string]: { [values: string]: string | { [keys: string]: string } } } = {}; //Afin d'enregistrer le field_id associé pour chaque value. Le string[] convient pour les n/n.
         graph_layout.reset();
 
         graph.stopEditing(false);
@@ -522,7 +575,7 @@ export default class TablesGraphComponent extends VueComponentBase {
             let references: Array<ModuleTableField<any>> = VOsTypesManager.getInstance().get_type_references(cell.vo_type);
             for (let i in references) {
                 let reference = references[i];
-                let reference_cell = this.graphic_cells[reference.module_table.vo_type];
+                let reference_cell = this.graphic_cells[reference.module_table.vo_type]; //Cellule reliée à v1 partageant la colonne "reference"
                 //La flèche existe déjà ?
                 //Il est possible que la flèche existe déjà dans l'autre sens, dans ce cas , on ne la réaffiche pas.
                 try {
@@ -538,11 +591,12 @@ export default class TablesGraphComponent extends VueComponentBase {
                     does_exist = false; //La flèche n'existe pas.
                 }
 
-                if (reference_cell && (does_exist == false)) {
+                if (reference_cell && (does_exist == false)) { //On rajoute le field id dans en tant qu'identitiant via insertEdge. (cf doc)
                     graph.insertEdge(parent, null, this.t(reference.field_label.code_text), reference_cell, v1);
                     graph_layout.addEdge(reference.module_table.vo_type, node_v1); //Nom des deux cellules sous chaîne de caratère.
 
-                } else if (!reference_cell) { //chemin n/n
+                    //chemin n/n , intervient si la cellule reliée n'est pas sur le dashboard. Ce chemin indique qu'il existe une cellule intermédiaire reliant v1 et une autre cellule.
+                } else if (!reference_cell) { //Si la cellule intermédiaire n'est pas là ,le chemin n/n  sera affiché.
                     //TODO-Rajouter dans la matrice d'adjacence les liaisons n/n
                     if (VOsTypesManager.getInstance().isManyToManyModuleTable(reference.module_table)) {
                         let nn_fields = VOsTypesManager.getInstance().getManyToOneFields(reference.module_table.vo_type, []);
@@ -555,7 +609,7 @@ export default class TablesGraphComponent extends VueComponentBase {
                             let nn_reference_cell = this.graphic_cells[nn_field.manyToOne_target_moduletable.vo_type]; //On rajoute cette flèche dans les flèches crées
                             if (nn_reference_cell) {
                                 try {
-                                    is_link_unccepted = Boolean(values_to_exclude.includes(this.t(nn_field.field_label.code_text) + ' / ' + this.t(reference.field_label.code_text)));
+                                    is_link_unccepted = Boolean(values_to_exclude.includes(nn_field.field_id)) || Boolean(values_to_exclude.includes(reference.field_id));
                                 } catch (error) { //erreur possible si forget_couple[node_v1] n'existe pas
                                     is_link_unccepted = false; //La cible n'est pas interdite.
                                 }
@@ -574,11 +628,18 @@ export default class TablesGraphComponent extends VueComponentBase {
                                 if (does_exist == false) {
                                     //TODO Faire en sorte de  conserver la fléche qui  va dans le même sens que les autres flèches reliant les deux cellules en question.
                                     // TODO FIXME pour le moment le N/N est fait avec 2 flèches dont une a un label pour les 2
+
+                                    if (!field_values[nn_field.manyToOne_target_moduletable.vo_type]) {
+                                        field_values[nn_field.manyToOne_target_moduletable.vo_type] = {};
+                                    }//On crée dans un premier temps le dictionnaire
+
+                                    field_values[nn_field.manyToOne_target_moduletable.vo_type][this.t(nn_field.field_label.code_text) + ' / ' + this.t(reference.field_label.code_text)] = { intermediaire: reference.module_table.vo_type, field_id_1: reference.field_id, field_id_2: nn_field.field_id };  //on enregistre dans le dictionnaire [source_inter,field_1,field_2]
                                     if (is_link_unccepted == true) {
                                         graph.insertEdge(parent, null, this.t(nn_field.field_label.code_text) + ' / ' + this.t(reference.field_label.code_text), v1, nn_reference_cell, 'strokeColor=red;strokeOacity=30');
+                                        //   graph.insertEdge(parent, nn_field.field_id, '', nn_reference_cell, v1, 'strokeColor=red;strokeOacity=30');
                                     } else {
                                         graph.insertEdge(parent, null, this.t(nn_field.field_label.code_text) + ' / ' + this.t(reference.field_label.code_text), v1, nn_reference_cell);
-                                        //         graph.insertEdge(parent, null, '', nn_reference_cell, v1); //Utile ?
+                                        //    graph.insertEdge(parent, nn_field.field_id, '', nn_reference_cell, v1);
                                     }
                                 }
                             }
@@ -601,7 +662,7 @@ export default class TablesGraphComponent extends VueComponentBase {
                 let reference_cell = this.graphic_cells[field.manyToOne_target_moduletable.vo_type];
                 if (field.manyToOne_target_moduletable.vo_type != node_v1) {
                     try { //La flèche est elle acceptée ? On le vérifie en checkant les flèches interdites depuis cette source.
-                        is_link_unccepted = Boolean(values_to_exclude.includes(this.t(field.field_label.code_text)));
+                        is_link_unccepted = Boolean(values_to_exclude.includes(field.field_id));
                     } catch (error) { //erreur possible si forget_couple[node_v1] n'existe pas
                         is_link_unccepted = false; //La cible n'est pas interdite.
                     }
@@ -610,6 +671,11 @@ export default class TablesGraphComponent extends VueComponentBase {
                         //On vérifie que la flèche n'a pas été traçée dans l'autre sens précédement.
                         this.check_doublon(node_v1, field.manyToOne_target_moduletable.vo_type, this.t(field.field_label.code_text)); //Supprime la flèche si celle-ci existe
 
+                        if (!field_values[field.manyToOne_target_moduletable.vo_type]) {
+                            field_values[field.manyToOne_target_moduletable.vo_type] = {};
+                        }//On crée dans un premier temps le dictionnaire
+
+                        field_values[field.manyToOne_target_moduletable.vo_type][this.t(field.field_label.code_text)] = field.field_id; //on enregistre dans le dictionnaire.
                         if (is_link_unccepted == true) {
                             graph.insertEdge(parent, null, this.t(field.field_label.code_text), v1, reference_cell, 'strokeColor=red;strokeOpacity=30'); //Note that the source and target vertices should already have been inserted into the model.
                         } else {
@@ -630,9 +696,16 @@ export default class TablesGraphComponent extends VueComponentBase {
 
         } finally {
             model.endUpdate();
+            for (let arrow in this.cells[node_v1].edges) {
+                // Il est possible que target soit la cellule source, dans ce cas , ça ne marchera pas.
+                let target: string = this.cells[node_v1].edges[arrow].target.value.tables_graph_vo_type;
+                if (target != node_v1) {
+                    let value: string = this.cells[node_v1].edges[arrow].value;
+                    this.cells[node_v1].edges[arrow]['field_id'] = field_values[target][value];
+                }
+            }
             graph_layout.update_matrix();
         }
-
         return v1;
     }
 }
