@@ -24,15 +24,18 @@
     .many_to_one {
         background-color: #28a745;
         border-color: #28a745;
+        white-space: initial;
     }
 
     .one_to_many {
         background-color: #dc3545;
         border-color: #dc3545;
+        white-space: initial;
     }
 
     .many_to_many {
         background-color: #007bff;
         border-color: #007bff;
+        white-space: initial;
     }
 }

@@ -125,6 +125,14 @@
                             :sync="true"
                             :width="100"
                             :labels="{checked: label('table_widget_column_conf.editable_column.can_filter_by'), unchecked: label('table_widget_column_conf.editable_column.cannot_filter_by')}")
+                    
+                    .is_sticky_column
+                        toggle-button(
+                            @change="switch_is_sticky"
+                            :value="column.is_sticky"
+                            :sync="true"
+                            :width="100"
+                            :labels="{checked: label('table_widget_column_conf.editable_column.is_sticky'), unchecked: label('table_widget_column_conf.editable_column.is_not_sticky')}")
 
                     .many_to_many_aggregate.mt-2
                         toggle-button(
