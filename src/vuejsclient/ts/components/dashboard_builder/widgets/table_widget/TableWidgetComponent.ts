@@ -1307,6 +1307,14 @@ export default class TableWidgetComponent extends VueComponentBase {
         await Promise.all(promises);
     }
 
+    get has_group_headers() {
+        if (!this.columns) {
+            return false;
+        }
+
+        return !!this.columns.find((column) => column.type == TableColumnDescVO.TYPE_header);
+    }
+
     get title_name_code_text() {
         if (!this.widget_options) {
             return null;
