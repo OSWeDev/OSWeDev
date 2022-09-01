@@ -78,6 +78,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
     private tmp_default_ts_range_values: TSRange = null;
     private tmp_default_boolean_values: number[] = [];
 
+    private tmp_exclude_filter_opt_values: DataFilterOption[] = [];
+    private tmp_exclude_ts_range_values: TSRange = null;
+
     private filter_visible_options: DataFilterOption[] = [];
     private actual_query: string = null;
 
@@ -87,8 +90,22 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
 
     private crud_api_type_id_selected: string = null;
 
+    private placeholder_advanced_string_filter: string = null;
+    private last_calculation_cpt: number = 0;
+
     private crud_api_type_id_select_label(api_type_id: string): string {
         return this.t(VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id].label.code_text);
+    }
+
+    @Watch('placeholder_advanced_string_filter')
+    private async onchange_placeholder_advanced_string_filter() {
+        this.next_update_options = this.widget_options;
+
+        if (this.next_update_options.placeholder_advanced_mode != this.placeholder_advanced_string_filter) {
+            this.next_update_options.placeholder_advanced_mode = this.placeholder_advanced_string_filter;
+
+            await this.throttled_update_options();
+        }
     }
 
     @Watch('crud_api_type_id_selected')
@@ -112,6 +129,8 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
             this.tmp_default_boolean_values = [];
             this.tmp_default_advanced_string_filter_type = null;
             this.crud_api_type_id_selected = null;
+            this.tmp_exclude_filter_opt_values = [];
+            this.tmp_exclude_ts_range_values = null;
             return;
         }
         this.max_visible_options = this.widget_options.max_visible_options;
@@ -121,6 +140,8 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.tmp_segmentation_type = !!this.widget_options.segmentation_type ? this.segmentation_type_options.find((e) => e.id == this.widget_options.segmentation_type) : null;
         this.tmp_default_advanced_string_filter_type = this.widget_options.default_advanced_string_filter_type;
         this.crud_api_type_id_selected = this.widget_options.other_ref_api_type_id;
+        this.tmp_exclude_filter_opt_values = this.widget_options.exclude_filter_opt_values ? this.widget_options.exclude_filter_opt_values : [];
+        this.tmp_exclude_ts_range_values = this.widget_options.exclude_ts_range_values;
 
         if (!this.tmp_segmentation_type && this.is_type_date) {
             let field = this.field;
@@ -213,6 +234,30 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         await this.throttled_update_options();
     }
 
+    @Watch('tmp_exclude_filter_opt_values')
+    private async onchange_tmp_exclude_filter_opt_values() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        this.next_update_options = this.widget_options;
+        this.next_update_options.exclude_filter_opt_values = (this.tmp_exclude_filter_opt_values && this.tmp_exclude_filter_opt_values.length > 0) ? this.tmp_exclude_filter_opt_values : null;
+
+        await this.throttled_update_options();
+    }
+
+    @Watch('tmp_exclude_ts_range_values')
+    private async onchange_tmp_exclude_ts_range_values() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        this.next_update_options = this.widget_options;
+        this.next_update_options.exclude_ts_range_values = this.tmp_exclude_ts_range_values;
+
+        await this.throttled_update_options();
+    }
+
     private async switch_can_select_multiple() {
         this.next_update_options = this.widget_options;
 
@@ -239,6 +284,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.no_inter_filter,
                 this.has_other_ref_api_type_id,
                 this.other_ref_api_type_id,
+                this.tmp_exclude_filter_opt_values,
+                this.tmp_exclude_ts_range_values,
+                this.placeholder_advanced_mode,
             );
         }
 
@@ -273,6 +321,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.no_inter_filter,
                 this.has_other_ref_api_type_id,
                 this.other_ref_api_type_id,
+                this.tmp_exclude_filter_opt_values,
+                this.tmp_exclude_ts_range_values,
+                this.placeholder_advanced_mode,
             );
         }
 
@@ -307,6 +358,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.no_inter_filter,
                 this.has_other_ref_api_type_id,
                 this.other_ref_api_type_id,
+                this.tmp_exclude_filter_opt_values,
+                this.tmp_exclude_ts_range_values,
+                this.placeholder_advanced_mode,
             );
         }
 
@@ -341,6 +395,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.no_inter_filter,
                 this.has_other_ref_api_type_id,
                 this.other_ref_api_type_id,
+                this.tmp_exclude_filter_opt_values,
+                this.tmp_exclude_ts_range_values,
+                this.placeholder_advanced_mode,
             );
         }
 
@@ -375,6 +432,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.no_inter_filter,
                 this.has_other_ref_api_type_id,
                 this.other_ref_api_type_id,
+                this.tmp_exclude_filter_opt_values,
+                this.tmp_exclude_ts_range_values,
+                this.placeholder_advanced_mode,
             );
         }
 
@@ -409,6 +469,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.no_inter_filter,
                 this.has_other_ref_api_type_id,
                 this.other_ref_api_type_id,
+                this.tmp_exclude_filter_opt_values,
+                this.tmp_exclude_ts_range_values,
+                this.placeholder_advanced_mode,
             );
         }
 
@@ -443,6 +506,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.no_inter_filter,
                 this.has_other_ref_api_type_id,
                 this.other_ref_api_type_id,
+                this.tmp_exclude_filter_opt_values,
+                this.tmp_exclude_ts_range_values,
+                this.placeholder_advanced_mode,
             );
         }
 
@@ -477,6 +543,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.no_inter_filter,
                 this.has_other_ref_api_type_id,
                 this.other_ref_api_type_id,
+                this.tmp_exclude_filter_opt_values,
+                this.tmp_exclude_ts_range_values,
+                this.placeholder_advanced_mode,
             );
         }
 
@@ -511,6 +580,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.no_inter_filter,
                 this.has_other_ref_api_type_id,
                 this.other_ref_api_type_id,
+                this.tmp_exclude_filter_opt_values,
+                this.tmp_exclude_ts_range_values,
+                this.placeholder_advanced_mode,
             );
         }
 
@@ -545,6 +617,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.no_inter_filter,
                 this.has_other_ref_api_type_id,
                 this.other_ref_api_type_id,
+                this.tmp_exclude_filter_opt_values,
+                this.tmp_exclude_ts_range_values,
+                this.placeholder_advanced_mode,
             );
         }
 
@@ -677,6 +752,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.no_inter_filter,
                 this.has_other_ref_api_type_id,
                 this.other_ref_api_type_id,
+                this.tmp_exclude_filter_opt_values,
+                this.tmp_exclude_ts_range_values,
+                this.placeholder_advanced_mode,
             );
         }
 
@@ -716,6 +794,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.no_inter_filter,
                 this.has_other_ref_api_type_id,
                 this.other_ref_api_type_id,
+                this.tmp_exclude_filter_opt_values,
+                this.tmp_exclude_ts_range_values,
+                this.placeholder_advanced_mode,
             );
         }
 
@@ -755,6 +836,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.no_inter_filter,
                 this.has_other_ref_api_type_id,
                 this.other_ref_api_type_id,
+                this.tmp_exclude_filter_opt_values,
+                this.tmp_exclude_ts_range_values,
+                this.placeholder_advanced_mode,
             );
         }
 
@@ -794,6 +878,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.no_inter_filter,
                 this.has_other_ref_api_type_id,
                 this.other_ref_api_type_id,
+                this.tmp_exclude_filter_opt_values,
+                this.tmp_exclude_ts_range_values,
+                this.placeholder_advanced_mode,
             );
         }
 
@@ -832,6 +919,11 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
     }
 
     private async update_visible_options() {
+
+        let launch_cpt: number = (this.last_calculation_cpt + 1);
+
+        this.last_calculation_cpt = launch_cpt;
+
         if (!this.is_type_string && !this.is_type_number && !this.is_type_enum) {
             return;
         }
@@ -854,6 +946,16 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
             this.actual_query,
         );
 
+        // Si je ne suis pas sur la dernière demande, je me casse
+        if (this.last_calculation_cpt != launch_cpt) {
+            return;
+        }
+
+        for (let i in tmp) {
+            let tmpi = tmp[i];
+            tmpi.label = this.t(tmpi.label);
+        }
+
         if (!tmp) {
             this.filter_visible_options = [];
         } else {
@@ -869,15 +971,15 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
     }
 
     private filter_visible_label(dfo: DataFilterOption): string {
-        if (this.is_type_enum) {
-            return this.t(this.field.enum_values[dfo.label]);
-        }
-
         return dfo.label;
     }
 
     get default_placeholder_translation(): string {
         return this.label('FieldValueFilterWidget.filter_placeholder');
+    }
+
+    get default_advanced_mode_placeholder_translation(): string {
+        return this.label('FieldValueFilterWidget.advanced_mode_placeholder');
     }
 
     get widget_options(): FieldValueFilterWidgetOptions {
@@ -911,6 +1013,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                     options.no_inter_filter,
                     options.has_other_ref_api_type_id,
                     options.other_ref_api_type_id,
+                    options.exclude_filter_opt_values,
+                    options.exclude_ts_range_values,
+                    options.placeholder_advanced_mode,
                 ) : null;
             }
         } catch (error) {
@@ -1127,6 +1232,15 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         }
 
         return this.widget_options.other_ref_api_type_id;
+    }
+
+    get placeholder_advanced_mode(): string {
+
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.placeholder_advanced_mode;
     }
 
     get show_search_field(): boolean {

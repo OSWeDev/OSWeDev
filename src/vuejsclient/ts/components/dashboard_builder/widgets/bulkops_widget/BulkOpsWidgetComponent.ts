@@ -75,6 +75,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
     private editable_item: any = null;
 
     private data_rows_after: any[] = [];
+    private last_calculation_cpt: number = 0;
 
     private onchangevo(vo, field, field_value) {
         if (!this.editable_item) {
@@ -283,6 +284,10 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
     private async update_visible_options() {
 
+        let launch_cpt: number = (this.last_calculation_cpt + 1);
+
+        this.last_calculation_cpt = launch_cpt;
+
         this.is_busy = true;
 
         if (!this.widget_options) {
@@ -347,6 +352,11 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
         let rows = await ModuleContextFilter.getInstance().select_datatable_rows(query_);
 
+        // Si je ne suis pas sur la dernière demande, je me casse
+        if (this.last_calculation_cpt != launch_cpt) {
+            return;
+        }
+
         let data_rows = [];
         let promises = [];
         for (let i in rows) {
@@ -365,12 +375,22 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
         }
         await Promise.all(promises);
 
+        // Si je ne suis pas sur la dernière demande, je me casse
+        if (this.last_calculation_cpt != launch_cpt) {
+            return;
+        }
+
         this.data_rows = data_rows;
 
         let context_query = cloneDeep(query_);
         context_query.set_limit(0, 0);
         context_query.set_sort(null);
         this.pagination_count = await ModuleContextFilter.getInstance().select_count(context_query);
+
+        // Si je ne suis pas sur la dernière demande, je me casse
+        if (this.last_calculation_cpt != launch_cpt) {
+            return;
+        }
 
         this.loaded_once = true;
         this.is_busy = false;

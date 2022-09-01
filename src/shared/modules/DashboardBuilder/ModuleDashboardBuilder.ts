@@ -114,6 +114,7 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('default_height', ModuleTableField.FIELD_TYPE_int, 'Hauteur par défaut', true, true, 30),
             new ModuleTableField('default_background', ModuleTableField.FIELD_TYPE_string, 'default_background', true, true, '#f5f5f5'),
             new ModuleTableField('is_filter', ModuleTableField.FIELD_TYPE_boolean, 'is_filter'),
+            new ModuleTableField('is_validation_filters', ModuleTableField.FIELD_TYPE_boolean, 'is_validation_filters'),
         ];
 
         let res = new ModuleTable(this, DashboardWidgetVO.API_TYPE_ID, () => new DashboardWidgetVO(), datatable_fields, name, "Widgets de Dashboard");

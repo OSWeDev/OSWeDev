@@ -85,7 +85,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
 
     private editable_dashboard_page: IEditableDashboardPage = null;
 
-    private is_filtres_deplie: boolean = true;
+    private is_filtres_deplie: boolean = false;
 
     private throttled_rebuild_page_layout = ThrottleHelper.getInstance().declare_throttle_without_args(this.rebuild_page_layout.bind(this), 200);
 

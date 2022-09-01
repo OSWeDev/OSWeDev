@@ -138,7 +138,16 @@
                         :width="60"
                         :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                     ) 
-                    
+
+            .placeholder_advanced_string_filter
+                .input_label {{ label('field_value_filter_widget_component.placeholder_advanced_string_filter') }}
+                .input_wrapper
+                    Inlinetranslatabletext(
+                        v-if='widget_options && widget_options.get_advanced_mode_placeholder_code_text(page_widget.id)'
+                        :code_text="widget_options.get_advanced_mode_placeholder_code_text(page_widget.id)" 
+                        :is_editable="true"
+                    )
+
             .hide_advanced_string_filter_type
                 .input_label {{ label('field_value_filter_widget_component.hide_advanced_string_filter_type') }}
                 .input_wrapper
@@ -233,7 +242,8 @@
                         :deselect-label='label("multiselect.deselectLabel")'
                         :deselect-group-label='label("multiselect.deselectGroupLabel")'
                     )
-                
+
+
         .default_filter_opt_values 
             .input_label {{ label('field_value_filter_widget_component.default_filter_opt_values') }}
             .input_wrapper
@@ -294,4 +304,41 @@
                         :selected-label='label("multiselect.selectedLabel")'
                         :deselect-label='label("multiselect.deselectLabel")'
                         :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                    )
+
+        .exclude_filter_opt_values(v-if="is_type_string") 
+            .input_label {{ label('field_value_filter_widget_component.exclude_filter_opt_values') }}
+            .input_wrapper
+                template(v-if="is_type_string || is_type_number || is_type_enum")
+                    multiselect(
+                        :preselect-first="false"
+                        :multiple="can_select_multiple"
+                        :close-on-select="false"
+                        v-model="tmp_exclude_filter_opt_values"
+                        :options="filter_visible_options"
+                        :custom-label="filter_visible_label"
+                        autocomplete="off"
+
+                        :searchable="true"
+                        :internal-search="false"
+                        :hide-selected="true"
+
+                        track-by="text_uid"
+                        
+                        :key="'field_value_filter_widget_options_component_' + vo_field_ref.api_type_id + '__' + vo_field_ref.field_id"
+                        
+                        :select-label='label("multiselect.selectLabel")'
+                        :select-group-label='label("multiselect.selectGroupLabel")'
+                        :selected-label='label("multiselect.selectedLabel")'
+                        :deselect-label='label("multiselect.deselectLabel")'
+                        :deselect-group-label='label("multiselect.deselectGroupLabel")'
+
+                        @search-change="query_update_visible_options"
+                    )
+                    
+                template(v-if="is_type_date")
+                    Tsrangeinputcomponent(
+                        v-model="tmp_exclude_ts_range_values"
+                        :field="field"
+                        :segmentation_type="segmentation_type"
                     )

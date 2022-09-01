@@ -203,7 +203,18 @@ export default class ContextQueryServerController {
          * on ignore le filtre sur ce champs par défaut, et par contre on considère le acutal_query comme un filtrage en text_contient
          */
         if (get_active_field_filters && get_active_field_filters[field.api_type_id] && get_active_field_filters[field.api_type_id][field.field_id]) {
-            delete get_active_field_filters[field.api_type_id][field.field_id];
+            // Je supprime le filtre du champ si je ne cherche pas à exclure de données
+            switch (get_active_field_filters[field.api_type_id][field.field_id].filter_type) {
+                case ContextFilterVO.TYPE_TEXT_EQUALS_NONE:
+                case ContextFilterVO.TYPE_TEXT_INCLUDES_NONE:
+                case ContextFilterVO.TYPE_TEXT_STARTSWITH_NONE:
+                case ContextFilterVO.TYPE_TEXT_ENDSWITH_NONE:
+                    break;
+
+                default:
+                    delete get_active_field_filters[field.api_type_id][field.field_id];
+                    break;
+            }
         }
 
         if (actual_query) {

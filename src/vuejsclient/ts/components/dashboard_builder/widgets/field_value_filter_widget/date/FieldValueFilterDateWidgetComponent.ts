@@ -1,5 +1,6 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import ContextFilterHandler from '../../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import SimpleDatatableField from '../../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
@@ -68,114 +69,13 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
         this.set_active_field_filter({
             field_id: this.vo_field_ref.field_id,
             vo_type: this.vo_field_ref.api_type_id,
-            active_field_filter: this.get_ContextFilterVO_from_DataFilterOption(this.ts_range, field),
+            active_field_filter: ContextFilterHandler.getInstance().get_ContextFilterVO_from_DataFilterOption(null, this.ts_range, field, this.vo_field_ref),
         });
     }
 
     @Watch('widget_options', { immediate: true })
     private async onchange_widget_options() {
         this.ts_range = this.default_values;
-    }
-
-    private get_ContextFilterVO_from_DataFilterOption(ts_range: TSRange, field: ModuleTableField<any>): ContextFilterVO {
-        let translated_active_options = new ContextFilterVO();
-
-        translated_active_options.field_id = this.vo_field_ref.field_id;
-        translated_active_options.vo_type = this.vo_field_ref.api_type_id;
-
-        switch (field.field_type) {
-            // case ModuleTableField.FIELD_TYPE_file_field:
-            // case ModuleTableField.FIELD_TYPE_file_ref:
-            // case ModuleTableField.FIELD_TYPE_image_field:
-            // case ModuleTableField.FIELD_TYPE_image_ref:
-            // case ModuleTableField.FIELD_TYPE_enum:
-            // case ModuleTableField.FIELD_TYPE_int:
-            // case ModuleTableField.FIELD_TYPE_geopoint:
-            // case ModuleTableField.FIELD_TYPE_float:
-            // case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-            // case ModuleTableField.FIELD_TYPE_amount:
-            // case ModuleTableField.FIELD_TYPE_foreign_key:
-            // case ModuleTableField.FIELD_TYPE_isoweekdays:
-            // case ModuleTableField.FIELD_TYPE_prct:
-            // case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-            // case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-            // case ModuleTableField.FIELD_TYPE_hour:
-            //     translated_active_options.filter_type = ContextFilterVO.TYPE_NUMERIC_INTERSECTS;
-            //     translated_active_options.param_numranges = [RangeHandler.getInstance().create_single_elt_NumRange(active_option.numeric_value, NumSegment.TYPE_INT)];
-            //     break;
-
-            case ModuleTableField.FIELD_TYPE_tstz:
-                translated_active_options.filter_type = ContextFilterVO.TYPE_DATE_INTERSECTS;
-                translated_active_options.param_tsranges = [ts_range];
-                break;
-
-            // case ModuleTableField.FIELD_TYPE_html:
-            // case ModuleTableField.FIELD_TYPE_password:
-            // case ModuleTableField.FIELD_TYPE_email:
-            // case ModuleTableField.FIELD_TYPE_string:
-            // case ModuleTableField.FIELD_TYPE_textarea:
-            // case ModuleTableField.FIELD_TYPE_translatable_text:
-            //     translated_active_options.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ANY;
-            //     translated_active_options.param_textarray = [active_option.string_value];
-            //     break;
-
-            // case ModuleTableField.FIELD_TYPE_plain_vo_obj:
-            // case ModuleTableField.FIELD_TYPE_html_array:
-            //     throw new Error('Not Implemented');
-
-            // case ModuleTableField.FIELD_TYPE_boolean:
-            //     if (!!active_option.boolean_value) {
-            //         translated_active_options.filter_type = ContextFilterVO.TYPE_BOOLEAN_TRUE_ANY;
-            //     } else {
-            //         translated_active_options.filter_type = ContextFilterVO.TYPE_BOOLEAN_FALSE_ANY;
-            //     }
-            //     break;
-
-            // case ModuleTableField.FIELD_TYPE_numrange:
-            //     throw new Error('Not Implemented');
-
-            // case ModuleTableField.FIELD_TYPE_numrange_array:
-            // case ModuleTableField.FIELD_TYPE_refrange_array:
-            //     throw new Error('Not Implemented');
-
-            // case ModuleTableField.FIELD_TYPE_daterange:
-            //     throw new Error('Not Implemented');
-
-            // case ModuleTableField.FIELD_TYPE_hourrange:
-            //     throw new Error('Not Implemented');
-
-            // case ModuleTableField.FIELD_TYPE_tsrange:
-            //     throw new Error('Not Implemented');
-
-            // case ModuleTableField.FIELD_TYPE_tstzrange_array:
-            //     throw new Error('Not Implemented');
-
-            // case ModuleTableField.FIELD_TYPE_hourrange_array:
-            //     throw new Error('Not Implemented');
-
-            // case ModuleTableField.FIELD_TYPE_int_array:
-            // case ModuleTableField.FIELD_TYPE_tstz_array:
-            //     throw new Error('Not Implemented');
-
-            // case ModuleTableField.FIELD_TYPE_string_array:
-            //     throw new Error('Not Implemented');
-
-            // case ModuleTableField.FIELD_TYPE_date:
-            // case ModuleTableField.FIELD_TYPE_day:
-            // case ModuleTableField.FIELD_TYPE_month:
-            //     translated_active_options.filter_type = ContextFilterVO.TYPE_DATE_INTERSECTS;
-            //     translated_active_options.param_tsranges = [RangeHandler.getInstance().create_single_elt_TSRange(
-            //         active_option.tstz_value, (field.segmentation_type != null) ? field.segmentation_type : TimeSegment.TYPE_DAY)];
-            //     break;
-
-            // case ModuleTableField.FIELD_TYPE_timewithouttimezone:
-            //     throw new Error('Not Implemented');
-
-            default:
-                throw new Error('Not Implemented');
-        }
-
-        return translated_active_options;
     }
 
     get vo_field_ref_label(): string {
@@ -212,6 +112,16 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
         return options.default_ts_range_values;
     }
 
+    get exclude_values(): TSRange {
+        let options: FieldValueFilterWidgetOptions = this.widget_options;
+
+        if (!options) {
+            return null;
+        }
+
+        return options.exclude_ts_range_values;
+    }
+
     get widget_options() {
         if (!this.page_widget) {
             return null;
@@ -243,6 +153,9 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
                     options.no_inter_filter,
                     options.has_other_ref_api_type_id,
                     options.other_ref_api_type_id,
+                    options.exclude_filter_opt_values,
+                    options.exclude_ts_range_values,
+                    options.placeholder_advanced_mode,
                 ) : null;
             }
         } catch (error) {
