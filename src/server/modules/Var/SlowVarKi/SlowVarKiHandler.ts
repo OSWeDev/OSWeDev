@@ -249,11 +249,15 @@ export default class SlowVarKiHandler {
         await ModuleDAO.getInstance().insertOrUpdateVO(slowVar);
 
         // Si la var est seule, on la stocke en base comme denied définitivement et on notifie les intéressés
-        computed_var.value = 0;
+        computed_var.value = null;
         computed_var.value_ts = computation_ts;
         computed_var.value_type = VarDataBaseVO.VALUE_TYPE_DENIED;
         let res = await ModuleDAO.getInstance().insertOrUpdateVO(computed_var);
-        computed_var.id = res.id;
+        if (!res) {
+            ConsoleHandler.getInstance().error('DENY SLOW VAR FAILED save computed_var - ' + computed_var.index);
+        } else {
+            computed_var.id = res.id;
+        }
         await VarsTabsSubsController.getInstance().notify_vardatas([new NotifVardatasParam([computed_var])]);
         await VarsServerCallBackSubsController.getInstance().notify_vardatas([computed_var]);
     }

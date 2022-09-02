@@ -62,6 +62,7 @@ import PerfMonConfController from '../PerfMon/PerfMonConfController';
 import PushDataServerController from '../PushData/PushDataServerController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
+import DataSourcesController from './datasource/DataSourcesController';
 import NotifVardatasParam from './notifs/NotifVardatasParam';
 import ThrottleGetVarDatasByIndex from './throttle_params/ThrottleGetVarDatasByIndex';
 import VarCronWorkersHandler from './VarCronWorkersHandler';
@@ -1194,13 +1195,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         let var_controller = VarsServerController.getInstance().registered_vars_controller_[text];
 
-        let res: string[] = [];
-        let deps: DataSourceControllerBase[] = var_controller.getDataSourcesDependencies();
-
-        for (let i in deps) {
-            res.push(deps[i].name);
-        }
-        return res;
+        return VarsServerController.getInstance().get_datasource_deps_and_predeps_names(var_controller);
     }
 
 
@@ -1244,21 +1239,8 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         let predeps = var_controller.getDataSourcesPredepsDependencies();
-        if (predeps) {
-            for (let i in predeps) {
-                let predep = predeps[i];
-                let cache = {};
-
-                // TEMP DEBUG JFE start
-                // if (!this.cpt_for_datasources[predep.name]) {
-                //     this.cpt_for_datasources[predep.name] = 0;
-                // }
-                // this.cpt_for_datasources[predep.name]++;
-                // TEMP DEBUG JFE end
-
-                await predep.load_node_data(varDAGNode, cache);
-            }
-        }
+        let cache = {};
+        await DataSourcesController.getInstance().load_node_datas(predeps, varDAGNode, cache);
 
         // TEMP DEBUG JFE :
         // ConsoleHandler.getInstance().log("cpt_for_datasources :: " + JSON.stringify(this.cpt_for_datasources));
@@ -1289,7 +1271,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             ds_cache,
             true);
 
-        return node.aggregated_datas;
+        return node.aggregated_datas ? node.aggregated_datas : {};
     }
 
     private async getVarParamDatas(param: VarDataBaseVO): Promise<{ [ds_name: string]: string }> {
@@ -1336,7 +1318,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         let datasources_values: { [ds_name: string]: any; } = {};
-        let datasources_deps: DataSourceControllerBase[] = var_controller.getDataSourcesDependencies();
+        let datasources_deps: DataSourceControllerBase[] = VarsServerController.getInstance().get_datasource_deps_and_predeps(var_controller);
 
         // WARNING on se base sur un fake node par ce que je vois pas comment faire autrement...
         let dag: VarDAG = new VarDAG(null);

@@ -1035,9 +1035,10 @@ export default class VarsDatasVoUpdateHandler {
                 delete VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes[bdd_var_registered.index];
             }
 
-            // // bdd_vars_registered à la place de registered_var_datas : pourquoi on remettrait en calcul les imports et denied ?
-            // // si on les remet en calcul, c'est pour mettre à jour les calculs en bdd à la fin donc on indique cela (avec false)
-            // await VarsDatasProxy.getInstance().prepend_var_datas(bdd_vars_registered, false);
+            // bdd_vars_registered à la place de registered_var_datas : pourquoi on remettrait en calcul les imports et denied ?
+            // si on les remet en calcul, c'est pour mettre à jour les calculs en bdd à la fin donc on indique cela (avec false)
+            await VarsDatasProxy.getInstance().prepend_var_datas(bdd_vars_registered, false);
+
             if (env.DEBUG_VARS) {
                 ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_registered_var_datas:RECALC  ' + registered_var_datas.length + ' vars from APP cache.');
             }
@@ -1100,9 +1101,9 @@ export default class VarsDatasVoUpdateHandler {
                 }
 
                 /**
-                 * Ok pour la suppression mais pourquoi on recalcule, puisqu'on a personne registered ? A priori on supprime et puis osef tout simplement.
+                 * On recalcule les pixels qu'on a identfié comme pixel_never_delete
                  */
-                // await VarsDatasProxy.getInstance().append_var_datas(vars_to_append);
+                await VarsDatasProxy.getInstance().append_var_datas(vars_to_append);
                 if (env.DEBUG_VARS) {
                     // ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_unregistered_var_datas:RECALC  ' + unregistered_var_datas.length + ' vars from BDD cache.');
                     ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_unregistered_var_datas:IGNORE (unregistered)  ' + unregistered_var_datas.length + ' vars from BDD cache.');

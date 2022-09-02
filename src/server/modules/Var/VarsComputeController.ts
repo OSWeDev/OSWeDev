@@ -559,26 +559,20 @@ export default class VarsComputeController {
                         promises = [];
                     }
 
-                    let perfmon = PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__DataSourcesController__load_node_datas];
-                    // Si on est sur du perf monitoring on doit faire les appels séparément...
-                    if (perfmon.is_active) {
-                        await DataSourcesController.getInstance().load_node_datas(dss, node, ds_cache);
-                    } else {
-
-                        for (let dssi in dss) {
-                            let ds = dss[dssi];
-                            load_node_data_db_connect_coef_sum += ds.load_node_data_db_connect_coef;
-                        }
-
-                        promises.push((async () => {
-
-                            VarDagPerfsServerController.getInstance().start_nodeperfelement(node.perfs.load_node_datas);
-
-                            await DataSourcesController.getInstance().load_node_datas(dss, node, ds_cache);
-
-                            VarDagPerfsServerController.getInstance().end_nodeperfelement(node.perfs.load_node_datas);
-                        })());
+                    for (let dssi in dss) {
+                        let ds = dss[dssi];
+                        load_node_data_db_connect_coef_sum += ds.load_node_data_db_connect_coef;
                     }
+
+                    promises.push((async () => {
+
+                        VarDagPerfsServerController.getInstance().start_nodeperfelement(node.perfs.load_node_datas);
+
+                        await DataSourcesController.getInstance().load_node_datas(dss, node, ds_cache);
+
+                        VarDagPerfsServerController.getInstance().end_nodeperfelement(node.perfs.load_node_datas);
+                    })());
+
                     if (env.DEBUG_VARS) {
                         ConsoleHandler.getInstance().log('loaded_node_datas:index:' + node.var_data.index + ":value:" + node.var_data.value + ":value_ts:" + node.var_data.value_ts + ":type:" + VarDataBaseVO.VALUE_TYPE_LABELS[node.var_data.value_type]);
                     }
@@ -799,7 +793,12 @@ export default class VarsComputeController {
                  */
                 let predeps_dss: DataSourceControllerBase[] = controller.getDataSourcesPredepsDependencies();
                 if (predeps_dss && predeps_dss.length) {
+
+                    // VarDagPerfsServerController.getInstance().start_nodeperfelement(node.perfs.load_node_datas_predep);
+
                     await DataSourcesController.getInstance().load_node_datas(predeps_dss, node, ds_cache);
+
+                    // VarDagPerfsServerController.getInstance().end_nodeperfelement(node.perfs.load_node_datas_predeps);
                 }
 
                 /**
