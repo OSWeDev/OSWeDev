@@ -496,10 +496,10 @@ export default class TablesGraphComponent extends VueComponentBase {
             return;
         }
 
-        await this.initgraph();
+        await this.initgraph(true);
     }
 
-    private async initgraph() {
+    private async initgraph(red_by_default: boolean = false) {
         this.graphic_cells = {}; //Réinitialisation des cellules à afficher.
         if (editor && editor.graph && Object.values(this.cells) && Object.values(this.cells).length) {
             editor.graph.removeCells(Object.values(this.cells));
@@ -539,17 +539,27 @@ export default class TablesGraphComponent extends VueComponentBase {
         let compteur: number = 0;
         for (let cellule in this.graphic_cells) {
             let v1: typeof mxCell = this.graphic_cells[cellule];
-            this.initcell(cells[compteur], v1);
+            //Table associée, on souhaite désactiver par défau certains chemins.
+            switch (red_by_default) {
+                case true:
+                    let table = VOsTypesManager.getInstance().moduleTables_by_voType[cellule];
+                    let is_versioned: boolean = table.is_versioned;
+                    this.initcell(cells[compteur], v1, is_versioned);
+                    break;
+                case false:
+                    this.initcell(cells[compteur], v1);
+            }
             compteur += 1;
         }
     }
-    private initcell(cell: DashboardGraphVORefVO, v1: typeof mxCell) { //TODO Inclure les champs techniques dans targets_to_exclude
+    private initcell(cell: DashboardGraphVORefVO, v1: typeof mxCell, is_versioned?) { //TODO Inclure les champs techniques dans targets_to_exclude
         /*
          Incorpore la cellule cell dans le graphique et dessine les flèches qui partent de celle-ci ainsi que celle qui viennent.
          On évite de redessiner les flèches déjà construite.
         */
 
         //On récupère les flèches à ne pas prendre en compte car supprimées.
+
         this.cells[cell.vo_type] = v1;
         let values_to_exclude: string[]; //Voici la liste des flèches à ne pas afficher.
         if (cell.values_to_exclude) {
@@ -567,6 +577,7 @@ export default class TablesGraphComponent extends VueComponentBase {
         let model = graph.getModel();
         //Constantes nécessaires:
         let node_v1: string = cell.vo_type; //Nom de la cellule source
+
         let is_link_unccepted: boolean; //Si la flèche construite n'est pas censurée
         let does_exist: boolean; //Si la flèche construite ne l'a pas déjà été.
         //First Update : target -> source
@@ -661,10 +672,21 @@ export default class TablesGraphComponent extends VueComponentBase {
                 let field = fields[i];
                 let reference_cell = this.graphic_cells[field.manyToOne_target_moduletable.vo_type];
                 if (field.manyToOne_target_moduletable.vo_type != node_v1) {
-                    try { //La flèche est elle acceptée ? On le vérifie en checkant les flèches interdites depuis cette source.
-                        is_link_unccepted = Boolean(values_to_exclude.includes(field.field_id));
-                    } catch (error) { //erreur possible si forget_couple[node_v1] n'existe pas
-                        is_link_unccepted = false; //La cible n'est pas interdite.
+
+                    //Cas versionné ou non
+                    if (is_versioned && (["Modificateur", "Créateur"].includes(this.t(field.field_label.code_text)))) {
+                        if (!cell.values_to_exclude.includes(field.field_id)) {
+                            cell.values_to_exclude.push(field.field_id);
+                            is_link_unccepted = true;
+                            ModuleDAO.getInstance().insertOrUpdateVO(cell);
+
+                        }
+                    } else {
+                        try { //La flèche est elle acceptée ? On le vérifie en checkant les flèches interdites depuis cette source.
+                            is_link_unccepted = Boolean(values_to_exclude.includes(field.field_id));
+                        } catch (error) { //erreur possible si forget_couple[node_v1] n'existe pas
+                            is_link_unccepted = false; //La cible n'est pas interdite.
+                        }
                     }
 
                     if (reference_cell) {
@@ -682,6 +704,7 @@ export default class TablesGraphComponent extends VueComponentBase {
                             graph.insertEdge(parent, null, this.t(field.field_label.code_text), v1, reference_cell);
                             graph_layout.addEdge(field.manyToOne_target_moduletable.vo_type, node_v1); //Nom des deux cellules sous chaîne de caratère.
                         }
+
                     }
                 }
             }
