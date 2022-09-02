@@ -53,6 +53,8 @@ import TablePaginationComponent from './pagination/TablePaginationComponent';
 import './TableWidgetComponent.scss';
 import TableWidgetController from './TableWidgetController';
 
+//TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
+
 @Component({
     template: require('./TableWidgetComponent.pug'),
     components: {
