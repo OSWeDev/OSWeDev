@@ -11,6 +11,7 @@ import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
 import './MultipleSelectFilterComponent.scss';
+import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 
 @Component({
     template: require('./MultipleSelectFilterComponent.pug'),
@@ -99,6 +100,14 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
     @Prop({
         default: null
     })
+    @Prop({})
+    private group_values: string;
+    @Prop({})
+    private group_label: string;
+    @Prop({})
+    private group_select: string;
+    // @Prop({})
+    // private label: string;
     private sort_options_func: (options: DataFilterOption[]) => void;
 
     private tmp_filter_active_options: DataFilterOption[] = [];
@@ -108,6 +117,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
     private filter_state_unselectable: number = DataFilterOption.STATE_UNSELECTABLE;
 
     private actual_query: string = null;
+    private final_array = [{}];
 
     get filter_options(): DataFilterOption[] {
         let res: DataFilterOption[] = [];
@@ -121,6 +131,16 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
             id_marker.push(filter_zone_active_option.id);
         }
 
+        let array_other = [];
+        let array_white_cousin = [];
+        let unite = {
+            name_group: '',
+            group: [{}]
+        };
+        let copy_of_all_pdvs = Object.values(this.selectables_by_ids);
+
+
+
         for (let i in this.selectables_by_ids) {
             let vo: IDistantVOBase = this.selectables_by_ids[i];
 
@@ -128,6 +148,112 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
                 continue;
             }
 
+            let pdv: any = this.selectables_by_ids[i];
+            if (pdv.multimarque_cousin_1_id == null &&
+                pdv.multimarque_cousin_2_id == null &&
+                pdv.multimarque_cousin_3_id == null &&
+                pdv.multimarque_cousin_4_id == null
+            ) {
+                array_other.push(pdv);
+            } else {
+                array_white_cousin.push(pdv);
+            }
+
+            for (const c in array_white_cousin) {
+                let pdvv = array_white_cousin[c];
+                let name: string;
+                let tab = [];
+                tab.push(pdvv);
+                if (pdvv.multimarque_cousin_1_id == null) {
+                    pdvv.multimarque_cousin_1_id = '';
+                }
+                if (pdvv.multimarque_cousin_2_id == null) {
+                    pdvv.multimarque_cousin_2_id = '';
+                }
+                if (pdvv.multimarque_cousin_3_id == null) {
+                    pdvv.multimarque_cousin_3_id = '';
+                }
+                if (pdvv.multimarque_cousin_4_id == null) {
+                    pdvv.multimarque_cousin_4_id = '';
+                }
+                // on veut effacer dans array white cousin le pdvv
+                if (pdvv.multimarque_cousin_1_id != null && pdvv.multimarque_cousin_1_id != '') {
+                    for (const w in copy_of_all_pdvs) {
+                        let wpdv = copy_of_all_pdvs[w];
+                        if (pdv.multimarque_cousin_1_id == wpdv.id) {
+                            tab.push(wpdv);
+                            copy_of_all_pdvs.splice(parseInt(w), 1);
+                            let index_of_splice = array_white_cousin.findIndex((o) => o.id == wpdv.id);
+                            array_white_cousin.splice(index_of_splice, 1);
+                            name = wpdv.rrdi;
+                        }
+                    }
+                    let coucou: typeof unite = {
+                        name_group: name,
+                        group: tab
+                    };
+                    this.final_array.push(coucou);
+                }
+                if (pdv.multimarque_cousin_2_id != null && pdv.multimarque_cousin_2_id != '') {
+                    for (const w in copy_of_all_pdvs) {
+                        let wpdv = copy_of_all_pdvs[w];
+                        if (pdv.multimarque_cousin_1_id == wpdv.id) {
+                            tab.push(wpdv);
+                            copy_of_all_pdvs.splice(parseInt(w), 1);
+                            let index_of_splice = array_white_cousin.findIndex((o) => o.id == wpdv.id);
+                            array_white_cousin.splice(index_of_splice, 1);
+                            name = name + wpdv.rrdi;
+                        }
+                    }
+                    let coucou: typeof unite = {
+                        name_group: name,
+                        group: tab
+                    };
+                    this.final_array.push(coucou);
+                }
+                if (pdv.multimarque_cousin_3_id != null && pdv.multimarque_cousin_3_id != '') {
+                    for (const w in copy_of_all_pdvs) {
+                        let wpdv = copy_of_all_pdvs[w];
+                        if (pdv.multimarque_cousin_1_id == wpdv.id) {
+                            tab.push(wpdv);
+                            copy_of_all_pdvs.splice(parseInt(w), 1);
+                            let index_of_splice = array_white_cousin.findIndex((o) => o.id == wpdv.id);
+                            array_white_cousin.splice(index_of_splice, 1);
+                            name = name + wpdv.rrdi;
+                        }
+                    }
+                    let coucou: typeof unite = {
+                        name_group: name,
+                        group: tab
+                    };
+                    this.final_array.push(coucou);
+                }
+                if (pdv.multimarque_cousin_4_id != null && pdv.multimarque_cousin_4_id != '') {
+                    for (const w in copy_of_all_pdvs) {
+                        let wpdv = copy_of_all_pdvs[w];
+                        if (pdv.multimarque_cousin_1_id == wpdv.id) {
+                            tab.push(wpdv);
+                            copy_of_all_pdvs.splice(parseInt(w), 1);
+                            let index_of_splice = array_white_cousin.findIndex((o) => o.id == wpdv.id);
+                            array_white_cousin.splice(index_of_splice, 1);
+                            name = name + wpdv.rrdi;
+                        }
+                    }
+                    let coucou: typeof unite = {
+                        name_group: name,
+                        group: tab
+                    };
+                    this.final_array.push(coucou);
+                }
+                array_white_cousin.splice(parseInt(c), 1);
+            }
+        }
+        for (let i in this.selectables_by_ids) {
+            let vo: IDistantVOBase = this.selectables_by_ids[i];
+
+            if (id_marker.indexOf(vo.id) > -1) {
+                continue;
+            }
             let label = this.get_label(vo);
             if (((!!this.actual_query) && (new RegExp('.*' + this.actual_query + '.*', 'i')).test(label)) || (!this.actual_query)) {
 

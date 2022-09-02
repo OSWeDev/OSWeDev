@@ -37,7 +37,10 @@
         :selected-label='label("multiselect.selectedLabel")'
         :deselect-label='label("multiselect.deselectLabel")'
         :deselect-group-label='label("multiselect.deselectGroupLabel")'
+
+        
     )
+        //- label="rrdi",
         span(slot="noOptions") -
         slot(slot="maxElements")  {{ label('multiselect.maxElements', { max }) }}
 
