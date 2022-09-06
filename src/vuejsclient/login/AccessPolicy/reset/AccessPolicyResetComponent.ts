@@ -18,6 +18,9 @@ export default class AccessPolicyResetComponent extends VueComponentBase {
     @Prop({ default: null })
     private prop_challenge: string;
 
+    @Prop()
+    private footer_component: any;
+
     private is_simplified: boolean = false;
 
     private email: string = "";

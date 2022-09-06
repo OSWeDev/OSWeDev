@@ -26,3 +26,6 @@
             router-link(:to="{ name: 'recover' }") {{ label('login.recoverlink') }}
 
     Sessionsharecomponent()
+
+    template(v-if="footer_component")
+        div(:is="footer_component") 
