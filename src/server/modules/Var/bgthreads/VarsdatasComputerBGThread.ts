@@ -200,7 +200,8 @@ export default class VarsdatasComputerBGThread implements IBGThread {
              * On dépile les CUD sur les VOs et faire les invalidations
              */
 
-            let refuse_computation = await this.varsdatas_voupdate_handle_buffer_perf_wrapper(var_dag);
+            // let refuse_computation =
+            await this.varsdatas_voupdate_handle_buffer_perf_wrapper(var_dag);
 
             /**
              * On invalide les vars si des intersecteurs sont en attente
@@ -220,15 +221,18 @@ export default class VarsdatasComputerBGThread implements IBGThread {
              *  - on libère le bgthread, en indiquant qu'on a eu des choses à gérer donc il faut revenir très rapidement
              */
 
-            let did_something: boolean = false;
+            // let did_something: boolean = false;
 
-            if (!refuse_computation) {
-                did_something = await this.do_computation(var_dag);
-            }
+            // if (!refuse_computation) {
+            // did_something = await this.do_computation(var_dag);
+            // }
+
+            let did_something: boolean = await this.do_computation(var_dag);
 
             if (!did_something) {
 
-                ConsoleHandler.getInstance().log('VarsdatasComputerBGThread.do_calculation_run:!did_something:refuse_computation:' + refuse_computation + ':');
+                // ConsoleHandler.getInstance().log('VarsdatasComputerBGThread.do_calculation_run:!did_something:refuse_computation:' + refuse_computation + ':');
+                ConsoleHandler.getInstance().log('VarsdatasComputerBGThread.do_calculation_run:!did_something');
 
                 if (VarsDatasVoUpdateHandler.getInstance().last_call_handled_something) {
                     this.run_asap = true;

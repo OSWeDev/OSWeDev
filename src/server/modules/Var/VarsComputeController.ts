@@ -517,7 +517,7 @@ export default class VarsComputeController {
                     }
 
                     if (VarsCacheController.getInstance().BDD_do_cache_param_data(node.var_data, VarsServerController.getInstance().getVarControllerById(node.var_data.var_id), node.is_batch_var)) {
-                        await VarsDatasProxy.getInstance().prepend_var_datas([node.var_data], false);
+                        await VarsDatasProxy.getInstance().append_var_datas([node.var_data]);
                     }
                 }
             },
