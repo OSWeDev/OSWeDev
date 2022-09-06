@@ -58,7 +58,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private show_pagination_slider: boolean = true;
     private show_pagination_form: boolean = true;
     private show_pagination_list: boolean = false;
-    private has_table_total_footer: boolean = true;
+    private has_table_total_footer: boolean = false;
     private can_filter_by: boolean = true;
     private is_sticky: boolean = false;
     private limit: string = TableWidgetOptions.DEFAULT_LIMIT.toString();
@@ -417,7 +417,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     }
 
     private get_default_options(): TableWidgetOptions {
-        return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, true);
+        return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, false);
     }
     private async add_column(add_column: TableColumnDescVO) {
 

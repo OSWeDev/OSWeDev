@@ -1764,12 +1764,14 @@ export default class TableWidgetComponent extends VueComponentBase {
                 if (res && res[0]) {
                     let column_total: number = res[0][alias_field];
 
-                    // Si pourcentage, on fait la somme des prct qu'on divise par le nbr de res
-                    if ((field.field_type == ModuleTableField.FIELD_TYPE_prct) && this.pagination_count) {
-                        column_total /= this.pagination_count;
-                    }
+                    if (column_total) {
+                        // Si pourcentage, on fait la somme des prct qu'on divise par le nbr de res
+                        if ((field.field_type == ModuleTableField.FIELD_TYPE_prct) && this.pagination_count) {
+                            column_total /= this.pagination_count;
+                        }
 
-                    this.column_total[column.api_type_id][column.field_id] = parseFloat(column_total.toFixed(2));
+                        this.column_total[column.api_type_id][column.field_id] = parseFloat(column_total.toFixed(2));
+                    }
                 }
             })());
         }
