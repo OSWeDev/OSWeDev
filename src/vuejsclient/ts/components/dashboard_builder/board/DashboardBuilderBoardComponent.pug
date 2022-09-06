@@ -33,7 +33,7 @@
                                 template(v-else)
                                     i.fa.fa-chevron-down
 
-                        .row.body-filters-bloc(v-if="is_filtres_deplie")
+                        .row.body-filters-bloc(v-show="is_filtres_deplie")
                             template(v-for="item in editable_dashboard_page.layout")
                                 template(v-if='!item.hide')
                                     template(v-if='widgets_by_id[item.widget_id].is_filter')
