@@ -6,6 +6,7 @@ import 'select2';
 import VCalendar from 'v-calendar';
 import VTooltip from 'v-tooltip';
 import Vue from 'vue';
+import VueCookies from 'vue-cookies-ts';
 import VueDraggableResizable from 'vue-draggable-resizable';
 import VueI18n from 'vue-i18n';
 import Intersect from 'vue-intersect';
@@ -53,6 +54,7 @@ require('moment-json-parser').overrideDefault();
 
 export default abstract class VueAppBase {
 
+    public static APP_VERSION_COOKIE: string = "app_version";
     public static instance_: VueAppBase;
 
     public static getInstance(): VueAppBase {
@@ -205,6 +207,7 @@ export default abstract class VueAppBase {
 
         Vue.use(ClientTable);
         Vue.use(VueI18n);
+        Vue.use(VueCookies);
         LocaleManager.getInstance().i18n = new VueI18n({
             locale: default_locale,
             messages: this.appController.ALL_LOCALES,
@@ -393,6 +396,11 @@ export default abstract class VueAppBase {
                 document.body.className += " isfront";
             }
 
+            // Si on a pas la même version entre le front et le back, on redirige vers la page de mise à jour
+            if (!this.checkAppVersion()) {
+                return;
+            }
+
             next();
         });
 
@@ -449,6 +457,11 @@ export default abstract class VueAppBase {
         this.vueInstance = this.createVueMain();
         this.vueInstance.$mount('#vueDIV');
 
+        // Si on a pas la même version entre le front et le back, on redirige vers la page de mise à jour
+        if (!this.checkAppVersion(false)) {
+            return;
+        }
+
         await this.postMountHook();
 
         let app_name: "client" | "admin" | "login" = this.appController.app_name;
@@ -490,6 +503,34 @@ export default abstract class VueAppBase {
     protected abstract initializeVueAppModulesDatas(): Promise<any>;
     protected async postInitializationHook() { }
     protected async postMountHook() { }
+
+    /**
+     *
+     * @returns false si on a pas la même version entre le front et le back, true sinon
+     */
+    private checkAppVersion(reload_window: boolean = true): boolean {
+        if (!this.vueInstance) {
+            return true;
+        }
+
+        if (EnvHandler.getInstance().VERSION != this.vueInstance.$cookies.get(VueAppBase.APP_VERSION_COOKIE)) {
+            this.vueInstance.$cookies.set(VueAppBase.APP_VERSION_COOKIE, EnvHandler.getInstance().VERSION);
+
+            if (reload_window) {
+                this.vueInstance.$snotify.warning(
+                    this.vueInstance.label("app_version_changed"),
+                    { timeout: 3000 }
+                );
+
+                setTimeout(() => {
+                    window.location.reload();
+                }, 3000);
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     private try_language(code_lang: string): string {
         /**
