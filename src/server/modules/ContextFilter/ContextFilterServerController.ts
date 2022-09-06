@@ -1453,6 +1453,13 @@ export default class ContextFilterServerController {
                             break;
                         }
 
+                        if (active_field_filter.param_numranges) {
+                            RangeHandler.getInstance().foreach_ranges_sync(active_field_filter.param_numranges, (num: number) => {
+                                ContextQueryInjectionCheckHandler.assert_numeric(num);
+                                where_conditions.push(field_id + " != " + num);
+                            });
+                        }
+
                         if ((active_field_filter.param_alias == null) && (active_field_filter.param_numeric == null)) {
                             /**
                              * Par défaut si num et alias sont null, on est en train de dire qu'on cherche une valeur nulle
