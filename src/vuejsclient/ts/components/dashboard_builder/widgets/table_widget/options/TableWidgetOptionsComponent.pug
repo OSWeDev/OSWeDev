@@ -88,6 +88,16 @@
                     v-model="tmp_nbpages_pagination_list"
                 )
 
+    .hide_pagination_bottom
+        .input_label {{ label('table_widget_options_component.hide_pagination_bottom') }}
+        toggle-button(
+            @change="switch_hide_pagination_bottom" 
+            :value="hide_pagination_bottom" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('table_widget_options_component.hide_pagination_bottom.visible'), unchecked: label('table_widget_options_component.hide_pagination_bottom.hidden')}")
+    
+
     .has_table_total_footer
         .input_label {{ label('table_widget_options_component.has_table_total_footer') }}
         toggle-button(

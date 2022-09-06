@@ -144,7 +144,7 @@ include ../../../../../views/mixins/loading.pug
                                     template(v-if="!colspan_total || (parseInt(index_column) >= colspan_total)")
                                         td 
 
-            .lower_pagination
+            .lower_pagination(v-if="!hide_pagination_bottom")
                 Tablepaginationcomponent(
                     :pagination_offset='pagination_offset'
                     :pagination_pagesize='limit'

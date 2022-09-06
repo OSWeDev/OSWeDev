@@ -58,6 +58,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private show_pagination_slider: boolean = true;
     private show_pagination_form: boolean = true;
     private show_pagination_list: boolean = true;
+    private hide_pagination_bottom: boolean = false;
     private has_table_total_footer: boolean = true;
     private can_filter_by: boolean = true;
     private is_sticky: boolean = false;
@@ -138,6 +139,12 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         }
         if (this.export_button != this.widget_options.export_button) {
             this.export_button = this.widget_options.export_button;
+        }
+        if (this.hide_pagination_bottom != this.widget_options.hide_pagination_bottom) {
+            this.hide_pagination_bottom = this.widget_options.hide_pagination_bottom;
+        }
+        if (this.show_pagination_list != this.widget_options.show_pagination_list) {
+            this.show_pagination_list = this.widget_options.show_pagination_list;
         }
         if (this.refresh_button != this.widget_options.refresh_button) {
             this.refresh_button = this.widget_options.refresh_button;
@@ -372,7 +379,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     }
 
     private get_default_options(): TableWidgetOptions {
-        return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, true);
+        return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, true, false);
     }
     private async add_column(add_column: TableColumnDescVO) {
         console.log(add_column);
@@ -510,6 +517,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                     options.show_pagination_list,
                     options.nbpages_pagination_list,
                     options.has_table_total_footer,
+                    options.hide_pagination_bottom,
                 ) : null;
             }
         } catch (error) {
@@ -733,6 +741,21 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
         if (this.next_update_options.show_pagination_list != this.show_pagination_list) {
             this.next_update_options.show_pagination_list = this.show_pagination_list;
+            await this.throttled_update_options();
+        }
+    }
+
+    private async switch_hide_pagination_bottom() {
+        this.hide_pagination_bottom = !this.hide_pagination_bottom;
+
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.next_update_options.hide_pagination_bottom != this.hide_pagination_bottom) {
+            this.next_update_options.hide_pagination_bottom = this.hide_pagination_bottom;
             await this.throttled_update_options();
         }
     }

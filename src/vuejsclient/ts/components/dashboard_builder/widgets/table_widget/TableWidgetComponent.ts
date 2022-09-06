@@ -576,6 +576,14 @@ export default class TableWidgetComponent extends VueComponentBase {
         return this.widget_options.crud_api_type_id;
     }
 
+    get hide_pagination_bottom(): boolean {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.hide_pagination_bottom;
+    }
+
     get update_button(): boolean {
         return (this.widget_options && this.widget_options.update_button);
     }
@@ -1176,6 +1184,7 @@ export default class TableWidgetComponent extends VueComponentBase {
                     options.show_pagination_list,
                     options.nbpages_pagination_list,
                     options.has_table_total_footer,
+                    options.hide_pagination_bottom,
                 ) : null;
             }
         } catch (error) {
