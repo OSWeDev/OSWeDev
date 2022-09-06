@@ -36,7 +36,7 @@ export default class TablePaginationComponent extends VueComponentBase {
     @Prop({ default: true })
     private show_pagination_form: boolean;
 
-    @Prop({ default: true })
+    @Prop({ default: false })
     private show_pagination_list: boolean;
 
     @Prop()

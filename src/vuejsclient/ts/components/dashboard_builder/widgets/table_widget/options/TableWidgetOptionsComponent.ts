@@ -57,7 +57,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private show_pagination_resumee: boolean = true;
     private show_pagination_slider: boolean = true;
     private show_pagination_form: boolean = true;
-    private show_pagination_list: boolean = true;
+    private show_pagination_list: boolean = false;
     private has_table_total_footer: boolean = true;
     private can_filter_by: boolean = true;
     private is_sticky: boolean = false;
