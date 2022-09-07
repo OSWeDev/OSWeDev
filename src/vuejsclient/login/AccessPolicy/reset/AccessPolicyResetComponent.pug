@@ -25,3 +25,6 @@
 
                     .center
                         button.btn.btn-primary.btn-block.btn-flat(@click="reset") {{ label('login.reset.submit') }}
+
+    template(v-if="footer_component")
+        div(:is="footer_component") 

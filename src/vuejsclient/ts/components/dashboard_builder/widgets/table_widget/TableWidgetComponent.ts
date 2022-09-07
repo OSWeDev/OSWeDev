@@ -1248,7 +1248,10 @@ export default class TableWidgetComponent extends VueComponentBase {
             return;
         }
 
-        await this.reload_column_total();
+        if (this.widget_options.has_table_total_footer) {
+
+            await this.reload_column_total();
+        }
 
         this.loaded_once = true;
         this.is_busy = false;

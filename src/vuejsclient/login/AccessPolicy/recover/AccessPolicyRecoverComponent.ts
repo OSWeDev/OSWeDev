@@ -1,4 +1,4 @@
-import { Component } from "vue-property-decorator";
+import { Component, Prop } from "vue-property-decorator";
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import ModuleSASSSkinConfigurator from '../../../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
@@ -10,6 +10,9 @@ import './AccessPolicyRecoverComponent.scss';
     template: require('./AccessPolicyRecoverComponent.pug')
 })
 export default class AccessPolicyRecoverComponent extends VueComponentBase {
+
+    @Prop()
+    private footer_component: any;
 
     private email: string = "";
     private message: string = null;

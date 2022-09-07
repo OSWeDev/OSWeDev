@@ -1,4 +1,4 @@
-import { Component } from "vue-property-decorator";
+import { Component, Prop } from "vue-property-decorator";
 import AccessPolicyController from "../../../../shared/modules/AccessPolicy/AccessPolicyController";
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleParams from "../../../../shared/modules/Params/ModuleParams";
@@ -17,6 +17,9 @@ import './AccessPolicyLoginComponent.scss';
     }
 })
 export default class AccessPolicyLoginComponent extends VueComponentBase {
+
+    @Prop()
+    private footer_component: any;
 
     private email: string = "";
     private password: string = "";
