@@ -12,7 +12,7 @@ export default class LocaleManager {
 
     private static instance: LocaleManager = null;
 
-    public i18n: any;
+    public i18n: any = null;
     private defaultLocale: string;
 
     private constructor() {
@@ -27,7 +27,7 @@ export default class LocaleManager {
     }
 
     public t(txt: string, params = {}): string {
-        if (!txt) {
+        if (!txt || !LocaleManager.getInstance().i18n || !LocaleManager.getInstance().i18n.t) {
             return txt;
         }
 
