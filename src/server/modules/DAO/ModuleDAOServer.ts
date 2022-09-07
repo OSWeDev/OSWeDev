@@ -12,7 +12,7 @@ import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import ContextQueryVO from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import { IContextHookFilterVos } from '../../../shared/modules/DAO/interface/IContextHookFilterVos';
 import { IHookFilterVos } from '../../../shared/modules/DAO/interface/IHookFilterVos';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
@@ -68,7 +68,7 @@ import DAOPreDeleteTriggerHook from './triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
-import { Pool } from 'pg';
+import { DatabaseError, Pool } from 'pg';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -1336,10 +1336,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         let result = true;
-
+        let self = this;
         return new Promise(async (resolve, reject) => {
 
-            this.copy_dedicated_pool.connect(function (err, client, done) {
+            self.copy_dedicated_pool.connect(function (err, client, done) {
 
                 let cb = () => {
                     if (debug_insert_without_triggers_using_COPY) {
@@ -1361,9 +1361,35 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 rs.push(null);
                 rs.on('error', cb);
 
-                rs.pipe(stream).on('finish', cb).on('error', function (error) {
+                rs.pipe(stream).on('finish', cb).on('error', async (error: DatabaseError) => {
                     result = false;
                     ConsoleHandler.getInstance().error('insert_without_triggers_using_COPY:' + error);
+
+                    if (error && error.message && error.message.startsWith('duplicate key value violates unique constraint') && error.message.endsWith('__bdd_only_index_key"')) {
+                        ConsoleHandler.getInstance().error('insert_without_triggers_using_COPY:Erreur de duplication d\'index, on tente de retrouver les vars impliquées et de corriger automatiquement');
+
+                        let duplicates: VarDataBaseVO[] = await query(moduleTable.vo_type).filter_by_text_has('_bdd_only_index', vos.map((vo: VarDataBaseVO) => vo._bdd_only_index)).select_vos();
+                        if (duplicates && duplicates.length) {
+                            ConsoleHandler.getInstance().error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: on a trouvé des doublons (' + duplicates.length + '), on les mets à jour plutôt');
+
+                            let duplicates_id_by_index: { [index: string]: number } = {};
+                            for (let i in duplicates) {
+                                let duplicate: VarDataBaseVO = duplicates[i];
+                                duplicates_id_by_index[duplicate._bdd_only_index] = duplicate.id;
+                            }
+
+                            for (let i in vos) {
+                                let vo: VarDataBaseVO = vos[i] as VarDataBaseVO;
+                                if (duplicates_id_by_index[vo._bdd_only_index]) {
+                                    vo.id = duplicates_id_by_index[vo._bdd_only_index];
+                                }
+                            }
+
+                            ConsoleHandler.getInstance().error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: on relance la copy avec les correctifs');
+                            result = await self.insert_without_triggers_using_COPY(vos, segmented_value);
+                        }
+                    }
+
                     cb();
                 });
             });
@@ -1429,7 +1455,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
 
     public async selectAll<T extends IDistantVOBase>(
-        API_TYPE_ID: string, query: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null,
+        API_TYPE_ID: string, query_: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null,
         distinct: boolean = false, ranges: IRange[] = null, limit: number = 0, offset: number = 0): Promise<T[]> {
 
         let moduleTable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID];
@@ -1467,7 +1493,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 let segment_res = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query(
                     "SELECT " + (distinct ? 'distinct' : '') + " t.* FROM " + moduleTable.get_segmented_full_name(segment_value) + " t " +
-                    (query ? query : '') + (limit ? ' limit ' + limit : ''), queryParams ? queryParams : []) as T[]);
+                    (query_ ? query_ : '') + (limit ? ' limit ' + limit : ''), queryParams ? queryParams : []) as T[]);
                 for (let i in segment_res) {
                     segmented_res.push(segment_res[i]);
                 }
@@ -1482,7 +1508,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         } else {
             res = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query(
                 "SELECT " + (distinct ? 'distinct' : '') + " t.* FROM " + moduleTable.full_name + " t " +
-                (query ? query : '') + (limit ? ' limit ' + limit : '') + (offset ? ' offset ' + offset : ''), queryParams ? queryParams : []) as T[]);
+                (query_ ? query_ : '') + (limit ? ' limit ' + limit : '') + (offset ? ' offset ' + offset : ''), queryParams ? queryParams : []) as T[]);
         }
 
         // On filtre les res suivant les droits d'accès
@@ -1500,7 +1526,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return res;
     }
 
-    public async selectOne<T extends IDistantVOBase>(API_TYPE_ID: string, query: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null, ranges: IRange[] = null): Promise<T> {
+    public async selectOne<T extends IDistantVOBase>(API_TYPE_ID: string, query_: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null, ranges: IRange[] = null): Promise<T> {
         let moduleTable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID];
 
         // On vérifie qu'on peut faire un select
@@ -1529,7 +1555,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     return;
                 }
 
-                let segment_vo: T = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + moduleTable.get_segmented_full_name(segment_value) + " t " + (query ? query : '') + ";", queryParams ? queryParams : []) as T;
+                let segment_vo: T = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + moduleTable.get_segmented_full_name(segment_value) + " t " + (query_ ? query_ : '') + ";", queryParams ? queryParams : []) as T;
 
                 if ((!!segmented_vo) && (!!segment_vo)) {
                     ConsoleHandler.getInstance().error('More than one result on selectOne on segmented table :' + moduleTable.get_segmented_full_name(segment_value) + ';');
@@ -1550,7 +1576,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             // On filtre les vo suivant les droits d'accès
             vo = segmented_vo;
         } else {
-            vo = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + moduleTable.full_name + " t " + (query ? query : '') + ";", queryParams ? queryParams : []) as T;
+            vo = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + moduleTable.full_name + " t " + (query_ ? query_ : '') + ";", queryParams ? queryParams : []) as T;
             vo = moduleTable.forceNumeric(vo);
         }
 
@@ -1571,10 +1597,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     /**
      * DONT USE : N'utiliser que en cas de force majeure => exemple upgrade de format de BDD
-     * @param query
+     * @param query_
      */
-    public async query(query: string = null, values: any = null): Promise<any> {
-        if (this.global_update_blocker && !/^select /i.test(query)) {
+    public async query(query_: string = null, values: any = null): Promise<any> {
+        if (this.global_update_blocker && !/^select /i.test(query_)) {
             let uid: number = StackContext.getInstance().get('UID');
             let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
             if (uid && CLIENT_TAB_ID) {
@@ -1590,9 +1616,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         if (!!values) {
 
-            return await ModuleServiceBase.getInstance().db.query(query, values);
+            return await ModuleServiceBase.getInstance().db.query(query_, values);
         } else {
-            return await ModuleServiceBase.getInstance().db.query(query);
+            return await ModuleServiceBase.getInstance().db.query(query_);
         }
 
     }
@@ -2101,21 +2127,21 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     continue;
                 }
 
-                let query: ContextQueryVO = new ContextQueryVO();
-                query.base_api_type_id = vo._type;
-                query.active_api_type_ids = [vo._type];
-                query.filters = filters;
-                query.query_limit = 1;
-                query.query_offset = 0;
+                let query_: ContextQueryVO = new ContextQueryVO();
+                query_.base_api_type_id = vo._type;
+                query_.active_api_type_ids = [vo._type];
+                query_.filters = filters;
+                query_.query_limit = 1;
+                query_.query_offset = 0;
 
                 /**
                  * On doit absolument ignorer tout access hook à ce niveau sinon on risque de rater l'élément en base
                  */
-                query.ignore_access_hooks();
+                query_.ignore_access_hooks();
 
                 let uniquevos = null;
                 await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
-                    uniquevos = await ModuleContextFilter.getInstance().select_vos(query);
+                    uniquevos = await ModuleContextFilter.getInstance().select_vos(query_);
                 });
                 if (uniquevos && uniquevos[0] && uniquevos[0].id) {
                     return uniquevos[0].id;

@@ -364,14 +364,21 @@ export default class VarsDatasProxy {
             if (ObjectHandler.getInstance().hasAtLeastOneAttribute(to_insert_by_type)) {
 
                 let promises = [];
+                let result = true;
                 for (let i in to_insert_by_type) {
                     let to_insert = to_insert_by_type[i];
 
                     promises.push((async () => {
-                        await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(to_insert);
+                        if (!await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(to_insert)) {
+                            result = false;
+                        }
                     })());
                 }
                 await Promise.all(promises);
+
+                if (!result) {
+                    throw new Error('VarsDatasProxy:handle_buffer:insert_without_triggers_using_COPY:Erreur - on garde dans le cache pour une prochaine tentative');
+                }
 
                 // TODO FIXME TO DELETE
                 // MDE A SUPPRIMER APRES MIGRATION MOMENTJS
