@@ -1087,7 +1087,7 @@ export default class VarsDatasVoUpdateHandler {
                 for (let i in vars_to_append) {
                     let var_to_append = vars_to_append[i];
 
-                    delete var_to_append.id;
+                    // si on supprime pas en base on veut pas supprimer l'id du coup ici delete var_to_append.id;
                     delete var_to_append.value_ts;
                     delete var_to_append.value_type;
                     delete var_to_append.value;

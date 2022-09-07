@@ -922,7 +922,7 @@ export default class VarsComputeController {
                         let batchperf_create_tree_total_estimated_remaining_time = Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.create_tree));
                         let batchperf_load_nodes_datas_total_estimated_remaining_time = Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.load_nodes_datas));
                         let batchperf_compute_node_wrapper_total_estimated_remaining_time = Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.compute_node_wrapper));
-                        ConsoleHandler.getInstance().log('SELECTED VAR:' + selected_var_data.index + ':Total computation estimated time before adding this node:' +
+                        ConsoleHandler.getInstance().log('SELECTED VAR:' + selected_var_data.index + ':Total computation estimated time before adding this node:[' +
                             Math.round(var_dag.perfs.computation_wrapper.updated_estimated_work_time ? var_dag.perfs.computation_wrapper.updated_estimated_work_time : 0) +
                             ']:' +
                             '{' +

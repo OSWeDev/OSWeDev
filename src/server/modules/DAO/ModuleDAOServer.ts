@@ -1153,12 +1153,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
             if (uid && CLIENT_TAB_ID) {
                 this.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
             }
-            return null;
+            return false;
         }
 
         // On vérifie qu'on peut faire un insert ou update
         if ((!vos) || (!vos.length)) {
-            return null;
+            return true;
         }
 
         vos = vos.filter((vo) =>
@@ -1166,7 +1166,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             this.checkAccessSync(VOsTypesManager.getInstance().moduleTables_by_voType[vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE));
 
         if ((!vos) || (!vos.length)) {
-            return null;
+            return true;
         }
 
         // On ajoute un filtrage via hook
@@ -1180,7 +1180,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
         }
         if ((!tmp_vos) || (!tmp_vos.length)) {
-            return null;
+            return true;
         }
         vos = tmp_vos;
 
@@ -1205,7 +1205,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         if (!insert_vos.length) {
-            return null;
+            return true;
         }
 
         vos = insert_vos;
@@ -1325,7 +1325,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             if (debug_insert_without_triggers_using_COPY) {
                 ConsoleHandler.getInstance().log('insert_without_triggers_using_COPY:end');
             }
-            return;
+            return true;
         }
 
         if (!this.copy_dedicated_pool) {
