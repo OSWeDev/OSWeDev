@@ -711,6 +711,10 @@ export default class TableWidgetComponent extends VueComponentBase {
         let res: number = 0;
 
         for (let i in this.columns) {
+            if (this.columns[i].hide_from_table) {
+                continue;
+            }
+
             if (!this.is_column_type_number(this.columns[i])) {
                 res++;
                 continue;

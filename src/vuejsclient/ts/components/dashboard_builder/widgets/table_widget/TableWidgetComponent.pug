@@ -136,13 +136,13 @@ include ../../../../../views/mixins/loading.pug
 
                             template(v-for='(column, index_column) in columns')
                                 template(v-if="is_column_type_number(column)")
-                                    td 
+                                    td.text-center
                                         template(v-if="column_total && column_total[column.api_type_id]")
                                             span {{ column_total[column.api_type_id][column.field_id] }}
 
                                 template(v-else)
-                                    template(v-if="!colspan_total || (parseInt(index_column) >= colspan_total)")
-                                        td 
+                                    template(v-if="(!colspan_total || (parseInt(index_column) >= colspan_total)) && !column.hide_from_table")
+                                        td(:field_id="column.field_id")
 
             .lower_pagination
                 Tablepaginationcomponent(
