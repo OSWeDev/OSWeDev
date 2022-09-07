@@ -750,6 +750,10 @@ export default class TableWidgetComponent extends VueComponentBase {
         let res: number = 0;
 
         for (let i in this.columns) {
+            if (this.columns[i].hide_from_table) {
+                continue;
+            }
+
             if (!this.is_column_type_number(this.columns[i])) {
                 res++;
                 continue;
@@ -1256,7 +1260,10 @@ export default class TableWidgetComponent extends VueComponentBase {
             return;
         }
 
-        await this.reload_column_total();
+        if (this.widget_options.has_table_total_footer) {
+
+            await this.reload_column_total();
+        }
 
         this.loaded_once = true;
         this.is_busy = false;
