@@ -60,6 +60,7 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
      * Si TYPE_header
      */
     public header_name: string;
+    public children: TableColumnDescVO[] = [];
     /**
      * Si TYPE_component
      */

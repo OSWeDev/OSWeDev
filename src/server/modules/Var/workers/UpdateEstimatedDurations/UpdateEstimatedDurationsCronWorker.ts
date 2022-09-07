@@ -130,11 +130,11 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
         let mean_estimation = await this.get_estimation(valid_last_x_perfs, perf_name, ratio_perfs_names, batch_perf_name);
         mean_estimation = mean_estimation ? mean_estimation * 1000 : 0;
 
-        if ((!mean_estimation) || (mean_estimation != varcacheconf['estimated_' + perf_name + '_1k_card'])) {
+        if ((!mean_estimation) || (mean_estimation == varcacheconf['estimated_' + perf_name + '_1k_card'])) {
             return;
         }
 
-        ConsoleHandler.getInstance().log(`Setting estimated_${perf_name}_1k_card to ${mean_estimation}`);
+        ConsoleHandler.getInstance().log(`Setting estimated_${perf_name}_1k_card to ${mean_estimation} for var_id:${last_x_perfs[0].var_id}`);
 
         varcacheconf['estimated_' + perf_name + '_1k_card'] = mean_estimation;
     }
@@ -151,11 +151,12 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
 
         // on fait la somme des batchs_vars_cache de tous les var_id, sur le last_x_perf.var_batch_perf_id
         let batch_id = last_x_perf.var_batch_perf_id;
+        let perf = last_x_perf[perf_name] as VarPerfElementVO;
+        if ((!perf) || (!perf.realised_sum_ms) || (!perf.realised_nb_card) || (!this.batchs_vars_cache[batch_id])) {
+            return null;
+        }
 
         let all_var_ids_means_sum = 0;
-        let nb_var_ids_means_sum = 0;
-        // let all_var_ids_sum = 0;
-        // let all_var_cards_sum = 0;
         for (let i in this.batchs_vars_cache[batch_id]) {
             let batch_vars_cache = this.batchs_vars_cache[batch_id][i];
 
@@ -167,17 +168,16 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
                     continue;
                 }
 
-                // all_var_ids_sum += ratio_perf.realised_sum_ms;
-                // all_var_cards_sum += ratio_perf.realised_nb_card;
                 all_var_ids_means_sum += (ratio_perf.realised_sum_ms / ratio_perf.realised_nb_card);
-                nb_var_ids_means_sum++;
             }
         }
 
         let batch_perf_sum = (this.batchs_cache[batch_id][batch_perf_name] as VarNodePerfElementVO).total_elapsed_time;
 
-        let perf = last_x_perf[perf_name] as VarPerfElementVO;
+        // Le coef est compilé en prenant le temps de la stat ciblée perf_name, ramené au cardinal, divisé par la somme des temps de toutes les stats ratio_perfs_names (composants au final batch_perf_name et dont fait partie la perf_name), ramenées au cardinal également
         let coef = ((perf.realised_sum_ms / perf.realised_nb_card) / all_var_ids_means_sum);
+
+        // on applique le coef au temps réel du batch, et on ramène au cardinal
         return coef * batch_perf_sum / perf.realised_nb_card;
     }
 
@@ -204,7 +204,7 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
             means.push(ratiod_mean);
         }
 
-        return mean(means);
+        return (means && means.length) ? mean(means) : null;
     }
 
     /**

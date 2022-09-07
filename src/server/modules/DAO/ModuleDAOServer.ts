@@ -1146,7 +1146,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
      *  - on ne fait que des inserts, pas d'update avec un COPY
      *  - on ne gère pas les segmentations
      */
-    public async insert_without_triggers_using_COPY(vos: IDistantVOBase[], segmented_value: number = null): Promise<void> {
+    public async insert_without_triggers_using_COPY(vos: IDistantVOBase[], segmented_value: number = null): Promise<boolean> {
         if (this.global_update_blocker) {
             let uid: number = StackContext.getInstance().get('UID');
             let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
@@ -1278,7 +1278,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     if (stringified.length == 2) {
                         stringified = "''";
                     } else {
-                        stringified = "'" + stringified.substring(1, stringified.length - 1).replace(/\\"/g, '"') + "'";
+                        stringified = "'" + stringified.substring(1, stringified.length - 1).replace(/\\"/g, '"').replace(/'/g, "''") + "'";
                     }
                 }
                 setters.push(stringified);
@@ -1302,7 +1302,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         if (stringified.length == 2) {
                             stringified = "''";
                         } else {
-                            stringified = "'" + stringified.substring(1, stringified.length - 1).replace(/\\"/g, '"') + "'";
+                            stringified = "'" + stringified.substring(1, stringified.length - 1).replace(/\\"/g, '"').replace(/'/g, "''") + "'";
                         }
                     }
                     setters.push(stringified);
@@ -1335,6 +1335,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
             });
         }
 
+        let result = true;
+
         return new Promise(async (resolve, reject) => {
 
             this.copy_dedicated_pool.connect(function (err, client, done) {
@@ -1344,7 +1346,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         ConsoleHandler.getInstance().log('insert_without_triggers_using_COPY:end');
                     }
                     done();
-                    resolve();
+                    resolve(result);
                 };
 
                 let query_string = "COPY " + table_name + " (" + tableFields.join(", ") + ") FROM STDIN WITH (FORMAT csv, DELIMITER ';', QUOTE '''')";
@@ -1360,6 +1362,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 rs.on('error', cb);
 
                 rs.pipe(stream).on('finish', cb).on('error', function (error) {
+                    result = false;
                     ConsoleHandler.getInstance().error('insert_without_triggers_using_COPY:' + error);
                     cb();
                 });

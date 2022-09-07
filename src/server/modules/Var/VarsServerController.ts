@@ -301,6 +301,40 @@ export default class VarsServerController {
         this._varcontrollers_dag = varcontrollers_dag;
     }
 
+    /**
+     * Renvoie les datasources dont la var est une dépendance.
+     * @param controller
+     */
+    public get_datasource_deps_and_predeps(controller: VarServerControllerBase<any>): DataSourceControllerBase[] {
+        let datasource_deps: DataSourceControllerBase[] = controller.getDataSourcesDependencies();
+        datasource_deps = (!!datasource_deps) ? datasource_deps : [];
+
+        let datasource_predeps: DataSourceControllerBase[] = controller.getDataSourcesPredepsDependencies();
+        for (let i in datasource_predeps) {
+            let ds = datasource_predeps[i];
+
+            if (datasource_deps.indexOf(ds) == -1) {
+                datasource_deps.push(ds);
+            }
+        }
+
+        return datasource_deps;
+    }
+
+    /**
+     * Renvoie le nom des datasources dont la var est une dépendance.
+     * @param controller
+     */
+    public get_datasource_deps_and_predeps_names(controller: VarServerControllerBase<any>): string[] {
+        let datasource_deps: DataSourceControllerBase[] = this.get_datasource_deps_and_predeps(controller);
+        let datasource_deps_names: string[] = [];
+        for (let i in datasource_deps) {
+            let ds = datasource_deps[i];
+            datasource_deps_names.push(ds.name);
+        }
+        return datasource_deps_names;
+    }
+
     public async registerVar(varConf: VarConfVO, controller: VarServerControllerBase<any>): Promise<VarConfVO> {
         if ((!varConf) || (!controller)) {
             return null;
@@ -421,16 +455,15 @@ export default class VarsServerController {
         this._registered_vars_controller[varConf.name] = controller;
         this._registered_vars_by_ids[varConf.id] = varConf;
 
-        let datasource_deps: DataSourceControllerBase[] = controller.getDataSourcesDependencies();
-        datasource_deps = (!!datasource_deps) ? datasource_deps : [];
-        if (datasource_deps && datasource_deps.length) {
-            datasource_deps.forEach((datasource_dep) => {
+        let dss: DataSourceControllerBase[] = this.get_datasource_deps_and_predeps(controller);
+        dss = (!!dss) ? dss : [];
+        if (dss && dss.length) {
+            dss.forEach((datasource_dep) => {
                 datasource_dep.registerDataSource();
             });
         }
 
         // On enregistre le lien entre DS et VAR
-        let dss: DataSourceControllerBase[] = this.get_datasource_deps(controller);
         for (let i in dss) {
             let ds = dss[i];
 
@@ -451,16 +484,6 @@ export default class VarsServerController {
 
         // On enregistre les defaults translations
         this.register_var_default_translations(varConf.name, controller);
-    }
-
-    /**
-     * @param controller
-     */
-    private get_datasource_deps(controller: VarServerControllerBase<any>): DataSourceControllerBase[] {
-        let datasource_deps: DataSourceControllerBase[] = controller.getDataSourcesDependencies();
-        datasource_deps = (!!datasource_deps) ? datasource_deps : [];
-
-        return datasource_deps;
     }
 
     private register_var_default_translations(varConf_name: string, controller: VarServerControllerBase<any>) {

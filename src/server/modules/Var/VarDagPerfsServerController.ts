@@ -31,6 +31,10 @@ export default class VarDagPerfsServerController {
             let res = 0;
             let var_dag = VarsdatasComputerBGThread.getInstance().current_batch_vardag;
 
+            if (!var_dag) {
+                return 0;
+            }
+
             for (let i in nodeperfelement.child_perfs_ref) {
                 let child_perf = VarNodePerfElementVO.get_perf_by_ref(nodeperfelement.child_perfs_ref[i], var_dag);
                 if (!!child_perf) {
