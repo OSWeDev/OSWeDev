@@ -33,7 +33,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
     @Prop({
         default: null
     })
-    private option_label_func: (vo: IDistantVOBase) => string;
+    private option_label_func: (vo: IDistantVOBase, dfo_options: any[]) => string;
 
     /**
      * Pour cacher l'input si on a une seule option possible
@@ -100,16 +100,15 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
     @Prop({
         default: null
     })
-    @Prop({})
-    private group_values: string;
-    @Prop({})
-    private group_label: string;
-    @Prop({})
-    private group_select: string;
-    // @Prop({})
-    // private label: string;
+    private function_group: (vo: { [id: number]: IDistantVOBase }, actual_query: string) => any;
+    @Prop({
+        default: false
+    })
+    private have_options: boolean;
+    @Prop({
+        default: null
+    })
     private sort_options_func: (options: DataFilterOption[]) => void;
-
     private tmp_filter_active_options: DataFilterOption[] = [];
 
     private filter_state_selected: number = DataFilterOption.STATE_SELECTED;
@@ -117,11 +116,17 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
     private filter_state_unselectable: number = DataFilterOption.STATE_UNSELECTABLE;
 
     private actual_query: string = null;
-    private final_array = [{}];
+
+    /**
+     * Utilisable pour forcer les options actives depuis le composant parent en utilisant une $refs
+     */
+    public force_active_options(active_options: DataFilterOption[]) {
+        this.tmp_filter_active_options = active_options;
+    }
+
 
     get filter_options(): DataFilterOption[] {
         let res: DataFilterOption[] = [];
-
         let id_marker: number[] = [];
 
         for (let i in this.filter_active_options) {
@@ -130,137 +135,24 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
             res.push(new DataFilterOption(DataFilterOption.STATE_SELECTED, filter_zone_active_option.label, filter_zone_active_option.id));
             id_marker.push(filter_zone_active_option.id);
         }
+        if (!this.have_options) {
 
-        let array_other = [];
-        let array_white_cousin = [];
-        let unite = {
-            name_group: '',
-            group: [{}]
-        };
-        let copy_of_all_pdvs = Object.values(this.selectables_by_ids);
+            for (let i in this.selectables_by_ids) {
+                let vo: IDistantVOBase = this.selectables_by_ids[i];
 
+                if (id_marker.indexOf(vo.id) > -1) {
+                    continue;
+                }
 
-
-        for (let i in this.selectables_by_ids) {
-            let vo: IDistantVOBase = this.selectables_by_ids[i];
-
-            if (id_marker.indexOf(vo.id) > -1) {
-                continue;
-            }
-
-            let pdv: any = this.selectables_by_ids[i];
-            if (pdv.multimarque_cousin_1_id == null &&
-                pdv.multimarque_cousin_2_id == null &&
-                pdv.multimarque_cousin_3_id == null &&
-                pdv.multimarque_cousin_4_id == null
-            ) {
-                array_other.push(pdv);
-            } else {
-                array_white_cousin.push(pdv);
-            }
-
-            for (const c in array_white_cousin) {
-                let pdvv = array_white_cousin[c];
-                let name: string;
-                let tab = [];
-                tab.push(pdvv);
-                if (pdvv.multimarque_cousin_1_id == null) {
-                    pdvv.multimarque_cousin_1_id = '';
+                let label = this.get_label(vo);
+                if (((!!this.actual_query) && (new RegExp('.*' + this.actual_query + '.*', 'i')).test(label)) || (!this.actual_query)) {
+                    res.push(new DataFilterOption(DataFilterOption.STATE_SELECTABLE, label, vo.id));
                 }
-                if (pdvv.multimarque_cousin_2_id == null) {
-                    pdvv.multimarque_cousin_2_id = '';
-                }
-                if (pdvv.multimarque_cousin_3_id == null) {
-                    pdvv.multimarque_cousin_3_id = '';
-                }
-                if (pdvv.multimarque_cousin_4_id == null) {
-                    pdvv.multimarque_cousin_4_id = '';
-                }
-                // on veut effacer dans array white cousin le pdvv
-                if (pdvv.multimarque_cousin_1_id != null && pdvv.multimarque_cousin_1_id != '') {
-                    for (const w in copy_of_all_pdvs) {
-                        let wpdv = copy_of_all_pdvs[w];
-                        if (pdv.multimarque_cousin_1_id == wpdv.id) {
-                            tab.push(wpdv);
-                            copy_of_all_pdvs.splice(parseInt(w), 1);
-                            let index_of_splice = array_white_cousin.findIndex((o) => o.id == wpdv.id);
-                            array_white_cousin.splice(index_of_splice, 1);
-                            name = wpdv.rrdi;
-                        }
-                    }
-                    let coucou: typeof unite = {
-                        name_group: name,
-                        group: tab
-                    };
-                    this.final_array.push(coucou);
-                }
-                if (pdv.multimarque_cousin_2_id != null && pdv.multimarque_cousin_2_id != '') {
-                    for (const w in copy_of_all_pdvs) {
-                        let wpdv = copy_of_all_pdvs[w];
-                        if (pdv.multimarque_cousin_1_id == wpdv.id) {
-                            tab.push(wpdv);
-                            copy_of_all_pdvs.splice(parseInt(w), 1);
-                            let index_of_splice = array_white_cousin.findIndex((o) => o.id == wpdv.id);
-                            array_white_cousin.splice(index_of_splice, 1);
-                            name = name + wpdv.rrdi;
-                        }
-                    }
-                    let coucou: typeof unite = {
-                        name_group: name,
-                        group: tab
-                    };
-                    this.final_array.push(coucou);
-                }
-                if (pdv.multimarque_cousin_3_id != null && pdv.multimarque_cousin_3_id != '') {
-                    for (const w in copy_of_all_pdvs) {
-                        let wpdv = copy_of_all_pdvs[w];
-                        if (pdv.multimarque_cousin_1_id == wpdv.id) {
-                            tab.push(wpdv);
-                            copy_of_all_pdvs.splice(parseInt(w), 1);
-                            let index_of_splice = array_white_cousin.findIndex((o) => o.id == wpdv.id);
-                            array_white_cousin.splice(index_of_splice, 1);
-                            name = name + wpdv.rrdi;
-                        }
-                    }
-                    let coucou: typeof unite = {
-                        name_group: name,
-                        group: tab
-                    };
-                    this.final_array.push(coucou);
-                }
-                if (pdv.multimarque_cousin_4_id != null && pdv.multimarque_cousin_4_id != '') {
-                    for (const w in copy_of_all_pdvs) {
-                        let wpdv = copy_of_all_pdvs[w];
-                        if (pdv.multimarque_cousin_1_id == wpdv.id) {
-                            tab.push(wpdv);
-                            copy_of_all_pdvs.splice(parseInt(w), 1);
-                            let index_of_splice = array_white_cousin.findIndex((o) => o.id == wpdv.id);
-                            array_white_cousin.splice(index_of_splice, 1);
-                            name = name + wpdv.rrdi;
-                        }
-                    }
-                    let coucou: typeof unite = {
-                        name_group: name,
-                        group: tab
-                    };
-                    this.final_array.push(coucou);
-                }
-                array_white_cousin.splice(parseInt(c), 1);
             }
         }
-        for (let i in this.selectables_by_ids) {
-            let vo: IDistantVOBase = this.selectables_by_ids[i];
-
-            if (id_marker.indexOf(vo.id) > -1) {
-                continue;
-            }
-            let label = this.get_label(vo);
-            if (((!!this.actual_query) && (new RegExp('.*' + this.actual_query + '.*', 'i')).test(label)) || (!this.actual_query)) {
-
-                res.push(new DataFilterOption(DataFilterOption.STATE_SELECTABLE, label, vo.id));
-            }
+        if (this.have_options) {
+            res = this.function_group(this.selectables_by_ids, this.actual_query);
         }
-
         if (this.sort_options_func) {
             this.sort_options_func(res);
         } else {
@@ -316,6 +208,9 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
                 this.tmp_filter_active_options = this.filter_active_options;
             }
         }
+    }
+    private async on_input(selected: []) {
+        this.$emit('select', selected);
     }
 
     get filter_active_options(): DataFilterOption[] {
@@ -409,7 +304,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
         return {};
     }
 
-    private get_label(vo: IDistantVOBase): string {
+    private get_label(vo: IDistantVOBase, dfo_options: any[] = null): string {
 
         if (!vo) {
             return null;
@@ -425,7 +320,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
                 return this.moduletable.table_label_function(vo);
             }
         } else {
-            return this.option_label_func(vo);
+            return this.option_label_func(vo, dfo_options);
         }
 
         return null;
@@ -474,7 +369,9 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
             let vo: IDistantVOBase = this.selectables_by_ids[i];
 
             let label = this.get_label(vo);
-            res.push(new DataFilterOption(DataFilterOption.STATE_SELECTED, label, vo.id));
+            let dfto = new DataFilterOption(DataFilterOption.STATE_SELECTABLE, label, vo.id);
+            dfto.custom_name = label;
+            res.push(dfto);
         }
 
         this.tmp_filter_active_options = res;
