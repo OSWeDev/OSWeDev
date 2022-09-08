@@ -889,6 +889,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'field_value_filter_widget_component.show_search_field.___LABEL___'
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Séparer les données activées et les options" },
+            'field_value_filter_widget_component.separation_active_filter.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Champ à afficher au 2ème niveau" },
             'field_value_filter_widget_component.vo_field_ref_lvl2.___LABEL___'
         ));

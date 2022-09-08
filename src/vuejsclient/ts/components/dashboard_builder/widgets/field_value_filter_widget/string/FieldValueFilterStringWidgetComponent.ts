@@ -770,13 +770,16 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             this.filter_visible_options = [];
             this.filter_visible_options_lvl2 = {};
         } else {
-            for (const key in this.tmp_filter_active_options) {
-                let tfao = this.tmp_filter_active_options[key];
-                let index_opt = tmp.findIndex((e) => e.label == tfao.label);
-                if (index_opt > -1) {
-                    tmp.splice(index_opt, 1);
+            if (this.separation_active_filter) {
+                for (const key in this.tmp_filter_active_options) {
+                    let tfao = this.tmp_filter_active_options[key];
+                    let index_opt = tmp.findIndex((e) => e.label == tfao.label);
+                    if (index_opt > -1) {
+                        tmp.splice(index_opt, 1);
+                    }
                 }
             }
+
             this.filter_visible_options = tmp;
             this.filter_visible_options_lvl2 = tmp_lvl2;
         }
@@ -918,11 +921,17 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         if (opt_index >= 0) {
             Vue.set(this.active_option_lvl1, opt.label, false);
             tmp_filter_active_options.splice(opt_index, 1);
-            this.filter_visible_options.push(opt);
+
+            if (this.separation_active_filter) {
+                this.filter_visible_options.push(opt);
+            }
         } else {
             Vue.set(this.active_option_lvl1, opt.label, true);
             tmp_filter_active_options.push(opt);
-            this.filter_visible_options.splice(opt_splice, 1);
+
+            if (this.separation_active_filter) {
+                this.filter_visible_options.splice(opt_splice, 1);
+            }
         }
 
         if (!this.can_select_multiple) {
@@ -1219,6 +1228,15 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         return !!this.widget_options.show_search_field;
     }
 
+    get separation_active_filter(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.separation_active_filter;
+    }
+
     get is_checkbox(): boolean {
 
         if (!this.widget_options) {
@@ -1420,6 +1438,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                     options.exclude_filter_opt_values,
                     options.exclude_ts_range_values,
                     options.placeholder_advanced_mode,
+                    options.separation_active_filter,
                 ) : null;
             }
         } catch (error) {
