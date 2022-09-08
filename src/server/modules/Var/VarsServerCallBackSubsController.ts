@@ -39,7 +39,7 @@ export default class VarsServerCallBackSubsController {
         ForkedTasksController.getInstance().register_task(VarsServerCallBackSubsController.TASK_NAME_get_var_data, this.get_var_data.bind(this));
     }
 
-    public async get_vars_datas(params: VarDataBaseVO[]): Promise<{ [index: string]: VarDataBaseVO }> {
+    public async get_vars_datas(params: VarDataBaseVO[], reason: string): Promise<{ [index: string]: VarDataBaseVO }> {
         let res: { [index: string]: VarDataBaseVO } = {};
 
         let notifyable_vars: VarDataBaseVO[] = [];
@@ -85,7 +85,7 @@ export default class VarsServerCallBackSubsController {
                 self._cb_subs[param.index].push(cb);
             }
 
-            await VarsDatasProxy.getInstance().get_var_datas_or_ask_to_bgthread(params, notifyable_vars, needs_computation);
+            await VarsDatasProxy.getInstance().get_var_datas_or_ask_to_bgthread(params, notifyable_vars, needs_computation, null, true, 'get_vars_datas:' + reason);
 
             if (notifyable_vars && notifyable_vars.length) {
                 await this.notify_vardatas(notifyable_vars);
@@ -93,7 +93,7 @@ export default class VarsServerCallBackSubsController {
         });
     }
 
-    public async get_var_data<T extends VarDataBaseVO>(param: T): Promise<T> {
+    public async get_var_data<T extends VarDataBaseVO>(param: T, reason: string): Promise<T> {
         let notifyable_vars: T[] = [];
         let needs_computation: T[] = [];
 
@@ -115,7 +115,7 @@ export default class VarsServerCallBackSubsController {
             }
             self._cb_subs[param.index].push(resolve as (var_data: VarDataBaseVO) => any);
 
-            await VarsDatasProxy.getInstance().get_var_datas_or_ask_to_bgthread([param], notifyable_vars, needs_computation);
+            await VarsDatasProxy.getInstance().get_var_datas_or_ask_to_bgthread([param], notifyable_vars, needs_computation, null, true, 'getvardata:' + reason);
 
             if (notifyable_vars && notifyable_vars.length) {
                 await this.notify_vardatas(notifyable_vars);

@@ -126,7 +126,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
                 varDAGNode.var_data.value = value;
                 varDAGNode.var_data.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
                 varDAGNode.var_data.value_ts = Dates.now();
-                await VarsDatasProxy.getInstance().update_existing_buffered_older_datas([varDAGNode.var_data]);
+                await VarsDatasProxy.getInstance().update_existing_buffered_older_datas([varDAGNode.var_data], 'computeValue');
             },
             this,
             null,

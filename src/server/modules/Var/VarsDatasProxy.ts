@@ -125,7 +125,7 @@ export default class VarsDatasProxy {
         return !!this.vars_datas_buffer_wrapped_indexes[index];
     }
 
-    public async get_var_datas_or_ask_to_bgthread(params: VarDataBaseVO[], notifyable_vars: VarDataBaseVO[], needs_computation: VarDataBaseVO[]): Promise<void> {
+    public async get_var_datas_or_ask_to_bgthread(params: VarDataBaseVO[], notifyable_vars: VarDataBaseVO[], needs_computation: VarDataBaseVO[], client_tab_id: string, is_server_request: boolean, reason: string): Promise<void> {
         let env = ConfigurationService.getInstance().node_configuration;
 
         await PerfMonServerController.getInstance().monitor_async(
@@ -143,7 +143,9 @@ export default class VarsDatasProxy {
 
                             if (env.DEBUG_VARS) {
                                 ConsoleHandler.getInstance().log(
-                                    'get_var_datas_or_ask_to_bgthread:notifyable_var:index|' + vardata._bdd_only_index + ":value|" + vardata.value + ":value_ts|" + vardata.value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[vardata.value_type]
+                                    'get_var_datas_or_ask_to_bgthread:notifyable_var' +
+                                    ':index| ' + vardata._bdd_only_index + " :value|" + vardata.value + ":value_ts|" + vardata.value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[vardata.value_type] +
+                                    ':client_tab_id| ' + client_tab_id + " :is_server_request|" + is_server_request + ":value_ts|" + vardata.value_ts + ":reason|" + reason
                                 );
                             }
 
@@ -152,7 +154,9 @@ export default class VarsDatasProxy {
 
                             if (env.DEBUG_VARS) {
                                 ConsoleHandler.getInstance().log(
-                                    'get_var_datas_or_ask_to_bgthread:unnotifyable_var:index|' + vardata._bdd_only_index + ":value|" + vardata.value + ":value_ts|" + vardata.value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[vardata.value_type]
+                                    'get_var_datas_or_ask_to_bgthread:unnotifyable_var' +
+                                    ':index| ' + vardata._bdd_only_index + " :value|" + vardata.value + ":value_ts|" + vardata.value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[vardata.value_type] +
+                                    ':client_tab_id| ' + client_tab_id + " :is_server_request|" + is_server_request + ":value_ts|" + vardata.value_ts + ":reason|" + reason
                                 );
                             }
                         }
@@ -165,7 +169,7 @@ export default class VarsDatasProxy {
                     });
 
                     if (vars_data_to_prepend.length > 0) {
-                        await VarsDatasProxy.getInstance().prepend_var_datas(vars_data_to_prepend, true);
+                        await VarsDatasProxy.getInstance().prepend_var_datas(vars_data_to_prepend, client_tab_id, is_server_request, reason, true);
                     }
                 }
 
@@ -200,7 +204,7 @@ export default class VarsDatasProxy {
                     }
 
                     // On push dans le buffer de mise à jour de la BDD
-                    await VarsDatasProxy.getInstance().prepend_var_datas(to_prepend, false);
+                    await VarsDatasProxy.getInstance().prepend_var_datas(to_prepend, client_tab_id, is_server_request, reason, false);
                 }
             },
             this
@@ -212,7 +216,7 @@ export default class VarsDatasProxy {
      * A utiliser pour prioriser normalement la demande - FIFO
      *  Cas standard
      */
-    public async append_var_datas(var_datas: VarDataBaseVO[]) {
+    public async append_var_datas(var_datas: VarDataBaseVO[], reason: string) {
         await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsDatasProxy__append_var_datas],
             async () => {
@@ -225,7 +229,7 @@ export default class VarsDatasProxy {
                     return;
                 }
 
-                await this.filter_var_datas_by_indexes(var_datas, false, false, false);
+                await this.filter_var_datas_by_indexes(var_datas, null, false, 'append_var_datas:' + reason, false, false);
             },
             this
         );
@@ -237,7 +241,7 @@ export default class VarsDatasProxy {
      *  Principalement pour le cas d'une demande du navigateur client, on veut répondre ASAP
      *  et si on doit ajuster le calcul on renverra l'info plus tard
      */
-    public async prepend_var_datas(var_datas: VarDataBaseVO[], does_not_need_insert_or_update: boolean) {
+    public async prepend_var_datas(var_datas: VarDataBaseVO[], client_tab_id: string, is_server_request: boolean, reason: string, does_not_need_insert_or_update: boolean) {
         await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsDatasProxy__prepend_var_datas],
             async () => {
@@ -250,7 +254,7 @@ export default class VarsDatasProxy {
                     return;
                 }
 
-                await this.filter_var_datas_by_indexes(var_datas, true, false, does_not_need_insert_or_update);
+                await this.filter_var_datas_by_indexes(var_datas, client_tab_id, is_server_request, 'prepend_var_datas:' + reason, false, does_not_need_insert_or_update);
             },
             this
         );
@@ -348,7 +352,7 @@ export default class VarsDatasProxy {
                     }
                 }
 
-                if (do_insert && VarsCacheController.getInstance().BDD_do_cache_param_data(handle_var, controller, wrapper.is_requested)) {
+                if (do_insert && VarsCacheController.getInstance().BDD_do_cache_param_data(handle_var, controller, (!!wrapper.is_server_request) || (!!wrapper.client_tab_id))) {
 
                     if (!to_insert_by_type[handle_var._type]) {
                         to_insert_by_type[handle_var._type] = [];
@@ -356,7 +360,9 @@ export default class VarsDatasProxy {
                     to_insert_by_type[handle_var._type].push(handle_var);
 
                     if (env.DEBUG_VARS) {
-                        ConsoleHandler.getInstance().log('handle_buffer:insertOrUpdateVO:index|' + handle_var._bdd_only_index + ":value|" + handle_var.value + ":value_ts|" + handle_var.value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[handle_var.value_type]);
+                        ConsoleHandler.getInstance().log('handle_buffer:insertOrUpdateVO' +
+                            ':index| ' + handle_var._bdd_only_index + " :value|" + handle_var.value + ":value_ts|" + handle_var.value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[handle_var.value_type] +
+                            ':client_tab_id|' + wrapper.client_tab_id + ':is_server_request|' + wrapper.is_server_request + ':reason|' + wrapper.reason);
                     }
                 }
             }
@@ -433,7 +439,7 @@ export default class VarsDatasProxy {
     /**
      * On a explicitement pas l'id à ce niveau donc on cherche par l'index plutôt
      */
-    public async get_exact_param_from_buffer_or_bdd<T extends VarDataBaseVO>(var_data: T): Promise<T> {
+    public async get_exact_param_from_buffer_or_bdd<T extends VarDataBaseVO>(var_data: T, is_server_request: boolean, reason: string): Promise<T> {
 
         let DEBUG_VARS = ConfigurationService.getInstance().node_configuration.DEBUG_VARS;
         return await PerfMonServerController.getInstance().monitor_async(
@@ -457,7 +463,7 @@ export default class VarsDatasProxy {
                 }
 
                 if (!!res) {
-                    let cached_res = await this.filter_var_datas_by_indexes([res], false, false, true);
+                    let cached_res = await this.filter_var_datas_by_indexes([res], null, is_server_request, 'get_exact_param_from_buffer_or_bdd:' + reason, false, true);
                     return cached_res[0];
                 }
                 return null;
@@ -502,8 +508,9 @@ export default class VarsDatasProxy {
 
                             if (env.DEBUG_VARS) {
                                 ConsoleHandler.getInstance().log(
-                                    'get_exact_params_from_buffer_or_bdd:vars_datas_buffer:index|' + var_data._bdd_only_index + ":value|" + var_data.value + ":value_ts|" + var_data.value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[var_data.value_type]
-                                );
+                                    'get_exact_params_from_buffer_or_bdd:vars_datas_buffer' +
+                                    ':index| ' + var_data._bdd_only_index + " :value|" + var_data.value + ":value_ts|" + var_data.value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[var_data.value_type] +
+                                    ':client_tab_id|' + wrapper.client_tab_id + ':is_server_request|' + wrapper.is_server_request + ':reason|' + wrapper.reason);
                             }
                         }
                     }
@@ -523,9 +530,12 @@ export default class VarsDatasProxy {
                             if (!!bdd_res) {
 
                                 if (env.DEBUG_VARS) {
+                                    let bdd_wrapper = this.vars_datas_buffer_wrapped_indexes[bdd_res.index];
+
                                     ConsoleHandler.getInstance().log(
-                                        'get_exact_params_from_buffer_or_bdd:bdd_res:index|' + bdd_res._bdd_only_index + ":value|" + bdd_res.value + ":value_ts|" + bdd_res.value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[bdd_res.value_type]
-                                    );
+                                        'get_exact_params_from_buffer_or_bdd:bdd_res' +
+                                        ':index| ' + bdd_res._bdd_only_index + " :value|" + bdd_res.value + ":value_ts|" + bdd_res.value_ts + ":type|" + VarDataBaseVO.VALUE_TYPE_LABELS[bdd_res.value_type] +
+                                        ':client_tab_id|' + (bdd_wrapper ? bdd_wrapper.client_tab_id : 'N/A') + ':is_server_request|' + (bdd_wrapper ? bdd_wrapper.is_server_request : 'N/A') + ':reason|' + (bdd_wrapper ? bdd_wrapper.reason : 'N/A'));
                                 }
 
                                 res.push(bdd_res);
@@ -553,7 +563,7 @@ export default class VarsDatasProxy {
     /**
      * On force l'appel sur le thread du computer de vars
      */
-    public async update_existing_buffered_older_datas(var_datas: VarDataBaseVO[]) {
+    public async update_existing_buffered_older_datas(var_datas: VarDataBaseVO[], reason: string) {
         await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsDatasProxy__update_existing_buffered_older_datas],
             async () => {
@@ -566,7 +576,7 @@ export default class VarsDatasProxy {
                     return;
                 }
 
-                await this.filter_var_datas_by_indexes(var_datas, false, true, false);
+                await this.filter_var_datas_by_indexes(var_datas, null, false, 'update_existing_buffered_older_datas:' + reason, true, false);
             },
             this
         );
@@ -576,10 +586,10 @@ export default class VarsDatasProxy {
         VarsdatasComputerBGThread.getInstance().current_batch_ordered_pick_list = [];
 
         let vars_datas_buffer = Object.values(this.vars_datas_buffer_wrapped_indexes);
-        let ordered_client_vars_datas_buffer = vars_datas_buffer.filter((v) => v.is_client_var && !VarsServerController.getInstance().has_valid_value(v.var_data));
+        let ordered_client_vars_datas_buffer = vars_datas_buffer.filter((v) => v.client_tab_id && !VarsServerController.getInstance().has_valid_value(v.var_data));
         this.order_vars_datas_buffer(ordered_client_vars_datas_buffer);
 
-        let ordered_non_client_vars_datas_buffer = vars_datas_buffer.filter((v) => (!v.is_client_var) && !VarsServerController.getInstance().has_valid_value(v.var_data));
+        let ordered_non_client_vars_datas_buffer = vars_datas_buffer.filter((v) => (!v.client_tab_id) && !VarsServerController.getInstance().has_valid_value(v.var_data));
         this.order_vars_datas_buffer(ordered_non_client_vars_datas_buffer);
 
         VarsdatasComputerBGThread.getInstance().current_batch_ordered_pick_list = ordered_client_vars_datas_buffer.concat(ordered_non_client_vars_datas_buffer);
@@ -593,7 +603,7 @@ export default class VarsDatasProxy {
      * @param var_datas
      * @returns list of var_datas, as found (or added) in the cache. if not on primary thread, might return less elements than the input list
      */
-    private async filter_var_datas_by_indexes(var_datas: VarDataBaseVO[], prepend: boolean, donot_insert_if_absent: boolean, just_been_loaded_from_db: boolean): Promise<VarDataBaseVO[]> {
+    private async filter_var_datas_by_indexes(var_datas: VarDataBaseVO[], client_socket_id: string, is_server_request: boolean, reason: string, donot_insert_if_absent: boolean, just_been_loaded_from_db: boolean): Promise<VarDataBaseVO[]> {
 
         return await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsDatasProxy__filter_var_datas_by_indexes],
@@ -651,7 +661,7 @@ export default class VarsDatasProxy {
                     //  attention impact invalidation peut-etre sur thread des vars ...
                     // TODO FIXME pour moi ce test a pas de sens on devrait toujours être côté bgthread du computer, donc ...
                     if (BGThreadServerController.getInstance().valid_bgthreads_names[VarsdatasComputerBGThread.getInstance().name]) {
-                        this.vars_datas_buffer_wrapped_indexes[var_data.index] = new VarDataProxyWrapperVO(var_data, prepend, !just_been_loaded_from_db, 0);
+                        this.vars_datas_buffer_wrapped_indexes[var_data.index] = new VarDataProxyWrapperVO(var_data, client_socket_id, is_server_request, reason, !just_been_loaded_from_db, 0);
                         this.add_read_stat(this.vars_datas_buffer_wrapped_indexes[var_data.index]);
                         res.push(this.vars_datas_buffer_wrapped_indexes[var_data.index].var_data);
                     }
@@ -714,11 +724,11 @@ export default class VarsDatasProxy {
             // }
 
             // En priorité les demandes client
-            if (a.is_client_var && !b.is_client_var) {
+            if (a.client_tab_id && !b.client_tab_id) {
                 return -1;
             }
 
-            if ((!a.is_client_var) && b.is_client_var) {
+            if ((!a.client_tab_id) && b.client_tab_id) {
                 return 1;
             }
 
