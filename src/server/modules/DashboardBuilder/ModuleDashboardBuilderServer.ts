@@ -901,6 +901,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'field_value_filter_widget_component.vo_field_sort.___LABEL___'
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Champ pour trier l'affichage du filtre de niveau 2" },
+            'field_value_filter_widget_component.vo_field_sort_lvl2.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Granularité" },
             'field_value_filter_widget_component.segmentation_type.___LABEL___'
         ));

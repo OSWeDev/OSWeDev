@@ -739,10 +739,13 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                         );
                     }
 
+                    let field_sort_lvl2: VOFieldRefVO = this.vo_field_sort_lvl2 ? this.vo_field_sort_lvl2 : this.vo_field_ref_lvl2;
+
                     let query_opt_lvl2 = query(this.vo_field_ref_lvl2.api_type_id)
                         .field(this.vo_field_ref_lvl2.field_id, 'label')
                         .add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(active_field_filters))
                         .set_limit(this.widget_options.max_visible_options)
+                        .set_sort(new SortByVO(field_sort_lvl2.api_type_id, field_sort_lvl2.field_id, true))
                         .using(this.dashboard.api_type_ids);
 
                     let tmp_lvl2_opts: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
@@ -1285,6 +1288,16 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         return Object.assign(new VOFieldRefVO(), options.vo_field_sort);
     }
 
+    get vo_field_sort_lvl2(): VOFieldRefVO {
+        let options: FieldValueFilterWidgetOptions = this.widget_options;
+
+        if ((!options) || (!options.vo_field_sort_lvl2)) {
+            return null;
+        }
+
+        return Object.assign(new VOFieldRefVO(), options.vo_field_sort_lvl2);
+    }
+
     get advanced_mode(): boolean {
         return this.widget_options.advanced_mode;
     }
@@ -1439,6 +1452,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                     options.exclude_ts_range_values,
                     options.placeholder_advanced_mode,
                     options.separation_active_filter,
+                    options.vo_field_sort_lvl2,
                 ) : null;
             }
         } catch (error) {
