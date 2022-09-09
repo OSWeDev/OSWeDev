@@ -81,10 +81,10 @@ export default class VarsDatasProxy {
     /**
      * @returns the next var to process
      */
-    public select_var_from_buffer(): VarDataProxyWrapperVO<VarDataBaseVO> {
+    public async select_var_from_buffer(): Promise<VarDataProxyWrapperVO<VarDataBaseVO>> {
 
         if (!VarsdatasComputerBGThread.getInstance().current_batch_ordered_pick_list) {
-            this.prepare_current_batch_ordered_pick_list();
+            await this.prepare_current_batch_ordered_pick_list();
         }
         if (!VarsdatasComputerBGThread.getInstance().current_batch_ordered_pick_list) {
             return null;
@@ -250,7 +250,7 @@ export default class VarsDatasProxy {
                     return;
                 }
 
-                if (!await ForkedTasksController.getInstance().exec_self_on_bgthread(VarsdatasComputerBGThread.getInstance().name, VarsDatasProxy.TASK_NAME_prepend_var_datas, var_datas, does_not_need_insert_or_update)) {
+                if (!await ForkedTasksController.getInstance().exec_self_on_bgthread(VarsdatasComputerBGThread.getInstance().name, VarsDatasProxy.TASK_NAME_prepend_var_datas, var_datas, client_tab_id, is_server_request, reason, does_not_need_insert_or_update)) {
                     return;
                 }
 
@@ -582,14 +582,50 @@ export default class VarsDatasProxy {
         );
     }
 
-    private prepare_current_batch_ordered_pick_list() {
+    /**
+     * On ordonne toutes les demandes de calcul, et on met à jour au passage les registered si ya eu des désinscriptions entre temps :
+     *  D'un côté si on a des vars registered sur main mais unregistered dans le cache (indiquées comme pas client) 
+     *      => on met un tab_id bidon mais qui forcera à considérer que c'est client => FIXME TODO faut en fait stocker le tab_id autant que possible lors du register même si déjà en cache
+     *  De l'autre si on a des vars unregistered sur main mais registered dans le cache (indiquées comme client)
+     *      => on supprime le client_tab_id dans le cache pour déprioriser le calcul
+     */
+    private async prepare_current_batch_ordered_pick_list() {
         VarsdatasComputerBGThread.getInstance().current_batch_ordered_pick_list = [];
 
-        let vars_datas_buffer = Object.values(this.vars_datas_buffer_wrapped_indexes);
-        let ordered_client_vars_datas_buffer = vars_datas_buffer.filter((v) => v.client_tab_id && !VarsServerController.getInstance().has_valid_value(v.var_data));
+        let vars_datas_wrapper = Object.values(this.vars_datas_buffer_wrapped_indexes);
+        let vars_datas: VarDataBaseVO[] = vars_datas_wrapper.map((v) => v.var_data);
+
+        let registered_var_datas: VarDataBaseVO[] = await VarsTabsSubsController.getInstance().filter_by_subs(vars_datas);
+        let registered_var_datas_by_index: { [index: string]: VarDataBaseVO } = {};
+        for (let i in registered_var_datas) {
+            let var_data = registered_var_datas[i];
+            registered_var_datas_by_index[var_data.index] = var_data;
+        }
+        for (let i in vars_datas_wrapper) {
+            let var_data_wrapper = vars_datas_wrapper[i];
+
+            let registered_var_data = registered_var_datas_by_index[var_data_wrapper.var_data.index];
+
+            if ((!registered_var_data) && (var_data_wrapper.client_tab_id)) {
+                if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+                    ConsoleHandler.getInstance().log('removing client tab:' + var_data_wrapper.var_data.index);
+                }
+                var_data_wrapper.client_tab_id = null;
+                continue;
+            }
+
+            if ((!!registered_var_data) && (!var_data_wrapper.client_tab_id)) {
+                if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+                    ConsoleHandler.getInstance().warn('FIXME: Should have updated the client_tab_id in the cache when registering the param');
+                }
+                var_data_wrapper.client_tab_id = 'FIXME';
+            }
+        }
+
+        let ordered_client_vars_datas_buffer = vars_datas_wrapper.filter((v) => v.client_tab_id && !VarsServerController.getInstance().has_valid_value(v.var_data));
         this.order_vars_datas_buffer(ordered_client_vars_datas_buffer);
 
-        let ordered_non_client_vars_datas_buffer = vars_datas_buffer.filter((v) => (!v.client_tab_id) && !VarsServerController.getInstance().has_valid_value(v.var_data));
+        let ordered_non_client_vars_datas_buffer = vars_datas_wrapper.filter((v) => (!v.client_tab_id) && !VarsServerController.getInstance().has_valid_value(v.var_data));
         this.order_vars_datas_buffer(ordered_non_client_vars_datas_buffer);
 
         VarsdatasComputerBGThread.getInstance().current_batch_ordered_pick_list = ordered_client_vars_datas_buffer.concat(ordered_non_client_vars_datas_buffer);

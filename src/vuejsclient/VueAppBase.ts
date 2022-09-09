@@ -50,6 +50,7 @@ import VueAppController from './VueAppController';
 import VarsDirective from "./ts/components/Var/directives/vars-directive/VarsDirective";
 import VarsClientController from "./ts/components/Var/VarsClientController";
 import VarDataBaseVO from "../shared/modules/Var/vos/VarDataBaseVO";
+import ConsoleHandler from "../shared/tools/ConsoleHandler";
 require('moment-json-parser').overrideDefault();
 
 
@@ -462,8 +463,11 @@ export default abstract class VueAppBase {
         }
         // this.registerPushWorker();
 
-        window.onbeforeunload = function (e) {
+        window.onbeforeunload = (e) => {
             var e = e || window.event;
+
+            // ConsoleHandler.getInstance().log('onbeforeunload');
+            // await self.unregisterVarsBeforeUnload();
 
             var needsSaving = false;
 
@@ -485,6 +489,8 @@ export default abstract class VueAppBase {
                 // For Safari
                 return message;
             }
+
+            return null;
         };
     }
 

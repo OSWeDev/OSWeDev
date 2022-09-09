@@ -878,7 +878,7 @@ export default class VarsComputeController {
                      *  à ajouter à l'arbre
                      */
                     if ((!selected_var_datas) || (!selected_var_datas.length)) {
-                        let wrapped_select_var: VarDataProxyWrapperVO<VarDataBaseVO> = VarsDatasProxy.getInstance().select_var_from_buffer();
+                        let wrapped_select_var: VarDataProxyWrapperVO<VarDataBaseVO> = await VarsDatasProxy.getInstance().select_var_from_buffer();
                         let i = 0;
                         while ((wrapped_select_var) && (i < var_selection_pack_size)) {
 
@@ -896,7 +896,7 @@ export default class VarsComputeController {
                             }
                             selected_var_datas.push(wrapped_select_var.var_data);
                             i++;
-                            wrapped_select_var = VarsDatasProxy.getInstance().select_var_from_buffer();
+                            wrapped_select_var = await VarsDatasProxy.getInstance().select_var_from_buffer();
                         }
                     }
 
