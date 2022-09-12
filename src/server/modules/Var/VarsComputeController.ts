@@ -545,7 +545,7 @@ export default class VarsComputeController {
 
                         if (env.DEBUG_VARS) {
                             ConsoleHandler.getInstance().log('load_nodes_datas:has_valid_value:index:' + node.var_data.index + ":value:" + node.var_data.value + ":value_ts:" + node.var_data.value_ts + ":type:" + VarDataBaseVO.VALUE_TYPE_LABELS[node.var_data.value_type] +
-                                ':client_tab_id:' + (wrapper ? wrapper.client_tab_id : 'N/A') + ':is_server_request:' + (wrapper ? wrapper.is_server_request : 'N/A') + ':reason:' + (wrapper ? wrapper.reason : 'N/A'));
+                                'client_user_id:' + (wrapper ? wrapper.client_user_id : 'N/A') + ':client_tab_id:' + (wrapper ? wrapper.client_tab_id : 'N/A') + ':is_server_request:' + (wrapper ? wrapper.is_server_request : 'N/A') + ':reason:' + (wrapper ? wrapper.reason : 'N/A'));
                         }
 
                         continue;
@@ -577,7 +577,7 @@ export default class VarsComputeController {
 
                     if (env.DEBUG_VARS) {
                         ConsoleHandler.getInstance().log('loaded_node_datas:index:' + node.var_data.index + ":value:" + node.var_data.value + ":value_ts:" + node.var_data.value_ts + ":type:" + VarDataBaseVO.VALUE_TYPE_LABELS[node.var_data.value_type] +
-                            ':client_tab_id:' + (wrapper ? wrapper.client_tab_id : 'N/A') + ':is_server_request:' + (wrapper ? wrapper.is_server_request : 'N/A') + ':reason:' + (wrapper ? wrapper.reason : 'N/A'));
+                            'client_user_id:' + (wrapper ? wrapper.client_user_id : 'N/A') + ':client_tab_id:' + (wrapper ? wrapper.client_tab_id : 'N/A') + ':is_server_request:' + (wrapper ? wrapper.is_server_request : 'N/A') + ':reason:' + (wrapper ? wrapper.reason : 'N/A'));
                     }
                 }
 
@@ -702,7 +702,7 @@ export default class VarsComputeController {
                 if (!cache_complet) {
                     if (DEBUG_VARS) {
                         ConsoleHandler.getInstance().log('try_load_cache_complet:' + node.var_data.index + ':aucun cache complet' +
-                            ':client_tab_id:' + (wrapper ? wrapper.client_tab_id : 'N/A') + ':is_server_request:' + (wrapper ? wrapper.is_server_request : 'N/A') + ':reason:' + (wrapper ? wrapper.reason : 'N/A'));
+                            'client_user_id:' + (wrapper ? wrapper.client_user_id : 'N/A') + ':client_tab_id:' + (wrapper ? wrapper.client_tab_id : 'N/A') + ':is_server_request:' + (wrapper ? wrapper.is_server_request : 'N/A') + ':reason:' + (wrapper ? wrapper.reason : 'N/A'));
                     }
 
                     return;
@@ -715,7 +715,7 @@ export default class VarsComputeController {
                 node.var_data.value_type = cache_complet.value_type;
                 if (DEBUG_VARS) {
                     ConsoleHandler.getInstance().log('try_load_cache_complet:' + node.var_data.index + ':OK:' + cache_complet.value + ':' + cache_complet.value_ts + ':' + cache_complet.id +
-                        ':client_tab_id:' + (wrapper ? wrapper.client_tab_id : 'N/A') + ':is_server_request:' + (wrapper ? wrapper.is_server_request : 'N/A') + ':reason:' + (wrapper ? wrapper.reason : 'N/A'));
+                        'client_user_id:' + (wrapper ? wrapper.client_user_id : 'N/A') + ':client_tab_id:' + (wrapper ? wrapper.client_tab_id : 'N/A') + ':is_server_request:' + (wrapper ? wrapper.is_server_request : 'N/A') + ':reason:' + (wrapper ? wrapper.reason : 'N/A'));
                 }
             },
             this,
@@ -884,6 +884,7 @@ export default class VarsComputeController {
 
                             if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
                                 ConsoleHandler.getInstance().log('SELECTED WRAPPED VAR :' + wrapped_select_var.var_data.index +
+                                    ':client_user_id:' + wrapped_select_var.client_user_id +
                                     ':client_socket_id:' + wrapped_select_var.client_tab_id +
                                     ':is_server_request:' + wrapped_select_var.is_server_request +
                                     ':reason:' + wrapped_select_var.reason +

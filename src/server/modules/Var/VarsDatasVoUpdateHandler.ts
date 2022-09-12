@@ -1006,7 +1006,7 @@ export default class VarsDatasVoUpdateHandler {
                 registered_var_datas.forEach((v) => {
                     let w = VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes[v.index];
                     ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_registered_var_datas:INDEXES:' + v.index +
-                        ':client_tab_id:' + (w ? w.client_tab_id : 'N/A') + ':is_server_request:' + (w ? w.is_server_request : 'N/A') + ':reason:' + (w ? w.reason : 'N/A'));
+                        ':client_user_id:' + (w ? w.client_user_id : 'N/A') + ':client_tab_id:' + (w ? w.client_tab_id : 'N/A') + ':is_server_request:' + (w ? w.is_server_request : 'N/A') + ':reason:' + (w ? w.reason : 'N/A'));
                 });
             }
             // On supprime quand même en bdd ces vars sinon on rechargera la version de la bdd à moment donné
@@ -1051,7 +1051,7 @@ export default class VarsDatasVoUpdateHandler {
                 unregistered_var_datas.forEach((v) => {
                     let w = VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes[v.index];
                     ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_unregistered_var_datas:INDEXES:' + v.index +
-                        ':client_tab_id:' + (w ? w.client_tab_id : 'N/A') + ':is_server_request:' + (w ? w.is_server_request : 'N/A') + ':reason:' + (w ? w.reason : 'N/A'));
+                        ':client_user_id:' + (w ? w.client_user_id : 'N/A') + ':client_tab_id:' + (w ? w.client_tab_id : 'N/A') + ':is_server_request:' + (w ? w.is_server_request : 'N/A') + ':reason:' + (w ? w.reason : 'N/A'));
                 });
             }
 
