@@ -817,7 +817,13 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                 this.active_option_lvl1 = {};
             }
             let advanced_filters: AdvancedStringFilter[] = [];
-            this.try_apply_advanced_filters(filter, advanced_filters);
+
+            if (this.vo_field_ref_multiple && (this.vo_field_ref_multiple.length > 0)) {
+                this.try_apply_advanced_filters(filter.left_hook, advanced_filters);
+            } else {
+                this.try_apply_advanced_filters(filter, advanced_filters);
+            }
+
             this.advanced_string_filters = advanced_filters;
         } else {
 
@@ -1080,13 +1086,13 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         switch (filter.filter_type) {
             case ContextFilterVO.TYPE_FILTER_AND:
                 this.try_apply_advanced_filters(filter.left_hook, advanced_filters);
-                advanced_filters[advanced_filters.length].link_type = AdvancedStringFilter.LINK_TYPE_ET;
+                advanced_filters[(advanced_filters.length - 1)].link_type = AdvancedStringFilter.LINK_TYPE_ET;
                 this.try_apply_advanced_filters(filter.right_hook, advanced_filters);
                 break;
 
             case ContextFilterVO.TYPE_FILTER_OR:
                 this.try_apply_advanced_filters(filter.left_hook, advanced_filters);
-                advanced_filters[advanced_filters.length].link_type = AdvancedStringFilter.LINK_TYPE_OU;
+                advanced_filters[(advanced_filters.length - 1)].link_type = AdvancedStringFilter.LINK_TYPE_OU;
                 this.try_apply_advanced_filters(filter.right_hook, advanced_filters);
                 break;
 
