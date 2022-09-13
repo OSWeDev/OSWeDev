@@ -1,5 +1,6 @@
 import DashboardPageWidgetVO from "../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
 import TableColumnDescVO from "../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO";
+import DataFilterOption from "../../../../../../../shared/modules/DataRender/vos/DataFilterOption";
 import DefaultTranslation from "../../../../../../../shared/modules/Translation/vos/DefaultTranslation";
 
 export default class TableWidgetOptions {
@@ -69,6 +70,8 @@ export default class TableWidgetOptions {
         public nbpages_pagination_list: number,
         public has_table_total_footer: boolean,
         public hide_pagination_bottom: boolean,
+        public default_export_option: number,
+        public has_default_export_option: boolean,
     ) { }
 
     public get_title_name_code_text(page_widget_id: number): string {

@@ -306,6 +306,8 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
                     options.nbpages_pagination_list,
                     options.has_table_total_footer,
                     options.hide_pagination_bottom,
+                    options.default_export_option,
+                    options.has_default_export_option
                 ) : null;
             }
         } catch (error) {
