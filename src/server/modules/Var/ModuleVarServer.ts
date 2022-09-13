@@ -1085,7 +1085,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         let notifyable_vars: VarDataBaseVO[] = [];
         let needs_computation: VarDataBaseVO[] = [];
 
-        await VarsDatasProxy.getInstance().get_var_datas_or_ask_to_bgthread(params, notifyable_vars, needs_computation, client_tab_id, false, 'register_params:UID:' + uid + ':CLIENT_TAB_ID:' + client_tab_id);
+        await VarsDatasProxy.getInstance().get_var_datas_or_ask_to_bgthread(params, notifyable_vars, needs_computation, uid, client_tab_id, false, 'register_params:UID:' + uid + ':CLIENT_TAB_ID:' + client_tab_id);
 
         if (notifyable_vars && notifyable_vars.length) {
             let vars_to_notif: VarDataValueResVO[] = [];
