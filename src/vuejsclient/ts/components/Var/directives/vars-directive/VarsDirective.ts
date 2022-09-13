@@ -61,13 +61,24 @@ export default class VarsDirective {
             return;
         }
 
-        let var_param: VarDataBaseVO = binding.value.var_param;
+        let value = binding.value as IVarDirectiveParams;
+        let var_params: VarDataBaseVO[] = value.var_params;
 
-        if (!var_param) {
+        if ((!var_params) || (!var_params.length)) {
             return;
         }
 
-        await VarsClientController.getInstance().unRegisterParams([var_param], VarsDirective.getInstance().callbacks[var_param.index]);
+        for (let i in var_params) {
+            let var_param = var_params[i];
+
+            if (!var_param) {
+                continue;
+            }
+
+            VarsDirective.getInstance().callbacks[var_param.index] = VarsDirective.getInstance().getVarUpdateCallbacks(el, binding, vnode);
+
+            await VarsClientController.getInstance().unRegisterParams([var_param], VarsDirective.getInstance().callbacks[var_param.index]);
+        }
     }
 
     private getVarUpdateCallbacks(el, binding, vnode): { [cb_uid: number]: VarUpdateCallback } {
