@@ -12,55 +12,9 @@ import DefaultTranslationsServerManager from '../server/modules/Translation/Defa
 import ModulesManager from '../shared/modules/ModulesManager';
 import ConsoleHandler from '../shared/tools/ConsoleHandler';
 import IGeneratorWorker from './IGeneratorWorker';
-import Patch20191010CreateDefaultAdminAccountIfNone from './patchs/postmodules/Patch20191010CreateDefaultAdminAccountIfNone';
-import Patch20191010CreateDefaultLangFRIfNone from './patchs/postmodules/Patch20191010CreateDefaultLangFRIfNone';
-import Patch20191018CHECKEnvParamsForMDPRecovery from './patchs/postmodules/Patch20191018CHECKEnvParamsForMDPRecovery';
-import Patch20191106ForceAccessDefaultToVisionFCPP from './patchs/postmodules/Patch20191106ForceAccessDefaultToVisionFCPP';
-import Patch20191112AddPwdCryptTrigger from './patchs/postmodules/Patch20191112AddPwdCryptTrigger';
-import Patch20191126CreateDefaultRobotUserAccount from './patchs/postmodules/Patch20191126CreateDefaultRobotUserAccount';
-import Patch20200131InitUserLogPolicies from './patchs/postmodules/Patch20200131InitUserLogPolicies';
-import Patch20200312ChangeResetPWDMailContent from './patchs/postmodules/Patch20200312ChangeResetPWDMailContent';
-import Patch20200325PresetExistingLangsChangeRights from './patchs/postmodules/Patch20200325PresetExistingLangsChangeRights';
-import Patch20200731MailParamsInit from './patchs/postmodules/Patch20200731MailParamsInit';
-import Patch20200806InitBaseImageFormats from './patchs/postmodules/Patch20200806InitBaseImageFormats';
-import Patch20200914InitTeamsWebhookForDailyReports from './patchs/postmodules/Patch20200914InitTeamsWebhookForDailyReports';
-import Patch20200924UpgradeUserVOPost from './patchs/postmodules/Patch20200924UpgradeUserVOPost';
-import Patch20200926InitPoliciesINSERTORUPDATEUserLogs from './patchs/postmodules/Patch20200926InitPoliciesINSERTORUPDATEUserLogs';
-import Patch20201001InitPoliciesFeedback from './patchs/postmodules/Patch20201001InitPoliciesFeedback';
-import Patch20201006InitFrontVarsPolicies from './patchs/postmodules/Patch20201006InitFrontVarsPolicies';
-import Patch20201125InitVarsBDDIndexes from './patchs/postmodules/Patch20201125InitVarsBDDIndexes';
-import Patch20201214InitFrontVarsPolicies2 from './patchs/postmodules/Patch20201214InitFrontVarsPolicies2';
-import Patch20201218AddMaintenanceCreationPolicy from './patchs/postmodules/Patch20201218AddMaintenanceCreationPolicy';
-import Patch20210107InitLoggedOnce from './patchs/postmodules/Patch20210107InitLoggedOnce';
-import Patch20210202AnimationPrctReussite from './patchs/postmodules/Patch20210202AnimationPrctReussite';
-import Patch20210225AjoutDateCreationCompteUtilisateur from './patchs/postmodules/Patch20210225AjoutDateCreationCompteUtilisateur';
-import ActivateDataImport from './patchs/premodules/ActivateDataImport';
-import ActivateDataRender from './patchs/premodules/ActivateDataRender';
-import ChangeCronDateHeurePlanifiee from './patchs/premodules/ChangeCronDateHeurePlanifiee';
-import ChangeTypeDatesNotificationVO from './patchs/premodules/ChangeTypeDatesNotificationVO';
-import Patch20191008ChangeDIHDateType from './patchs/premodules/Patch20191008ChangeDIHDateType';
-import Patch20191008ChangeDILDateType from './patchs/premodules/Patch20191008ChangeDILDateType';
-import Patch20191008SupprimerTacheReimport from './patchs/premodules/Patch20191008SupprimerTacheReimport';
-import Patch20191010CheckBasicSchemas from './patchs/premodules/Patch20191010CheckBasicSchemas';
-import Patch20191112CheckExtensions from './patchs/premodules/Patch20191112CheckExtensions';
-import Patch20200131DeleteVersioningVOAccessPolicies from './patchs/premodules/Patch20200131DeleteVersioningVOAccessPolicies';
-import Patch20200331DeleteOrphanTranslations from './patchs/premodules/Patch20200331DeleteOrphanTranslations';
-import Patch20200924UpgradeUserVO from './patchs/premodules/Patch20200924UpgradeUserVO';
-import Patch20201123UpdateVarCacheConfVO from './patchs/premodules/Patch20201123UpdateVarCacheConfVO';
 import VendorBuilder from './vendor_builder/VendorBuilder';
-import Patch20210305affichageIconePDF from './patchs/postmodules/Patch20210305affichageIconePDF';
-import Patch20210310IDAnimationIE from './patchs/postmodules/Patch20210310IDAnimationIE';
-import Patch20210608TrimUserVO from './patchs/premodules/Patch20210608TrimUserVO';
-import Patch20210615ChangeLoginTrads from './patchs/postmodules/Patch20210615ChangeLoginTrads';
-import Patch20210615ChangeRecoverySMS from './patchs/postmodules/Patch20210615ChangeRecoverySMS';
-import Patch20210715ChangeMenuTranslations from './patchs/postmodules/Patch20210715ChangeMenuTranslations';
-import Patch20210726ChangeCRONDateType from './patchs/premodules/Patch20210726ChangeCRONDateType';
-import Patch20210727ChangeCommerceDatesType from './patchs/premodules/Patch20210727ChangeCommerceDatesType';
-import Patch20210727RenameColumnVarCacheConf from './patchs/premodules/Patch20210727RenameColumnVarCacheConf';
-import Patch20210727VarsCacheMSToSEC from './patchs/postmodules/Patch20210727VarsCacheMSToSEC';
 import Patch20210803ChangeDIHDateType from './patchs/premodules/Patch20210803ChangeDIHDateType';
 import Patch20210804Changebddvarsindexes from './patchs/postmodules/Patch20210804Changebddvarsindexes';
-import Patch20210726ChangeUserDateType from './patchs/premodules/Patch20210726ChangeUserDateType';
 import Patch20210914ClearDashboardWidgets from './patchs/premodules/Patch20210914ClearDashboardWidgets';
 import Patch20211004ChangeLang from './patchs/premodules/Patch20211004ChangeLang';
 import Patch20220111LocalizeCRONDate from './patchs/premodules/Patch20220111LocalizeCRONDate';
@@ -72,8 +26,11 @@ import Patch20220222RemoveVorfieldreffrombdd from './patchs/premodules/Patch2022
 import Patch20220223Adduniqtranslationconstraint from './patchs/premodules/Patch20220223Adduniqtranslationconstraint';
 import Patch20220401SetParamPushData from './patchs/postmodules/Patch20220401SetParamPushData';
 import Patch20220725DashboardWidgetUpdate from './patchs/postmodules/Patch20220725DashboardWidgetUpdate';
+import Patch20220809ChangeDbbTrad from './patchs/postmodules/Patch20220809ChangeDbbTrad';
 import VersionUpdater from './version_updater/VersionUpdater';
 import Patch20220404UpdateDBBWidgetsDefaultSize from './patchs/postmodules/Patch20220404UpdateDBBWidgetsDefaultSize';
+import Patch20220713ChangeVarCacheType1To0 from './patchs/postmodules/Patch20220713ChangeVarCacheType1To0';
+import Patch20220822ChangeTypeRecurrCron from './patchs/premodules/Patch20220822ChangeTypeRecurrCron';
 
 export default abstract class GeneratorBase {
 
@@ -97,61 +54,16 @@ export default abstract class GeneratorBase {
         ModulesManager.getInstance().isServerSide = true;
 
         this.pre_modules_workers = [
-            Patch20200331DeleteOrphanTranslations.getInstance(),
-            Patch20191112CheckExtensions.getInstance(),
-            Patch20200131DeleteVersioningVOAccessPolicies.getInstance(),
-            Patch20191010CheckBasicSchemas.getInstance(),
-            ActivateDataImport.getInstance(),
-            ActivateDataRender.getInstance(),
-            ChangeTypeDatesNotificationVO.getInstance(),
-            ChangeCronDateHeurePlanifiee.getInstance(),
-            Patch20191008ChangeDIHDateType.getInstance(),
-            Patch20191008ChangeDILDateType.getInstance(),
-            Patch20191008SupprimerTacheReimport.getInstance(),
-            Patch20200924UpgradeUserVO.getInstance(),
-            Patch20201123UpdateVarCacheConfVO.getInstance(),
-            Patch20210608TrimUserVO.getInstance(),
-            Patch20210726ChangeCRONDateType.getInstance(),
-            Patch20210727ChangeCommerceDatesType.getInstance(),
-            Patch20210727RenameColumnVarCacheConf.getInstance(),
             Patch20210803ChangeDIHDateType.getInstance(),
-            Patch20210726ChangeUserDateType.getInstance(),
             Patch20210914ClearDashboardWidgets.getInstance(),
             Patch20211004ChangeLang.getInstance(),
             Patch20220111LocalizeCRONDate.getInstance(),
             Patch20220222RemoveVorfieldreffrombdd.getInstance(),
-            Patch20220223Adduniqtranslationconstraint.getInstance()
+            Patch20220223Adduniqtranslationconstraint.getInstance(),
+            Patch20220822ChangeTypeRecurrCron.getInstance(),
         ];
 
         this.post_modules_workers = [
-            Patch20191112AddPwdCryptTrigger.getInstance(),
-            Patch20191010CreateDefaultLangFRIfNone.getInstance(),
-            Patch20191010CreateDefaultAdminAccountIfNone.getInstance(),
-            Patch20191018CHECKEnvParamsForMDPRecovery.getInstance(),
-            Patch20191106ForceAccessDefaultToVisionFCPP.getInstance(),
-            Patch20191126CreateDefaultRobotUserAccount.getInstance(),
-            Patch20200131InitUserLogPolicies.getInstance(),
-            Patch20200312ChangeResetPWDMailContent.getInstance(),
-            Patch20200325PresetExistingLangsChangeRights.getInstance(),
-            Patch20200731MailParamsInit.getInstance(),
-            Patch20200806InitBaseImageFormats.getInstance(),
-            Patch20200914InitTeamsWebhookForDailyReports.getInstance(),
-            Patch20200924UpgradeUserVOPost.getInstance(),
-            Patch20200926InitPoliciesINSERTORUPDATEUserLogs.getInstance(),
-            Patch20201001InitPoliciesFeedback.getInstance(),
-            Patch20201006InitFrontVarsPolicies.getInstance(),
-            Patch20201125InitVarsBDDIndexes.getInstance(),
-            Patch20201214InitFrontVarsPolicies2.getInstance(),
-            Patch20201218AddMaintenanceCreationPolicy.getInstance(),
-            Patch20210107InitLoggedOnce.getInstance(),
-            Patch20210202AnimationPrctReussite.getInstance(),
-            Patch20210225AjoutDateCreationCompteUtilisateur.getInstance(),
-            Patch20210305affichageIconePDF.getInstance(),
-            Patch20210310IDAnimationIE.getInstance(),
-            Patch20210615ChangeLoginTrads.getInstance(),
-            Patch20210615ChangeRecoverySMS.getInstance(),
-            Patch20210715ChangeMenuTranslations.getInstance(),
-            Patch20210727VarsCacheMSToSEC.getInstance(),
             Patch20210804Changebddvarsindexes.getInstance(),
             Patch20210916SetParamPushData.getInstance(),
             Patch20211214ChangeVarTooltipTrads.getInstance(),
@@ -159,8 +71,9 @@ export default abstract class GeneratorBase {
             Patch20220222MigrationCodesTradsDB.getInstance(),
             Patch20220404UpdateDBBWidgetsDefaultSize.getInstance(),
             Patch20220401SetParamPushData.getInstance(),
+            Patch20220713ChangeVarCacheType1To0.getInstance(),
             Patch20220725DashboardWidgetUpdate.getInstance(),
-            // Patch20211203ClearVarCaches.getInstance()
+            Patch20220809ChangeDbbTrad.getInstance(),
         ];
     }
 
@@ -177,7 +90,7 @@ export default abstract class GeneratorBase {
             ConsoleHandler.getInstance().error("Generator prepare : " + reason);
         });
 
-        const envParam: EnvParam = ConfigurationService.getInstance().getNodeConfiguration();
+        const envParam: EnvParam = ConfigurationService.getInstance().node_configuration;
 
         let connectionString = envParam.CONNECTION_STRING;
 

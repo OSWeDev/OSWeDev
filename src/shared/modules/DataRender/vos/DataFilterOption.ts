@@ -20,6 +20,8 @@ export default class DataFilterOption {
         public string_value: string = null,
         public tstz_value: number = null,
         init: boolean = false,
+        public options: any = [],
+        public custom_name: string = null,
     ) {
         if (init) {
             this.init_text_uid();

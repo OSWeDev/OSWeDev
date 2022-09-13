@@ -167,7 +167,7 @@ export default class ModuleMenuServer extends ModuleServerBase {
         let user = await ModuleAccessPolicyServer.getInstance().getSelfUser();
         let lang = (user && user.lang_id) ?
             await ModuleDAO.getInstance().getVoById<LangVO>(LangVO.API_TYPE_ID, user.lang_id) :
-            await ModuleTranslation.getInstance().getLang(ConfigurationService.getInstance().getNodeConfiguration().DEFAULT_LOCALE);
+            await ModuleTranslation.getInstance().getLang(ConfigurationService.getInstance().node_configuration.DEFAULT_LOCALE);
         if (!lang) {
             ConsoleHandler.getInstance().error('add_menu:Failed get lang');
             return;

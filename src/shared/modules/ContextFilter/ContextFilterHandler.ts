@@ -1,5 +1,12 @@
 import { cloneDeep } from "lodash";
+import RangeHandler from "../../tools/RangeHandler";
+import VOFieldRefVO from "../DashboardBuilder/vos/VOFieldRefVO";
+import DataFilterOption from "../DataRender/vos/DataFilterOption";
+import NumSegment from "../DataRender/vos/NumSegment";
+import TSRange from "../DataRender/vos/TSRange";
 import ModuleTable from "../ModuleTable";
+import ModuleTableField from "../ModuleTableField";
+import VOsTypesManager from "../VOsTypesManager";
 import ContextFilterVO from "./vos/ContextFilterVO";
 import ContextQueryFieldVO from "./vos/ContextQueryFieldVO";
 import ContextQueryVO, { query } from "./vos/ContextQueryVO";
@@ -249,5 +256,225 @@ export default class ContextFilterHandler {
         filter_none.vo_type = api_type_id;
 
         return query(api_type_id).field('id').add_filters([filter_none]).ignore_access_hooks();
+    }
+
+    public add_context_filters_exclude_values(
+        exclude_values: DataFilterOption[],
+        vo_field_ref: VOFieldRefVO,
+        query_filters: ContextFilterVO[],
+        concat_exclude_values: boolean
+    ): ContextFilterVO[] {
+        if (!exclude_values || !exclude_values.length) {
+            return query_filters;
+        }
+
+        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[vo_field_ref.api_type_id];
+        let field = moduletable.get_field_by_id(vo_field_ref.field_id);
+
+        let exclude_values_context_filter: ContextFilterVO = null;
+
+        // On parcourt toutes les valeurs à exclure pour créer le ContextFilter
+        for (let j in exclude_values) {
+            let active_option = exclude_values[j];
+
+            let new_exclude_values = this.get_ContextFilterVO_from_DataFilterOption(active_option, null, field, vo_field_ref);
+
+            if (!new_exclude_values) {
+                continue;
+            }
+
+            if (!exclude_values_context_filter) {
+                exclude_values_context_filter = new_exclude_values;
+            } else {
+                exclude_values_context_filter = this.merge_ContextFilterVOs(exclude_values_context_filter, new_exclude_values);
+            }
+        }
+
+        // Changer le filter_type pour dire ne pas prendre en compte
+        exclude_values_context_filter.filter_type = this.get_ContextFilterVO_None(field, vo_field_ref);
+
+        let new_query_filters: ContextFilterVO[] = [];
+        let is_add: boolean = false;
+
+        // On le rajoute à la query
+        if (query_filters) {
+
+            for (let i in query_filters) {
+                if ((query_filters[i].field_id == vo_field_ref.field_id) && (query_filters[i].vo_type == vo_field_ref.api_type_id)) {
+                    if (concat_exclude_values) {
+                        is_add = true;
+                        new_query_filters.push(ContextFilterVO.and([query_filters[i], exclude_values_context_filter]));
+                    }
+                    continue;
+                }
+
+                new_query_filters.push(query_filters[i]);
+            }
+        }
+
+        if (!is_add) {
+            new_query_filters.push(exclude_values_context_filter);
+        }
+
+        return new_query_filters;
+    }
+
+    public get_ContextFilterVO_None(field: ModuleTableField<any>, vo_field_ref: VOFieldRefVO): number {
+        let field_type = null;
+
+        if ((!field) && (vo_field_ref.field_id == 'id')) {
+            field_type = ModuleTableField.FIELD_TYPE_int;
+        } else {
+            field_type = field.field_type;
+        }
+
+        switch (field_type) {
+            case ModuleTableField.FIELD_TYPE_int:
+            case ModuleTableField.FIELD_TYPE_geopoint:
+            case ModuleTableField.FIELD_TYPE_float:
+            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
+            case ModuleTableField.FIELD_TYPE_amount:
+            case ModuleTableField.FIELD_TYPE_prct:
+                return ContextFilterVO.TYPE_NUMERIC_NOT_EQUALS;
+
+            case ModuleTableField.FIELD_TYPE_html:
+            case ModuleTableField.FIELD_TYPE_password:
+            case ModuleTableField.FIELD_TYPE_email:
+            case ModuleTableField.FIELD_TYPE_file_field:
+            case ModuleTableField.FIELD_TYPE_string:
+            case ModuleTableField.FIELD_TYPE_textarea:
+            case ModuleTableField.FIELD_TYPE_translatable_text:
+                return ContextFilterVO.TYPE_TEXT_EQUALS_NONE;
+
+            case ModuleTableField.FIELD_TYPE_enum:
+                return ContextFilterVO.TYPE_NUMERIC_NOT_EQUALS;
+
+            case ModuleTableField.FIELD_TYPE_tstz:
+            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+            case ModuleTableField.FIELD_TYPE_html_array:
+                throw new Error('Not Implemented');
+
+
+            default:
+                throw new Error('Not Implemented');
+        }
+    }
+
+    public get_ContextFilterVO_from_DataFilterOption(active_option: DataFilterOption, ts_range: TSRange, field: ModuleTableField<any>, vo_field_ref: VOFieldRefVO): ContextFilterVO {
+        let translated_active_options = new ContextFilterVO();
+
+        translated_active_options.field_id = vo_field_ref.field_id;
+        translated_active_options.vo_type = vo_field_ref.api_type_id;
+
+        let field_type = null;
+
+        if ((!field) && (vo_field_ref.field_id == 'id')) {
+            field_type = ModuleTableField.FIELD_TYPE_int;
+        } else {
+            field_type = field.field_type;
+        }
+
+        switch (field_type) {
+            case ModuleTableField.FIELD_TYPE_int:
+            case ModuleTableField.FIELD_TYPE_geopoint:
+            case ModuleTableField.FIELD_TYPE_float:
+            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
+            case ModuleTableField.FIELD_TYPE_amount:
+            case ModuleTableField.FIELD_TYPE_prct:
+                translated_active_options.filter_type = ContextFilterVO.TYPE_NUMERIC_INTERSECTS;
+                translated_active_options.param_numranges = RangeHandler.getInstance().get_ids_ranges_from_list([active_option.numeric_value]);
+                break;
+
+            case ModuleTableField.FIELD_TYPE_html:
+            case ModuleTableField.FIELD_TYPE_password:
+            case ModuleTableField.FIELD_TYPE_email:
+            case ModuleTableField.FIELD_TYPE_file_field:
+            case ModuleTableField.FIELD_TYPE_string:
+            case ModuleTableField.FIELD_TYPE_textarea:
+            case ModuleTableField.FIELD_TYPE_translatable_text:
+                translated_active_options.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ANY;
+                translated_active_options.param_textarray = [active_option.string_value];
+                break;
+
+            case ModuleTableField.FIELD_TYPE_enum:
+                translated_active_options.filter_type = ContextFilterVO.TYPE_NUMERIC_INTERSECTS;
+                translated_active_options.param_numranges = [RangeHandler.getInstance().create_single_elt_NumRange(active_option.numeric_value, NumSegment.TYPE_INT)];
+                break;
+
+            case ModuleTableField.FIELD_TYPE_tstz:
+                translated_active_options.filter_type = ContextFilterVO.TYPE_DATE_INTERSECTS;
+                translated_active_options.param_tsranges = [ts_range];
+                break;
+
+            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+            case ModuleTableField.FIELD_TYPE_html_array:
+                throw new Error('Not Implemented');
+
+
+            default:
+                throw new Error('Not Implemented');
+        }
+
+        return translated_active_options;
+    }
+
+    public merge_ContextFilterVOs(a: ContextFilterVO, b: ContextFilterVO, try_union: boolean = false): ContextFilterVO {
+        if (!a) {
+            return b;
+        }
+
+        if (!b) {
+            return a;
+        }
+
+        if (a.filter_type == b.filter_type) {
+            if (a.param_numranges && b.param_numranges) {
+                a.param_numranges = a.param_numranges.concat(b.param_numranges);
+                if (try_union) {
+                    a.param_numranges = RangeHandler.getInstance().getRangesUnion(a.param_numranges);
+                }
+                return a;
+            }
+
+            if (a.param_tsranges && b.param_tsranges) {
+                a.param_tsranges = a.param_tsranges.concat(b.param_tsranges);
+                if (try_union) {
+                    a.param_tsranges = RangeHandler.getInstance().getRangesUnion(a.param_tsranges);
+                }
+                return a;
+            }
+
+            if (a.param_textarray && b.param_textarray) {
+                if (!a.param_textarray.length) {
+                    a.param_textarray = b.param_textarray;
+                } else if (!b.param_textarray.length) {
+                } else {
+                    a.param_textarray = a.param_textarray.concat(b.param_textarray);
+                }
+                return a;
+            }
+
+            /**
+             * On doit gérer les merges booleans, en supprimant potentiellement la condition
+             *  (par exemple si on merge un true any avec un false any par définition c'est juste plus un filtre)
+             */
+            switch (a.filter_type) {
+                case ContextFilterVO.TYPE_BOOLEAN_TRUE_ANY:
+                    throw new Error('Not Implemented');
+                case ContextFilterVO.TYPE_BOOLEAN_TRUE_ALL:
+                    throw new Error('Not Implemented');
+                case ContextFilterVO.TYPE_BOOLEAN_FALSE_ANY:
+                    throw new Error('Not Implemented');
+                case ContextFilterVO.TYPE_BOOLEAN_FALSE_ALL:
+                    throw new Error('Not Implemented');
+
+                case ContextFilterVO.TYPE_TEXT_INCLUDES_ALL:
+
+                default:
+                    break;
+            }
+        }
+
+        return a;
     }
 }

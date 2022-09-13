@@ -69,6 +69,33 @@
             :sync="true"
             :width="100"
             :labels="{checked: label('table_widget_options_component.show_pagination_form.visible'), unchecked: label('table_widget_options_component.show_pagination_form.hidden')}")
+    
+    .show_pagination_list
+        .input_label {{ label('table_widget_options_component.show_pagination_list') }}
+        toggle-button(
+            @change="switch_show_pagination_list" 
+            :value="show_pagination_list" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('table_widget_options_component.show_pagination_list.visible'), unchecked: label('table_widget_options_component.show_pagination_list.hidden')}")
+    
+    template(v-if='show_pagination_list')
+        .nbpage_pagination_list
+            .input_label {{ label('table_widget_options_component.nbpage_pagination_list') }}
+            .input_wrapper
+                input(
+                    type="number"
+                    v-model="tmp_nbpages_pagination_list"
+                )
+
+    .has_table_total_footer
+        .input_label {{ label('table_widget_options_component.has_table_total_footer') }}
+        toggle-button(
+            @change="switch_has_table_total_footer" 
+            :value="has_table_total_footer" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('table_widget_options_component.has_table_total_footer.visible'), unchecked: label('table_widget_options_component.has_table_total_footer.hidden')}")        
 
     .show_limit_selectable
         .input_label {{ label('table_widget_options_component.show_limit_selectable') }}
@@ -160,7 +187,8 @@
 
     .can_filter_by(v-if='widget_options')
         .input_label {{ label('table_widget_options_component.can_filter_by') }}
-        
+
+       
         toggle-button(
             @change="switch_can_filter_by" 
             :value="can_filter_by" 
@@ -170,18 +198,19 @@
 
     .field_refs
         .input_label {{ label('table_widget_options_component.columns') }}
-
         template(v-if='columns && (columns.length > 1)')
             Vuenestable.nested_field_refs(
-                v-model="editable_columns" 
+                v-model="editable_columns"
+                max_depth="1" 
+                :hooks="{'beforeMove': beforeMove}"
                 @change="changed_columns"
                 key-prop="id"
-                :max-depth="1"
                 children-prop="children"
             )
-                template(slot-scope="{ item }")
+                template(slot-scope="{ item }" 
+                )
 
-                    Vuenestablehandle(:item="item")
+                    Vuenestablehandle(:item="item" :class="{header_color:item.type == 5}")
                         i.fa.fa-bars.fa-fw(aria-hidden="true")
                     
                     .item_content

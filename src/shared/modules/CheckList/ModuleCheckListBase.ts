@@ -56,6 +56,10 @@ export default abstract class ModuleCheckListBase extends Module {
             return;
         }
 
+        if (VOsTypesManager.getInstance().moduleTables_by_voType[this.checklist_type_id]) {
+            return;
+        }
+
         let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
 
         additional_fields.unshift(
@@ -63,6 +67,7 @@ export default abstract class ModuleCheckListBase extends Module {
             new ModuleTableField('limit_affichage', ModuleTableField.FIELD_TYPE_int, 'Nb. limite affichage', false),
             new ModuleTableField('hide_item_description', ModuleTableField.FIELD_TYPE_boolean, "cacher la desc. de l'item", false, true, false),
             new ModuleTableField('show_legend', ModuleTableField.FIELD_TYPE_boolean, "afficher la légende", false, true, false),
+            new ModuleTableField('show_finalized_btn', ModuleTableField.FIELD_TYPE_boolean, "Afficher le bouton de finalisation", false, true, false),
         );
 
         let datatable = new ModuleTable(this, this.checklist_type_id, constructor, additional_fields, label_field, "CheckLists");
@@ -75,6 +80,10 @@ export default abstract class ModuleCheckListBase extends Module {
             return;
         }
 
+        if (VOsTypesManager.getInstance().moduleTables_by_voType[this.checklistitem_type_id]) {
+            return;
+        }
+
         let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', false);
         let checklist_id = new ModuleTableField('checklist_id', ModuleTableField.FIELD_TYPE_foreign_key, 'CheckList', true);
 
@@ -82,7 +91,8 @@ export default abstract class ModuleCheckListBase extends Module {
             label_field,
             checklist_id,
             new ModuleTableField('explaination', ModuleTableField.FIELD_TYPE_string, 'Description', false),
-            new ModuleTableField('archived', ModuleTableField.FIELD_TYPE_boolean, 'Caché', true, true, false)
+            new ModuleTableField('archived', ModuleTableField.FIELD_TYPE_boolean, 'Caché', true, true, false),
+            new ModuleTableField('finalized', ModuleTableField.FIELD_TYPE_boolean, 'Checklist finalisé', false, true, false)
         );
 
         let datatable = new ModuleTable(this, this.checklistitem_type_id, constructor, additional_fields, label_field, "Eléments de la checklist");
@@ -94,6 +104,10 @@ export default abstract class ModuleCheckListBase extends Module {
     protected abstract callInitializeCheckListItemCheckPoints();
     protected initializeCheckListItemCheckPoints(additional_fields: Array<ModuleTableField<any>>, constructor: () => ICheckListItemCheckPoints) {
         if (!this.checklistitemcheckpoints_type_id) {
+            return;
+        }
+
+        if (VOsTypesManager.getInstance().moduleTables_by_voType[this.checklistitemcheckpoints_type_id]) {
             return;
         }
 
@@ -114,6 +128,10 @@ export default abstract class ModuleCheckListBase extends Module {
     protected abstract callInitializeCheckPoint();
     protected initializeCheckPoint(additional_fields: Array<ModuleTableField<any>>, constructor: () => ICheckPoint) {
         if (!this.checkpoint_type_id) {
+            return;
+        }
+
+        if (VOsTypesManager.getInstance().moduleTables_by_voType[this.checkpoint_type_id]) {
             return;
         }
 

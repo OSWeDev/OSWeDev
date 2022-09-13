@@ -120,3 +120,43 @@
         }
     }
 }
+ .api_type_ids {
+     max-height: 430px;
+     overflow-y: auto;
+     margin-top: 0.3em;
+
+     .api_type_id_type {
+         vertical-align: middle;
+         float: left;
+         margin-right: 0.2em;
+     }
+
+     .api_type_id_selected {
+         vertical-align: middle;
+         float: left;
+         margin-right: 0.1em;
+         color: goldenrod;
+     }
+
+     .api_type_id {
+         .header {
+
+             text-transform: uppercase;
+             margin-top: 0.3em;
+
+             .open_close {
+                 float: left;
+                 padding: 0em 0.3em;
+                 font-size: 1em;
+                 font-weight: bold;
+                 background: #0d6efd;
+                 margin-right: 0.2em;
+                 color: white;
+                 cursor: pointer;
+                 border-radius: 2px;
+                 width: 1.5em;
+                 text-align: center;
+             }
+         }
+     }
+ }

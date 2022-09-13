@@ -79,27 +79,6 @@ export default class CheckListComponent extends VueComponentBase {
 
     private debounced_loading = debounce(this.loading.bind(this), 100);
 
-    get selected_checkpoint() {
-        if ((!this.checkpoints) || (!this.step_id)) {
-            return null;
-        }
-
-        return this.checkpoints[this.step_id];
-    }
-
-    get ordered_checkpoints(): ICheckPoint[] {
-
-        if ((!this.checkpoints) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(this.checkpoints))) {
-            return null;
-        }
-
-        let res: ICheckPoint[] = [];
-
-        res = Object.values(this.checkpoints);
-        WeightHandler.getInstance().sortByWeight(res);
-        return res;
-    }
-
     @Watch('global_route_path')
     @Watch('modal_show')
     @Watch('checklist_controller')
@@ -115,77 +94,10 @@ export default class CheckListComponent extends VueComponentBase {
         this.debounced_loading();
     }
 
-    private async onchangevo(vo: ICheckListItem) {
+    @Watch("$route")
+    private async onrouteChange() {
 
-        if (!vo) {
-            return;
-        }
-
-        Vue.set(this.checklistitems, vo.id, await ModuleDAO.getInstance().getVoById(this.checklist_shared_module.checklistitem_type_id, vo.id));
-
-        this.selected_checklist_item = this.checklistitems[vo.id];
-
-        if (this.checklistitems[vo.id].archived) {
-            delete this.checklistitems[vo.id];
-        }
-        if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(this.checklistitems)) {
-            this.checklistitems = {};
-        }
-    }
-
-    get ordered_checklistitems() {
-
-        if (!this.checklist_controller) {
-            return null;
-        }
-
-        let res: ICheckListItem[] = [];
-
-        this.show_anyway = false;
-
-        if (!this.checklistitems) {
-            return [];
-        }
-
-        res = Object.values(this.checklistitems);
-
-        if (this.filter_text) {
-
-            // let desc_checks: ICheckListItem[] = [];
-            res = res.filter((e: ICheckListItem) => {
-                for (let i in e) {
-                    let field = e[i];
-
-                    if (typeof field !== 'string') {
-                        continue;
-                    }
-
-                    if (field.indexOf(this.filter_text) >= 0) {
-                        return true;
-                    }
-                }
-
-                let infos_cols_content = this.checklist_controller.get_infos_cols_content(e);
-                for (let i in infos_cols_content) {
-                    let field = infos_cols_content[i];
-
-                    if (typeof field !== 'string') {
-                        continue;
-                    }
-
-                    if (field.indexOf(this.filter_text) >= 0) {
-                        return true;
-                    }
-                }
-
-                // desc_checks.push(e);
-
-                return false;
-            });
-        }
-
-        res.sort(this.checklist_controller.items_sorter);
-        return res;
+        await this.handle_modal_show_hide();
     }
 
     private mounted() {
@@ -205,14 +117,6 @@ export default class CheckListComponent extends VueComponentBase {
 
     private close_modal() {
         this.$router.push(this.global_route_path + '/' + this.list_id);
-    }
-
-    get has_checklistitems() {
-        if (!this.checklistitems) {
-            return false;
-        }
-
-        return ObjectHandler.getInstance().hasAtLeastOneAttribute(this.checklistitems);
     }
 
     private async loading() {
@@ -340,12 +244,6 @@ export default class CheckListComponent extends VueComponentBase {
         }
     }
 
-    @Watch("$route")
-    private async onrouteChange() {
-
-        await this.handle_modal_show_hide();
-    }
-
     private async handle_modal_show_hide() {
         if (!this.modal_show) {
             $('#checklist_item_modal').modal('hide');
@@ -361,7 +259,9 @@ export default class CheckListComponent extends VueComponentBase {
     }
 
     private async createNew() {
-        let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(this.checklist_controller.getCheckListItemNewInstance());
+        let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(
+            await this.checklist_controller.getCheckListItemNewInstance()
+        );
         if ((!res) || !res.id) {
             ConsoleHandler.getInstance().error('CheckListComponent:createNew:failed');
             this.debounced_loading();
@@ -383,5 +283,113 @@ export default class CheckListComponent extends VueComponentBase {
             this.checklistitems = {};
         }
         this.$router.push(this.global_route_path + '/' + this.list_id);
+    }
+
+    private async onchangevo(vo: ICheckListItem) {
+
+        if (!vo) {
+            return;
+        }
+
+        Vue.set(this.checklistitems, vo.id, await ModuleDAO.getInstance().getVoById(this.checklist_shared_module.checklistitem_type_id, vo.id));
+
+        this.selected_checklist_item = this.checklistitems[vo.id];
+
+        if (this.checklistitems[vo.id].archived) {
+            delete this.checklistitems[vo.id];
+        }
+        if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(this.checklistitems)) {
+            this.checklistitems = {};
+        }
+    }
+
+    private changecheckpoint(cp: ICheckPoint) {
+        this.$router.push(
+            this.global_route_path + '/' + this.selected_checklist_item.checklist_id + '/' + this.selected_checklist_item.id + '/' + cp.id
+        );
+    }
+
+    get ordered_checklistitems() {
+
+        if (!this.checklist_controller) {
+            return null;
+        }
+
+        let res: ICheckListItem[] = [];
+
+        this.show_anyway = false;
+
+        if (!this.checklistitems) {
+            return [];
+        }
+
+        res = Object.values(this.checklistitems);
+
+        if (this.filter_text) {
+
+            // let desc_checks: ICheckListItem[] = [];
+            res = res.filter((e: ICheckListItem) => {
+                for (let i in e) {
+                    let field = e[i];
+
+                    if (typeof field !== 'string') {
+                        continue;
+                    }
+
+                    if (field.indexOf(this.filter_text) >= 0) {
+                        return true;
+                    }
+                }
+
+                let infos_cols_content = this.checklist_controller.get_infos_cols_content(e);
+                for (let i in infos_cols_content) {
+                    let field = infos_cols_content[i];
+
+                    if (typeof field !== 'string') {
+                        continue;
+                    }
+
+                    if (field.indexOf(this.filter_text) >= 0) {
+                        return true;
+                    }
+                }
+
+                // desc_checks.push(e);
+
+                return false;
+            });
+        }
+
+        res.sort(this.checklist_controller.items_sorter);
+        return res;
+    }
+
+    get selected_checkpoint() {
+        if ((!this.checkpoints) || (!this.step_id)) {
+            return null;
+        }
+
+        return this.checkpoints[this.step_id];
+    }
+
+    get ordered_checkpoints(): ICheckPoint[] {
+
+        if ((!this.checkpoints) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(this.checkpoints))) {
+            return null;
+        }
+
+        let res: ICheckPoint[] = [];
+
+        res = Object.values(this.checkpoints);
+        WeightHandler.getInstance().sortByWeight(res);
+        return res;
+    }
+
+    get has_checklistitems() {
+        if (!this.checklistitems) {
+            return false;
+        }
+
+        return ObjectHandler.getInstance().hasAtLeastOneAttribute(this.checklistitems);
     }
 }

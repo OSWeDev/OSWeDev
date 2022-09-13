@@ -149,7 +149,7 @@ export default abstract class ModuleServiceBase {
     }
 
     get bdd_owner(): string {
-        return ConfigurationService.getInstance().getNodeConfiguration().BDD_OWNER;
+        return ConfigurationService.getInstance().node_configuration.BDD_OWNER;
     }
 
     get sharedModules(): Module[] {
@@ -202,7 +202,7 @@ export default abstract class ModuleServiceBase {
     public async register_all_modules(db: IDatabase<any>, is_generator: boolean = false) {
         this.db_ = db;
 
-        db.$pool.options.max = ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL;
+        db.$pool.options.max = ConfigurationService.getInstance().node_configuration.MAX_POOL;
         db.$pool.options.idleTimeoutMillis = 120000;
 
         this.registered_base_modules = this.getBaseModules();
@@ -222,7 +222,7 @@ export default abstract class ModuleServiceBase {
         ModuleTableDBService.getInstance(db);
 
         // En version SERVER_START_BOOSTER on check pas le format de la BDD au démarrage, le générateur s'en charge déjà en amont
-        if ((!!is_generator) || (!ConfigurationService.getInstance().getNodeConfiguration().SERVER_START_BOOSTER)) {
+        if ((!!is_generator) || (!ConfigurationService.getInstance().node_configuration.SERVER_START_BOOSTER)) {
 
             await this.create_modules_base_structure_in_db();
 
@@ -243,7 +243,7 @@ export default abstract class ModuleServiceBase {
         await this.preload_segmented_known_databases();
 
         // A mon avis c'est de la merde ça... on charge où la vérif des params, le hook install, ... ?
-        // if ((!!is_generator) || (!ConfigurationService.getInstance().getNodeConfiguration().SERVER_START_BOOSTER)) {
+        // if ((!!is_generator) || (!ConfigurationService.getInstance().node_configuration.SERVER_START_BOOSTER)) {
 
         //     // On appelle le hook de configuration
         //     await this.configure_modules();

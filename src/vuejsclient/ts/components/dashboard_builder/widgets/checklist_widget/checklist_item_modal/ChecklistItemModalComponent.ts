@@ -59,6 +59,10 @@ export default class ChecklistItemModalComponent extends VueComponentBase {
         this.$emit("onchangevo", vo);
     }
 
+    private changecheckpoint(cp: ICheckPoint) {
+        this.selected_checkpoint = cp;
+    }
+
     get checklist_controller(): CheckListControllerBase {
         if (!this.checklist) {
             return null;

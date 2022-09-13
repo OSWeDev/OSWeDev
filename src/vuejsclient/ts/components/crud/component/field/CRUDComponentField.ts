@@ -940,10 +940,6 @@ export default class CRUDComponentField extends VueComponentBase
 
     private async onChangeField() {
 
-        if (this.inline_input_mode) {
-            return;
-        }
-
         if (this.field_type == DatatableField.REF_RANGES_FIELD_TYPE) {
             let ranges: NumRange[] = [];
             for (let i in this.field_value_refranges_selected_ids) {
@@ -953,6 +949,13 @@ export default class CRUDComponentField extends VueComponentBase
             }
             ranges = RangeHandler.getInstance().getRangesUnion(ranges);
             this.field_value = ranges;
+        }
+
+        if (this.inline_input_mode) {
+            return;
+        }
+
+        if (this.field_type == DatatableField.REF_RANGES_FIELD_TYPE) {
 
             let refrangesField: RefRangesReferenceDatatableField<any> = (this.field as RefRangesReferenceDatatableField<any>);
 
@@ -1084,6 +1087,10 @@ export default class CRUDComponentField extends VueComponentBase
     }
 
     private async inputValue(value: any) {
+
+        if (this.is_custom_field_type) {
+            this.field_value = value;
+        }
 
         if (this.inline_input_mode) {
             return;

@@ -115,6 +115,7 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('default_height', ModuleTableField.FIELD_TYPE_int, 'Hauteur par défaut', true, true, 30),
             new ModuleTableField('default_background', ModuleTableField.FIELD_TYPE_string, 'default_background', true, true, '#f5f5f5'),
             new ModuleTableField('is_filter', ModuleTableField.FIELD_TYPE_boolean, 'is_filter'),
+            new ModuleTableField('is_validation_filters', ModuleTableField.FIELD_TYPE_boolean, 'is_validation_filters'),
         ];
 
         let res = new ModuleTable(this, DashboardWidgetVO.API_TYPE_ID, () => new DashboardWidgetVO(), datatable_fields, name, "Widgets de Dashboard");
@@ -190,6 +191,8 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('many_to_many_aggregate', ModuleTableField.FIELD_TYPE_boolean, 'Aggrégation des liens ManyToMany'),
             new ModuleTableField('is_nullable', ModuleTableField.FIELD_TYPE_boolean, "La donnée peut-être null"),
             new ModuleTableField('show_tooltip', ModuleTableField.FIELD_TYPE_boolean, "Afficher la popup"),
+            new ModuleTableField('is_sticky', ModuleTableField.FIELD_TYPE_boolean, "Figer", false, true, false),
+            new ModuleTableField('header_name', ModuleTableField.FIELD_TYPE_string, "Entête de colonne"),
         ];
 
         this.datatables.push(new ModuleTable(this, TableColumnDescVO.API_TYPE_ID, () => new TableColumnDescVO(), datatable_fields, null, "Référence de champs"));

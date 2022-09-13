@@ -48,6 +48,9 @@ import VueModuleBase from './ts/modules/VueModuleBase';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
 import VueAppController from './VueAppController';
 import VarsDirective from "./ts/components/Var/directives/vars-directive/VarsDirective";
+import VarsClientController from "./ts/components/Var/VarsClientController";
+import VarDataBaseVO from "../shared/modules/Var/vos/VarDataBaseVO";
+import ConsoleHandler from "../shared/tools/ConsoleHandler";
 require('moment-json-parser').overrideDefault();
 
 
@@ -460,8 +463,11 @@ export default abstract class VueAppBase {
         }
         // this.registerPushWorker();
 
-        window.onbeforeunload = function (e) {
+        window.onbeforeunload = (e) => {
             var e = e || window.event;
+
+            // ConsoleHandler.getInstance().log('onbeforeunload');
+            // await self.unregisterVarsBeforeUnload();
 
             var needsSaving = false;
 
@@ -483,6 +489,8 @@ export default abstract class VueAppBase {
                 // For Safari
                 return message;
             }
+
+            return null;
         };
     }
 
@@ -490,6 +498,19 @@ export default abstract class VueAppBase {
     protected abstract initializeVueAppModulesDatas(): Promise<any>;
     protected async postInitializationHook() { }
     protected async postMountHook() { }
+
+    protected async unregisterVarsBeforeUnload() {
+        if (VarsClientController.getInstance().registered_var_params) {
+            let params: VarDataBaseVO[] = [];
+            for (let i in VarsClientController.getInstance().registered_var_params) {
+                let wrapper = VarsClientController.getInstance().registered_var_params[i];
+                params.push(wrapper.var_param);
+            }
+            if (params.length) {
+                await VarsClientController.getInstance().unRegisterParams(params);
+            }
+        }
+    }
 
     private try_language(code_lang: string): string {
         /**

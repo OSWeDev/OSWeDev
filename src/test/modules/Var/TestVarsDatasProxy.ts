@@ -51,6 +51,6 @@ describe('VarsDatasVoUpdateHandler', () => {
         let donot_insert_if_absent: boolean = true;
         let just_been_loaded_from_db: boolean = true;
 
-        await VarsDatasProxy.getInstance()['filter_var_datas_by_indexes'](var_datas, prepend, donot_insert_if_absent, just_been_loaded_from_db);
+        await VarsDatasProxy.getInstance()['filter_var_datas_by_indexes'](var_datas, null, null, true, 'test filter_var_datas_by_indexes', donot_insert_if_absent, just_been_loaded_from_db);
     });
 });

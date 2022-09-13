@@ -27,7 +27,7 @@ export default class DefaultTranslationsServerManager {
         }
 
         let promises = [];
-        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2));
+        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 2));
         let registered_default_translations = this.clean_registered_default_translations();
 
         for (let i in registered_default_translations) {

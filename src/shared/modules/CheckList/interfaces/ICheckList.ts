@@ -5,4 +5,5 @@ export default interface ICheckList extends IDistantVOBase {
     limit_affichage: number;
     hide_item_description: boolean;
     show_legend: boolean;
+    show_finalized_btn: boolean;
 }

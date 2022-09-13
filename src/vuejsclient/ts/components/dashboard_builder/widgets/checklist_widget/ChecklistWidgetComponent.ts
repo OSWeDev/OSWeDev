@@ -102,6 +102,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
 
     private item_id: number = null;
     private step_id: number = null;
+    private last_calculation_cpt: number = 0;
 
     get pagination_pagesize(): number {
         if (!this.widget_options) {
@@ -276,7 +277,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
     }
 
     private async createNew() {
-        let e = this.checklist_controller.getCheckListItemNewInstance();
+        let e = await this.checklist_controller.getCheckListItemNewInstance();
         let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(e);
         if ((!res) || !res.id) {
             ConsoleHandler.getInstance().error('CheckListComponent:createNew:failed');
@@ -375,6 +376,10 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
 
     private async update_visible_options() {
 
+        let launch_cpt: number = (this.last_calculation_cpt + 1);
+
+        this.last_calculation_cpt = launch_cpt;
+
         this.is_busy = true;
 
         if (!this.widget_options) {
@@ -440,6 +445,12 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
             query_.set_sort(new SortByVO(self.checklist_shared_module.checklistitem_type_id, 'id', false));
 
             let items: ICheckListItem[] = await ModuleContextFilter.getInstance().select_vos<ICheckListItem>(query_);
+
+            // Si je ne suis pas sur la dernière demande, je me casse
+            if (this.last_calculation_cpt != launch_cpt) {
+                return;
+            }
+
             checklistitems = (items && items.length) ? VOsTypesManager.getInstance().vosArray_to_vosByIds(items) : [];
         })());
 
@@ -451,11 +462,21 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
 
         await Promise.all(promises);
 
+        // Si je ne suis pas sur la dernière demande, je me casse
+        if (this.last_calculation_cpt != launch_cpt) {
+            return;
+        }
+
         self.checklistitems = checklistitems;
         self.checkpoints = checkpoints;
 
         await this.checklist_controller.component_hook_onAsyncLoading(
             this.getStoredDatas, this.storeDatas, this.checklist, this.checklistitems, this.checkpoints);
+
+        // Si je ne suis pas sur la dernière demande, je me casse
+        if (this.last_calculation_cpt != launch_cpt) {
+            return;
+        }
 
         this.infos_cols_labels = this.checklist_controller.get_infos_cols_labels();
 
@@ -464,6 +485,11 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
         query_count.active_api_type_ids = this.dashboard.api_type_ids;
         query_count.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(filters);
         this.pagination_count = await ModuleContextFilter.getInstance().select_count(query_count);
+
+        // Si je ne suis pas sur la dernière demande, je me casse
+        if (this.last_calculation_cpt != launch_cpt) {
+            return;
+        }
 
         this.loaded_once = true;
         this.is_busy = false;

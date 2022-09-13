@@ -35,7 +35,6 @@ export default class FakeVarControllerDsDistant extends VarServerControllerBase<
         let res: VarCacheConfVO = new VarCacheConfVO();
         res.id = 1;
         res.var_id = this.varConf.id;
-        res.cache_timeout_secs = 0;
         return res;
     }
 

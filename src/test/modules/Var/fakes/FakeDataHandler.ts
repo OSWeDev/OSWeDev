@@ -1,9 +1,11 @@
 
 import * as  moment from 'moment';
+import VarsComputeController from '../../../../server/modules/Var/VarsComputeController';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import TSRange from '../../../../shared/modules/DataRender/vos/TSRange';
 import ModuleTableField from '../../../../shared/modules/ModuleTableField';
 import DAG from '../../../../shared/modules/Var/graph/dagbase/DAG';
+import VarDAG from '../../../../shared/modules/Var/graph/VarDAG';
 import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
 import VarsInitController from '../../../../shared/modules/Var/VarsInitController';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
@@ -28,29 +30,29 @@ export default class FakeDataHandler {
      *                        / \ / \
      *                       E  F G  H
      */
-    public static get_fake_triangular_dag(): DAG<VarDAGNode> {
-        let dag: DAG<VarDAGNode> = new DAG();
+    public static get_fake_triangular_dag(): VarDAG {
+        let dag: VarDAG = new VarDAG(null);
 
         let var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
-        let dagnodeA: VarDAGNode = VarDAGNode.getInstance(dag, var_data_A);
+        let dagnodeA: VarDAGNode = VarDAGNode.getInstance(dag, var_data_A, VarsComputeController, true);
 
         let var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B();
-        let dagnodeB: VarDAGNode = VarDAGNode.getInstance(dag, var_data_B);
+        let dagnodeB: VarDAGNode = VarDAGNode.getInstance(dag, var_data_B, VarsComputeController, true);
 
         let var_data_C: FakeDataVO = FakeDataHandler.get_var_data_C();
-        let dagnodeC: VarDAGNode = VarDAGNode.getInstance(dag, var_data_C);
+        let dagnodeC: VarDAGNode = VarDAGNode.getInstance(dag, var_data_C, VarsComputeController, true);
 
         let var_data_E: FakeDataVO = FakeDataHandler.get_var_data_E();
-        let dagnodeE: VarDAGNode = VarDAGNode.getInstance(dag, var_data_E);
+        let dagnodeE: VarDAGNode = VarDAGNode.getInstance(dag, var_data_E, VarsComputeController, true);
 
         let var_data_F: FakeDataVO = FakeDataHandler.get_var_data_F();
-        let dagnodeF: VarDAGNode = VarDAGNode.getInstance(dag, var_data_F);
+        let dagnodeF: VarDAGNode = VarDAGNode.getInstance(dag, var_data_F, VarsComputeController, true);
 
         let var_data_G: FakeDataVO = FakeDataHandler.get_var_data_G();
-        let dagnodeG: VarDAGNode = VarDAGNode.getInstance(dag, var_data_G);
+        let dagnodeG: VarDAGNode = VarDAGNode.getInstance(dag, var_data_G, VarsComputeController, true);
 
         let var_data_H: FakeDataVO = FakeDataHandler.get_var_data_H();
-        let dagnodeH: VarDAGNode = VarDAGNode.getInstance(dag, var_data_H);
+        let dagnodeH: VarDAGNode = VarDAGNode.getInstance(dag, var_data_H, VarsComputeController, true);
 
         dagnodeA.addOutgoingDep("AB", dagnodeB);
         dagnodeA.addOutgoingDep("AC", dagnodeC);

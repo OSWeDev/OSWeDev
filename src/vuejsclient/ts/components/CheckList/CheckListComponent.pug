@@ -63,16 +63,19 @@ include ../../../views/mixins/loading.pug
         .modal-dialog.modal-lg(role='document')
             .modal-content(v-if="selected_checklist_item")
                 .modal-header
-                    a.btn.close(data-dismiss="modal" @click='close_modal') &times;
                     h4.modal-title {{ selected_checklist_item.name }}
+                    a.btn.close(data-dismiss="modal" @click='close_modal') &times;
                 .modal-body
                     Checklistmodalcomponent(
                         @onchangevo='onchangevo'
+                        @changecheckpoint='changecheckpoint'
+                        :checklist='checklist'
                         :checklist_item='selected_checklist_item'
                         :checkpoint='selected_checkpoint'
                         :checklist_controller='checklist_controller'
                         :ordered_checkpoints='ordered_checkpoints'
-                        :key='selected_checklist_item.id')
+                        :key='selected_checklist_item.id'
+                    )
 
                 .modal-footer
                     a.btn.btn-danger(data-dismiss="modal" @click='deleteSelectedItem(selected_checklist_item)') {{ label('checklist.checklist_item_modal.delete') }}

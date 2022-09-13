@@ -1,6 +1,9 @@
 import { cloneDeep } from 'lodash';
 import { Component, Prop } from 'vue-property-decorator';
+import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
+import ManyToOneReferenceDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
 import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import DashboardBuilderController from '../../../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
@@ -42,9 +45,24 @@ export default class DatatableComponentField extends VueComponentBase {
     @Prop({ default: true })
     private show_tooltip: boolean;
 
-    public async mounted() { }
+    private has_access_DAO_ACCESS_TYPE_INSERT_OR_UPDATE: boolean = false;
+    private is_load: boolean = false;
+
+    public async mounted() {
+        if ((this.field as ManyToOneReferenceDatatableField<any>).targetModuleTable) {
+            this.has_access_DAO_ACCESS_TYPE_INSERT_OR_UPDATE = await ModuleAccessPolicy.getInstance().testAccess(
+                ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, (this.field as ManyToOneReferenceDatatableField<any>).targetModuleTable.vo_type)
+            );
+        }
+
+        this.is_load = true;
+    }
 
     private get_crud_link(api_type_id: string, vo_id: number) {
+        if (!this.has_access_DAO_ACCESS_TYPE_INSERT_OR_UPDATE) {
+            return;
+        }
+
         if (this.is_dashboard_builder) {
             let route_name: string = this.$route.name.replace(DashboardBuilderController.ROUTE_NAME_CRUD, '').replace(DashboardBuilderController.ROUTE_NAME_CRUD_ALL, '');
 

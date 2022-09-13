@@ -59,6 +59,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Retirer le filtre'
         }, 'table_widget_component.filter_by.unfilter.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Total'
+        }, 'table_widget_component.table_total_footer.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Filtrable'
@@ -66,6 +69,13 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Non filtrable'
         }, 'table_widget_column_conf.editable_column.cannot_filter_by.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Figer'
+        }, 'table_widget_column_conf.editable_column.is_sticky.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Ne pas figer'
+        }, 'table_widget_column_conf.editable_column.is_not_sticky.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Conditionner au droit'
@@ -504,6 +514,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'table_widget_column.new_column_select_type_label.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Ajouter une entête'
+        }, 'table_widget_column.new_header_column_select_type_label.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Glisser/déposer un champs'
         }, 'single_vo_field_ref_holder.vo_ref_field_receiver_placeholder.___LABEL___'));
 
@@ -619,6 +633,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'dashboards.widgets.icons_tooltips.dowfilter.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Bouton de validation des fitlres'
+        }, 'dashboards.widgets.icons_tooltips.validationfilters.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Nom du filtre personnalisé'
         }, 'dow_filter_widget_component.custom_filter_name.___LABEL___'));
 
@@ -645,7 +663,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'TableWidgetComponent.onchange_column.failed.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Largeur du contenu de la colonne, en rem'
+            'fr-fr': 'Largeur du contenu de la colonne, en rem (requis si colonne figée)'
         }, 'table_widget_column_conf.column_width.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
@@ -911,6 +929,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'field_value_filter_widget_component.hide_btn_switch_advanced.___LABEL___'
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Placeholder pour le champs de recherche" },
+            'field_value_filter_widget_component.placeholder_advanced_string_filter.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Liste des champs pour la recherche multiple" },
             'field_value_filter_widget_component.vo_field_ref_multiple.___LABEL___'
         ));
@@ -945,6 +967,34 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Oui" },
             'table_widget_options_component.show_pagination_form.visible.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher la pagination sous forme de liste (prev/next)" },
+            'table_widget_options_component.show_pagination_list.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Nombre de blocs page cliquables" },
+            'table_widget_options_component.nbpage_pagination_list.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Non" },
+            'table_widget_options_component.show_pagination_list.hidden.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Oui" },
+            'table_widget_options_component.show_pagination_list.visible.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher le footer de total" },
+            'table_widget_options_component.has_table_total_footer.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Non" },
+            'table_widget_options_component.has_table_total_footer.hidden.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Oui" },
+            'table_widget_options_component.has_table_total_footer.visible.___LABEL___'
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Afficher le résumé de pagination" },
@@ -1043,8 +1093,16 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'dashboards.widgets.icons_tooltips.advanceddatefilter.___LABEL___'
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Choisir des valeurs par défaut (sinon à exclure)" },
+            'field_value_filter_widget_component.default_value_or_exclude.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Valeurs par défaut du filtre" },
             'field_value_filter_widget_component.default_filter_opt_values.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Valeurs à exclure du filtre" },
+            'field_value_filter_widget_component.exclude_filter_opt_values.___LABEL___'
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Masquer le filtre" },
@@ -1061,8 +1119,20 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'field_value_filter_widget_component.no_inter_filter.___LABEL___'
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Le filtre dépend d'un autre objet" },
+            'field_value_filter_widget_component.has_other_ref_api_type_id.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Objet interdépendant" },
+            'field_value_filter_widget_component.other_ref_api_type_id.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Grouper les filtres" },
             'dashboard_viewer.group_filters.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Valider" },
+            'dashboard_viewer.block_widgets_updates.___LABEL___'
         ));
 
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);

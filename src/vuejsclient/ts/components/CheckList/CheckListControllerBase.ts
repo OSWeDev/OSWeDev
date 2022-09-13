@@ -2,7 +2,6 @@ import ICheckList from '../../../../shared/modules/CheckList/interfaces/ICheckLi
 import ICheckListItem from '../../../../shared/modules/CheckList/interfaces/ICheckListItem';
 import ICheckPoint from '../../../../shared/modules/CheckList/interfaces/ICheckPoint';
 import ModuleCheckListBase from '../../../../shared/modules/CheckList/ModuleCheckListBase';
-import CheckPointVO from '../../../../shared/modules/CheckList/vos/CheckPointVO';
 import DatatableField from '../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import Module from '../../../../shared/modules/Module';
@@ -22,7 +21,7 @@ export default abstract class CheckListControllerBase {
         CheckListControllerBase.controller_by_name[name] = this;
     }
 
-    public abstract get_ordered_editable_fields(): Array<DatatableField<any, any>>;
+    public abstract get_ordered_editable_fields(): Promise<Array<DatatableField<any, any>>>;
 
     get shared_module(): Module {
         return ModulesManager.getInstance().getModuleByNameAndRole(this.name, Module.SharedModuleRoleName) as Module;
@@ -35,7 +34,9 @@ export default abstract class CheckListControllerBase {
     /**
      * Renvoie une instance de CheckListItem
      */
-    public abstract getCheckListItemNewInstance(): ICheckListItem;
+    public abstract getCheckListItemNewInstance(): Promise<ICheckListItem>;
+
+    public abstract finalize_checklist(checklist_item: ICheckListItem): Promise<boolean>;
 
     public abstract get_state_step(step_name: string, checklist_item: ICheckListItem): Promise<number>;
 
@@ -65,7 +66,11 @@ export default abstract class CheckListControllerBase {
         return [];
     }
 
-    public async get_step_description(checkpoint: CheckPointVO, checklist_item: ICheckListItem): Promise<string> {
+    public async get_step_description(checkpoint: ICheckPoint, checklist_item: ICheckListItem): Promise<string> {
+        return null;
+    }
+
+    public async get_tooltip_fields(checkpoint: ICheckPoint, checklist_item: ICheckListItem): Promise<{ [field_id: string]: string }> {
         return null;
     }
 }

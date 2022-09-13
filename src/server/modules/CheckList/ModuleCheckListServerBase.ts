@@ -91,6 +91,15 @@ export default abstract class ModuleCheckListServerBase extends ModuleServerBase
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': "Légende :"
         }, 'checklist.legend.checkpoint.state.legend.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Finalisation en cours"
+        }, 'checklist.finalize.start.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Finalisation terminée"
+        }, 'checklist.finalize.ok.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Erreur finalisation"
+        }, 'checklist.finalize.failed.___LABEL___'));
     }
 
     /**

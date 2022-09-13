@@ -12,6 +12,9 @@ export default class DataFilterOptionsHandler {
 
     private constructor() { }
 
+    /**
+     * FIXME:TODO/ Est-ce que les groupes devraient pas êtreordonnés aussi ? (.options)
+     */
     public sort_options(options: DataFilterOption[]) {
         options.sort((a: DataFilterOption, b: DataFilterOption) => {
             return (a.label < b.label) ? -1 : ((a.label > b.label) ? 1 : 0);

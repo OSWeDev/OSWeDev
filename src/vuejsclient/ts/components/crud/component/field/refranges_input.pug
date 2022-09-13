@@ -1,4 +1,13 @@
 .form-group(:class="{[field_type]:true, inline_input_mode:inline_input_mode, has_alert:(get_alerts && get_alerts[alert_path] && (get_alerts[alert_path].length > 0))}" @click='try_prepare_inline_input')
+    template(v-if='inline_input_mode && (!is_disabled) && (!inline_input_mode_input_only)')
+        template(v-if='!inline_input_is_editing')
+            template(v-if='inline_input_show_clear && !field.is_required')
+                i.inline_input_show_clear.fa.fa-trash.btn-danger(@click='inline_clear_value' :class="{busy: inline_input_is_busy}")
+            template(v-else)
+                i.inline_input_hide_clear.fa.fa-arrow-circle-o-right.btn-info(:class="{busy: inline_input_is_busy}")
+        template(v-else)
+            i.inline_input_cancel_input.fa.fa-undo.btn-warning(@click='cancel_input' :class="{busy: inline_input_is_busy}")
+            
     Alertcomponent.datatable_field_alert.refranges_datatable_field_alert(:path='alert_path')
     label {{ label_replacement ? label(label_replacement) : t(field.translatable_title) }}
         template(v-if="field.is_required")
@@ -37,6 +46,12 @@
         :deselect-group-label='label("multiselect.deselectGroupLabel")'
     )
     template(v-if="!is_readonly")
-        .text_cliquable(@click='select_all') {{ label('select_all') }}
+        .text_cliquable.ml-1(@click='select_all') {{ label('select_all') }}
         .inter_text -
         .text_cliquable(@click='select_none') {{ label('select_none') }}
+        
+    template(v-if='inline_input_mode && (!is_disabled) && (!inline_input_mode_input_only)')
+        template(v-if='inline_input_is_editing')
+            i.inline_input_is_editing.fa.fa-floppy-o.btn-success(@click='validate_inline_input' :class="{busy: inline_input_is_busy}")
+        template(v-else)
+            i.inline_input_is_not_editing.fa.fa-pencil.btn-primary(@click='prepare_inline_input' :class="{busy: inline_input_is_busy}")

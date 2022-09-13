@@ -1,5 +1,6 @@
 import DashboardPageWidgetVO from "../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
 import TableColumnDescVO from "../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO";
+import VOFieldRefVO from "../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO";
 import DefaultTranslation from "../../../../../../../shared/modules/Translation/vos/DefaultTranslation";
 
 export default class TableWidgetOptions {
@@ -7,6 +8,7 @@ export default class TableWidgetOptions {
     public static TITLE_CODE_PREFIX: string = "TableWidgetOptions.title.";
     public static DEFAULT_LIMIT: number = 100;
     public static DEFAULT_LIMIT_SELECTABLE: string = "10,20,50,100";
+    public static DEFAULT_NBPAGES_PAGINATION_LIST: number = 5;
 
     public static get_selected_fields(page_widget: DashboardPageWidgetVO): { [api_type_id: string]: { [field_id: string]: boolean } } {
         let res: { [api_type_id: string]: { [field_id: string]: boolean } } = {};
@@ -18,6 +20,19 @@ export default class TableWidgetOptions {
 
         for (let i in options.columns) {
             let column = options.columns[i];
+
+            if (column.type == TableColumnDescVO.TYPE_header && column.children.length > 0) {
+                for (const key in column.children) {
+                    const child = column.children[key];
+                    if ((!child.api_type_id) || (!child.field_id)) {
+                        continue;
+                    }
+                    if (!res[child.api_type_id]) {
+                        res[child.api_type_id] = {};
+                    }
+                    res[child.api_type_id][child.field_id] = true;
+                }
+            }
 
             if ((!column.api_type_id) || (!column.field_id)) {
                 continue;
@@ -51,6 +66,9 @@ export default class TableWidgetOptions {
         public show_pagination_form: boolean,
         public show_limit_selectable: boolean,
         public limit_selectable: string,
+        public show_pagination_list: boolean,
+        public nbpages_pagination_list: number,
+        public has_table_total_footer: boolean,
     ) { }
 
     public get_title_name_code_text(page_widget_id: number): string {

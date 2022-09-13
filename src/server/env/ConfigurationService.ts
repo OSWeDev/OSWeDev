@@ -30,6 +30,7 @@ export default class ConfigurationService {
      * Just an helper for webpack conf
      */
     public shared_params: any;
+    public node_configuration: EnvParam = null;
 
     private nodeEnv: string;
     private STATIC_ENV_PARAMS: { [env: string]: IEnvParam };
@@ -46,9 +47,6 @@ export default class ConfigurationService {
 
     public setEnvParams(STATIC_ENV_PARAMS: { [env: string]: IEnvParam }) {
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
-    }
-
-    public getNodeConfiguration<T extends IEnvParam>(): T {
-        return Object.assign(new EnvParam(), this.STATIC_ENV_PARAMS[this.nodeEnv]) as T;
+        this.node_configuration = Object.assign(new EnvParam(), this.STATIC_ENV_PARAMS[this.nodeEnv]);
     }
 }

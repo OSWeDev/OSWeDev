@@ -75,14 +75,14 @@ export default class ModulesClientInitializationDatasGenerator {
         }
 
         // Initialiser directement l'env param
-        fileContent += "    EnvHandler.getInstance().NODE_VERBOSE = " + ((!!ConfigurationService.getInstance().getNodeConfiguration().NODE_VERBOSE) ? 'true' : 'false') + ';\n';
-        fileContent += "    EnvHandler.getInstance().IS_DEV = " + ((!!ConfigurationService.getInstance().getNodeConfiguration().ISDEV) ? 'true' : 'false') + ';\n';
-        fileContent += "    EnvHandler.getInstance().MSGPCK = " + ((!!ConfigurationService.getInstance().getNodeConfiguration().MSGPCK) ? 'true' : 'false') + ';\n';
-        fileContent += "    EnvHandler.getInstance().COMPRESS = " + ((!!ConfigurationService.getInstance().getNodeConfiguration().COMPRESS) ? 'true' : 'false') + ';\n';
-        fileContent += "    EnvHandler.getInstance().BASE_URL = '" + ConfigurationService.getInstance().getNodeConfiguration().BASE_URL + "';\n";
-        fileContent += "    EnvHandler.getInstance().CODE_GOOGLE_ANALYTICS = '" + ConfigurationService.getInstance().getNodeConfiguration().CODE_GOOGLE_ANALYTICS + "';\n";
+        fileContent += "    EnvHandler.getInstance().NODE_VERBOSE = " + ((!!ConfigurationService.getInstance().node_configuration.NODE_VERBOSE) ? 'true' : 'false') + ';\n';
+        fileContent += "    EnvHandler.getInstance().IS_DEV = " + ((!!ConfigurationService.getInstance().node_configuration.ISDEV) ? 'true' : 'false') + ';\n';
+        fileContent += "    EnvHandler.getInstance().MSGPCK = " + ((!!ConfigurationService.getInstance().node_configuration.MSGPCK) ? 'true' : 'false') + ';\n';
+        fileContent += "    EnvHandler.getInstance().COMPRESS = " + ((!!ConfigurationService.getInstance().node_configuration.COMPRESS) ? 'true' : 'false') + ';\n';
+        fileContent += "    EnvHandler.getInstance().BASE_URL = '" + ConfigurationService.getInstance().node_configuration.BASE_URL + "';\n";
+        fileContent += "    EnvHandler.getInstance().CODE_GOOGLE_ANALYTICS = '" + ConfigurationService.getInstance().node_configuration.CODE_GOOGLE_ANALYTICS + "';\n";
         fileContent += "    EnvHandler.getInstance().VERSION = '" + GeneratorBase.getInstance().getVersion() + "';\n";
-        fileContent += "    EnvHandler.getInstance().ACTIVATE_PWA = " + ((!!ConfigurationService.getInstance().getNodeConfiguration().ACTIVATE_PWA) ? 'true' : 'false') + ';\n';
+        fileContent += "    EnvHandler.getInstance().ACTIVATE_PWA = " + ((!!ConfigurationService.getInstance().node_configuration.ACTIVATE_PWA) ? 'true' : 'false') + ';\n';
 
 
         fileContent += this.generateModulesCode(this.generateModuleData, target);

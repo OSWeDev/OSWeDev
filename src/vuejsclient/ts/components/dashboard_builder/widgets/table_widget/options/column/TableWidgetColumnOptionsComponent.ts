@@ -15,6 +15,7 @@ import TableWidgetController from '../../TableWidgetController';
 import ThrottleHelper from '../../../../../../../../shared/tools/ThrottleHelper';
 import { query } from '../../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import AccessPolicyVO from '../../../../../../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
+import NumRange from '../../../../../../../../shared/modules/DataRender/vos/NumRange';
 
 @Component({
     template: require('./TableWidgetColumnOptionsComponent.pug'),
@@ -36,6 +37,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
 
     private new_column_select_type_component: string = null;
     private new_column_select_type_var_ref: string = null;
+    private new_header_columns: string = null;
 
     private column_width: number = 0;
     private throttled_update_column_width = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_column_width, 800, { leading: false, trailing: true });
@@ -55,6 +57,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     private tmp_font_color_header: string = null;
 
     private show_options: boolean = false;
+    private error: boolean = false;
 
     get vo_ref_tooltip(): string {
         if (!this.column) {
@@ -212,7 +215,6 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
                 }
             }
         }
-
         this.tmp_bg_color_header = this.object_column ? this.object_column.bg_color_header : null;
         this.tmp_font_color_header = this.object_column ? this.object_column.font_color_header : null;
     }
@@ -300,6 +302,9 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
                     options.show_pagination_form,
                     options.show_limit_selectable,
                     options.limit_selectable,
+                    options.show_pagination_list,
+                    options.nbpages_pagination_list,
+                    options.has_table_total_footer,
                 ) : null;
             }
         } catch (error) {
@@ -368,9 +373,10 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.can_filter_by = false;
         new_column.column_width = 0;
         new_column.default_sort_field = null;
-
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
         this.$emit('add_column', new_column);
+
+
     }
 
     private allowDrop(event) {
@@ -417,6 +423,47 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
         this.$emit('add_column', new_column);
     }
+    // creation de la column
+    private add_header(event) {
+        this.error = false;
+        this.new_header_columns = event.target.previousElementSibling._value;
+
+        for (const key in this.widget_options.columns) {
+            let col = this.widget_options.columns[key];
+            if (col.type == TableColumnDescVO.TYPE_header) {
+                if (col.header_name === this.new_header_columns) {
+                    this.error = true;
+                    return;
+                }
+            }
+        }
+
+        if (!this.new_header_columns) {
+            return;
+        }
+        let header_name: string = this.new_header_columns;
+
+        if (this.object_column) {
+            return;
+        }
+
+        let new_column = new TableColumnDescVO();
+        new_column.type = TableColumnDescVO.TYPE_header;
+        new_column.header_name = header_name;
+        new_column.id = this.get_new_column_id();
+        new_column.readonly = true;
+        new_column.exportable = true;
+        new_column.hide_from_table = false;
+        new_column.filter_by_access = null;
+        new_column.enum_bg_colors = null;
+        new_column.enum_fg_colors = null;
+        new_column.can_filter_by = false;
+        new_column.column_width = 0;
+        new_column.default_sort_field = null;
+
+        // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
+        this.$emit('add_column', new_column);
+    }
 
     private async switch_readonly() {
         if (!this.column) {
@@ -442,6 +489,15 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         }
 
         this.column.can_filter_by = !this.column.can_filter_by;
+        this.$emit('update_column', this.column);
+    }
+
+    private async switch_is_sticky() {
+        if (!this.column) {
+            return;
+        }
+
+        this.column.is_sticky = !this.column.is_sticky;
         this.$emit('update_column', this.column);
     }
 
@@ -481,6 +537,14 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.column);
     }
 
+    private async is_sticky_table() {
+        if (!this.column) {
+            return;
+        }
+
+        this.column.is_sticky = !this.column.is_sticky;
+        this.$emit('update_column', this.column);
+    }
 
     /**
      * On peut éditer si c'est un certain type de champs et directement sur le VO du crud type paramétré
@@ -578,6 +642,11 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
                 }
 
                 return this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(this.object_column.var_id));
+            case TableColumnDescVO.TYPE_header:
+                if (!this.object_column.header_name) {
+                    return null;
+                }
+                return this.t(this.object_column.header_name);
         }
 
         return null;
