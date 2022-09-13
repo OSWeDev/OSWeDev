@@ -26,7 +26,7 @@ export default class VarsTabsSubsController {
     private static instance: VarsTabsSubsController = null;
 
     public notify_vardatas = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(
-        this.notify_vardatas_throttled.bind(this), 400, { leading: true, trailing: true });
+        this.notify_vardatas_throttled.bind(this), 100, { leading: true, trailing: true });
 
     /**
      * Les client_tab_ids abonnés à chaque var_index

@@ -533,7 +533,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 await VarsServerCallBackSubsController.getInstance().notify_vardatas([vo]);
 
                 // et mettre à jour la version potentiellement en cache actuellement
-                await VarsDatasProxy.getInstance().update_existing_buffered_older_datas([vo]);
+                await VarsDatasProxy.getInstance().update_existing_buffered_older_datas([vo], 'invalidate_imports_for_c');
 
                 await ModuleVar.getInstance().invalidate_cache_intersection_and_parents([vo]);
             }
@@ -563,7 +563,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 await VarsServerCallBackSubsController.getInstance().notify_vardatas([vo_update_handler.post_update_vo]);
 
                 // et mettre à jour la version potentiellement en cache actuellement
-                await VarsDatasProxy.getInstance().update_existing_buffered_older_datas([vo_update_handler.post_update_vo]);
+                await VarsDatasProxy.getInstance().update_existing_buffered_older_datas([vo_update_handler.post_update_vo], 'invalidate_imports_for_u');
 
                 await ModuleVar.getInstance().invalidate_cache_intersection_and_parents([vo_update_handler.post_update_vo]);
             }
@@ -1085,7 +1085,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         let notifyable_vars: VarDataBaseVO[] = [];
         let needs_computation: VarDataBaseVO[] = [];
 
-        await VarsDatasProxy.getInstance().get_var_datas_or_ask_to_bgthread(params, notifyable_vars, needs_computation);
+        await VarsDatasProxy.getInstance().get_var_datas_or_ask_to_bgthread(params, notifyable_vars, needs_computation, client_tab_id, false, 'register_params:UID:' + uid + ':CLIENT_TAB_ID:' + client_tab_id);
 
         if (notifyable_vars && notifyable_vars.length) {
             let vars_to_notif: VarDataValueResVO[] = [];

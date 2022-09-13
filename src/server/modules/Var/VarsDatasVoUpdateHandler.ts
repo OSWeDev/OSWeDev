@@ -1003,8 +1003,11 @@ export default class VarsDatasVoUpdateHandler {
 
         if (registered_var_datas && registered_var_datas.length) {
             if (env.DEBUG_VARS) {
-                registered_var_datas.forEach((v) => ConsoleHandler.getInstance().log(
-                    'find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_registered_var_datas:INDEXES:' + v.index));
+                registered_var_datas.forEach((v) => {
+                    let w = VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes[v.index];
+                    ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_registered_var_datas:INDEXES:' + v.index +
+                        ':client_tab_id:' + (w ? w.client_tab_id : 'N/A') + ':is_server_request:' + (w ? w.is_server_request : 'N/A') + ':reason:' + (w ? w.reason : 'N/A'));
+                });
             }
             // On supprime quand même en bdd ces vars sinon on rechargera la version de la bdd à moment donné
             let bdd_vars_registered = registered_var_datas.filter((v) => (!!v.id) &&
@@ -1034,8 +1037,9 @@ export default class VarsDatasVoUpdateHandler {
             }
 
             // bdd_vars_registered à la place de registered_var_datas : pourquoi on remettrait en calcul les imports et denied ?
-            // si on les remet en calcul, c'est pour mettre à jour les calculs en bdd à la fin donc on indique cela (avec false)
-            await VarsDatasProxy.getInstance().append_var_datas(bdd_vars_registered);
+
+            // FIXME TODO : On perd l'info de qui a demandé à la base (client_tab_id & server_id) faudrait les sauvegarder depuis le wrapper avant de le supprimer pour chaque var
+            await VarsDatasProxy.getInstance().append_var_datas(bdd_vars_registered, 'handle_invalidation__registered_var_datas');
 
             if (env.DEBUG_VARS) {
                 ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_registered_var_datas:RECALC  ' + registered_var_datas.length + ' vars from APP cache.');
@@ -1044,8 +1048,11 @@ export default class VarsDatasVoUpdateHandler {
 
         if (unregistered_var_datas && unregistered_var_datas.length) {
             if (env.DEBUG_VARS) {
-                unregistered_var_datas.forEach((v) => ConsoleHandler.getInstance().log(
-                    'find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_unregistered_var_datas:INDEXES:' + v.index));
+                unregistered_var_datas.forEach((v) => {
+                    let w = VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes[v.index];
+                    ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_unregistered_var_datas:INDEXES:' + v.index +
+                        ':client_tab_id:' + (w ? w.client_tab_id : 'N/A') + ':is_server_request:' + (w ? w.is_server_request : 'N/A') + ':reason:' + (w ? w.reason : 'N/A'));
+                });
             }
 
             /**
@@ -1053,8 +1060,15 @@ export default class VarsDatasVoUpdateHandler {
              *  si on a une pixellisation sur la varconf, et que les pixels ne doivent pas être supprimés, en cas d'invalidation de pixel
              *  on les append aux prochains calculs.
              */
-            let vars_to_delete: VarDataBaseVO[] = [];
             let vars_to_append: VarDataBaseVO[] = [];
+
+            // On doit toujours delete en base, sinon on risque de recharger la data depuis la bdd à moment donné dans les calculs
+            if (unregistered_var_datas && unregistered_var_datas.length) {
+                await this.delete_vars_pack_without_triggers(unregistered_var_datas);
+                if (env.DEBUG_VARS) {
+                    ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_unregistered_var_datas:DELETED ' + unregistered_var_datas.length + ' vars from BDD cache.');
+                }
+            }
 
             for (let i in unregistered_var_datas) {
                 let unregistered_var_data = unregistered_var_datas[i];
@@ -1068,16 +1082,6 @@ export default class VarsDatasVoUpdateHandler {
                 if (conf.pixel_activated && conf.pixel_never_delete) {
                     vars_to_append.push(unregistered_var_data);
                     continue;
-                }
-
-                vars_to_delete.push(unregistered_var_data);
-            }
-
-            if (vars_to_delete && vars_to_delete.length) {
-                // On fait les suppressions en parallèle
-                await this.delete_vars_pack_without_triggers(vars_to_delete);
-                if (env.DEBUG_VARS) {
-                    ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_unregistered_var_datas:DELETED ' + unregistered_var_datas.length + ' vars from BDD cache.');
                 }
             }
 
@@ -1101,7 +1105,9 @@ export default class VarsDatasVoUpdateHandler {
                 /**
                  * On recalcule les pixels qu'on a identfié comme pixel_never_delete
                  */
-                await VarsDatasProxy.getInstance().append_var_datas(vars_to_append);
+                // FIXME TODO : On perd l'info de qui a demandé à la base (client_tab_id & server_id) faudrait les sauvegarder depuis le wrapper avant de le supprimer pour chaque var
+                await VarsDatasProxy.getInstance().append_var_datas(vars_to_append, 'handle_invalidation__unregistered_var_datas');
+
                 if (env.DEBUG_VARS) {
                     // ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_unregistered_var_datas:RECALC  ' + unregistered_var_datas.length + ' vars from BDD cache.');
                     ConsoleHandler.getInstance().log('find_invalid_datas_and_push_for_update:delete_instead_of_invalidating_unregistered_var_datas:IGNORE (unregistered)  ' + unregistered_var_datas.length + ' vars from BDD cache.');

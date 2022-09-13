@@ -208,7 +208,7 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
         res.fin = this.filterValue('fin', percent_module_finished);
         let data = null;
         try {
-            data = await VarsServerCallBackSubsController.getInstance().get_var_data(this.get_DayTempsPasseAnimation_param(theme_id_ranges, module_id_ranges, user_id_ranges));
+            data = await VarsServerCallBackSubsController.getInstance().get_var_data(this.get_DayTempsPasseAnimation_param(theme_id_ranges, module_id_ranges, user_id_ranges), 'AnimationReportingExportHandler.get_new_elem_total');
         } catch (error) {
             ConsoleHandler.getInstance().error('endModule:get_var_data:' + error + ':FIXME do we need to handle this ?');
         }
@@ -219,7 +219,7 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
         res.support = null;
 
         try {
-            data = await VarsServerCallBackSubsController.getInstance().get_var_data(this.get_DayPrctReussiteAnimation_param(theme_id_ranges, module_id_ranges, user_id_ranges));
+            data = await VarsServerCallBackSubsController.getInstance().get_var_data(this.get_DayPrctReussiteAnimation_param(theme_id_ranges, module_id_ranges, user_id_ranges), 'AnimationReportingExportHandler.get_new_elem_total');
         } catch (error) {
             ConsoleHandler.getInstance().error('endModule:get_var_data2:' + error + ':FIXME do we need to handle this ?');
         }
@@ -266,7 +266,7 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
 
         let data = null;
         try {
-            data = await VarsServerCallBackSubsController.getInstance().get_var_data(this.get_DayTempsPasseAnimation_param(null, module_id_ranges, user_id_ranges));
+            data = await VarsServerCallBackSubsController.getInstance().get_var_data(this.get_DayTempsPasseAnimation_param(null, module_id_ranges, user_id_ranges), 'AnimationReportingExportHandler.get_new_elem');
         } catch (error) {
             ConsoleHandler.getInstance().error('endModule:get_new_elem:' + error + ':FIXME do we need to handle this ?');
         }
@@ -277,7 +277,7 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
         res.support = (aum.support != null) ? await ModuleTranslation.getInstance().t(AnimationUserModuleVO.SUPPORT_LABELS[aum.support], user.lang_id) : null;
 
         try {
-            data = await VarsServerCallBackSubsController.getInstance().get_var_data(this.get_DayPrctReussiteAnimation_param(null, module_id_ranges, user_id_ranges));
+            data = await VarsServerCallBackSubsController.getInstance().get_var_data(this.get_DayPrctReussiteAnimation_param(null, module_id_ranges, user_id_ranges), 'AnimationReportingExportHandler.get_new_elem');
         } catch (error) {
             ConsoleHandler.getInstance().error('endModule:get_new_elem2:' + error + ':FIXME do we need to handle this ?');
         }
