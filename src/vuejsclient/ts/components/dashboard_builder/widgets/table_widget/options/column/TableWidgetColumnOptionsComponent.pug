@@ -142,6 +142,15 @@
                             :width="160"
                             :labels="{checked: label('table_widget_column_conf.editable_column.many_to_many_aggregate.show'), unchecked: label('table_widget_column_conf.editable_column.many_to_many_aggregate.hide')}")
 
+                    template(v-if="is_fkey")
+                        .disabled_many_to_one_link.mt-2
+                            toggle-button(
+                                @change="switch_disabled_many_to_one_link" 
+                                :value="column.disabled_many_to_one_link" 
+                                :sync="true"
+                                :width="160"
+                                :labels="{checked: label('table_widget_column_conf.editable_column.disabled_many_to_one_link.show'), unchecked: label('table_widget_column_conf.editable_column.disabled_many_to_one_link.hide')}")
+
                     .is_nullable.mt-2
                         toggle-button(
                             @change="switch_is_nullable" 

@@ -151,6 +151,7 @@ include ../../../../../views/mixins/loading.pug
                                                                 :style="'width: ' + (column.column_width ? column.column_width + 'rem' : null)"
                                                                 :is_dashboard_builder="true"
                                                                 :show_tooltip="column.show_tooltip"
+                                                                :disabled_many_to_one_link="column.disabled_many_to_one_link"
                                                             )
 
                                                 template(v-else)
@@ -181,7 +182,8 @@ include ../../../../../views/mixins/loading.pug
                                                         :style="'width: ' + (child.column_width ? child.column_width + 'rem' : null)"
                                                         :is_dashboard_builder="true"
                                                         :show_tooltip="child.show_tooltip"
-                                                        )
+                                                        :disabled_many_to_one_link="column.disabled_many_to_one_link"
+                                                    )
                                                 template(v-if="child.type == 0 && !child.hide_from_table")
                                                     td.btn-group.d-print-none(
                                                         v-tooltip='label("table_widget_component.id", {id : row.__crud_actions})' :style="{width: (child.column_width ? child.column_width + 'rem' : null)}" 

@@ -1045,6 +1045,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'table_widget_column_conf.editable_column.many_to_many_aggregate.hide.___LABEL___'
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Désactiver les liens ManyToOne" },
+            'table_widget_column_conf.editable_column.disabled_many_to_one_link.show.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Désactiver les liens ManyToOne" },
+            'table_widget_column_conf.editable_column.disabled_many_to_one_link.hide.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "La donnée peut être vide si ContextAccessHook présent" },
             'table_widget_column_conf.editable_column.is_nullable.show.___LABEL___'
         ));
