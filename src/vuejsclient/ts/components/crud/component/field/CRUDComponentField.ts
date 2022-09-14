@@ -1455,7 +1455,7 @@ export default class CRUDComponentField extends VueComponentBase
 
     private get_crud_link(api_type_id: string, vo_id: number): string {
         if (this.is_dashboard_builder) {
-            let res: string = this.$route.path;
+            let res: string = "#" + this.$route.path;
 
             if (res.charAt(res.length - 1) != '/') {
                 res += '/';
