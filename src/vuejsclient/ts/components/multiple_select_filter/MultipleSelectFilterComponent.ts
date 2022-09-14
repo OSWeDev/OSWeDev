@@ -100,7 +100,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
     @Prop({
         default: null
     })
-    private function_group: (vo: { [id: number]: IDistantVOBase }, actual_query: string) => any;
+    private function_group: (selectables_by_ids: { [id: number]: IDistantVOBase }, actual_query: string) => any;
     @Prop({
         default: false
     })
@@ -368,10 +368,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
         for (let i in this.selectables_by_ids) {
             let vo: IDistantVOBase = this.selectables_by_ids[i];
 
-            let label = this.get_label(vo);
-            let dfto = new DataFilterOption(DataFilterOption.STATE_SELECTABLE, label, vo.id);
-            dfto.custom_name = label;
-            res.push(dfto);
+            res.push(new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.get_label(vo), vo.id));
         }
 
         this.tmp_filter_active_options = res;

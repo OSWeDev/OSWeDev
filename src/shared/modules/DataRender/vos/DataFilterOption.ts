@@ -20,9 +20,13 @@ export default class DataFilterOption {
         public string_value: string = null,
         public tstz_value: number = null,
         init: boolean = false,
-        public options: any = [],
+        public options: DataFilterOption[] = [],
         public custom_name: string = null,
     ) {
+        if (!custom_name) {
+            this.custom_name = label;
+        }
+
         if (init) {
             this.init_text_uid();
         }
