@@ -1,3 +1,4 @@
+import Vue from 'vue';
 import { EventObjectInput, View } from 'fullcalendar';
 import * as $ from 'jquery';
 import debounce from 'lodash/debounce';
@@ -1962,8 +1963,11 @@ export default class ProgramPlanComponent extends VueComponentBase {
             valid_target_by_ids[target.id] = target;
         }
 
-        this.valid_targets = valid_targets;
-        this.valid_target_by_ids = valid_target_by_ids;
+        Vue.set(this, 'valid_targets', valid_targets);
+        Vue.set(this, 'valid_target_by_ids', valid_target_by_ids);
+
+        // On change la clé une fois le throttle terminé pour s'assurer de prendre en compte les params à jour
+        this.calendar_key++;
     }
 
     private filter_ready() {
@@ -2013,7 +2017,6 @@ export default class ProgramPlanComponent extends VueComponentBase {
         this.reset_targets();
         this.reset_facilitators();
         this.reset_rdvs();
-        this.calendar_key++;
     }
 
     get show_calendar(): boolean {

@@ -40,6 +40,7 @@ import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
+import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
@@ -1079,19 +1080,35 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         VarsTabsSubsController.getInstance().register_sub(uid, client_tab_id, params ? params.map((param) => param.index) : []);
 
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+            for (let i in params) {
+                let param = params[i];
+
+                ConsoleHandler.getInstance().log('register_param:' + param.index + ':UID:' + uid + ':CLIENT_TAB_ID:' + client_tab_id);
+            }
+        }
+
         /**
          * Si on trouve des datas existantes et valides en base, on les envoie, sinon on indique qu'on attend ces valeurs
          */
         let notifyable_vars: VarDataBaseVO[] = [];
         let needs_computation: VarDataBaseVO[] = [];
 
-        await VarsDatasProxy.getInstance().get_var_datas_or_ask_to_bgthread(params, notifyable_vars, needs_computation, client_tab_id, false, 'register_params:UID:' + uid + ':CLIENT_TAB_ID:' + client_tab_id);
+        await VarsDatasProxy.getInstance().get_var_datas_or_ask_to_bgthread(params, notifyable_vars, needs_computation, uid, client_tab_id, false, 'register_params:UID:' + uid + ':CLIENT_TAB_ID:' + client_tab_id);
 
         if (notifyable_vars && notifyable_vars.length) {
             let vars_to_notif: VarDataValueResVO[] = [];
             notifyable_vars.forEach((notifyable_var) => vars_to_notif.push(new VarDataValueResVO().set_from_vardata(notifyable_var)));
 
             await PushDataServerController.getInstance().notifyVarsDatas(uid, client_tab_id, vars_to_notif);
+
+            if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+                for (let i in notifyable_vars) {
+                    let param = notifyable_vars[i];
+
+                    ConsoleHandler.getInstance().log('register_param:NOTIFIED:' + param.index + ':UID:' + uid + ':CLIENT_TAB_ID:' + client_tab_id);
+                }
+            }
         }
 
 
@@ -1186,6 +1203,14 @@ export default class ModuleVarServer extends ModuleServerBase {
         let uid = StackContext.getInstance().get('UID');
         let client_tab_id = StackContext.getInstance().get('CLIENT_TAB_ID');
         VarsTabsSubsController.getInstance().unregister_sub(uid, client_tab_id, params.map((param) => param.check_param_is_valid(param._type) ? param.index : null));
+
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+            for (let i in params) {
+                let param = params[i];
+
+                ConsoleHandler.getInstance().log('unregister_param:' + param.index + ':UID:' + uid + ':CLIENT_TAB_ID:' + client_tab_id);
+            }
+        }
     }
 
     private async getVarControllerDSDeps(text: string): Promise<string[]> {

@@ -1,5 +1,4 @@
 
-import VarsComputeController from '../../../../server/modules/Var/VarsComputeController';
 import TimeSegment from '../../DataRender/vos/TimeSegment';
 import Dates from '../../FormatDatesNombres/Dates/Dates';
 import VarDataBaseVO from './VarDataBaseVO';
@@ -25,6 +24,7 @@ export default class VarDataProxyWrapperVO<T extends VarDataBaseVO> {
      */
     public constructor(
         public var_data: T,
+        public client_user_id: number = null,
         public client_tab_id: string = null,
         public is_server_request: boolean = false,
         public reason: string = null,
