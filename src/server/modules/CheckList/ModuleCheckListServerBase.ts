@@ -100,6 +100,12 @@ export default abstract class ModuleCheckListServerBase extends ModuleServerBase
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': "Erreur finalisation"
         }, 'checklist.finalize.failed.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Etape suivante"
+        }, 'checklist_modal.next_step.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Etape précédente"
+        }, 'checklist_modal.previous_step.___LABEL___'));
     }
 
     /**

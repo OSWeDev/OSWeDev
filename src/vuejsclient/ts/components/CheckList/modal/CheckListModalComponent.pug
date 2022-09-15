@@ -48,3 +48,7 @@
                         button.btn.btn-primary(@click="finalize_checklist") 
                             .fa.fa-spin.fa-spinner.mr-2(v-if="finalize_checklist_starting")
                             span {{ label('checklist_modal_' + checklist.id + '.finalize') }}
+                            
+        .modal-footer
+            .btn.btn-primary.previous_step.f-l(v-if="has_previous_step" @click="previous_step") {{ label('checklist_modal.previous_step') }}
+            .btn.btn-primary.next_step.f-r(v-if="has_next_step" @click="next_step") {{ label('checklist_modal.next_step') }}
