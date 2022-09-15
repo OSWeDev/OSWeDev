@@ -33,7 +33,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
     @Prop({
         default: null
     })
-    private option_label_func: (vo: IDistantVOBase, dfo_options: any[]) => string;
+    private option_label_func: (vo: IDistantVOBase, dfo_options: DataFilterOption[]) => string;
 
     /**
      * Pour cacher l'input si on a une seule option possible
@@ -100,7 +100,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
     @Prop({
         default: null
     })
-    private function_group: (selectables_by_ids: { [id: number]: IDistantVOBase }, actual_query: string) => any;
+    private function_group: (selectables_by_ids: { [id: number]: IDistantVOBase }, actual_query: string) => DataFilterOption[];
     @Prop({
         default: false
     })
@@ -304,7 +304,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
         return {};
     }
 
-    private get_label(vo: IDistantVOBase, dfo_options: any[] = null): string {
+    private get_label(vo: IDistantVOBase, dfo_options: DataFilterOption[] = null): string {
 
         if (!vo) {
             return null;
