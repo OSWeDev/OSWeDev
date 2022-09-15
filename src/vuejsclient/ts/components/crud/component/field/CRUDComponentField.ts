@@ -1225,7 +1225,14 @@ export default class CRUDComponentField extends VueComponentBase
         let old_value: any = this.vo[this.field.datatable_field_uid];
 
         this.inline_input_is_busy = true;
-        this.update_vo_field_value_from_input_field_value();
+        if (!this.update_vo_field_value_from_input_field_value()) {
+            await this.snotify.error(this.label('field.auto_update_field_value.failed.empty'));
+            this.vo[this.field.datatable_field_uid] = old_value;
+
+            this.register_alert(new Alert(this.alert_path, 'field.auto_update_field_value.failed.empty'));
+            this.inline_input_is_busy = false;
+            return;
+        }
 
         if (this.auto_update_field_value) {
 
@@ -1433,19 +1440,27 @@ export default class CRUDComponentField extends VueComponentBase
         }
     }
 
-    private update_vo_field_value_from_input_field_value() {
+    private update_vo_field_value_from_input_field_value(): boolean {
 
         if ((!this.vo) || (!this.field)) {
             return;
         }
 
         let field_value: any = this.field_value;
+        let regex: RegExp = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+        if (this.field.datatable_field_uid == 'email' && !regex.test(field_value)) {
+            return false;
+        }
+        if ((this.field.datatable_field_uid == 'email' || this.field.datatable_field_uid == 'name') && field_value == '') {
+            return false;
+        }
 
         field_value = this.field.UpdateIHMToData(field_value, this.vo);
 
         if (this.vo[this.field.datatable_field_uid] != field_value) {
             this.vo[this.field.datatable_field_uid] = field_value;
         }
+        return true;
     }
 
     private on_blur_emit($event) {

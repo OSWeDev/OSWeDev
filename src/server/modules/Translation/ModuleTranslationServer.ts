@@ -111,9 +111,15 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Echec de mise à jour de la valeur du champs'
         }, 'field.auto_update_field_value.failed.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Echec de mise à jour de la valeur du champs, la valeur n\'est peut etre pas correctement formatter, ou vide.'
+        }, 'field.auto_update_field_value.failed.empty.___LABEL___'));
+
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Une erreur serveur a eue lieu et vous empêche de modifier la valeur de ce champs. Essayez de modifier la valeur et de l\'enregistrer à nouveau et si le problème persiste, contactez votre équipe technique en indiquant le champs de saisie et le texte que vous souhaitez valider.'
         }, 'field.auto_update_field_value.server_error.___LABEL___'));
+
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Modification enregistrée'
         }, 'field.auto_update_field_value.succes.___LABEL___'));
