@@ -1,6 +1,6 @@
 @import 'skin-variables.scss';
 
-#checklist_item_modal {
+.checklist_item_modal {
 
     .field .inline_input_show_clear,
     .field .inline_input_hide_clear,
@@ -44,9 +44,13 @@
     }
 
     .has_value+input,
+    .inline_input_mode .has_value+input,
     .field_label+div,
+    .inline_input_mode .field_label+div,
     .ts_range_input,
-    .multiselect {
+    .inline_input_mode .ts_range_input,
+    .multiselect,
+    .inline_input_mode .multiselect {
         display: inline-block;
         width: 26em;
         margin-left: 1em;
