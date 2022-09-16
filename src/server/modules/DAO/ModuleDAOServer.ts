@@ -2217,11 +2217,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 if (DAOServerController.getInstance().pre_update_trigger_hook.has_trigger(vo._type) || DAOServerController.getInstance().post_update_trigger_hook.has_trigger(vo._type)) {
 
-                    let segment = null;
+                    let segmentation_ranges: IRange[] = null;
                     if (moduleTable.is_segmented && moduleTable.table_segmented_field && (vo[moduleTable.table_segmented_field.field_id] != null)) {
-                        segment = moduleTable.get_segmented_field_value_from_vo(vo);
+                        segmentation_ranges = [RangeHandler.getInstance().create_single_elt_NumRange(moduleTable.get_segmented_field_value_from_vo(vo), NumSegment.TYPE_INT)];
                     }
-                    preUpdate = await ModuleDAO.getInstance().getVoById<any>(vo._type, vo.id, [RangeHandler.getInstance().create_single_elt_NumRange(segment, NumSegment.TYPE_INT)]);
+                    preUpdate = await ModuleDAO.getInstance().getVoById<any>(vo._type, vo.id, segmentation_ranges);
 
                     if (!preUpdate) {
                         // Cas d'un objet en cache server ou client mais qui n'existe plus sur la BDD => on doit insérer du coup un nouveau
