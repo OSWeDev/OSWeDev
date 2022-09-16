@@ -1486,11 +1486,21 @@ export default class CRUDComponentField extends VueComponentBase
 
         let field_value: any = this.field_value;
 
+        // FIXME : Pas possible de faire ça comme ça, ya des types de champs avec des contraintes de valeurs, ou mandatory. mais un field_id fixe c'est non
+        // let regex: RegExp = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+        // if (this.field.datatable_field_uid == 'email' && !regex.test(field_value)) {
+        //     return false;
+        // }
+        // if ((this.field.datatable_field_uid == 'email' || this.field.datatable_field_uid == 'name') && field_value == '') {
+        //     return false;
+        // }
+
         field_value = this.field.UpdateIHMToData(field_value, this.vo);
 
         if (this.vo[this.field.datatable_field_uid] != field_value) {
             this.vo[this.field.datatable_field_uid] = field_value;
         }
+        return;
     }
 
     private on_blur_emit($event) {
