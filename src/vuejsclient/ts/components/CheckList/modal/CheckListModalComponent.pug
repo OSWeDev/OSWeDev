@@ -30,10 +30,12 @@
                             :inline_input_hide_label='false'
                             :inline_input_read_value="checklist_item[editable_field.module_table_field_id]"
                             :key='checklist_item.id + "_" + editable_field.module_table_field_id'
-                            :inline_input_show_clear='true'
-                            :inline_input_mode_semaphore='true'
+                            :inline_input_show_clear='false'
                             :show_insert_or_update_target='false'
                             :is_disabled='editable_field.is_readonly'
+                            :auto_validate_inline_input='true'
+                            :force_input_is_editing='true'
+                            :inline_input_mode_input_only='true'
                         )
             template(v-else)
                 .text-center

@@ -33,6 +33,19 @@ export default class CRUDFormServices {
 
     private static _instance: CRUDFormServices = null;
 
+    public auto_updates_waiting: {
+        [CRUDComp_UID: number]: boolean
+    } = {};
+
+    public has_auto_updates_waiting() {
+        for (let i in this.auto_updates_waiting) {
+            if (this.auto_updates_waiting[i]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public loadDatasFromDatatable(
         datatable: Datatable<IDistantVOBase>,
         api_types_involved: string[],

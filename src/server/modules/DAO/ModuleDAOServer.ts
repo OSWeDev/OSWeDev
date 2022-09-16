@@ -1331,7 +1331,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         if (!this.copy_dedicated_pool) {
             this.copy_dedicated_pool = new Pool({
                 connectionString: ConfigurationService.getInstance().node_configuration.CONNECTION_STRING,
-                max: 1,
+                max: 10,
             });
         }
 
@@ -1341,12 +1341,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             self.copy_dedicated_pool.connect(function (err, client, done) {
 
-                let cb = () => {
+                let cb = async () => {
                     if (debug_insert_without_triggers_using_COPY) {
                         ConsoleHandler.getInstance().log('insert_without_triggers_using_COPY:end');
                     }
-                    done();
-                    resolve(result);
+                    await done();
+                    await resolve(result);
                 };
 
                 let query_string = "COPY " + table_name + " (" + tableFields.join(", ") + ") FROM STDIN WITH (FORMAT csv, DELIMITER ';', QUOTE '''')";
@@ -1387,10 +1387,20 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                             ConsoleHandler.getInstance().error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: on relance la copy avec les correctifs');
                             result = await self.insert_without_triggers_using_COPY(vos, segmented_value);
+                            ConsoleHandler.getInstance().error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: résultat copy avec correctifs:' + result);
+                        }
+                    } else if (error && error.message) {
+                        ConsoleHandler.getInstance().error('insert_without_triggers_using_COPY:Erreur, on tente une insertion classique mais sans triggers');
+
+                        try {
+                            let query_res = await self.insertOrUpdateVOs_without_triggers(vos);
+                            result = (!!query_res) && (query_res.length == vos.length);
+                        } catch (error) {
+                            ConsoleHandler.getInstance().error('insert_without_triggers_using_COPY:' + error);
                         }
                     }
 
-                    cb();
+                    await cb();
                 });
             });
         });

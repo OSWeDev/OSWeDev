@@ -1542,11 +1542,21 @@ export default class VarsDatasVoUpdateHandler {
 
         let start_time = Dates.now();
         let real_start_time = start_time;
+        let last_log_time = start_time;
+
+        if (this.ordered_vos_cud && this.ordered_vos_cud.length) {
+            ConsoleHandler.getInstance().warn('VarsDatasVoUpdateHandler:prepare_updates:IN :ordered_vos_cud length:' + this.ordered_vos_cud.length);
+        }
 
         while (this.ordered_vos_cud && this.ordered_vos_cud.length) {
 
 
             let actual_time = Dates.now();
+
+            if ((actual_time - last_log_time) >= 10) {
+                ConsoleHandler.getInstance().warn('VarsDatasVoUpdateHandler:prepare_updates:---:ordered_vos_cud length:' + this.ordered_vos_cud.length);
+                last_log_time = actual_time;
+            }
 
             if (actual_time > (start_time + 60)) {
                 start_time = actual_time;
@@ -1575,6 +1585,8 @@ export default class VarsDatasVoUpdateHandler {
                 vos_update_buffer[update_holder.post_update_vo._type].push(update_holder);
             }
         }
+
+        ConsoleHandler.getInstance().warn('VarsDatasVoUpdateHandler:prepare_updates:OUT:ordered_vos_cud length:0');
     }
 
     private getJSONFrom_ordered_vos_cud(): string {

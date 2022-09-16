@@ -162,6 +162,10 @@ include ../../../../../views/mixins/loading.pug
                                                         :inline_input_read_value="row[column.datatable_field_uid]"
                                                         :key='"crudcomponentfield_" + column.datatable_field_uid + "___" + row.__crud_actions'
                                                         :is_dashboard_builder="true"
+                                                        :inline_input_show_clear='false'
+                                                        :auto_validate_inline_input='true'
+                                                        :force_input_is_editing='true'
+                                                        :inline_input_mode_input_only='true'
                                                     )
 
                                         template.table_col(

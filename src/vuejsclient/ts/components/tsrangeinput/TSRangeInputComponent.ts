@@ -143,13 +143,23 @@ export default class TSRangeInputComponent extends VueComponentBase {
     @Watch('tsrange_start')
     @Watch('tsrange_end')
     private emitInput(): void {
-        this.new_value = RangeHandler.getInstance().createNew(
+        let new_value = RangeHandler.getInstance().createNew(
             TSRange.RANGE_TYPE,
             this.ts_start ? this.ts_start : RangeHandler.MIN_TS,
             this.ts_end ? this.ts_end : RangeHandler.MAX_TS,
             true, true, this.segmentation_type_);
-        this.$emit('input', this.new_value);
 
+        /**
+         * On check que c'est bien une nouvelle value
+         */
+        let old_value = this.vo ? this.vo[this.field.datatable_field_uid] : null;
+        if ((old_value == new_value) ||
+            (RangeHandler.getInstance().is_same(old_value, new_value))) {
+            return;
+        }
+        this.new_value = new_value;
+
+        this.$emit('input', this.new_value);
         if (!!this.vo) {
             this.$emit('input_with_infos', this.new_value, this.field, this.vo);
         }

@@ -32,8 +32,10 @@
                                         :inline_input_read_value="user.name"
                                         key='editable_login'
                                         :inline_input_show_clear='false'
-                                        :inline_input_mode_semaphore='true'
                                         :show_insert_or_update_target='false'
+                                        :auto_validate_inline_input='true'
+                                        :force_input_is_editing='true'
+                                        :inline_input_mode_input_only='true'
                                     )
                         .row(v-if='show_firstname_field')
                             .col-md-12
@@ -49,7 +51,9 @@
                                         :inline_input_read_value="user.firstname"
                                         key='editable_firstname'
                                         :inline_input_show_clear='false'
-                                        :inline_input_mode_semaphore='true'
+                                        :auto_validate_inline_input='true'
+                                        :force_input_is_editing='true'
+                                        :inline_input_mode_input_only='true'
                                         :show_insert_or_update_target='false'
                                     )
                         .row(v-if='show_lastname_field')
@@ -66,7 +70,9 @@
                                         :inline_input_read_value="user.lastname"
                                         key='editable_lastname'
                                         :inline_input_show_clear='false'
-                                        :inline_input_mode_semaphore='true'
+                                        :auto_validate_inline_input='true'
+                                        :force_input_is_editing='true'
+                                        :inline_input_mode_input_only='true'
                                         :show_insert_or_update_target='false'
                                     )
                         .row 
@@ -83,7 +89,9 @@
                                         :inline_input_read_value="user.email"
                                         key='editable_email'
                                         :inline_input_show_clear='false'
-                                        :inline_input_mode_semaphore='true'
+                                        :auto_validate_inline_input='true'
+                                        :force_input_is_editing='true'
+                                        :inline_input_mode_input_only='true'
                                         :show_insert_or_update_target='false'
                                     )
                         .row
@@ -100,7 +108,9 @@
                                         :inline_input_read_value="user.phone"
                                         key='editable_phone'
                                         :inline_input_show_clear='false'
-                                        :inline_input_mode_semaphore='true'
+                                        :auto_validate_inline_input='true'
+                                        :force_input_is_editing='true'
+                                        :inline_input_mode_input_only='true'
                                         :show_insert_or_update_target='false'
                                     )
 

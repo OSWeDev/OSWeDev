@@ -37,6 +37,18 @@
         width: 1.8em;
         vertical-align: top;
         cursor: pointer;
+        opacity: 1;
+    }
+
+    i.inline_input_is_editing.auto_validate {
+        opacity: 1;
+        visibility: hidden;
+    }
+
+    i.inline_input_is_editing.auto_validate.is_auto_validating {
+        transition: all 2s;
+        opacity: 0;
+        visibility: visible;
     }
 
     .inline_input_hide_clear {
@@ -78,6 +90,17 @@
         line-height: 1.7em;
         vertical-align: bottom;
         cursor: pointer;
+    }
+
+    &.auto_validate_inline_input {
+
+        input[type~="number"],
+        input[type~="text"],
+        input[type~="password"],
+        .bool_field_inline_readonly_value,
+        .html_field_inline_readonly_value {
+            width: calc(100% - 1.8em);
+        }
     }
 
     &.tstz_input {
@@ -130,7 +153,7 @@
         display: none;
     }
 
-    .multiselect>.multiselect__tags>input{
+    .multiselect>.multiselect__tags>input {
         border: none !important;
     }
 

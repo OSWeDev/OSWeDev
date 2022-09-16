@@ -1,4 +1,5 @@
 import debounce from 'lodash/debounce';
+import Vue from 'vue';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ICheckList from '../../../../shared/modules/CheckList/interfaces/ICheckList';
 import ICheckListItem from '../../../../shared/modules/CheckList/interfaces/ICheckListItem';
@@ -9,19 +10,20 @@ import ContextFilterVO from '../../../../shared/modules/ContextFilter/vos/Contex
 import ContextQueryVO, { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
+import DatatableField from '../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import WeightHandler from '../../../../shared/tools/WeightHandler';
+import CRUDFormServices from '../crud/component/CRUDFormServices';
 import { ModuleDAOAction, ModuleDAOGetter } from '../dao/store/DaoStore';
 import VueComponentBase from '../VueComponentBase';
 import './CheckListComponent.scss';
 import CheckListControllerBase from './CheckListControllerBase';
 import CheckListItemComponent from './Item/CheckListItemComponent';
 import CheckListModalComponent from './modal/CheckListModalComponent';
-import Vue from 'vue';
 
 
 @Component({
@@ -285,9 +287,18 @@ export default class CheckListComponent extends VueComponentBase {
         this.$router.push(this.global_route_path + '/' + this.list_id);
     }
 
-    private async onchangevo(vo: ICheckListItem) {
+    private async onchangevo(vo: ICheckListItem, field: DatatableField<any, any>, value: any) {
 
         if (!vo) {
+            return;
+        }
+
+        /**
+         * Problème, avec la sauvegarde auto, dans les 2 secondes d'attente de la sauvegarde, on peut avoir modifié d'autres champs localement et pas
+         *  encore côté serveur, donc on perd les données. Si des modifications sont en attente on ne fait rien du coup et on rechargera par la suite
+         */
+
+        if (CRUDFormServices.getInstance().has_auto_updates_waiting()) {
             return;
         }
 

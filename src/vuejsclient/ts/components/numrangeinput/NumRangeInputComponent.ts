@@ -71,14 +71,26 @@ export default class NumRangeInputComponent extends VueComponentBase {
     @Watch('numrange_end')
     private emitInput(): void {
 
+        let new_value = null;
         if (!this.is_single && !!this.numrange_start && !!this.numrange_start.length && !!this.numrange_end && !!this.numrange_end.length) {
-            this.new_value = RangeHandler.getInstance().createNew(NumRange.RANGE_TYPE, Number.parseInt(this.numrange_start), Number.parseInt(this.numrange_end), true, true, NumSegment.TYPE_INT);
+            new_value = RangeHandler.getInstance().createNew(NumRange.RANGE_TYPE, Number.parseInt(this.numrange_start), Number.parseInt(this.numrange_end), true, true, NumSegment.TYPE_INT);
         } else if (this.is_single && (!!this.numrange_start && !!this.numrange_start.length && (!this.numrange_end || !this.numrange_end.length))) {
             let num: number = Number.parseInt(this.numrange_start);
-            this.new_value = RangeHandler.getInstance().create_single_elt_NumRange(num, NumSegment.TYPE_INT);
+            new_value = RangeHandler.getInstance().create_single_elt_NumRange(num, NumSegment.TYPE_INT);
         } else {
-            this.new_value = null;
+            new_value = null;
         }
+
+        /**
+         * On check que c'est bien une nouvelle value
+         */
+        let old_value = this.vo ? this.vo[this.field.datatable_field_uid] : null;
+        if ((old_value == new_value) ||
+            (RangeHandler.getInstance().is_same(old_value, new_value))) {
+            return;
+        }
+        this.new_value = new_value;
+
 
         this.$emit('input', this.new_value);
         this.$emit('input_with_infos', this.new_value, this.field, this.vo);

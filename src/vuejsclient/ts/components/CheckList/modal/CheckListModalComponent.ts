@@ -57,8 +57,8 @@ export default class CheckListModalComponent extends VueComponentBase {
     private finalize_checklist_starting: boolean = false;
     private all_editable_fields: Array<DatatableField<any, any>> = null;
 
-    private onchangevo(vo) {
-        this.$emit('onchangevo', vo);
+    private onchangevo(vo: IDistantVOBase, field: DatatableField<any, any>, value: any) {
+        this.$emit('onchangevo', vo, field, value);
     }
 
     @Watch('checklist_controller')

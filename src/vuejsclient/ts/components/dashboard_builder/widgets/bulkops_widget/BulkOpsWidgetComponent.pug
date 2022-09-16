@@ -60,7 +60,9 @@ include ../../../../../views/mixins/loading.pug
                                     :inline_input_read_value="editable_item[field_id_selected]"
                                     :key='editable_item.id + "_" + field_id_selected'
                                     :inline_input_show_clear='false'
-                                    :inline_input_mode_semaphore='false'
+                                    :auto_validate_inline_input='true'
+                                    :force_input_is_editing='true'
+                                    :inline_input_mode_input_only='true'
                                     :show_insert_or_update_target='false'
                                 )
 
