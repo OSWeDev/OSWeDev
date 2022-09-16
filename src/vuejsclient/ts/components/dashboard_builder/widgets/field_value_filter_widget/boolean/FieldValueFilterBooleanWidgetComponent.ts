@@ -205,6 +205,8 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
                     options.exclude_filter_opt_values,
                     options.exclude_ts_range_values,
                     options.placeholder_advanced_mode,
+                    options.separation_active_filter,
+                    options.vo_field_sort_lvl2,
                 ) : null;
             }
         } catch (error) {

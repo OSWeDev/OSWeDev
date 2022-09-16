@@ -889,12 +889,20 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'field_value_filter_widget_component.show_search_field.___LABEL___'
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Séparer les données activées et les options" },
+            'field_value_filter_widget_component.separation_active_filter.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Champ à afficher au 2ème niveau" },
             'field_value_filter_widget_component.vo_field_ref_lvl2.___LABEL___'
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Champ pour trier l'affichage du filtre" },
             'field_value_filter_widget_component.vo_field_sort.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Champ pour trier l'affichage du filtre de niveau 2" },
+            'field_value_filter_widget_component.vo_field_sort_lvl2.___LABEL___'
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Granularité" },
@@ -1037,6 +1045,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'table_widget_column_conf.editable_column.many_to_many_aggregate.hide.___LABEL___'
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Désactiver les liens ManyToOne" },
+            'table_widget_column_conf.editable_column.disabled_many_to_one_link.show.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Désactiver les liens ManyToOne" },
+            'table_widget_column_conf.editable_column.disabled_many_to_one_link.hide.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "La donnée peut être vide si ContextAccessHook présent" },
             'table_widget_column_conf.editable_column.is_nullable.show.___LABEL___'
         ));
@@ -1133,6 +1149,18 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Valider" },
             'dashboard_viewer.block_widgets_updates.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Masquer la pagination du bas" },
+            'table_widget_options_component.hide_pagination_bottom.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Non" },
+            'table_widget_options_component.hide_pagination_bottom.hidden.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Oui" },
+            'table_widget_options_component.hide_pagination_bottom.visible.___LABEL___'
         ));
 
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);

@@ -16,6 +16,7 @@ import ThrottleHelper from '../../../../../../../../shared/tools/ThrottleHelper'
 import { query } from '../../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import AccessPolicyVO from '../../../../../../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import NumRange from '../../../../../../../../shared/modules/DataRender/vos/NumRange';
+import ModuleTable from '../../../../../../../../shared/modules/ModuleTable';
 
 @Component({
     template: require('./TableWidgetColumnOptionsComponent.pug'),
@@ -60,41 +61,43 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     private error: boolean = false;
 
     get vo_ref_tooltip(): string {
+        if (!this.field || !this.table) {
+            return null;
+        }
+
+        return this.t(this.table.label.code_text) +
+            ' > ' +
+            this.t(this.field.field_label.code_text);
+    }
+
+    get table(): ModuleTable<any> {
         if (!this.column) {
             return null;
         }
 
-        let table = VOsTypesManager.getInstance().moduleTables_by_voType[this.column.api_type_id];
-        if (!table) {
-            return null;
-        }
-        let field = table.get_field_by_id(this.column.field_id);
-        if (!field) {
+        return VOsTypesManager.getInstance().moduleTables_by_voType[this.column.api_type_id];
+    }
+
+    get field(): ModuleTableField<any> {
+        if (!this.column) {
             return null;
         }
 
-        return this.t(table.label.code_text) +
-            ' > ' +
-            this.t(field.field_label.code_text);
+        if (!this.table) {
+            return null;
+        }
+
+        return this.table.get_field_by_id(this.column.field_id);
     }
 
     get default_sort_field_tooltip(): string {
-        if (!this.column) {
-            return null;
-        }
-
-        let table = VOsTypesManager.getInstance().moduleTables_by_voType[this.column.api_type_id];
-        if (!table) {
-            return null;
-        }
-        let field = table.get_field_by_id(this.column.field_id);
-        if (!field) {
+        if (!this.table || !this.field) {
             return null;
         }
 
         let res: string[] = [
-            this.t(table.label.code_text),
-            this.t(field.field_label.code_text)
+            this.t(this.table.label.code_text),
+            this.t(this.field.field_label.code_text)
         ];
 
         if (this.default_sort_field == TableColumnDescVO.SORT_asc) {
@@ -305,6 +308,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
                     options.show_pagination_list,
                     options.nbpages_pagination_list,
                     options.has_table_total_footer,
+                    options.hide_pagination_bottom,
                 ) : null;
             }
         } catch (error) {
@@ -510,6 +514,15 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.$emit('update_column', this.column);
     }
 
+    private async switch_disabled_many_to_one_link() {
+        if (!this.column) {
+            return;
+        }
+
+        this.column.disabled_many_to_one_link = !this.column.disabled_many_to_one_link;
+        this.$emit('update_column', this.column);
+    }
+
     private async switch_is_nullable() {
         if (!this.column) {
             return;
@@ -562,17 +575,11 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             return false;
         }
 
-        let table = VOsTypesManager.getInstance().moduleTables_by_voType[this.column.api_type_id];
-        if (!table) {
+        if (!this.field) {
             return false;
         }
 
-        let field = table.getFieldFromId(this.column.field_id);
-        if (!field) {
-            return false;
-        }
-
-        switch (field.field_type) {
+        switch (this.field.field_type) {
             case ModuleTableField.FIELD_TYPE_amount:
             case ModuleTableField.FIELD_TYPE_boolean:
             case ModuleTableField.FIELD_TYPE_decimal_full_precision:
@@ -586,6 +593,10 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         }
 
         return false;
+    }
+
+    get is_fkey(): boolean {
+        return this.field && (this.field.field_type == ModuleTableField.FIELD_TYPE_foreign_key);
     }
 
     get object_column() {

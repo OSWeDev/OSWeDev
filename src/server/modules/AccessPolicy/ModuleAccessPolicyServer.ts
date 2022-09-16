@@ -754,6 +754,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': "Sessions des utilisateurs"
         }, 'menu.menuelements.admin.UserSessionVO.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Nouvelle version disponible, votre page se recharge automatiquement"
+        }, 'app_version_changed.___LABEL___'));
     }
 
     public registerServerApiHandlers() {
