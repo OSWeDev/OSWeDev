@@ -1163,6 +1163,54 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'table_widget_options_component.hide_pagination_bottom.visible.___LABEL___'
         ));
 
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Désactiver les liens ManyToOne pour ne pas rendre la donnée cliquable dans le tableau" },
+            'table_widget_column_conf.disabled_many_to_one_link.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Activer / Désactiver l'export de la donnée" },
+            'table_widget_column_conf.exportable_column.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Conditionne l'affichage de la donnée" },
+            'table_widget_column_conf.filter_by_access.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher / Masquer la donnée dans le tableau (dans tous les cas, charge la donnée via la requête)" },
+            'table_widget_column_conf.hide_from_table_column.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            {
+                'fr-fr': "Dans le cas d'un champ externe à l'api_type_id de la table, on indique s'il est possible qu'il n'y ai pas de VO lié. <br/>" +
+                    "Exemple: On affiche la liste des utilisateurs (UserVO) avec le nom du rôle (RoleVO). Si l'utilisateur n'a pas de rôle et qu'il y a un ContextFilterHook sur les rôles, la ligne ne s'affichera pas dans le tableau.<br/>" +
+                    "Si on coche cette case, la ligne s'affichera quand même mais le champ rôle sera vide."
+            },
+            'table_widget_column_conf.is_nullable.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Figer la colonne du tableau pour qu'elle soit toujours visible au niveau du scroll." },
+            'table_widget_column_conf.is_sticky_column.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            {
+                'fr-fr': "Aggréger les données ManyToMany pour regrouper les données sur une seul ligne.<br/>" +
+                    "Exemple: On affiche la liste des utilisateurs (UserVO) avec le nom des rôles (RoleVO). Si un utilisateur a plusieurs rôles, on va afficher sur une seule ligne avec un séparateur."
+            },
+            'table_widget_column_conf.many_to_many_aggregate.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher une popup sur les champs du tableau" },
+            'table_widget_column_conf.show_tooltip.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "La colonne peut-être éditée directement dans le tableau" },
+            'table_widget_column_conf.editable_column.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "La colonne est filtrable en cliquant directement sur la donnée" },
+            'table_widget_column_conf.can_filter_by_column.___LABEL___'
+        ));
+
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this.onCDashboardPageWidgetVO);
         preCTrigger.registerHandler(DashboardVO.API_TYPE_ID, this.onCDashboardVO);
