@@ -5,5 +5,10 @@
     
         .col-sm-3.fields_wrapper
             .sidebar(ref="sidebar")
-                Tablesgrapheditformcomponent(ref="form" @delete_cell="delete_cell" :cell-data="current_cell")
+                Tablesgrapheditformcomponent(
+                    ref="form" 
+                    @delete_cell="delete_cell" 
+                    @toggle_check="toggle_check"
+                    :cell-data="current_cell"
+                    :toggle ="toggle" )
             Droppablevoscomponent(ref="droppables")

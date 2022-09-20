@@ -19,6 +19,7 @@ import SelectBoxDatatableField from '../../../../../../shared/modules/DAO/vos/da
 import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import VarDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/VarDatatableField';
 import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import DashboardGraphVORefVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
 import DashboardBuilderController from '../../../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
@@ -59,6 +60,8 @@ import TableWidgetOptions from './options/TableWidgetOptions';
 import TablePaginationComponent from './pagination/TablePaginationComponent';
 import './TableWidgetComponent.scss';
 import TableWidgetController from './TableWidgetController';
+
+//TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
 @Component({
     template: require('./TableWidgetComponent.pug'),
@@ -1103,6 +1106,30 @@ export default class TableWidgetComponent extends VueComponentBase {
         );
         query_.set_sort(null);
 
+        let db_cells_source = await ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString<DashboardGraphVORefVO>(
+            DashboardGraphVORefVO.API_TYPE_ID,
+            'dashboard_id',
+            [this.dashboard.id],
+        );
+        let db_cell_source_by_vo_type: { [vo_type: string]: DashboardGraphVORefVO } = {};
+
+        for (let i in db_cells_source) {
+            db_cell_source_by_vo_type[db_cells_source[i].vo_type] = db_cells_source[i];
+        }
+
+        //On évite les jointures supprimées.
+        for (let index_vo_type in query_.active_api_type_ids) {
+            let vo_type: string = query_.active_api_type_ids[index_vo_type];
+
+            let db_cell_source = db_cell_source_by_vo_type[vo_type];
+            try { //Il se peut que le champ n'est pas été défini si aucune flèche n'a été supprimé.
+                for (let index_field_id in db_cell_source.values_to_exclude) {
+                    let field_id: string = db_cell_source.values_to_exclude[index_field_id];
+                    query_.discard_field_path(vo_type, field_id); //On annhile le chemin possible depuis la cellule source de champs field_id
+                }
+            } finally { }
+        }
+        // discard_field_path(vo_type: string, field_id: string)
         /**
          * Si on a un filtre actif sur la table on veut ignorer le filtre généré par la table à ce stade et charger toutes les valeurs, et mettre en avant simplement celles qui sont filtrées
          */

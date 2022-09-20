@@ -5,7 +5,6 @@ import DashboardBuilderController from "../DashboardBuilderController";
 
 export default class DashboardVO implements IDistantVOBase, IWeightedItem {
     public static API_TYPE_ID: string = "dashboard";
-
     public id: number;
     public _type: string = DashboardVO.API_TYPE_ID;
 

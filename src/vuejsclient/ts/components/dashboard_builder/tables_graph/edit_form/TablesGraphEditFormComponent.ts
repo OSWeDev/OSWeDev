@@ -14,6 +14,10 @@ export default class TablesGraphEditFormComponent extends VueComponentBase {
     @Prop()
     private cellData: any;
 
+    @Prop()
+    private toggle: boolean;
+
+    private toggle_output: boolean = true;
     get cell_name(): string {
         if ((!this.cellData) || (!this.cellData.value)) {
             return null;
@@ -29,7 +33,6 @@ export default class TablesGraphEditFormComponent extends VueComponentBase {
     private delete_cell() {
         this.$emit('delete_cell', this.cellData);
     }
-
     private async confirm_delete_cell() {
 
         let self = this;
@@ -61,5 +64,13 @@ export default class TablesGraphEditFormComponent extends VueComponentBase {
                 }
             ]
         });
+    }
+    private async confirm_delete_arrow() {
+
+        if (!this.toggle) {
+            this.$emit('toggle_check', true);
+        } else {
+            this.$emit('toggle_check', false);
+        }
     }
 }
