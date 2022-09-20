@@ -147,7 +147,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
             TSRange.RANGE_TYPE,
             this.ts_start ? this.ts_start : RangeHandler.MIN_TS,
             this.ts_end ? this.ts_end : RangeHandler.MAX_TS,
-            true, true, this.segmentation_type_);
+            true, this.ts_end ? true : false, this.segmentation_type_);
 
         /**
          * On check que c'est bien une nouvelle value
