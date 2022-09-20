@@ -48,6 +48,7 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
     private ts_range: TSRange = null;
 
     private warn_existing_external_filters: boolean = false;
+    private old_widget_options: FieldValueFilterWidgetOptions = null;
 
     private actual_query: string = null;
 

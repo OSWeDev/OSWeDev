@@ -1,5 +1,5 @@
 import { prototype } from 'events';
-import { debounce, indexOf } from 'lodash';
+import { debounce, indexOf, isEqual } from 'lodash';
 import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
@@ -141,6 +141,7 @@ export default class TableWidgetComponent extends VueComponentBase {
     private last_calculation_cpt: number = 0;
 
     private page_widgets: DashboardPageWidgetVO[] = null;
+    private old_widget_options: TableWidgetOptions = null;
 
     /**
      * On doit avoir accepté sur la tableau, sur le champs, etre readonly
@@ -1278,6 +1279,13 @@ export default class TableWidgetComponent extends VueComponentBase {
 
     @Watch('widget_options', { immediate: true })
     private async onchange_widget_options() {
+        if (!!this.old_widget_options) {
+            if (isEqual(this.widget_options, this.old_widget_options)) {
+                return;
+            }
+        }
+
+        this.old_widget_options = cloneDeep(this.widget_options);
 
         // Si j'ai un tri par defaut, je l'applique au tableau
         if (this.columns) {

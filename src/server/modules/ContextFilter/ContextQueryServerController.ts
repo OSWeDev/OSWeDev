@@ -344,7 +344,7 @@ export default class ContextQueryServerController {
                 vos.forEach((vo) => {
                     vo[field.field_id] = moduletable.default_get_field_api_version(new_api_translated_value, field);
                 });
-                await ModuleDAO.getInstance().insertOrUpdateVOs(vos);
+                await ModuleDAOServer.getInstance().insertOrUpdateVOsMulticonnections(vos);
 
                 might_have_more = (vos.length >= context_query.query_limit);
                 context_query.query_offset += change_offset ? context_query.query_limit : 0;

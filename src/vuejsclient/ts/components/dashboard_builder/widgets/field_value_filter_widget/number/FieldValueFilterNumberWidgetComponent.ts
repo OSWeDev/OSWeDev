@@ -1,3 +1,4 @@
+import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterHandler from '../../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
@@ -60,6 +61,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
     private warn_existing_external_filters: boolean = false;
 
     private is_init: boolean = false;
+    private old_widget_options: FieldValueFilterWidgetOptions = null;
 
     private actual_query: string = null;
     private last_calculation_cpt: number = 0;
@@ -387,6 +389,14 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
 
     @Watch('widget_options', { immediate: true })
     private async onchange_widget_options() {
+        if (!!this.old_widget_options) {
+            if (isEqual(this.widget_options, this.old_widget_options)) {
+                return;
+            }
+        }
+
+        this.old_widget_options = cloneDeep(this.widget_options);
+
         this.is_init = false;
         ValidationFiltersWidgetController.getInstance().set_is_init(
             this.dashboard_page,

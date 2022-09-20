@@ -306,6 +306,15 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Confirmer'
         }, 'BulkOpsWidgetComponent.bulkops.confirmation.title.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Modifications terminées'
+        }, 'BulkOpsWidgetComponent.bulkops.ok.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Début modification en masse'
+        }, 'BulkOpsWidgetComponent.bulkops.start.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Modifications échouées'
+        }, 'BulkOpsWidgetComponent.bulkops.failed.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Modifier les données en masse'
         }, 'bulkops.actions.confirm_bulkops.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({

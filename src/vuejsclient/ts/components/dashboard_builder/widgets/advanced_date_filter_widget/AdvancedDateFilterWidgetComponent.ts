@@ -1,3 +1,4 @@
+import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterHandler from '../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
@@ -50,9 +51,18 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
 
     private tmp_filter_active_opt: AdvancedDateFilterOptDescVO = null;
     private tmp_ts_range: TSRange = null;
+    private old_widget_options: AdvancedDateFilterWidgetOptions = null;
 
     @Watch('widget_options', { immediate: true })
     private onchange_widget_options() {
+        if (!!this.old_widget_options) {
+            if (isEqual(this.widget_options, this.old_widget_options)) {
+                return;
+            }
+        }
+
+        this.old_widget_options = cloneDeep(this.widget_options);
+
         this.tmp_filter_active_opt = null;
         this.tmp_ts_range = null;
     }
