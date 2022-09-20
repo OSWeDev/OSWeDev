@@ -1236,13 +1236,26 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         let alerts: Alert[] = this.field.validate_input ? this.field.validate_input(this.field_value, this.field, this.vo) : null;
-        if (alerts && alerts.length) {
 
-            // Si on a des alertes, d'une part on les register, d'autre part on check qu'on a pas des erreurs sinon il faut refuser l'input
-            this.replace_alerts({
-                alert_path: this.field.alert_path,
-                alerts: alerts
-            });
+        if (this.field_type == ModuleTableField.FIELD_TYPE_email) {
+            if (!alerts || !alerts.length) {
+                if (!(this.$refs.input_elt as any).checkValidity()) {
+                    if (!alerts) {
+                        alerts = [];
+                    }
+
+                    alerts.push(new Alert(this.field.alert_path, 'crud.field_error_format', Alert.TYPE_ERROR));
+                }
+            }
+        }
+
+        // Si on a des alertes, d'une part on les register, d'autre part on check qu'on a pas des erreurs sinon il faut refuser l'input
+        this.replace_alerts({
+            alert_path: this.field.alert_path,
+            alerts: alerts
+        });
+
+        if (alerts && alerts.length) {
 
             for (let i in alerts) {
                 let alert = alerts[i];
@@ -1376,7 +1389,13 @@ export default class CRUDComponentField extends VueComponentBase
         if (!this.force_input_is_editing) {
             this.inline_input_is_editing = false;
         }
+
         this.field_value = this.field.dataToUpdateIHM(this.inline_input_read_value, this.vo);
+
+        this.replace_alerts({
+            alert_path: this.field.alert_path,
+            alerts: null
+        });
     }
 
     private async inline_input_submit() {

@@ -19,7 +19,7 @@
         template(v-if="maxlength")
             .maxlength.italic.f-r {{ field_value_length }} / {{ maxlength }}
     template(v-else-if="(field_type == 'text') || (field_type == 'email')")
-        input(:placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @change="validateEndOfInput($event.target)" @blur="on_blur_emit" @focus="on_focus" :id="input_elt_id" :maxlength="maxlength", :autocomplete="autocomplete_input ? 'on' : 'off'")
+        input(:placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" :type="field_type" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @change="validateEndOfInput($event.target)" @blur="on_blur_emit" @focus="on_focus" :id="input_elt_id" :maxlength="maxlength", :autocomplete="autocomplete_input ? 'on' : 'off'")
         template(v-if="maxlength")
             .maxlength.italic.f-r {{ field_value_length }} / {{ maxlength }}
     template(v-else-if="field_type == 'textarea'")
