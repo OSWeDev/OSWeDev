@@ -167,6 +167,44 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
     }
 
     /**
+     * On ajoute une fonction qui prend toutes les modifs en cours, pour permettre des optis sur les vars sur des grands nombres de modifs concomittentes
+     */
+    public async get_invalid_params_intersectors_on_POST_C_POST_D_group(c_or_d_vos: IDistantVOBase[]): Promise<TData[]> {
+        let intersectors_by_index: { [index: string]: TData } = {};
+
+        for (let k in c_or_d_vos) {
+            let vo_create_or_delete = c_or_d_vos[k];
+
+            let tmp = await this.get_invalid_params_intersectors_on_POST_C_POST_D(vo_create_or_delete);
+            if ((!tmp) || (!tmp.length)) {
+                continue;
+            }
+            tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
+        }
+
+        return Object.values(intersectors_by_index);
+    }
+
+    /**
+     * On ajoute une fonction qui prend toutes les modifs en cours, pour permettre des optis sur les vars sur des grands nombres de modifs concomittentes
+     */
+    public async get_invalid_params_intersectors_on_POST_U_group<T extends IDistantVOBase>(u_vo_holders: Array<DAOUpdateVOHolder<T>>): Promise<TData[]> {
+        let intersectors_by_index: { [index: string]: TData } = {};
+
+        for (let k in u_vo_holders) {
+            let u_vo_holder = u_vo_holders[k];
+
+            let tmp = await this.get_invalid_params_intersectors_on_POST_U(u_vo_holder);
+            if ((!tmp) || (!tmp.length)) {
+                continue;
+            }
+            tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
+        }
+
+        return Object.values(intersectors_by_index);
+    }
+
+    /**
      * ATTENTION à redéfinir si on a des datasources - la valeur par défaut de la fonction est pour le cas d'une var sans datasource
      * Méthode appelée par les triggers de POST Create / POST Delete sur les vos dont cette var dépend (via les déclarations dans les Datasources)
      *  Par défaut si on a pas de Datasources on renvoie null.

@@ -1561,23 +1561,13 @@ export default class VarsDatasVoUpdateHandler {
             for (let j in VarsServerController.getInstance().registered_vars_controller_by_api_type_id[vo_type]) {
                 let var_controller = VarsServerController.getInstance().registered_vars_controller_by_api_type_id[vo_type][j];
 
-                for (let k in vos_create_or_delete_buffer[vo_type]) {
-                    let vo_create_or_delete = vos_create_or_delete_buffer[vo_type][k];
-
-                    let tmp = await var_controller.get_invalid_params_intersectors_on_POST_C_POST_D(vo_create_or_delete);
-                    if ((!tmp) || (!tmp.length)) {
-                        continue;
-                    }
+                let tmp = await var_controller.get_invalid_params_intersectors_on_POST_C_POST_D_group(vos_create_or_delete_buffer[vo_type]);
+                if (tmp && !!tmp.length) {
                     tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
                 }
 
-                for (let k in vos_update_buffer[vo_type]) {
-                    let vo_update_buffer = vos_update_buffer[vo_type][k];
-
-                    let tmp = await var_controller.get_invalid_params_intersectors_on_POST_U(vo_update_buffer);
-                    if ((!tmp) || (!tmp.length)) {
-                        continue;
-                    }
+                tmp = await var_controller.get_invalid_params_intersectors_on_POST_U_group(vos_update_buffer[vo_type]);
+                if (tmp && !!tmp.length) {
                     tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
                 }
             }
