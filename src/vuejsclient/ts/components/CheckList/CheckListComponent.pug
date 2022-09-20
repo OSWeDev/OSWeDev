@@ -30,7 +30,7 @@ include ../../../views/mixins/loading.pug
                     i.text-danger.fa.fa-fw.fa-circle
                     span {{ label('checklist.legend.checkpoint.state.error') }}
 
-        .row(v-if='has_checklistitems && ordered_checklistitems && ((ordered_checklistitems.length <= 15) || show_anyway)')
+        .row(v-if='is_load && (has_checklistitems && ordered_checklistitems && ((ordered_checklistitems.length <= 15) || show_anyway))')
             .col-md-12
                 table.table-striped.table-hover
                     thead
