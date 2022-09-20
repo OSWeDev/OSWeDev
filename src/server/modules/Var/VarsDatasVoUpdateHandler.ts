@@ -235,14 +235,17 @@ export default class VarsDatasVoUpdateHandler {
                 this.prepare_updates(vos_update_buffer, vos_create_or_delete_buffer, vo_types);
 
                 let intersectors_by_index: { [index: string]: VarDataBaseVO } = await this.init_leaf_intersectors(vo_types, vos_update_buffer, vos_create_or_delete_buffer);
-                let out_invalidate_intersectors: VarDataInvalidatorVO[] = [];
+                let solved_invalidators_by_index: { [conf_id: string]: VarDataInvalidatorVO } = {};
 
                 for (let i in intersectors_by_index) {
                     let intersector = intersectors_by_index[i];
 
-                    await this.invalidate_datas_and_parents(new VarDataInvalidatorVO(intersector, VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED, true, false, false), out_invalidate_intersectors);
+                    await this.invalidate_datas_and_parents(
+                        new VarDataInvalidatorVO(intersector, VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED, true, false, false),
+                        solved_invalidators_by_index);
                 }
-                await this.push_invalidators(out_invalidate_intersectors);
+
+                await this.push_invalidators(Object.values(solved_invalidators_by_index));
 
                 // On met à jour le param en base pour refléter les modifs qui restent en attente de traitement
                 this.throttled_update_param();
@@ -316,14 +319,13 @@ export default class VarsDatasVoUpdateHandler {
      */
     public async invalidate_datas_and_parents(
         invalidator: VarDataInvalidatorVO,
-        out_invalidate_intersectors: VarDataInvalidatorVO[]
+        solved_invalidators_by_index: { [conf_id: string]: VarDataInvalidatorVO }
     ) {
 
         let intersectors_by_index: { [index: string]: VarDataBaseVO } = {
             [invalidator.var_data.index]: invalidator.var_data
         };
 
-        let solved_intersectors_by_index: { [index: string]: VarDataBaseVO } = {};
         let DEBUG_VARS = ConfigurationService.getInstance().node_configuration.DEBUG_VARS;
 
         await PerfMonServerController.getInstance().monitor_async(
@@ -332,7 +334,6 @@ export default class VarsDatasVoUpdateHandler {
 
                 let promises = [];
                 let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 3));
-                let invalidate_intersectors: VarDataBaseVO[] = [];
 
                 while (ObjectHandler.getInstance().hasAtLeastOneAttribute(intersectors_by_index)) {
                     for (let i in intersectors_by_index) {
@@ -341,11 +342,13 @@ export default class VarsDatasVoUpdateHandler {
                         if (DEBUG_VARS) {
                             ConsoleHandler.getInstance().log('invalidate_datas_and_parents:START SOLVING:' + intersector.index + ':');
                         }
-                        if (solved_intersectors_by_index[intersector.index]) {
+                        let conf_id = this.get_validator_config_id(invalidator, true, intersector.index);
+                        if (solved_invalidators_by_index[conf_id]) {
                             continue;
                         }
-                        solved_intersectors_by_index[intersector.index] = intersector;
-                        invalidate_intersectors.push(intersector);
+                        solved_invalidators_by_index[conf_id] = new VarDataInvalidatorVO(
+                            intersector, VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED, false,
+                            invalidator.invalidate_denied, invalidator.invalidate_imports);
 
                         if (promises.length >= max) {
                             await Promise.all(promises);
@@ -362,7 +365,8 @@ export default class VarsDatasVoUpdateHandler {
                                 if (intersectors_by_index[dep_intersector.index]) {
                                     continue;
                                 }
-                                if (solved_intersectors_by_index[dep_intersector.index]) {
+                                let dep_intersector_conf_id = this.get_validator_config_id(invalidator, true, dep_intersector.index);
+                                if (solved_invalidators_by_index[dep_intersector_conf_id]) {
                                     continue;
                                 }
 
@@ -385,10 +389,10 @@ export default class VarsDatasVoUpdateHandler {
                     }
                 }
 
-                for (let i in invalidate_intersectors) {
-                    let invalidate_intersector = invalidate_intersectors[i];
-                    out_invalidate_intersectors.push(new VarDataInvalidatorVO(invalidate_intersector, VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED, false, invalidator.invalidate_denied, invalidator.invalidate_imports));
-                }
+                // for (let i in solved_intersectors_by_index) {
+                //     let invalidate_intersector = solved_intersectors_by_index[i];
+                //     out_invalidate_intersectors.push(new VarDataInvalidatorVO(invalidate_intersector, VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED, false, invalidator.invalidate_denied, invalidator.invalidate_imports));
+                // }
             },
             this
         );
@@ -541,6 +545,7 @@ export default class VarsDatasVoUpdateHandler {
                 throw new Error('Not Implemented');
             }
 
+            let solved_invalidators_by_index: { [conf_id: string]: VarDataInvalidatorVO } = {};
             if (invalidate_exact && invalidate_exact.length) {
                 ConsoleHandler.getInstance().log('handle_invalidators:invalidate_exact:' + invalidate_exact.length);
 
@@ -549,6 +554,7 @@ export default class VarsDatasVoUpdateHandler {
                  *  Sur un exact, invalidation de l'arbre ça veut dire demander l'invalidation exacte de ce matroid, puis l'invalidation par intersection
                  *      de ses parents (et de tout l'arbre en remontant).
                  */
+                let start_time = Dates.now();
                 for (let i in invalidate_exact) {
                     let invalidator = invalidate_exact[i];
 
@@ -556,7 +562,25 @@ export default class VarsDatasVoUpdateHandler {
                         continue;
                     }
 
-                    await this.invalidate_datas_and_parents(invalidator, invalidate_intersectors);
+                    await this.invalidate_datas_and_parents(invalidator, solved_invalidators_by_index);
+
+                    let actual_time = Dates.now();
+
+                    if (actual_time > (start_time + 10)) {
+                        start_time = actual_time;
+                        ConsoleHandler.getInstance().warn('handle_invalidators:invalidate_exact:invalidate_datas_and_parents:---:invalidate_exact:' +
+                            i + ':' + invalidate_exact.length);
+                    }
+                }
+
+                for (let i in solved_invalidators_by_index) {
+                    let solved_intersector = solved_invalidators_by_index[i];
+
+                    if (invalidate_intersectors.find((ii) => ii.var_data.index == solved_intersector.var_data.index)) {
+                        continue;
+                    }
+
+                    invalidate_intersectors.push(solved_intersector);
                 }
 
                 await this.invalidate_exact_datas_and_push_for_update(invalidate_exact);
@@ -579,6 +603,8 @@ export default class VarsDatasVoUpdateHandler {
                 let invalidate_intersectors_no_propagation: VarDataInvalidatorVO[] = invalidate_intersectors.filter((invalidator) => !invalidator.propagate_to_parents);
                 let union_invalidate_intersectors_propagation = this.union_invalidators(invalidate_intersectors_propagation);
 
+                solved_invalidators_by_index = {};
+                let start_time = Dates.now();
                 for (let i in union_invalidate_intersectors_propagation) {
                     let invalidator = union_invalidate_intersectors_propagation[i];
 
@@ -586,7 +612,25 @@ export default class VarsDatasVoUpdateHandler {
                         continue;
                     }
 
-                    await this.invalidate_datas_and_parents(invalidator, invalidate_intersectors_no_propagation);
+                    await this.invalidate_datas_and_parents(invalidator, solved_invalidators_by_index);
+
+                    let actual_time = Dates.now();
+
+                    if (actual_time > (start_time + 10)) {
+                        start_time = actual_time;
+                        ConsoleHandler.getInstance().warn('handle_invalidators:invalidate_intersectors:invalidate_datas_and_parents:---:intersectors_by_index:' +
+                            i + ':' + union_invalidate_intersectors_propagation.length);
+                    }
+                }
+
+                for (let i in solved_invalidators_by_index) {
+                    let solved_intersector = solved_invalidators_by_index[i];
+
+                    if (invalidate_intersectors_no_propagation.find((ii) => ii.var_data.index == solved_intersector.var_data.index)) {
+                        continue;
+                    }
+
+                    invalidate_intersectors_no_propagation.push(solved_intersector);
                 }
 
                 ConsoleHandler.getInstance().log('handle_invalidators:invalidate_intersectors:PRE UNION:' + invalidate_intersectors_no_propagation.length);
@@ -616,7 +660,7 @@ export default class VarsDatasVoUpdateHandler {
         for (let i in invalidators) {
             let invalidator = invalidators[i];
 
-            let conf_id = invalidator.var_data.var_id + '_' + (invalidator.invalidate_denied ? '1' : '0') + '_' + (invalidator.invalidate_imports ? '1' : '0');
+            let conf_id = this.get_validator_config_id(invalidator);
             if (!invalidators_by_conf[conf_id]) {
                 invalidators_by_conf[conf_id] = [];
             }
@@ -646,6 +690,17 @@ export default class VarsDatasVoUpdateHandler {
         }
 
         return union_invalidators;
+    }
+
+    private get_validator_config_id(
+        invalidator: VarDataInvalidatorVO,
+        include_index: boolean = false,
+        index: string = null): string {
+
+        return (invalidator && !!invalidator.var_data) ?
+            invalidator.var_data.var_id + '_' + (invalidator.invalidate_denied ? '1' : '0') + '_' + (invalidator.invalidate_imports ? '1' : '0')
+            + (include_index ? '_' + (index ? index : invalidator.var_data.index) : '') :
+            null;
     }
 
     private throttled_push_invalidators(invalidators: VarDataInvalidatorVO[]) {
@@ -1538,7 +1593,10 @@ export default class VarsDatasVoUpdateHandler {
      * @param vo_types la liste des vo_types à remplir
      * @returns 0 si on a géré limit éléments dans le buffer, != 0 sinon (et donc le buffer est vide)
      */
-    private prepare_updates(vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> }, vos_create_or_delete_buffer: { [vo_type: string]: IDistantVOBase[] }, vo_types: string[]) {
+    private prepare_updates(
+        vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> },
+        vos_create_or_delete_buffer: { [vo_type: string]: IDistantVOBase[] },
+        vo_types: string[]) {
 
         let start_time = Dates.now();
         let real_start_time = start_time;
@@ -1556,6 +1614,19 @@ export default class VarsDatasVoUpdateHandler {
             if ((actual_time - last_log_time) >= 10) {
                 ConsoleHandler.getInstance().warn('VarsDatasVoUpdateHandler:prepare_updates:---:ordered_vos_cud length:' + this.ordered_vos_cud.length);
                 last_log_time = actual_time;
+
+                /**
+                 * on se rajoute de sortir au bout de 10 secondes si on a des demandes en attente par ailleurs de calcul par des clients ou serveur
+                 */
+                if (VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes) {
+                    for (let i in VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes) {
+                        let wrapper = VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes[i];
+                        if ((wrapper.is_server_request || wrapper.client_tab_id || wrapper.client_user_id) && !VarsServerController.getInstance().has_valid_value(wrapper.var_data)) {
+                            ConsoleHandler.getInstance().warn('VarsDatasVoUpdateHandler:prepare_updates:INTERROMPU:demandes client ou serveur en attente de résolution:' + wrapper.var_data.index);
+                            return;
+                        }
+                    }
+                }
             }
 
             if (actual_time > (start_time + 60)) {
@@ -1586,7 +1657,7 @@ export default class VarsDatasVoUpdateHandler {
             }
         }
 
-        ConsoleHandler.getInstance().warn('VarsDatasVoUpdateHandler:prepare_updates:OUT:ordered_vos_cud length:0');
+        ConsoleHandler.getInstance().warn('VarsDatasVoUpdateHandler:prepare_updates:OUT:ordered_vos_cud length:' + this.ordered_vos_cud.length);
     }
 
     private getJSONFrom_ordered_vos_cud(): string {
