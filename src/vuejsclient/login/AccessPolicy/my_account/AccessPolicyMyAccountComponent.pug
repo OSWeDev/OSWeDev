@@ -2,9 +2,9 @@
     template(v-if='user')
         .my_account_header
             .row
-                .col-md-8
+                .col-sm-8
                     .my_account_name {{ user.name }}
-                .col-md-4.right
+                .col-sm-4.right
                     button.btn.btn-danger.btn-block.btn-flat(@click="logout") {{ label('client.logout') }}
 
         .my_account_custcomps
@@ -13,13 +13,13 @@
 
         .my_account_content(id="my_account_content")
             .row
-                .col-md-6
+                .col-sm-6
                     .my_account_infos 
                         .row
-                            .col-md-12
+                            .col-sm-12
                                 h3.my_account_content_header {{ label('my_account_page.my_account_content_header') }}
                         .row 
-                            .col-md-12
+                            .col-sm-12
                                 .my_account_login(v-tooltip='editable_login_tooltip')
                                     i.fa.fa-id-card.fa-fw(aria-hidden="true")
                                     Crudcomponentfield(
@@ -38,7 +38,7 @@
                                         :inline_input_mode_input_only='true'
                                     )
                         .row(v-if='show_firstname_field')
-                            .col-md-12
+                            .col-sm-12
                                 .my_account_firstname(v-tooltip='editable_firstname_tooltip')
                                     i.fa.fa-id-card.fa-fw(aria-hidden="true")
                                     Crudcomponentfield(
@@ -57,7 +57,7 @@
                                         :show_insert_or_update_target='false'
                                     )
                         .row(v-if='show_lastname_field')
-                            .col-md-12
+                            .col-sm-12
                                 .my_account_lastname(v-tooltip='editable_lastname_tooltip')
                                     i.fa.fa-id-card.fa-fw(aria-hidden="true" style='opacity:0')
                                     Crudcomponentfield(
@@ -76,7 +76,7 @@
                                         :show_insert_or_update_target='false'
                                     )
                         .row 
-                            .col-md-12
+                            .col-sm-12
                                 .my_account_email(v-tooltip='editable_email_tooltip')
                                     i.fa.fa-envelope.fa-fw(aria-hidden="true")
                                     Crudcomponentfield(
@@ -95,7 +95,7 @@
                                         :show_insert_or_update_target='false'
                                     )
                         .row
-                            .col-md-12
+                            .col-sm-12
                                 .my_account_phone(v-tooltip='editable_phone_tooltip')
                                     i.fa.fa-mobile.fa-fw(aria-hidden="true")
                                     Crudcomponentfield(
@@ -114,14 +114,14 @@
                                         :show_insert_or_update_target='false'
                                     )
 
-                .col-md-6.my_account_plugins
+                .col-sm-6.my_account_plugins
                     .row 
-                        .col-md-12
+                        .col-sm-12
                             .my_account_nfc 
                                 Nfcconnectlogincomponent()
                                 Nfcusertaglistcomponent()
 
                     .row 
-                        .col-md-12
+                        .col-sm-12
                             .my_account_session_share
                                 Sessionsharecomponent()

@@ -5,11 +5,11 @@ include ../../../views/mixins/loading.pug
         program-plan-component-impression(:slot_interval='program_plan_controller.slot_interval')
 
         .row(v-if="!!custom_filter_component")
-            .col-md-12
+            .col-sm-12
                 .custom_filter_component(:is="custom_filter_component" @filter_changed="filter_changed" @filter_ready="filter_ready")
 
         .row(v-if="!!custom_overview_program_plan_component")
-            .col-md-12
+            .col-sm-12
                 .custom_overview_program_plan_component(:is="custom_overview_program_plan_component" @select_rdv="select_rdv" :valid_targets='valid_targets' :segment='fcSegment' @reset_targets="reset_targets_throttled")
 
 

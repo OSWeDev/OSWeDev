@@ -1,9 +1,9 @@
 .supervision_dashboard.row
     //- panneau gauche liste categories et sondes
-    .col-md-4.col-sm-12
+    .col-sm-4.col-sm-12
         //-  premier bandeau des catégories
         template(v-if="(get_categorys) && (get_categorys.length) && (get_categorys.length > 1)")
-            .col-md-12.mb-3
+            .col-sm-12.mb-3
                 h2 {{ label('supervision.dashboard.category') }}
 
                 .btn.mr-3.mb-1(
@@ -19,7 +19,7 @@
 
         //- deuxième bandeau des types de sondes
         template(v-if="(filtered_api_type_ids) && (filtered_api_type_ids.length) && (filtered_api_type_ids.length > 1)")
-            .col-md-12.mb-3
+            .col-sm-12.mb-3
                 h2 {{ label('supervision.dashboard.types_de_sonde') }}
 
                 .btn.mr-3.mb-1(
@@ -34,7 +34,7 @@
                         ) {{ label('supervision.dashboard.' + api_type_id) }}
 
     //- panneau droit liste items
-    .col-md-7.col-sm-12
+    .col-sm-7.col-sm-12
         //- bandeau des compteurs pour chaque états
         .row
             .col-sm-2(v-tooltip.top="label('supervision.legend.STATE_ERROR')")

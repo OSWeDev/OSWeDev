@@ -12,126 +12,126 @@
             form(v-on:submit.prevent="send_feedback")
 
                 .row
-                    .col-md-12
+                    .col-sm-12
                         label(for='feedback_user') {{ label('feedback_handler.user.label') }}
                             i.fa.fa-asterisk.mandatory
                 .row
-                    .col-md-12
+                    .col-sm-12
                         input.form-control(type='text' name='feedback_user' v-model="tmp_user")
 
                 .spacer
 
                 .row
-                    .col-md-12
+                    .col-sm-12
                         label(for='feedback_email') {{ label('feedback_handler.email.label') }}
                             i.fa.fa-asterisk.mandatory
                 .row
-                    .col-md-12
+                    .col-sm-12
                         input.form-control(type='text' name='feedback_email' v-model="tmp_email")
 
                 .spacer
 
                 template(v-if="show_wish_be_called")
                     .row
-                        .col-md-12
+                        .col-sm-12
                             label(for='feedback_wish_be_called') {{ label('feedback_handler.wish_be_called.label') }}
                     .row.mt-1
-                        .col-md-12
+                        .col-sm-12
                             input.mt-0(type="radio" id="feedback_wish_be_called_oui" :value='true' v-model="tmp_wish_be_called")
                             label.valign-middle.mt-1.mb-0.feedback_wish_be_called.ml-1(for="feedback_wish_be_called_oui") {{ t('YES') }}
                     .row.mt-1
-                        .col-md-12
+                        .col-sm-12
                             input.mt-0(type="radio" id="feedback_wish_be_called_non" :value='false' v-model="tmp_wish_be_called")
                             label.valign-middle.mt-1.mb-0.feedback_wish_be_called.ml-1(for="feedback_wish_be_called_non") {{ t('NO') }}
 
                 .spacer
 
                 .row
-                    .col-md-12
+                    .col-sm-12
                         label(for='feedback_phone') {{ label('feedback_handler.phone.label') }}
                 .row
-                    .col-md-12
+                    .col-sm-12
                         input.form-control(type='text' name='feedback_phone' v-model="tmp_phone")
 
                 template(v-if="tmp_wish_be_called")
                     .row
-                        .col-md-12
+                        .col-sm-12
                             label(for='feedback_preferred_times_called') {{ label('feedback_handler.preferred_times_called.label') }}
                     .row
-                        .col-md-12
+                        .col-sm-12
                             textarea.form-control(name="feedback_preferred_times_called" cols="80" rows="10" v-model="tmp_preferred_times_called")
 
                 .spacer
 
                 .row
-                    .col-md-12
+                    .col-sm-12
                         label {{ label('feedback_handler.type.label') }}
                             i.fa.fa-asterisk.mandatory
                 .row
-                    .col-md-12
+                    .col-sm-12
                         input(type="radio" id="feedback_type_2" value='2' v-model="tmp_type")
                         label.feedback_type(for="feedback_type_2" v-tooltip.top="label('feedback_handler.type.incident.tooltip')") {{ label('feedback_handler.type.incident') }}
                 .row
-                    .col-md-12
+                    .col-sm-12
                         input(type="radio" id="feedback_type_1" value='1' v-model="tmp_type")
                         label.feedback_type(for="feedback_type_1" v-tooltip.top="label('feedback_handler.type.bug.tooltip')") {{ label('feedback_handler.type.bug') }}
                 .row
-                    .col-md-12
+                    .col-sm-12
                         input(type="radio" id="feedback_type_0" value='0' v-model="tmp_type")
                         label.feedback_type(for="feedback_type_0" v-tooltip.top="label('feedback_handler.type.request.tooltip')") {{ label('feedback_handler.type.request') }}
                 .row
-                    .col-md-12
+                    .col-sm-12
                         input(type="radio" id="feedback_type_3" value='3' v-model="tmp_type")
                         label.feedback_type(for="feedback_type_3" v-tooltip.top="label('feedback_handler.type.not_set.tooltip')") {{ label('feedback_handler.type.not_set') }}
 
                 .spacer
 
                 .row
-                    .col-md-12
+                    .col-sm-12
                         label(for='feedback_title') {{ label('feedback_handler.title.label') }}
                             i.fa.fa-asterisk.mandatory
                 .row
-                    .col-md-12
+                    .col-sm-12
                         input.form-control(type='text' name='feedback_title' v-model="tmp_title")
 
                 .spacer
 
                 .row
-                    .col-md-12
+                    .col-sm-12
                         label(for='feedback_message') {{ label('feedback_handler.message.label') }}
                             i.fa.fa-asterisk.mandatory
                 .row
-                    .col-md-12
+                    .col-sm-12
                         textarea.form-control(name="feedback_message" cols="80" rows="10" v-model="tmp_message")
 
                 .spacer
 
                 .row
-                    .col-md-12
+                    .col-sm-12
                         label {{ label('feedback_handler.captures.label') }}
                             i.fa.fa-asterisk.mandatory
                 .row
-                    .col-md-4
+                    .col-sm-4
                         Screenshotcomponent(id='tmp_capture_1_vo' :filevo="tmp_capture_1_vo" @uploaded="uploadedCapture1(...arguments)" ref='ScreenshotComponent1')
-                    .col-md-4
+                    .col-sm-4
                         template(v-if='!!tmp_capture_1_vo')
                             Screenshotcomponent(id='tmp_capture_2_vo' :filevo="tmp_capture_2_vo" @uploaded="uploadedCapture2(...arguments)")
-                    .col-md-4
+                    .col-sm-4
                         template(v-if='!!tmp_capture_2_vo')
                             Screenshotcomponent(id='tmp_capture_3_vo' :filevo="tmp_capture_3_vo" @uploaded="uploadedCapture3(...arguments)")
 
                 .spacer
 
                 .row
-                    .col-md-12
+                    .col-sm-12
                         label {{ label('feedback_handler.attachments.label') }}
                 .row
-                    .col-md-4
+                    .col-sm-4
                         Filecomponent(id='tmp_attachment_1_vo' :filevo="tmp_attachment_1_vo" @uploaded="uploadedFile1(...arguments)")
-                    .col-md-4
+                    .col-sm-4
                         template(v-if='!!tmp_attachment_1_vo')
                             Filecomponent(id='tmp_attachment_2_vo' :filevo="tmp_attachment_2_vo" @uploaded="uploadedFile2(...arguments)")
-                    .col-md-4
+                    .col-sm-4
                         template(v-if='!!tmp_attachment_2_vo')
                             Filecomponent(id='tmp_attachment_3_vo' :filevo="tmp_attachment_3_vo" @uploaded="uploadedFile3(...arguments)")
 

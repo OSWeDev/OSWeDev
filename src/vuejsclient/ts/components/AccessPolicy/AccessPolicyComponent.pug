@@ -3,20 +3,20 @@ include ../../../views/mixins/loading.pug
 .access_policy
     +loading()
         .row
-            .col-md-4
+            .col-sm-4
                 .filters
                     .filters-title {{ label('access_policy.admin.filters.filters-title') }}
                     .filters-toggles
                         .row.filters-toggle(v-for="policy_group in ordered_policy_groups")
-                            .col-md-6.text-right {{ label(policy_group.translatable_name) }}
-                            .col-md-6
+                            .col-sm-6.text-right {{ label(policy_group.translatable_name) }}
+                            .col-sm-6
                                 toggle-button(
                                     @change="set_display_policy_group(policy_group.id)" 
                                     :value="display_policy_groups[policy_group.id]" 
                                     :sync="true"
                                     :width="100"
                                     :labels="{checked: label('access_policy.admin.filters.visible'), unchecked: label('access_policy.admin.filters.hidden')}")
-            .col-md-8
+            .col-sm-8
                 .filters
                     .filters-toggles
                         template(v-for="policy_group in ordered_policy_groups")
@@ -32,7 +32,7 @@ include ../../../views/mixins/loading.pug
                                             :labels="{checked: label('access_policy.admin.filters.visible'), unchecked: label('access_policy.admin.filters.hidden')}")
                 
         .row
-            .col-md-12
+            .col-sm-12
                 .table_container
                     table.table-striped.table-hover(is="vue-scrolling-table")
                         template(slot="thead")

@@ -75,6 +75,18 @@
         text-align: left;
         vertical-align: middle;
     }
+
+    .inline_input_mode,
+    .inline_input_mode.auto_validate_inline_input {
+
+        input[type~="number"],
+        input[type~="text"],
+        input[type~="password"],
+        .bool_field_inline_readonly_value,
+        .html_field_inline_readonly_value {
+            width: 30em;
+        }
+    }
 }
 
 .checklist_modal {

@@ -1,15 +1,15 @@
 .var_desc_explain_dep
     .row
-        .col-md-12
+        .col-sm-12
             .dep_name(@click='opened=!opened') {{ dep_name }}
             .dep_code(@click='copy_dep_code') {{ dep_code }}
     .row
-        .col-md-12.var_controller_label_wrapper
+        .col-sm-12.var_controller_label_wrapper
             .var_controller_label {{ label('var_desc.var_controller_label') }}
                 Vardesccontrollercomponent(:var_id='var_id')
             
     .row(v-show='opened')
-        .col-md-12
+        .col-sm-12
             template(v-for='(param, i) in params')
                 template(v-if='(i >= 10) && limit_10')
                 template(v-else)

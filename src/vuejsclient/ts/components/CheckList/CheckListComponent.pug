@@ -3,16 +3,16 @@ include ../../../views/mixins/loading.pug
 .rootElt.checklist
     +loading()
         .row
-            .col-md-2
+            .col-sm-2
                 button.btn.btn-primary(type='button', @click="createNew") {{ label('checklist.createNew') }}
 
         .row
-            .col-md-12
+            .col-sm-12
 
         .row.form-group
-            .col-md-4
+            .col-sm-4
                 input.form-control(type='text' :placeholder='label("checklist.filter_text")' v-model="filter_text")
-            .col-md-8.legend(v-if="checklist && checklist.show_legend")
+            .col-sm-8.legend(v-if="checklist && checklist.show_legend")
                 .div {{ label('checklist.legend.checkpoint.state.legend') }}
                 .div
                     i.text-muted.fa.fa-fw.fa-circle
@@ -31,7 +31,7 @@ include ../../../views/mixins/loading.pug
                     span {{ label('checklist.legend.checkpoint.state.error') }}
 
         .row(v-if='has_checklistitems && ordered_checklistitems && ((ordered_checklistitems.length <= 15) || show_anyway)')
-            .col-md-12
+            .col-sm-12
                 table.table-striped.table-hover
                     thead
                         tr
@@ -49,14 +49,14 @@ include ../../../views/mixins/loading.pug
                             @onchangevo='onchangevo')
 
         .row(v-else-if='has_checklistitems && ordered_checklistitems && (ordered_checklistitems.length > 15)')
-            .col-md-12
+            .col-sm-12
                 .is_limited_by_number {{ label('checklist.is_limited_by_number', {limit: 15}) }}
                     button.action-button(@click="()=>{show_anyway=true}")
                         i.fa.fa-filter(aria-hidden="true")
                         span {{ label('checklist.toggle_limit_by_number') }}
 
         .row(v-else)
-            .col-md-12
+            .col-sm-12
                 .no_elts {{ label('checklist.no_elts') }}
 
     #checklist_item_modal.checklist_item_modal.modal.fade.in(ref="checklist_item_modal", tabindex='-1', role='dialog')

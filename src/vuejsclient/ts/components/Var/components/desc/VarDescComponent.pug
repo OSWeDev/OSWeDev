@@ -7,10 +7,10 @@
         .var_desc_body
             .var_controller_desc_wrapper
                 .row(v-if='var_description && (var_description.length > 1)')
-                    .col-md-12        
+                    .col-sm-12        
                         pre.var_controller_desc.card-text {{ var_description }}
                 .row
-                    .col-md-12        
+                    .col-sm-12        
                         .var_controller_desc 
                             Inlinetranslatabletext(
                                 :code_text="var_description_code" :is_editable="true" :textarea="true")

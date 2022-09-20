@@ -9,9 +9,9 @@
 
     .on_page_translation_module_wrapper(v-if="isOpened")
         .row.import_translations
-            .col-md-4
+            .col-sm-4
                 label(:for="imported_translations") {{ label('on_page_translation.import_translations') }}
-            .col-md-5
+            .col-sm-5
                 input.form-control(
                     class="bg-info" 
                     :name="imported_translations" 
@@ -19,18 +19,18 @@
                     size="100" 
                     v-model="imported_translations"
                     @keyup.13="import_translations" )
-            .col-md-3
+            .col-sm-3
                 button.btn.btn-success(v-if="(!!imported_translations) && (imported_translations != '')" type="button" @click='import_translations')
                     i.fa.fa-check.btn_icon(aria-hidden="true")
                     | {{ label('on_page_translation.import_translations_action') }}
 
         template(v-for='editable_translation in editable_translations')
             .row.editable_translation
-                .col-md-12
+                .col-sm-12
                     .row
-                        .col-md-4
+                        .col-sm-4
                             label(:for="editable_translation.translation_code") {{ editable_translation.translation_code }}
-                        .col-md-5
+                        .col-sm-5
 
                             input.form-control(
                                 :class="{'bg-warning': !editable_translation.translation}" 
@@ -39,7 +39,7 @@
                                 size="100" 
                                 v-model="editable_translation.editable_translation"
                                 @keyup.13="save_translation(editable_translation)")
-                        .col-md-3
+                        .col-sm-3
                             toggle-button(
                                 @change="switch_show_other_langs(editable_translation)" 
                                 :value="show_other_langs[editable_translation.translation_code]" 
@@ -56,18 +56,18 @@
                         template(v-for="lang in other_langs")
                             template(v-if="(!translations_loaded[lang.code_lang]) || (!translations_loaded[lang.code_lang][editable_translation.translation_code])")
                                 .row.other_langs
-                                    .col-md-4.lang-col
+                                    .col-sm-4.lang-col
                                         .lang {{ lang.code_lang }}
-                                    .col-md-5.translated-col
+                                    .col-sm-5.translated-col
                                         .translated
                                             i.fa.fa-spinner.fa-spin
-                                    .col-md-3
+                                    .col-sm-3
                             template(v-else)
                                 .row.other_langs(v-if="(!!translations[lang.code_lang][editable_translation.translation_code])")
-                                    .col-md-4.lang-col
+                                    .col-sm-4.lang-col
                                         .lang {{ lang.code_lang }}
-                                    .col-md-5.translated-col
+                                    .col-sm-5.translated-col
                                         .translated {{ translations[lang.code_lang][editable_translation.translation_code].translated }}
-                                    .col-md-3
+                                    .col-sm-3
 
 

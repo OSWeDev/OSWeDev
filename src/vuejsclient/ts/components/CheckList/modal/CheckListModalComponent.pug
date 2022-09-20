@@ -46,7 +46,7 @@
 
             template(v-if="checklist && checklist.show_finalized_btn && is_last_checklist_item && all_steps_done && !checklist_item.finalized")
                 .row
-                    .col-md-12.text-center.mt-5
+                    .col-sm-12.text-center.mt-5
                         button.btn.btn-primary(@click="finalize_checklist") 
                             .fa.fa-spin.fa-spinner.mr-2(v-if="finalize_checklist_starting")
                             span {{ label('checklist_modal_' + checklist.id + '.finalize') }}
