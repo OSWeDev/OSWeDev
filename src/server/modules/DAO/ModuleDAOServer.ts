@@ -965,6 +965,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         promises = [];
 
         let res: InsertOrDeleteQueryResult[] = [];
+        let reste_a_faire = [];
 
         for (let tablename in vos_by_vo_tablename_and_ids) {
             let tableFields: string[] = [];
@@ -1001,6 +1002,15 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 for (let i in vos_by_ids[vo_id]) {
                     let vo: IDistantVOBase = moduleTable.get_bdd_version(vos_by_ids[vo_id][i]);
+
+                    /**
+                     * Il existe une limite au nombre de paramètres sur une requête (100 000). du coup on
+                     *  limite nous à 50 000 paramètres par requête. et on appelle récursivement au besoin pour faire ce qu'il reste à traiter
+                     */
+                    if (cpt_field >= 50000) {
+                        reste_a_faire.push(vo);
+                        continue;
+                    }
 
                     let vo_values = [];
                     let setters_vo: any[] = [];
@@ -1067,6 +1077,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     }
                 }
 
+
                 if ((!!max_connections_to_use) && (promises.length >= max_connections_to_use)) {
                     await Promise.all(promises);
                     promises = [];
@@ -1128,6 +1139,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         if (!!promises.length) {
             await Promise.all(promises);
+        }
+
+        if (reste_a_faire && reste_a_faire.length) {
+            let reste_a_faire_res = await this.insertOrUpdateVOs_without_triggers(reste_a_faire, max_connections_to_use);
+            if (reste_a_faire_res && reste_a_faire_res.length) {
+                res = res.concat(reste_a_faire_res);
+            }
         }
 
         return res;
@@ -1328,24 +1346,31 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return true;
         }
 
-        if (!this.copy_dedicated_pool) {
-            this.copy_dedicated_pool = new Pool({
-                connectionString: ConfigurationService.getInstance().node_configuration.CONNECTION_STRING,
-                max: 10,
-            });
-        }
+        // if (!this.copy_dedicated_pool) {
+        //     this.copy_dedicated_pool = new Pool({
+        //         connectionString: ConfigurationService.getInstance().node_configuration.CONNECTION_STRING,
+        //         max: 10,
+        //     });
+        // }
+
+        let copy_dedicated_pool: any = new Pool({
+            connectionString: ConfigurationService.getInstance().node_configuration.CONNECTION_STRING,
+            max: 1,
+        });
 
         let result = true;
         let self = this;
         return new Promise(async (resolve, reject) => {
 
-            self.copy_dedicated_pool.connect(function (err, client, done) {
+            // self.copy_dedicated_pool.connect(function (err, client, done) {
+            copy_dedicated_pool.connect(function (err, client, done) {
 
                 let cb = async () => {
                     if (debug_insert_without_triggers_using_COPY) {
                         ConsoleHandler.getInstance().log('insert_without_triggers_using_COPY:end');
                     }
                     await done();
+                    client.end();
                     await resolve(result);
                 };
 
@@ -1397,6 +1422,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             result = (!!query_res) && (query_res.length == vos.length);
                         } catch (error) {
                             ConsoleHandler.getInstance().error('insert_without_triggers_using_COPY:' + error);
+                            result = false;
                         }
                     }
 

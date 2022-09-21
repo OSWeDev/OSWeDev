@@ -1593,7 +1593,7 @@ export default class VarsDatasVoUpdateHandler {
         let last_log_time = start_time;
 
         if (this.ordered_vos_cud && this.ordered_vos_cud.length) {
-            ConsoleHandler.getInstance().warn('VarsDatasVoUpdateHandler:prepare_updates:IN :ordered_vos_cud length:' + this.ordered_vos_cud.length);
+            ConsoleHandler.getInstance().log('VarsDatasVoUpdateHandler:prepare_updates:IN :ordered_vos_cud length:' + this.ordered_vos_cud.length);
         }
 
         while (this.ordered_vos_cud && this.ordered_vos_cud.length) {
@@ -1621,7 +1621,7 @@ export default class VarsDatasVoUpdateHandler {
 
             if (actual_time > (start_time + 60)) {
                 start_time = actual_time;
-                ConsoleHandler.getInstance().warn('VarsDatasVoUpdateHandler:prepare_updates:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
+                ConsoleHandler.getInstance().error('VarsDatasVoUpdateHandler:prepare_updates:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
             }
 
             let vo_cud = this.ordered_vos_cud.shift();
@@ -1647,7 +1647,7 @@ export default class VarsDatasVoUpdateHandler {
             }
         }
 
-        ConsoleHandler.getInstance().warn('VarsDatasVoUpdateHandler:prepare_updates:OUT:ordered_vos_cud length:' + this.ordered_vos_cud.length);
+        ConsoleHandler.getInstance().log('VarsDatasVoUpdateHandler:prepare_updates:OUT:ordered_vos_cud length:' + this.ordered_vos_cud.length);
     }
 
     private getJSONFrom_ordered_vos_cud(): string {
