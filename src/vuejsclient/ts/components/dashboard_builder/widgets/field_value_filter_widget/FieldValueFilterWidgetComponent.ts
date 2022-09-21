@@ -238,6 +238,7 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
                     options.placeholder_advanced_mode,
                     options.separation_active_filter,
                     options.vo_field_sort_lvl2,
+                    options.autovalidate_advanced_filter,
                 ) : null;
             }
         } catch (error) {

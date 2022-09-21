@@ -29,6 +29,7 @@ import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder
 import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import ModuleDataExport from '../../../../../../shared/modules/DataExport/ModuleDataExport';
 import ExportContextQueryToXLSXParamVO from '../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
+import DataFilterOption from '../../../../../../shared/modules/DataRender/vos/DataFilterOption';
 import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
@@ -363,6 +364,10 @@ export default class TableWidgetComponent extends VueComponentBase {
 
     get can_export(): boolean {
         return this.widget_options && this.widget_options.export_button;
+    }
+
+    get default_export_option(): number {
+        return this.widget_options && this.widget_options.export_button && this.widget_options.has_default_export_option && this.widget_options.default_export_option ? this.widget_options.default_export_option : null;
     }
 
     get show_limit_selectable(): boolean {
@@ -758,6 +763,23 @@ export default class TableWidgetComponent extends VueComponentBase {
                 continue;
             }
 
+            if (!this.is_column_type_number(this.columns[i])) {
+                res++;
+                continue;
+            }
+
+            return res;
+        }
+    }
+
+    get colspan_total_with_hidden(): number {
+        if (!this.columns || !this.columns.length) {
+            return null;
+        }
+
+        let res: number = 0;
+
+        for (let i in this.columns) {
             if (!this.is_column_type_number(this.columns[i])) {
                 res++;
                 continue;
@@ -1403,6 +1425,8 @@ export default class TableWidgetComponent extends VueComponentBase {
                     options.nbpages_pagination_list,
                     options.has_table_total_footer,
                     options.hide_pagination_bottom,
+                    options.default_export_option,
+                    options.has_default_export_option,
                 ) : null;
             }
         } catch (error) {
@@ -1641,29 +1665,45 @@ export default class TableWidgetComponent extends VueComponentBase {
     private async choose_export_type() {
 
         let self = this;
-        this.$snotify.confirm(self.label('table_widget.choose_export_type.body'), self.label('table_widget.choose_export_type.title'), {
-            timeout: 10000,
-            showProgressBar: true,
-            closeOnClick: false,
-            pauseOnHover: true,
-            buttons: [
-                {
-                    text: self.label('table_widget.choose_export_type.page'),
-                    action: async (toast) => {
-                        self.$snotify.remove(toast.id);
-                        await self.do_export_to_xlsx(true);
+
+        if (this.default_export_option) {
+
+            switch (this.default_export_option) {
+                case 1: // 1 = Page courante du DBB
+                    await self.do_export_to_xlsx(true);
+                    break;
+                case 2: // 2 = Tout le DBB
+                    await self.do_export_to_xlsx(false);
+                    break;
+                default:
+                    return;
+            }
+        } else {
+
+            this.$snotify.confirm(self.label('table_widget.choose_export_type.body'), self.label('table_widget.choose_export_type.title'), {
+                timeout: 10000,
+                showProgressBar: true,
+                closeOnClick: false,
+                pauseOnHover: true,
+                buttons: [
+                    {
+                        text: self.label('table_widget.choose_export_type.page'),
+                        action: async (toast) => {
+                            self.$snotify.remove(toast.id);
+                            await self.do_export_to_xlsx(true);
+                        },
+                        bold: false
                     },
-                    bold: false
-                },
-                {
-                    text: self.label('table_widget.choose_export_type.all'),
-                    action: async (toast) => {
-                        await self.do_export_to_xlsx(false);
-                        self.$snotify.remove(toast.id);
+                    {
+                        text: self.label('table_widget.choose_export_type.all'),
+                        action: async (toast) => {
+                            await self.do_export_to_xlsx(false);
+                            self.$snotify.remove(toast.id);
+                        }
                     }
-                }
-            ]
-        });
+                ]
+            });
+        }
     }
 
     /**

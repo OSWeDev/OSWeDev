@@ -77,6 +77,79 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         AdvancedNumberFilter.FILTER_TYPE_NEST_PAS_NULL
     ];
 
+    @Watch('get_active_field_filters', { deep: true })
+    private async onchange_active_field_filters() {
+        await this.throttled_update_visible_options();
+    }
+
+    @Watch('widget_options', { immediate: true })
+    private async onchange_widget_options() {
+        if (!!this.old_widget_options) {
+            if (isEqual(this.widget_options, this.old_widget_options)) {
+                return;
+            }
+        }
+
+        this.old_widget_options = cloneDeep(this.widget_options);
+
+        this.is_init = false;
+        ValidationFiltersWidgetController.getInstance().set_is_init(
+            this.dashboard_page,
+            this.page_widget,
+            false
+        );
+        await this.throttled_update_visible_options();
+    }
+
+    @Watch('tmp_filter_active_options')
+    private onchange_tmp_filter_active_options() {
+
+        if (!this.widget_options) {
+            return;
+        }
+
+        let translated_active_options: ContextFilterVO = null;
+        let locale_tmp_filter_active_options = null;
+
+        if (TypesHandler.getInstance().isArray(this.tmp_filter_active_options)) {
+            locale_tmp_filter_active_options = this.tmp_filter_active_options;
+        } else {
+            if (this.tmp_filter_active_options != null) {
+                locale_tmp_filter_active_options = [this.tmp_filter_active_options];
+            }
+        }
+
+        if ((!locale_tmp_filter_active_options) || (!locale_tmp_filter_active_options.length)) {
+            this.remove_active_field_filter({ vo_type: this.vo_field_ref.api_type_id, field_id: this.vo_field_ref.field_id });
+            return;
+        }
+
+        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id];
+        let field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
+
+        for (let i in locale_tmp_filter_active_options) {
+            let active_option = locale_tmp_filter_active_options[i];
+
+            let new_translated_active_options = ContextFilterHandler.getInstance().get_ContextFilterVO_from_DataFilterOption(active_option, null, field, this.vo_field_ref);
+
+            if (!new_translated_active_options) {
+                continue;
+            }
+
+            if (!translated_active_options) {
+                translated_active_options = new_translated_active_options;
+            } else {
+                translated_active_options = ContextFilterHandler.getInstance().merge_ContextFilterVOs(translated_active_options, new_translated_active_options);
+            }
+        }
+
+        this.set_active_field_filter({
+            field_id: this.vo_field_ref.field_id,
+            vo_type: this.vo_field_ref.api_type_id,
+            active_field_filter: translated_active_options,
+        });
+    }
+
     private filter_type_label(filter_type: number): string {
         if (filter_type != null) {
             return this.t(AdvancedNumberFilter.FILTER_TYPE_LABELS[filter_type]);
@@ -84,17 +157,10 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         return null;
     }
 
-    get has_content_filter_type(): { [filter_type: number]: boolean } {
-        let res: { [filter_type: number]: boolean } = {
-            [AdvancedNumberFilter.FILTER_TYPE_INF]: true,
-            [AdvancedNumberFilter.FILTER_TYPE_INFEQ]: true,
-            [AdvancedNumberFilter.FILTER_TYPE_SUP]: true,
-            [AdvancedNumberFilter.FILTER_TYPE_SUPEQ]: true,
-            [AdvancedNumberFilter.FILTER_TYPE_EST_NULL]: false,
-            [AdvancedNumberFilter.FILTER_TYPE_NEST_PAS_NULL]: false
-        };
-
-        return res;
+    private onchange_advanced_number_filter_content() {
+        if (this.autovalidate_advanced_filter) {
+            this.validate_advanced_number_filter();
+        }
     }
 
     private add_advanced_number_filter() {
@@ -155,30 +221,6 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         });
     }
 
-    get is_advanced_filter_valid(): boolean {
-        if (!this.widget_options) {
-            return false;
-        }
-
-        if ((!this.advanced_number_filters) || (!this.advanced_number_filters.length)) {
-            return false;
-        }
-
-        for (let i in this.advanced_number_filters) {
-            let advanced_number_filter = this.advanced_number_filters[i];
-
-            if (!this.has_content_filter_type[advanced_number_filter.filter_type]) {
-                continue;
-            }
-
-            if (advanced_number_filter.filter_content == null) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
     private delete_advanced_number_filter(i: number) {
         if ((!this.advanced_number_filters) || (i >= this.advanced_number_filters.length - 1)) {
             return;
@@ -199,23 +241,6 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         }
         this.advanced_number_filters = [new AdvancedNumberFilter()];
 
-        await this.throttled_update_visible_options();
-    }
-
-    get vo_field_ref_label(): string {
-        if ((!this.widget_options) || (!this.vo_field_ref)) {
-            return null;
-        }
-
-        return this.get_flat_locale_translations[this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id)];
-    }
-
-    get link_type_labels(): { [link_type: number]: string } {
-        return AdvancedNumberFilter.FILTER_TYPE_LABELS;
-    }
-
-    @Watch('get_active_field_filters', { deep: true })
-    private async onchange_active_field_filters() {
         await this.throttled_update_visible_options();
     }
 
@@ -387,72 +412,158 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         return true;
     }
 
-    @Watch('widget_options', { immediate: true })
-    private async onchange_widget_options() {
-        if (!!this.old_widget_options) {
-            if (isEqual(this.widget_options, this.old_widget_options)) {
-                return;
-            }
+    private get_ContextFilterVO_from_AdvancedNumberFilter(advanced_filter: AdvancedNumberFilter, field: ModuleTableField<any>): ContextFilterVO {
+        let translated_active_options = new ContextFilterVO();
+
+        translated_active_options.field_id = this.vo_field_ref.field_id;
+        translated_active_options.vo_type = this.vo_field_ref.api_type_id;
+
+        let field_type = null;
+        if ((!field) && (this.vo_field_ref.field_id == 'id')) {
+            field_type = ModuleTableField.FIELD_TYPE_int;
+        } else {
+            field_type = field.field_type;
         }
 
-        this.old_widget_options = cloneDeep(this.widget_options);
+        switch (field_type) {
+            case ModuleTableField.FIELD_TYPE_int:
+            case ModuleTableField.FIELD_TYPE_geopoint:
+            case ModuleTableField.FIELD_TYPE_float:
+            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
+            case ModuleTableField.FIELD_TYPE_amount:
+            case ModuleTableField.FIELD_TYPE_prct:
+            case ModuleTableField.FIELD_TYPE_boolean:
+                switch (advanced_filter.filter_type) {
+                    case AdvancedNumberFilter.FILTER_TYPE_EST_NULL:
+                        translated_active_options.filter_type = ContextFilterVO.TYPE_NULL_ANY;
+                        break;
+                    case AdvancedNumberFilter.FILTER_TYPE_INF:
+                        translated_active_options.filter_type = ContextFilterVO.TYPE_NUMERIC_INF_ANY;
+                        translated_active_options.param_numeric = advanced_filter.filter_content;
+                        break;
+                    case AdvancedNumberFilter.FILTER_TYPE_INFEQ:
+                        translated_active_options.filter_type = ContextFilterVO.TYPE_NUMERIC_INFEQ_ANY;
+                        translated_active_options.param_numeric = advanced_filter.filter_content;
+                        break;
+                    case AdvancedNumberFilter.FILTER_TYPE_NEST_PAS_NULL:
+                        translated_active_options.filter_type = ContextFilterVO.TYPE_NULL_NONE;
+                        break;
+                    case AdvancedNumberFilter.FILTER_TYPE_SUP:
+                        translated_active_options.filter_type = ContextFilterVO.TYPE_NUMERIC_SUP_ANY;
+                        translated_active_options.param_numeric = advanced_filter.filter_content;
+                        break;
+                    case AdvancedNumberFilter.FILTER_TYPE_SUPEQ:
+                        translated_active_options.filter_type = ContextFilterVO.TYPE_NUMERIC_SUPEQ_ANY;
+                        translated_active_options.param_numeric = advanced_filter.filter_content;
+                        break;
+                }
+                break;
 
-        this.is_init = false;
-        ValidationFiltersWidgetController.getInstance().set_is_init(
-            this.dashboard_page,
-            this.page_widget,
-            false
-        );
-        await this.throttled_update_visible_options();
+            default:
+                throw new Error('Not Implemented');
+        }
+
+        return translated_active_options;
     }
 
-    @Watch('tmp_filter_active_options')
-    private onchange_tmp_filter_active_options() {
+    private try_apply_advanced_filters(filter: ContextFilterVO, advanced_filters: AdvancedNumberFilter[]) {
+        let advanced_filter = new AdvancedNumberFilter();
 
+        switch (filter.filter_type) {
+            case ContextFilterVO.TYPE_FILTER_AND:
+                this.try_apply_advanced_filters(filter.left_hook, advanced_filters);
+                advanced_filters[(advanced_filters.length - 1)].link_type = AdvancedNumberFilter.LINK_TYPE_ET;
+                this.try_apply_advanced_filters(filter.right_hook, advanced_filters);
+                break;
+
+            case ContextFilterVO.TYPE_FILTER_OR:
+                this.try_apply_advanced_filters(filter.left_hook, advanced_filters);
+                advanced_filters[(advanced_filters.length - 1)].link_type = AdvancedNumberFilter.LINK_TYPE_OU;
+                this.try_apply_advanced_filters(filter.right_hook, advanced_filters);
+                break;
+
+            case ContextFilterVO.TYPE_NULL_ANY:
+                advanced_filter.filter_type = AdvancedNumberFilter.FILTER_TYPE_EST_NULL;
+                break;
+
+            case ContextFilterVO.TYPE_NUMERIC_INF_ANY:
+                advanced_filter.filter_type = AdvancedNumberFilter.FILTER_TYPE_INF;
+                advanced_filter.filter_content = filter.param_numeric;
+                break;
+
+            case ContextFilterVO.TYPE_NUMERIC_INFEQ_ANY:
+                advanced_filter.filter_type = AdvancedNumberFilter.FILTER_TYPE_INFEQ;
+                advanced_filter.filter_content = filter.param_numeric;
+                break;
+
+            case ContextFilterVO.TYPE_NULL_NONE:
+                advanced_filter.filter_type = AdvancedNumberFilter.FILTER_TYPE_NEST_PAS_NULL;
+                break;
+
+            case ContextFilterVO.TYPE_NUMERIC_SUP_ANY:
+                advanced_filter.filter_type = AdvancedNumberFilter.FILTER_TYPE_SUP;
+                advanced_filter.filter_content = filter.param_numeric;
+                break;
+
+            case ContextFilterVO.TYPE_NUMERIC_SUPEQ_ANY:
+                advanced_filter.filter_type = AdvancedNumberFilter.FILTER_TYPE_SUPEQ;
+                advanced_filter.filter_content = filter.param_numeric;
+                break;
+
+            default:
+                throw new Error('Not Implemented');
+        }
+
+        advanced_filters.push(advanced_filter);
+    }
+
+    get vo_field_ref_label(): string {
+        if ((!this.widget_options) || (!this.vo_field_ref)) {
+            return null;
+        }
+
+        return this.get_flat_locale_translations[this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id)];
+    }
+
+    get link_type_labels(): { [link_type: number]: string } {
+        return AdvancedNumberFilter.FILTER_TYPE_LABELS;
+    }
+
+    get is_advanced_filter_valid(): boolean {
         if (!this.widget_options) {
-            return;
+            return false;
         }
 
-        let translated_active_options: ContextFilterVO = null;
-        let locale_tmp_filter_active_options = null;
-
-        if (TypesHandler.getInstance().isArray(this.tmp_filter_active_options)) {
-            locale_tmp_filter_active_options = this.tmp_filter_active_options;
-        } else {
-            if (this.tmp_filter_active_options != null) {
-                locale_tmp_filter_active_options = [this.tmp_filter_active_options];
-            }
+        if ((!this.advanced_number_filters) || (!this.advanced_number_filters.length)) {
+            return false;
         }
 
-        if ((!locale_tmp_filter_active_options) || (!locale_tmp_filter_active_options.length)) {
-            this.remove_active_field_filter({ vo_type: this.vo_field_ref.api_type_id, field_id: this.vo_field_ref.field_id });
-            return;
-        }
+        for (let i in this.advanced_number_filters) {
+            let advanced_number_filter = this.advanced_number_filters[i];
 
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id];
-        let field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
-
-        for (let i in locale_tmp_filter_active_options) {
-            let active_option = locale_tmp_filter_active_options[i];
-
-            let new_translated_active_options = ContextFilterHandler.getInstance().get_ContextFilterVO_from_DataFilterOption(active_option, null, field, this.vo_field_ref);
-
-            if (!new_translated_active_options) {
+            if (!this.has_content_filter_type[advanced_number_filter.filter_type]) {
                 continue;
             }
 
-            if (!translated_active_options) {
-                translated_active_options = new_translated_active_options;
-            } else {
-                translated_active_options = ContextFilterHandler.getInstance().merge_ContextFilterVOs(translated_active_options, new_translated_active_options);
+            if (advanced_number_filter.filter_content == null) {
+                return false;
             }
         }
 
-        this.set_active_field_filter({
-            field_id: this.vo_field_ref.field_id,
-            vo_type: this.vo_field_ref.api_type_id,
-            active_field_filter: translated_active_options,
-        });
+        return true;
+    }
+
+    get has_content_filter_type(): { [filter_type: number]: boolean } {
+        let res: { [filter_type: number]: boolean } = {
+            [AdvancedNumberFilter.FILTER_TYPE_INF]: true,
+            [AdvancedNumberFilter.FILTER_TYPE_INFEQ]: true,
+            [AdvancedNumberFilter.FILTER_TYPE_SUP]: true,
+            [AdvancedNumberFilter.FILTER_TYPE_SUPEQ]: true,
+            [AdvancedNumberFilter.FILTER_TYPE_EST_NULL]: false,
+            [AdvancedNumberFilter.FILTER_TYPE_NEST_PAS_NULL]: false
+        };
+
+        return res;
     }
 
     get placeholder(): string {
@@ -605,6 +716,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                     options.placeholder_advanced_mode,
                     options.separation_active_filter,
                     options.vo_field_sort_lvl2,
+                    options.autovalidate_advanced_filter,
                 ) : null;
             }
         } catch (error) {
@@ -614,108 +726,12 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         return options;
     }
 
-    private get_ContextFilterVO_from_AdvancedNumberFilter(advanced_filter: AdvancedNumberFilter, field: ModuleTableField<any>): ContextFilterVO {
-        let translated_active_options = new ContextFilterVO();
+    get autovalidate_advanced_filter(): boolean {
 
-        translated_active_options.field_id = this.vo_field_ref.field_id;
-        translated_active_options.vo_type = this.vo_field_ref.api_type_id;
-
-        let field_type = null;
-        if ((!field) && (this.vo_field_ref.field_id == 'id')) {
-            field_type = ModuleTableField.FIELD_TYPE_int;
-        } else {
-            field_type = field.field_type;
+        if (!this.widget_options) {
+            return false;
         }
 
-        switch (field_type) {
-            case ModuleTableField.FIELD_TYPE_int:
-            case ModuleTableField.FIELD_TYPE_geopoint:
-            case ModuleTableField.FIELD_TYPE_float:
-            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-            case ModuleTableField.FIELD_TYPE_amount:
-            case ModuleTableField.FIELD_TYPE_prct:
-            case ModuleTableField.FIELD_TYPE_boolean:
-                switch (advanced_filter.filter_type) {
-                    case AdvancedNumberFilter.FILTER_TYPE_EST_NULL:
-                        translated_active_options.filter_type = ContextFilterVO.TYPE_NULL_ANY;
-                        break;
-                    case AdvancedNumberFilter.FILTER_TYPE_INF:
-                        translated_active_options.filter_type = ContextFilterVO.TYPE_NUMERIC_INF_ANY;
-                        translated_active_options.param_numeric = advanced_filter.filter_content;
-                        break;
-                    case AdvancedNumberFilter.FILTER_TYPE_INFEQ:
-                        translated_active_options.filter_type = ContextFilterVO.TYPE_NUMERIC_INFEQ_ANY;
-                        translated_active_options.param_numeric = advanced_filter.filter_content;
-                        break;
-                    case AdvancedNumberFilter.FILTER_TYPE_NEST_PAS_NULL:
-                        translated_active_options.filter_type = ContextFilterVO.TYPE_NULL_NONE;
-                        break;
-                    case AdvancedNumberFilter.FILTER_TYPE_SUP:
-                        translated_active_options.filter_type = ContextFilterVO.TYPE_NUMERIC_SUP_ANY;
-                        translated_active_options.param_numeric = advanced_filter.filter_content;
-                        break;
-                    case AdvancedNumberFilter.FILTER_TYPE_SUPEQ:
-                        translated_active_options.filter_type = ContextFilterVO.TYPE_NUMERIC_SUPEQ_ANY;
-                        translated_active_options.param_numeric = advanced_filter.filter_content;
-                        break;
-                }
-                break;
-
-            default:
-                throw new Error('Not Implemented');
-        }
-
-        return translated_active_options;
-    }
-
-    private try_apply_advanced_filters(filter: ContextFilterVO, advanced_filters: AdvancedNumberFilter[]) {
-        let advanced_filter = new AdvancedNumberFilter();
-
-        switch (filter.filter_type) {
-            case ContextFilterVO.TYPE_FILTER_AND:
-                this.try_apply_advanced_filters(filter.left_hook, advanced_filters);
-                advanced_filters[(advanced_filters.length - 1)].link_type = AdvancedNumberFilter.LINK_TYPE_ET;
-                this.try_apply_advanced_filters(filter.right_hook, advanced_filters);
-                break;
-
-            case ContextFilterVO.TYPE_FILTER_OR:
-                this.try_apply_advanced_filters(filter.left_hook, advanced_filters);
-                advanced_filters[(advanced_filters.length - 1)].link_type = AdvancedNumberFilter.LINK_TYPE_OU;
-                this.try_apply_advanced_filters(filter.right_hook, advanced_filters);
-                break;
-
-            case ContextFilterVO.TYPE_NULL_ANY:
-                advanced_filter.filter_type = AdvancedNumberFilter.FILTER_TYPE_EST_NULL;
-                break;
-
-            case ContextFilterVO.TYPE_NUMERIC_INF_ANY:
-                advanced_filter.filter_type = AdvancedNumberFilter.FILTER_TYPE_INF;
-                advanced_filter.filter_content = filter.param_numeric;
-                break;
-
-            case ContextFilterVO.TYPE_NUMERIC_INFEQ_ANY:
-                advanced_filter.filter_type = AdvancedNumberFilter.FILTER_TYPE_INFEQ;
-                advanced_filter.filter_content = filter.param_numeric;
-                break;
-
-            case ContextFilterVO.TYPE_NULL_NONE:
-                advanced_filter.filter_type = AdvancedNumberFilter.FILTER_TYPE_NEST_PAS_NULL;
-                break;
-
-            case ContextFilterVO.TYPE_NUMERIC_SUP_ANY:
-                advanced_filter.filter_type = AdvancedNumberFilter.FILTER_TYPE_SUP;
-                advanced_filter.filter_content = filter.param_numeric;
-                break;
-
-            case ContextFilterVO.TYPE_NUMERIC_SUPEQ_ANY:
-                advanced_filter.filter_type = AdvancedNumberFilter.FILTER_TYPE_SUPEQ;
-                advanced_filter.filter_content = filter.param_numeric;
-                break;
-
-            default:
-                throw new Error('Not Implemented');
-        }
-
-        advanced_filters.push(advanced_filter);
+        return !!this.widget_options.autovalidate_advanced_filter;
     }
 }

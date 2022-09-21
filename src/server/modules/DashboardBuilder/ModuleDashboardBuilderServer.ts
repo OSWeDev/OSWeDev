@@ -93,6 +93,12 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Tout'
         }, 'table_widget.choose_export_type.all.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Choisir une option d\'export par défaut'
+        }, 'table_widget_options_component.default_export_options.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Attribuer une option d\'export par défaut'
+        }, 'table_widget_options_component.has_default_export_option.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Confirmer la suppression'
@@ -1150,6 +1156,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Objet interdépendant" },
             'field_value_filter_widget_component.other_ref_api_type_id.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Validation automatique du filtre avancé" },
+            'field_value_filter_widget_component.autovalidate_advanced_filter.___LABEL___'
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Grouper les filtres" },

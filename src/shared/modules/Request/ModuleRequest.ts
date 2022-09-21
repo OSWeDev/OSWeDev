@@ -30,7 +30,8 @@ export default class ModuleRequest extends Module {
         posts: {},
         headers: {},
         sendHttps: boolean,
-        result_headers?: {}
+        result_headers?: {},
+        nojsonparse?: boolean
     ) => Promise<any> = APIControllerWrapper.sah(ModuleRequest.APINAME_sendRequestFromApp);
 
     private constructor() {

@@ -155,7 +155,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Table.default_background = '#f5f5f5';
         Table.icon_component = 'Tablewidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptions(null, true, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, false, false), TableWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptions(null, true, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, false, false, null, false), TableWidgetOptions.get_selected_fields);
 
         Vue.component('Tablewidgetcomponent', () => import(/* webpackChunkName: "TableWidgetComponent" */ './widgets/table_widget/TableWidgetComponent'));
         Vue.component('Tablewidgetoptionscomponent', () => import(/* webpackChunkName: "TableWidgetOptionsComponent" */ './widgets/table_widget/options/TableWidgetOptionsComponent'));
@@ -174,7 +174,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Table.default_background = '#f5f5f5';
         Table.icon_component = 'Tablewidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptions(null, false, 100, null, false, false, false, false, false, true, true, true, true, true, true, false, null, false, 5, false, false), TableWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptions(null, false, 100, null, false, false, false, false, false, true, true, true, true, true, true, false, null, false, 5, false, false, null, false), TableWidgetOptions.get_selected_fields);
 
         Vue.component('Tablewidgetcomponent', () => import(/* webpackChunkName: "TableWidgetComponent" */ './widgets/table_widget/TableWidgetComponent'));
         Vue.component('Tablewidgetoptionscomponent', () => import(/* webpackChunkName: "TableWidgetOptionsComponent" */ './widgets/table_widget/options/TableWidgetOptionsComponent'));
@@ -194,7 +194,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         fieldValueFilter.icon_component = 'Fieldvaluefilterwidgeticoncomponent';
         fieldValueFilter.is_filter = true;
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(fieldValueFilter, () => new FieldValueFilterWidgetOptions(null, null, null, true, false, 50, false, false, null, false, AdvancedStringFilter.FILTER_TYPE_CONTIENT, false, false, null, null, null, null, false, false, false, null, null, null, null, false, null), FieldValueFilterWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(fieldValueFilter, () => new FieldValueFilterWidgetOptions(null, null, null, true, false, 50, false, false, null, false, AdvancedStringFilter.FILTER_TYPE_CONTIENT, false, false, null, null, null, null, false, false, false, null, null, null, null, false, null, false), FieldValueFilterWidgetOptions.get_selected_fields);
 
         Vue.component('Fieldvaluefilterwidgetcomponent', () => import(/* webpackChunkName: "FieldValueFilterWidgetComponent" */ './widgets/field_value_filter_widget/FieldValueFilterWidgetComponent'));
         Vue.component('Fieldvaluefilterwidgetoptionscomponent', () => import(/* webpackChunkName: "FieldValueFilterWidgetOptionsComponent" */ './widgets/field_value_filter_widget/options/FieldValueFilterWidgetOptionsComponent'));
