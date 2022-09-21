@@ -73,6 +73,7 @@ export default class CheckListComponent extends VueComponentBase {
     private filter_text: string = null;
 
     private show_anyway: boolean = false;
+    private is_load: boolean = false;
 
     private selected_checklist_item: ICheckListItem = null;
 
@@ -124,6 +125,7 @@ export default class CheckListComponent extends VueComponentBase {
     private async loading() {
         let self = this;
         let promises = [];
+        this.is_load = false;
 
         let checklist: ICheckList = null;
         let checklistitems: { [id: number]: ICheckListItem } = {};
@@ -244,6 +246,8 @@ export default class CheckListComponent extends VueComponentBase {
                 $('#checklist_item_modal').modal('hide');
             }
         }
+
+        this.is_load = true;
     }
 
     private async handle_modal_show_hide() {
