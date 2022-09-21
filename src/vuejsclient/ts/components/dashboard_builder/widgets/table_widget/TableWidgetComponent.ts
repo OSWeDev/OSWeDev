@@ -772,6 +772,23 @@ export default class TableWidgetComponent extends VueComponentBase {
         }
     }
 
+    get colspan_total_with_hidden(): number {
+        if (!this.columns || !this.columns.length) {
+            return null;
+        }
+
+        let res: number = 0;
+
+        for (let i in this.columns) {
+            if (!this.is_column_type_number(this.columns[i])) {
+                res++;
+                continue;
+            }
+
+            return res;
+        }
+    }
+
     private async onchange_column(
         row: any,
         field: DatatableField<any, any>,

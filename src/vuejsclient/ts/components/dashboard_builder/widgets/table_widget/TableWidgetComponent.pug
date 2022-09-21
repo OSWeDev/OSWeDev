@@ -202,7 +202,7 @@ include ../../../../../views/mixins/loading.pug
                                                             .btn.btn-sm.btn-danger(@click="confirm_delete(child.api_type_id, row.__crud_actions)")
                                                                 i.fa.fa-trash
                                                                             
-                    template(v-if="has_table_total_footer")
+                    template(v-if="has_table_total_footer && data_rows && (data_rows.length > 0)")
                         tfoot
                             template(v-if="!!colspan_total")
                                 td.text-center(:colspan='colspan_total') {{ label('table_widget_component.table_total_footer')}}
@@ -211,11 +211,11 @@ include ../../../../../views/mixins/loading.pug
                                 template(v-if="is_column_type_number(column)")
                                     td.text-center
                                         template(v-if="column_total && column_total[column.api_type_id]")
-                                            span {{ column_total[column.api_type_id][column.field_id] }}
+                                            | {{ column_total[column.api_type_id][column.field_id] }}
 
                                 template(v-else)
-                                    template(v-if="(!colspan_total || (parseInt(index_column) >= colspan_total)) && !column.hide_from_table")
-                                        td(:field_id="column.field_id")
+                                    template(v-if="(!colspan_total_with_hidden || (parseInt(index_column) >= colspan_total_with_hidden)) && !column.hide_from_table")
+                                        td.test(:field_id="column.field_id")
 
             .lower_pagination(v-if="!hide_pagination_bottom")
                 Tablepaginationcomponent(
