@@ -77,11 +77,15 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Année' },
-            'filter_file.FILTER_TYPE.YEAR'
+            'archive_files_conf.FILTER_TYPE.YEAR'
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Mois' },
-            'filter_file.FILTER_TYPE.MONTH'
+            'archive_files_conf.FILTER_TYPE.MONTH'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Jour' },
+            'archive_files_conf.FILTER_TYPE.DAY'
         ));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(

@@ -593,6 +593,8 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                     options.exclude_filter_opt_values,
                     options.exclude_ts_range_values,
                     options.placeholder_advanced_mode,
+                    options.separation_active_filter,
+                    options.vo_field_sort_lvl2,
                 ) : null;
             }
         } catch (error) {
@@ -662,13 +664,13 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         switch (filter.filter_type) {
             case ContextFilterVO.TYPE_FILTER_AND:
                 this.try_apply_advanced_filters(filter.left_hook, advanced_filters);
-                advanced_filters[advanced_filters.length].link_type = AdvancedNumberFilter.LINK_TYPE_ET;
+                advanced_filters[(advanced_filters.length - 1)].link_type = AdvancedNumberFilter.LINK_TYPE_ET;
                 this.try_apply_advanced_filters(filter.right_hook, advanced_filters);
                 break;
 
             case ContextFilterVO.TYPE_FILTER_OR:
                 this.try_apply_advanced_filters(filter.left_hook, advanced_filters);
-                advanced_filters[advanced_filters.length].link_type = AdvancedNumberFilter.LINK_TYPE_OU;
+                advanced_filters[(advanced_filters.length - 1)].link_type = AdvancedNumberFilter.LINK_TYPE_OU;
                 this.try_apply_advanced_filters(filter.right_hook, advanced_filters);
                 break;
 

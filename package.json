@@ -1,6 +1,6 @@
 {
     "name": "oswedev",
-    "version": "0.25.66",
+    "version": "0.26.7",
     "description": "",
     "repository": {
         "type": "git",
@@ -142,6 +142,7 @@
         "vue-bootstrap-toggle": "1.1.4",
         "vue-chartjs": "3.5.0",
         "vue-class-component": "6.2.0",
+        "vue-cookies-ts": "^1.5.19",
         "vue-draggable-resizable": "1.7.2",
         "vue-full-calendar": "2.7.0",
         "vue-grid-layout": "2.3.12",

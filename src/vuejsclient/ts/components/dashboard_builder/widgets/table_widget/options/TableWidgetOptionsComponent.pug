@@ -88,6 +88,16 @@
                     v-model="tmp_nbpages_pagination_list"
                 )
 
+    .hide_pagination_bottom
+        .input_label {{ label('table_widget_options_component.hide_pagination_bottom') }}
+        toggle-button(
+            @change="switch_hide_pagination_bottom" 
+            :value="hide_pagination_bottom" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('table_widget_options_component.hide_pagination_bottom.visible'), unchecked: label('table_widget_options_component.hide_pagination_bottom.hidden')}")
+    
+
     .has_table_total_footer
         .input_label {{ label('table_widget_options_component.has_table_total_footer') }}
         toggle-button(
@@ -175,6 +185,43 @@
             :width="100"
             :labels="{checked: label('table_widget_options_component.export_button.visible'), unchecked: label('table_widget_options_component.export_button.hidden')}")
 
+    template(v-if="export_button")
+
+        .input_label {{ label('table_widget_options_component.has_default_export_option') }}
+        toggle-button(
+            @change="switch_tmp_has_default_export_option" 
+            :value="tmp_has_default_export_option" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('table_widget_options_component.export_button.visible'), unchecked: label('table_widget_options_component.export_button.hidden')}")
+
+        template(v-if="tmp_has_default_export_option")
+
+            .default_export_option 
+                .input_label {{ label('table_widget_options_component.default_export_options') }}
+                .input_wrapper
+                    multiselect(
+                        :preselect-first="false"
+                        :multiple="false"
+                        :close-on-select="false"
+                        v-model="tmp_default_export_option"
+                        :options="export_page_options"
+                        :custom-label="filter_visible_label"
+                        autocomplete="off"
+
+                        :searchable="true"
+                        :internal-search="false"
+                        :hide-selected="true"
+                    
+                        :key="'default_export_table_widget_options_component_' + tmp_default_export_option"
+                        
+                        :select-label='label("multiselect.selectLabel")'
+                        :select-group-label='label("multiselect.selectGroupLabel")'
+                        :selected-label='label("multiselect.selectedLabel")'
+                        :deselect-label='label("multiselect.deselectLabel")'
+                        :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                    )
+
     .vocus_button(v-if='widget_options && widget_options.crud_api_type_id')
         .input_label {{ label('table_widget_options_component.vocus_button') }}
         
@@ -201,10 +248,11 @@
         template(v-if='columns && (columns.length > 1)')
             Vuenestable.nested_field_refs(
                 v-model="editable_columns"
+                max_depth="1" 
+                :hooks="{'beforeMove': beforeMove}"
                 @change="changed_columns"
                 key-prop="id"
                 children-prop="children"
-                max_depth="2"
             )
                 template(slot-scope="{ item }" 
                 )

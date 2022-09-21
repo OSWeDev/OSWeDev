@@ -60,6 +60,7 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
      * Si TYPE_header
      */
     public header_name: string;
+    public children: TableColumnDescVO[] = [];
     /**
      * Si TYPE_component
      */
@@ -129,28 +130,37 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
         if (!page_widget_id) {
             return null;
         }
+
         if (!this.type) {
             return null;
         }
 
-        return DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX + page_widget_id + '.' + this.type + '.' +
-            ((this.type == TableColumnDescVO.TYPE_crud_actions) ? '_' :
-                ((this.type == TableColumnDescVO.TYPE_vo_field_ref) ? this.api_type_id + '.' + this.field_id :
-                    ((this.type == TableColumnDescVO.TYPE_var_ref) ? this.var_id :
-                        ((this.type == TableColumnDescVO.TYPE_select_box) ? '_' :
-                            ((this.type == TableColumnDescVO.TYPE_header) ? this.header_name : ' ')
-                        )
-                    )
-                )
-            );
-        // return DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX + page_widget_id + '.' + this.type + '.' +
-        //     ((this.type == TableColumnDescVO.TYPE_crud_actions) ? '_' :
-        //         ((this.type == TableColumnDescVO.TYPE_vo_field_ref) ? this.api_type_id + '.' + this.field_id :
-        //             ((this.type == TableColumnDescVO.TYPE_var_ref) ? this.var_id :
-        //                 ((this.type == TableColumnDescVO.TYPE_select_box) ? '_' : this.component_name
-        //                 )
-        //             )
-        //         )
-        //     );
+        let res: string = DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX + page_widget_id + '.' + this.type + '.';
+
+        if (this.type == TableColumnDescVO.TYPE_crud_actions) {
+            res += "_";
+        }
+
+        if (this.type == TableColumnDescVO.TYPE_vo_field_ref) {
+            res += this.api_type_id + '.' + this.field_id;
+        }
+
+        if (this.type == TableColumnDescVO.TYPE_var_ref) {
+            res += this.var_id;
+        }
+
+        if (this.type == TableColumnDescVO.TYPE_select_box) {
+            res += "_";
+        }
+
+        if (this.type == TableColumnDescVO.TYPE_component) {
+            res += this.component_name;
+        }
+
+        if (this.type == TableColumnDescVO.TYPE_header) {
+            res += this.header_name;
+        }
+
+        return res;
     }
 }

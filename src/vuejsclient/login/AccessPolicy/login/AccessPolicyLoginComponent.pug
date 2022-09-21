@@ -36,3 +36,6 @@
 
     Nfcconnectlogincomponent()
     Sessionsharecomponent()
+
+    template(v-if="footer_component")
+        div(:is="footer_component") 

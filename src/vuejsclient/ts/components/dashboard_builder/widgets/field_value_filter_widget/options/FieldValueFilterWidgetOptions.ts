@@ -40,6 +40,14 @@ export default class FieldValueFilterWidgetOptions {
             }
 
             res[options.vo_field_ref_lvl2.api_type_id][options.vo_field_ref_lvl2.field_id] = true;
+
+            if (options.vo_field_sort_lvl2 && options.vo_field_sort_lvl2.api_type_id && options.vo_field_sort_lvl2.field_id) {
+                if (!res[options.vo_field_sort_lvl2.api_type_id]) {
+                    res[options.vo_field_sort_lvl2.api_type_id] = {};
+                }
+
+                res[options.vo_field_sort_lvl2.api_type_id][options.vo_field_sort_lvl2.field_id] = true;
+            }
         }
 
         if (options.vo_field_ref_multiple && (options.vo_field_ref_multiple.length > 0)) {
@@ -84,6 +92,8 @@ export default class FieldValueFilterWidgetOptions {
         public exclude_filter_opt_values: DataFilterOption[],
         public exclude_ts_range_values: TSRange,
         public placeholder_advanced_mode: string,
+        public separation_active_filter: boolean,
+        public vo_field_sort_lvl2: VOFieldRefVO,
     ) { }
 
     public get_placeholder_name_code_text(page_widget_id: number): string {

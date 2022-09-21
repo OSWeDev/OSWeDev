@@ -209,6 +209,7 @@ export default class ContextQueryServerController {
                 case ContextFilterVO.TYPE_TEXT_INCLUDES_NONE:
                 case ContextFilterVO.TYPE_TEXT_STARTSWITH_NONE:
                 case ContextFilterVO.TYPE_TEXT_ENDSWITH_NONE:
+                case ContextFilterVO.TYPE_NUMERIC_NOT_EQUALS:
                     break;
 
                 default:

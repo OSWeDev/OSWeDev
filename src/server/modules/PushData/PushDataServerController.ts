@@ -101,7 +101,7 @@ export default class PushDataServerController {
             promises.push(PushDataServerController.getInstance().notifyVarsDatasBySocket_(socket_id, params[socket_id]));
         }
         await Promise.all(promises);
-    }, 500, { leading: false, trailing: true });
+    }, 100, { leading: false, trailing: true });
 
     private constructor() {
 

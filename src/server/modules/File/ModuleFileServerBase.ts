@@ -11,7 +11,7 @@ import StackContext from '../../StackContext';
 import ModuleServerBase from '../ModuleServerBase';
 import PushDataServerController from '../PushData/PushDataServerController';
 import FileServerController from './FileServerController';
-import FilterFilesWorkersHandler from './FilterFilesWorkersHandler';
+import ArchiveFilesWorkersHandler from './ArchiveFilesWorkersHandler';
 
 export default abstract class ModuleFileServerBase<T extends FileVO> extends ModuleServerBase {
 
@@ -30,7 +30,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
     }
 
     public registerCrons(): void {
-        FilterFilesWorkersHandler.getInstance();
+        ArchiveFilesWorkersHandler.getInstance();
     }
 
     /**
