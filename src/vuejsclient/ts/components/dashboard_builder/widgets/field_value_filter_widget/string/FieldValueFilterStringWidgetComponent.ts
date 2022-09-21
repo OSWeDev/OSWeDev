@@ -1159,6 +1159,12 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         advanced_filters.push(advanced_filter);
     }
 
+    private onchange_advanced_string_filter_content() {
+        if (this.autovalidate_advanced_filter) {
+            this.validate_advanced_string_filter();
+        }
+    }
+
     get has_content_filter_type(): { [filter_type: number]: boolean } {
         let res: { [filter_type: number]: boolean } = {
             [AdvancedStringFilter.FILTER_TYPE_COMMENCE]: true,
@@ -1432,6 +1438,15 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         return res;
     }
 
+    get autovalidate_advanced_filter(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.autovalidate_advanced_filter;
+    }
+
     get widget_options() {
         if (!this.page_widget) {
             return null;
@@ -1468,6 +1483,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                     options.placeholder_advanced_mode,
                     options.separation_active_filter,
                     options.vo_field_sort_lvl2,
+                    options.autovalidate_advanced_filter,
                 ) : null;
             }
         } catch (error) {

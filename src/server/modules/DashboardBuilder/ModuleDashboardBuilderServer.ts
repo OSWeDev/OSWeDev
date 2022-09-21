@@ -1158,6 +1158,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'field_value_filter_widget_component.other_ref_api_type_id.___LABEL___'
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Validation automatique du filtre avancé" },
+            'field_value_filter_widget_component.autovalidate_advanced_filter.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Grouper les filtres" },
             'dashboard_viewer.group_filters.___LABEL___'
         ));
