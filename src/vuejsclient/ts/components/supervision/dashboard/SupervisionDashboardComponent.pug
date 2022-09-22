@@ -76,11 +76,14 @@
         .row.form-group
             .col-sm-4
                 input.form-control(type='text' :placeholder='label("supervision.filter_text")' v-model="filter_text")
+                button.btn.btn-secondary.btn-sm.mt-2(@click="select_all") Tous selectionner
+                button.btn.btn-secondary.btn-sm.mt-2(@click="delete_items") Tous effacer
 
         //- liste des sondes
         .row
             .col-sm-12
-                template(v-for='supervised_item in ordered_supervised_items')
+                template(v-for='(supervised_item, index) in ordered_supervised_items')
+                    //- input(type="checkbox" id="index" name="index" @click="add_item(supervised_item, index)" class="coco")
                     Supervisiondashboarditemcomponent(:item='supervised_item')
 
         Supervisionitemmodalcomponent

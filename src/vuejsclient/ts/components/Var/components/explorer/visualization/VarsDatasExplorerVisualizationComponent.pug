@@ -3,7 +3,8 @@
         .col-md-12
             form(v-on:submit.prevent="param_from_index")
                 .form-group.has-feedback
-                    input.form-control(type='text', v-model='param_index', :placeholder='label("vars_datas_explorer_visualization.param_from_index")')
+                    textarea.form-control(type='text', v-model='param_index', :placeholder='label("vars_datas_explorer_visualization.param_from_index")')
+                    //- input.form-control(type='text', v-model='param_index', :placeholder='label("vars_datas_explorer_visualization.param_from_index")')
     .row
         .col-md-12
             template(v-for='filtered_data in get_filtered_datas')

@@ -16,6 +16,7 @@ import SupervisionDashboardItemComponent from './item/SupervisionDashboardItemCo
 import { ModuleSupervisionAction, ModuleSupervisionGetter } from './SupervisionDashboardStore';
 import SupervisionDashboardWidgetComponent from './widget/SupervisionDashboardWidgetComponent';
 import './SupervisionDashboardComponent.scss';
+import { findIndex } from 'lodash';
 
 @Component({
     template: require('./SupervisionDashboardComponent.pug'),
@@ -71,6 +72,8 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     @ModuleSupervisionGetter
     private get_selected_item: ISupervisedItem;
     @ModuleSupervisionGetter
+    private get_selected_item_for_delete: any;
+    @ModuleSupervisionGetter
     private get_categorys: SupervisedCategoryVO[];
     @ModuleSupervisionGetter
     private get_api_type_ids: string[];
@@ -84,6 +87,8 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     private get_filter_text_lower_case: string;
     @ModuleSupervisionGetter
     private get_api_type_ids_by_category_ids: { [id: number]: string[] };
+    /** liste des items a effacer */
+    private supervised_item_for_delete: { [name: string]: ISupervisedItem } = {};
 
     /** liste des sondes */
     private supervised_items_by_names: { [name: string]: ISupervisedItem } = {};
@@ -99,6 +104,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     private nb_warns_read: number = 0;
     private nb_unknowns: number = 0;
     private ordered_supervised_items: ISupervisedItem[] = null;
+    private index: number;
 
     private filter_text: string = null;
 
@@ -427,5 +433,22 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
      */
     get is_item_accepted(): (supervised_item: ISupervisedItem, get_perf?: boolean) => boolean {
         return SupervisionAdminVueModule.getInstance().item_filter_conditions_by_key[this.dashboard_key] ? SupervisionAdminVueModule.getInstance().item_filter_conditions_by_key[this.dashboard_key] : () => true;
+    }
+    private add_item() {
+        this.supervised_item_for_delete = this.get_selected_item_for_delete;
+    }
+    private select_all() {
+        let array_checkbox = document.getElementsByClassName('coco');
+        for (let i = 0; i < array_checkbox.length; i++) {
+            let checkbox = array_checkbox[i] as HTMLInputElement;
+            checkbox.checked = true;
+        }
+        for (let i in this.ordered_supervised_items) {
+            let supervised_item = this.ordered_supervised_items[i];
+        }
+    }
+    private delete_items() {
+        let u = this.get_selected_item_for_delete;
+        this.ordered_supervised_items.splice(this.ordered_supervised_items.findIndex((x) => x.id == u.id), 1);
     }
 }

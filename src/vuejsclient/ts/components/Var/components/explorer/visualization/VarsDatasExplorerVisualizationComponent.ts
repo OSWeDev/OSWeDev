@@ -24,6 +24,7 @@ export default class VarsDatasExplorerVisualizationComponent extends VueComponen
     @Watch('getDescSelectedVarParam', { immediate: true })
     private onchange_getDescSelectedVarParam() {
         this.param_index = this.getDescSelectedVarParam ? this.getDescSelectedVarParam.index : null;
+        console.log(this.get_filtered_datas);
     }
 
     private param_from_index() {
@@ -40,4 +41,5 @@ export default class VarsDatasExplorerVisualizationComponent extends VueComponen
 
         this.setDescSelectedVarParam(var_param);
     }
+
 }

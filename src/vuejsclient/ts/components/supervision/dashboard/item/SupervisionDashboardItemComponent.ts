@@ -6,7 +6,7 @@ import ISupervisedItem from '../../../../../../shared/modules/Supervision/interf
 import ISupervisedItemController from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItemController';
 import SupervisionController from '../../../../../../shared/modules/Supervision/SupervisionController';
 import VueComponentBase from '../../../../../ts/components/VueComponentBase';
-import { ModuleSupervisionAction } from '../SupervisionDashboardStore';
+import { ModuleSupervisionAction, ModuleSupervisionGetter } from '../SupervisionDashboardStore';
 import './SupervisionDashboardItemComponent.scss';
 
 @Component({
@@ -18,11 +18,20 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
     @ModuleSupervisionAction
     private set_selected_item: (selected_item: ISupervisedItem) => void;
 
+    @ModuleSupervisionAction
+    private set_selected_item_for_delete: (selected_item: ISupervisedItem) => void;
+
+    @ModuleSupervisionGetter
+    private get_selected_item_for_delete: any;
+
     @Prop()
     private item: ISupervisedItem;
 
     @Prop({ default: false })
     private noclick: boolean;
+
+    @Prop({ default: false })
+    private coche: boolean;
 
     private state_classname: string = 'STATE_UNKNOWN';
     private fa_class_name: string = null;
@@ -35,6 +44,23 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
         this.set_fa_class_name();
         this.set_formatted_date();
         this.set_formatted_last_value();
+    }
+    private cocher() {
+        if (this.coche) {
+            this.coche = false;
+        } else {
+            this.coche = true;
+        }
+        if (this.coche) {
+            this.set_selected_item_for_delete(this.item);
+
+        } else {
+            let x = this.get_selected_item_for_delete();
+            if (x.findIndex((item) => item.id == this.item.id) != -1) {
+                x.splice(x.findIndex((item) => item.id == this.item.id), 1);
+            }
+            this.set_selected_item_for_delete(x);
+        }
     }
 
     private set_state_classname() {
