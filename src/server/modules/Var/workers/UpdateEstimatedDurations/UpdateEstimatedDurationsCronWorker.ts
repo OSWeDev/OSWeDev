@@ -152,7 +152,7 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
         // on fait la somme des batchs_vars_cache de tous les var_id, sur le last_x_perf.var_batch_perf_id
         let batch_id = last_x_perf.var_batch_perf_id;
         let perf = last_x_perf[perf_name] as VarPerfElementVO;
-        if ((!perf) || (!perf.realised_sum_ms) || (!perf.realised_nb_card) || (!this.batchs_vars_cache[batch_id])) {
+        if ((!perf) || (!perf.realised_sum_ms) || (!perf.realised_nb_card) || (!this.batchs_vars_cache[batch_id]) || (!this.batchs_cache[batch_id])) {
             return null;
         }
 
@@ -204,6 +204,10 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
             means.push(ratiod_mean);
         }
 
+        if ((!means) || (!means.length)) {
+            ConsoleHandler.getInstance().warn('UpdateEstimationVarPerfHandler.get_estimation: no means for ' + perf_name);
+        }
+
         return (means && means.length) ? mean(means) : null;
     }
 
@@ -219,33 +223,43 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
                 batch_ids.push(last_x_perf.var_batch_perf_id);
             }
         }
+        let batch_ids_ranges = null;
 
-        if ((!batch_ids) || (batch_ids.length == 0)) {
-            return;
-        }
+        if (batch_ids && batch_ids.length) {
+            batch_ids_ranges = RangeHandler.getInstance().get_ids_ranges_from_list(batch_ids);
+            let batchs: VarBatchPerfVO[] = await query(VarBatchPerfVO.API_TYPE_ID)
+                .filter_by_ids(batch_ids_ranges)
+                .select_vos<VarBatchPerfVO>();
 
-        let batch_ids_ranges = RangeHandler.getInstance().get_ids_ranges_from_list(batch_ids);
-
-        let batchs: VarBatchPerfVO[] = await query(VarBatchPerfVO.API_TYPE_ID)
-            .filter_by_ids(batch_ids_ranges)
-            .select_vos<VarBatchPerfVO>();
-
-        for (let batch_i in batchs) {
-            let batch = batchs[batch_i];
-            this.batchs_cache[batch.id] = batch;
-        }
-
-        let batchs_vars: VarBatchVarPerfVO[] = await query(VarBatchVarPerfVO.API_TYPE_ID)
-            .filter_by_num_x_ranges('var_batch_perf_id', batch_ids_ranges)
-            .select_vos<VarBatchVarPerfVO>();
-
-        for (let batch_i in batchs_vars) {
-            let batch_var = batchs_vars[batch_i];
-
-            if (!this.batchs_vars_cache[batch_var.var_batch_perf_id]) {
-                this.batchs_vars_cache[batch_var.var_batch_perf_id] = [];
+            for (let batch_i in batchs) {
+                let batch = batchs[batch_i];
+                this.batchs_cache[batch.id] = batch;
             }
-            this.batchs_vars_cache[batch_var.var_batch_perf_id].push(batch_var);
+        }
+
+        batch_ids = [];
+        for (let perf_i in last_x_var_perfs) {
+            let last_x_perf = last_x_var_perfs[perf_i];
+
+            if (!this.batchs_vars_cache[last_x_perf.var_batch_perf_id]) {
+                batch_ids.push(last_x_perf.var_batch_perf_id);
+            }
+        }
+
+        if (batch_ids && batch_ids.length) {
+            batch_ids_ranges = RangeHandler.getInstance().get_ids_ranges_from_list(batch_ids);
+            let batchs_vars: VarBatchVarPerfVO[] = await query(VarBatchVarPerfVO.API_TYPE_ID)
+                .filter_by_num_x_ranges('var_batch_perf_id', batch_ids_ranges)
+                .select_vos<VarBatchVarPerfVO>();
+
+            for (let batch_i in batchs_vars) {
+                let batch_var = batchs_vars[batch_i];
+
+                if (!this.batchs_vars_cache[batch_var.var_batch_perf_id]) {
+                    this.batchs_vars_cache[batch_var.var_batch_perf_id] = [];
+                }
+                this.batchs_vars_cache[batch_var.var_batch_perf_id].push(batch_var);
+            }
         }
 
         return;

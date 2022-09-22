@@ -26,6 +26,7 @@ import PerfMonServerController from '../PerfMon/PerfMonServerController';
 import PushDataServerController from '../PushData/PushDataServerController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
+import PixelVarDataController from './PixelVarDataController';
 import VarsDatasProxy from './VarsDatasProxy';
 import VarServerControllerBase from './VarServerControllerBase';
 import VarsPerfMonServerController from './VarsPerfMonServerController';
@@ -1135,8 +1136,11 @@ export default class VarsDatasVoUpdateHandler {
 
                 let conf = VarsController.getInstance().var_conf_by_id[unregistered_var_data.var_id];
                 if (conf.pixel_activated && conf.pixel_never_delete) {
-                    vars_to_append.push(unregistered_var_data);
-                    continue;
+
+                    // On remet en calcul les pixels, et uniquement les pixels
+                    if (PixelVarDataController.getInstance().get_pixel_card(unregistered_var_data) == 1) {
+                        vars_to_append.push(unregistered_var_data);
+                    }
                 }
             }
 
