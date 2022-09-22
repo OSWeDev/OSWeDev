@@ -388,11 +388,6 @@ export default class VarsComputeController {
                 }
 
                 /**
-                 * On notifie d'un calcul en cours que si on a pas la valeur directement dans le cache ou en base de données
-                 */
-                await VarsTabsSubsController.getInstance().notify_vardatas([new NotifVardatasParam([node.var_data], true)]);
-
-                /**
                  * Imports
                  */
                 if ((!VarsServerController.getInstance().has_valid_value(node.var_data)) && (!controller || !controller.optimization__has_no_imports)) {
@@ -423,6 +418,10 @@ export default class VarsComputeController {
                 if (varconf.pixel_activated) {
 
                     await this.handle_pixellisation_perf_wrapper(node, varconf, var_dag, limit_to_aggregated_datas, DEBUG_VARS);
+
+                    if (node.successfully_deployed) {
+                        return;
+                    }
                 } else {
 
                     node.perfs.ctree_ddeps_handle_pixellisation.skip_and_update_parents_perfs(var_dag);
@@ -481,6 +480,11 @@ export default class VarsComputeController {
                         ConsoleHandler.getInstance().log('deploy_deps:' + node.var_data.index + ':dep:' + dep.index + ':');
                     }
                 }
+
+                /**
+                 * On notifie d'un calcul en cours que si on a pas la valeur directement dans le cache ou en base de données, ou en import, ou en pixel, ou on a limité à une question sur les aggregated_datas, ou c'est denied
+                 */
+                await VarsTabsSubsController.getInstance().notify_vardatas([new NotifVardatasParam([node.var_data], true)]);
 
                 if (deps) {
                     await this.handle_deploy_deps(node, deps, deployed_vars_datas, vars_datas, ds_cache);
@@ -1048,7 +1052,7 @@ export default class VarsComputeController {
         VarsDatasProxy.getInstance().can_load_vars_to_test = true;
 
         // Les slow vars rencontrées n'indiquent pas la fin du dépilage des vars en attente.
-        // On doit donc tester asao de dépiler les vars potentiellement en attente
+        // On doit donc tester asap de dépiler les vars potentiellement en attente
         VarsdatasComputerBGThread.getInstance().force_run_asap();
 
         return true;
@@ -1410,7 +1414,7 @@ export default class VarsComputeController {
                 self.cached_var_selection_pack_size = await ModuleParams.getInstance().getParamValueAsInt(VarsComputeController.PARAM_NAME_var_selection_pack_size, 50);
             })());
             promises.push((async () => {
-                self.cached_estimated_tree_computation_time_limit = await ModuleParams.getInstance().getParamValueAsInt(VarsComputeController.PARAM_NAME_estimated_tree_computation_time_limit, 30000);
+                self.cached_estimated_tree_computation_time_limit = await ModuleParams.getInstance().getParamValueAsInt(VarsComputeController.PARAM_NAME_estimated_tree_computation_time_limit, 300000);
             })());
             promises.push((async () => {
                 self.cached_estimated_tree_computation_time_target = await ModuleParams.getInstance().getParamValueAsInt(VarsComputeController.PARAM_NAME_estimated_tree_computation_time_target, 3000);
@@ -1591,6 +1595,7 @@ export default class VarsComputeController {
                 }
 
                 // On notifie puisqu'on a le résultat
+                this.end_node_deploiement(node);
                 await this.notify_var_data_post_deploy(node);
             } else {
 
@@ -1661,6 +1666,7 @@ export default class VarsComputeController {
                     }
 
                     if (VarsServerController.getInstance().has_valid_value(dep_node.var_data)) {
+                        this.end_node_deploiement(dep_node);
                         await this.notify_var_data_post_deploy(dep_node);
                     }
                 }
