@@ -675,11 +675,16 @@ export default class TablesGraphComponent extends VueComponentBase {
 
                     //Cas versionné ou non
                     if (is_versioned && (["Modificateur", "Créateur"].includes(this.t(field.field_label.code_text)))) {
-                        if (!cell.values_to_exclude.includes(field.field_id)) {
-                            cell.values_to_exclude.push(field.field_id);
-                            is_link_unccepted = true;
-                            ModuleDAO.getInstance().insertOrUpdateVO(cell);
+                        try {
+                            if (!values_to_exclude.includes(field.field_id)) { //Bien initialiser la liste.
+                                values_to_exclude.push(field.field_id);
+                                cell.values_to_exclude = values_to_exclude;
+                                is_link_unccepted = true;
+                                ModuleDAO.getInstance().insertOrUpdateVO(cell);
 
+                            }
+                        } catch {
+                            console.log("ici");
                         }
                     } else {
                         try { //La flèche est elle acceptée ? On le vérifie en checkant les flèches interdites depuis cette source.
@@ -724,7 +729,13 @@ export default class TablesGraphComponent extends VueComponentBase {
                 let target: string = this.cells[node_v1].edges[arrow].target.value.tables_graph_vo_type;
                 if (target != node_v1) {
                     let value: string = this.cells[node_v1].edges[arrow].value;
-                    this.cells[node_v1].edges[arrow]['field_id'] = field_values[target][value];
+                    try {
+                        if (!this.cells[node_v1].edges[arrow]['field_id']) { //Si le field_id n'a pas été renseigné.
+                            this.cells[node_v1].edges[arrow]['field_id'] = field_values[target][value];
+                        }
+                    } catch {
+                        console.log("purée!");
+                    }
                 }
             }
             graph_layout.update_matrix();
