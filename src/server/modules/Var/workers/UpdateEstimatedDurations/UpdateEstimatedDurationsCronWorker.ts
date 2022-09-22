@@ -205,7 +205,9 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
         }
 
         if ((!means) || (!means.length)) {
-            ConsoleHandler.getInstance().warn('UpdateEstimationVarPerfHandler.get_estimation: no means for ' + perf_name);
+            ConsoleHandler.getInstance().warn(
+                'UpdateEstimationVarPerfHandler.get_estimation: no means for ' + perf_name +
+                ' on ' + (last_x_var_perfs ? '[' + last_x_var_perfs[0].var_id + '] ' + VarsServerController.getInstance().getVarConfById(last_x_var_perfs[0].var_id).name : 'N/A'));
         }
 
         return (means && means.length) ? mean(means) : null;

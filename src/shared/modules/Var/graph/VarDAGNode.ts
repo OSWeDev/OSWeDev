@@ -241,6 +241,7 @@ export default class VarDAGNode extends DAGNodeBase {
         this.perfs.ctree_ddeps_load_imports_and_split_nodes.initialize_estimated_work_time_and_update_parents_perfs(varsComputeController.getInstance().get_estimated_ctree_ddeps_load_imports_and_split_nodes(this), this.var_dag);
         this.perfs.ctree_ddeps_try_load_cache_complet.initialize_estimated_work_time_and_update_parents_perfs(varsComputeController.getInstance().get_estimated_ctree_ddeps_try_load_cache_complet(this), this.var_dag);
         this.perfs.ctree_ddeps_try_load_cache_partiel.initialize_estimated_work_time_and_update_parents_perfs(varsComputeController.getInstance().get_estimated_ctree_ddeps_try_load_cache_partiel(this), this.var_dag);
+        this.perfs.ctree_ddeps_handle_pixellisation.initialize_estimated_work_time_and_update_parents_perfs(varsComputeController.getInstance().get_estimated_ctree_ddeps_handle_pixellisation(this), this.var_dag);
 
         if (!!this.var_data.value_ts) {
 
@@ -250,6 +251,7 @@ export default class VarDAGNode extends DAGNodeBase {
             this.perfs.compute_node.skip_and_update_parents_perfs(this.var_dag);
             this.perfs.load_node_datas.skip_and_update_parents_perfs(this.var_dag);
             this.perfs.ctree_ddeps_get_node_deps.skip_and_update_parents_perfs(this.var_dag);
+            this.perfs.ctree_ddeps_handle_pixellisation.skip_and_update_parents_perfs(this.var_dag);
             this.perfs.ctree_ddeps_load_imports_and_split_nodes.skip_and_update_parents_perfs(this.var_dag);
             this.perfs.ctree_ddeps_try_load_cache_complet.skip_and_update_parents_perfs(this.var_dag);
             this.perfs.ctree_ddeps_try_load_cache_partiel.skip_and_update_parents_perfs(this.var_dag);
@@ -265,6 +267,7 @@ export default class VarDAGNode extends DAGNodeBase {
         this.perfs.compute_node.delete_this_perf(this.var_dag);
         this.perfs.load_node_datas.delete_this_perf(this.var_dag);
         this.perfs.ctree_ddeps_get_node_deps.delete_this_perf(this.var_dag);
+        this.perfs.ctree_ddeps_handle_pixellisation.delete_this_perf(this.var_dag);
         this.perfs.ctree_ddeps_load_imports_and_split_nodes.delete_this_perf(this.var_dag);
         this.perfs.ctree_ddeps_try_load_cache_complet.delete_this_perf(this.var_dag);
         this.perfs.ctree_ddeps_try_load_cache_partiel.delete_this_perf(this.var_dag);
