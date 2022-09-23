@@ -26,6 +26,8 @@ import AdvancedStringFilter from './AdvancedStringFilter';
 import './FieldValueFilterStringWidgetComponent.scss';
 import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
+import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
+import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 
 @Component({
     template: require('./FieldValueFilterStringWidgetComponent.pug'),
@@ -55,6 +57,9 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
+
+    @Prop({ default: null })
+    private all_page_widget: DashboardPageWidgetVO[];
 
     @Prop({ default: null })
     private dashboard: DashboardVO;
@@ -347,12 +352,6 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
     private validate_advanced_string_filter() {
         if (!this.is_advanced_filter_valid) {
             this.remove_active_field_filter({ vo_type: this.vo_field_ref.api_type_id, field_id: this.vo_field_ref.field_id });
-
-            if (this.vo_field_ref_multiple) {
-                for (let i in this.vo_field_ref_multiple) {
-                    this.remove_active_field_filter({ vo_type: this.vo_field_ref_multiple[i].api_type_id, field_id: this.vo_field_ref_multiple[i].field_id });
-                }
-            }
             return;
         }
 
@@ -1513,5 +1512,9 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
     get base_filter(): string {
         return 'filter_opt_' + this.page_widget.id + '_';
+    }
+
+    get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
+        return VOsTypesManager.getInstance().vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
     }
 }

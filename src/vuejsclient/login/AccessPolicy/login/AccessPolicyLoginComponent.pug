@@ -17,7 +17,9 @@
                     i.fa.fa-eye-slash.pull-right.fa-fw.c-p(v-if="show_password" @click="set_show_password(false)")
                     //- i.fa.fa-lock.pull-right.fa-fw(aria-hidden="true")
                 .center.signin-submit
-                    button.btn.btn-primary.btn-block.btn-flat(type="submit") {{ label('login.signIn') }}
+                    button.btn.btn-primary.btn-block.btn-flat(type="submit") 
+                        i.loadingspinner.fa.fa-spinner.fa-spin.mr-2(v-if="is_ok_loging" aria-hidden="true")
+                        | {{ label('login.signIn') }}
             .mt-2.actions
                 template(v-if="signin_allowed")
                     .signin.text-center
