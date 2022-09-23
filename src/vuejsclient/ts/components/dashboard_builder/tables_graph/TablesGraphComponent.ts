@@ -506,8 +506,33 @@ export default class TablesGraphComponent extends VueComponentBase {
         }
 
         let cells = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardGraphVORefVO>(DashboardGraphVORefVO.API_TYPE_ID, 'dashboard_id', [this.dashboard.id]);
+        let cells_visited: { [vo_type: string]: string } = {};
+        //On retire les cellules doublons.
         for (let i in cells) { //Adding cells to the model
             let cell = cells[i];
+            if (!cells_visited[cell.vo_type]) {
+                cells_visited[cell.vo_type] = i;
+            } else {
+                switch (cell.values_to_exclude) {
+                    case null:
+                        await ModuleDAO.getInstance().deleteVOs([cell]); //Suppression de la cellule en base, ainsi les flèches désactivées auparavant ne le seront plus.
+                        cells.splice(Number(i), 1);  //On retire cette celulle de la liste
+                        break;
+                    default:
+                        //Si une telle cellule existe déjà mais que les valeurs à exclures sont dans celle-ci, on la conserve.
+                        let previous_cell_index: string = cells_visited[cell.vo_type];
+                        await ModuleDAO.getInstance().deleteVOs([cells[i]]); //Suppression de la cellule en base, ainsi les flèches désactivées auparavant ne le seront plus.
+                        cells.splice(Number(previous_cell_index), 1);
+
+                }
+
+            }
+        }
+
+        for (let i in cells) { //Adding cells to the model
+
+            let cell = cells[i];
+
             editor.graph.stopEditing(false);
 
             let parent = editor.graph.getDefaultParent();
@@ -533,6 +558,7 @@ export default class TablesGraphComponent extends VueComponentBase {
                 model.endUpdate();
                 this.graphic_cells[cell.vo_type] = v1; // On enregistre la cellule dans un dictionnaire pour la réutiliser. C'est la cellule graphique.
             }
+
 
         }
         //Adding links
@@ -675,11 +701,16 @@ export default class TablesGraphComponent extends VueComponentBase {
 
                     //Cas versionné ou non
                     if (is_versioned && (["Modificateur", "Créateur"].includes(this.t(field.field_label.code_text)))) {
-                        if (!cell.values_to_exclude.includes(field.field_id)) {
-                            cell.values_to_exclude.push(field.field_id);
-                            is_link_unccepted = true;
-                            ModuleDAO.getInstance().insertOrUpdateVO(cell);
+                        try {
+                            if (!values_to_exclude.includes(field.field_id)) { //Bien initialiser la liste.
+                                values_to_exclude.push(field.field_id);
+                                cell.values_to_exclude = values_to_exclude;
+                                is_link_unccepted = true;
+                                ModuleDAO.getInstance().insertOrUpdateVO(cell);
 
+                            }
+                        } catch {
+                            console.log("ici");
                         }
                     } else {
                         try { //La flèche est elle acceptée ? On le vérifie en checkant les flèches interdites depuis cette source.
@@ -724,7 +755,13 @@ export default class TablesGraphComponent extends VueComponentBase {
                 let target: string = this.cells[node_v1].edges[arrow].target.value.tables_graph_vo_type;
                 if (target != node_v1) {
                     let value: string = this.cells[node_v1].edges[arrow].value;
-                    this.cells[node_v1].edges[arrow]['field_id'] = field_values[target][value];
+                    try {
+                        if (!this.cells[node_v1].edges[arrow]['field_id']) { //Si le field_id n'a pas été renseigné.
+                            this.cells[node_v1].edges[arrow]['field_id'] = field_values[target][value];
+                        }
+                    } catch {
+                        console.log("purée!");
+                    }
                 }
             }
             graph_layout.update_matrix();
