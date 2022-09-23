@@ -2,6 +2,8 @@
 
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
+import ModuleTableField from '../../../shared/modules/ModuleTableField';
+import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import SlowVarVO from '../../../shared/modules/Var/vos/SlowVarVO';
@@ -9,6 +11,7 @@ import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataProxyWrapperVO from '../../../shared/modules/Var/vos/VarDataProxyWrapperVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import RangeHandler from '../../../shared/tools/RangeHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
@@ -36,6 +39,8 @@ export default class VarsDatasProxy {
     public static TASK_NAME_append_var_datas = 'VarsDatasProxy.append_var_datas';
     public static TASK_NAME_update_existing_buffered_older_datas = 'VarsDatasProxy.update_existing_buffered_older_datas';
     public static TASK_NAME_has_cached_vars_waiting_for_compute = 'VarsDatasProxy.has_cached_vars_waiting_for_compute';
+
+    public static PARAM_NAME_filter_var_datas_by_index_size_limit = 'VarsDatasProxy.filter_var_datas_by_index_size_limit';
 
     /**
      * Multithreading notes :
@@ -369,8 +374,15 @@ export default class VarsDatasProxy {
                 for (let i in to_insert_by_type) {
                     let to_insert = to_insert_by_type[i];
 
+                    // on filtre les vars qui ont des indexs trops gros pour postgresql
+                    let filtered_insert = await this.filter_var_datas_by_index_size_limit(to_insert);
+
+                    if ((!filtered_insert) || (!filtered_insert.length)) {
+                        continue;
+                    }
+
                     promises.push((async () => {
-                        if (!await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(to_insert)) {
+                        if (!await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(filtered_insert)) {
                             result = false;
                         }
                     })());
@@ -429,6 +441,56 @@ export default class VarsDatasProxy {
         } finally {
             this.semaphore_handle_buffer = false;
         }
+    }
+
+    /**
+     * Check la taille des champs de type ranges au format texte pour parer au bug de postgresql 13 :
+     *  'exceeds btree version 4 maximum 2704 for index'
+     * @param vardatas
+     * @returns
+     */
+    public async filter_var_datas_by_index_size_limit(vardatas: VarDataBaseVO[]): Promise<VarDataBaseVO[]> {
+        let res: VarDataBaseVO[] = [];
+        let vars_by_type: { [type: string]: VarDataBaseVO[] } = {};
+
+        // A priori la limite à pas à être de 2700, le champ est compressé par la suite, mais ça permet d'être sûr
+        let limit = await ModuleParams.getInstance().getParamValueAsInt(VarsDatasProxy.PARAM_NAME_filter_var_datas_by_index_size_limit, 2700);
+
+        for (let i in vardatas) {
+            let var_data = vardatas[i];
+            if (!vars_by_type[var_data._type]) {
+                vars_by_type[var_data._type] = [];
+            }
+            vars_by_type[var_data._type].push(var_data);
+        }
+
+        for (let _type in vars_by_type) {
+            let vars = vars_by_type[_type];
+
+            let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getInstance().getMatroidFields(_type);
+
+            for (let i in vars) {
+                let vardata = vars[i];
+                let refuse_var = false;
+
+                for (let j in matroid_fields) {
+                    let matroid_field = matroid_fields[j];
+
+                    let matroid_field_value = vardata[matroid_field.field_id];
+                    let matroid_field_value_index = RangeHandler.getInstance().translate_to_bdd(matroid_field_value);
+                    if (matroid_field_value_index && (matroid_field_value_index.length > limit)) {
+                        ConsoleHandler.getInstance().warn('VarsDatasProxy:filter_var_datas_by_index_size_limit:Le champ ' + matroid_field.field_id + ' de la matrice ' + _type + ' est trop long pour être indexé par postgresql, on le supprime de la requête:index:' + vardata.index);
+                        refuse_var = true;
+                        break;
+                    }
+                }
+
+                if (!refuse_var) {
+                    res.push(vardata);
+                }
+            }
+        }
+        return res;
     }
 
     /**

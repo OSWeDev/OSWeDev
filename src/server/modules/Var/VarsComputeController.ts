@@ -167,7 +167,7 @@ export default class VarsComputeController {
         return res;
     }
 
-    public get_estimated_load_nodes_datas(var_dag_node: VarDAGNode): number {
+    public get_estimated_load_node_datas(var_dag_node: VarDAGNode): number {
 
         // pas de datasources => 0
         let var_data: VarDataBaseVO = var_dag_node.var_data;
