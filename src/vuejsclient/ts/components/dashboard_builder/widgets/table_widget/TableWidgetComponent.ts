@@ -97,6 +97,9 @@ export default class TableWidgetComponent extends VueComponentBase {
     private page_widget: DashboardPageWidgetVO;
 
     @Prop({ default: null })
+    private all_page_widget: DashboardPageWidgetVO[];
+
+    @Prop({ default: null })
     private dashboard: DashboardVO;
 
     @Prop({ default: null })
@@ -144,7 +147,6 @@ export default class TableWidgetComponent extends VueComponentBase {
 
     private last_calculation_cpt: number = 0;
 
-    private page_widgets: DashboardPageWidgetVO[] = null;
     private old_widget_options: TableWidgetOptions = null;
 
     /**
@@ -1065,10 +1067,6 @@ export default class TableWidgetComponent extends VueComponentBase {
 
     private async do_update_visible_options() {
 
-        this.page_widgets = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardPageWidgetVO>(
-            DashboardPageWidgetVO.API_TYPE_ID, 'page_id', [this.dashboard_page.id]
-        );
-
         let launch_cpt: number = (this.last_calculation_cpt + 1);
 
         this.last_calculation_cpt = launch_cpt;
@@ -1227,8 +1225,8 @@ export default class TableWidgetComponent extends VueComponentBase {
         }
 
         // Si on a des widgets, on va ajouter les exclude values si y'en a
-        for (let i in this.page_widgets) {
-            let page_widget: DashboardPageWidgetVO = this.page_widgets[i];
+        for (let i in this.all_page_widget) {
+            let page_widget: DashboardPageWidgetVO = this.all_page_widget[i];
             let widget: DashboardWidgetVO = this.widgets_by_id[page_widget.widget_id];
 
             if (!widget) {
@@ -1892,12 +1890,12 @@ export default class TableWidgetComponent extends VueComponentBase {
     }
 
     private is_init_widget_validation_filtres(): boolean {
-        if (!this.page_widgets) {
+        if (!this.all_page_widget) {
             return false;
         }
 
-        for (let i in this.page_widgets) {
-            let widget: DashboardWidgetVO = this.widgets_by_id[this.page_widgets[i].widget_id];
+        for (let i in this.all_page_widget) {
+            let widget: DashboardWidgetVO = this.widgets_by_id[this.all_page_widget[i].widget_id];
 
             if (!widget) {
                 continue;
@@ -1907,11 +1905,11 @@ export default class TableWidgetComponent extends VueComponentBase {
                 if (
                     ValidationFiltersWidgetController.getInstance().is_init[this.dashboard_page.dashboard_id] &&
                     ValidationFiltersWidgetController.getInstance().is_init[this.dashboard_page.dashboard_id][this.dashboard_page.id] &&
-                    ValidationFiltersWidgetController.getInstance().is_init[this.dashboard_page.dashboard_id][this.dashboard_page.id][this.page_widgets[i].id]
+                    ValidationFiltersWidgetController.getInstance().is_init[this.dashboard_page.dashboard_id][this.dashboard_page.id][this.all_page_widget[i].id]
                 ) {
                     ValidationFiltersWidgetController.getInstance().set_is_init(
                         this.dashboard_page,
-                        this.page_widgets[i],
+                        this.all_page_widget[i],
                         false
                     );
 
@@ -1925,12 +1923,12 @@ export default class TableWidgetComponent extends VueComponentBase {
 
     private has_widget_validation_filtres(): boolean {
 
-        if (!this.page_widgets) {
+        if (!this.all_page_widget) {
             return false;
         }
 
-        for (let i in this.page_widgets) {
-            let widget: DashboardWidgetVO = this.widgets_by_id[this.page_widgets[i].widget_id];
+        for (let i in this.all_page_widget) {
+            let widget: DashboardWidgetVO = this.widgets_by_id[this.all_page_widget[i].widget_id];
 
             if (!widget) {
                 continue;

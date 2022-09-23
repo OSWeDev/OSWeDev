@@ -32,6 +32,9 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
     private page_widget: DashboardPageWidgetVO;
 
     @Prop({ default: null })
+    private all_page_widget: DashboardPageWidgetVO[];
+
+    @Prop({ default: null })
     private dashboard: DashboardVO;
 
     @Prop({ default: null })
