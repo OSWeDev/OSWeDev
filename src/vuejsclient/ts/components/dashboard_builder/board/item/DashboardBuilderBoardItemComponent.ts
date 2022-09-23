@@ -26,6 +26,9 @@ export default class DashboardBuilderBoardItemComponent extends VueComponentBase
     @Prop()
     private page_widget: DashboardPageWidgetVO;
 
+    @Prop()
+    private all_page_widget: DashboardPageWidgetVO[];
+
     @Prop({ default: true })
     private is_edit_mode: boolean;
 
