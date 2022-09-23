@@ -592,7 +592,82 @@ export default class VarsDatasProxy {
         let vars_datas_wrapper = Object.values(this.vars_datas_buffer_wrapped_indexes);
         let vars_datas: VarDataBaseVO[] = vars_datas_wrapper.map((v) => v.var_data);
 
+        if ((!vars_datas) || (!vars_datas.length)) {
+            VarsdatasComputerBGThread.getInstance().current_batch_ordered_pick_list = [];
+            return;
+        }
+        let nb_vars_in_buffer = vars_datas.length;
+
         let registered_var_datas: VarDataBaseVO[] = await VarsTabsSubsController.getInstance().filter_by_subs(vars_datas);
+        let registered_var_datas_indexes_map: { [index: string]: boolean } = {};
+        for (let i in registered_var_datas) {
+            registered_var_datas_indexes_map[registered_var_datas[i].index] = true;
+        }
+
+        let unregistered_var_datas_wrappers_map: { [index: string]: VarDataProxyWrapperVO<VarDataBaseVO> } = {};
+        for (let i in vars_datas) {
+            let index = vars_datas[i].index;
+
+            if (!registered_var_datas_indexes_map[index]) {
+                unregistered_var_datas_wrappers_map[index] = this.vars_datas_buffer_wrapped_indexes[index];
+            }
+        }
+
+        /**
+         * On clean le cache au passage, en retirant les vars inutiles à ce stade :
+         * - les vars unregistered
+         * - ni demandée par le serveur ni par un client
+         * - qui n'ont pas besoin d'être mise en bdd
+         */
+        if (unregistered_var_datas_wrappers_map && ObjectHandler.getInstance().hasAtLeastOneAttribute(unregistered_var_datas_wrappers_map)) {
+
+            let removed_vars: number = 0;
+            for (let i in unregistered_var_datas_wrappers_map) {
+                let unregistered_var_datas_wrapper = unregistered_var_datas_wrappers_map[i];
+
+                if ((!!unregistered_var_datas_wrapper.client_tab_id) || (!!unregistered_var_datas_wrapper.client_user_id)) {
+                    // En fait on a un client_tab_id mais sur une var unregistered donc on peut peut-être s'en débarrasser quand même ...
+                    // continue;
+                }
+
+                if (unregistered_var_datas_wrapper.is_server_request) {
+                    // est-ce qu'on est sensé arriver dans ce cas ?
+                    continue;
+                }
+
+                if (unregistered_var_datas_wrapper.needs_insert_or_update) {
+                    continue;
+                }
+
+                delete this.vars_datas_buffer_wrapped_indexes[unregistered_var_datas_wrapper.var_data._bdd_only_index];
+                removed_vars++;
+            }
+
+            if (removed_vars > 0) {
+
+                if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+                    ConsoleHandler.getInstance().log('VarsDatasProxy: removed ' + removed_vars + ' unregistered vars from cache');
+                }
+
+                vars_datas_wrapper = Object.values(this.vars_datas_buffer_wrapped_indexes);
+                vars_datas = vars_datas_wrapper.map((v) => v.var_data);
+
+                if ((!vars_datas) || (!vars_datas.length)) {
+                    VarsdatasComputerBGThread.getInstance().current_batch_ordered_pick_list = [];
+                    return;
+                }
+                nb_vars_in_buffer = vars_datas.length;
+            }
+        }
+
+        if ((!registered_var_datas) || (!registered_var_datas.length)) {
+            VarsdatasComputerBGThread.getInstance().current_batch_ordered_pick_list = [];
+            return;
+        }
+        let nb_registered_vars_in_buffer = registered_var_datas.length;
+
+        ConsoleHandler.getInstance().log('VarsDatasProxy.prepare_current_batch_ordered_pick_list:nb_vars_in_buffer|' + nb_vars_in_buffer + ':nb_registered_vars_in_buffer|' + nb_registered_vars_in_buffer);
+
         let registered_var_datas_by_index: { [index: string]: VarDataBaseVO } = {};
         for (let i in registered_var_datas) {
             let var_data = registered_var_datas[i];

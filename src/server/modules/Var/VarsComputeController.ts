@@ -25,6 +25,7 @@ import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import DataSourcesController from './datasource/DataSourcesController';
 import NotifVardatasParam from './notifs/NotifVardatasParam';
+import PixelVarDataController from './PixelVarDataController';
 import SlowVarKiHandler from './SlowVarKi/SlowVarKiHandler';
 import VarDagPerfsServerController from './VarDagPerfsServerController';
 import VarsCacheController from './VarsCacheController';
@@ -1509,15 +1510,7 @@ export default class VarsComputeController {
      */
     private async handle_pixellisation(node: VarDAGNode, varconf: VarConfVO, var_dag: VarDAG, limit_to_aggregated_datas: boolean, DEBUG_VARS: boolean) {
 
-        let prod_cardinaux = 1;
-        let pixellised_fields_by_id: { [param_field_id: string]: VarPixelFieldConfVO } = {};
-        for (let i in varconf.pixel_fields) {
-            let pixel_field = varconf.pixel_fields[i];
-
-            pixellised_fields_by_id[pixel_field.pixel_param_field_id] = pixel_field;
-            let card = RangeHandler.getInstance().getCardinalFromArray(node.var_data[pixel_field.pixel_param_field_id]);
-            prod_cardinaux *= card;
-        }
+        let prod_cardinaux = PixelVarDataController.getInstance().get_pixel_card(node.var_data);
 
         if (prod_cardinaux == 1) {
             // c'est un pixel, on ignore
@@ -1525,6 +1518,13 @@ export default class VarsComputeController {
                 ConsoleHandler.getInstance().log('PIXEL Var:' + node.var_data.index + ':' + prod_cardinaux + ':is pixel but with no exact cache (already tried)');
             }
         } else {
+
+            let pixellised_fields_by_id: { [param_field_id: string]: VarPixelFieldConfVO } = {};
+            for (let i in varconf.pixel_fields) {
+                let pixel_field = varconf.pixel_fields[i];
+
+                pixellised_fields_by_id[pixel_field.pixel_param_field_id] = pixel_field;
+            }
 
             let pixel_query = query(varconf.var_data_vo_type)
                 .filter_by_num_eq('var_id', varconf.id)
