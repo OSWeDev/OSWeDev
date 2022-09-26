@@ -21,8 +21,6 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
     @ModuleSupervisionAction
     private set_selected_item_for_delete: (selected_item: ISupervisedItem) => void;
 
-    @ModuleSupervisionGetter
-    private get_selected_item_for_delete: any;
 
     @Prop()
     private item: ISupervisedItem;
@@ -38,6 +36,9 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
     private formatted_date: string = null;
     private formatted_last_value: string = null;
 
+    public add_item(valid: boolean) {
+        this.coche = valid;
+    }
     @Watch('item', { immediate: true })
     private onchange_item() {
         this.set_state_classname();
@@ -45,23 +46,28 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
         this.set_formatted_date();
         this.set_formatted_last_value();
     }
-    private cocher() {
-        if (this.coche) {
-            this.coche = false;
-        } else {
-            this.coche = true;
-        }
-        if (this.coche) {
-            this.set_selected_item_for_delete(this.item);
+    // @Watch('coche')
+    // private onchange_coche() {
+    //     this.set_coche();
+    // }
 
-        } else {
-            let x = this.get_selected_item_for_delete();
-            if (x.findIndex((item) => item.id == this.item.id) != -1) {
-                x.splice(x.findIndex((item) => item.id == this.item.id), 1);
-            }
-            this.set_selected_item_for_delete(x);
-        }
-    }
+    // private cocher() {
+    //     if (this.coche) {
+    //         this.coche = false;
+    //     } else {
+    //         this.coche = true;
+    //     }
+    //     if (this.coche) {
+    //         this.set_selected_item_for_delete(this.item);
+
+    //     } else {
+    //         let x = this.get_selected_item_for_delete();
+    //         if (x.findIndex((item) => item.id == this.item.id) != -1) {
+    //             x.splice(x.findIndex((item) => item.id == this.item.id), 1);
+    //         }
+    //         this.set_selected_item_for_delete(x);
+    //     }
+    // }
 
     private set_state_classname() {
         if (!this.item) {
@@ -168,4 +174,8 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
             }
         };
     }
+    private item_selected() {
+        this.$emit('item_selected', this.item);
+    }
+
 }

@@ -72,8 +72,6 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     @ModuleSupervisionGetter
     private get_selected_item: ISupervisedItem;
     @ModuleSupervisionGetter
-    private get_selected_item_for_delete: any;
-    @ModuleSupervisionGetter
     private get_categorys: SupervisedCategoryVO[];
     @ModuleSupervisionGetter
     private get_api_type_ids: string[];
@@ -105,12 +103,14 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     private nb_unknowns: number = 0;
     private ordered_supervised_items: ISupervisedItem[] = null;
     private index: number;
+    private valide: boolean = false;
 
     private filter_text: string = null;
 
     private debounced_on_change_show = debounce(this.debounce_on_change_show, 300);
 
     private cpt: number = 1;
+    private supervised_item_selected: { [id: number]: ISupervisedItem } = {};
 
     @Watch('supervised_item_vo_id', { immediate: true })
     private async onchange_supervised_item_vo_id() {
@@ -172,7 +172,6 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
             $('#supervision_item_modal').modal('show');
         }
     }
-
     /**
      * Appelle {@link SupervisionDashboardComponent.load_supervised_items load_supervised_items} pour mettre à jour le visuel.
      * Se rappelle elle même toutes les 20 secondes.
@@ -434,21 +433,37 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     get is_item_accepted(): (supervised_item: ISupervisedItem, get_perf?: boolean) => boolean {
         return SupervisionAdminVueModule.getInstance().item_filter_conditions_by_key[this.dashboard_key] ? SupervisionAdminVueModule.getInstance().item_filter_conditions_by_key[this.dashboard_key] : () => true;
     }
-    private add_item() {
-        this.supervised_item_for_delete = this.get_selected_item_for_delete;
+    private select_item(item) {
+        this.supervised_item_selected[item.name] = item;
     }
     private select_all() {
-        let array_checkbox = document.getElementsByClassName('coco');
-        for (let i = 0; i < array_checkbox.length; i++) {
-            let checkbox = array_checkbox[i] as HTMLInputElement;
-            checkbox.checked = true;
+        this.valide = !this.valide;
+        for (const z in this.ordered_supervised_items) {
+            let item_selected = this.ordered_supervised_items[z];
+            this.supervised_item_selected[item_selected.name] = item_selected;
         }
-        for (let i in this.ordered_supervised_items) {
-            let supervised_item = this.ordered_supervised_items[i];
-        }
+
     }
-    private delete_items() {
-        let u = this.get_selected_item_for_delete;
-        this.ordered_supervised_items.splice(this.ordered_supervised_items.findIndex((x) => x.id == u.id), 1);
+    private item_read(item: ISupervisedItem) {
+        item.state = SupervisionController.STATE_ERROR_READ;
+        ModuleDAO.getInstance().insertOrUpdateVO(item);
+        this.debounced_on_change_show();
+        // this.ordered_supervised_items.splice(this.ordered_supervised_items.findIndex((i) => i.name == item.name), 1);
+        console.log(item);
+    }
+    private remettre_item(item: ISupervisedItem) {
+        item.state = SupervisionController.STATE_ERROR;
+        ModuleDAO.getInstance().insertOrUpdateVO(item);
+        this.debounced_on_change_show();
+        // this.ordered_supervised_items.splice(this.ordered_supervised_items.findIndex((i) => i.name == item.name), 1);
+        console.log(item);
+    }
+
+
+    private items_read() {
+        for (const e in this.supervised_item_selected) {
+            let item_selected_for_delete = this.supervised_item_selected[e];
+            this.item_read(item_selected_for_delete);
+        }
     }
 }
