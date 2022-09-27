@@ -1688,6 +1688,12 @@ export default class ModuleVarServer extends ModuleServerBase {
                     }
 
                     let query_wrapper: ParameterizedQueryWrapper = await (await query(api_type_id).filter_by_text_has('_bdd_only_index', indexes).get_select_query_str());
+
+                    if (!query_wrapper) {
+                        ConsoleHandler.getInstance().warn('Refused (probably session lost) to get_var_data_by_index for api_type_id ' + api_type_id);
+                        return;
+                    }
+
                     let results: VarDataBaseVO[] = await ModuleServiceBase.getInstance().db.query(query_wrapper.query, query_wrapper.params);
 
                     for (let i in results) {

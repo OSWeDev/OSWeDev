@@ -218,6 +218,7 @@ export default class VarsTabsSubsController {
         if ((now - this.last_subs_clean) < SUBS_CLEAN_THROTTLE) {
             return;
         }
+        this.last_subs_clean = now;
 
         for (let index in this._tabs_subs) {
             let subs = this._tabs_subs[index];
