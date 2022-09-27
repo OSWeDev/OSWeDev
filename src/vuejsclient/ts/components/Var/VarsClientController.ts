@@ -57,7 +57,7 @@ export default class VarsClientController {
     public inline_editing_cb = null;
 
     private timeout_check_registrations: number = 30000;
-    private timeout_update_params_registration: number = 30000; //10 * 60 * 1000;
+    private timeout_update_params_registration: number = 10 * 60 * 1000;
 
     protected constructor() {
 
