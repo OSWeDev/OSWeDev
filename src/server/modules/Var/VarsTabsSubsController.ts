@@ -220,28 +220,53 @@ export default class VarsTabsSubsController {
         }
         this.last_subs_clean = now;
 
+        let indexs_to_delete = [];
         for (let index in this._tabs_subs) {
             let subs = this._tabs_subs[index];
 
+            if (!Object.keys(subs).length) {
+                indexs_to_delete.push(index);
+                continue;
+            }
+
+            let user_ids_to_delete = [];
             for (let user_id in subs) {
                 let subs_by_user = subs[user_id];
 
+                if (!Object.keys(subs_by_user).length) {
+                    user_ids_to_delete.push(user_id);
+                    continue;
+                }
+
+                let client_tab_ids_to_delete = [];
                 for (let client_tab_id in subs_by_user) {
                     let sub_date = subs_by_user[client_tab_id];
 
                     if ((now - sub_date) > SUBS_CLEAN_DELAY) {
-                        delete subs_by_user[client_tab_id];
+                        client_tab_ids_to_delete.push(client_tab_id);
                     }
+                }
+                for (let i in client_tab_ids_to_delete) {
+                    delete subs_by_user[client_tab_ids_to_delete[i]];
                 }
 
                 if (!Object.keys(subs_by_user).length) {
-                    delete subs[user_id];
+                    user_ids_to_delete.push(user_id);
                 }
             }
 
-            if (!Object.keys(subs).length) {
-                delete this._tabs_subs[index];
+            for (let i in user_ids_to_delete) {
+                delete subs[user_ids_to_delete[i]];
             }
+
+            if (!Object.keys(subs).length) {
+                indexs_to_delete.push(index);
+                continue;
+            }
+        }
+
+        for (let i in indexs_to_delete) {
+            delete this._tabs_subs[indexs_to_delete[i]];
         }
     }
 }

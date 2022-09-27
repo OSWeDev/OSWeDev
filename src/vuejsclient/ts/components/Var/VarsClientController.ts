@@ -57,7 +57,7 @@ export default class VarsClientController {
     public inline_editing_cb = null;
 
     private timeout_check_registrations: number = 30000;
-    private timeout_update_params_registration: number = 10 * 60 * 60 * 1000;
+    private timeout_update_params_registration: number = 30000; //10 * 60 * 1000;
 
     protected constructor() {
 
@@ -317,9 +317,14 @@ export default class VarsClientController {
         let self = this;
 
         try {
+            if (!this.registered_var_params) {
+                setTimeout(self.update_params_registration.bind(this), self.timeout_update_params_registration);
+                return;
+            }
+
             let vars = Object.values(this.registered_var_params);
             if (!vars || !vars.length) {
-                setTimeout(self.update_params_registration, self.timeout_update_params_registration);
+                setTimeout(self.update_params_registration.bind(this), self.timeout_update_params_registration);
                 return;
             }
             await ModuleVar.getInstance().update_params_registration(vars.map((v) => v.var_param));
@@ -328,7 +333,7 @@ export default class VarsClientController {
         }
 
         // On lance un process parrallèle qui check en permanence que les vars pour lesquels on a pas de valeurs sont bien enregistrées côté serveur
-        setTimeout(self.update_params_registration, self.timeout_update_params_registration);
+        setTimeout(self.update_params_registration.bind(this), self.timeout_update_params_registration);
     }
 
     /**
