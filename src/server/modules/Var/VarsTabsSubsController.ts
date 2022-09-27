@@ -97,6 +97,38 @@ export default class VarsTabsSubsController {
             delete this._tabs_subs[param_index][user_id][client_tab_id];
         }
 
+        let param_index_to_delete: string[] = [];
+        for (let param_index in this._tabs_subs) {
+            let _tabs_subs_index = this._tabs_subs[param_index];
+
+            if ((!_tabs_subs_index) || (!Object.keys(_tabs_subs_index).length)) {
+                param_index_to_delete.push(param_index);
+                continue;
+            }
+
+            let user_id_to_delete: string[] = [];
+            for (let _user_id in _tabs_subs_index) {
+                let _tabs_subs_index_user_id = _tabs_subs_index[_user_id];
+
+                if ((!_tabs_subs_index_user_id) || (!Object.keys(_tabs_subs_index_user_id).length)) {
+                    user_id_to_delete.push(_user_id);
+                    continue;
+                }
+            }
+
+            for (let i in user_id_to_delete) {
+                delete _tabs_subs_index[user_id_to_delete[i]];
+            }
+
+            if ((!_tabs_subs_index) || (!Object.keys(_tabs_subs_index).length)) {
+                param_index_to_delete.push(param_index);
+            }
+        }
+        for (let i in param_index_to_delete) {
+            delete this._tabs_subs[param_index_to_delete[i]];
+        }
+
+
         ConsoleHandler.getInstance().log('VarsTabsSubsController:post unregister_sub:nb_subs:' + Object.keys(this._tabs_subs).length + ':');
     }
 

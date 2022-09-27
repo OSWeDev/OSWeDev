@@ -8,6 +8,7 @@ import MainAggregateOperatorsHandlers from '../../../shared/modules/Var/MainAggr
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
+import ConfigurationService from '../../env/ConfigurationService';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import PerfMonConfController from '../PerfMon/PerfMonConfController';
 import PerfMonServerController from '../PerfMon/PerfMonServerController';
@@ -172,15 +173,30 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
     public async get_invalid_params_intersectors_on_POST_C_POST_D_group(c_or_d_vos: IDistantVOBase[]): Promise<TData[]> {
         let intersectors_by_index: { [index: string]: TData } = {};
 
+        /**
+         * On peut pas les mettre en // ?
+         */
+        let promises = [];
+        let limit = ConfigurationService.getInstance().node_configuration.MAX_POOL / 3;
+
         for (let k in c_or_d_vos) {
             let vo_create_or_delete = c_or_d_vos[k];
 
-            let tmp = await this.get_invalid_params_intersectors_on_POST_C_POST_D(vo_create_or_delete);
-            if ((!tmp) || (!tmp.length)) {
-                continue;
+            if (promises.length >= limit) {
+                await Promise.all(promises);
+                promises = [];
             }
-            tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
+
+            promises.push((async () => {
+                let tmp = await this.get_invalid_params_intersectors_on_POST_C_POST_D(vo_create_or_delete);
+                if ((!tmp) || (!tmp.length)) {
+                    return;
+                }
+                tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
+            })());
         }
+
+        await Promise.all(promises);
 
         return Object.values(intersectors_by_index);
     }
@@ -191,15 +207,30 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
     public async get_invalid_params_intersectors_on_POST_U_group<T extends IDistantVOBase>(u_vo_holders: Array<DAOUpdateVOHolder<T>>): Promise<TData[]> {
         let intersectors_by_index: { [index: string]: TData } = {};
 
+        /**
+         * On peut pas les mettre en // ?
+         */
+        let promises = [];
+        let limit = ConfigurationService.getInstance().node_configuration.MAX_POOL / 3;
+
         for (let k in u_vo_holders) {
             let u_vo_holder = u_vo_holders[k];
 
-            let tmp = await this.get_invalid_params_intersectors_on_POST_U(u_vo_holder);
-            if ((!tmp) || (!tmp.length)) {
-                continue;
+            if (promises.length >= limit) {
+                await Promise.all(promises);
+                promises = [];
             }
-            tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
+
+            promises.push((async () => {
+                let tmp = await this.get_invalid_params_intersectors_on_POST_U(u_vo_holder);
+                if ((!tmp) || (!tmp.length)) {
+                    return;
+                }
+                tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
+            })());
         }
+
+        await Promise.all(promises);
 
         return Object.values(intersectors_by_index);
     }
