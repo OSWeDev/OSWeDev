@@ -6,6 +6,7 @@ import DataSourceControllerBase from './DataSourceControllerBase';
 export default abstract class DataSourceControllerSimpleCacheBase extends DataSourceControllerBase {
 
     private nodes_waiting_for_semaphore: { [var_data_index: string]: VarDAGNode } = {};
+    private promises_waiting_for_semaphore: { [var_data_index: string]: any } = {};
 
     /**
      * On utilise une clé unique (au sein d'un datasource) pour identifier la data liée à un var data
@@ -35,7 +36,9 @@ export default abstract class DataSourceControllerSimpleCacheBase extends DataSo
              * On ajoute un sémaphore pour éviter de faire 10 fois la requête sur un batch
              */
             if (VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name]['semaphore'] === true) {
-                return;
+                return new Promise((resolve, reject) => {
+                    this.promises_waiting_for_semaphore[node.var_data.index] = resolve;
+                });
             }
             VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name]['semaphore'] = true;
 
@@ -44,6 +47,11 @@ export default abstract class DataSourceControllerSimpleCacheBase extends DataSo
 
             for (let i in this.nodes_waiting_for_semaphore) {
                 this.nodes_waiting_for_semaphore[i].datasources[this.name] = VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name]['c'];
+
+                let cb = this.promises_waiting_for_semaphore[i];
+                if (!!cb) {
+                    await cb();
+                }
             }
 
             return;
