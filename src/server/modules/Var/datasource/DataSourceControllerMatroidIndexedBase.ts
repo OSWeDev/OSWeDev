@@ -1,5 +1,6 @@
 import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
+import VarsdatasComputerBGThread from '../bgthreads/VarsdatasComputerBGThread';
 import DataSourceControllerBase from './DataSourceControllerBase';
 
 export default abstract class DataSourceControllerMatroidIndexedBase extends DataSourceControllerBase {
@@ -18,18 +19,17 @@ export default abstract class DataSourceControllerMatroidIndexedBase extends Dat
      * Par défaut on décrit une gestion de type index de matroid
      *  Mais pour des datasources qui utilise un range plutôt pour décrire les datas à utiliser ou à charger, on utilise d'autres stratégies
      * @param node
-     * @param ds_cache
      */
-    public async load_node_data(node: VarDAGNode, ds_cache: { [ds_data_index: string]: any }) {
+    public async load_node_data(node: VarDAGNode) {
         if (typeof node.datasources[this.name] !== 'undefined') {
             return;
         }
 
         let data_index: string = this.get_data_index(node.var_data) as string;
-        if (typeof ds_cache[data_index] === 'undefined') {
-            let data = await this.get_data(node.var_data, ds_cache);
-            ds_cache[data_index] = ((typeof data === 'undefined') ? null : data);
+        if (typeof VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][data_index] === 'undefined') {
+            let data = await this.get_data(node.var_data);
+            VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][data_index] = ((typeof data === 'undefined') ? null : data);
         }
-        node.datasources[this.name] = ds_cache[data_index];
+        node.datasources[this.name] = VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][data_index];
     }
 }

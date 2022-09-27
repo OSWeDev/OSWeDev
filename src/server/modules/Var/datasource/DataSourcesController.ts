@@ -5,6 +5,7 @@ import VarsController from '../../../../shared/modules/Var/VarsController';
 import ConfigurationService from '../../../env/ConfigurationService';
 import PerfMonConfController from '../../PerfMon/PerfMonConfController';
 import PerfMonServerController from '../../PerfMon/PerfMonServerController';
+import VarsdatasComputerBGThread from '../bgthreads/VarsdatasComputerBGThread';
 import VarsPerfMonServerController from '../VarsPerfMonServerController';
 import DataSourceControllerBase from './DataSourceControllerBase';
 
@@ -35,7 +36,7 @@ export default class DataSourcesController {
      * TODO FIXME : Si on demande les datas une à une c'est très long, si on demande tout en bloc ça plante en dev... donc
      *  on fait des packs
      */
-    public async load_node_datas(dss: DataSourceControllerBase[], node: VarDAGNode, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }): Promise<void> {
+    public async load_node_datas(dss: DataSourceControllerBase[], node: VarDAGNode): Promise<void> {
 
         await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__DataSourcesController__load_node_datas],
@@ -47,8 +48,8 @@ export default class DataSourcesController {
                 for (let i in dss) {
                     let ds = dss[i];
 
-                    if (!ds_cache[ds.name]) {
-                        ds_cache[ds.name] = {};
+                    if (!VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[ds.name]) {
+                        VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[ds.name] = {};
                     }
 
                     if (promises.length >= max) {
@@ -63,11 +64,11 @@ export default class DataSourcesController {
                             perfmon,
                             ds.load_node_data,
                             ds,
-                            [node, ds_cache[ds.name]],
+                            [node],
                             VarsPerfMonServerController.getInstance().generate_pmlinfos_from_node_and_ds(node, ds)
                         );
                     } else {
-                        promises.push(ds.load_node_data(node, ds_cache[ds.name]));
+                        promises.push(ds.load_node_data(node));
                     }
                 }
 

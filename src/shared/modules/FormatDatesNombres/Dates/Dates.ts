@@ -36,6 +36,23 @@ export default class Dates {
     }
 
     /**
+     * @returns current timestamp in secs
+     */
+    public static now_ms(localized_src: boolean = true): number {
+        if (!Dates.p) {
+
+            // server side
+            Dates.p = require("perf_hooks").performance;
+        }
+
+        if (localized_src) {
+            return (Dates.p.timeOrigin ? Dates.p.timeOrigin : Dates.p.timing.navigationStart) + Dates.p.now();
+        }
+
+        return moment().utc(true).valueOf();
+    }
+
+    /**
      * @param date timestamp in secs to update
      * @param nb offset
      * @param segmentation type of offset, based on TimeSegment.TYPE_*

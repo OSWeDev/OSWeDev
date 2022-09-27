@@ -78,6 +78,12 @@ export default class VarsdatasComputerBGThread implements IBGThread {
     public current_batch_vardag: VarDAG = null;
 
     /**
+     * Le cache des datasources lié au batch actuel
+     */
+    public current_batch_ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } } = {};
+
+
+    /**
      * Les VarDAGPerfs en attente d'enregistrement dans la base de données
      */
     public last_vardag_perfs: VarBatchPerfVO[] = [];

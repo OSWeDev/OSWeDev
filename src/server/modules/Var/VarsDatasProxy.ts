@@ -660,10 +660,17 @@ export default class VarsDatasProxy {
         }
         let nb_vars_in_buffer = vars_datas.length;
 
-        let registered_var_datas: VarDataBaseVO[] = await VarsTabsSubsController.getInstance().filter_by_subs(vars_datas);
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+            ConsoleHandler.getInstance().log('VarsDatasProxy:prepare_current_batch_ordered_pick_list:filter_by_subs:START:' + nb_vars_in_buffer);
+        }
+        let registered_var_datas_indexes: string[] = await VarsTabsSubsController.getInstance().filter_by_subs(vars_datas.map((v) => v.index));
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+            ConsoleHandler.getInstance().log('VarsDatasProxy:prepare_current_batch_ordered_pick_list:filter_by_subs:END:' + nb_vars_in_buffer);
+        }
+
         let registered_var_datas_indexes_map: { [index: string]: boolean } = {};
-        for (let i in registered_var_datas) {
-            registered_var_datas_indexes_map[registered_var_datas[i].index] = true;
+        for (let i in registered_var_datas_indexes) {
+            registered_var_datas_indexes_map[registered_var_datas_indexes[i]] = true;
         }
 
         let unregistered_var_datas_wrappers_map: { [index: string]: VarDataProxyWrapperVO<VarDataBaseVO> } = {};
@@ -722,18 +729,18 @@ export default class VarsDatasProxy {
             }
         }
 
-        if ((!registered_var_datas) || (!registered_var_datas.length)) {
+        if ((!registered_var_datas_indexes) || (!registered_var_datas_indexes.length)) {
             VarsdatasComputerBGThread.getInstance().current_batch_ordered_pick_list = [];
             return;
         }
-        let nb_registered_vars_in_buffer = registered_var_datas.length;
+        let nb_registered_vars_in_buffer = registered_var_datas_indexes.length;
 
         ConsoleHandler.getInstance().log('VarsDatasProxy.prepare_current_batch_ordered_pick_list:nb_vars_in_buffer|' + nb_vars_in_buffer + ':nb_registered_vars_in_buffer|' + nb_registered_vars_in_buffer);
 
         let registered_var_datas_by_index: { [index: string]: VarDataBaseVO } = {};
-        for (let i in registered_var_datas) {
-            let var_data = registered_var_datas[i];
-            registered_var_datas_by_index[var_data.index] = var_data;
+        for (let i in registered_var_datas_indexes) {
+            let var_data_index = registered_var_datas_indexes[i];
+            registered_var_datas_by_index[var_data_index] = this.vars_datas_buffer_wrapped_indexes[var_data_index].var_data;
         }
         for (let i in vars_datas_wrapper) {
             let var_data_wrapper = vars_datas_wrapper[i];

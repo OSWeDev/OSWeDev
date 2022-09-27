@@ -1,7 +1,9 @@
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleVar from '../../../../shared/modules/Var/ModuleVar';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../shared/modules/Var/vos/VarDataValueResVO';
 import VarUpdateCallback from '../../../../shared/modules/Var/vos/VarUpdateCallback';
+import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 import TypesHandler from '../../../../shared/tools/TypesHandler';
@@ -34,6 +36,8 @@ export default class VarsClientController {
      */
     public cached_var_datas: { [index: string]: VarDataValueResVO } = {};
 
+    public last_notif_received: number = 0;
+
     /**
      * On utilise pour se donner un délai de 30 secondes pour les calculs et si on dépasse (entre 30 et 60 secondes) on relance un register sur la var pour rattrapper un oublie de notif
      */
@@ -53,11 +57,15 @@ export default class VarsClientController {
     public inline_editing_cb = null;
 
     private timeout_check_registrations: number = 30000;
+    private timeout_update_params_registration: number = 10 * 60 * 60 * 1000;
 
     protected constructor() {
 
         // On lance un process parallèle qui check en permanence que les vars pour lesquels on a pas de valeurs sont bien enregistrées côté serveur
         this.prepare_next_check();
+
+        // On lance aussi un process pour update les subs côté serveur et pas les perdre sur un timeout
+        this.update_params_registration();
     }
 
     /**
@@ -252,6 +260,16 @@ export default class VarsClientController {
         try {
 
             /**
+             * On renvoie aucune var si le serveur est en cours de calcul. si on a des notifs dans les dernieres secondes,
+             *  on sait qu'il est en train de nous répondre, donc on attend
+             */
+            if ((Dates.now() - VarsClientController.getInstance().last_notif_received) < 10) {
+                ConsoleHandler.getInstance().log('check_invalid_valued_params_registration : server is calculating, waiting:' + VarsClientController.getInstance().last_notif_received);
+                return;
+            }
+
+
+            /**
              * On prend toutes les datas registered et si on en trouve auxquelles il manque des valeurs, on renvoie un register pour s'assurer qu'on
              *  est bien en attente d'un résultat de calcul
              */
@@ -293,6 +311,24 @@ export default class VarsClientController {
         setTimeout(async () => {
             await self.check_invalid_valued_params_registration();
         }, self.timeout_check_registrations);
+    }
+
+    private async update_params_registration() {
+        let self = this;
+
+        try {
+            let vars = Object.values(this.registered_var_params);
+            if (!vars || !vars.length) {
+                setTimeout(self.update_params_registration, self.timeout_update_params_registration);
+                return;
+            }
+            await ModuleVar.getInstance().update_params_registration(vars.map((v) => v.var_param));
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
+
+        // On lance un process parrallèle qui check en permanence que les vars pour lesquels on a pas de valeurs sont bien enregistrées côté serveur
+        setTimeout(self.update_params_registration, self.timeout_update_params_registration);
     }
 
     /**

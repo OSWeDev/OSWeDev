@@ -480,7 +480,6 @@ export default abstract class VueAppBase {
             var e = e || window.event;
 
             // ConsoleHandler.getInstance().log('onbeforeunload');
-            // await self.unregisterVarsBeforeUnload();
 
             var needsSaving = false;
 
@@ -502,6 +501,8 @@ export default abstract class VueAppBase {
                 // For Safari
                 return message;
             }
+
+            self.unregisterVarsBeforeUnload();
 
             return null;
         };

@@ -212,13 +212,13 @@ export default class VarsComputeController {
                  *  L'index de donnée est défini par le datasource pour indiquer une clé unique de classement des datas dans le cache, et donc si on veut une clé déjà connue, on a pas besoin de redemander au
                  *  datasource, on la récupère directement pour le donner à la var.
                  */
-                let ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } } = {};
+                VarsdatasComputerBGThread.getInstance().current_batch_ds_cache = {};
 
                 // ConsoleHandler.getInstance().log('VarsdatasComputerBGThread compute - create_tree OLD OK (' + (perf_old_end - perf_old_start) + 'ms) ... ' + dag.nb_nodes + ' nodes, ' + Object.keys(dag.leafs).length + ' leafs, ' + Object.keys(dag.roots).length + ' roots');
 
                 let var_dag: VarDAG = VarsdatasComputerBGThread.getInstance().current_batch_vardag;
 
-                await this.create_tree_perf_wrapper(var_dag, ds_cache);
+                await this.create_tree_perf_wrapper(var_dag);
 
                 ConsoleHandler.getInstance().log('VarsdatasComputerBGThread compute - ' + var_dag.nb_nodes + ' nodes, ' + Object.keys(var_dag.leafs).length + ' leafs, ' + Object.keys(var_dag.roots).length + ' roots');
 
@@ -231,7 +231,7 @@ export default class VarsComputeController {
                 /**
                  * On a l'arbre. On charge les données qui restent à charger
                  */
-                await this.load_nodes_datas_perf_wrapper(var_dag, ds_cache);
+                await this.load_nodes_datas_perf_wrapper(var_dag);
 
                 /**
                  * Tous les noeuds dont le var_data !has_valid_value sont à calculer
@@ -284,7 +284,6 @@ export default class VarsComputeController {
         var_dag: VarDAG,
         deployed_vars_datas: { [index: string]: boolean } = {},
         vars_datas: { [index: string]: VarDataBaseVO } = {},
-        ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } } = {},
         limit_to_aggregated_datas: boolean = false
     ) {
 
@@ -459,7 +458,7 @@ export default class VarsComputeController {
                     return;
                 }
 
-                let deps: { [index: string]: VarDataBaseVO } = await this.get_node_deps_perf_wrapper(node, ds_cache);
+                let deps: { [index: string]: VarDataBaseVO } = await this.get_node_deps_perf_wrapper(node);
 
                 /**
                  * Si dans les deps on a un denied, on refuse le tout
@@ -488,7 +487,7 @@ export default class VarsComputeController {
                 await VarsTabsSubsController.getInstance().notify_vardatas([new NotifVardatasParam([node.var_data], true)]);
 
                 if (deps) {
-                    await this.handle_deploy_deps(node, deps, deployed_vars_datas, vars_datas, ds_cache);
+                    await this.handle_deploy_deps(node, deps, deployed_vars_datas, vars_datas);
                 }
 
                 this.end_node_deploiement(node);
@@ -530,7 +529,7 @@ export default class VarsComputeController {
         );
     }
 
-    private async load_nodes_datas(var_dag: VarDAG, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }) {
+    private async load_nodes_datas(var_dag: VarDAG) {
         let env = ConfigurationService.getInstance().node_configuration;
 
         await PerfMonServerController.getInstance().monitor_async(
@@ -560,6 +559,10 @@ export default class VarsComputeController {
 
                     let dss: DataSourceControllerBase[] = controller.getDataSourcesDependencies();
 
+                    if ((!dss) || (!dss.length)) {
+                        continue;
+                    }
+
                     if (load_node_data_db_connect_coef_sum >= max) {
                         await Promise.all(promises);
                         load_node_data_db_connect_coef_sum = 0;
@@ -575,7 +578,7 @@ export default class VarsComputeController {
 
                         VarDagPerfsServerController.getInstance().start_nodeperfelement(node.perfs.load_node_datas);
 
-                        await DataSourcesController.getInstance().load_node_datas(dss, node, ds_cache);
+                        await DataSourcesController.getInstance().load_node_datas(dss, node);
 
                         VarDagPerfsServerController.getInstance().end_nodeperfelement(node.perfs.load_node_datas);
                     })());
@@ -623,8 +626,7 @@ export default class VarsComputeController {
         node: VarDAGNode,
         deps: { [index: string]: VarDataBaseVO },
         deployed_vars_datas: { [index: string]: boolean },
-        vars_datas: { [index: string]: VarDataBaseVO },
-        ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }) {
+        vars_datas: { [index: string]: VarDataBaseVO }) {
 
         return await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsComputeController__handle_deploy_deps],
@@ -675,7 +677,7 @@ export default class VarsComputeController {
                     node.addOutgoingDep(dep_id, dep_node);
 
                     deps_promises.push((async () => {
-                        await this.load_caches_and_imports_on_var_to_deploy(dep_node.var_data, dep_node.var_dag, deployed_vars_datas, vars_datas, ds_cache);
+                        await this.load_caches_and_imports_on_var_to_deploy(dep_node.var_data, dep_node.var_dag, deployed_vars_datas, vars_datas);
                     })());
 
                     if (dep_node.var_dag.timed_out) {
@@ -770,9 +772,7 @@ export default class VarsComputeController {
      *      - Chargement des ds predeps du noeud
      *      - Chargement des deps
      */
-    private async get_node_deps(
-        node: VarDAGNode,
-        ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }): Promise<{ [dep_id: string]: VarDataBaseVO }> {
+    private async get_node_deps(node: VarDAGNode): Promise<{ [dep_id: string]: VarDataBaseVO }> {
 
         return await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsComputeController__get_node_deps],
@@ -807,7 +807,7 @@ export default class VarsComputeController {
 
                     // VarDagPerfsServerController.getInstance().start_nodeperfelement(node.perfs.load_node_datas_predep);
 
-                    await DataSourcesController.getInstance().load_node_datas(predeps_dss, node, ds_cache);
+                    await DataSourcesController.getInstance().load_node_datas(predeps_dss, node);
 
                     // VarDagPerfsServerController.getInstance().end_nodeperfelement(node.perfs.load_node_datas_predeps);
                 }
@@ -840,7 +840,7 @@ export default class VarsComputeController {
      *      à la fin de chaque calcul on envoie et on flag comme envoyé
      *      à la fin du process on peut checker que l'arbre complet a bien été envoyé (on devrait avoir tout envoyé déjà)
      */
-    private async create_tree(ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }): Promise<VarDAG> {
+    private async create_tree(): Promise<VarDAG> {
 
         let DEBUG_VARS = ConfigurationService.getInstance().node_configuration.DEBUG_VARS;
 
@@ -1004,16 +1004,18 @@ export default class VarsComputeController {
                         }
 
                         // on notifie du calcul en cours
-                        let vars_to_deploy_filtered_by_tab_subs = await VarsTabsSubsController.getInstance().filter_by_subs(Object.values(vars_to_deploy));
-                        await VarsTabsSubsController.getInstance().notify_vardatas(
-                            vars_to_deploy_filtered_by_tab_subs.map((vd) => new NotifVardatasParam([vd], true)));
+                        let vars_to_deploy_filtered_by_tab_subs_indexes = await VarsTabsSubsController.getInstance().filter_by_subs(Object.keys(vars_to_deploy));
+                        if (vars_to_deploy_filtered_by_tab_subs_indexes && vars_to_deploy_filtered_by_tab_subs_indexes.length) {
+                            await VarsTabsSubsController.getInstance().notify_vardatas(
+                                vars_to_deploy_filtered_by_tab_subs_indexes.map((index: string) => new NotifVardatasParam([vars_to_deploy[index]], true)));
+                        }
 
                         // On charge les caches pour ces noeuds
                         //  et on récupère les nouveaux vars_datas à insérer dans l'arbre
                         await this.load_caches_and_imports_on_vars_to_deploy(vars_to_deploy, var_dag);
 
                         // On doit ensuite charger les ds pre deps
-                        await this.deploy_deps_on_vars_to_deploy(vars_to_deploy, var_dag, ds_cache);
+                        await this.deploy_deps_on_vars_to_deploy(vars_to_deploy, var_dag);
 
                         vars_datas_to_deploy_by_controller_height = await this.get_vars_datas_by_controller_height(var_dag);
                         step++;
@@ -1233,8 +1235,7 @@ export default class VarsComputeController {
      */
     private async deploy_deps_on_vars_to_deploy(
         vars_to_deploy: { [index: string]: VarDataBaseVO },
-        var_dag: VarDAG,
-        ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }
+        var_dag: VarDAG
     ) {
 
         let promises = [];
@@ -1258,7 +1259,7 @@ export default class VarsComputeController {
                 return;
             }
 
-            promises.push(this.deploy_deps_on_var_to_deploy(var_dag_node, var_dag, ds_cache));
+            promises.push(this.deploy_deps_on_var_to_deploy(var_dag_node, var_dag));
         }
 
         if (promises && promises.length) {
@@ -1268,11 +1269,10 @@ export default class VarsComputeController {
 
     private async deploy_deps_on_var_to_deploy(
         var_dag_node: VarDAGNode,
-        var_dag: VarDAG,
-        ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }
+        var_dag: VarDAG
     ) {
 
-        let deps: { [index: string]: VarDataBaseVO } = await this.get_node_deps_perf_wrapper(var_dag_node, ds_cache);
+        let deps: { [index: string]: VarDataBaseVO } = await this.get_node_deps_perf_wrapper(var_dag_node);
 
         /**
          * Si dans les deps on a un denied, on refuse le tout
@@ -1426,15 +1426,15 @@ export default class VarsComputeController {
         }
     }
 
-    private async create_tree_perf_wrapper(var_dag: VarDAG, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }) {
+    private async create_tree_perf_wrapper(var_dag: VarDAG) {
         VarDagPerfsServerController.getInstance().start_nodeperfelement(var_dag.perfs.create_tree, 'create_tree');
-        await this.create_tree(ds_cache);
+        await this.create_tree();
         VarDagPerfsServerController.getInstance().end_nodeperfelement(var_dag.perfs.create_tree, 'create_tree');
     }
 
-    private async load_nodes_datas_perf_wrapper(var_dag: VarDAG, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }) {
+    private async load_nodes_datas_perf_wrapper(var_dag: VarDAG) {
         VarDagPerfsServerController.getInstance().start_nodeperfelement(var_dag.perfs.load_nodes_datas, 'load_nodes_datas');
-        await this.load_nodes_datas(var_dag, ds_cache);
+        await this.load_nodes_datas(var_dag);
         VarDagPerfsServerController.getInstance().end_nodeperfelement(var_dag.perfs.load_nodes_datas, 'load_nodes_datas');
     }
 
@@ -1485,10 +1485,10 @@ export default class VarsComputeController {
         VarDagPerfsServerController.getInstance().end_nodeperfelement(node.perfs.ctree_ddeps_try_load_cache_complet);
     }
 
-    private async get_node_deps_perf_wrapper(node: VarDAGNode, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }): Promise<{ [index: string]: VarDataBaseVO }> {
+    private async get_node_deps_perf_wrapper(node: VarDAGNode): Promise<{ [index: string]: VarDataBaseVO }> {
         VarDagPerfsServerController.getInstance().start_nodeperfelement(node.perfs.ctree_ddeps_get_node_deps);
 
-        let deps: { [index: string]: VarDataBaseVO } = await this.get_node_deps(node, ds_cache);
+        let deps: { [index: string]: VarDataBaseVO } = await this.get_node_deps(node);
 
         VarDagPerfsServerController.getInstance().end_nodeperfelement(node.perfs.ctree_ddeps_get_node_deps);
 

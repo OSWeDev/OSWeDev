@@ -18,10 +18,13 @@ import TimeSegment from './DataRender/vos/TimeSegment';
 import TSRange from './DataRender/vos/TSRange';
 import GeoPointVO from './GeoPoint/vos/GeoPointVO';
 import IDistantVOBase from './IDistantVOBase';
+import MatroidBaseController from './Matroid/MatroidBaseController';
+import MatroidController from './Matroid/MatroidController';
 import Module from './Module';
 import ModuleTableField from './ModuleTableField';
 import DefaultTranslationManager from './Translation/DefaultTranslationManager';
 import DefaultTranslation from './Translation/vos/DefaultTranslation';
+import VarDataBaseVO from './Var/vos/VarDataBaseVO';
 import VOsTypesManager from './VOsTypesManager';
 
 
@@ -152,6 +155,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
     private readonlyfields_by_ids: { [field_id: string]: ModuleTableField<any> } = {};
 
     private sortedFields: Array<ModuleTableField<any>> = [];
+
+    private fieldIdToAPIMap: { [field_id: string]: string } = null;
     /**
      * ----- Local thread cache
      */
@@ -920,6 +925,11 @@ export default class ModuleTable<T extends IDistantVOBase> {
      * A voir si dirty et nécessite refonte mais ça semble bien suffisant et très simple/rapide
      */
     private getFieldIdToAPIMap(): { [field_id: string]: string } {
+
+        if (this.fieldIdToAPIMap) {
+            return this.fieldIdToAPIMap;
+        }
+
         let res: { [field_id: string]: string } = {};
         let n = 0;
 
@@ -930,25 +940,26 @@ export default class ModuleTable<T extends IDistantVOBase> {
             n++;
         }
 
-        return res;
+        this.fieldIdToAPIMap = res;
+        return this.fieldIdToAPIMap;
     }
 
-    /**
-     * A voir si dirty et nécessite refonte mais ça semble bien suffisant et très simple/rapide
-     */
-    private getAPIToFieldIdMap(): { [api_id: string]: string } {
-        let res: { [api_id: string]: string } = {};
-        let n = 0;
+    // /**
+    //  * A voir si dirty et nécessite refonte mais ça semble bien suffisant et très simple/rapide
+    //  */
+    // private getAPIToFieldIdMap(): { [api_id: string]: string } {
+    //     let res: { [api_id: string]: string } = {};
+    //     let n = 0;
 
-        for (let i in this.sortedFields) {
-            let field = this.sortedFields[i];
+    //     for (let i in this.sortedFields) {
+    //         let field = this.sortedFields[i];
 
-            res[ModuleTable.OFFUSC_IDs[n]] = field.field_id;
-            n++;
-        }
+    //         res[ModuleTable.OFFUSC_IDs[n]] = field.field_id;
+    //         n++;
+    //     }
 
-        return res;
-    }
+    //     return res;
+    // }
 
     /**
      * Permet de récupérer un clone dont les fields sont trasférable via l'api (en gros ça passe par un json.stringify).
@@ -973,10 +984,28 @@ export default class ModuleTable<T extends IDistantVOBase> {
         //  pour réduire au max l'objet envoyé, et l'offusquer un peu
         let fieldIdToAPIMap: { [field_id: string]: string } = this.getFieldIdToAPIMap();
 
+        /**
+         * Cas des matroids, on ignore les champs du matroid dans ce cas, on recréera le matroid de l'autre côté via l'index
+         *  et par contre on crée un field fictif _api_only_index avec l'index dedans
+         */
+        let ignore_fields: { [field_id: string]: boolean } = {};
+        if (this.isMatroidTable) {
+            let ignore_fields_ = MatroidController.getInstance().getMatroidFields(this.vo_type);
+            for (let i in ignore_fields_) {
+                let ignore_field_ = ignore_fields_[i];
+                ignore_fields[ignore_field_.field_id] = true;
+            }
+            res['_api_only_index'] = (e as any as VarDataBaseVO).index;
+        }
+
         for (let i in this.fields_) {
             let field = this.fields_[i];
 
             if (field.is_readonly) {
+                continue;
+            }
+
+            if (ignore_fields[field.field_id]) {
                 continue;
             }
 
@@ -1016,10 +1045,27 @@ export default class ModuleTable<T extends IDistantVOBase> {
         //  pour réduire au max l'objet envoyé, et l'offusquer un peu
         let fieldIdToAPIMap: { [field_id: string]: string } = this.getFieldIdToAPIMap();
 
+        /**
+         * Cas des matroids, on recrée le matroid de l'autre côté via l'index dans _api_only_index
+         */
+        let ignore_fields: { [field_id: string]: boolean } = {};
+        if (this.isMatroidTable && res['_api_only_index']) {
+            res = Object.assign(MatroidIndexHandler.getInstance().from_normalized_vardata(res['_api_only_index']), res);
+            let ignore_fields_ = MatroidController.getInstance().getMatroidFields(this.vo_type);
+            for (let i in ignore_fields_) {
+                let ignore_field_ = ignore_fields_[i];
+                ignore_fields[ignore_field_.field_id] = true;
+            }
+        }
+
         for (let i in this.fields_) {
             let field = this.fields_[i];
 
             if (field.is_readonly) {
+                continue;
+            }
+
+            if (ignore_fields[field.field_id]) {
                 continue;
             }
 

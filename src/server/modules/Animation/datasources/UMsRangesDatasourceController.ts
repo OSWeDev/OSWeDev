@@ -18,7 +18,7 @@ export default class UMsRangesDatasourceController extends DataSourceControllerM
 
     protected static instance: UMsRangesDatasourceController = null;
 
-    public async get_data(param: ThemeModuleDataRangesVO, ds_cache: { [ds_data_index: string]: any; }): Promise<{ [module_id: number]: { [user_id: number]: AnimationUserModuleVO } }> {
+    public async get_data(param: ThemeModuleDataRangesVO): Promise<{ [module_id: number]: { [user_id: number]: AnimationUserModuleVO } }> {
 
         // Protection/ Détection Max_ranges
         let user_ids: number[] = (param.user_id_ranges && RangeHandler.getInstance().getSegmentedMin_from_ranges(param.user_id_ranges) >= 0) ?

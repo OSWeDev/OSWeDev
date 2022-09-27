@@ -24,7 +24,7 @@ export default class FakeDistantDatasourceController extends DataSourceControlle
         return var_data.ts_ranges;
     }
 
-    public async get_data(param: FakeDataVO, ds_cache: { [ds_data_index: string]: any; }): Promise<{ [date_value: number]: FakeDistantVO }> {
+    public async get_data(param: FakeDataVO): Promise<{ [date_value: number]: FakeDistantVO }> {
         let res: { [date_value: number]: FakeDistantVO } = {};
 
         for (let i in FakeDistantDatasourceController.fake_distant_datas) {
