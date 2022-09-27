@@ -1049,8 +1049,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
          * Cas des matroids, on recrée le matroid de l'autre côté via l'index dans _api_only_index
          */
         let ignore_fields: { [field_id: string]: boolean } = {};
-        if (this.isMatroidTable && res['_api_only_index']) {
-            res = Object.assign(MatroidIndexHandler.getInstance().from_normalized_vardata(res['_api_only_index']), res);
+        if (this.isMatroidTable && e['_api_only_index']) {
+            res = Object.assign(MatroidIndexHandler.getInstance().from_normalized_vardata(e['_api_only_index']), res);
             let ignore_fields_ = MatroidController.getInstance().getMatroidFields(this.vo_type);
             for (let i in ignore_fields_) {
                 let ignore_field_ = ignore_fields_[i];
