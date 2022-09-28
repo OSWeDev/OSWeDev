@@ -180,7 +180,7 @@ export default class VarsComputeController {
         }
 
         let res = (MatroidController.getInstance().get_cardinal(var_data) / 1000)
-            * VarsServerController.getInstance().varcacheconf_by_var_ids[var_data.var_id].estimated_load_nodes_datas_1k_card;
+            * VarsServerController.getInstance().varcacheconf_by_var_ids[var_data.var_id].estimated_load_node_datas_1k_card;
         return res;
     }
 

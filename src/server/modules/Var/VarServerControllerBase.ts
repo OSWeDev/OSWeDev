@@ -72,7 +72,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
         res.estimated_ctree_ddeps_load_imports_and_split_nodes_1k_card = 0.001;
         res.estimated_ctree_ddeps_try_load_cache_complet_1k_card = 0.001;
         res.estimated_ctree_ddeps_try_load_cache_partiel_1k_card = 0.001;
-        res.estimated_load_nodes_datas_1k_card = 0.001;
+        res.estimated_load_node_datas_1k_card = 0.001;
         return res;
     }
 

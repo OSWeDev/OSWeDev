@@ -19,6 +19,8 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
     public static USE_MAX_X_LAST_PERFS_PARAM_NAME: string = 'UpdateEstimatedDurationsCronWorker.USE_MAX_X_LAST_PERFS';
     public static USE_MIN_X_LAST_PERFS_PARAM_NAME: string = 'UpdateEstimatedDurationsCronWorker.USE_MIN_X_LAST_PERFS';
 
+    public static DEBUG_PARAM_NAME: string = 'UpdateEstimatedDurationsCronWorker.DEBUG';
+
     public static getInstance() {
         if (!UpdateEstimatedDurationsCronWorker.instance) {
             UpdateEstimatedDurationsCronWorker.instance = new UpdateEstimatedDurationsCronWorker();
@@ -33,6 +35,8 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
 
     private USE_MAX_X_LAST_PERFS: number = 0;
     private USE_MIN_X_LAST_PERFS: number = 0;
+
+    private debug: boolean = false;
 
     private constructor() {
     }
@@ -50,6 +54,8 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
 
         this.USE_MAX_X_LAST_PERFS = await ModuleParams.getInstance().getParamValueAsInt(UpdateEstimatedDurationsCronWorker.USE_MAX_X_LAST_PERFS_PARAM_NAME, 100);
         this.USE_MIN_X_LAST_PERFS = await ModuleParams.getInstance().getParamValueAsInt(UpdateEstimatedDurationsCronWorker.USE_MIN_X_LAST_PERFS_PARAM_NAME, 10);
+
+        this.debug = await ModuleParams.getInstance().getParamValueAsBoolean(UpdateEstimatedDurationsCronWorker.DEBUG_PARAM_NAME, false);
 
         this.batchs_cache = {};
         this.batchs_vars_cache = {};
@@ -134,7 +140,7 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
             return;
         }
 
-        ConsoleHandler.getInstance().log(`Setting estimated_${perf_name}_1k_card to ${mean_estimation} for var_id:${last_x_perfs[0].var_id}`);
+        ConsoleHandler.getInstance().log(`Changing estimated_${perf_name}_1k_card from ${varcacheconf['estimated_' + perf_name + '_1k_card']} to ${mean_estimation} for var_id:${last_x_perfs[0].var_id}`);
 
         varcacheconf['estimated_' + perf_name + '_1k_card'] = mean_estimation;
     }
@@ -156,6 +162,12 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
             return null;
         }
 
+        if (this.debug) {
+            ConsoleHandler.getInstance().log(
+                'UpdateEstimationVarPerfHandler.get_ratiod_mean: start for ' + perf_name +
+                ' on [' + last_x_perf.var_id + '] ' + VarsServerController.getInstance().getVarConfById(last_x_perf.var_id).name);
+        }
+
         let all_var_ids_means_sum = 0;
         for (let i in this.batchs_vars_cache[batch_id]) {
             let batch_vars_cache = this.batchs_vars_cache[batch_id][i];
@@ -169,6 +181,14 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
                 }
 
                 all_var_ids_means_sum += (ratio_perf.realised_sum_ms / ratio_perf.realised_nb_card);
+
+                if (this.debug) {
+                    ConsoleHandler.getInstance().log(
+                        'UpdateEstimationVarPerfHandler.get_ratiod_mean: all_var_ids_means_sum ' + perf_name +
+                        ' on [' + last_x_perf.var_id + '] ' + VarsServerController.getInstance().getVarConfById(last_x_perf.var_id).name +
+                        ' : all_var_ids_means_sum += (ratio_perf.realised_sum_ms / ratio_perf.realised_nb_card) : ' + all_var_ids_means_sum + ' : (+' + (ratio_perf.realised_sum_ms / ratio_perf.realised_nb_card) + ') : ' +
+                        ' ratio_perf.realised_sum_ms : ' + ratio_perf.realised_sum_ms + ' : ratio_perf.realised_nb_card : ' + ratio_perf.realised_nb_card);
+                }
             }
         }
 
@@ -176,8 +196,23 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
 
         // Le coef est compilé en prenant le temps de la stat ciblée perf_name, ramené au cardinal, divisé par la somme des temps de toutes les stats ratio_perfs_names (composants au final batch_perf_name et dont fait partie la perf_name), ramenées au cardinal également
         let coef = ((perf.realised_sum_ms / perf.realised_nb_card) / all_var_ids_means_sum);
+        if (this.debug) {
+            ConsoleHandler.getInstance().log(
+                'UpdateEstimationVarPerfHandler.get_ratiod_mean: coef ' + perf_name +
+                ' on [' + last_x_perf.var_id + '] ' + VarsServerController.getInstance().getVarConfById(last_x_perf.var_id).name +
+                ' : coef = ((perf.realised_sum_ms / perf.realised_nb_card) / all_var_ids_means_sum) : ' + coef +
+                ' : perf.realised_sum_ms : ' + perf.realised_sum_ms + ' : perf.realised_nb_card : ' + perf.realised_nb_card);
+        }
 
         // on applique le coef au temps réel du batch, et on ramène au cardinal
+        if (this.debug) {
+            ConsoleHandler.getInstance().log(
+                'UpdateEstimationVarPerfHandler.get_ratiod_mean: end for ' + perf_name +
+                ' on [' + last_x_perf.var_id + '] ' + VarsServerController.getInstance().getVarConfById(last_x_perf.var_id).name +
+                ' : res = coef * batch_perf_sum / perf.realised_nb_card : ' + coef * batch_perf_sum / perf.realised_nb_card +
+                ' : batch_perf_sum : ' + batch_perf_sum);
+        }
+
         return coef * batch_perf_sum / perf.realised_nb_card;
     }
 
@@ -193,6 +228,12 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
 
         let means: number[] = [];
 
+        if (this.debug) {
+            ConsoleHandler.getInstance().log(
+                'UpdateEstimationVarPerfHandler.get_estimation: starting for ' + perf_name +
+                ' on ' + (last_x_var_perfs ? '[' + last_x_var_perfs[0].var_id + '] ' + VarsServerController.getInstance().getVarConfById(last_x_var_perfs[0].var_id).name : 'N/A'));
+        }
+
         for (let perf_i in last_x_var_perfs) {
             let last_x_var_perf = last_x_var_perfs[perf_i];
 
@@ -201,6 +242,12 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
                 continue;
             }
 
+            if (this.debug) {
+                ConsoleHandler.getInstance().log(
+                    'UpdateEstimationVarPerfHandler.get_estimation: using mean for ' + perf_name +
+                    ' on [' + last_x_var_perf.var_id + '] ' + VarsServerController.getInstance().getVarConfById(last_x_var_perf.var_id).name +
+                    ' : mean : ' + ratiod_mean + ' : last_x_perf[perf_name].realised_sum_ms : ' + last_x_var_perf[perf_name].realised_sum_ms + ' : realised_nb_card : ' + last_x_var_perf[perf_name].realised_nb_card);
+            }
             means.push(ratiod_mean);
         }
 
@@ -208,6 +255,13 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
             ConsoleHandler.getInstance().warn(
                 'UpdateEstimationVarPerfHandler.get_estimation: no means for ' + perf_name +
                 ' on ' + (last_x_var_perfs ? '[' + last_x_var_perfs[0].var_id + '] ' + VarsServerController.getInstance().getVarConfById(last_x_var_perfs[0].var_id).name : 'N/A'));
+        }
+
+        if (this.debug) {
+            ConsoleHandler.getInstance().log(
+                'UpdateEstimationVarPerfHandler.get_estimation: ending for ' + perf_name +
+                ' on ' + (last_x_var_perfs ? '[' + last_x_var_perfs[0].var_id + '] ' + VarsServerController.getInstance().getVarConfById(last_x_var_perfs[0].var_id).name : 'N/A' +
+                    ' : mean : ' + ((means && means.length) ? mean(means) : 'N/A')));
         }
 
         return (means && means.length) ? mean(means) : null;
