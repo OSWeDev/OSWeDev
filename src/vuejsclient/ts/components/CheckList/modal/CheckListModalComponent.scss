@@ -1,6 +1,6 @@
 @import 'skin-variables.scss';
 
-#checklist_item_modal {
+.checklist_item_modal {
 
     .field .inline_input_show_clear,
     .field .inline_input_hide_clear,
@@ -37,10 +37,24 @@
         text-align: left;
     }
 
-    .multiselect {
+    .ts_range_input,
+    .has_value+input {
+        border: 1px solid lightgrey;
+        padding: 0 5px;
+    }
+
+    .has_value+input,
+    .inline_input_mode .has_value+input,
+    .field_label+div,
+    .inline_input_mode .field_label+div,
+    .ts_range_input,
+    .inline_input_mode .ts_range_input,
+    .multiselect,
+    .inline_input_mode .multiselect {
         display: inline-block;
         width: 26em;
         margin-left: 1em;
+        vertical-align: top;
     }
 
     label[role~=checkbox] {
@@ -60,5 +74,155 @@
         padding: 7px 13px;
         text-align: left;
         vertical-align: middle;
+    }
+
+    .inline_input_mode,
+    .inline_input_mode.auto_validate_inline_input {
+
+        input[type~="number"],
+        input[type~="text"],
+        input[type~="password"],
+        .bool_field_inline_readonly_value,
+        .html_field_inline_readonly_value {
+            width: 30em;
+        }
+    }
+}
+
+.checklist_modal {
+    .modal-header {
+        display: block;
+    }
+
+    .checklist_steps {
+        list-style-type: none;
+        padding: 0;
+        text-align: center;
+        margin-bottom: 30px;
+        display: flex;
+
+        li {
+            display: flex;
+            margin-right: 5px;
+            text-align: left;
+            flex: 1;
+            cursor: pointer;
+            background: black;
+            color: white;
+            display: flex;
+            font-size: 14px;
+            font-weight: bold;
+            position: relative;
+            align-items: center;
+
+            &:first-child:before {
+                display: none;
+            }
+
+            &:last-child {
+                margin-right: 0;
+
+                &:after {
+                    display: none;
+                }
+            }
+
+            p {
+                margin: 0;
+                color: white;
+
+                span {
+                    display: block;
+                    line-height: 1.2em;
+                    padding: 5px 5px 5px 10px;
+                }
+
+                &:hover {
+                    text-decoration: none;
+                }
+            }
+
+            &:before {
+                border-bottom: 12px solid transparent;
+                border-left: 6px solid #fff;
+                border-top: 12px solid transparent;
+                content: "";
+                height: 0;
+                position: absolute;
+                left: 0;
+                top: 50%;
+                width: 0;
+                margin-top: -12px;
+            }
+
+            &:after {
+                border-bottom: 12px solid transparent;
+                border-left: 6px solid black;
+                border-top: 12px solid transparent;
+                content: "";
+                height: 0;
+                position: absolute;
+                /*right: -12px;*/
+                left: 100%;
+                top: 50%;
+                width: 0;
+                margin-top: -12px;
+                z-index: 1;
+            }
+
+            &.text-muted {
+                cursor: not-allowed;
+
+                background: #777;
+
+                &,
+                p {
+                    color: white;
+                }
+
+                &:after {
+                    border-left: 6px solid #777;
+                }
+            }
+
+            &.text-danger {
+                background: #dc3545;
+
+                &,
+                p {
+                    color: white;
+                }
+
+                &:after {
+                    border-left: 6px solid #dc3545;
+                }
+            }
+
+            &.text-warning {
+                background: #ffc107;
+
+                &,
+                p {
+                    color: white;
+                }
+
+                &:after {
+                    border-left: 6px solid #ffc107;
+                }
+            }
+
+            &.text-success {
+                background: #198754;
+
+                &,
+                p {
+                    color: white;
+                }
+
+                &:after {
+                    border-left: 6px solid #198754;
+                }
+            }
+        }
     }
 }

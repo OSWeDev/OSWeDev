@@ -15,6 +15,9 @@ import SessionShareComponent from "../../../ts/components/session_share/SessionS
 })
 export default class AccessPolicySigninComponent extends VueComponentBase {
 
+    @Prop()
+    private footer_component: any;
+
     private nom: string = "";
     private email: string = "";
     private password: string = "";

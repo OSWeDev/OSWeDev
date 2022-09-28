@@ -1,3 +1,4 @@
+import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
@@ -45,6 +46,7 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
 
     private boolean_filter_types: number[] = [];
     private is_init: boolean = true;
+    private old_widget_options: FieldValueFilterWidgetOptions = null;
 
     private filter_type_options: number[] = [
         BooleanFilter.FILTER_TYPE_TRUE,
@@ -118,6 +120,13 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
 
     @Watch('widget_options', { immediate: true })
     private async onchange_widget_options() {
+        if (!!this.old_widget_options) {
+            if (isEqual(this.widget_options, this.old_widget_options)) {
+                return;
+            }
+        }
+
+        this.old_widget_options = cloneDeep(this.widget_options);
         this.is_init = true;
         await this.throttled_update_visible_options();
     }
@@ -200,6 +209,14 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
                     options.default_boolean_values,
                     options.hide_filter,
                     options.no_inter_filter,
+                    options.has_other_ref_api_type_id,
+                    options.other_ref_api_type_id,
+                    options.exclude_filter_opt_values,
+                    options.exclude_ts_range_values,
+                    options.placeholder_advanced_mode,
+                    options.separation_active_filter,
+                    options.vo_field_sort_lvl2,
+                    options.autovalidate_advanced_filter,
                 ) : null;
             }
         } catch (error) {

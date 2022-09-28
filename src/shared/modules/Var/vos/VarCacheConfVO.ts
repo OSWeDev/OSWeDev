@@ -4,22 +4,31 @@ export default class VarCacheConfVO implements IDistantVOBase {
 
     public static API_TYPE_ID: string = "var_cache_conf";
 
-    public static VALUE_CACHE_STRATEGY_LABELS: string[] = ['var_cache_conf.cache_strategy.estimated_time', 'var_cache_conf.cache_strategy.cardinal', 'var_cache_conf.cache_strategy.pixel'];
-    public static VALUE_CACHE_STRATEGY_ESTIMATED_TIME: number = 0;
-    public static VALUE_CACHE_STRATEGY_CARDINAL: number = 1;
+    public static VALUE_CACHE_STRATEGY_LABELS: string[] = ['var_cache_conf.cache_strategy.cache_all_never_load_chunks', 'var_cache_conf.cache_strategy.cache_none', 'var_cache_conf.cache_strategy.pixel'];
+
+    /**
+     * Attention on remplace la stratégie sur temps passé par une stratégie simple, qui utilise le paramètre cache_bdd_only_requested_params pour savoir
+     *  si on limite la mise en cache aux vars registered.
+     * Stratégie simple : on sauvegarde tout, mais on ne tentera jamais de se baser sur un calcul partiel
+     */
+    public static VALUE_CACHE_STRATEGY_CACHE_ALL_NEVER_LOAD_CHUNKS: number = 0;
+
+    /**
+     * Attention on remplace la stratégie basée sur le cardinal de la var par une stratégie qui ne met rien en cache et ne charge donc rien du cache
+     *  on a fait un patch pour migrer les confs initialement réalisées sur la stratégie cardinal en VALUE_CACHE_STRATEGY_CACHE_ALL_NEVER_LOAD_CHUNKS
+     * Stratégie simple : on sauvegarde rien donc on ne charge rien non plus
+     */
+    public static VALUE_CACHE_STRATEGY_CACHE_NONE: number = 1;
+
+    /**
+     * Stratégie forcée dans le cas d'une var pixellisée : équivalent à une stratégie CACHE_ALL_NEVER_LOAD_CHUNKS mais on chargera les chunks dans la gestion des pixels
+     */
     public static VALUE_CACHE_STRATEGY_PIXEL: number = 2;
 
     public id: number;
     public _type: string = VarCacheConfVO.API_TYPE_ID;
 
     public var_id: number;
-
-    /**
-     * 0 => infini
-     *  FIXME TODO REFONTE dans quel cas on utiliserait ce truc ? Une var utilise des datasources, et donc si on configure
-     *      correctement, on devrait pouvoir invalider par les datasources, et pas par un délai
-     */
-    public cache_timeout_secs: number;
 
     /**
      * Est-ce qu'on utilise la fonction de last-reads pour partial clean du cache, ou on ignore complètement cette logique, ce qui permet de
@@ -35,11 +44,12 @@ export default class VarCacheConfVO implements IDistantVOBase {
      */
     public cache_bdd_only_requested_params: boolean;
 
-    public cache_seuil_a: number;
-    public cache_seuil_b: number;
-    public cache_seuil_c: number;
-    public cache_seuil_c_element: number;
-    public cache_seuil_bdd: number;
-    public calculation_cost_for_1000_card: number;
-    public last_calculations_cost_for_1000_card: number[];
+    public estimated_ctree_ddeps_try_load_cache_complet_1k_card: number;
+    public estimated_ctree_ddeps_load_imports_and_split_nodes_1k_card: number;
+    public estimated_ctree_ddeps_try_load_cache_partiel_1k_card: number;
+    public estimated_ctree_ddeps_get_node_deps_1k_card: number;
+    public estimated_ctree_ddeps_handle_pixellisation_1k_card: number;
+
+    public estimated_load_node_datas_1k_card: number;
+    public estimated_compute_node_1k_card: number;
 }

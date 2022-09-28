@@ -1,0 +1,8 @@
+
+<div class="tables_graph_item">
+  <div class="table_name">{{ table_name }}</div>
+  <hr/>
+  <template v-for="field in fields">
+    <Tablesgraphitemfieldcomponent :field="field"></Tablesgraphitemfieldcomponent>
+  </template>
+</div>

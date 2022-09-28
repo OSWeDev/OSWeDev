@@ -38,7 +38,8 @@ export default class ModuleRequestServer extends ModuleServerBase {
         posts: {} = null,
         headers: {} = null,
         sendHttps: boolean = false,
-        result_headers: {} = null
+        result_headers: {} = null,
+        nojsonparse: boolean = false
     ): Promise<any> {
 
         return new Promise((resolve, reject) => {
@@ -66,11 +67,13 @@ export default class ModuleRequestServer extends ModuleServerBase {
                 res.on('end', () => {
                     let buffer: Buffer = Buffer.concat(result);
 
-                    if (buffer && buffer.length > 0) {
-                        try {
-                            buffer = JSON.parse(buffer.toString());
-                        } catch (e) {
-                            ConsoleHandler.getInstance().error(e);
+                    if (!nojsonparse) {
+                        if (buffer && buffer.length > 0) {
+                            try {
+                                buffer = JSON.parse(buffer.toString());
+                            } catch (e) {
+                                ConsoleHandler.getInstance().error(e);
+                            }
                         }
                     }
 

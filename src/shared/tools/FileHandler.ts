@@ -1,10 +1,9 @@
 /* istanbul ignore file: only one method, and not willing to test it right now*/
 
 import { Stats, statSync } from 'fs';
-import EnvParam from '../../server/env/EnvParam';
-import ThreadHandler from './ThreadHandler';
-import ConsoleHandler from './ConsoleHandler';
 import FileVO from '../modules/File/vos/FileVO';
+import ConsoleHandler from './ConsoleHandler';
+import ThreadHandler from './ThreadHandler';
 
 export default class FileHandler {
 

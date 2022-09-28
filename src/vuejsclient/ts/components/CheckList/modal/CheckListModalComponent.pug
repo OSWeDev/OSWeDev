@@ -1,24 +1,56 @@
 .checklist_modal
-    .modal-header(v-if="checkpoint")
-        h4.modal-title {{ label(checkpoint.name) }}
-        p.modal_desc {{ label(checkpoint.explaination) }}
+    template(v-if="checklist_item")
+        .modal-header
+            template(v-if="ordered_checkpoints && (ordered_checkpoints.length > 1)")
+                .steps_container
+                    ul.checklist_steps(role="tablist")
+                        template(v-for="ordered_cp in ordered_checkpoints")
+                            li.checklist_step(:step_id="ordered_cp.id" role="presentation" :class="get_class_cp(ordered_cp)" @click="change_checkpoint(ordered_cp)")
+                                p
+                                    span {{ label(ordered_cp.name)}}
 
-    .modal-body
-        template(v-if='editable_fields && editable_fields.length')
-            template(v-for='editable_field in editable_fields')
-                Crudcomponentfield(
-                    @onchangevo='onchangevo'
-                    :field="editable_field"
-                    :vo="checklist_item"
-                    :auto_update_field_value='true'
-                    :inline_input_mode='true'
-                    :inline_input_hide_label='false'
-                    :inline_input_read_value="checklist_item[editable_field.module_table_field_id]"
-                    :key='checklist_item.id + "_" + editable_field.module_table_field_id'
-                    :inline_input_show_clear='true'
-                    :inline_input_mode_semaphore='true'
-                    :show_insert_or_update_target='false'
-                    :is_disabled='editable_field.is_readonly'
-                )
-        template(v-else)
-            .no_fields {{ label('checklist_modal.no_fields') }}
+            .checkpoint(v-if="checkpoint")
+                h4.modal-title {{ label(checkpoint.name) }}
+                p.modal_desc {{ label(checkpoint.explaination) }}
+
+        .modal-body
+            template(v-if='editable_fields && editable_fields.length')
+                template(v-if="checkpoint_description")
+                    .checkpoint_description.mb-3
+                        div(v-html="checkpoint_description")
+
+                template(v-for='editable_field in editable_fields')
+                    .editable_field(v-tooltip="tooltip_fields ? tooltip_fields[editable_field.module_table_field_id] : null")
+                        Crudcomponentfield(
+                            @onchangevo='onchangevo'
+                            :field="editable_field"
+                            :vo="checklist_item"
+                            :auto_update_field_value='true'
+                            :inline_input_mode='true'
+                            :inline_input_hide_label='false'
+                            :inline_input_read_value="checklist_item[editable_field.module_table_field_id]"
+                            :key='checklist_item.id + "_" + editable_field.module_table_field_id'
+                            :inline_input_show_clear='false'
+                            :show_insert_or_update_target='false'
+                            :is_disabled='editable_field.is_readonly'
+                            :auto_validate_inline_input='true'
+                            :force_input_is_editing='true'
+                            :inline_input_mode_input_only='true'
+                        )
+            template(v-else)
+                .text-center
+                    i.fa.fa-fw.fa-lg.fa-info-circle
+                template(v-if="checkpoint_description")
+                    .checkpoint_description
+                        div(v-html="checkpoint_description")
+
+            template(v-if="checklist && checklist.show_finalized_btn && is_last_checklist_item && all_steps_done && !checklist_item.finalized")
+                .row
+                    .col-sm-12.text-center.mt-5
+                        button.btn.btn-primary(@click="finalize_checklist") 
+                            .fa.fa-spin.fa-spinner.mr-2(v-if="finalize_checklist_starting")
+                            span {{ label('checklist_modal_' + checklist.id + '.finalize') }}
+                            
+        .modal-footer
+            .btn.btn-primary.previous_step.f-l(v-if="has_previous_step" @click="previous_step") {{ label('checklist_modal.previous_step') }}
+            .btn.btn-primary.next_step.f-r(v-if="has_next_step" @click="next_step") {{ label('checklist_modal.next_step') }}

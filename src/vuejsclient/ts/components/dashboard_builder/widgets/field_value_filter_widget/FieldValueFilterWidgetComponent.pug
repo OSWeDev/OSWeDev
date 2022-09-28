@@ -2,6 +2,7 @@
     template(v-if='is_type_string')
         Fieldvaluefilterstringwidgetcomponent(
             :page_widget="page_widget"
+            :all_page_widget="all_page_widget"
             :dashboard="dashboard"
             :dashboard_page="dashboard_page"
         )
@@ -9,6 +10,7 @@
     template(v-else-if='is_type_number')
         Fieldvaluefilternumberwidgetcomponent(
             :page_widget="page_widget"
+            :all_page_widget="all_page_widget"
             :dashboard="dashboard"
             :dashboard_page="dashboard_page"
         )
@@ -16,6 +18,7 @@
     template(v-else-if='is_type_boolean')
         Fieldvaluefilterbooleanwidgetcomponent(
             :page_widget="page_widget"
+            :all_page_widget="all_page_widget"
             :dashboard="dashboard"
             :dashboard_page="dashboard_page"
         )
@@ -23,6 +26,7 @@
     template(v-else-if='is_type_enum')
         Fieldvaluefilterenumwidgetcomponent(
             :page_widget="page_widget"
+            :all_page_widget="all_page_widget"
             :dashboard="dashboard"
             :dashboard_page="dashboard_page"
         )
@@ -30,6 +34,7 @@
     template(v-else-if='is_type_date')
         Fieldvaluefilterdatewidgetcomponent(
             :page_widget="page_widget"
+            :all_page_widget="all_page_widget"
             :dashboard="dashboard"
             :dashboard_page="dashboard_page"
         )

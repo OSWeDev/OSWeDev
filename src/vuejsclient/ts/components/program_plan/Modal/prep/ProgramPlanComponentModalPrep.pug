@@ -1,29 +1,29 @@
 #rdv_modal_prep
     .row
-        .col-md-12.rdv_confirmed
+        .col-sm-12.rdv_confirmed
             label 
                 input(type="checkbox", v-model="rdv_confirmed", :disabled='!can_edit' @change='onChangeRDVConfirmed')
                 | {{ label('programplan.rdv_modal.confirmed') }}
 
 
     .row(v-if='!!selected_rdv_prep')
-        .col-md-12.prepsandnew
+        .col-sm-12.prepsandnew
             .preps(v-if="!edited_prep")
                 .prep
                     .row
-                        .col-md-12
+                        .col-sm-12
                             i.fa.fa-trash(aria-hidden="true", @click="delete_prep(selected_rdv_prep)" v-if='can_edit')
                             i.fa.fa-pencil(aria-hidden="true", @click="editPrep(selected_rdv_prep)" v-if='can_edit')
                     .row
-                        .col-md-12
+                        .col-sm-12
                             .custom_prep_read_component(:is="custom_prep_read_component" :rdv='selected_rdv' :prep='selected_rdv_prep')
 
     .row(v-if="selected_rdv && selected_rdv.id && canaddprep")
-        .col-md-12.newprep
+        .col-sm-12.newprep
             .custom_prep_create_component(:is="custom_prep_create_component" :rdv='selected_rdv' :create_prep="create_prep")
 
     //- .row
-    //-     .col-md-12.prepsandnew
+    //-     .col-sm-12.prepsandnew
     //-         .preps(v-if="!edited_prep", :class="(newprep_seemore ? '' : 'newprep_seeless')")
     //-             .prep(v-for="(prep, i) in older_preps")
     //-                 template(v-if='i < 10')
@@ -38,5 +38,5 @@
     //-                     .custom_prep_read_component(:is="custom_prep_read_component" :rdv='selected_rdv' :prep='prep')
                                 
     .row(v-if="selected_rdv && selected_rdv.id && edited_prep")
-        .col-md-12.updateprep
+        .col-sm-12.updateprep
             .custom_prep_update_component(:is="custom_prep_update_component" :rdv='selected_rdv' :prep='edited_prep' :update_prep='update_prep' :cancel_edition='cancel_edition')

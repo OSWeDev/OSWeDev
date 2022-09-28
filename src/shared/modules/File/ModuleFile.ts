@@ -7,6 +7,7 @@ import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import FileVO from './vos/FileVO';
+import ArchiveFilesConfVO from './vos/ArchiveFilesConfVO';
 
 export default class ModuleFile extends Module {
 
@@ -49,8 +50,20 @@ export default class ModuleFile extends Module {
             new ModuleTableField('file_access_policy_name', ModuleTableField.FIELD_TYPE_string, 'Nom du droit nécessaire si sécurisé', false),
         ];
 
-        let datatable = new ModuleTable(this, FileVO.API_TYPE_ID, () => new FileVO(), datatable_fields, label_field, "Fichiers");
+        let label_field_ff = new ModuleTableField("path_to_check", ModuleTableField.FIELD_TYPE_string, 'Répertoire', true).unique();
+        let datatable_fields_ff = [
+            label_field_ff,
+            new ModuleTableField('filter_type', ModuleTableField.FIELD_TYPE_enum, 'Type de filtre', true, true, ArchiveFilesConfVO.FILTER_TYPE_MONTH).setEnumValues(ArchiveFilesConfVO.FILTER_TYPE_LABELS),
+            new ModuleTableField("target_achive_folder", ModuleTableField.FIELD_TYPE_file_field, 'Répertoire d\'archivage', true),
+            new ModuleTableField("archive_delay_sec", ModuleTableField.FIELD_TYPE_file_field, 'Archiver au delà de ce délai', true, true, 30 * 24 * 60 * 60), // Defaults to 30 days
+            new ModuleTableField("use_date_type", ModuleTableField.FIELD_TYPE_file_field, 'Répertoire d\'archivage', true, true, ArchiveFilesConfVO.USE_DATE_TYPE_CREATION),
+        ];
+
+        let datatableFilterFile = new ModuleTable(this, ArchiveFilesConfVO.API_TYPE_ID, () => new ArchiveFilesConfVO(), datatable_fields_ff, label_field_ff, "Conf archivage des fichiers");
+
+        let datatable = new ModuleTable(this, FileVO.API_TYPE_ID, () => new FileVO(), datatable_fields, label_field);
         this.datatables.push(datatable);
+        this.datatables.push(datatableFilterFile);
     }
 
     public registerApis() {

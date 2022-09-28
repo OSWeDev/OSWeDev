@@ -1,4 +1,4 @@
-.col-md-12.fixed(v-if="columndata")
+.col-sm-12.fixed(v-if="columndata")
     div(v-if="column && column.is_decimal")
         .row(v-if="columndata.value != null")
             span(:class="columndata.classLabelData") {{ const_filters.toFixed.read(columndata.value, 1) }}

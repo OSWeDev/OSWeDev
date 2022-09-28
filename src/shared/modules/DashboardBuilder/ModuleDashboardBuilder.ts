@@ -74,7 +74,8 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('y', ModuleTableField.FIELD_TYPE_int, 'y', true),
             new ModuleTableField('width', ModuleTableField.FIELD_TYPE_int, 'largeur', true),
             new ModuleTableField('height', ModuleTableField.FIELD_TYPE_int, 'hauteur', true),
-            new ModuleTableField('vo_type', ModuleTableField.FIELD_TYPE_string, 'VOType', true)
+            new ModuleTableField('vo_type', ModuleTableField.FIELD_TYPE_string, 'VOType', true),
+            new ModuleTableField('values_to_exclude', ModuleTableField.FIELD_TYPE_string_array, 'field_id des liens à exclure'),
         ];
 
         let res = new ModuleTable(this, DashboardGraphVORefVO.API_TYPE_ID, () => new DashboardGraphVORefVO(), datatable_fields, null, "Cellule du graph de vos de Dashboard");
@@ -114,6 +115,7 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('default_height', ModuleTableField.FIELD_TYPE_int, 'Hauteur par défaut', true, true, 30),
             new ModuleTableField('default_background', ModuleTableField.FIELD_TYPE_string, 'default_background', true, true, '#f5f5f5'),
             new ModuleTableField('is_filter', ModuleTableField.FIELD_TYPE_boolean, 'is_filter'),
+            new ModuleTableField('is_validation_filters', ModuleTableField.FIELD_TYPE_boolean, 'is_validation_filters'),
         ];
 
         let res = new ModuleTable(this, DashboardWidgetVO.API_TYPE_ID, () => new DashboardWidgetVO(), datatable_fields, name, "Widgets de Dashboard");
@@ -187,8 +189,11 @@ export default class ModuleDashboardBuilder extends Module {
 
             new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
             new ModuleTableField('many_to_many_aggregate', ModuleTableField.FIELD_TYPE_boolean, 'Aggrégation des liens ManyToMany'),
+            new ModuleTableField('disabled_many_to_one_link', ModuleTableField.FIELD_TYPE_boolean, 'Désactiver les liens ManyToOne'),
             new ModuleTableField('is_nullable', ModuleTableField.FIELD_TYPE_boolean, "La donnée peut-être null"),
             new ModuleTableField('show_tooltip', ModuleTableField.FIELD_TYPE_boolean, "Afficher la popup"),
+            new ModuleTableField('is_sticky', ModuleTableField.FIELD_TYPE_boolean, "Figer", false, true, false),
+            new ModuleTableField('header_name', ModuleTableField.FIELD_TYPE_string, "Entête de colonne"),
         ];
 
         this.datatables.push(new ModuleTable(this, TableColumnDescVO.API_TYPE_ID, () => new TableColumnDescVO(), datatable_fields, null, "Référence de champs"));

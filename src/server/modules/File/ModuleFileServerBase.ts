@@ -11,6 +11,7 @@ import StackContext from '../../StackContext';
 import ModuleServerBase from '../ModuleServerBase';
 import PushDataServerController from '../PushData/PushDataServerController';
 import FileServerController from './FileServerController';
+import ArchiveFilesWorkersHandler from './ArchiveFilesWorkersHandler';
 
 export default abstract class ModuleFileServerBase<T extends FileVO> extends ModuleServerBase {
 
@@ -26,6 +27,10 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
 
     public registerServerApiHandlers() {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleFile.APINAME_TEST_FILE_EXISTENZ, this.testFileExistenz.bind(this));
+    }
+
+    public registerCrons(): void {
+        ArchiveFilesWorkersHandler.getInstance();
     }
 
     /**

@@ -16,6 +16,7 @@ import './MonthFilterWidgetComponent.scss';
 import MonthFilterWidgetOptions from './options/MonthFilterWidgetOptions';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import { cloneDeep, isEqual } from 'lodash';
 
 @Component({
     template: require('./MonthFilterWidgetComponent.pug'),
@@ -48,6 +49,7 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
     private auto_select_month_relative_mode: boolean = null;
     private auto_select_month_min: number = null;
     private auto_select_month_max: number = null;
+    private old_widget_options: MonthFilterWidgetOptions = null;
 
     private switch_selection(i: string) {
         this.selected_months[i] = !this.selected_months[i];
@@ -269,6 +271,13 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
 
     @Watch('widget_options', { immediate: true })
     private onchange_widget_options() {
+        if (!!this.old_widget_options) {
+            if (isEqual(this.widget_options, this.old_widget_options)) {
+                return;
+            }
+        }
+
+        this.old_widget_options = cloneDeep(this.widget_options);
 
         /**
          * Si on change la conf de auto_select on veut réinit le filtre (on est en modif donc et on vient de changer la conf on veut voir l'impact)

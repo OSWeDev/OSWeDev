@@ -6,6 +6,7 @@ import TSRange from "../../../../../../../shared/modules/DataRender/vos/TSRange"
 export default class FieldValueFilterWidgetOptions {
 
     public static VO_FIELD_REF_PLACEHOLDER_CODE_PREFIX: string = "FieldValueFilterWidgetOptions.vo_field_ref.placeholder.";
+    public static VO_FIELD_REF_ADVANCED_MODE_PLACEHOLDER_CODE_PREFIX: string = "FieldValueFilterWidgetOptions.vo_field_ref.advanced_mode_placeholder.";
 
     public static get_selected_fields(page_widget: DashboardPageWidgetVO): { [api_type_id: string]: { [field_id: string]: boolean } } {
         let res: { [api_type_id: string]: { [field_id: string]: boolean } } = {};
@@ -39,6 +40,14 @@ export default class FieldValueFilterWidgetOptions {
             }
 
             res[options.vo_field_ref_lvl2.api_type_id][options.vo_field_ref_lvl2.field_id] = true;
+
+            if (options.vo_field_sort_lvl2 && options.vo_field_sort_lvl2.api_type_id && options.vo_field_sort_lvl2.field_id) {
+                if (!res[options.vo_field_sort_lvl2.api_type_id]) {
+                    res[options.vo_field_sort_lvl2.api_type_id] = {};
+                }
+
+                res[options.vo_field_sort_lvl2.api_type_id][options.vo_field_sort_lvl2.field_id] = true;
+            }
         }
 
         if (options.vo_field_ref_multiple && (options.vo_field_ref_multiple.length > 0)) {
@@ -78,6 +87,14 @@ export default class FieldValueFilterWidgetOptions {
         public default_boolean_values: number[],
         public hide_filter: boolean,
         public no_inter_filter: boolean,
+        public has_other_ref_api_type_id: boolean,
+        public other_ref_api_type_id: string,
+        public exclude_filter_opt_values: DataFilterOption[],
+        public exclude_ts_range_values: TSRange,
+        public placeholder_advanced_mode: string,
+        public separation_active_filter: boolean,
+        public vo_field_sort_lvl2: VOFieldRefVO,
+        public autovalidate_advanced_filter: boolean,
     ) { }
 
     public get_placeholder_name_code_text(page_widget_id: number): string {
@@ -86,5 +103,13 @@ export default class FieldValueFilterWidgetOptions {
             return null;
         }
         return FieldValueFilterWidgetOptions.VO_FIELD_REF_PLACEHOLDER_CODE_PREFIX + page_widget_id + '.' + this.vo_field_ref.api_type_id + '.' + this.vo_field_ref.field_id;
+    }
+
+    public get_advanced_mode_placeholder_code_text(page_widget_id: number): string {
+
+        if ((!this.vo_field_ref) || (!page_widget_id)) {
+            return null;
+        }
+        return FieldValueFilterWidgetOptions.VO_FIELD_REF_ADVANCED_MODE_PLACEHOLDER_CODE_PREFIX + page_widget_id + '.' + this.vo_field_ref.api_type_id + '.' + this.vo_field_ref.field_id;
     }
 }

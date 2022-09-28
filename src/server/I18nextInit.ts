@@ -24,7 +24,7 @@ export default class I18nextInit {
 
         ForkedTasksController.getInstance().assert_is_main_process();
 
-        const envParam: EnvParam = ConfigurationService.getInstance().getNodeConfiguration();
+        const envParam: EnvParam = ConfigurationService.getInstance().node_configuration;
 
         // JNE MODIF FLK : traductions
         // Uniquement pour l'index ..... il faut le passer en module du client

@@ -50,7 +50,7 @@ export default class PushDataServerController {
     public static TASK_NAME_notifySession: string = 'PushDataServerController' + '.notifySession';
     public static TASK_NAME_notifyReload: string = 'PushDataServerController' + '.notifyReload';
     public static TASK_NAME_notifyTabReload: string = 'PushDataServerController' + '.notifyTabReload';
-    public static TASK_NAME_notifyVarsTabsReload: string = 'PushDataServerController' + '.notifyVarsTabsReload';
+    // public static TASK_NAME_notifyVarsTabsReload: string = 'PushDataServerController' + '.notifyVarsTabsReload';
 
     public static getInstance(): PushDataServerController {
         if (!PushDataServerController.instance) {
@@ -101,7 +101,7 @@ export default class PushDataServerController {
             promises.push(PushDataServerController.getInstance().notifyVarsDatasBySocket_(socket_id, params[socket_id]));
         }
         await Promise.all(promises);
-    }, 500, { leading: false, trailing: true });
+    }, 100, { leading: false, trailing: true });
 
     private constructor() {
 
@@ -126,7 +126,7 @@ export default class PushDataServerController {
         // ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyReload, this.notifyReload.bind(this));
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyUserLoggedAndRedirectHome, this.notifyUserLoggedAndRedirectHome.bind(this));
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyTabReload, this.notifyTabReload.bind(this));
-        ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyVarsTabsReload, this.notifyVarsTabsReload.bind(this));
+        // ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyVarsTabsReload, this.notifyVarsTabsReload.bind(this));
 
     }
 
@@ -479,30 +479,30 @@ export default class PushDataServerController {
         await ThreadHandler.getInstance().sleep(PushDataServerController.NOTIF_INTERVAL_MS);
     }
 
-    /**
-     * On notifie toutes les tabs subscribed à cet index pour reload
-     */
-    public async notifyVarsTabsReload(var_index: string) {
+    // /**
+    //  * On notifie toutes les tabs subscribed à cet index pour reload
+    //  */
+    // public async notifyVarsTabsReload(var_index: string) {
 
-        // Permet d'assurer un lancement uniquement sur le main process
-        return new Promise(async (resolve, reject) => {
+    //     // Permet d'assurer un lancement uniquement sur le main process
+    //     return new Promise(async (resolve, reject) => {
 
-            if (!await ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(
-                reject, PushDataServerController.TASK_NAME_notifyVarsTabsReload, resolve, var_index)) {
-                return;
-            }
+    //         if (!await ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(
+    //             reject, PushDataServerController.TASK_NAME_notifyVarsTabsReload, resolve, var_index)) {
+    //             return;
+    //         }
 
-            let tabs: { [user_id: number]: { [client_tab_id: string]: boolean } } = VarsTabsSubsController.getInstance().get_subscribed_tabs_ids(var_index);
-            for (let uid in tabs) {
-                let tab = tabs[uid];
+    //         let tabs: { [user_id: number]: { [client_tab_id: string]: number } } = VarsTabsSubsController.getInstance().get_subscribed_tabs_ids(var_index);
+    //         for (let uid in tabs) {
+    //             let tab = tabs[uid];
 
-                for (let tabid in tab) {
-                    await this.notifyTabReload(parseInt(uid.toString()), tabid);
-                }
-            }
-            resolve(true);
-        });
-    }
+    //             for (let tabid in tab) {
+    //                 await this.notifyTabReload(parseInt(uid.toString()), tabid);
+    //             }
+    //         }
+    //         resolve(true);
+    //     });
+    // }
 
 
     // /**

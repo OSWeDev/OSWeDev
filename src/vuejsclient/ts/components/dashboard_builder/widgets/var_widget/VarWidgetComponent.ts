@@ -43,6 +43,7 @@ export default class VarWidgetComponent extends VueComponentBase {
     private throttled_update_visible_options = debounce(this.update_visible_options.bind(this), 500);
 
     private var_param: VarDataBaseVO = null;
+    private last_calculation_cpt: number = 0;
 
     get var_id(): number {
         if (!this.widget_options) {
@@ -58,6 +59,10 @@ export default class VarWidgetComponent extends VueComponentBase {
     }
 
     private async update_visible_options() {
+
+        let launch_cpt: number = (this.last_calculation_cpt + 1);
+
+        this.last_calculation_cpt = launch_cpt;
 
         if (!this.var_id) {
             return this.var_param = null;
@@ -84,6 +89,11 @@ export default class VarWidgetComponent extends VueComponentBase {
             this.get_active_field_filters,
             custom_filters,
             this.dashboard.api_type_ids);
+
+        // Si je ne suis pas sur la dernière demande, je me casse
+        if (this.last_calculation_cpt != launch_cpt) {
+            return;
+        }
 
         // let query = new ContextQueryVO();
         // query.base_api_type_id = this.vo_field_ref.api_type_id;

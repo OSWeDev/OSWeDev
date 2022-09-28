@@ -1,4 +1,5 @@
 import IWeightedItem from "../../../tools/interfaces/IWeightedItem";
+import NumRange from "../../DataRender/vos/NumRange";
 import IDistantVOBase from "../../IDistantVOBase";
 import ModuleTableField from "../../ModuleTableField";
 import VOsTypesManager from "../../VOsTypesManager";
@@ -14,12 +15,14 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
         "table_column_desc.type.var_ref",
         "table_column_desc.type.select_box",
         "table_column_desc.type.component",
+        "table_column_desc.type.header",
     ];
     public static TYPE_crud_actions: number = 0;
     public static TYPE_vo_field_ref: number = 1;
     public static TYPE_var_ref: number = 2;
     public static TYPE_select_box: number = 3;
     public static TYPE_component: number = 4;
+    public static TYPE_header: number = 5;
 
     public static SORT_asc: number = 0;
     public static SORT_desc: number = 1;
@@ -53,7 +56,11 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
     get datatable_field_uid() {
         return (this.type == TableColumnDescVO.TYPE_crud_actions) ? '__crud_actions' : this.api_type_id + '___' + this.field_id;
     }
-
+    /**
+     * Si TYPE_header
+     */
+    public header_name: string;
+    public children: TableColumnDescVO[] = [];
     /**
      * Si TYPE_component
      */
@@ -89,12 +96,18 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
      */
     public can_filter_by: boolean;
 
+    /**
+     * Permet de figer la colonne (tjrs visible)
+     */
+    public is_sticky: boolean;
+
     public bg_color_header: string;
     public font_color_header: string;
 
     public many_to_many_aggregate: boolean;
     public is_nullable: boolean;
     public show_tooltip: boolean;
+    public disabled_many_to_one_link: boolean;
 
     get is_enum(): boolean {
         if ((!this) || (!this.api_type_id) || (!this.field_id)) {
@@ -118,18 +131,37 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
         if (!page_widget_id) {
             return null;
         }
+
         if (!this.type) {
             return null;
         }
 
-        return DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX + page_widget_id + '.' + this.type + '.' +
-            ((this.type == TableColumnDescVO.TYPE_crud_actions) ? '_' :
-                ((this.type == TableColumnDescVO.TYPE_vo_field_ref) ? this.api_type_id + '.' + this.field_id :
-                    ((this.type == TableColumnDescVO.TYPE_var_ref) ? this.var_id :
-                        ((this.type == TableColumnDescVO.TYPE_select_box) ? '_' : this.component_name
-                        )
-                    )
-                )
-            );
+        let res: string = DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX + page_widget_id + '.' + this.type + '.';
+
+        if (this.type == TableColumnDescVO.TYPE_crud_actions) {
+            res += "_";
+        }
+
+        if (this.type == TableColumnDescVO.TYPE_vo_field_ref) {
+            res += this.api_type_id + '.' + this.field_id;
+        }
+
+        if (this.type == TableColumnDescVO.TYPE_var_ref) {
+            res += this.var_id;
+        }
+
+        if (this.type == TableColumnDescVO.TYPE_select_box) {
+            res += "_";
+        }
+
+        if (this.type == TableColumnDescVO.TYPE_component) {
+            res += this.component_name;
+        }
+
+        if (this.type == TableColumnDescVO.TYPE_header) {
+            res += this.header_name;
+        }
+
+        return res;
     }
 }

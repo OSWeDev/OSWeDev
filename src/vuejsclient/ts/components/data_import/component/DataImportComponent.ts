@@ -25,6 +25,7 @@ import './DataImportComponent.scss';
 import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import NumRange from '../../../../../shared/modules/DataRender/vos/NumRange';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
+import { debounce } from 'lodash';
 
 @Component({
     template: require('./DataImportComponent.pug'),
@@ -133,6 +134,8 @@ export default class DataImportComponent extends DataImportComponentBase {
     private importing_multiple_segments_current_segment: TimeSegment = null;
     private importing_multiple_segments_filevo_id: number = null;
 
+    private debounced_reload_datas = debounce(this.reload_datas, 300);
+
     @Watch("$route")
     public async onrouteChange() {
         await this.handle_modal_show_hide();
@@ -173,7 +176,7 @@ export default class DataImportComponent extends DataImportComponentBase {
     @Watch('valid_api_type_ids', { immediate: true })
     @Watch('getsegments')
     public async onchange_getsegments() {
-        await this.reload_datas();
+        await this.debounced_reload_datas();
     }
 
     @Watch('import_historics')

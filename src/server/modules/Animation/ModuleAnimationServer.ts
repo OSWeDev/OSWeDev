@@ -177,7 +177,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
                 null,
                 null,
                 'code_lang',
-                [ConfigurationService.getInstance().getNodeConfiguration().DEFAULT_LOCALE]
+                [ConfigurationService.getInstance().node_configuration.DEFAULT_LOCALE]
             );
             let lang: LangVO = langs ? langs[0] : null;
 
@@ -362,7 +362,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
                     theme_id_ranges,
                     [RangeHandler.getInstance().create_single_elt_NumRange(res.module_id, NumSegment.TYPE_INT)],
                     [RangeHandler.getInstance().create_single_elt_NumRange(res.user_id, NumSegment.TYPE_INT)]
-                ));
+                ), 'ModuleAnimationServer.endModule');
             } catch (error) {
                 ConsoleHandler.getInstance().error('endModule:get_var_data:' + error + ':FIXME do we need to handle this ?');
             }

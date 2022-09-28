@@ -32,11 +32,11 @@
                     template(slot-scope="{ item }")
 
                         .row
-                            .col-md-2.text-center
+                            .col-sm-2.text-center
                                 Vuenestablehandle(:item="item")
                                     i.fa.fa-bars.fa-fw(aria-hidden="true")
                         
-                            .item_content.col-md-8
+                            .item_content.col-sm-8
                                 Advanceddatefilterwidgetoptionsoptcomponent(
                                     :opt="item"
                                     @remove_opt="remove_opt" 

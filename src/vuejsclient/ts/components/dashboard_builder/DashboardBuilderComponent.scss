@@ -4,7 +4,7 @@
 
     margin-bottom: 500px;
 
-    >.row>.col-md-12>.header {
+    >.row>.col-sm-12>.header {
 
         margin-bottom: 1em;
 
@@ -206,6 +206,12 @@
                 display: inline-block;
                 font-size: 1.2em;
             }
+        }
+    }
+
+    .widget_options {
+        .label {
+            color: #333;
         }
     }
 

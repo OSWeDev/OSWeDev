@@ -2,10 +2,11 @@
 import { expect } from 'chai';
 import 'mocha';
 import ServerAPIController from '../../../server/modules/API/ServerAPIController';
+import VarsComputeController from '../../../server/modules/Var/VarsComputeController';
 import VarsImportsHandler from '../../../server/modules/Var/VarsImportsHandler';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
-import DAG from '../../../shared/modules/Var/graph/dagbase/DAG';
+import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import FakeDataHandler from './fakes/FakeDataHandler';
 import FakeDataVO from './fakes/vos/FakeDataVO';
@@ -46,7 +47,7 @@ describe('VarsImportsHandler', () => {
             [var_data_C, var_data_B],
             [var_data_F]);
 
-        let node_F = VarDAGNode.getInstance(new DAG(), var_data_F);
+        let node_F = VarDAGNode.getInstance(new VarDAG(null), var_data_F, VarsComputeController, true);
         await VarsImportsHandler.getInstance().aggregate_imports_and_remaining_datas(node_F, selected_imports, remaning_calcs);
         expect(node_F.is_aggregator).to.equal(true);
         expect(node_F.aggregated_datas).to.deep.equal({

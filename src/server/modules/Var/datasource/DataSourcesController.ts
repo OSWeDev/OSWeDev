@@ -1,16 +1,13 @@
 import DefaultTranslationManager from '../../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../../shared/modules/Translation/vos/DefaultTranslation';
 import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
-import DataSourceControllerBase from './DataSourceControllerBase';
 import VarsController from '../../../../shared/modules/Var/VarsController';
-import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
-import { createWriteStream } from 'fs';
 import ConfigurationService from '../../../env/ConfigurationService';
-import ObjectHandler from '../../../../shared/tools/ObjectHandler';
-import PerfMonServerController from '../../PerfMon/PerfMonServerController';
 import PerfMonConfController from '../../PerfMon/PerfMonConfController';
+import PerfMonServerController from '../../PerfMon/PerfMonServerController';
+import VarsdatasComputerBGThread from '../bgthreads/VarsdatasComputerBGThread';
 import VarsPerfMonServerController from '../VarsPerfMonServerController';
-import ModuleVarServer from '../ModuleVarServer'; // TEMP DEBUG JFE
+import DataSourceControllerBase from './DataSourceControllerBase';
 
 export default class DataSourcesController {
 
@@ -29,9 +26,6 @@ export default class DataSourcesController {
 
     public registeredDataSourcesController: { [name: string]: DataSourceControllerBase } = {};
     public registeredDataSourcesControllerByVoTypeDep: { [vo_type: string]: DataSourceControllerBase[] } = {};
-
-    private is_first_log: boolean = true;
-
     /**
      * ----- Local thread cache
      */
@@ -42,48 +36,26 @@ export default class DataSourcesController {
      * TODO FIXME : Si on demande les datas une à une c'est très long, si on demande tout en bloc ça plante en dev... donc
      *  on fait des packs
      */
-    public async load_node_datas(dss: DataSourceControllerBase[], node: VarDAGNode, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }): Promise<void> {
+    public async load_node_datas(dss: DataSourceControllerBase[], node: VarDAGNode): Promise<void> {
 
         await PerfMonServerController.getInstance().monitor_async(
             PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__DataSourcesController__load_node_datas],
             async () => {
 
                 let promises = [];
-                let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 3));
+                let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 3));
 
                 for (let i in dss) {
                     let ds = dss[i];
 
-                    if (!ds_cache[ds.name]) {
-                        ds_cache[ds.name] = {};
+                    if (!VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[ds.name]) {
+                        VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[ds.name] = {};
                     }
 
-                    // TODO FIXME promises.length
                     if (promises.length >= max) {
                         await Promise.all(promises);
                         promises = [];
                     }
-
-                    // // TODO FIXME ne pas livrer !!!
-                    // if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_VARS) {
-
-                    //     let logger = (!this.is_first_log) ?
-                    //         createWriteStream('log.txt', {
-                    //             flags: 'a' // 'a' means appending (old data will be preserved)
-                    //         }) :
-                    //         createWriteStream('log.txt');
-                    //     this.is_first_log = false;
-
-                    //     logger.write(node.var_data.index + ':' + ds.name + ':' + (ObjectHandler.getInstance().hasAtLeastOneAttribute(ds_cache[ds.name]) ? 'has_cache' : 'no_cache') + '\n'); // append string to your file
-                    //     logger.close();
-                    // }
-
-                    // TEMP DEBUG JFE - start
-                    // if (!ModuleVarServer.getInstance().cpt_for_datasources[ds.name]) {
-                    //     ModuleVarServer.getInstance().cpt_for_datasources[ds.name] = 0;
-                    // }
-                    // ModuleVarServer.getInstance().cpt_for_datasources[ds.name]++;
-                    // TEMP DEBUG JFE - end
 
                     // Si on est sur du perf monitoring on doit faire les appels séparément...
                     let perfmon = PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__DataSourceControllerBase__load_node_data];
@@ -92,20 +64,17 @@ export default class DataSourcesController {
                             perfmon,
                             ds.load_node_data,
                             ds,
-                            [node, ds_cache[ds.name]],
+                            [node],
                             VarsPerfMonServerController.getInstance().generate_pmlinfos_from_node_and_ds(node, ds)
                         );
                     } else {
-                        promises.push(ds.load_node_data(node, ds_cache[ds.name]));
+                        promises.push(ds.load_node_data(node));
                     }
                 }
 
                 if (promises && promises.length) {
                     await Promise.all(promises);
                 }
-
-                // TEMP DEBUG JFE :
-                // ConsoleHandler.getInstance().log("cpt_for_datasources :: " + JSON.stringify(ModuleVarServer.getInstance().cpt_for_datasources));
             },
             this,
             null,

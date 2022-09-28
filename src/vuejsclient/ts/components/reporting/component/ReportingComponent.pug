@@ -4,7 +4,7 @@
         include ./filters/filters.pug
         
     .row(v-if="selected_card")
-        .col-md-12
+        .col-sm-12
             v-client-table.reporting_table(
                 :columns="selected_card_columns",
                 :data="data_selected_card",
@@ -36,5 +36,5 @@
                             template(v-for='column in selected_card.columnsFooter')
                                 td(:colspan='column.colspan', :class='getClassesColumn(column)') {{ t(column.label) }}
                         
-        .col-md-12(v-if="selected_card.message_footer")
+        .col-sm-12(v-if="selected_card.message_footer")
             span {{ t(selected_card.message_footer) }}

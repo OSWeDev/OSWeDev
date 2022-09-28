@@ -10,6 +10,7 @@
                         :sync="true"
                         :width="100"
                         :labels="{checked: label('vo_field_ref_advanced.advanced_filters.visible'), unchecked: label('vo_field_ref_advanced.advanced_filters.hidden')}")
+                        
 
         template(v-if='advanced_filters')
             .vo_field_advanced_string_filters
@@ -26,7 +27,6 @@
                                         :options="filter_type_options"
                                         :custom-label="filter_type_label"
                                         autocomplete="off"
-
                                         :show-labels="false"
                                         :searchable="false"
                                         :internal-search="false"
@@ -42,12 +42,13 @@
                                     )
 
                             .advanced_string_filter_content(v-if='has_content_filter_type[advanced_string_filter.filter_type]', :class="{hide_advanced_string_filter_type: hide_advanced_string_filter_type}")
-                                input(v-model='advanced_string_filter.filter_content')
+                                input(v-model='advanced_string_filter.filter_content' :placeholder='advanced_mode_placeholder' @change="onchange_advanced_string_filter_content")
                             template(v-if='parseInt(i.toString()) == (advanced_string_filters.length - 1)')
                                 //- .advanced_string_filter_add_filter(v-tooltip.top='label("advanced_filters.add")' @click='add_advanced_string_filter')
                                 //-     i.fa.fa-plus-circle.fa-lg.btn_icon
-                                .advanced_string_filter_validate_filter(v-tooltip.top='label("advanced_filters.validate")' @click='validate_advanced_string_filter' :class='{"disabled": !is_advanced_filter_valid}')
-                                    i.fa.fa-check-circle.fa-lg.btn_icon
+                                template(v-if="!autovalidate_advanced_filter")
+                                    .advanced_string_filter_validate_filter(v-tooltip.top='label("advanced_filters.validate")' @click='validate_advanced_string_filter' :class='{"disabled": !is_advanced_filter_valid}')
+                                        i.fa.fa-check-circle.fa-lg.btn_icon
                             template(v-else)
                                 .advanced_string_filter_link_type(v-tooltip.top='label("advanced_filters.link_type")' @click='switch_link_type(advanced_string_filter)')
                                     i.fa.fa-circle.fa-lg.btn_icon
@@ -107,9 +108,18 @@
                         .search_field.mb-2
                             input.form-control(type="text" v-model="search_field_checkbox" @input="debounced_query_update_visible_options_checkbox")
                     .container_filter_opt(:class="{has_search_field: show_search_field, has_vo_field_ref_label: vo_field_ref_label}")
+                        template(v-if="separation_active_filter")
+                            template(v-for="(opt, index) in tmp_filter_active_options")
+                                .filter_opt
+                                    input(:type="(can_select_multiple) ? 'checkbox' : 'radio'" :id="opt.label + index" name="filter_opt" :key="opt.label" :checked="true" @change="onchange_filter_opt_input($event.target, opt)")                            
+                                    template(v-if='is_translatable_type')
+                                        label.option__title.ml-2(:for="opt.label + index") {{ label(opt.label) }}
+                                    template(v-else)
+                                        label.option__title.ml-2(:for="opt.label + index") {{ opt.label }}
+                            hr(v-if="tmp_filter_active_options && (tmp_filter_active_options.length > 0)")
                         template(v-for="(opt, index) in filter_visible_options")
                             .filter_opt
-                                input(:type="(can_select_multiple) ? 'checkbox' : 'radio'" :id="base_filter + index" name="filter_opt" @change="onchange_filter_opt_input($event.target, opt)")                            
+                                input(:checked="tmp_filter_active_options.findIndex((e) => e.label == opt.label) >= 0" :type="(can_select_multiple) ? 'checkbox' : 'radio'" :id="base_filter + index" name="filter_opt" :key="opt.label" @change="onchange_filter_opt_input($event.target, opt)")                            
                                 template(v-if='is_translatable_type')
                                     label.option__title.ml-2(:for="base_filter + index") {{ label(opt.label) }}
                                 template(v-else)

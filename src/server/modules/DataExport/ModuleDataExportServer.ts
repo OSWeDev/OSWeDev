@@ -234,7 +234,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         }
 
         let promises = [];
-        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2));
+        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 2));
         for (let i in datas) {
             let data = datas[i];
 
@@ -655,6 +655,21 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     }
 
     /**
+     * Objectif : formatage d'un timestamp en object Date en utc pour l'export excel
+     * @param timestamp timestamp à convertir en date UTC
+     * @returns Objet Date
+     */
+    private format_date_utc(timestamp: number): Date {
+        if (timestamp) {
+            /**
+             * On soustrait le timezone local, et les 21 secondes pour Excel ... cf https://github.com/SheetJS/sheetjs/issues/2152 pour les 21 seconds en dur....
+             */
+            return new Date(Date.UTC(Dates.year(timestamp), Dates.month(timestamp), Dates.day(timestamp), 0, 0, 0) + ((new Date()).getTimezoneOffset() * 60 * 1000) - 21000);
+        }
+        return null;
+    }
+
+    /**
      * Traduire le champs field.field_id de src_vo dans dest_vo dans l'optique d'un export excel
      * @param field le descriptif du champs à traduire
      * @param src_vo le vo source
@@ -699,15 +714,14 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
             case ModuleTableField.FIELD_TYPE_tstz:
 
-                let date = src_vo[field_id] ? new Date(src_vo[field_id] * 1000) : null;
-                dest_vo[field_id] = date;
+                dest_vo[field_id] = this.format_date_utc(src_vo[field_id]);
                 break;
 
             case ModuleTableField.FIELD_TYPE_tstz_array:
                 if ((src_vo[field_id] === null) || (typeof src_vo[field_id] === 'undefined')) {
                     dest_vo[field_id] = src_vo[field_id];
                 } else {
-                    dest_vo[field_id] = (src_vo[field_id] as number[]).map((ts: number) => new Date(ts * 1000));
+                    dest_vo[field_id] = (src_vo[field_id] as number[]).map((ts: number) => this.format_date_utc(ts));
                 }
                 break;
 
@@ -754,7 +768,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     ) {
 
         let promises = [];
-        let max_connections_to_use = Math.max(1, Math.floor(ConfigurationService.getInstance().getNodeConfiguration().MAX_POOL / 2));
+        let max_connections_to_use = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 2));
         for (let field_id in exportable_datatable_custom_field_columns) {
             let custom_field_translatable_name = exportable_datatable_custom_field_columns[field_id];
             let cb = TableWidgetCustomFieldsController.getInstance().custom_components_export_cb_by_translatable_title[custom_field_translatable_name];

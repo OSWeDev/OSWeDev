@@ -39,14 +39,13 @@ export default abstract class DataSourceControllerBase {
      * ATTENTION : cette fonction a été réemployée mais le fonctionnalité est différente. Initialement utilisée pour charger la donnée depuis le cache
      *  là on veut vraiment charger la data depuis la source de données (base, fichier, ...)
      */
-    public abstract get_data(param: VarDataBaseVO, ds_cache: { [ds_data_index: string]: any }): Promise<any>;
+    public abstract get_data(param: VarDataBaseVO): Promise<any>;
 
     /**
      * Stratégie de chargement des données en fonction du var_data contenu dans le node
      * @param node
-     * @param ds_cache
      */
-    public abstract load_node_data(node: VarDAGNode, ds_cache: { [ds_data_index: string]: any });
+    public abstract load_node_data(node: VarDAGNode);
 
     public registerDataSource() {
         DataSourcesController.getInstance().registerDataSource(this);

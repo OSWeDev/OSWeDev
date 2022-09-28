@@ -1,4 +1,5 @@
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -14,6 +15,7 @@ import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModuleServerBase from '../ModuleServerBase';
@@ -111,6 +113,9 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCreateTrigger.registerHandler(MaintenanceVO.API_TYPE_ID, this.handleTriggerPreC_MaintenanceVO);
 
+        // Quand on modifie une maintenance, quelle qu'elle soit, on informe pas, il faudrait informer les 3 threads
+        //  ça se mettra à jour dans les 30 secondes
+
         ForkedTasksController.getInstance().register_task(MaintenanceServerController.TASK_NAME_handleTriggerPreC_MaintenanceVO, this.handleTriggerPreC_MaintenanceVO.bind(this));
         ForkedTasksController.getInstance().register_task(MaintenanceServerController.TASK_NAME_end_maintenance, this.end_maintenance.bind(this));
         ForkedTasksController.getInstance().register_task(MaintenanceServerController.TASK_NAME_start_maintenance, this.start_maintenance.bind(this));
@@ -144,6 +149,8 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         maintenance.maintenance_over = true;
         maintenance.end_ts = Dates.now();
 
+        ModuleDAOServer.getInstance().global_update_blocker = false;
+
         await PushDataServerController.getInstance().broadcastAllSimple(NotificationVO.SIMPLE_SUCCESS, ModuleMaintenance.MSG4_code_text);
         await ModuleDAO.getInstance().insertOrUpdateVO(maintenance);
         await PushDataServerController.getInstance().notifyDAOGetVoById(session.uid, null, MaintenanceVO.API_TYPE_ID, maintenance.id);
@@ -175,13 +182,13 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
 
     public async start_maintenance(validation_code: string): Promise<void> {
 
-        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(MaintenanceServerController.TASK_NAME_start_maintenance)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(MaintenanceServerController.TASK_NAME_start_maintenance, validation_code)) {
             return;
         }
 
         ConsoleHandler.getInstance().log('Maintenance demandée:' + validation_code);
 
-        if (ConfigurationService.getInstance().getNodeConfiguration().START_MAINTENANCE_ACCEPTATION_CODE != validation_code) {
+        if (ConfigurationService.getInstance().node_configuration.START_MAINTENANCE_ACCEPTATION_CODE != validation_code) {
             ConsoleHandler.getInstance().error('Maintenance refusée');
 
             return;
@@ -214,17 +221,10 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
     }
 
     public async get_planned_maintenance(): Promise<MaintenanceVO> {
-        let maintenances: MaintenanceVO[] = await ModuleDAO.getInstance().getVos<MaintenanceVO>(MaintenanceVO.API_TYPE_ID);
-
-        for (let i in maintenances) {
-            let maintenance = maintenances[i];
-
-            if (!maintenance.maintenance_over) {
-                return maintenance;
-            }
-        }
-
-        return null;
+        let maintenances: MaintenanceVO[] = await query(MaintenanceVO.API_TYPE_ID)
+            .filter_is_false('maintenance_over')
+            .select_vos<MaintenanceVO>();
+        return (maintenances && maintenances.length) ? maintenances[0] : null;
     }
 
     private async handleTriggerPreC_MaintenanceVO(maintenance: MaintenanceVO): Promise<boolean> {

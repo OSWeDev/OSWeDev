@@ -248,6 +248,10 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
                     await CRUDFormServices.getInstance().updateManyToMany(self.editableVO, self.crud.createDatatable, updatedVO, self.removeData, self.storeData, self);
                     await CRUDFormServices.getInstance().updateOneToMany(self.editableVO, self.crud.createDatatable, updatedVO, self.getStoredDatas, self.updateData);
 
+                    if (self.crud.postUpdate) {
+                        await self.crud.postUpdate(self.editableVO);
+                    }
+
                     self.updateData(updatedVO);
                 } catch (error) {
                     ConsoleHandler.getInstance().error(error);

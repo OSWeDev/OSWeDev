@@ -1,13 +1,13 @@
 .field_value_filter_number_widget_component
     template(v-if='vo_field_ref')
         .vo_field_ref_label {{ vo_field_ref_label }}
-        .vo_field_ref_advanced
-            toggle-button(
-                @change="switch_advanced_filters" 
-                :value="advanced_filters" 
-                :sync="true"
-                :width="100"
-                :labels="{checked: label('vo_field_ref_advanced.advanced_filters.visible'), unchecked: label('vo_field_ref_advanced.advanced_filters.hidden')}")
+        //- .vo_field_ref_advanced
+        //-     toggle-button(
+        //-         @change="switch_advanced_filters" 
+        //-         :value="advanced_filters" 
+        //-         :sync="true"
+        //-         :width="100"
+        //-         :labels="{checked: label('vo_field_ref_advanced.advanced_filters.visible'), unchecked: label('vo_field_ref_advanced.advanced_filters.hidden')}")
 
         template(v-if='advanced_filters')
             .vo_field_advanced_number_filters
@@ -39,7 +39,7 @@
                                 )
 
                             .advanced_number_filter_content(v-if='has_content_filter_type[advanced_number_filter.filter_type]')
-                                input(v-model='advanced_number_filter.filter_content')
+                                input(v-model='advanced_number_filter.filter_content' @change="onchange_advanced_number_filter_content")
                             template(v-if='parseInt(i.toString()) == (advanced_number_filters.length - 1)')
                                 //- .advanced_number_filter_add_filter(v-tooltip.top='label("advanced_filters.add")' @click='add_advanced_number_filter')
                                 //-     i.fa.fa-plus-circle.fa-lg.btn_icon

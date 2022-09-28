@@ -39,7 +39,6 @@ export default class VarsImportsHandler {
      *          - Pour chaque élément de la liste ordonnée des imports (après le premier) si cardinal > cardinal acceptable, continue, sinon on verifie que ça intersecte pas
      * @param node
      * @param vars_datas
-     * @param ds_cache
      */
     public async load_imports_and_split_nodes(
         node: VarDAGNode,

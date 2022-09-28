@@ -1,6 +1,6 @@
-.form-group(:class="{[field_type]:true, inline_input_mode:inline_input_mode, has_alert:(get_alerts && get_alerts[alert_path] && (get_alerts[alert_path].length > 0))}" @click='try_prepare_inline_input')
+.form-group(:class="{[field_type]:true, auto_validate_inline_input:auto_validate_inline_input, inline_input_mode:inline_input_mode, has_alert:(get_alerts && get_alerts[alert_path] && (get_alerts[alert_path].length > 0))}" @click='try_prepare_inline_input')
 
-    template(v-if='inline_input_mode && (!is_disabled) && (!inline_input_mode_input_only)')
+    template(v-if='inline_input_mode && (!is_disabled) && (!inline_input_mode_input_only) && (!auto_validate_inline_input)')
         template(v-if='!inline_input_is_editing')
             template(v-if='inline_input_show_clear && !field.is_required')
                 i.inline_input_show_clear.fa.fa-trash.btn-danger(@click='inline_clear_value' :class="{busy: inline_input_is_busy}")
@@ -19,7 +19,7 @@
         template(v-if="maxlength")
             .maxlength.italic.f-r {{ field_value_length }} / {{ maxlength }}
     template(v-else-if="(field_type == 'text') || (field_type == 'email')")
-        input(:placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @change="validateEndOfInput($event.target)" @blur="on_blur_emit" @focus="on_focus" :id="input_elt_id" :maxlength="maxlength", :autocomplete="autocomplete_input ? 'on' : 'off'")
+        input(:placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" :type="field_type" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @change="validateEndOfInput($event.target)" @blur="on_blur_emit" @focus="on_focus" :id="input_elt_id" :maxlength="maxlength", :autocomplete="autocomplete_input ? 'on' : 'off'")
         template(v-if="maxlength")
             .maxlength.italic.f-r {{ field_value_length }} / {{ maxlength }}
     template(v-else-if="field_type == 'textarea'")
@@ -31,7 +31,7 @@
         template(v-if="maxlength")
             .maxlength.italic.f-r {{ field_value_length }} / {{ maxlength }}
     template(v-else-if="field_type == 'boolean'")
-        template(v-if="inline_input_mode && (!inline_input_is_editing) && (!field.is_required) && !force_toggle_button")
+        template(v-if="inline_input_mode && (!inline_input_is_editing) && (!field.is_required) && (!force_toggle_button || !field.force_toggle_button)")
             .bool_field_inline_readonly_value
                 template(v-if="field_value == true")
                     | {{ label('crud.field.boolean.true') }}
@@ -40,7 +40,7 @@
                 template(v-else)
                     | {{ label('crud.field.boolean.n_a') }}
         template(v-else)
-            template(v-if="field.is_required || force_toggle_button")
+            template(v-if="field.is_required ||( force_toggle_button || field.force_toggle_button)")
                 toggle-button(
                     @keypress="onkeypress($event)"
                     @keydown.esc='onkeypress_escape'
@@ -55,13 +55,13 @@
             template(v-else)
                 .form-checks
                     .form-check
-                        input.form-check-input(type="radio" v-model="field_value" :value="null" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" :id="'materialChecked_' + input_elt_id + '___N_A_' + random_number" @input="validateInput($event.target)" @blur="$emit('blur', $event.target.value)", :autocomplete="autocomplete_input ? 'on' : 'off'")
+                        input.form-check-input(type="radio" v-model="field_value" :value="null" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" :id="'materialChecked_' + input_elt_id + '___N_A_' + random_number" @change="validateInput($event.target)" @blur="$emit('blur', $event.target.value)", :autocomplete="autocomplete_input ? 'on' : 'off'")
                         label.form-check-label(:for="'materialChecked_' + input_elt_id + '___N_A_' + random_number") {{ label('crud.field.boolean.n_a') }}
                     .form-check
-                        input.form-check-input(type="radio" v-model="field_value" :value="true" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" :id="'materialChecked_' + input_elt_id + '___TRUE_' + random_number" @input="validateInput($event.target)" @blur="$emit('blur', $event.target.value)", :autocomplete="autocomplete_input ? 'on' : 'off'")
+                        input.form-check-input(type="radio" v-model="field_value" :value="true" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" :id="'materialChecked_' + input_elt_id + '___TRUE_' + random_number" @change="validateInput($event.target)" @blur="$emit('blur', $event.target.value)", :autocomplete="autocomplete_input ? 'on' : 'off'")
                         label.form-check-label(:for="'materialChecked_' + input_elt_id + '___TRUE_' + random_number") {{ label('crud.field.boolean.true') }}
                     .form-check
-                        input.form-check-input(type="radio" v-model="field_value" :value="false" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" :id="'materialChecked_' + input_elt_id + '___FALSE_' + random_number" @input="validateInput($event.target)" @blur="$emit('blur', $event.target.value)", :autocomplete="autocomplete_input ? 'on' : 'off'")
+                        input.form-check-input(type="radio" v-model="field_value" :value="false" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" :id="'materialChecked_' + input_elt_id + '___FALSE_' + random_number" @change="validateInput($event.target)" @blur="$emit('blur', $event.target.value)", :autocomplete="autocomplete_input ? 'on' : 'off'")
                         label.form-check-label(:for="'materialChecked_' + input_elt_id + '___FALSE_' + random_number") {{ label('crud.field.boolean.false') }}
     template(v-else-if="field_type == 'number'")
         input(inputmode="numeric" :placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" type="number" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @change="validateEndOfInput($event.target)" @blur="on_blur_emit" @focus="on_focus" :id="input_elt_id", :autocomplete="autocomplete_input ? 'on' : 'off'")
@@ -251,9 +251,9 @@
     template(v-if='inverse_label')
         include ./CRUDComponentFieldLabel
 
-    template(v-if='inline_input_mode && (!is_disabled) && (!inline_input_mode_input_only)')
-        template(v-if='inline_input_is_editing')
-            i.inline_input_is_editing.fa.fa-floppy-o.btn-success(@click='validate_inline_input' :class="{busy: inline_input_is_busy}")
-        template(v-else)
+    template(v-if='inline_input_mode && (!is_disabled) && ((!inline_input_mode_input_only) || auto_validate_inline_input)')
+        template(v-if='inline_input_is_editing || auto_validate_inline_input')
+            i.inline_input_is_editing.fa.fa-floppy-o.btn-success(@click='validate_inline_input' :class="{busy: inline_input_is_busy, auto_validate: auto_validate_inline_input, is_auto_validating: auto_validate_inline_input && (inline_input_is_busy || !!auto_validate_start)}")
+        template(v-else-if='!auto_validate_inline_input')
             i.inline_input_is_not_editing.fa.fa-pencil.btn-primary(@click='prepare_inline_input' :class="{busy: inline_input_is_busy}")
 

@@ -32,6 +32,9 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
     private page_widget: DashboardPageWidgetVO;
 
     @Prop({ default: null })
+    private all_page_widget: DashboardPageWidgetVO[];
+
+    @Prop({ default: null })
     private dashboard: DashboardVO;
 
     @Prop({ default: null })
@@ -231,6 +234,14 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
                     options.default_boolean_values,
                     options.hide_filter,
                     options.no_inter_filter,
+                    options.has_other_ref_api_type_id,
+                    options.other_ref_api_type_id,
+                    options.exclude_filter_opt_values,
+                    options.exclude_ts_range_values,
+                    options.placeholder_advanced_mode,
+                    options.separation_active_filter,
+                    options.vo_field_sort_lvl2,
+                    options.autovalidate_advanced_filter,
                 ) : null;
             }
         } catch (error) {

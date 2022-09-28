@@ -1,0 +1,15 @@
+
+<div class="tables_graph">
+  <div class="row"> 
+    <div class="col-md-9 container_wrapper">
+      <div class="container" ref="container"></div>
+    </div>
+    <div class="col-md-3 fields_wrapper">
+      <div class="sidebar" ref="sidebar">
+        <h2>{{toggle}}</h2>
+        <Tablesgrapheditformcomponent ref="form" @delete_cell="delete_cell" @toggleCheck="toggleCheck" :cell-data="current_cell"></Tablesgrapheditformcomponent>
+      </div>
+      <Droppablevoscomponent ref="droppables"></Droppablevoscomponent>
+    </div>
+  </div>
+</div>

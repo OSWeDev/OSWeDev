@@ -5,7 +5,7 @@
     Checklistitemmodalcomponent(ref='Checklistitemmodalcomponent')
 
     //- (@click="(event) => select_widget_and_stop(event, null)")
-    .grid_wrapper(:class="{ filter_plie: !is_filtres_deplie }")
+    .grid_wrapper(:class="{ filter_plie: (dashboard_page.group_filters && !is_filtres_deplie) }")
         template(v-if='!editable_dashboard_page')
             i.fa.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
         template(v-else)
@@ -24,16 +24,16 @@
             )
                 template(v-if="dashboard_page.group_filters")
                     .filters-bloc.mt-3
-                        .row.header-filters-bloc
+                        .row.header-filters-bloc.clickable(@click="change_is_filtres_deplie")
                             .col.text-center
                                 Inlinetranslatabletext(:code_text="dashboard_page.translatable_group_filters_code_text" :is_editable="editable" default_translation="Filtres")
                             .col.text-right.chevron
                                 template(v-if="is_filtres_deplie")
-                                    i.fa.fa-chevron-up(@click="change_is_filtres_deplie")
+                                    i.fa.fa-chevron-up
                                 template(v-else)
-                                    i.fa.fa-chevron-down(@click="change_is_filtres_deplie")
+                                    i.fa.fa-chevron-down
 
-                        .row.body-filters-bloc(v-if="is_filtres_deplie")
+                        .row.body-filters-bloc(v-show="is_filtres_deplie")
                             template(v-for="item in editable_dashboard_page.layout")
                                 template(v-if='!item.hide')
                                     template(v-if='widgets_by_id[item.widget_id].is_filter')

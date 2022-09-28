@@ -9,29 +9,29 @@ tr.checklistitem
 
     td.step(v-for='checkpoint in ordered_checkpoints')
         .step_wrapper(
-            :class='{clickable:(state_steps[checkpoint.name] != STATE_DISABLED)&&(checkpoints_editable_fields[checkpoint.id] && checkpoints_editable_fields[checkpoint.id].length)}' 
+            :class='{clickable:(state_steps[checkpoint.name] != STATE_DISABLED)}' 
             @click='openmodal(checkpoint)' 
             v-tooltip.left='checkpoint_descriptions[checkpoint.id]')
             template(v-if='state_steps[checkpoint.name] == STATE_DISABLED')
                 i.text-muted.fa.fa-fw(
                     aria-hidden="true" 
-                    :class='(checkpoints_editable_fields[checkpoint.id] && checkpoints_editable_fields[checkpoint.id].length) ? "fa-check-circle" : "fa-magic"')
+                    :class='(checkpoints_editable_fields[checkpoint.id] && checkpoints_editable_fields[checkpoint.id].length) ? "fa-check-circle" : "fa-info-circle"')
             template(v-else-if='state_steps[checkpoint.name] == STATE_TODO')
                 i.text-default.fa.fa-fw(
                     aria-hidden="true" 
-                    :class='(checkpoints_editable_fields[checkpoint.id] && checkpoints_editable_fields[checkpoint.id].length) ? "fa-check-circle" : "fa-magic"')
+                    :class='(checkpoints_editable_fields[checkpoint.id] && checkpoints_editable_fields[checkpoint.id].length) ? "fa-check-circle" : "fa-info-circle"')
             template(v-else-if='state_steps[checkpoint.name] == STATE_ERROR')
                 i.text-danger.fa.fa-fw(
                     aria-hidden="true" 
-                    :class='(checkpoints_editable_fields[checkpoint.id] && checkpoints_editable_fields[checkpoint.id].length) ? "fa-check-circle" : "fa-magic"')
+                    :class='(checkpoints_editable_fields[checkpoint.id] && checkpoints_editable_fields[checkpoint.id].length) ? "fa-check-circle" : "fa-info-circle"')
             template(v-else-if='state_steps[checkpoint.name] == STATE_WARN')
                 i.text-warning.fa.fa-fw(
                     aria-hidden="true" 
-                    :class='(checkpoints_editable_fields[checkpoint.id] && checkpoints_editable_fields[checkpoint.id].length) ? "fa-check-circle" : "fa-magic"')
+                    :class='(checkpoints_editable_fields[checkpoint.id] && checkpoints_editable_fields[checkpoint.id].length) ? "fa-check-circle" : "fa-info-circle"')
             template(v-else-if='state_steps[checkpoint.name] == STATE_OK')
                 i.text-success.fa.fa-fw(
                     aria-hidden="true" 
-                    :class='(checkpoints_editable_fields[checkpoint.id] && checkpoints_editable_fields[checkpoint.id].length) ? "fa-check-circle" : "fa-magic"')
+                    :class='(checkpoints_editable_fields[checkpoint.id] && checkpoints_editable_fields[checkpoint.id].length) ? "fa-check-circle" : "fa-info-circle"')
             template(v-else)
                 i.text-default.fa-fw.fa.fa-cog.fa-spin(aria-hidden="true")
 

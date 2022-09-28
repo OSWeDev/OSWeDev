@@ -10,5 +10,5 @@ export default class CheckListVO implements ICheckList {
     public limit_affichage: number;
     public hide_item_description: boolean;
     public show_legend: boolean;
-
+    public show_finalized_btn: boolean;
 }

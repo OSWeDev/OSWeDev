@@ -6,6 +6,7 @@ import MaintenanceVO from '../../../shared/modules/Maintenance/vos/MaintenanceVO
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import PushDataServerController from '../PushData/PushDataServerController';
+import ModuleMaintenanceServer from './ModuleMaintenanceServer';
 
 export default class MaintenanceServerController {
 
@@ -28,6 +29,7 @@ export default class MaintenanceServerController {
      * Global application cache - Handled by Main process -----
      */
     public planned_maintenance: MaintenanceVO = null;
+    private planned_maintenance_cache_timeout: number = null;
     /**
      * ----- Global application cache - Handled by Main process
      */
@@ -43,6 +45,16 @@ export default class MaintenanceServerController {
 
     protected constructor() {
         ForkedTasksController.getInstance().register_task(MaintenanceServerController.TASK_NAME_set_planned_maintenance_vo, this.set_planned_maintenance_vo.bind(this));
+    }
+
+    public async get_planned_maintenance_vo(): Promise<MaintenanceVO> {
+        if ((!this.planned_maintenance_cache_timeout) ||
+            ((Dates.now() - this.planned_maintenance_cache_timeout) > 30)) {
+            this.planned_maintenance = await ModuleMaintenanceServer.getInstance().get_planned_maintenance();
+            this.planned_maintenance_cache_timeout = Dates.now();
+        }
+
+        return this.planned_maintenance;
     }
 
     public async set_planned_maintenance_vo(maintenance: MaintenanceVO): Promise<void> {
@@ -71,7 +83,9 @@ export default class MaintenanceServerController {
 
         ForkedTasksController.getInstance().assert_is_main_process();
 
-        if (!(this.planned_maintenance && (!this.planned_maintenance.maintenance_over))) {
+        let planned_maintenance = await this.get_planned_maintenance_vo();
+
+        if (!(planned_maintenance && (!planned_maintenance.maintenance_over))) {
             return;
         }
 
@@ -80,16 +94,16 @@ export default class MaintenanceServerController {
             return;
         }
 
-        let timeout_minutes_msg1: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG1_WHEN_SHORTER_THAN_MINUTES);
-        let timeout_minutes_msg2: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG2_WHEN_SHORTER_THAN_MINUTES);
-        let timeout_minutes_msg3: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG3_WHEN_SHORTER_THAN_MINUTES);
+        let timeout_minutes_msg1: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG1_WHEN_SHORTER_THAN_MINUTES, 120);
+        let timeout_minutes_msg2: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG2_WHEN_SHORTER_THAN_MINUTES, 15);
+        let timeout_minutes_msg3: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG3_WHEN_SHORTER_THAN_MINUTES, 5);
 
-        if (Dates.add(this.planned_maintenance.start_ts, -timeout_minutes_msg3, TimeSegment.TYPE_MINUTE) <= Dates.now()) {
-            await PushDataServerController.getInstance().notifySimpleERROR(user_id, null, ModuleMaintenance.MSG3_code_text);
-        } else if (Dates.add(this.planned_maintenance.start_ts, -timeout_minutes_msg2, TimeSegment.TYPE_MINUTE) <= Dates.now()) {
-            await PushDataServerController.getInstance().notifySimpleWARN(user_id, null, ModuleMaintenance.MSG2_code_text);
-        } else if (Dates.add(this.planned_maintenance.start_ts, -timeout_minutes_msg1, TimeSegment.TYPE_MINUTE) <= Dates.now()) {
-            await PushDataServerController.getInstance().notifySimpleINFO(user_id, null, ModuleMaintenance.MSG1_code_text);
+        if (Dates.add(planned_maintenance.start_ts, -timeout_minutes_msg3, TimeSegment.TYPE_MINUTE) <= Dates.now()) {
+            await PushDataServerController.getInstance().notifySimpleERROR(user_id, null, ModuleMaintenance.MSG3_code_text, true);
+        } else if (Dates.add(planned_maintenance.start_ts, -timeout_minutes_msg2, TimeSegment.TYPE_MINUTE) <= Dates.now()) {
+            await PushDataServerController.getInstance().notifySimpleWARN(user_id, null, ModuleMaintenance.MSG2_code_text, true);
+        } else if (Dates.add(planned_maintenance.start_ts, -timeout_minutes_msg1, TimeSegment.TYPE_MINUTE) <= Dates.now()) {
+            await PushDataServerController.getInstance().notifySimpleINFO(user_id, null, ModuleMaintenance.MSG1_code_text, true);
         }
 
         this.informed_users_tstzs[user_id] = Dates.now();

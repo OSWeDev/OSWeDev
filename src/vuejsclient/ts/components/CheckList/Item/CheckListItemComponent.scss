@@ -5,16 +5,12 @@
         vertical-align: middle;
         font-size: 2em;
 
-        .fa-cog.fa-spin{
+        .fa-cog.fa-spin {
             font-size: .5em;
         }
 
-        &.clickable{
+        &.clickable {
             cursor: pointer;
-        }
-
-        .fa-magic{
-            font-size: .7em;
         }
     }
 
@@ -29,7 +25,7 @@
         text-align: center;
     }
 
-    .item_name_wrapper{
+    .item_name_wrapper {
         cursor: pointer;
     }
 }

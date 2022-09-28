@@ -20,6 +20,11 @@ export default class ContextQueryVO implements IDistantVOBase {
     public _type: string = ContextQueryVO.API_TYPE_ID;
 
     /**
+     * Request ID : utilisé quand on est dans un UNION ALL et qu'on veut retrouver son résultat quel que soit l'ordre dans lequel les réponses sont renvoyées par la base de données
+     */
+    public request_id: number;
+
+    /**
      * La table de départ de la requête
      */
     public base_api_type_id: string;
@@ -153,6 +158,11 @@ export default class ContextQueryVO implements IDistantVOBase {
             this.active_api_type_ids = this.active_api_type_ids.concat(to_add);
         }
 
+        return this;
+    }
+
+    public set_request_id(request_id: number): ContextQueryVO {
+        this.request_id = request_id;
         return this;
     }
 
