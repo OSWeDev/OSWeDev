@@ -162,7 +162,7 @@
         "winston": "2.4.1",
         "winston-daily-rotate-file": "1.7.2",
         "wkhtmltopdf": "0.3.4",
-        "xlsx": "0.14.3",
+        "xlsx": "0.17.0",
         "xml-reader": "^2.4.3"
     },
     "devDependencies": {
@@ -239,7 +239,7 @@
         "vuex-typescript": "3.0.2",
         "web-push": "3.3.2",
         "wkhtmltopdf": "0.3.4",
-        "xlsx": "0.14.3"
+        "xlsx": "0.17.0"
     },
     "_dependencies": {
         "pg-promise": "10.11.0"
