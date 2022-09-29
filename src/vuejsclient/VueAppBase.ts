@@ -149,61 +149,11 @@ export default abstract class VueAppBase {
 
         // var baseApiUrl = this.appController.data_base_api_url || '';
 
-        let accepted_language: string = this.appController.SERVER_HEADERS['accept-language'];
-        if (accepted_language) {
-            accepted_language = accepted_language.split(";")[0].split(",")[0].split("-")[0];
-        }
-
-        let user_lang = VueAppController.getInstance().data_user_lang ? VueAppController.getInstance().data_user_lang.code_lang : null;
-
         ConsoleLogLogger.getInstance().prepare_console_logger();
-
-        let language_found = false;
-        if (!!user_lang) {
-            let filtered = this.try_language(user_lang);
-
-            if (filtered) {
-                LocaleManager.getInstance().setDefaultLocale(filtered);
-                language_found = true;
-            }
-        }
-
-        if ((!language_found) && accepted_language) {
-            let filtered = this.try_language(accepted_language);
-
-            if (filtered) {
-                LocaleManager.getInstance().setDefaultLocale(filtered);
-                language_found = true;
-            }
-        }
-
-        if ((!language_found) && navigator.language) {
-            let filtered = this.try_language(navigator.language);
-
-            if (filtered) {
-                LocaleManager.getInstance().setDefaultLocale(filtered);
-                language_found = true;
-            }
-        }
-
-        if ((!language_found) && this.appController.data_default_locale) {
-            let filtered = this.try_language(this.appController.data_default_locale);
-
-            if (filtered) {
-                LocaleManager.getInstance().setDefaultLocale(filtered);
-                language_found = true;
-            }
-        }
-
-        if (!language_found) {
-            LocaleManager.getInstance().setDefaultLocale('fr-fr');
-        }
 
         let default_locale = LocaleManager.getInstance().getDefaultLocale();
         // let uiDebug = this.appController.data_ui_debug == "1" || window.location.search.indexOf('ui-debug=1') != -1;
         moment.locale(default_locale);
-
-        await this.appController.initializeFlatLocales();
 
         Vue.use(ColorPanel);
         Vue.use(ColorPicker);
@@ -551,41 +501,6 @@ export default abstract class VueAppBase {
             if (params.length) {
                 await VarsClientController.getInstance().unRegisterParams(params);
             }
-        }
-    }
-
-    private try_language(code_lang: string): string {
-        /**
-         * On tente de filtrer sur les langs existantes
-         */
-        if (!code_lang) {
-            return null;
-        }
-
-        let code_lang_separator = (code_lang.indexOf('-') > 0) ? '-' : '_';
-
-        let exact = null;
-        let start_exact = null;
-        let code_lang_start = (code_lang && (code_lang.indexOf(code_lang_separator) > 0)) ? code_lang.split(code_lang_separator)[0] : code_lang;
-        for (let i in this.appController.ALL_LANGS) {
-            let lang = this.appController.ALL_LANGS[i];
-
-            if (lang.code_lang.toLowerCase() == code_lang.toLowerCase()) {
-                exact = lang;
-                break;
-            }
-
-            let lang_code_lang_separator = (lang.code_lang.indexOf('-') > 0) ? '-' : '_';
-            let lang_start = (lang.code_lang && (lang.code_lang.indexOf(lang_code_lang_separator) > 0)) ? lang.code_lang.split(lang_code_lang_separator)[0] : lang.code_lang;
-            if (lang_start.toLowerCase() == code_lang_start.toLowerCase()) {
-                start_exact = lang;
-            }
-        }
-
-        if (exact) {
-            return exact.code_lang.toLowerCase();
-        } else if (start_exact) {
-            return start_exact.code_lang.toLowerCase();
         }
     }
 }
