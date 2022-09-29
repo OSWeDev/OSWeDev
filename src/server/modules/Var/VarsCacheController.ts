@@ -192,7 +192,7 @@ export default class VarsCacheController {
                     if ((!var_datas) || (var_datas.length < 100)) {
                         go_to_next_table = true;
                     }
-                    var_datas = var_datas.filter((vd) => vd.value_type == VarDataBaseVO.VALUE_TYPE_COMPUTED);
+                    var_datas = var_datas ? var_datas.filter((vd) => vd.value_type == VarDataBaseVO.VALUE_TYPE_COMPUTED) : [];
 
                     let invalidateds = [];
 
@@ -265,7 +265,10 @@ export default class VarsCacheController {
                         let invalidator = new VarDataInvalidatorVO(invalidated, VarDataInvalidatorVO.INVALIDATOR_TYPE_EXACT, false, false, false);
                         invalidators.push(invalidator);
                     }
-                    await VarsDatasVoUpdateHandler.getInstance().push_invalidators(invalidators);
+
+                    if (invalidators && invalidators.length) {
+                        await VarsDatasVoUpdateHandler.getInstance().push_invalidators(invalidators);
+                    }
 
                     if (go_to_next_table) {
                         this.partially_clean_bdd_cache_offset = 0;

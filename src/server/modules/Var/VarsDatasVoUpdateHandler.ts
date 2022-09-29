@@ -141,6 +141,11 @@ export default class VarsDatasVoUpdateHandler {
      * @returns
      */
     public async push_invalidators(invalidators: VarDataInvalidatorVO[]): Promise<void> {
+
+        if ((!invalidators) || (!invalidators.length)) {
+            return;
+        }
+
         return new Promise(async (resolve, reject) => {
 
             if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
@@ -705,6 +710,10 @@ export default class VarsDatasVoUpdateHandler {
     }
 
     private throttled_push_invalidators(invalidators: VarDataInvalidatorVO[]) {
+        if ((!invalidators) || (!invalidators.length)) {
+            return;
+        }
+
         this.invalidators = this.invalidators.concat(invalidators);
         VarsdatasComputerBGThread.getInstance().force_run_asap();
     }
