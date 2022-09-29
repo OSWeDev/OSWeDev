@@ -3,9 +3,14 @@
         .col-md-12
             form(v-on:submit.prevent="param_from_index")
                 .form-group.has-feedback
-                    textarea.form-control(type='text', v-model='param_index', :placeholder='label("vars_datas_explorer_visualization.param_from_index")')
-                    //- input.form-control(type='text', v-model='param_index', :placeholder='label("vars_datas_explorer_visualization.param_from_index")')
-    .row
+                    input.form-control(type='text', v-model='param_index', :placeholder='label("vars_datas_explorer_visualization.param_from_index")')
+                    textarea.form-control(type='text', v-model='multi_param_index', :placeholder='label("vars_datas_explorer_visualization.param_from_index")')
+                    button.btn-success.m-3(@click="display_all_index") Valider les index
+                    .row(v-if='display_data')
+                        .col-12
+                            template(v-for='filtered_data in get_filtered_datas')
+                                var-data.col-12(:var_param='filtered_data')
+    .row(v-if='!display_data')
         .col-md-12
             template(v-for='filtered_data in get_filtered_datas')
                 var-data(:var_param='filtered_data')

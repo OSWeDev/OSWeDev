@@ -433,9 +433,15 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     get is_item_accepted(): (supervised_item: ISupervisedItem, get_perf?: boolean) => boolean {
         return SupervisionAdminVueModule.getInstance().item_filter_conditions_by_key[this.dashboard_key] ? SupervisionAdminVueModule.getInstance().item_filter_conditions_by_key[this.dashboard_key] : () => true;
     }
+    /**
+     *  ajoute un item à la liste des items selectionnés
+     */
     private select_item(item) {
         this.supervised_item_selected[item.name] = item;
     }
+    /**
+     * Selectionne ou déselectionne tous les items
+     */
     private select_all() {
         this.valide = !this.valide;
         for (const z in this.ordered_supervised_items) {
@@ -444,26 +450,53 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
         }
 
     }
-    private item_read(item: ISupervisedItem) {
+    /**
+     * ajoute les items selectionnés à la liste des items à lus en changeant son state
+     * @param item correspond à l'item que l'on souhaite ajouter à la liste des items lu
+     */
+    private add_item_to_read(item: ISupervisedItem) {
         item.state = SupervisionController.STATE_ERROR_READ;
         ModuleDAO.getInstance().insertOrUpdateVO(item);
         this.debounced_on_change_show();
-        // this.ordered_supervised_items.splice(this.ordered_supervised_items.findIndex((i) => i.name == item.name), 1);
         console.log(item);
     }
-    private remettre_item(item: ISupervisedItem) {
+    /**
+     *  ajoute l'item selectionné à la liste des items à non lus en changeant son state
+     * @param item correspond à l'item que l'on souhaite ajouter à la liste des items à lire
+     */
+    private add_item_to_unread(item: ISupervisedItem) {
         item.state = SupervisionController.STATE_ERROR;
         ModuleDAO.getInstance().insertOrUpdateVO(item);
         this.debounced_on_change_show();
-        // this.ordered_supervised_items.splice(this.ordered_supervised_items.findIndex((i) => i.name == item.name), 1);
         console.log(item);
     }
 
-
-    private items_read() {
+    /**
+     * parcours la map des items selectionnés et les ajoute à la liste des items lus en passant chaque item la fonction add_item_to_read
+     */
+    private add_items_to_read() {
+        if(Object.keys(this.supervised_item_selected).length == 0) {
+            return;
+        }
         for (const e in this.supervised_item_selected) {
             let item_selected_for_delete = this.supervised_item_selected[e];
-            this.item_read(item_selected_for_delete);
+            this.add_item_to_read(item_selected_for_delete);
         }
+        this.supervised_item_selected = {};
+        this.valide = false;
+    }
+    /**
+     * parcours la map des items selectionnés et les ajoute à la liste des items à lire en passant chaque item la fonction add_item_to_unread
+     */
+    private add_items_to_unread() {
+        if(Object.keys(this.supervised_item_selected).length == 0){
+            return;
+        }
+        for (const e in this.supervised_item_selected) {
+            let item_selected_for_delete = this.supervised_item_selected[e];
+            this.add_item_to_unread(item_selected_for_delete);
+        }
+        this.supervised_item_selected = {};
+        this.valide = false;
     }
 }
