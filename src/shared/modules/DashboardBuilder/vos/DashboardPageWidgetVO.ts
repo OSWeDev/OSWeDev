@@ -18,6 +18,10 @@ export default class DashboardPageWidgetVO implements IDistantVOBase, IDashboard
     }
 
     public widget_id: number;
+
+    /**
+     * id de la page pour le widget en question.
+     */
     public page_id: number;
 
     public isDraggable: boolean;

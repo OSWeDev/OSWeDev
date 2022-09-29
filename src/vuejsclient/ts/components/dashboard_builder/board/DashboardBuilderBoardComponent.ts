@@ -1,4 +1,5 @@
 import Component from 'vue-class-component';
+import { cloneDeep } from 'lodash';
 import { GridItem, GridLayout } from "vue-grid-layout";
 import { Prop, Vue, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
@@ -57,6 +58,8 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     @ModuleDashboardPageAction
     private set_Crudcreatemodalcomponent: (Crudcreatemodalcomponent: CRUDCreateModalComponent) => void;
 
+
+
     @ModuleDashboardPageGetter
     private get_widgets_invisibility: { [w_id: number]: boolean };
 
@@ -86,6 +89,8 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     private editable_dashboard_page: IEditableDashboardPage = null;
 
     private is_filtres_deplie: boolean = false;
+
+    private dragged = null;
 
     private throttled_rebuild_page_layout = ThrottleHelper.getInstance().declare_throttle_without_args(this.rebuild_page_layout.bind(this), 200);
 
@@ -258,6 +263,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         );
     }
 
+
     private async resizedEvent(i, newH, newW, newHPx, newWPx) {
         if (!this.widgets) {
             return;
@@ -275,7 +281,14 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         this.set_page_widget(widget);
     }
 
+
     private async movedEvent(i, newX, newY) {
+        /*
+       S'active lorsque le widget est lâché, event donne alors la nouvelle position du widget.
+       C'est une fenêtre de tir pour obtenir la position d'un widget si celui-ci sort du tableau !
+       */
+
+
         if (!this.widgets) {
             return;
         }
@@ -286,11 +299,14 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
             return;
         }
 
+
         widget.x = newX;
         widget.y = newY;
         await ModuleDAO.getInstance().insertOrUpdateVO(widget);
         this.set_page_widget(widget);
     }
+
+
 
     private async delete_widget(page_widget: DashboardPageWidgetVO) {
         let self = this;
@@ -365,6 +381,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     }
 
     private select_widget(page_widget) {
+
         this.$emit('select_widget', page_widget);
     }
 

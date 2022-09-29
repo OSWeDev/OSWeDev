@@ -1,14 +1,14 @@
 .crud_create_modal_wrapper
     #crud_create_modal.modal.fade.in(tabindex='-1', role='dialog')
         .modal-dialog.modal-lg(role='document')
-            .modal-content
+            .modal-content 
                 Crudcreateformcomponent(
                     ref="Crudcreateformcomponent"
+                    :copy_widget="copy_widget"
                     :close_on_submit="true"
                     :show_insert_or_update_target="true"
                     :api_type_id="api_type_id"
                     :show_placeholder="true"
-
                     @close='close_modal'
                     @cancel='close_modal'
                 )

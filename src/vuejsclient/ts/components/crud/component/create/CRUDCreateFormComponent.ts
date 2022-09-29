@@ -61,6 +61,10 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
     @Prop({ default: false })
     private show_placeholder: boolean;
 
+    @Prop({ default: null })
+    private copy_widget: boolean;
+
+
     private editableVO: IDistantVOBase = null;
     private newVO: IDistantVOBase = null;
 

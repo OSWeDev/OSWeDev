@@ -1,34 +1,50 @@
 include ../../../../../views/mixins/loading.pug
-
+//- - var authorized = Boolean({copy_widget})
 .crud_create_form
-    +loading()
-        form(v-on:submit.prevent="createVO")
-            .crud_create_form_header
-                .title.d-ib {{ label('crud.create.modal.title') }}
-                a.btn.close(@click="cancel") &times;
+    template(v-if= "copy_widget")
+            
+            //- p {{copy_widget}}
+            .modal-dialog
+                .modal-content
+                    .modal-header
+                        h5#exampleModalLabel.modal-title Copier/déplacer le widget
+                        button.btn-close(type='button' data-bs-dismiss='modal' aria-label='Close')
+                    .modal-body
+                        | ...
+                    .modal-footer
+                        button.btn.btn-secondary(type='button' data-bs-dismiss='modal') Copier
+                        button.btn.btn-primary(type='button') Déplacer
 
-            .crud_create_form_body
-                .alert.alert-warning(v-if="is_only_readable") {{ label('crud.create.modal.readonly') }}
-                template(v-if="newVO")
-                    template(v-if="has_createDatatable", v-for="field in crud.createDatatable.fields")
-                        Crudcomponentfield(
-                            v-show="!field.hidden",
-                            :key="newVO._type + '_createDatatable_' + field.datatable_field_uid + '_' + crud_createDatatable_key",
-                            :field="field",
-                            :vo="newVO",
-                            :datatable="crud.createDatatable",
-                            :auto_update_field_value="true",
-                            :show_placeholder="show_placeholder",
-                            @uploadedfile="uploadedFile_",
-                            @onchangevo="onChangeVO",
-                            :show_insert_or_update_target='show_insert_or_update_target'
-                            :is_dashboard_builder="true"
-                        )
+    template(v-else)
+        .crud_create_form
+            +loading()
+                form(v-on:submit.prevent="createVO")
+                    .crud_create_form_header
+                        .title.d-ib {{ label('crud.create.modal.title') }}
+                        a.btn.close(@click="cancel") &times;
 
-                template(v-else)
-                    p {{ label('crud.create.modal.content.newvo_failure') }}
+                    .crud_create_form_body
+                        .alert.alert-warning(v-if="is_only_readable") {{ label('crud.create.modal.readonly') }}
+                        template(v-if="newVO")
+                            template(v-if="has_createDatatable", v-for="field in crud.createDatatable.fields")
+                                Crudcomponentfield(
+                                    v-show="!field.hidden",
+                                    :key="newVO._type + '_createDatatable_' + field.datatable_field_uid + '_' + crud_createDatatable_key",
+                                    :field="field",
+                                    :vo="newVO",
+                                    :datatable="crud.createDatatable",
+                                    :auto_update_field_value="true",
+                                    :show_placeholder="show_placeholder",
+                                    @uploadedfile="uploadedFile_",
+                                    @onchangevo="onChangeVO",
+                                    :show_insert_or_update_target='show_insert_or_update_target'
+                                    :is_dashboard_builder="true"
+                                )
 
-            .crud_create_form_footer
-                a.btn.btn-default(v-if="!creating_vo", @click="cancel") {{ label('crud.create.modal.cancel') }}
-                template(v-if="newVO && !creating_vo && !is_only_readable")
-                    input.btn.btn-primary(type="submit" :value="label('crud.create.modal.add')")
+                        template(v-else)
+                            p {{ label('crud.create.modal.content.newvo_failure') }}
+
+                    .crud_create_form_footer
+                        a.btn.btn-default(v-if="!creating_vo", @click="cancel") {{ label('crud.create.modal.cancel') }}
+                        template(v-if="newVO && !creating_vo && !is_only_readable")
+                            input.btn.btn-primary(type="submit" :value="label('crud.create.modal.add')")
