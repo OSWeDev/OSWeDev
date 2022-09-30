@@ -280,7 +280,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      * @param deps_values les valeurs des deps, par id de dep
      */
     private UT__getTestVarDAGNode(param: TData, datasources: { [ds_name: string]: any } = null, deps_values: { [dep_id: string]: number } = null): VarDAGNode {
-        let dag: VarDAG = new VarDAG(null);
+        let dag: VarDAG = new VarDAG();
         let varDAGNode: VarDAGNode = VarDAGNode.getInstance(dag, param, VarsComputeController, false);
 
         if (!varDAGNode) {

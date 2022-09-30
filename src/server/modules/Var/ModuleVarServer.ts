@@ -1245,7 +1245,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             return null;
         }
 
-        let dag: VarDAG = new VarDAG(null);
+        let dag: VarDAG = new VarDAG();
         let varDAGNode: VarDAGNode = VarDAGNode.getInstance(dag, param, VarsComputeController, false);
 
         if (!varDAGNode) {
@@ -1262,7 +1262,7 @@ export default class ModuleVarServer extends ModuleServerBase {
     }
 
     private async getAggregatedVarDatas(param: VarDataBaseVO): Promise<{ [var_data_index: string]: VarDataBaseVO }> {
-        let var_dag: VarDAG = new VarDAG(null);
+        let var_dag: VarDAG = new VarDAG();
         let deployed_vars_datas: { [index: string]: boolean } = {};
         let vars_datas: { [index: string]: VarDataBaseVO } = {
             [param.index]: param
@@ -1332,7 +1332,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         let datasources_deps: DataSourceControllerBase[] = VarsServerController.getInstance().get_datasource_deps_and_predeps(var_controller);
 
         // WARNING on se base sur un fake node par ce que je vois pas comment faire autrement...
-        let dag: VarDAG = new VarDAG(null);
+        let dag: VarDAG = new VarDAG();
         let varDAGNode: VarDAGNode = VarDAGNode.getInstance(dag, param, VarsComputeController, false);
 
         if (!varDAGNode) {
