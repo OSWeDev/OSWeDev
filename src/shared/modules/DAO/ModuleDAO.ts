@@ -39,8 +39,12 @@ export default class ModuleDAO extends Module {
     public static APINAME_delete_all_vos_triggers_ok = "delete_all_vos_triggers_ok";
 
     public static APINAME_DELETE_VOS = "DAO_DELETE_VOS";
+    public static APINAME_DELETE_VOS_MULTICONNECTIONS = "DAO_DELETE_VOS_MULTICONNECTIONS";
+
     public static APINAME_DELETE_VOS_BY_IDS = "DAO_DELETE_VOS_BY_IDS";
     public static APINAME_INSERT_OR_UPDATE_VOS = "DAO_INSERT_OR_UPDATE_VOS";
+    public static APINAME_INSERT_OR_UPDATE_VOS_MULTICONNECTIONS = "DAO_INSERT_OR_UPDATE_VOS_MULTICONNEXIONS";
+
     public static APINAME_INSERT_OR_UPDATE_VO = "DAO_INSERT_OR_UPDATE_VO";
     public static APINAME_SELECT_ALL = "SELECT_ALL";
     public static APINAME_SELECT_ONE = "SELECT_ONE";
@@ -132,8 +136,12 @@ export default class ModuleDAO extends Module {
 
             return true;
         });
+
+    public deleteVOsMulticonnections: (vos: IDistantVOBase[]) => Promise<any[]> = APIControllerWrapper.sah(ModuleDAO.APINAME_DELETE_VOS_MULTICONNECTIONS);
     public deleteVOs: (vos: IDistantVOBase[]) => Promise<any[]> = APIControllerWrapper.sah(ModuleDAO.APINAME_DELETE_VOS);
     public insertOrUpdateVOs: (vos: IDistantVOBase[]) => Promise<InsertOrDeleteQueryResult[]> = APIControllerWrapper.sah(ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS);
+    public insertOrUpdateVOsMulticonnections: (vos: IDistantVOBase[]) => Promise<InsertOrDeleteQueryResult[]> = APIControllerWrapper.sah(ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS_MULTICONNECTIONS);
+
     public insertOrUpdateVO: (vo: IDistantVOBase) => Promise<InsertOrDeleteQueryResult> = APIControllerWrapper.sah(ModuleDAO.APINAME_INSERT_OR_UPDATE_VO);
     public getNamedVoByName: <T extends INamedVO>(API_TYPE_ID: string, vo_name: string) => Promise<T> = APIControllerWrapper.sah(ModuleDAO.APINAME_GET_NAMED_VO_BY_NAME);
     public getVoById: <T extends IDistantVOBase>(API_TYPE_ID: string, id: number, segmentation_ranges?: IRange[]) => Promise<T> = APIControllerWrapper.sah(ModuleDAO.APINAME_GET_VO_BY_ID);
@@ -274,6 +282,23 @@ export default class ModuleDAO extends Module {
     public registerApis() {
         APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<IDistantVOBase[], any[]>(
             null,
+            ModuleDAO.APINAME_DELETE_VOS_MULTICONNECTIONS,
+            (params: IDistantVOBase[]) => {
+                let res: string[] = [];
+
+                for (let i in params) {
+                    let param = params[i];
+
+                    if (res.indexOf(param._type) < 0) {
+                        res.push(param._type);
+                    }
+                }
+
+                return res;
+            }
+        ));
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<IDistantVOBase[], any[]>(
+            null,
             ModuleDAO.APINAME_DELETE_VOS,
             (params: IDistantVOBase[]) => {
                 let res: string[] = [];
@@ -298,6 +323,23 @@ export default class ModuleDAO extends Module {
         APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<IDistantVOBase[], InsertOrDeleteQueryResult[]>(
             null,
             ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS,
+            (params: IDistantVOBase[]) => {
+                let res: string[] = [];
+
+                for (let i in params) {
+                    let param = params[i];
+
+                    if (res.indexOf(param._type) < 0) {
+                        res.push(param._type);
+                    }
+                }
+
+                return res;
+            }
+        ));
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<IDistantVOBase[], InsertOrDeleteQueryResult[]>(
+            null,
+            ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS_MULTICONNECTIONS,
             (params: IDistantVOBase[]) => {
                 let res: string[] = [];
 

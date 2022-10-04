@@ -8,7 +8,7 @@ export default class VarNodePerfElementVO implements IDistantVOBase {
     public static current_var_dag: VarDAG = null;
 
     public static get_perf_by_ref(perf_ref: VarNodeParentPerfVO): VarNodePerfElementVO {
-        if (!perf_ref) {
+        if ((!perf_ref) || (!VarNodePerfElementVO.current_var_dag)) {
             return null;
         }
 

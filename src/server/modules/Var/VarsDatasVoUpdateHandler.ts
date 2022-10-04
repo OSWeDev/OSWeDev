@@ -1572,14 +1572,32 @@ export default class VarsDatasVoUpdateHandler {
             for (let j in VarsServerController.getInstance().registered_vars_controller_by_api_type_id[vo_type]) {
                 let var_controller = VarsServerController.getInstance().registered_vars_controller_by_api_type_id[vo_type][j];
 
-                let tmp = await var_controller.get_invalid_params_intersectors_on_POST_C_POST_D_group(vos_create_or_delete_buffer[vo_type]);
-                if (tmp && !!tmp.length) {
-                    tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
+                if ((!!vos_create_or_delete_buffer[vo_type]) && vos_create_or_delete_buffer[vo_type].length) {
+
+                    if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+                        ConsoleHandler.getInstance().log(
+                            'init_leaf_intersectors:get_invalid_params_intersectors_on_POST_C_POST_D_group:' +
+                            var_controller.varConf.id + ':' + var_controller.varConf.name + ':' + vos_create_or_delete_buffer[vo_type].length);
+                    }
+
+                    let tmp = await var_controller.get_invalid_params_intersectors_on_POST_C_POST_D_group(vos_create_or_delete_buffer[vo_type]);
+                    if (tmp && !!tmp.length) {
+                        tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
+                    }
                 }
 
-                tmp = await var_controller.get_invalid_params_intersectors_on_POST_U_group(vos_update_buffer[vo_type]);
-                if (tmp && !!tmp.length) {
-                    tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
+                if ((!!vos_update_buffer[vo_type]) && vos_update_buffer[vo_type].length) {
+
+                    if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+                        ConsoleHandler.getInstance().log(
+                            'init_leaf_intersectors:get_invalid_params_intersectors_on_POST_U_group:' +
+                            var_controller.varConf.id + ':' + var_controller.varConf.name + ':' + vos_update_buffer[vo_type].length);
+                    }
+
+                    let tmp = await var_controller.get_invalid_params_intersectors_on_POST_U_group(vos_update_buffer[vo_type]);
+                    if (tmp && !!tmp.length) {
+                        tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
+                    }
                 }
             }
         }
