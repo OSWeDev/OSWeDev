@@ -7,6 +7,7 @@ import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
+import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataInvalidatorVO from '../../../shared/modules/Var/vos/VarDataInvalidatorVO';
@@ -1565,6 +1566,15 @@ export default class VarsDatasVoUpdateHandler {
         vos_create_or_delete_buffer: { [vo_type: string]: IDistantVOBase[] }): Promise<{ [index: string]: VarDataBaseVO }> {
 
         let intersectors_by_index: { [index: string]: VarDataBaseVO } = {};
+
+        // let vardag = new VarDAG();
+        // for (let i in vo_types) {
+        //     let vo_type = vo_types[i];
+
+        //     let vos = vos_create_or_delete_buffer[vo_type].concat(
+        //         vos_update_buffer[vo_type].map((e) => e.pre_update_vo),
+        //         vos_update_buffer[vo_type].map((e) => e.post_update_vo));
+        // }
 
         for (let i in vo_types) {
             let vo_type = vo_types[i];

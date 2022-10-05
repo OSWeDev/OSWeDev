@@ -1253,7 +1253,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
         let table_name: string = moduleTable.is_segmented ? moduleTable.get_segmented_full_name(segmented_value) : moduleTable.full_name;
 
-        let debug_insert_without_triggers_using_COPY = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleDAOServer.PARAM_NAME_insert_without_triggers_using_COPY, true);
+        let debug_insert_without_triggers_using_COPY = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleDAOServer.PARAM_NAME_insert_without_triggers_using_COPY, false);
 
         if (debug_insert_without_triggers_using_COPY) {
             ConsoleHandler.getInstance().log('insert_without_triggers_using_COPY:start');
@@ -1393,7 +1393,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 };
 
                 let query_string = "COPY " + table_name + " (" + tableFields.join(", ") + ") FROM STDIN WITH (FORMAT csv, DELIMITER ';', QUOTE '''')";
-                ConsoleHandler.getInstance().log('insert_without_triggers_using_COPY:query_string:' + query_string);
+                if (debug_insert_without_triggers_using_COPY) {
+                    ConsoleHandler.getInstance().log('insert_without_triggers_using_COPY:query_string:' + query_string);
+                }
                 var stream = client.query(copyFrom(query_string));
                 var rs = new Readable();
 
@@ -1624,9 +1626,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     return;
                 }
 
-                let query_string = "SELECT t.* FROM " + moduleTable.get_segmented_full_name(segment_value) + " t ";
+                let query_string = "SELECT t.* FROM " + moduleTable.get_segmented_full_name(segment_value) + " t " + (query_ ? query_ : '');
                 let query_uid = this.log_db_query_perf_start('selectOne', query_string, 'is_segmented');
-                let segment_vo: T = await ModuleServiceBase.getInstance().db.oneOrNone(query_string + (query_ ? query_ : '') + ";", queryParams ? queryParams : []) as T;
+                let segment_vo: T = await ModuleServiceBase.getInstance().db.oneOrNone(query_string + ";", queryParams ? queryParams : []) as T;
                 this.log_db_query_perf_end(query_uid, 'selectOne', query_string, 'is_segmented');
 
                 if ((!!segmented_vo) && (!!segment_vo)) {
@@ -1648,9 +1650,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
             // On filtre les vo suivant les droits d'accès
             vo = segmented_vo;
         } else {
-            let query_string = "SELECT t.* FROM " + moduleTable.full_name + " t ";
+            let query_string = "SELECT t.* FROM " + moduleTable.full_name + " t " + (query_ ? query_ : '');
             let query_uid = this.log_db_query_perf_start('selectOne', query_string, '!is_segmented');
-            vo = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + moduleTable.full_name + " t " + (query_ ? query_ : '') + ";", queryParams ? queryParams : []) as T;
+            vo = await ModuleServiceBase.getInstance().db.oneOrNone(query_string + ";", queryParams ? queryParams : []) as T;
             this.log_db_query_perf_end(query_uid, 'selectOne', query_string, '!is_segmented');
             vo = moduleTable.forceNumeric(vo);
         }
@@ -4528,9 +4530,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
         if (ConfigurationService.getInstance().node_configuration.DEBUG_DB_QUERY_PERF) {
             let uid = this.log_db_query_perf_uid++;
             this.log_db_query_perf_start_by_uid[uid] = Dates.now_ms();
+            let query_s = (query_string ? query_string.substring(0, 200) : 'N/A');
+            query_s = (query_s ? query_s.replace(/;/g, '') : 'N/A');
             ConsoleHandler.getInstance().log('log_db_query_perf_start;ModuleDAOServer;IN;' + uid + ';' + this.log_db_query_perf_start_by_uid[uid] + ';0;' + method_name +
                 ';' + (step_name ? step_name : 'N/A') +
-                ';' + (query_string ? query_string.substring(0, 200).replaceAll(';', '') : 'N/A'));
+                ';' + query_s);
             return uid;
         }
 
@@ -4541,9 +4545,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
         if (ConfigurationService.getInstance().node_configuration.DEBUG_DB_QUERY_PERF && !!this.log_db_query_perf_start_by_uid[uid]) {
             let end_ms = Dates.now_ms();
             let duration = end_ms - this.log_db_query_perf_start_by_uid[uid];
+            let query_s = (query_string ? query_string.substring(0, 200) : 'N/A');
+            query_s = (query_s ? query_s.replace(/;/g, '') : 'N/A');
             ConsoleHandler.getInstance().log('log_db_query_perf_start;ModuleDAOServer;OUT;' + uid + ';' + end_ms + ';' + duration + ';' + method_name +
                 ';' + (step_name ? step_name : 'N/A') +
-                ';' + (query_string ? query_string.substring(0, 200).replaceAll(';', '') : 'N/A'));
+                ';' + query_s);
         }
     }
 }
