@@ -10,6 +10,7 @@ import TemplateComponentVO from '../../../../../shared/modules/CMS/vos/TemplateC
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
+import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import WeightHandler from '../../../../../shared/tools/WeightHandler';
 import VueComponentBase from '../../../../ts/components/VueComponentBase';
 import AjaxCacheClientController from '../../../modules/AjaxCache/AjaxCacheClientController';
@@ -91,7 +92,7 @@ export default class CMSPageComponent extends VueComponentBase {
             self.has_access_to_cms_fo_admin = await ModuleAccessPolicy.getInstance().testAccess(ModuleCMS.POLICY_BO_ACCESS);
         })());
 
-        await Promise.all(promises);
+        await all_promises(promises);
         this.stopLoading();
     }
 

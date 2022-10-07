@@ -3,6 +3,7 @@ import AccessPolicyController from "../../../../shared/modules/AccessPolicy/Acce
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleParams from "../../../../shared/modules/Params/ModuleParams";
 import ModuleSASSSkinConfigurator from '../../../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
+import { all_promises } from "../../../../shared/tools/PromiseTools";
 import NFCConnectLoginComponent from "../../../ts/components/NFCConnect/login/NFCConnectLoginComponent";
 import NFCHandler from "../../../ts/components/NFCConnect/NFCHandler";
 import SessionShareComponent from "../../../ts/components/session_share/SessionShareComponent";
@@ -69,7 +70,7 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
             this.pdf_cgu = await ModuleParams.getInstance().getParamValue(ModuleAccessPolicy.PARAM_NAME_LOGIN_CGU)
         )());
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         if (!!logged_id) {
             window.location = this.redirect_to as any;

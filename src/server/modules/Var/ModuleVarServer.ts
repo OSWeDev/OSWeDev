@@ -37,6 +37,7 @@ import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
@@ -1452,7 +1453,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             })(matroid_field_));
         }
 
-        await Promise.all(field_promises);
+        await all_promises(field_promises);
 
         return refuse_param ? null : var_param;
     }
@@ -1719,7 +1720,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 })());
             }
 
-            await Promise.all(promises);
+            await all_promises(promises);
 
             /**
              * On appelle les callbacks qui n'ont pas été appelés

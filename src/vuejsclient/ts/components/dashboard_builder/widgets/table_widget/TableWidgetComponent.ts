@@ -1366,7 +1366,7 @@ export default class TableWidgetComponent extends VueComponentBase {
             this.do_update_visible_options(),
             this.update_filter_by_access_cache()
         ];
-        await Promise.all(promises);
+        await all_promises(promises);
     }
 
     private async update_filter_by_access_cache() {
@@ -1383,7 +1383,7 @@ export default class TableWidgetComponent extends VueComponentBase {
                 })());
             }
         }
-        await Promise.all(promises);
+        await all_promises(promises);
     }
 
     get has_group_headers() {

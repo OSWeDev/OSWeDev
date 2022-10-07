@@ -8,6 +8,7 @@ import MainAggregateOperatorsHandlers from '../../../shared/modules/Var/MainAggr
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import ConfigurationService from '../../env/ConfigurationService';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import PerfMonConfController from '../PerfMon/PerfMonConfController';
@@ -183,7 +184,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
             let vo_create_or_delete = c_or_d_vos[k];
 
             if (promises.length >= limit) {
-                await Promise.all(promises);
+                await all_promises(promises);
                 promises = [];
             }
 
@@ -196,7 +197,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
             })());
         }
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         return Object.values(intersectors_by_index);
     }
@@ -217,7 +218,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
             let u_vo_holder = u_vo_holders[k];
 
             if (promises.length >= limit) {
-                await Promise.all(promises);
+                await all_promises(promises);
                 promises = [];
             }
 
@@ -230,7 +231,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
             })());
         }
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         return Object.values(intersectors_by_index);
     }

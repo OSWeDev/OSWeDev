@@ -72,6 +72,7 @@ import { DatabaseError, Pool } from 'pg';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ThrottledSelectQueryParam from './vos/ThrottledSelectQueryParam';
 import RequestResponseCacheVO from '../../../shared/modules/AjaxCache/vos/RequestResponseCacheVO';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -193,7 +194,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
 
             if (promises.length >= max) {
-                await Promise.all(promises);
+                await all_promises(promises);
                 promises = [];
             }
 
@@ -325,7 +326,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         if (promises && promises.length) {
-            await Promise.all(promises);
+            await all_promises(promises);
         }
     }
 
@@ -815,7 +816,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let vo = vos[i];
 
             if ((!!max_connections_to_use) && (promises.length >= max_connections_to_use)) {
-                await Promise.all(promises);
+                await all_promises(promises);
                 promises = [];
             }
 
@@ -828,7 +829,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         if (!!promises.length) {
-            await Promise.all(promises);
+            await all_promises(promises);
         }
 
         return res;
@@ -845,7 +846,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let vo = vos[i];
 
             if ((!!max_connections_to_use) && (promises.length >= max_connections_to_use)) {
-                await Promise.all(promises);
+                await all_promises(promises);
                 promises = [];
             }
 
@@ -855,7 +856,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         if (!!promises.length) {
-            await Promise.all(promises);
+            await all_promises(promises);
         }
 
         return res;
@@ -975,7 +976,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
 
             if ((!!max_connections_to_use) && (promises.length >= max_connections_to_use)) {
-                await Promise.all(promises);
+                await all_promises(promises);
                 promises = [];
             }
 
@@ -996,7 +997,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         if (!!promises.length) {
-            await Promise.all(promises);
+            await all_promises(promises);
         }
 
         promises = [];
@@ -1116,7 +1117,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
 
                 if ((!!max_connections_to_use) && (promises.length >= max_connections_to_use)) {
-                    await Promise.all(promises);
+                    await all_promises(promises);
                     promises = [];
                 }
 
@@ -1177,7 +1178,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         if (!!promises.length) {
-            await Promise.all(promises);
+            await all_promises(promises);
         }
 
         if (reste_a_faire && reste_a_faire.length) {
@@ -1870,7 +1871,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     }
                 })());
             }
-            await Promise.all(promises);
+            await all_promises(promises);
         }
     }
 
@@ -2116,7 +2117,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let vo = vos[i];
 
             if (promises.length >= max) {
-                await Promise.all(promises);
+                await all_promises(promises);
                 promises = [];
             }
 
@@ -2130,7 +2131,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         if (promises.length >= 1) {
-            await Promise.all(promises);
+            await all_promises(promises);
         }
 
         return res;

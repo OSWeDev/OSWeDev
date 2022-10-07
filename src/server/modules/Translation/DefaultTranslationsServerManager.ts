@@ -67,7 +67,7 @@ export default class DefaultTranslationsServerManager {
         for (let i in registered_default_translations) {
 
             if (promises.length >= max) {
-                await Promise.all(promises);
+                await all_promises(promises);
                 promises = [];
             }
 
@@ -77,7 +77,7 @@ export default class DefaultTranslationsServerManager {
         }
 
         if (promises && promises.length) {
-            await Promise.all(promises);
+            await all_promises(promises);
         }
 
         await this.cleanTranslationCodes(translatables);

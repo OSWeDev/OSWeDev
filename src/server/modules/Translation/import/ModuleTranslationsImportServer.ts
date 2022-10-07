@@ -15,6 +15,7 @@ import LangVO from '../../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../../shared/modules/Translation/vos/TranslationVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
+import { all_promises } from '../../../../shared/tools/PromiseTools';
 import AccessPolicyServerController from '../../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../../AccessPolicy/ModuleAccessPolicyServer';
 import DataImportModuleBase from '../../DataImport/DataImportModuleBase/DataImportModuleBase';
@@ -190,7 +191,7 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
             })());
         }
 
-        await Promise.all(promises);
+        await all_promises(promises);
         return true;
     }
 }

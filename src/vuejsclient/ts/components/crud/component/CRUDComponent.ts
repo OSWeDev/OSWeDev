@@ -22,6 +22,7 @@ import ModuleVocus from '../../../../../shared/modules/Vocus/ModuleVocus';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../../shared/tools/DateHandler';
+import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import AjaxCacheClientController from '../../../modules/AjaxCache/AjaxCacheClientController';
 import { ModuleAlertAction } from '../../alert/AlertStore';
 import { ModuleCRUDAction, ModuleCRUDGetter } from '../../crud/store/CRUDStore';
@@ -271,11 +272,11 @@ export default class CRUDComponent extends VueComponentBase {
         this.can_access_vocus = await ModuleAccessPolicy.getInstance().testAccess(ModuleVocus.POLICY_BO_ACCESS);
         this.can_delete_all = await ModuleAccessPolicy.getInstance().testAccess(this.crud.delete_all_access_right);
 
-        await Promise.all(this.loadDatasFromDatatable(this.crud.readDatatable));
+        await all_promises(this.loadDatasFromDatatable(this.crud.readDatatable));
         this.nextLoadingStep();
-        await Promise.all(this.loadDatasFromDatatable(this.crud.createDatatable));
+        await all_promises(this.loadDatasFromDatatable(this.crud.createDatatable));
         this.nextLoadingStep();
-        await Promise.all(this.loadDatasFromDatatable(this.crud.updateDatatable));
+        await all_promises(this.loadDatasFromDatatable(this.crud.updateDatatable));
         this.nextLoadingStep();
 
         await this.prepareNewVO();

@@ -17,6 +17,7 @@ import VarDataProxyWrapperVO from '../../../shared/modules/Var/vos/VarDataProxyW
 import VarPixelFieldConfVO from '../../../shared/modules/Var/vos/VarPixelFieldConfVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import PerfMonConfController from '../PerfMon/PerfMonConfController';
@@ -564,7 +565,7 @@ export default class VarsComputeController {
                     }
 
                     if (load_node_data_db_connect_coef_sum >= max) {
-                        await Promise.all(promises);
+                        await all_promises(promises);
                         load_node_data_db_connect_coef_sum = 0;
                         promises = [];
                     }
@@ -590,7 +591,7 @@ export default class VarsComputeController {
                 }
 
                 if (promises && promises.length) {
-                    await Promise.all(promises);
+                    await all_promises(promises);
                 }
             },
             this
@@ -658,7 +659,7 @@ export default class VarsComputeController {
                      * On fait des packs de promises...
                      */
                     if (deps_promises.length >= max) {
-                        await Promise.all(deps_promises);
+                        await all_promises(deps_promises);
                         deps_promises = [];
                     }
                     let dep = deps_as_array[deps_i];
@@ -686,7 +687,7 @@ export default class VarsComputeController {
                 }
 
                 if (deps_promises.length) {
-                    await Promise.all(deps_promises);
+                    await all_promises(deps_promises);
                 }
             },
             this,
@@ -1198,7 +1199,7 @@ export default class VarsComputeController {
             let var_to_deploy: VarDataBaseVO = vars_to_deploy[i];
 
             if (promises.length >= max) {
-                await Promise.all(promises);
+                await all_promises(promises);
                 if (var_dag.timed_out) {
                     return;
                 }
@@ -1210,7 +1211,7 @@ export default class VarsComputeController {
         }
 
         if (promises && promises.length) {
-            await Promise.all(promises);
+            await all_promises(promises);
         }
     }
 
@@ -1249,13 +1250,13 @@ export default class VarsComputeController {
             }
 
             if (promises.length >= max) {
-                await Promise.all(promises);
+                await all_promises(promises);
                 promises = [];
             }
 
             let var_dag_node = VarDAGNode.getInstance(var_dag, var_to_deploy, VarsComputeController, false);
             if (!var_dag_node) {
-                await Promise.all(promises);
+                await all_promises(promises);
                 return;
             }
 
@@ -1263,7 +1264,7 @@ export default class VarsComputeController {
         }
 
         if (promises && promises.length) {
-            await Promise.all(promises);
+            await all_promises(promises);
         }
     }
 
@@ -1422,7 +1423,7 @@ export default class VarsComputeController {
             })());
             this.last_update_estimated_tree_computation_time = Dates.now();
 
-            await Promise.all(promises);
+            await all_promises(promises);
         }
     }
 

@@ -15,6 +15,7 @@ import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import ServerBase from '../../ServerBase';
 import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
@@ -955,7 +956,7 @@ export default class ContextQueryServerController {
                 })());
             }
 
-            await Promise.all(promises);
+            await all_promises(promises);
         }
 
         let context_query_fields_by_api_type_id: { [api_type_id: string]: ContextQueryFieldVO[] } = {};

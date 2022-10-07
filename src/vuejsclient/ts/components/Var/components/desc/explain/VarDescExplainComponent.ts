@@ -10,6 +10,7 @@ import VarDataBaseVO from '../../../../../../../shared/modules/Var/vos/VarDataBa
 import VarDataValueResVO from '../../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import VarUpdateCallback from '../../../../../../../shared/modules/Var/vos/VarUpdateCallback';
 import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
@@ -96,7 +97,7 @@ export default class VarDescExplainComponent extends VueComponentBase {
             promises.push((async () => this.aggregated_var_datas = await ModuleVar.getInstance().getAggregatedVarDatas(this.var_param))());
         }
 
-        await Promise.all(promises);
+        await all_promises(promises);
     }
 
     get is_aggregator(): boolean {
@@ -138,7 +139,7 @@ export default class VarDescExplainComponent extends VueComponentBase {
         promises.push((async () => this.ds_values_jsoned = await ModuleVar.getInstance().getVarParamDatas(this.var_param))());
         promises.push((async () => this.aggregated_var_datas = await ModuleVar.getInstance().getAggregatedVarDatas(this.var_param))());
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         this.deps_loading = false;
     }

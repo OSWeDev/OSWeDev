@@ -2,6 +2,7 @@ import DefaultTranslationManager from '../../../../shared/modules/Translation/De
 import DefaultTranslation from '../../../../shared/modules/Translation/vos/DefaultTranslation';
 import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
 import VarsController from '../../../../shared/modules/Var/VarsController';
+import { all_promises } from '../../../../shared/tools/PromiseTools';
 import ConfigurationService from '../../../env/ConfigurationService';
 import PerfMonConfController from '../../PerfMon/PerfMonConfController';
 import PerfMonServerController from '../../PerfMon/PerfMonServerController';
@@ -53,7 +54,7 @@ export default class DataSourcesController {
                     }
 
                     if (promises.length >= max) {
-                        await Promise.all(promises);
+                        await all_promises(promises);
                         promises = [];
                     }
 
@@ -73,7 +74,7 @@ export default class DataSourcesController {
                 }
 
                 if (promises && promises.length) {
-                    await Promise.all(promises);
+                    await all_promises(promises);
                 }
             },
             this,

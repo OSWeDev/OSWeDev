@@ -11,6 +11,7 @@ import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataProxyWrapperVO from '../../../shared/modules/Var/vos/VarDataProxyWrapperVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ConfigurationService from '../../env/ConfigurationService';
@@ -387,7 +388,7 @@ export default class VarsDatasProxy {
                         }
                     })());
                 }
-                await Promise.all(promises);
+                await all_promises(promises);
 
                 if (!result) {
                     throw new Error('VarsDatasProxy:handle_buffer:insert_without_triggers_using_COPY:Erreur - on garde dans le cache pour une prochaine tentative');
@@ -603,7 +604,7 @@ export default class VarsDatasProxy {
                     }
                 }
 
-                await Promise.all(promises);
+                await all_promises(promises);
 
                 return res;
             },

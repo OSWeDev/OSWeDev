@@ -180,7 +180,7 @@ export default class ModuleDBService {
             let datatable = module.datatables[i];
 
             // if (promises && (promises.length >= max)) {
-            //     await Promise.all(promises);
+            //     await all_promises(promises);
             //     promises = [];
             // }
 
@@ -188,7 +188,7 @@ export default class ModuleDBService {
             // promises.push(ModuleTableDBService.getInstance(this.db).datatable_install(datatable));
         }
         // if (promises && promises.length) {
-        //     await Promise.all(promises);
+        //     await all_promises(promises);
         // }
 
         // On appelle le hook de fin d'installation

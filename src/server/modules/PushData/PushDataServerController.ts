@@ -12,6 +12,7 @@ import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultT
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import IServerUserSession from '../../IServerUserSession';
@@ -100,7 +101,7 @@ export default class PushDataServerController {
         for (let socket_id in params) {
             promises.push(PushDataServerController.getInstance().notifyVarsDatasBySocket_(socket_id, params[socket_id]));
         }
-        await Promise.all(promises);
+        await all_promises(promises);
     }, 100, { leading: false, trailing: true });
 
     private constructor() {
@@ -668,7 +669,7 @@ export default class PushDataServerController {
                 await this.notifySimple(null, userId, null, msg_type, code_text, auto_read_if_connected, simple_notif_json_params);
             })());
         }
-        await Promise.all(promises);
+        await all_promises(promises);
     }
 
     public async broadcastAllSimple(msg_type: number, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null) {
@@ -686,7 +687,7 @@ export default class PushDataServerController {
                 await this.notifySimple(null, user.id, null, msg_type, code_text, auto_read_if_connected, simple_notif_json_params);
             })());
         }
-        await Promise.all(promises);
+        await all_promises(promises);
     }
 
     public async broadcastRoleSimple(role_name: string, msg_type: number, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null) {
@@ -731,7 +732,7 @@ export default class PushDataServerController {
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
         }
-        await Promise.all(promises);
+        await all_promises(promises);
     }
 
     // Notifications qui redirigent sur une route avec ou sans paramètres
@@ -785,7 +786,7 @@ export default class PushDataServerController {
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
         }
-        await Promise.all(promises);
+        await all_promises(promises);
     }
 
 

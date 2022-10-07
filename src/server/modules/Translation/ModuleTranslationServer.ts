@@ -11,6 +11,7 @@ import TranslatableTextVO from '../../../shared/modules/Translation/vos/Translat
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -706,7 +707,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             translatableTexts_by_id = VOsTypesManager.getInstance().vosArray_to_vosByIds(translatableTexts);
         })());
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
 
         await this.add_locale_flat_translations(translatableTexts_by_id, lang_translations, res);
@@ -761,7 +762,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             translatableTexts_by_id = VOsTypesManager.getInstance().vosArray_to_vosByIds(translatableTexts);
         })());
 
-        await Promise.all(promises);
+        await all_promises(promises);
         promises = [];
 
         let res: { [code_lang: string]: any } = {};
@@ -783,7 +784,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
                 }
             })());
         }
-        await Promise.all(promises);
+        await all_promises(promises);
 
         return res;
     }

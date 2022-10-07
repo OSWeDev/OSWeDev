@@ -20,6 +20,7 @@ import ModuleTable from '../../../../../../shared/modules/ModuleTable';
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
 import DatatableRowController from '../../../datatable/component/DatatableRowController';
@@ -375,7 +376,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             }
             data_rows.push(resData);
         }
-        await Promise.all(promises);
+        await all_promises(promises);
 
         // Si je ne suis pas sur la dernière demande, je me casse
         if (this.last_calculation_cpt != launch_cpt) {
