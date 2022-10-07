@@ -40,6 +40,7 @@ import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
+import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import DataExportServerController from '../DataExport/DataExportServerController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
@@ -137,8 +138,8 @@ export default class ModuleAnimationServer extends ModuleServerBase {
     }
 
     public registerAccessHooks(): void {
-        ModuleDAOServer.getInstance().registerAccessHook(AnimationModuleVO.API_TYPE_ID, ModuleDAO.DAO_ACCESS_TYPE_READ, this.filterAnimationModule.bind(this));
-        ModuleDAOServer.getInstance().registerContextAccessHook(AnimationModuleVO.API_TYPE_ID, this.filterAnimationModuleContextAccessHook.bind(this));
+        ModuleDAOServer.getInstance().registerAccessHook(AnimationModuleVO.API_TYPE_ID, ModuleDAO.DAO_ACCESS_TYPE_READ, this, this.filterAnimationModule);
+        ModuleDAOServer.getInstance().registerContextAccessHook(AnimationModuleVO.API_TYPE_ID, this, this.filterAnimationModuleContextAccessHook);
     }
 
     public async configure() {
@@ -146,11 +147,15 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         DataExportServerController.getInstance().register_export_handler(ModuleAnimation.EXPORT_API_TYPE_ID, AnimationReportingExportHandler.getInstance());
 
         let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
-        preUpdateTrigger.registerHandler(AnimationModuleVO.API_TYPE_ID, this.handleTriggerPreAnimationModuleVO.bind(this));
+        preUpdateTrigger.registerHandler(AnimationModuleVO.API_TYPE_ID, this, this.handleTriggerPreUpdateAnimationModuleVO);
 
         let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        preCreateTrigger.registerHandler(AnimationModuleVO.API_TYPE_ID, this.handleTriggerPreAnimationModuleVO.bind(this));
+        preCreateTrigger.registerHandler(AnimationModuleVO.API_TYPE_ID, this, this.handleTriggerPreAnimationModuleVO);
         await this.initializeTranslations();
+    }
+
+    private async handleTriggerPreUpdateAnimationModuleVO(update: DAOUpdateVOHolder<AnimationModuleVO>): Promise<boolean> {
+        return this.handleTriggerPreAnimationModuleVO(update.post_update_vo);
     }
 
     private async handleTriggerPreAnimationModuleVO(vo: AnimationModuleVO): Promise<boolean> {

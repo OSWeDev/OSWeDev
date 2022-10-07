@@ -383,14 +383,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
      *  filtrer une première fois via le read en context, puis applicativement chaque vo chargé de la bdd... autant
      *  charger directement les vos que l'on peut réellement update ou delete dès le départ
      */
-    public registerAccessHook<T extends IDistantVOBase>(API_TYPE_ID: string, access_type: string, hook: IHookFilterVos<T>) {
+    public registerAccessHook<T extends IDistantVOBase>(API_TYPE_ID: string, access_type: string, handler_bind_this: any, hook: IHookFilterVos<T>) {
         if (!DAOServerController.getInstance().access_hooks[API_TYPE_ID]) {
             DAOServerController.getInstance().access_hooks[API_TYPE_ID] = {};
         }
         if (!DAOServerController.getInstance().access_hooks[API_TYPE_ID][access_type]) {
             DAOServerController.getInstance().access_hooks[API_TYPE_ID][access_type] = [];
         }
-        DAOServerController.getInstance().access_hooks[API_TYPE_ID][access_type].push(hook);
+        DAOServerController.getInstance().access_hooks[API_TYPE_ID][access_type].push(hook.bind(handler_bind_this));
     }
 
     /**
@@ -398,11 +398,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
      *  Si on a plusieurs context query pour un même type, on les enchaînera dans la requête avec un ET (l'id de l'objet
      *  fitré devra se trouver dans les résultats de toutes les contextQuery)
      */
-    public registerContextAccessHook<T extends IDistantVOBase>(API_TYPE_ID: string, hook: IContextHookFilterVos<T>) {
+    public registerContextAccessHook<T extends IDistantVOBase>(API_TYPE_ID: string, handler_bind_this: any, hook: IContextHookFilterVos<T>) {
         if (!DAOServerController.getInstance().context_access_hooks[API_TYPE_ID]) {
             DAOServerController.getInstance().context_access_hooks[API_TYPE_ID] = [];
         }
-        DAOServerController.getInstance().context_access_hooks[API_TYPE_ID].push(hook);
+        DAOServerController.getInstance().context_access_hooks[API_TYPE_ID].push(hook.bind(handler_bind_this));
     }
 
     public registerServerApiHandlers() {
@@ -1004,7 +1004,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     let vo: IDistantVOBase = moduleTable.get_bdd_version(vos_by_ids[vo_id][i]);
 
                     /**
-                     * Il existe une limite au nombre de paramètres sur une requête (100 000). du coup on
+                     * Il existe une limite au nombre de paramètres sur une requête (100000 100 000). du coup on
                      *  limite nous à 50 000 paramètres par requête. et on appelle récursivement au besoin pour faire ce qu'il reste à traiter
                      */
                     if (cpt_field >= 50000) {
@@ -1501,6 +1501,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
+        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL - 1));
         let res: T[] = null;
 
         if (moduleTable.is_segmented) {
@@ -1516,31 +1517,46 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             let segmented_res: T[] = [];
 
-            let self = this;
-            await RangeHandler.getInstance().foreach_ranges(ranges, async (segment_value) => {
+            // TODO MDE - UNION ALL et vérifier si plus rapide sur PSA
+            let segmentations_tables: { [table_name: string]: number } = {};
 
-                // UNION ALL plutôt que x requetes non ? => attention dans ce cas la query doit surtout pas avoir un ;
-                //  Grosse blague TODO FIXME : quid d'un limit ???? il se lance à chaque requête... résultat on a bcp plus de res que la limit
-                // OFFSET complètement invalide sur une table segmentée ....
+            RangeHandler.getInstance().foreach_ranges_sync(ranges, (segment_value) => {
 
-                if (!self.has_segmented_known_database(moduleTable, segment_value)) {
+                if (!this.has_segmented_known_database(moduleTable, segment_value)) {
                     return;
                 }
 
-                let segment_res = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query(
-                    "SELECT " + (distinct ? 'distinct' : '') + " t.* FROM " + moduleTable.get_segmented_full_name(segment_value) + " t " +
-                    (query_ ? query_ : '') + (limit ? ' limit ' + limit : ''), queryParams ? queryParams : []) as T[]);
-                for (let i in segment_res) {
-                    segmented_res.push(segment_res[i]);
-                }
+                let table_name = moduleTable.get_segmented_name(segment_value);
+                segmentations_tables[table_name] = segment_value;
             }, moduleTable.table_segmented_field_segment_type);
 
-            if (limit) {
-                segmented_res.splice(limit, segmented_res.length - limit);
+            let request: string = null;
+
+            for (let segmentation_table in segmentations_tables) {
+
+                if (!request) {
+                    request = '';
+                } else {
+                    request += ' UNION ALL ';
+                }
+
+                let db_full_name = moduleTable.database + '.' + segmentation_table;
+
+                request += "SELECT " + (distinct ? 'distinct' : '') + " t.* ";
+                request += " FROM " + db_full_name + ' t ';
+                request += (query_ ? query_.replace(/;/g, '') : '');
             }
 
-            // On filtre les res suivant les droits d'accès
-            res = segmented_res;
+            if (!request) {
+                return null;
+            }
+
+            request += (limit ? ' limit ' + limit : '');
+            request += (offset ? ' offset ' + offset : '');
+
+            let vos: T[] = await ModuleServiceBase.getInstance().db.query(request + ';', queryParams ? queryParams : []);
+
+            res = moduleTable.forceNumerics(vos);
         } else {
             res = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query(
                 "SELECT " + (distinct ? 'distinct' : '') + " t.* FROM " + moduleTable.full_name + " t " +
@@ -2688,7 +2704,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             if (segmentation_ranges && segmentation_ranges.length) {
 
                 let self = this;
-                await RangeHandler.getInstance().foreach_ranges(segmentation_ranges, (segmented_value) => {
+                RangeHandler.getInstance().foreach_ranges_sync(segmentation_ranges, (segmented_value) => {
 
                     if (!self.has_segmented_known_database(moduleTable, segmented_value)) {
                         return;
@@ -3446,7 +3462,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 // }
 
                 let self = this;
-                await RangeHandler.getInstance().foreach_ranges(segmentations, (segmented_value) => {
+                RangeHandler.getInstance().foreach_ranges_sync(segmentations, (segmented_value) => {
 
                     if (!self.has_segmented_known_database(moduleTable, segmented_value)) {
                         return;
@@ -3594,7 +3610,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 if (segmentations && segmentations.length) {
 
                     let self = this;
-                    await RangeHandler.getInstance().foreach_ranges(segmentations, (segmented_value) => {
+                    RangeHandler.getInstance().foreach_ranges_sync(segmentations, (segmented_value) => {
 
                         if (!self.has_segmented_known_database(moduleTable, segmented_value)) {
                             return;
@@ -3841,7 +3857,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 if (segmentations && segmentations.length) {
 
                     let self = this;
-                    await RangeHandler.getInstance().foreach_ranges(segmentations, (segmented_value) => {
+                    RangeHandler.getInstance().foreach_ranges_sync(segmentations, (segmented_value) => {
 
                         if (!self.has_segmented_known_database(moduleTable, segmented_value)) {
                             return;

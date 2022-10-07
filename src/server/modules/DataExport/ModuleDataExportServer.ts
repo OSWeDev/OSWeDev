@@ -58,7 +58,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         ModuleBGThreadServer.getInstance().registerBGThread(DataExportBGThread.getInstance());
 
         let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        preCreateTrigger.registerHandler(ExportHistoricVO.API_TYPE_ID, this.handleTriggerExportHistoricVOCreate);
+        preCreateTrigger.registerHandler(ExportHistoricVO.API_TYPE_ID, this, this.handleTriggerExportHistoricVOCreate);
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Exports'

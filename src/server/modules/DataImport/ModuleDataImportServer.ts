@@ -137,12 +137,12 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         // Triggers pour mettre à jour les dates
         let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
-        preUpdateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this.handleImportHistoricDateUpdate);
-        preCreateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this.handleImportHistoricDateCreation);
+        preUpdateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this, this.handleImportHistoricDateUpdate);
+        preCreateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this, this.handleImportHistoricDateCreation);
 
         // Triggers pour faire avancer l'import
         let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
-        postCreateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this.setImportHistoricUID);
+        postCreateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this, this.setImportHistoricUID);
 
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({

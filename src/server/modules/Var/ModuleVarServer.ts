@@ -215,13 +215,13 @@ export default class ModuleVarServer extends ModuleServerBase {
         let preUTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
 
         // Trigger sur les varcacheconfs pour mettre à jour les confs en cache en même temps qu'on les modifie dans l'outil
-        postCTrigger.registerHandler(VarCacheConfVO.API_TYPE_ID, this.onCVarCacheConf);
-        postUTrigger.registerHandler(VarCacheConfVO.API_TYPE_ID, this.onUVarCacheConf);
-        postDTrigger.registerHandler(VarCacheConfVO.API_TYPE_ID, this.onPostDVarCacheConf);
+        postCTrigger.registerHandler(VarCacheConfVO.API_TYPE_ID, this, this.onCVarCacheConf);
+        postUTrigger.registerHandler(VarCacheConfVO.API_TYPE_ID, this, this.onUVarCacheConf);
+        postDTrigger.registerHandler(VarCacheConfVO.API_TYPE_ID, this, this.onPostDVarCacheConf);
 
-        postCTrigger.registerHandler(VarConfVO.API_TYPE_ID, this.onCVarConf);
-        postUTrigger.registerHandler(VarConfVO.API_TYPE_ID, this.onUVarConf);
-        postDTrigger.registerHandler(VarConfVO.API_TYPE_ID, this.onPostDVarConf);
+        postCTrigger.registerHandler(VarConfVO.API_TYPE_ID, this, this.onCVarConf);
+        postUTrigger.registerHandler(VarConfVO.API_TYPE_ID, this, this.onUVarConf);
+        postDTrigger.registerHandler(VarConfVO.API_TYPE_ID, this, this.onPostDVarConf);
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Calculée'
@@ -451,9 +451,9 @@ export default class ModuleVarServer extends ModuleServerBase {
              */
             for (let api_type_id in VarsServerController.getInstance().registered_vars_controller_by_api_type_id) {
 
-                postCTrigger.registerHandler(api_type_id, this.invalidate_var_cache_from_vo_cd);
-                postUTrigger.registerHandler(api_type_id, this.invalidate_var_cache_from_vo_u);
-                postDTrigger.registerHandler(api_type_id, this.invalidate_var_cache_from_vo_cd);
+                postCTrigger.registerHandler(api_type_id, this, this.invalidate_var_cache_from_vo_cd);
+                postUTrigger.registerHandler(api_type_id, this, this.invalidate_var_cache_from_vo_u);
+                postDTrigger.registerHandler(api_type_id, this, this.invalidate_var_cache_from_vo_cd);
             }
 
             /**
@@ -462,12 +462,12 @@ export default class ModuleVarServer extends ModuleServerBase {
              */
             for (let api_type_id in VarsServerController.getInstance().varcacheconf_by_api_type_ids) {
 
-                preCTrigger.registerHandler(api_type_id, this.prepare_bdd_index_for_c);
-                preUTrigger.registerHandler(api_type_id, this.prepare_bdd_index_for_u);
+                preCTrigger.registerHandler(api_type_id, this, this.prepare_bdd_index_for_c);
+                preUTrigger.registerHandler(api_type_id, this, this.prepare_bdd_index_for_u);
 
                 // On invalide l'arbre par intersection si on passe un type en import, ou si on change la valeur d'un import, ou si on passe de import à calculé
-                postCTrigger.registerHandler(api_type_id, this.invalidate_imports_for_c);
-                postUTrigger.registerHandler(api_type_id, this.invalidate_imports_for_u);
+                postCTrigger.registerHandler(api_type_id, this, this.invalidate_imports_for_c);
+                postUTrigger.registerHandler(api_type_id, this, this.invalidate_imports_for_u);
             }
 
             VarsServerController.getInstance().init_varcontrollers_dag();

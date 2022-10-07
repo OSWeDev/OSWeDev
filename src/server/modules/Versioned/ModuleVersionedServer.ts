@@ -41,13 +41,13 @@ export default class ModuleVersionedServer extends ModuleServerBase {
             let registeredModuleTable = VersionedVOController.getInstance().registeredModuleTables[i];
 
             let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
-            preCreateTrigger.registerHandler(registeredModuleTable.vo_type, this.handleTriggerVOPreCreate);
+            preCreateTrigger.registerHandler(registeredModuleTable.vo_type, this, this.handleTriggerVOPreCreate);
 
             let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
-            preUpdateTrigger.registerHandler(registeredModuleTable.vo_type, this.handleTriggerVOPreUpdate);
+            preUpdateTrigger.registerHandler(registeredModuleTable.vo_type, this, this.handleTriggerVOPreUpdate);
 
             let preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
-            preDeleteTrigger.registerHandler(registeredModuleTable.vo_type, this.handleTriggerVOPreDelete);
+            preDeleteTrigger.registerHandler(registeredModuleTable.vo_type, this, this.handleTriggerVOPreDelete);
         }
     }
 

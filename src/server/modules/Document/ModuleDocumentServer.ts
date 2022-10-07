@@ -153,11 +153,11 @@ export default class ModuleDocumentServer extends ModuleServerBase {
         let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
-        preCreateTrigger.registerHandler(DocumentVO.API_TYPE_ID, this.force_document_path_from_file);
-        preUpdateTrigger.registerHandler(DocumentVO.API_TYPE_ID, this.force_document_path_from_file_update);
+        preCreateTrigger.registerHandler(DocumentVO.API_TYPE_ID, this, this.force_document_path_from_file);
+        preUpdateTrigger.registerHandler(DocumentVO.API_TYPE_ID, this, this.force_document_path_from_file_update);
 
         // Quand on change un fichier on check si on doit changer l'url d'un doc au passage.
-        postUpdateTrigger.registerHandler(FileVO.API_TYPE_ID, this.force_document_path_from_file_changed);
+        postUpdateTrigger.registerHandler(FileVO.API_TYPE_ID, this, this.force_document_path_from_file_changed);
     }
 
     public registerServerApiHandlers() {

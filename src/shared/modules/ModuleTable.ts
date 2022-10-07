@@ -693,6 +693,38 @@ export default class ModuleTable<T extends IDistantVOBase> {
             case ModuleTableField.FIELD_TYPE_tstz:
                 return ConversionHandler.forceNumber(e);
 
+            case ModuleTableField.FIELD_TYPE_int_array:
+            case ModuleTableField.FIELD_TYPE_float_array:
+                if (Array.isArray(e)) {
+                    return e;
+                }
+
+                if (!e || (e == '{}')) {
+                    return null;
+                }
+
+                let res: any[] = (e.length > 2) ? e.substr(1, e.length - 2).split(',') : e;
+
+                if (res && res.length) {
+                    for (let i in res) {
+                        res[i] = ConversionHandler.forceNumber(res[i]);
+                    }
+                }
+
+                return res;
+
+            case ModuleTableField.FIELD_TYPE_string_array:
+            case ModuleTableField.FIELD_TYPE_html_array:
+                if (Array.isArray(e)) {
+                    return e;
+                }
+
+                if (!e || (e == '{}')) {
+                    return null;
+                }
+
+                return (e.length > 2) ? e.substr(1, e.length - 2).split(',') : e;
+
             case ModuleTableField.FIELD_TYPE_plain_vo_obj:
                 let trans_ = e ? JSON.parse(e) : null;
                 if ((!!trans_) && !!field.plain_obj_cstr) {
@@ -1139,6 +1171,28 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     if (res[field.field_id] && res[field.field_id].trim) {
                         res[field.field_id] = res[field.field_id].trim();
                     }
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_float_array:
+                case ModuleTableField.FIELD_TYPE_int_array:
+                case ModuleTableField.FIELD_TYPE_string_array:
+                    // ATTENTION - INTERDITION DE METTRE UNE VIRGULE DANS UN CHAMP DE TYPE ARRAY SINON CA FAIT X VALEURS
+                    if (res[field.field_id]) {
+                        let values: any[] = [];
+
+                        for (let j in res[field.field_id]) {
+                            if (res[field.field_id][j]) {
+                                values.push(res[field.field_id][j]);
+                            }
+                        }
+
+                        if (!values || !values.length) {
+                            res[field.field_id] = null;
+                        } else {
+                            res[field.field_id] = '{' + values + '}';
+                        }
+                    }
+
                     break;
 
                 default:

@@ -65,21 +65,21 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         let preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
         let postDeleteTrigger: DAOPostDeleteTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
 
-        postCreateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this.clear_flat_translations.bind(this));
-        postUpdateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this.clear_flat_translations.bind(this));
-        postDeleteTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this.clear_flat_translations.bind(this));
-        postCreateTrigger.registerHandler(TranslationVO.API_TYPE_ID, this.clear_flat_translations.bind(this));
-        postUpdateTrigger.registerHandler(TranslationVO.API_TYPE_ID, this.clear_flat_translations.bind(this));
-        postDeleteTrigger.registerHandler(TranslationVO.API_TYPE_ID, this.clear_flat_translations.bind(this));
-        postCreateTrigger.registerHandler(LangVO.API_TYPE_ID, this.clear_flat_translations.bind(this));
-        postUpdateTrigger.registerHandler(LangVO.API_TYPE_ID, this.clear_flat_translations.bind(this));
-        postDeleteTrigger.registerHandler(LangVO.API_TYPE_ID, this.clear_flat_translations.bind(this));
+        postCreateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this, this.clear_flat_translations);
+        postUpdateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this, this.clear_flat_translations);
+        postDeleteTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this, this.clear_flat_translations);
+        postCreateTrigger.registerHandler(TranslationVO.API_TYPE_ID, this, this.clear_flat_translations);
+        postUpdateTrigger.registerHandler(TranslationVO.API_TYPE_ID, this, this.clear_flat_translations);
+        postDeleteTrigger.registerHandler(TranslationVO.API_TYPE_ID, this, this.clear_flat_translations);
+        postCreateTrigger.registerHandler(LangVO.API_TYPE_ID, this, this.clear_flat_translations);
+        postUpdateTrigger.registerHandler(LangVO.API_TYPE_ID, this, this.clear_flat_translations);
+        postDeleteTrigger.registerHandler(LangVO.API_TYPE_ID, this, this.clear_flat_translations);
 
-        preCreateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this.onPreCreateTranslatableTextVO);
-        preUpdateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this.onPreUpdateTranslatableTextVO);
+        preCreateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this, this.onPreCreateTranslatableTextVO);
+        preUpdateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this, this.onPreUpdateTranslatableTextVO);
 
-        postCreateTrigger.registerHandler(LangVO.API_TYPE_ID, this.trigger_oncreate_lang);
-        preDeleteTrigger.registerHandler(LangVO.API_TYPE_ID, this.trigger_ondelete_lang);
+        postCreateTrigger.registerHandler(LangVO.API_TYPE_ID, this, this.trigger_oncreate_lang);
+        preDeleteTrigger.registerHandler(LangVO.API_TYPE_ID, this, this.trigger_ondelete_lang);
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Traductions'
