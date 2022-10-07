@@ -69,10 +69,14 @@ import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import { DatabaseError, Pool } from 'pg';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import ThrottledSelectQueryParam from './vos/ThrottledSelectQueryParam';
+import RequestResponseCacheVO from '../../../shared/modules/AjaxCache/vos/RequestResponseCacheVO';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
     public static PARAM_NAME_insert_without_triggers_using_COPY: string = 'ModuleDAOServer.insert_without_triggers_using_COPY';
+    public static PARAM_NAME_throttled_select_query_size_ms: string = 'ModuleDAOServer.throttled_select_query_size_ms';
 
     public static TASK_NAME_add_segmented_known_databases: string = ModuleDAO.getInstance().name + ".add_segmented_known_databases";
 
@@ -89,8 +93,29 @@ export default class ModuleDAOServer extends ModuleServerBase {
     public global_update_blocker: boolean = false;
 
     private copy_dedicated_pool = null;
+    private log_db_query_perf_uid: number = 0;
+
+    /**
+     * Le nombre de ms pour le throttle des select queries
+     */
+    private throttled_select_query_size_ms: number = 10;
+    /**
+     * Le throttle actuellement en place. Si on le change via les params il faut bien le reconstruire avec le throttle helper
+     */
+    private current_throttled_select_query_size_ms: number = 10;
+    /**
+     * Les params du throttled_select_query
+     */
+    private throttled_select_query_params: ThrottledSelectQueryParam[] = [];
+    /**
+     * Derniere vérif du param throttled_select_query_size
+     */
+    private throttled_select_query_size_ms_param_last_update: number = 0;
+
+    private log_db_query_perf_start_by_uid: { [uid: number]: number } = {};
 
     private throttled_refuse = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.refuse.bind(this), 1000, { leading: false, trailing: true });
+    private throttled_select_query_ = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.throttled_select_query.bind(this), 10, { leading: false, trailing: true });
 
     private constructor() {
         super(ModuleDAO.getInstance().name);
@@ -410,8 +435,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDAO.APINAME_DELETE_VOS, this.deleteVOs.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDAO.APINAME_DELETE_VOS_BY_IDS, this.deleteVOsByIds.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDAO.APINAME_DELETE_VOS_MULTICONNECTIONS, this.deleteVOsMulticonnections.bind(this));
 
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS, this.insertOrUpdateVOs.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS_MULTICONNECTIONS, this.insertOrUpdateVOsMulticonnections.bind(this));
+
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDAO.APINAME_INSERT_OR_UPDATE_VO, this.insertOrUpdateVO.bind(this));
 
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VO_BY_ID, this.getVoById.bind(this));
@@ -508,8 +536,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 continue;
             }
 
+            let uid = this.log_db_query_perf_start('getSumFieldFilterByMatroids', "SELECT sum(t." + field_id + ") res FROM " + moduleTable.full_name);
             let res = await ModuleServiceBase.getInstance().db.query("SELECT sum(t." + field_id + ") res FROM " + moduleTable.full_name + " t WHERE  " +
                 filter_by_matroid_clause + ";");
+            this.log_db_query_perf_end(uid, 'getSumFieldFilterByMatroids', "SELECT sum(t." + field_id + ") res FROM " + moduleTable.full_name);
 
             if ((!res) || (!res[0]) || (res[0]['res'] == null) || (typeof res[0]['res'] == 'undefined')) {
             } else {
@@ -862,11 +892,18 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 if (!self.has_segmented_known_database(datatable, segment_value)) {
                     return;
                 }
-                await ModuleServiceBase.getInstance().db.none("DELETE FROM " + datatable.get_segmented_full_name(segment_value) + ";");
+
+                let query_string = "DELETE FROM " + datatable.get_segmented_full_name(segment_value);
+                let uid = this.log_db_query_perf_start('delete_all_vos', query_string, 'is_segmented');
+                await ModuleServiceBase.getInstance().db.none(query_string + ";");
+                this.log_db_query_perf_end(uid, 'delete_all_vos', query_string, 'is_segmented');
 
             }, datatable.table_segmented_field_segment_type);
         } else {
-            await ModuleServiceBase.getInstance().db.none("DELETE FROM " + datatable.full_name + ";");
+            let query_string = "DELETE FROM " + datatable.full_name;
+            let uid = this.log_db_query_perf_start('delete_all_vos', query_string, '!is_segmented');
+            await ModuleServiceBase.getInstance().db.none(query_string + ";");
+            this.log_db_query_perf_end(uid, 'delete_all_vos', query_string, '!is_segmented');
         }
     }
 
@@ -1127,7 +1164,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }
 
                 promises.push((async () => {
+                    let uid = this.log_db_query_perf_start('insertOrUpdateVOs_without_triggers', sql);
                     let results = await ModuleServiceBase.getInstance().db.query(sql, values);
+                    this.log_db_query_perf_end(uid, 'insertOrUpdateVOs_without_triggers', sql);
 
                     for (let i in results) {
                         let result = results[i];
@@ -1235,7 +1274,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
         let table_name: string = moduleTable.is_segmented ? moduleTable.get_segmented_full_name(segmented_value) : moduleTable.full_name;
 
-        let debug_insert_without_triggers_using_COPY = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleDAOServer.PARAM_NAME_insert_without_triggers_using_COPY, true);
+        let debug_insert_without_triggers_using_COPY = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleDAOServer.PARAM_NAME_insert_without_triggers_using_COPY, false);
 
         if (debug_insert_without_triggers_using_COPY) {
             ConsoleHandler.getInstance().log('insert_without_triggers_using_COPY:start');
@@ -1375,7 +1414,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 };
 
                 let query_string = "COPY " + table_name + " (" + tableFields.join(", ") + ") FROM STDIN WITH (FORMAT csv, DELIMITER ';', QUOTE '''')";
-                ConsoleHandler.getInstance().log('insert_without_triggers_using_COPY:query_string:' + query_string);
+                if (debug_insert_without_triggers_using_COPY) {
+                    ConsoleHandler.getInstance().log('insert_without_triggers_using_COPY:query_string:' + query_string);
+                }
                 var stream = client.query(copyFrom(query_string));
                 var rs = new Readable();
 
@@ -1475,11 +1516,17 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     if (!self.has_segmented_known_database(datatable, segment_value)) {
                         return;
                     }
-                    await ModuleServiceBase.getInstance().db.none("TRUNCATE " + datatable.get_segmented_full_name(segment_value) + ";");
+                    let query_string = "TRUNCATE " + datatable.get_segmented_full_name(segment_value);
+                    let uid = this.log_db_query_perf_start('truncate', query_string, 'is_segmented');
+                    await ModuleServiceBase.getInstance().db.none(query_string + ";");
+                    this.log_db_query_perf_end(uid, 'truncate', query_string, 'is_segmented');
 
                 }, datatable.table_segmented_field_segment_type);
             } else {
-                await ModuleServiceBase.getInstance().db.none("TRUNCATE " + datatable.full_name + ";");
+                let query_string = "TRUNCATE " + datatable.full_name;
+                let uid = this.log_db_query_perf_start('truncate', query_string, '!is_segmented');
+                await ModuleServiceBase.getInstance().db.none(query_string + ";");
+                this.log_db_query_perf_end(uid, 'truncate', query_string, '!is_segmented');
             }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
@@ -1526,7 +1573,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     return;
                 }
 
-                let table_name = moduleTable.get_segmented_name(segment_value);
+                let table_name = moduleTable.get_segmented_full_name(segment_value);
                 segmentations_tables[table_name] = segment_value;
             }, moduleTable.table_segmented_field_segment_type);
 
@@ -1554,13 +1601,20 @@ export default class ModuleDAOServer extends ModuleServerBase {
             request += (limit ? ' limit ' + limit : '');
             request += (offset ? ' offset ' + offset : '');
 
+            let query_uid = this.log_db_query_perf_start('selectAll', request, 'is_segmented');
             let vos: T[] = await ModuleServiceBase.getInstance().db.query(request + ';', queryParams ? queryParams : []);
+            this.log_db_query_perf_end(query_uid, 'selectAll', request, 'is_segmented');
 
             res = moduleTable.forceNumerics(vos);
         } else {
+            let query_string = "SELECT " + (distinct ? 'distinct' : '') + " t.* FROM " + moduleTable.full_name + " t ";
+            let query_uid = this.log_db_query_perf_start('selectAll', query_string, '!is_segmented');
+
             res = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query(
-                "SELECT " + (distinct ? 'distinct' : '') + " t.* FROM " + moduleTable.full_name + " t " +
+                query_string +
                 (query_ ? query_ : '') + (limit ? ' limit ' + limit : '') + (offset ? ' offset ' + offset : ''), queryParams ? queryParams : []) as T[]);
+
+            this.log_db_query_perf_end(query_uid, 'selectAll', query_string, '!is_segmented');
         }
 
         // On filtre les res suivant les droits d'accès
@@ -1607,7 +1661,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     return;
                 }
 
-                let segment_vo: T = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + moduleTable.get_segmented_full_name(segment_value) + " t " + (query_ ? query_ : '') + ";", queryParams ? queryParams : []) as T;
+                let query_string = "SELECT t.* FROM " + moduleTable.get_segmented_full_name(segment_value) + " t " + (query_ ? query_ : '');
+                let query_uid = this.log_db_query_perf_start('selectOne', query_string, 'is_segmented');
+                let segment_vo: T = await ModuleServiceBase.getInstance().db.oneOrNone(query_string + ";", queryParams ? queryParams : []) as T;
+                this.log_db_query_perf_end(query_uid, 'selectOne', query_string, 'is_segmented');
 
                 if ((!!segmented_vo) && (!!segment_vo)) {
                     ConsoleHandler.getInstance().error('More than one result on selectOne on segmented table :' + moduleTable.get_segmented_full_name(segment_value) + ';');
@@ -1628,7 +1685,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
             // On filtre les vo suivant les droits d'accès
             vo = segmented_vo;
         } else {
-            vo = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + moduleTable.full_name + " t " + (query_ ? query_ : '') + ";", queryParams ? queryParams : []) as T;
+            let query_string = "SELECT t.* FROM " + moduleTable.full_name + " t " + (query_ ? query_ : '');
+            let query_uid = this.log_db_query_perf_start('selectOne', query_string, '!is_segmented');
+            vo = await ModuleServiceBase.getInstance().db.oneOrNone(query_string + ";", queryParams ? queryParams : []) as T;
+            this.log_db_query_perf_end(query_uid, 'selectOne', query_string, '!is_segmented');
             vo = moduleTable.forceNumeric(vo);
         }
 
@@ -1666,13 +1726,152 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
+        let res = null;
+
+        let query_uid = this.log_db_query_perf_start('query', query_);
         if (!!values) {
-
-            return await ModuleServiceBase.getInstance().db.query(query_, values);
+            res = await ModuleServiceBase.getInstance().db.query(query_, values);
         } else {
-            return await ModuleServiceBase.getInstance().db.query(query_);
+            res = await ModuleServiceBase.getInstance().db.query(query_);
         }
+        this.log_db_query_perf_end(query_uid, 'query', query_);
 
+        return res;
+    }
+
+
+    /**
+     * Throttle select queries group every 10ms (parametrable)
+     */
+    public async throttle_select_query(query_: string = null, values: any = null, context_query: ContextQueryVO): Promise<any> {
+        await this.check_throttled_select_query_size_ms();
+        let self = this;
+
+        return new Promise(async (resolve, reject) => {
+
+            let param = new ThrottledSelectQueryParam([resolve], context_query, query_, values);
+            self.throttled_select_query_params.push(param);
+            await self.throttled_select_query_({
+                [param.index]: param
+            });
+        });
+    }
+
+    public async throttled_select_query() {
+        if (this.throttled_select_query_params && this.throttled_select_query_params.length) {
+
+            let moduleTables_by_voType = VOsTypesManager.getInstance().moduleTables_by_voType;
+
+            /**
+             * On libère la liste des params pour un prochain appel
+             */
+            let batch_throttled_select_query_params = this.throttled_select_query_params;
+            this.throttled_select_query_params = [];
+
+            /**
+             * On doit d'abord regrouper les requêtes par liste de fields (et même de fields label dans la query)
+             *  donc si on a pas de fields, il faudrait ressortir les fields du moduletable (mais il faut le faire en amont je pense)
+             *  pour le moment je gère pas ce cas (et je log un warning)
+             */
+            let throttled_select_query_params_by_fields_labels: { [fields_labels: string]: ThrottledSelectQueryParam[] } = {};
+
+            /**
+             * On se fait aussi une list par index de requete pour alléger les recherches par la suite
+             */
+            let throttled_select_query_params_by_index: { [index: number]: ThrottledSelectQueryParam } = {};
+
+            let promises = [];
+            for (let i in batch_throttled_select_query_params) {
+                let throttled_select_query_param: ThrottledSelectQueryParam = batch_throttled_select_query_params[i];
+
+                throttled_select_query_params_by_index[throttled_select_query_param.index] = throttled_select_query_param;
+
+                let fields = throttled_select_query_param.context_query.fields;
+                let fields_labels = fields ? fields.map((field) => {
+
+                    // On a besoin du type du champs et de l'alias
+                    let table_field_type = moduleTables_by_voType[field.api_type_id].getFieldFromId(field.field_id).field_type;
+                    return table_field_type + ',' + field.alias;
+
+                }).join(';') : null;
+
+                if (!fields_labels) {
+                    ConsoleHandler.getInstance().warn('Throttled select query without fields, not supported yet');
+                    promises.push((async () => {
+                        let res = await this.query(throttled_select_query_param.query_, throttled_select_query_param.values);
+
+                        for (let cbi in throttled_select_query_param.cbs) {
+                            let cb = throttled_select_query_param.cbs[cbi];
+
+                            await cb(res);
+                        }
+                    })());
+                    continue;
+                }
+
+                if (!throttled_select_query_params_by_fields_labels[fields_labels]) {
+                    throttled_select_query_params_by_fields_labels[fields_labels] = [];
+                }
+
+                /**
+                 * TODO FIXME : identifier des cas d'optimisation - par exemple une même requête avec des mêmes paramètres, inutile de la faire 10 fois
+                 */
+                throttled_select_query_params_by_fields_labels[fields_labels].push(throttled_select_query_param);
+            }
+
+            for (let i in throttled_select_query_params_by_fields_labels) {
+                let throttled_select_query_params: ThrottledSelectQueryParam[] = throttled_select_query_params_by_fields_labels[i];
+
+                let values = [];
+                let cpt_field: number = 1;
+
+                promises.push((async () => {
+
+                    let request: string = "";
+                    for (let j in throttled_select_query_params) {
+                        let param = throttled_select_query_params[j];
+
+                        if (param.semaphore) {
+                            continue;
+                        }
+                        param.semaphore = true;
+
+                        /**
+                         * On ne doit avoir que des select
+                         */
+                        if (!/^select /i.test(param.query_)) {
+                            ConsoleHandler.getInstance().error('Only select queries are allowed in throttled_select_query:' + param.query_);
+                            continue;
+                        }
+
+                        if (request != "") {
+                            request += " UNION ALL ";
+                        }
+
+                        request += "(SELECT " + param.index + " as ___throttled_select_query___index, ___throttled_select_query___query.* from (" + param.query_ + ") ___throttled_select_query___query)";
+
+                        if (param.values && param.values.length) {
+                            cpt_field += param.values.length;
+                            values = values.concat(param.values);
+                        }
+
+                        if (cpt_field >= 50000) {
+                            ConsoleHandler.getInstance().log('Throttled select query : too many fields, splitting request');
+
+                            let splitted_request = request;
+                            let splitted_values = values;
+                            cpt_field = 0;
+                            values = [];
+                            request = "";
+
+                            await this.do_throttled_select_query(splitted_request, splitted_values, throttled_select_query_params_by_index);
+                            continue;
+                        }
+                    }
+                })());
+            }
+            await Promise.all(promises);
+        }
     }
 
     /**
@@ -1682,8 +1881,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let datatable: ModuleTable<UserVO> = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID];
 
         try {
+            let query_string = "select * from ref.get_user(" + login.toLowerCase().trim() + ", $1, $1, $2, $3);";
+            let query_uid = this.log_db_query_perf_start('selectOneUser', query_string);
             let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone(
                 "select * from ref.get_user($1, $1, $1, $2, $3);", [login.toLowerCase().trim(), password, check_pwd]) as UserVO;
+            this.log_db_query_perf_end(query_uid, 'selectOneUser', query_string);
+
             vo = (vo && vo.id) ? vo : null;
             vo = datatable.forceNumeric(vo);
             return vo;
@@ -1701,8 +1904,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let datatable: ModuleTable<UserVO> = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID];
 
         try {
+
+            let query_string = "select * from ref.get_user(" + name.toLowerCase().trim() + ", " + email.toLowerCase().trim() + ", " + (phone ? phone.toLowerCase().trim() : null) + ", $2, $3);";
+            let query_uid = this.log_db_query_perf_start('selectUsersForCheckUnicity', query_string);
             let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone(
                 "select * from ref.get_user($1, $2, $3, null, false);", [name.toLowerCase().trim(), email.toLowerCase().trim(), phone ? phone.toLowerCase().trim() : null]) as UserVO;
+            this.log_db_query_perf_end(query_uid, 'selectUsersForCheckUnicity', query_string);
+
             vo = (vo && vo.id) ? vo : null;
             vo = datatable.forceNumeric(vo);
 
@@ -1724,7 +1932,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let datatable: ModuleTable<UserVO> = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID];
 
         try {
+            let query_string = "SELECT t.* FROM " + datatable.full_name + " t " + "WHERE (TRIM(LOWER(" + login.toLowerCase().trim();
+            let query_uid = this.log_db_query_perf_start('selectOneUserForRecovery', query_string);
             let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE (TRIM(LOWER(name)) = $1 OR TRIM(LOWER(email)) = $1 or TRIM(LOWER(phone)) = $1) and blocked = false", [login.toLowerCase().trim()]) as UserVO;
+            this.log_db_query_perf_end(query_uid, 'selectOneUserForRecovery', query_string);
 
             vo = datatable.forceNumeric(vo);
             return vo;
@@ -1740,7 +1951,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
     public async selectOneUserForRecoveryUID(uid: number): Promise<UserVO> {
         let datatable: ModuleTable<UserVO> = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID];
 
+        let query_string = "SELECT t.* FROM " + datatable.full_name + " t " + "WHERE id = " + uid + " and blocked = false";
+        let query_uid = this.log_db_query_perf_start('selectOneUserForRecoveryUID', query_string);
         let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE id = $1 and blocked = false", [uid]) as UserVO;
+        this.log_db_query_perf_end(query_uid, 'selectOneUserForRecoveryUID', query_string);
+
         vo = datatable.forceNumeric(vo);
         return vo;
     }
@@ -2073,6 +2288,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let resolved = false;
 
             if (sqls.length > 0) {
+                let query_uid = this.log_db_query_perf_start('insertOrUpdateVOs');
                 results = await ModuleServiceBase.getInstance().db.tx(async (t) => {
 
                     let queries: any[] = [];
@@ -2087,9 +2303,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     return t.batch(queries);
                 }).catch((reason) => {
                     ConsoleHandler.getInstance().error('insertOrUpdateVOs :' + reason);
+                    this.log_db_query_perf_end(query_uid, 'insertOrUpdateVOs');
                     resolve(null);
                     resolved = true;
                 });
+                this.log_db_query_perf_end(query_uid, 'insertOrUpdateVOs');
             }
 
             if (results && isUpdates && (isUpdates.length == results.length) && vos && (vos.length == results.length)) {
@@ -2293,10 +2511,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
 
             let bdd_version = moduleTable.get_bdd_version(vo);
+            let query_uid = this.log_db_query_perf_start('insertOrUpdateVO', 'type:' + vo._type);
             let db_result = await ModuleServiceBase.getInstance().db.oneOrNone(sql, bdd_version).catch((reason) => {
                 ConsoleHandler.getInstance().error('insertOrUpdateVO :' + reason);
                 failed = true;
             });
+            this.log_db_query_perf_end(query_uid, 'insertOrUpdateVO', 'type:' + vo._type);
 
             let res: InsertOrDeleteQueryResult = new InsertOrDeleteQueryResult((db_result && db_result.id) ? parseInt(db_result.id.toString()) : null);
 
@@ -2354,8 +2574,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         let deleted_vos: IDistantVOBase[] = [];
 
+        let query_uid = this.log_db_query_perf_start('deleteVOs');
         let results: any[] = await ModuleServiceBase.getInstance().db.tx(async (t) => {
 
+            this.log_db_query_perf_end(query_uid, 'deleteVOs');
             let queries: any[] = [];
 
             for (let i in vos) {
@@ -2436,6 +2658,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             return t.batch(queries);
         }).then(async (value: any) => {
+
+            this.log_db_query_perf_end(query_uid, 'deleteVOs');
 
             // On vide le cache
             await DAOQueryCacheController.getInstance().broad_cast_clear_cache();
@@ -2732,12 +2956,16 @@ export default class ModuleDAOServer extends ModuleServerBase {
              */
             vo = null;
             try {
+                let query_uid = this.log_db_query_perf_start('getVoById', request, 'is_segmented');
                 vo = request ? await ModuleServiceBase.getInstance().db.oneOrNone(request + ';') as T : null;
+                this.log_db_query_perf_end(query_uid, 'getVoById', request, 'is_segmented');
             } catch (error) {
             }
 
         } else {
+            let query_uid = this.log_db_query_perf_start('getVoById', "SELECT t.* FROM " + moduleTable.full_name + " t WHERE id=" + id, '!is_segmented');
             vo = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + moduleTable.full_name + " t WHERE id=" + id + ";") as T;
+            this.log_db_query_perf_end(query_uid, 'getVoById', "SELECT t.* FROM " + moduleTable.full_name + " t WHERE id=" + id, '!is_segmented');
         }
 
         vo = moduleTable.forceNumeric(vo);
@@ -2873,7 +3101,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         continue;
                     }
 
+                    let query_uid = this.log_db_query_perf_start('getVosByRefFieldIds', "SELECT t.* FROM " + moduleTable.get_segmented_full_name(id), 'is_segmented && isrefchampssegment');
                     let tmp_vos = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT t.* FROM " + moduleTable.get_segmented_full_name(id) + request) as T[]);
+                    this.log_db_query_perf_end(query_uid, 'getVosByRefFieldIds', "SELECT t.* FROM " + moduleTable.get_segmented_full_name(id), 'is_segmented && isrefchampssegment');
+
                     if ((!!tmp_vos) && (tmp_vos.length)) {
                         vos = vos.concat(tmp_vos);
                     }
@@ -2888,14 +3119,19 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         continue;
                     }
 
+                    let query_uid = this.log_db_query_perf_start('getVosByRefFieldIds', "SELECT t.* FROM " + moduleTable.get_segmented_full_name(segment), 'is_segmented && !isrefchampssegment');
                     let tmp_vos = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT t.* FROM " + moduleTable.get_segmented_full_name(segment) + request) as T[]);
+                    this.log_db_query_perf_end(query_uid, 'getVosByRefFieldIds', "SELECT t.* FROM " + moduleTable.get_segmented_full_name(segment), 'is_segmented && !isrefchampssegment');
+
                     if ((!!tmp_vos) && (tmp_vos.length)) {
                         vos = vos.concat(tmp_vos);
                     }
                 }
             }
         } else {
+            let query_uid = this.log_db_query_perf_start('getVosByRefFieldIds', "SELECT t.* FROM " + moduleTable.full_name, '!is_segmented');
             vos = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT t.* FROM " + moduleTable.full_name + request) as T[]);
+            this.log_db_query_perf_end(query_uid, 'getVosByRefFieldIds', "SELECT t.* FROM " + moduleTable.full_name, '!is_segmented');
         }
 
         // On filtre suivant les droits d'accès
@@ -2960,7 +3196,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
             request += " AND " + moduleTable.getFieldFromId(field_name3).field_id + " in (" + ids3 + ")";
         }
 
+        let query_uid = this.log_db_query_perf_start('getVosByRefFieldsIds', request);
         let vos: T[] = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query(request + ";") as T[]);
+        this.log_db_query_perf_end(query_uid, 'getVosByRefFieldsIds', request);
 
         // On filtre suivant les droits d'accès
         let res = await this.filterVOsAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);
@@ -3111,7 +3349,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
             first = false;
         }
 
+        let query_uid = this.log_db_query_perf_start('get_request_for_getVosByRefFieldsIdsAndFieldsString', request);
         let vos: T[] = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query(request + ";", request_params) as T[]);
+        this.log_db_query_perf_end(query_uid, 'get_request_for_getVosByRefFieldsIdsAndFieldsString', request);
 
         // On filtre suivant les droits d'accès
         let res = await this.filterVOsAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);
@@ -3170,12 +3410,16 @@ export default class ModuleDAOServer extends ModuleServerBase {
              */
             vos = null;
             try {
+                let query_uid = this.log_db_query_perf_start('getVosByIds', request, 'is_segmented');
                 vos = request ? await ModuleServiceBase.getInstance().db.query(request + ';') as T[] : null;
+                this.log_db_query_perf_end(query_uid, 'getVosByIds', request, 'is_segmented');
             } catch (error) {
             }
 
         } else {
+            let query_uid = this.log_db_query_perf_start('getVosByIds', "SELECT t.* FROM " + moduleTable.full_name + " t WHERE id in (" + ids + ")", '!is_segmented');
             vos = await ModuleServiceBase.getInstance().db.query("SELECT t.* FROM " + moduleTable.full_name + " t WHERE id in (" + ids + ");") as T[];
+            this.log_db_query_perf_end(query_uid, 'getVosByIds', "SELECT t.* FROM " + moduleTable.full_name + " t WHERE id in (" + ids + ")", '!is_segmented');
         }
 
         vos = moduleTable.forceNumerics(vos);
@@ -3231,7 +3475,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
+        let query_uid = this.log_db_query_perf_start('getVosByIdsRanges', "SELECT t.* FROM " + moduleTable.full_name + " t WHERE " + where_clause + ";");
         let vos: T[] = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT t.* FROM " + moduleTable.full_name + " t WHERE " + where_clause + ";") as T[]);
+        this.log_db_query_perf_end(query_uid, 'getVosByIdsRanges', "SELECT t.* FROM " + moduleTable.full_name + " t WHERE " + where_clause + ";");
 
         // On filtre suivant les droits d'accès
         let res = await this.filterVOsAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);
@@ -3496,7 +3742,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 return null;
             }
 
+            let query_uid = this.log_db_query_perf_start('getDAOsByMatroid', request, 'is_segmented');
             let vos = await ModuleServiceBase.getInstance().db.query(request + ';') as T[];
+            this.log_db_query_perf_end(query_uid, 'getDAOsByMatroid', request, 'is_segmented');
 
             return moduleTable.forceNumerics(vos);
         } else {
@@ -3506,7 +3754,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 return null;
             }
 
-            return moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT t.* FROM " + moduleTable.full_name + " t WHERE " + filter_by_matroid_clause + (additional_condition ? additional_condition : '') + ';') as T[]);
+            let res = null;
+            let query_uid = this.log_db_query_perf_start('getDAOsByMatroid', "SELECT t.* FROM " + moduleTable.full_name + " t WHERE " + filter_by_matroid_clause, '!is_segmented');
+            res = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT t.* FROM " + moduleTable.full_name + " t WHERE " + filter_by_matroid_clause + (additional_condition ? additional_condition : '') + ';') as T[]);
+            this.log_db_query_perf_end(query_uid, 'getDAOsByMatroid', "SELECT t.* FROM " + moduleTable.full_name + " t WHERE " + filter_by_matroid_clause, '!is_segmented');
+
+            return res;
         }
     }
 
@@ -3644,7 +3897,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
                  */
                 let tmp_vos = null;
                 try {
+                    let query_uid = this.log_db_query_perf_start('filterVosByMatroidsIntersections', request, 'is_segmented +forceNumerics');
                     tmp_vos = request ? moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query(request + ';') as T[]) : null;
+                    this.log_db_query_perf_end(query_uid, 'filterVosByMatroidsIntersections', request, 'is_segmented +forceNumerics');
                 } catch (error) {
                 }
 
@@ -3673,7 +3928,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }
                 where_clauses.push(clause);
             }
+
+            let query_uid = this.log_db_query_perf_start('filterVosByMatroidsIntersections', "SELECT t.* FROM " + moduleTable.full_name + " t WHERE " + '(' + where_clauses.join(') OR (') + ')' + ";", '!is_segmented +forceNumerics');
             vos = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT t.* FROM " + moduleTable.full_name + " t WHERE " + '(' + where_clauses.join(') OR (') + ')' + ";") as T[]);
+            this.log_db_query_perf_end(query_uid, 'filterVosByMatroidsIntersections', "SELECT t.* FROM " + moduleTable.full_name + " t WHERE " + '(' + where_clauses.join(') OR (') + ')' + ";", '!is_segmented +forceNumerics');
         }
 
         // On filtre suivant les droits d'accès
@@ -3885,7 +4143,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
                  */
                 let tmp_vos = null;
                 try {
+                    let query_uid = this.log_db_query_perf_start('getVosByExactMatroid', request, 'is_segmented +forceNumerics');
                     tmp_vos = request ? moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query(request + ';') as T[]) : null;
+                    this.log_db_query_perf_end(query_uid, 'getVosByExactMatroid', request, 'is_segmented +forceNumerics');
                 } catch (error) {
                 }
 
@@ -3898,7 +4158,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             vos = Object.values(vos_by_ids);
         } else {
+            let query_uid = this.log_db_query_perf_start('getVosByExactMatroid', "SELECT t.* FROM " + moduleTable.full_name + " t WHERE " + '(' + where_clauses.join(') OR (') + ')' + ";", '!is_segmented +forceNumerics');
             vos = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT t.* FROM " + moduleTable.full_name + " t WHERE " + '(' + where_clauses.join(') OR (') + ')' + ";") as T[]);
+            this.log_db_query_perf_end(query_uid, 'getVosByExactMatroid', "SELECT t.* FROM " + moduleTable.full_name + " t WHERE " + '(' + where_clauses.join(') OR (') + ')' + ";", '!is_segmented +forceNumerics');
         }
 
         // On filtre suivant les droits d'accès
@@ -4432,5 +4694,93 @@ export default class ModuleDAOServer extends ModuleServerBase {
             ' END;' +
             ' $$' +
             ' LANGUAGE plpgsql;');
+    }
+
+    private log_db_query_perf_start(method_name: string, query_string: string = null, step_name: string = null): number {
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_DB_QUERY_PERF) {
+            let uid = this.log_db_query_perf_uid++;
+            this.log_db_query_perf_start_by_uid[uid] = Dates.now_ms();
+            let query_s = (query_string ? query_string.substring(0, 200) : 'N/A');
+            query_s = (query_s ? query_s.replace(/;/g, '') : 'N/A');
+            ConsoleHandler.getInstance().log('log_db_query_perf_start;ModuleDAOServer;IN;' + uid + ';' + this.log_db_query_perf_start_by_uid[uid] + ';0;' + method_name +
+                ';' + (step_name ? step_name : 'N/A') +
+                ';' + query_s);
+            return uid;
+        }
+
+        return null;
+    }
+
+    private log_db_query_perf_end(uid: number, method_name: string, query_string: string = null, step_name: string = null) {
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_DB_QUERY_PERF && !!this.log_db_query_perf_start_by_uid[uid]) {
+            let end_ms = Dates.now_ms();
+            let duration = end_ms - this.log_db_query_perf_start_by_uid[uid];
+            let query_s = (query_string ? query_string.substring(0, 200) : 'N/A');
+            query_s = (query_s ? query_s.replace(/;/g, '') : 'N/A');
+            ConsoleHandler.getInstance().log('log_db_query_perf_start;ModuleDAOServer;OUT;' + uid + ';' + end_ms + ';' + duration + ';' + method_name +
+                ';' + (step_name ? step_name : 'N/A') +
+                ';' + query_s);
+        }
+    }
+
+    private async check_throttled_select_query_size_ms() {
+        if ((!this.throttled_select_query_size_ms_param_last_update) || ((this.throttled_select_query_size_ms_param_last_update) + 120 < Dates.now())) {
+            this.throttled_select_query_size_ms_param_last_update = Dates.now();
+
+            let throttled_select_query_size_ms = this.throttled_select_query_size_ms;
+            try {
+                throttled_select_query_size_ms = await ModuleParams.getInstance().getParamValueAsInt(ModuleDAOServer.PARAM_NAME_throttled_select_query_size_ms, 10);
+                this.throttled_select_query_size_ms = throttled_select_query_size_ms;
+            } catch (error) {
+                // Normal pendant le démarrage
+            }
+
+            if (this.throttled_select_query_size_ms != this.current_throttled_select_query_size_ms) {
+                this.current_throttled_select_query_size_ms = this.throttled_select_query_size_ms;
+                this.throttled_select_query_ = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.throttled_select_query.bind(this), this.current_throttled_select_query_size_ms, { leading: false, trailing: true });
+            }
+        }
+    }
+
+    private async do_throttled_select_query(request: string, values: any[], throttled_select_query_params_by_index: { [index: number]: ThrottledSelectQueryParam }) {
+        let results = await ModuleServiceBase.getInstance().db.query(request, values);
+
+        /**
+         * On ventile les résultats par index
+         */
+        let results_by_index: { [index: number]: any[] } = {};
+        for (let i in results) {
+            let result = results[i];
+
+            let index = result['___throttled_select_query___index'];
+            if (!results_by_index[index]) {
+                results_by_index[index] = [];
+            }
+            delete result['___throttled_select_query___index'];
+            results_by_index[index].push(result);
+        }
+
+        for (let i in results_by_index) {
+            let results_of_index = results_by_index[i];
+            let index = parseInt(i);
+
+            let param = null;
+
+            if (throttled_select_query_params_by_index[index]) {
+                param = throttled_select_query_params_by_index[index];
+            }
+
+            if (!param) {
+                ConsoleHandler.getInstance().error('throttled_select_query:!throttled_select_query_param');
+                param.cb(0);
+                continue;
+            }
+
+            for (let cbi in param.cbs) {
+                let cb = param.cbs[cbi];
+
+                await cb(results_of_index);
+            }
+        }
     }
 }

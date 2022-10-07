@@ -454,15 +454,20 @@ export default class ModuleVar extends Module {
     private initVarNodePerfElementVO() {
 
         let datatable_fields = [
-            new ModuleTableField('start_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'start_time (ms)', false),
-            new ModuleTableField('initial_estimated_work_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'initial_estimated_work_time (ms)', false),
-            new ModuleTableField('updated_estimated_work_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'updated_estimated_work_time (ms)', false),
+            new ModuleTableField('_start_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'start_time (ms)', false),
+            new ModuleTableField('_initial_estimated_work_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'initial_estimated_work_time (ms)', false),
+            new ModuleTableField('_updated_estimated_work_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'updated_estimated_work_time (ms)', false),
             new ModuleTableField('total_elapsed_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'total_elapsed_time (ms)', false),
             new ModuleTableField('skipped', ModuleTableField.FIELD_TYPE_boolean, 'skipped', true, true, false),
             new ModuleTableField('end_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'end_time (ms)', false),
             new ModuleTableField('nb_calls', ModuleTableField.FIELD_TYPE_int, 'nb_calls', true, true, 0),
             new ModuleTableField('sum_card', ModuleTableField.FIELD_TYPE_int, 'sum_card', true, true, 0),
             new ModuleTableField('parent_perf_ref', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'parent_perf_ref', false).set_plain_obj_cstr(() => new VarNodeParentPerfVO()),
+            new ModuleTableField('_nb_started_global', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'nb_started_global', false),
+            new ModuleTableField('_initial_estimated_work_time_global', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'initial_estimated_work_time_global (ms)', false),
+            new ModuleTableField('_updated_estimated_work_time_global', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'updated_estimated_work_time_global (ms)', false),
+            new ModuleTableField('_start_time_global', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'start_time_global (ms)', false),
+            new ModuleTableField('_nb_noeuds_global', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'nb_noeuds_global', false),
         ];
 
         let datatable = new ModuleTable(this, VarNodePerfElementVO.API_TYPE_ID, () => new VarNodePerfElementVO(null, null, null), datatable_fields, null);

@@ -73,15 +73,9 @@ export default class VarsdatasComputerBGThread implements IBGThread {
     public current_batch_ordered_pick_list: Array<VarDataProxyWrapperVO<VarDataBaseVO>> = null;
 
     /**
-     * Le VarDAG lié au batch actuel
-     */
-    public current_batch_vardag: VarDAG = null;
-
-    /**
      * Le cache des datasources lié au batch actuel
      */
     public current_batch_ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } } = {};
-
 
     /**
      * Les VarDAGPerfs en attente d'enregistrement dans la base de données
@@ -109,6 +103,11 @@ export default class VarsdatasComputerBGThread implements IBGThread {
     public force_run_asap = ThrottleHelper.getInstance().declare_throttle_without_args(this.force_run_asap_throttled.bind(this), 10, { leading: true, trailing: true });
     public semaphore: boolean = false;
 
+    /**
+     * Le VarDAG lié au batch actuel
+     */
+    private _current_batch_vardag: VarDAG = null;
+
     private timeout_calculation: number = 30;
     private last_calculation_unix: number = 0;
 
@@ -118,6 +117,15 @@ export default class VarsdatasComputerBGThread implements IBGThread {
         // ForkedTasksController.getInstance().register_task(VarsdatasComputerBGThread.TASK_NAME_switch_force_1_by_1_computation, this.switch_force_1_by_1_computation.bind(this));
         ForkedTasksController.getInstance().register_task(VarsdatasComputerBGThread.TASK_NAME_switch_add_computation_time_to_learning_base, this.switch_add_computation_time_to_learning_base.bind(this));
         ForkedTasksController.getInstance().register_task(VarsdatasComputerBGThread.TASK_NAME_force_run_asap, this.force_run_asap.bind(this));
+    }
+
+    get current_batch_vardag(): VarDAG {
+        return this._current_batch_vardag;
+    }
+
+    set current_batch_vardag(vardag: VarDAG) {
+        this._current_batch_vardag = vardag;
+        VarNodePerfElementVO.current_var_dag = vardag ? vardag : VarNodePerfElementVO.current_var_dag;
     }
 
     public async switch_add_computation_time_to_learning_base(): Promise<boolean> {
@@ -197,10 +205,13 @@ export default class VarsdatasComputerBGThread implements IBGThread {
             VarsdatasComputerBGThread.getInstance().current_batch_params = {};
             VarsdatasComputerBGThread.getInstance().current_batch_ordered_pick_list = null;
 
-            let var_dag: VarDAG = new VarDAG(VarsdatasComputerBGThread.getInstance().current_batch_id);
+            let var_dag: VarDAG = new VarDAG();
             VarsdatasComputerBGThread.getInstance().current_batch_vardag = var_dag;
+            var_dag.init_perfs(VarsdatasComputerBGThread.getInstance().current_batch_id);
 
-            VarDagPerfsServerController.getInstance().start_nodeperfelement(var_dag.perfs.batch_wrapper, 'batch_wrapper');
+            if (var_dag.perfs) {
+                VarDagPerfsServerController.getInstance().start_nodeperfelement(var_dag.perfs.batch_wrapper, 'batch_wrapper');
+            }
 
             /**
              * On dépile les CUD sur les VOs et faire les invalidations
@@ -238,7 +249,9 @@ export default class VarsdatasComputerBGThread implements IBGThread {
             if (!did_something) {
 
                 // ConsoleHandler.getInstance().log('VarsdatasComputerBGThread.do_calculation_run:!did_something:refuse_computation:' + refuse_computation + ':');
-                ConsoleHandler.getInstance().log('VarsdatasComputerBGThread.do_calculation_run:!did_something');
+                if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+                    ConsoleHandler.getInstance().log('VarsdatasComputerBGThread.do_calculation_run:!did_something');
+                }
 
                 if (VarsDatasVoUpdateHandler.getInstance().last_call_handled_something) {
                     this.run_asap = true;
@@ -248,7 +261,14 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                     if (performance.now() > this.partial_clean_next_ms) {
                         // On limite à un appel toutes les secondes
                         this.partial_clean_next_ms = performance.now() + 1000;
+
+                        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+                            ConsoleHandler.getInstance().log('VarsdatasComputerBGThread.do_calculation_run:partially_clean_bdd_cache:IN');
+                        }
                         await VarsCacheController.getInstance().partially_clean_bdd_cache(); // PERF OK
+                        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+                            ConsoleHandler.getInstance().log('VarsdatasComputerBGThread.do_calculation_run:partially_clean_bdd_cache:OUT');
+                        }
                     }
                 }
             } else {
@@ -260,7 +280,9 @@ export default class VarsdatasComputerBGThread implements IBGThread {
              */
             await this.varsdatas_proxy_handle_buffer_perf_wrapper(var_dag);
 
-            VarDagPerfsServerController.getInstance().end_nodeperfelement(var_dag.perfs.batch_wrapper, 'batch_wrapper');
+            if (var_dag.perfs) {
+                VarDagPerfsServerController.getInstance().end_nodeperfelement(var_dag.perfs.batch_wrapper, 'batch_wrapper');
+            }
 
             this.log_perfs(var_dag);
 
@@ -387,7 +409,9 @@ export default class VarsdatasComputerBGThread implements IBGThread {
 
         await SlowVarKiHandler.getInstance().computationBatchSupervisor(VarsdatasComputerBGThread.getInstance().current_batch_id);
 
-        VarDagPerfsServerController.getInstance().start_nodeperfelement(var_dag.perfs.computation_wrapper, 'computation_wrapper');
+        if (var_dag.perfs) {
+            VarDagPerfsServerController.getInstance().start_nodeperfelement(var_dag.perfs.computation_wrapper, 'computation_wrapper');
+        }
 
         await VarsComputeController.getInstance().compute(); // PERF OK
         let indexes: string[] = [];
@@ -401,7 +425,9 @@ export default class VarsdatasComputerBGThread implements IBGThread {
             }
         }
 
-        VarDagPerfsServerController.getInstance().end_nodeperfelement(var_dag.perfs.computation_wrapper, 'computation_wrapper');
+        if (var_dag.perfs) {
+            VarDagPerfsServerController.getInstance().end_nodeperfelement(var_dag.perfs.computation_wrapper, 'computation_wrapper');
+        }
 
         await SlowVarKiHandler.getInstance().handle_slow_var_ki_end();
 
@@ -444,31 +470,31 @@ export default class VarsdatasComputerBGThread implements IBGThread {
 
     private log_perfs(var_dag: VarDAG) {
         let batch_wrapper_total_elapsed_time = Math.round(var_dag.perfs.batch_wrapper.total_elapsed_time ? var_dag.perfs.batch_wrapper.total_elapsed_time : 0) / 1000;
-        let batch_wrapper_initial_estimated_work_time = Math.round(var_dag.perfs.batch_wrapper.initial_estimated_work_time ? var_dag.perfs.batch_wrapper.initial_estimated_work_time : 0) / 1000;
+        let batch_wrapper_initial_estimated_work_time = Math.round(var_dag.perfs.batch_wrapper.initial_estimated_work_time_global ? var_dag.perfs.batch_wrapper.initial_estimated_work_time_global : 0) / 1000;
 
         let handle_invalidators_total_elapsed_time = Math.round(var_dag.perfs.handle_invalidators.total_elapsed_time ? var_dag.perfs.handle_invalidators.total_elapsed_time : 0) / 1000;
-        let handle_invalidators_initial_estimated_work_time = Math.round(var_dag.perfs.handle_invalidators.initial_estimated_work_time ? var_dag.perfs.handle_invalidators.initial_estimated_work_time : 0) / 1000;
+        let handle_invalidators_initial_estimated_work_time = Math.round(var_dag.perfs.handle_invalidators.initial_estimated_work_time_global ? var_dag.perfs.handle_invalidators.initial_estimated_work_time_global : 0) / 1000;
 
         let handle_buffer_varsdatasproxy_total_elapsed_time = Math.round(var_dag.perfs.handle_buffer_varsdatasproxy.total_elapsed_time ? var_dag.perfs.handle_buffer_varsdatasproxy.total_elapsed_time : 0) / 1000;
-        let handle_buffer_varsdatasproxy_initial_estimated_work_time = Math.round(var_dag.perfs.handle_buffer_varsdatasproxy.initial_estimated_work_time ? var_dag.perfs.handle_buffer_varsdatasproxy.initial_estimated_work_time : 0) / 1000;
+        let handle_buffer_varsdatasproxy_initial_estimated_work_time = Math.round(var_dag.perfs.handle_buffer_varsdatasproxy.initial_estimated_work_time_global ? var_dag.perfs.handle_buffer_varsdatasproxy.initial_estimated_work_time_global : 0) / 1000;
 
         let handle_buffer_varsdatasvoupdate_total_elapsed_time = Math.round(var_dag.perfs.handle_buffer_varsdatasvoupdate.total_elapsed_time ? var_dag.perfs.handle_buffer_varsdatasvoupdate.total_elapsed_time : 0) / 1000;
-        let handle_buffer_varsdatasvoupdate_initial_estimated_work_time = Math.round(var_dag.perfs.handle_buffer_varsdatasvoupdate.initial_estimated_work_time ? var_dag.perfs.handle_buffer_varsdatasvoupdate.initial_estimated_work_time : 0) / 1000;
+        let handle_buffer_varsdatasvoupdate_initial_estimated_work_time = Math.round(var_dag.perfs.handle_buffer_varsdatasvoupdate.initial_estimated_work_time_global ? var_dag.perfs.handle_buffer_varsdatasvoupdate.initial_estimated_work_time_global : 0) / 1000;
 
         let computation_wrapper_total_elapsed_time = Math.round(var_dag.perfs.computation_wrapper.total_elapsed_time ? var_dag.perfs.computation_wrapper.total_elapsed_time : 0) / 1000;
-        let computation_wrapper_initial_estimated_work_time = Math.round(var_dag.perfs.computation_wrapper.initial_estimated_work_time ? var_dag.perfs.computation_wrapper.initial_estimated_work_time : 0) / 1000;
+        let computation_wrapper_initial_estimated_work_time = Math.round(var_dag.perfs.computation_wrapper.initial_estimated_work_time_global ? var_dag.perfs.computation_wrapper.initial_estimated_work_time_global : 0) / 1000;
 
         let create_tree_total_elapsed_time = Math.round(var_dag.perfs.create_tree.total_elapsed_time ? var_dag.perfs.create_tree.total_elapsed_time : 0) / 1000;
-        let create_tree_initial_estimated_work_time = Math.round(var_dag.perfs.create_tree.initial_estimated_work_time ? var_dag.perfs.create_tree.initial_estimated_work_time : 0) / 1000;
+        let create_tree_initial_estimated_work_time = Math.round(var_dag.perfs.create_tree.initial_estimated_work_time_global ? var_dag.perfs.create_tree.initial_estimated_work_time_global : 0) / 1000;
 
         let load_nodes_datas_total_elapsed_time = Math.round(var_dag.perfs.load_nodes_datas.total_elapsed_time ? var_dag.perfs.load_nodes_datas.total_elapsed_time : 0) / 1000;
-        let load_nodes_datas_initial_estimated_work_time = Math.round(var_dag.perfs.load_nodes_datas.initial_estimated_work_time ? var_dag.perfs.load_nodes_datas.initial_estimated_work_time : 0) / 1000;
+        let load_nodes_datas_initial_estimated_work_time = Math.round(var_dag.perfs.load_nodes_datas.initial_estimated_work_time_global ? var_dag.perfs.load_nodes_datas.initial_estimated_work_time_global : 0) / 1000;
 
         let compute_node_wrapper_total_elapsed_time = Math.round(var_dag.perfs.compute_node_wrapper.total_elapsed_time ? var_dag.perfs.compute_node_wrapper.total_elapsed_time : 0) / 1000;
-        let compute_node_wrapper_initial_estimated_work_time = Math.round(var_dag.perfs.compute_node_wrapper.initial_estimated_work_time ? var_dag.perfs.compute_node_wrapper.initial_estimated_work_time : 0) / 1000;
+        let compute_node_wrapper_initial_estimated_work_time = Math.round(var_dag.perfs.compute_node_wrapper.initial_estimated_work_time_global ? var_dag.perfs.compute_node_wrapper.initial_estimated_work_time_global : 0) / 1000;
 
         let cache_datas_total_elapsed_time = Math.round(var_dag.perfs.cache_datas.total_elapsed_time ? var_dag.perfs.cache_datas.total_elapsed_time : 0) / 1000;
-        let cache_datas_initial_estimated_work_time = Math.round(var_dag.perfs.cache_datas.initial_estimated_work_time ? var_dag.perfs.cache_datas.initial_estimated_work_time : 0) / 1000;
+        let cache_datas_initial_estimated_work_time = Math.round(var_dag.perfs.cache_datas.initial_estimated_work_time_global ? var_dag.perfs.cache_datas.initial_estimated_work_time_global : 0) / 1000;
 
         ConsoleHandler.getInstance().log('VarsdatasComputerBGThread computed : [' + var_dag.perfs.nb_batch_vars + '] registered / [' + var_dag.nb_nodes + '] all vars - took :');
         ConsoleHandler.getInstance().log('    [' + batch_wrapper_total_elapsed_time + ' sec] globally' + (batch_wrapper_initial_estimated_work_time ? ' / [' + batch_wrapper_initial_estimated_work_time + ' sec] initially estimated' : ''));

@@ -90,18 +90,17 @@ export default class VarsClientController {
             }
 
             if (!this.registered_var_params[var_param.index]) {
+
                 needs_registration[var_param.index] = var_param;
                 this.registered_var_params[var_param.index] = new RegisteredVarDataWrapper(var_param);
                 if (callbacks) {
                     await this.registered_var_params[var_param.index].add_callbacks(callbacks);
                 }
             } else {
+                this.registered_var_params[var_param.index].nb_registrations++;
+
                 if (callbacks) {
                     await this.registered_var_params[var_param.index].add_callbacks(callbacks);
-                }
-
-                if (this.registered_var_params[var_param.index]) {
-                    this.registered_var_params[var_param.index].nb_registrations++;
                 }
             }
         }
@@ -265,6 +264,7 @@ export default class VarsClientController {
              */
             if ((Dates.now() - VarsClientController.getInstance().last_notif_received) < 10) {
                 ConsoleHandler.getInstance().log('check_invalid_valued_params_registration : server is calculating, waiting:' + VarsClientController.getInstance().last_notif_received);
+                this.prepare_next_check();
                 return;
             }
 
@@ -355,6 +355,9 @@ export default class VarsClientController {
             }
         }
 
-        await ModuleVar.getInstance().unregister_params(Object.values(filtered_unregistrations));
+        let unregistrations = Object.values(filtered_unregistrations);
+        if (unregistrations && unregistrations.length) {
+            await ModuleVar.getInstance().unregister_params(unregistrations);
+        }
     }
 }

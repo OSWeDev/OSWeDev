@@ -63,7 +63,14 @@ export default class ContextQueryServerController {
             return 0;
         }
 
-        let query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
+        let query_res = null;
+
+        if (context_query.throttle_query_select && context_query.fields && context_query.fields.length) {
+            query_res = await ModuleDAOServer.getInstance().throttle_select_query(query_wrapper.query, query_wrapper.params, context_query);
+        } else {
+            query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
+        }
+
         let c = (query_res && (query_res.length == 1) && (typeof query_res[0]['c'] != 'undefined') && (query_res[0]['c'] !== null)) ? query_res[0]['c'] : null;
         c = c ? parseInt(c.toString()) : 0;
         return c;
@@ -91,7 +98,13 @@ export default class ContextQueryServerController {
             return null;
         }
 
-        let query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
+        let query_res = null;
+        if (context_query.throttle_query_select && context_query.fields && context_query.fields.length) {
+            query_res = await ModuleDAOServer.getInstance().throttle_select_query(query_wrapper.query, query_wrapper.params, context_query);
+        } else {
+            query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
+        }
+
         if ((!query_res) || (!query_res.length)) {
             return null;
         }
@@ -137,7 +150,13 @@ export default class ContextQueryServerController {
             return null;
         }
 
-        let query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
+        let query_res = null;
+        if (context_query.throttle_query_select && context_query.fields && context_query.fields.length) {
+            query_res = await ModuleDAOServer.getInstance().throttle_select_query(query_wrapper.query, query_wrapper.params, context_query);
+        } else {
+            query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
+        }
+
         if ((!query_res) || (!query_res.length)) {
             return null;
         }
@@ -175,7 +194,13 @@ export default class ContextQueryServerController {
             return null;
         }
 
-        let query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
+        let query_res = null;
+        if (context_query.throttle_query_select && context_query.fields && context_query.fields.length) {
+            query_res = await ModuleDAOServer.getInstance().throttle_select_query(query_wrapper.query, query_wrapper.params, context_query);
+        } else {
+            query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
+        }
+
         if ((!query_res) || (!query_res.length)) {
             return null;
         }

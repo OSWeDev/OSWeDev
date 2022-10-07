@@ -7,6 +7,7 @@ import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
+import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataInvalidatorVO from '../../../shared/modules/Var/vos/VarDataInvalidatorVO';
@@ -1575,20 +1576,47 @@ export default class VarsDatasVoUpdateHandler {
 
         let intersectors_by_index: { [index: string]: VarDataBaseVO } = {};
 
+        // let vardag = new VarDAG();
+        // for (let i in vo_types) {
+        //     let vo_type = vo_types[i];
+
+        //     let vos = vos_create_or_delete_buffer[vo_type].concat(
+        //         vos_update_buffer[vo_type].map((e) => e.pre_update_vo),
+        //         vos_update_buffer[vo_type].map((e) => e.post_update_vo));
+        // }
+
         for (let i in vo_types) {
             let vo_type = vo_types[i];
 
             for (let j in VarsServerController.getInstance().registered_vars_controller_by_api_type_id[vo_type]) {
                 let var_controller = VarsServerController.getInstance().registered_vars_controller_by_api_type_id[vo_type][j];
 
-                let tmp = await var_controller.get_invalid_params_intersectors_on_POST_C_POST_D_group(vos_create_or_delete_buffer[vo_type]);
-                if (tmp && !!tmp.length) {
-                    tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
+                if ((!!vos_create_or_delete_buffer[vo_type]) && vos_create_or_delete_buffer[vo_type].length) {
+
+                    if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+                        ConsoleHandler.getInstance().log(
+                            'init_leaf_intersectors:get_invalid_params_intersectors_on_POST_C_POST_D_group:' +
+                            var_controller.varConf.id + ':' + var_controller.varConf.name + ':' + vos_create_or_delete_buffer[vo_type].length);
+                    }
+
+                    let tmp = await var_controller.get_invalid_params_intersectors_on_POST_C_POST_D_group(vos_create_or_delete_buffer[vo_type]);
+                    if (tmp && !!tmp.length) {
+                        tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
+                    }
                 }
 
-                tmp = await var_controller.get_invalid_params_intersectors_on_POST_U_group(vos_update_buffer[vo_type]);
-                if (tmp && !!tmp.length) {
-                    tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
+                if ((!!vos_update_buffer[vo_type]) && vos_update_buffer[vo_type].length) {
+
+                    if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+                        ConsoleHandler.getInstance().log(
+                            'init_leaf_intersectors:get_invalid_params_intersectors_on_POST_U_group:' +
+                            var_controller.varConf.id + ':' + var_controller.varConf.name + ':' + vos_update_buffer[vo_type].length);
+                    }
+
+                    let tmp = await var_controller.get_invalid_params_intersectors_on_POST_U_group(vos_update_buffer[vo_type]);
+                    if (tmp && !!tmp.length) {
+                        tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
+                    }
                 }
             }
         }

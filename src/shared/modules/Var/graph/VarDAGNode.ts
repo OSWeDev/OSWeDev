@@ -1,4 +1,3 @@
-import { identity } from 'lodash';
 import ConfigurationService from '../../../../server/env/ConfigurationService';
 import ConsoleHandler from '../../../tools/ConsoleHandler';
 import MatroidController from '../../Matroid/MatroidController';
@@ -41,11 +40,13 @@ export default class VarDAGNode extends DAGNodeBase {
             }
 
             // Si on a déjà enregistré les performances, on les conserve
-            if ((!old_already_tried_load_cache_complet) && already_tried_load_cache_complet && res.perfs &&
-                res.perfs.ctree_ddeps_try_load_cache_complet && (res.perfs.ctree_ddeps_try_load_cache_complet.end_time == null)) {
+            if (var_dag.has_perfs) {
+                if ((!old_already_tried_load_cache_complet) && already_tried_load_cache_complet && res.perfs &&
+                    res.perfs.ctree_ddeps_try_load_cache_complet && (res.perfs.ctree_ddeps_try_load_cache_complet.end_time == null)) {
 
-                res.already_tried_load_cache_complet = true;
-                res.perfs.ctree_ddeps_try_load_cache_complet.skip_and_update_parents_perfs(var_dag);
+                    res.already_tried_load_cache_complet = true;
+                    res.perfs.ctree_ddeps_try_load_cache_complet.skip_and_update_parents_perfs();
+                }
             }
 
             return res;
@@ -128,18 +129,20 @@ export default class VarDAGNode extends DAGNodeBase {
             this.already_tried_load_cache_complet = true;
         }
 
-        this.perfs = new VarBatchNodePerfVO();
+        if (var_dag.has_perfs) {
+            this.perfs = new VarBatchNodePerfVO();
 
-        this.perfs.ctree_deploy_deps = new VarNodePerfElementVO(var_data.index, 'ctree_deploy_deps', var_dag, VarNodeParentPerfVO.create_new(null, 'create_tree'));
-        this.perfs.ctree_ddeps_try_load_cache_complet = new VarNodePerfElementVO(var_data.index, 'ctree_ddeps_try_load_cache_complet', var_dag, VarNodeParentPerfVO.create_new(var_data.index, 'ctree_deploy_deps'));
-        this.perfs.ctree_ddeps_load_imports_and_split_nodes = new VarNodePerfElementVO(var_data.index, 'ctree_ddeps_load_imports_and_split_nodes', var_dag, VarNodeParentPerfVO.create_new(var_data.index, 'ctree_deploy_deps'));
-        this.perfs.ctree_ddeps_try_load_cache_partiel = new VarNodePerfElementVO(var_data.index, 'ctree_ddeps_try_load_cache_partiel', var_dag, VarNodeParentPerfVO.create_new(var_data.index, 'ctree_deploy_deps'));
-        this.perfs.ctree_ddeps_get_node_deps = new VarNodePerfElementVO(var_data.index, 'ctree_ddeps_get_node_deps', var_dag, VarNodeParentPerfVO.create_new(var_data.index, 'ctree_deploy_deps'));
-        this.perfs.ctree_ddeps_handle_pixellisation = new VarNodePerfElementVO(var_data.index, 'ctree_ddeps_handle_pixellisation', var_dag, VarNodeParentPerfVO.create_new(var_data.index, 'ctree_deploy_deps'));
+            this.perfs.ctree_deploy_deps = new VarNodePerfElementVO(var_data.index, 'ctree_deploy_deps', VarNodeParentPerfVO.create_new(null, 'create_tree'));
+            this.perfs.ctree_ddeps_try_load_cache_complet = new VarNodePerfElementVO(var_data.index, 'ctree_ddeps_try_load_cache_complet', VarNodeParentPerfVO.create_new(var_data.index, 'ctree_deploy_deps'));
+            this.perfs.ctree_ddeps_load_imports_and_split_nodes = new VarNodePerfElementVO(var_data.index, 'ctree_ddeps_load_imports_and_split_nodes', VarNodeParentPerfVO.create_new(var_data.index, 'ctree_deploy_deps'));
+            this.perfs.ctree_ddeps_try_load_cache_partiel = new VarNodePerfElementVO(var_data.index, 'ctree_ddeps_try_load_cache_partiel', VarNodeParentPerfVO.create_new(var_data.index, 'ctree_deploy_deps'));
+            this.perfs.ctree_ddeps_get_node_deps = new VarNodePerfElementVO(var_data.index, 'ctree_ddeps_get_node_deps', VarNodeParentPerfVO.create_new(var_data.index, 'ctree_deploy_deps'));
+            this.perfs.ctree_ddeps_handle_pixellisation = new VarNodePerfElementVO(var_data.index, 'ctree_ddeps_handle_pixellisation', VarNodeParentPerfVO.create_new(var_data.index, 'ctree_deploy_deps'));
 
-        this.perfs.load_node_datas = new VarNodePerfElementVO(var_data.index, 'load_node_datas', var_dag, VarNodeParentPerfVO.create_new(null, 'load_nodes_datas'));
+            this.perfs.load_node_datas = new VarNodePerfElementVO(var_data.index, 'load_node_datas', VarNodeParentPerfVO.create_new(null, 'load_nodes_datas'));
 
-        this.perfs.compute_node = new VarNodePerfElementVO(var_data.index, 'compute_node', var_dag, VarNodeParentPerfVO.create_new(null, 'compute_node_wrapper'));
+            this.perfs.compute_node = new VarNodePerfElementVO(var_data.index, 'compute_node', VarNodeParentPerfVO.create_new(null, 'compute_node_wrapper'));
+        }
     }
 
     /**
@@ -187,7 +190,10 @@ export default class VarDAGNode extends DAGNodeBase {
             return;
         }
         let dag = this.var_dag;
-        this.pop_node_perfs_from_dag();
+
+        if (this.var_dag.has_perfs) {
+            this.pop_node_perfs_from_dag();
+        }
         // this.var_dag = null;
 
         delete dag.nodes[this.var_data.index];
@@ -224,7 +230,9 @@ export default class VarDAGNode extends DAGNodeBase {
         this.var_dag.leafs[this.var_data.index] = this;
         this.var_dag.roots[this.var_data.index] = this;
 
-        this.push_node_perfs_to_dag(varsComputeController);
+        if (this.var_dag.has_perfs) {
+            this.push_node_perfs_to_dag(varsComputeController);
+        }
 
         return this;
     }
@@ -235,26 +243,26 @@ export default class VarDAGNode extends DAGNodeBase {
             this.var_dag.perfs.nb_batch_vars++;
         }
 
-        this.perfs.compute_node.initialize_estimated_work_time_and_update_parents_perfs(varsComputeController.getInstance().get_estimated_compute_node(this), this.var_dag);
-        this.perfs.load_node_datas.initialize_estimated_work_time_and_update_parents_perfs(varsComputeController.getInstance().get_estimated_load_node_datas(this), this.var_dag);
-        this.perfs.ctree_ddeps_get_node_deps.initialize_estimated_work_time_and_update_parents_perfs(varsComputeController.getInstance().get_estimated_ctree_ddeps_get_node_deps(this), this.var_dag);
-        this.perfs.ctree_ddeps_load_imports_and_split_nodes.initialize_estimated_work_time_and_update_parents_perfs(varsComputeController.getInstance().get_estimated_ctree_ddeps_load_imports_and_split_nodes(this), this.var_dag);
-        this.perfs.ctree_ddeps_try_load_cache_complet.initialize_estimated_work_time_and_update_parents_perfs(varsComputeController.getInstance().get_estimated_ctree_ddeps_try_load_cache_complet(this), this.var_dag);
-        this.perfs.ctree_ddeps_try_load_cache_partiel.initialize_estimated_work_time_and_update_parents_perfs(varsComputeController.getInstance().get_estimated_ctree_ddeps_try_load_cache_partiel(this), this.var_dag);
-        this.perfs.ctree_ddeps_handle_pixellisation.initialize_estimated_work_time_and_update_parents_perfs(varsComputeController.getInstance().get_estimated_ctree_ddeps_handle_pixellisation(this), this.var_dag);
+        this.perfs.compute_node.initial_estimated_work_time = varsComputeController.getInstance().get_estimated_compute_node(this);
+        this.perfs.load_node_datas.initial_estimated_work_time = varsComputeController.getInstance().get_estimated_load_node_datas(this);
+        this.perfs.ctree_ddeps_get_node_deps.initial_estimated_work_time = varsComputeController.getInstance().get_estimated_ctree_ddeps_get_node_deps(this);
+        this.perfs.ctree_ddeps_load_imports_and_split_nodes.initial_estimated_work_time = varsComputeController.getInstance().get_estimated_ctree_ddeps_load_imports_and_split_nodes(this);
+        this.perfs.ctree_ddeps_try_load_cache_complet.initial_estimated_work_time = varsComputeController.getInstance().get_estimated_ctree_ddeps_try_load_cache_complet(this);
+        this.perfs.ctree_ddeps_try_load_cache_partiel.initial_estimated_work_time = varsComputeController.getInstance().get_estimated_ctree_ddeps_try_load_cache_partiel(this);
+        this.perfs.ctree_ddeps_handle_pixellisation.initial_estimated_work_time = varsComputeController.getInstance().get_estimated_ctree_ddeps_handle_pixellisation(this);
 
         if (!!this.var_data.value_ts) {
 
             /**
              * Si on a déjà une valeur, on peut directement skip toutes les étapes
              */
-            this.perfs.compute_node.skip_and_update_parents_perfs(this.var_dag);
-            this.perfs.load_node_datas.skip_and_update_parents_perfs(this.var_dag);
-            this.perfs.ctree_ddeps_get_node_deps.skip_and_update_parents_perfs(this.var_dag);
-            this.perfs.ctree_ddeps_handle_pixellisation.skip_and_update_parents_perfs(this.var_dag);
-            this.perfs.ctree_ddeps_load_imports_and_split_nodes.skip_and_update_parents_perfs(this.var_dag);
-            this.perfs.ctree_ddeps_try_load_cache_complet.skip_and_update_parents_perfs(this.var_dag);
-            this.perfs.ctree_ddeps_try_load_cache_partiel.skip_and_update_parents_perfs(this.var_dag);
+            this.perfs.compute_node.skip_and_update_parents_perfs();
+            this.perfs.load_node_datas.skip_and_update_parents_perfs();
+            this.perfs.ctree_ddeps_get_node_deps.skip_and_update_parents_perfs();
+            this.perfs.ctree_ddeps_handle_pixellisation.skip_and_update_parents_perfs();
+            this.perfs.ctree_ddeps_load_imports_and_split_nodes.skip_and_update_parents_perfs();
+            this.perfs.ctree_ddeps_try_load_cache_complet.skip_and_update_parents_perfs();
+            this.perfs.ctree_ddeps_try_load_cache_partiel.skip_and_update_parents_perfs();
         }
     }
 
@@ -264,12 +272,12 @@ export default class VarDAGNode extends DAGNodeBase {
             this.var_dag.perfs.nb_batch_vars--;
         }
 
-        this.perfs.compute_node.delete_this_perf(this.var_dag);
-        this.perfs.load_node_datas.delete_this_perf(this.var_dag);
-        this.perfs.ctree_ddeps_get_node_deps.delete_this_perf(this.var_dag);
-        this.perfs.ctree_ddeps_handle_pixellisation.delete_this_perf(this.var_dag);
-        this.perfs.ctree_ddeps_load_imports_and_split_nodes.delete_this_perf(this.var_dag);
-        this.perfs.ctree_ddeps_try_load_cache_complet.delete_this_perf(this.var_dag);
-        this.perfs.ctree_ddeps_try_load_cache_partiel.delete_this_perf(this.var_dag);
+        this.perfs.compute_node.delete_this_perf();
+        this.perfs.load_node_datas.delete_this_perf();
+        this.perfs.ctree_ddeps_get_node_deps.delete_this_perf();
+        this.perfs.ctree_ddeps_handle_pixellisation.delete_this_perf();
+        this.perfs.ctree_ddeps_load_imports_and_split_nodes.delete_this_perf();
+        this.perfs.ctree_ddeps_try_load_cache_complet.delete_this_perf();
+        this.perfs.ctree_ddeps_try_load_cache_partiel.delete_this_perf();
     }
 }

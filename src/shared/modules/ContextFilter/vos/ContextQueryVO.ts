@@ -95,6 +95,11 @@ export default class ContextQueryVO implements IDistantVOBase {
     public query_distinct: boolean;
 
     /**
+     * Propose de throttle la requête de type select pour faire des packs (dans la même logique que le requestwrapper)
+     */
+    public throttle_query_select: boolean = true;
+
+    /**
      * Pour exclure des fields pour réaliser les chemins (par exemple si on veut utiliser le field B et non A qui font référence au
      *  même vo_type, on peut ajouter le field A pour indiquer qu'on refuse ce chemin)
      * Cela ne permet pas d'avoir plusieurs chemins différents pour des types identiques au sein d'une même query, mais
@@ -536,6 +541,15 @@ export default class ContextQueryVO implements IDistantVOBase {
 
         this.is_access_hook_def = true;
 
+        return this;
+    }
+
+    /**
+     * La query est throttled par défaut, mais on peut demander à unthrottle
+     * @param throttle_query_select
+     */
+    public unthrottle_query_select(): ContextQueryVO {
+        this.throttle_query_select = false;
         return this;
     }
 

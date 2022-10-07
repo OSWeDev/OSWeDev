@@ -460,18 +460,18 @@ export default class ModuleTableField<T> {
             return null;
         }
 
-        if (!this.target_database || !this.target_table || !this.target_field) {
+        if (!this.manyToOne_target_moduletable || !this.manyToOne_target_moduletable.full_name || !this.target_field) {
             return null;
         }
 
         // Si obligatoire on doit cascade
         if (this.cascade_on_delete || this.field_required) {
             return 'CONSTRAINT ' + this.field_id + '_fkey FOREIGN KEY (' + this.field_id + ') ' +
-                'REFERENCES ' + this.target_database + '.' + this.target_table + ' (' + this.target_field + ') MATCH SIMPLE ' +
+                'REFERENCES ' + this.manyToOne_target_moduletable.full_name + ' (' + this.target_field + ') MATCH SIMPLE ' +
                 'ON UPDATE NO ACTION ON DELETE CASCADE';
         } else {
             return 'CONSTRAINT ' + this.field_id + '_fkey FOREIGN KEY (' + this.field_id + ') ' +
-                'REFERENCES ' + this.target_database + '.' + this.target_table + ' (' + this.target_field + ') MATCH SIMPLE ' +
+                'REFERENCES ' + this.manyToOne_target_moduletable.full_name + ' (' + this.target_field + ') MATCH SIMPLE ' +
                 'ON UPDATE NO ACTION ON DELETE SET DEFAULT';
         }
     }
