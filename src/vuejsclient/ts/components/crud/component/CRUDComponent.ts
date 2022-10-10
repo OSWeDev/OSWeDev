@@ -336,7 +336,7 @@ export default class CRUDComponent extends VueComponentBase {
                 self.api_types_involved.push(reference.targetModuleTable.vo_type);
                 res.push(
                     (async () => {
-                        let vos: IDistantVOBase[] = await ModuleDAO.getInstance().getVos<IDistantVOBase>(reference.targetModuleTable.vo_type);
+                        let vos: IDistantVOBase[] = await query(reference.targetModuleTable.vo_type).select_vos<IDistantVOBase>();
                         self.storeDatas({
                             API_TYPE_ID: reference.targetModuleTable.vo_type,
                             vos: vos
@@ -359,7 +359,7 @@ export default class CRUDComponent extends VueComponentBase {
 
                 res.push(
                     (async () => {
-                        let vos: IDistantVOBase[] = await ModuleDAO.getInstance().getVos<IDistantVOBase>(reference.interModuleTable.vo_type);
+                        let vos: IDistantVOBase[] = await query(reference.interModuleTable.vo_type).select_vos<IDistantVOBase>();
                         self.storeDatas({
                             API_TYPE_ID: reference.interModuleTable.vo_type,
                             vos: vos

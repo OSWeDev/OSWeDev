@@ -3,6 +3,7 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleDocument from '../../../shared/modules/Document/ModuleDocument';
 import DocumentLangVO from '../../../shared/modules/Document/vos/DocumentLangVO';
@@ -228,7 +229,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
 
 
     private async get_ds_by_user_lang(): Promise<DocumentVO[]> {
-        let vos: DocumentVO[] = await ModuleDAO.getInstance().getVos<DocumentVO>(DocumentVO.API_TYPE_ID);
+        let vos: DocumentVO[] = await query(DocumentVO.API_TYPE_ID).select_vos<DocumentVO>();
         if ((!vos) || (!vos.length)) {
             return null;
         }
@@ -272,7 +273,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
     }
 
     private async get_dts_by_user_lang(): Promise<DocumentTagVO[]> {
-        let vos: DocumentTagVO[] = await ModuleDAO.getInstance().getVos<DocumentTagVO>(DocumentTagVO.API_TYPE_ID);
+        let vos: DocumentTagVO[] = await query(DocumentTagVO.API_TYPE_ID).select_vos<DocumentTagVO>();
         if ((!vos) || (!vos.length)) {
             return vos;
         }
@@ -296,7 +297,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
     }
 
     private async get_dtgs_by_user_lang(): Promise<DocumentTagGroupVO[]> {
-        let vos: DocumentTagGroupVO[] = await ModuleDAO.getInstance().getVos<DocumentTagGroupVO>(DocumentTagGroupVO.API_TYPE_ID);
+        let vos: DocumentTagGroupVO[] = await query(DocumentTagGroupVO.API_TYPE_ID).select_vos<DocumentTagGroupVO>();
         if ((!vos) || (!vos.length)) {
             return vos;
         }

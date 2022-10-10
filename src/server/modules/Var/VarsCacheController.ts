@@ -1,4 +1,5 @@
 import { performance } from 'perf_hooks';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -189,7 +190,7 @@ export default class VarsCacheController {
 
                     // On charge des packs de vars, et on test des conditions de suppression du cache (on parle bien de suppression)
                     //  On doit refuser de toucher des vars qui seraient en ce moment dans le cache du proxy
-                    let var_datas = await ModuleDAO.getInstance().getVos<VarDataBaseVO>(controller.var_data_vo_type, 100, this.partially_clean_bdd_cache_offset);
+                    let var_datas = await query(controller.var_data_vo_type).set_limit(100, this.partially_clean_bdd_cache_offset).select_vos<VarDataBaseVO>();
                     let go_to_next_table = false;
                     if ((!var_datas) || (var_datas.length < 100)) {
                         go_to_next_table = true;

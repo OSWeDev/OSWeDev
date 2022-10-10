@@ -38,7 +38,7 @@ export default class CronComponent extends VueComponentBase {
     }
 
     private async mounted() {
-        this.cron_workers = await ModuleDAO.getInstance().getVos<CronWorkerPlanification>(CronWorkerPlanification.API_TYPE_ID);
+        this.cron_workers = await query(CronWorkerPlanification.API_TYPE_ID).select_vos<CronWorkerPlanification>();
         this.manual_tasks = await ModuleCron.getInstance().get_manual_tasks();
     }
 

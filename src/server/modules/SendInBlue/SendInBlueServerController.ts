@@ -1,3 +1,4 @@
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleRequest from '../../../shared/modules/Request/ModuleRequest';
 import SendInBlueMailVO from '../../../shared/modules/SendInBlue/vos/SendInBlueMailVO';
@@ -26,7 +27,7 @@ export default class SendInBlueServerController {
 
     public async loadParam(): Promise<void> {
         if (!this.param) {
-            let params: SendInBlueVO[] = await ModuleDAO.getInstance().getVos<SendInBlueVO>(SendInBlueVO.API_TYPE_ID);
+            let params: SendInBlueVO[] = await query(SendInBlueVO.API_TYPE_ID).select_vos<SendInBlueVO>();
 
             this.param = (params) ? params[0] : null;
         }

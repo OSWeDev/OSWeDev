@@ -51,8 +51,8 @@ export default class CMSFrontVueModule extends VueModuleBase {
         CMSComponentManager.getInstance().registerCMSTemplateComponent(ImgHtmlComponentVO.API_TYPE_ID, ImgHtmlComponentTemplate as any);
         CMSComponentManager.getInstance().registerCMSTemplateComponent(HtmlImgComponentVO.API_TYPE_ID, HtmlImgComponentTemplate as any);
 
-        let pages_by_ids: { [id: number]: PageVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<PageVO>(PageVO.API_TYPE_ID));
-        let pages_aliases: PageAliasVO[] = await ModuleDAO.getInstance().getVos<PageAliasVO>(PageAliasVO.API_TYPE_ID);
+        let pages_by_ids: { [id: number]: PageVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(PageVO.API_TYPE_ID).select_vos<PageVO>());
+        let pages_aliases: PageAliasVO[] = await query(PageAliasVO.API_TYPE_ID).select_vos<PageAliasVO>();
 
         let cms_routes_by_aliases: { [route: string]: PageVO } = {};
 

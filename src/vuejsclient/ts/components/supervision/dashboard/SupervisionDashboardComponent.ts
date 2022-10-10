@@ -210,7 +210,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
 
         // récupération des catégories et filtrage en fonction de enabled_categories
         if (!this.get_categorys || !this.get_categorys.length) {
-            let categorys = await ModuleDAO.getInstance().getVos<SupervisedCategoryVO>(SupervisedCategoryVO.API_TYPE_ID);
+            let categorys = await query(SupervisedCategoryVO.API_TYPE_ID).select_vos<SupervisedCategoryVO>();
             this.set_categorys(categorys.filter((category) => !this.enabled_categories || this.enabled_categories.includes(category.name)));
         }
 
@@ -238,7 +238,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
             promises.push((async () => {
                 // pour éviter de récuperer le cache
                 AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([api_type_id]);
-                let items = await ModuleDAO.getInstance().getVos<ISupervisedItem>(api_type_id);
+                let items = await query(api_type_id).select_vos<ISupervisedItem>();
 
                 for (let i in items) {
                     let item = items[i];

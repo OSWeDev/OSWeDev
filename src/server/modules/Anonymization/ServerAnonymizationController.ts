@@ -3,7 +3,7 @@ import UserVO from "../../../shared/modules/AccessPolicy/vos/UserVO";
 import AnonymizationFieldConfVO from "../../../shared/modules/Anonymization/vos/AnonymizationFieldConfVO";
 import AnonymizationUserConfVO from "../../../shared/modules/Anonymization/vos/AnonymizationUserConfVO";
 import ContextQueryFieldVO from "../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO";
-import ContextQueryVO from "../../../shared/modules/ContextFilter/vos/ContextQueryVO";
+import ContextQueryVO, { query } from "../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import IUserData from "../../../shared/modules/DAO/interface/IUserData";
 import ModuleDAO from "../../../shared/modules/DAO/ModuleDAO";
 import IDistantVOBase from "../../../shared/modules/IDistantVOBase";
@@ -274,8 +274,8 @@ export default class ServerAnonymizationController {
         ServerAnonymizationController.getInstance().registered_anonymization_user_conf_by_field_conf_id = {};
         ServerAnonymizationController.getInstance().registered_anonymization_values = {};
 
-        let fields_confs: AnonymizationFieldConfVO[] = await ModuleDAO.getInstance().getVos<AnonymizationFieldConfVO>(AnonymizationFieldConfVO.API_TYPE_ID);
-        let users_confs: AnonymizationUserConfVO[] = await ModuleDAO.getInstance().getVos<AnonymizationUserConfVO>(AnonymizationUserConfVO.API_TYPE_ID);
+        let fields_confs: AnonymizationFieldConfVO[] = await query(AnonymizationFieldConfVO.API_TYPE_ID).select_vos<AnonymizationFieldConfVO>();
+        let users_confs: AnonymizationUserConfVO[] = await query(AnonymizationUserConfVO.API_TYPE_ID).select_vos<AnonymizationUserConfVO>();
 
         // On est déjà sur un broadcast on a pas besoin de broadcast le register
         for (let i in fields_confs) {

@@ -1,3 +1,4 @@
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ISupervisedItem from '../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -16,7 +17,7 @@ export default abstract class SupervisedItemServerControllerBase<T extends ISupe
 
         try {
 
-            let supervised_pdvs: T[] = await ModuleDAO.getInstance().getVos<T>(this.api_type_id);
+            let supervised_pdvs: T[] = await query(this.api_type_id).select_vos<T>();
 
             for (let i in supervised_pdvs) {
                 let supervised_pdv = supervised_pdvs[i];

@@ -26,7 +26,7 @@ export default class MenuController {
     public callback_reload_menus = null;
 
     public async reload_from_db() {
-        this.reload(await ModuleDAO.getInstance().getVos<MenuElementVO>(MenuElementVO.API_TYPE_ID));
+        this.reload(await query(MenuElementVO.API_TYPE_ID).select_vos<MenuElementVO>());
 
         this.access_by_name = {};
         for (let i in this.menus_by_ids) {

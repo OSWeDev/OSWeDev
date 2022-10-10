@@ -235,7 +235,7 @@ export default class MenuOrganizerComponent extends VueComponentBase {
             this.set_initialized(true);
         }
 
-        this.db_menus_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<MenuElementVO>(MenuElementVO.API_TYPE_ID));
+        this.db_menus_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(MenuElementVO.API_TYPE_ID).select_vos<MenuElementVO>());
 
         /**
          * On commence par mettre tous les noeuds de niveau 0 pour pouvoir ensuite les référencer

@@ -14,7 +14,7 @@ export default class ProduitComplementaireComponent extends VueComponentBase {
         this.startLoading();
 
         // Récupération des produits
-        this.produits = await ModuleDAO.getInstance().getVos<ProduitVO>(ProduitVO.API_TYPE_ID);
+        this.produits = await query(ProduitVO.API_TYPE_ID).select_vos<ProduitVO>();
 
         // Fin de chargement
         this.stopLoading();

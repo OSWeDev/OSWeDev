@@ -262,7 +262,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
         this.stopLoading();
 
         if ((!this.checklists) || (!this.checklists.length)) {
-            this.checklists = await ModuleDAO.getInstance().getVos<CheckListVO>(CheckListVO.API_TYPE_ID);
+            this.checklists = await query(CheckListVO.API_TYPE_ID).select_vos<CheckListVO>();
             this.checklists_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(this.checklists);
         }
 

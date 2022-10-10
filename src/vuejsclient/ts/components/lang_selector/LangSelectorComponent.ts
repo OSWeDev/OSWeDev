@@ -36,7 +36,7 @@ export default class LangSelectorComponent extends VueComponentBase {
             return;
         }
 
-        let langs_: LangVO[] = await ModuleDAO.getInstance().getVos<LangVO>(LangVO.API_TYPE_ID);
+        let langs_: LangVO[] = await query(LangVO.API_TYPE_ID).select_vos<LangVO>();
 
         // Si on a qu'une langue, on ne choisit pas
         if ((!langs_) || (langs_.length <= 1)) {

@@ -107,7 +107,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
     }
 
     public async getDataRenderers(): Promise<DataRendererVO[]> {
-        return await ModuleDAO.getInstance().getVos<DataRendererVO>(DataRendererVO.API_TYPE_ID);
+        return await query(DataRendererVO.API_TYPE_ID).select_vos<DataRendererVO>();
     }
 
     public async getDataRenderer(text: string): Promise<DataRendererVO> {

@@ -707,7 +707,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         //  1 - Récupérer le format validé, et les données importées ()
         let raw_imported_datas: IImportedData[] =
             importHistoric.use_fast_track ? fasttrack_datas :
-                await ModuleDAO.getInstance().getVos<IImportedData>(ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(format.api_type_id));
+                await query(ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(format.api_type_id)).select_vos<IImportedData>();
 
         // On garde que les données, validées et importées
         let validated_imported_datas: IImportedData[] = [];
@@ -889,7 +889,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         //  1 - Récupérer le format validé, et les données importées ()
         let raw_imported_datas: IImportedData[] =
             importHistoric.use_fast_track ? fasttrack_datas :
-                await ModuleDAO.getInstance().getVos<IImportedData>(ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(format.api_type_id));
+                await query(ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(format.api_type_id)).select_vos<IImportedData>();
 
         if ((!format) || (!format.post_exec_module_id) || (!raw_imported_datas) || (!raw_imported_datas.length)) {
             await this.logAndUpdateHistoric(importHistoric, format, ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT, "Aucune data formattée ou pas de module configuré", "import.errors.failed_post_treatement_see_logs", DataImportLogVO.LOG_LEVEL_FATAL);
@@ -1034,14 +1034,14 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         /**
          * On utilise pas l'offset par ce que le filtrage va déjà avoir cet effet, les states sont mis à jour
          */
-        let query: ContextQueryVO = new ContextQueryVO();
-        query.base_api_type_id = raw_api_type_id;
-        query.active_api_type_ids = [raw_api_type_id];
-        query.filters = [filter];
-        query.query_limit = batch_size;
-        query.query_offset = 0;
+        let query_: ContextQueryVO = new ContextQueryVO();
+        query_.base_api_type_id = raw_api_type_id;
+        query_.active_api_type_ids = [raw_api_type_id];
+        query_.filters = [filter];
+        query_.query_limit = batch_size;
+        query_.query_offset = 0;
 
-        return await ModuleContextFilterServer.getInstance().select_vos(query);
+        return await ModuleContextFilterServer.getInstance().select_vos(query_);
     }
 
     private async setImportHistoricUID(importHistoric: DataImportHistoricVO): Promise<void> {

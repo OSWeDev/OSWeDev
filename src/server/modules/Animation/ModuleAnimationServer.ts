@@ -174,7 +174,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         vo.computed_name = vo.name;
 
         if (vo.role_id_ranges && vo.role_id_ranges.length) {
-            let role_by_ids: { [id: number]: RoleVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<RoleVO>(RoleVO.API_TYPE_ID));
+            let role_by_ids: { [id: number]: RoleVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(RoleVO.API_TYPE_ID).select_vos<RoleVO>());
             let role_names: string[] = [];
 
             RangeHandler.getInstance().foreach_ranges_sync(vo.role_id_ranges, (role_id: number) => {
@@ -354,7 +354,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
 
         if (!res.end_date) {
 
-            let themes: AnimationThemeVO[] = await ModuleDAO.getInstance().getVos<AnimationThemeVO>(AnimationThemeVO.API_TYPE_ID);
+            let themes: AnimationThemeVO[] = await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>();
 
             let theme_id_ranges: NumRange[] = [];
 
@@ -427,7 +427,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
                 user_ids,
             );
         } else {
-            aums = await ModuleDAO.getInstance().getVos<AnimationUserModuleVO>(AnimationUserModuleVO.API_TYPE_ID);
+            aums = await query(AnimationUserModuleVO.API_TYPE_ID).select_vos<AnimationUserModuleVO>();
         }
 
         if (!aums) {
@@ -435,10 +435,10 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         }
 
         let anim_theme_by_ids: { [id: number]: AnimationThemeVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(
-            await ModuleDAO.getInstance().getVos<AnimationThemeVO>(AnimationThemeVO.API_TYPE_ID)
+            await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>()
         );
         let anim_module_by_ids: { [id: number]: AnimationModuleVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(
-            await ModuleDAO.getInstance().getVos<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID)
+            await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>()
         );
         let anim_param: AnimationParametersVO = await ModuleAnimation.getInstance().getParameters();
 

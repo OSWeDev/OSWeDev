@@ -31,7 +31,7 @@ export default class DashboardBuilderWidgetsController {
             return;
         }
 
-        this.sorted_widgets = await ModuleDAO.getInstance().getVos<DashboardWidgetVO>(DashboardWidgetVO.API_TYPE_ID);
+        this.sorted_widgets = await query(DashboardWidgetVO.API_TYPE_ID).select_vos<DashboardWidgetVO>();
         if (!this.sorted_widgets) {
             this.sorted_widgets = [];
         }

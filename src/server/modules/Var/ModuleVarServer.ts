@@ -1069,7 +1069,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     private async get_var_id_by_names(): Promise<VarConfIds> {
         let res: VarConfIds = new VarConfIds();
-        let var_confs: VarConfVO[] = await ModuleDAO.getInstance().getVos<VarConfVO>(VarConfVO.API_TYPE_ID);
+        let var_confs: VarConfVO[] = await query(VarConfVO.API_TYPE_ID).select_vos<VarConfVO>();
         res.var_id_by_names = {};
 
         for (let i in var_confs) {

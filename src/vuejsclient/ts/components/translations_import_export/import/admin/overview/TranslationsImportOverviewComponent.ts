@@ -43,9 +43,9 @@ export default class TranslationsImportOverviewComponent extends VueComponentBas
     private async set_exportable_data() {
         this.exportable_data = [];
 
-        let langs_by_ids: { [id: number]: LangVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<LangVO>(LangVO.API_TYPE_ID));
-        let translatables_by_ids: { [id: number]: TranslatableTextVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID));
-        let translations: TranslationVO[] = await ModuleDAO.getInstance().getVos<TranslationVO>(TranslationVO.API_TYPE_ID);
+        let langs_by_ids: { [id: number]: LangVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(LangVO.API_TYPE_ID).select_vos<LangVO>());
+        let translatables_by_ids: { [id: number]: TranslatableTextVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(TranslatableTextVO.API_TYPE_ID).select_vos<TranslatableTextVO>());
+        let translations: TranslationVO[] = await query(TranslationVO.API_TYPE_ID).select_vos<TranslationVO>();
 
         for (let i in translations) {
             let translation: TranslationVO = translations[i];

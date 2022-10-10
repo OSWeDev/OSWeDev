@@ -101,7 +101,7 @@ export default class CMSPageComponent extends VueComponentBase {
             return;
         }
 
-        this.storeDatas({ API_TYPE_ID: TemplateComponentVO.API_TYPE_ID, vos: await ModuleDAO.getInstance().getVos<TemplateComponentVO>(TemplateComponentVO.API_TYPE_ID) });
+        this.storeDatas({ API_TYPE_ID: TemplateComponentVO.API_TYPE_ID, vos: await query(TemplateComponentVO.API_TYPE_ID).select_vos<TemplateComponentVO>() });
 
         $("#sortable_page_component_list").sortable({
             revert: true,
@@ -269,7 +269,7 @@ export default class CMSPageComponent extends VueComponentBase {
             this.instantiated_page_components = [];
         }
 
-        this.storeDatas({ API_TYPE_ID: TemplateComponentVO.API_TYPE_ID, vos: await ModuleDAO.getInstance().getVos<TemplateComponentVO>(TemplateComponentVO.API_TYPE_ID) });
+        this.storeDatas({ API_TYPE_ID: TemplateComponentVO.API_TYPE_ID, vos: await query(TemplateComponentVO.API_TYPE_ID).select_vos<TemplateComponentVO>() });
 
         // $("#sortable_page_component_list").sortable({
         //     revert: true,

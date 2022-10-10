@@ -7,6 +7,7 @@ import AnimationModuleVO from '../../../../shared/modules/Animation/vos/Animatio
 import AnimationThemeVO from '../../../../shared/modules/Animation/vos/AnimationThemeVO';
 import AnimationUserModuleVO from '../../../../shared/modules/Animation/vos/AnimationUserModuleVO';
 import APIControllerWrapper from '../../../../shared/modules/API/APIControllerWrapper';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import ExportHistoricVO from '../../../../shared/modules/DataExport/vos/ExportHistoricVO';
 import NumRange from '../../../../shared/modules/DataRender/vos/NumRange';
@@ -72,8 +73,8 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
             });
         let import_params: AnimationReportingParamVO = APIControllerWrapper.getInstance().try_translate_vo_from_api(JSON.parse(exhi.export_params_stringified));
 
-        let all_anim_theme_by_ids: { [id: number]: AnimationThemeVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<AnimationThemeVO>(AnimationThemeVO.API_TYPE_ID));
-        let all_anim_module_by_ids: { [id: number]: AnimationModuleVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID));
+        let all_anim_theme_by_ids: { [id: number]: AnimationThemeVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>());
+        let all_anim_module_by_ids: { [id: number]: AnimationModuleVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>());
         let all_role_by_ids: { [id: number]: RoleVO } = {};
         let all_user_by_ids: { [id: number]: UserVO } = {};
         let all_aum_by_theme_module_user: { [anim_theme_id: number]: { [anim_module_id: number]: { [user_id: number]: AnimationUserModuleVO } } } = {};

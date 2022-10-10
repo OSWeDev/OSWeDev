@@ -639,7 +639,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
     }
 
     public async getTranslatableTexts(): Promise<TranslatableTextVO[]> {
-        return await ModuleDAO.getInstance().getVos<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID);
+        return await query(TranslatableTextVO.API_TYPE_ID).select_vos<TranslatableTextVO>();
     }
 
     public async getTranslatableText(text: string): Promise<TranslatableTextVO> {
@@ -651,11 +651,11 @@ export default class ModuleTranslationServer extends ModuleServerBase {
     }
 
     public async getLangs(): Promise<LangVO[]> {
-        return await ModuleDAO.getInstance().getVos<LangVO>(LangVO.API_TYPE_ID);
+        return await query(LangVO.API_TYPE_ID).select_vos<LangVO>();
     }
 
     public async getAllTranslations(): Promise<TranslationVO[]> {
-        return await ModuleDAO.getInstance().getVos<TranslationVO>(TranslationVO.API_TYPE_ID);
+        return await query(TranslationVO.API_TYPE_ID).select_vos<TranslationVO>();
     }
 
     public async getTranslations(num: number): Promise<TranslationVO[]> {

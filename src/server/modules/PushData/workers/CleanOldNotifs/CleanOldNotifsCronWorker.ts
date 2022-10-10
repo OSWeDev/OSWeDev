@@ -1,4 +1,5 @@
 
+import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -27,7 +28,7 @@ export default class CleanOldNotifsCronWorker implements ICronWorker {
      * On supprime les notifications lues depuis plus de 10 jours, et on supprime les notifs de plus de 2 mois
      */
     public async work() {
-        let notifs: NotificationVO[] = await ModuleDAO.getInstance().getVos<NotificationVO>(NotificationVO.API_TYPE_ID);
+        let notifs: NotificationVO[] = await query(NotificationVO.API_TYPE_ID).select_vos<NotificationVO>();
 
         for (let i in notifs) {
             let notif: NotificationVO = notifs[i];

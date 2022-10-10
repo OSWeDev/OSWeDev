@@ -679,7 +679,7 @@ export default class PushDataServerController {
         }
 
         let promises = [];
-        let users = await ModuleDAO.getInstance().getVos<UserVO>(UserVO.API_TYPE_ID);
+        let users = await query(UserVO.API_TYPE_ID).select_vos<UserVO>();
         for (let i in users) {
             let user = users[i];
 

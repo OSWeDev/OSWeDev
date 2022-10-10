@@ -69,7 +69,7 @@ export default abstract class DataImportComponentBase extends VueComponentBase {
         promises.push((async () => {
             self.storeDatas({
                 API_TYPE_ID: DataImportFormatVO.API_TYPE_ID,
-                vos: await ModuleDAO.getInstance().getVos<DataImportFormatVO>(DataImportFormatVO.API_TYPE_ID)
+                vos: await query(DataImportFormatVO.API_TYPE_ID).select_vos<DataImportFormatVO>()
             });
         })());
 

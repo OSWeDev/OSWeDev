@@ -769,7 +769,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         let res: IPlanRDV[] = [];
 
         let facilitators_by_ids: { [id: number]: IPlanFacilitator } = VOsTypesManager.getInstance().vosArray_to_vosByIds(
-            await ModuleDAO.getInstance().getVos<IPlanFacilitator>(this.programplan_shared_module.facilitator_type_id)
+            await query(this.programplan_shared_module.facilitator_type_id).select_vos<IPlanFacilitator>()
         );
         for (let i in vos) {
             let vo = vos[i];
@@ -840,7 +840,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         let res = [];
 
         let rdvs_by_ids: { [id: number]: IPlanRDV } = VOsTypesManager.getInstance().vosArray_to_vosByIds(
-            await ModuleDAO.getInstance().getVos<IPlanRDV>(this.programplan_shared_module.rdv_type_id)
+            await query(this.programplan_shared_module.rdv_type_id).select_vos<IPlanRDV>()
         );
         for (let i in vos) {
             let vo = vos[i];

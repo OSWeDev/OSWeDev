@@ -34,13 +34,13 @@ export default class DefaultTranslationsServerManager {
 
         let langs: LangVO[] = null;
         promises.push((async () => {
-            langs = await ModuleDAO.getInstance().getVos<LangVO>(LangVO.API_TYPE_ID);
+            langs = await query(LangVO.API_TYPE_ID).select_vos<LangVO>();
         })());
 
         let translatables: TranslatableTextVO[] = null;
         let translatable_by_code_text: { [code_text: string]: TranslatableTextVO } = {};
         promises.push((async () => {
-            translatables = await ModuleDAO.getInstance().getVos<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID);
+            translatables = await query(TranslatableTextVO.API_TYPE_ID).select_vos<TranslatableTextVO>();
             for (let i in translatables) {
                 let translatable = translatables[i];
                 translatable_by_code_text[translatable.code_text] = translatable;
@@ -50,7 +50,7 @@ export default class DefaultTranslationsServerManager {
         let translations: TranslationVO[] = null;
         let translation_by_lang_id_and_text_id: { [lang_id: number]: { [text_id: number]: TranslationVO } } = {};
         promises.push((async () => {
-            translations = await ModuleDAO.getInstance().getVos<TranslationVO>(TranslationVO.API_TYPE_ID);
+            translations = await query(TranslationVO.API_TYPE_ID).select_vos<TranslationVO>();
 
             for (let i in translations) {
                 let translation = translations[i];

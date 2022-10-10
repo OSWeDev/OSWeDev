@@ -1,4 +1,5 @@
 import { throttle } from 'lodash';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import PerfMonLineTypeVO from '../../../shared/modules/PerfMon/vos/PerfMonLineTypeVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -44,7 +45,7 @@ export default class PerfMonConfController {
     }
 
     private async update_cached_perf_conf() {
-        let confs = await ModuleDAO.getInstance().getVos<PerfMonLineTypeVO>(PerfMonLineTypeVO.API_TYPE_ID);
+        let confs = await query(PerfMonLineTypeVO.API_TYPE_ID).select_vos<PerfMonLineTypeVO>();
 
         let deleted_names: string[] = [];
 

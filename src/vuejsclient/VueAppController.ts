@@ -97,7 +97,7 @@ export default abstract class VueAppController {
                     null, '/api/reflect_headers?v=' + Date.now(), CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED) as string);
             })());
             innerpromises.push((async () => {
-                self.ALL_LANGS = await ModuleDAO.getInstance().getVos<LangVO>(LangVO.API_TYPE_ID);
+                self.ALL_LANGS = await query(LangVO.API_TYPE_ID).select_vos<LangVO>();
             })());
             innerpromises.push((async () => {
                 self.data_user_lang = await ModuleAccessPolicy.getInstance().getMyLang();
