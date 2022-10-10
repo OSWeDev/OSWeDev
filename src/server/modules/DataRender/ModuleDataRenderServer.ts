@@ -1,6 +1,8 @@
 import { Express } from 'express';
 
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import IRenderedData from '../../../shared/modules/DataRender/interfaces/IRenderedData';
 import ModuleDataRender from '../../../shared/modules/DataRender/ModuleDataRender';
@@ -95,12 +97,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
 
         let rendererModule: DataRenderModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(dataRenderer.render_handler_module, ModuleServerBase.SERVER_MODULE_ROLE_NAME) as DataRenderModuleBase;
 
-        let latest_data: IDistantVOBase & IRenderedData = await ModuleDAOServer.getInstance().selectOne<IDistantVOBase & IRenderedData>(
-            rendererModule.database.vo_type,
-            "order by data_dateindex desc limit 1"
-        );
-
-        let res: TimeSegment = null;
+        let latest_data: IDistantVOBase & IRenderedData = await query(rendererModule.database.vo_type).set_sort(new SortByVO(rendererModule.database.vo_type, 'data_dateindex', false)).set_limit(1).select_vo<IDistantVOBase & IRenderedData>();
 
         if ((!latest_data) || (!rendererModule.data_timesegment_type)) {
             return null;
@@ -114,7 +111,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
     }
 
     public async getDataRenderer(text: string): Promise<DataRendererVO> {
-        return await ModuleDAOServer.getInstance().selectOne<DataRendererVO>(DataRendererVO.API_TYPE_ID, 'WHERE t.renderer_name = $1', [text]);
+        return await query(DataRendererVO.API_TYPE_ID).filter_by_text_eq('renderer_name', text).select_vo<DataRendererVO>();
     }
 
     /**

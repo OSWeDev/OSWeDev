@@ -1,3 +1,4 @@
+import pgPromise = require("pg-promise");
 import ContextQueryVO from "../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 
 export default class ThrottledSelectQueryParam {
@@ -7,11 +8,14 @@ export default class ThrottledSelectQueryParam {
     public index: number = null;
     public semaphore: boolean = false;
 
+    public parameterized_full_query: string;
+
     public constructor(
-        public cbs: Array<(value: number) => void>,
+        public cbs: Array<(...any) => void>,
         public context_query: ContextQueryVO,
-        public query_: string,
-        public values: any) {
+        query_: string,
+        values: any) {
+        this.parameterized_full_query = pgPromise.as.format(query_, values);
         this.index = ThrottledSelectQueryParam.ThrottledSelectQueryParam_index++;
     }
 }

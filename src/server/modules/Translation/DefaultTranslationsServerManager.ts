@@ -1,3 +1,4 @@
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
@@ -133,7 +134,7 @@ export default class DefaultTranslationsServerManager {
             translatable.code_text = default_translation.code_text;
             await ModuleDAO.getInstance().insertOrUpdateVO(translatable);
             ConsoleHandler.getInstance().error("Ajout de translatable : " + JSON.stringify(translatable));
-            translatable = await ModuleDAOServer.getInstance().selectOne<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID, "where code_text=$1", [default_translation.code_text]);
+            translatable = await query(TranslatableTextVO.API_TYPE_ID).filter_by_text_eq('code_text', default_translation.code_text).select_vo<TranslatableTextVO>();
         }
 
         if (!translatable) {
@@ -168,7 +169,7 @@ export default class DefaultTranslationsServerManager {
                 translation.text_id = translatable.id;
                 translation.translated = translation_str;
                 await ModuleDAO.getInstance().insertOrUpdateVO(translation);
-                translation = await ModuleDAOServer.getInstance().selectOne<TranslationVO>(TranslationVO.API_TYPE_ID, "where lang_id=$1 and text_id=$2", [lang.id, translatable.id]);
+                translation = await query(TranslationVO.API_TYPE_ID).filter_by_id(lang.id, LangVO.API_TYPE_ID).filter_by_id(translatable.id, TranslatableTextVO.API_TYPE_ID).select_vo<TranslationVO>();
             }
 
             if (!translation) {

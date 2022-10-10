@@ -50,7 +50,7 @@ import FormattedDatasStats from './FormattedDatasStats';
 import ImportTypeCSVHandler from './ImportTypeHandlers/ImportTypeCSVHandler';
 import ImportTypeXLSXHandler from './ImportTypeHandlers/ImportTypeXLSXHandler';
 import ImportLogger from './logger/ImportLogger';
-import ContextQueryVO from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ImportTypeXMLHandler from './ImportTypeHandlers/ImportTypeXMLHandler';
 
 export default class ModuleDataImportServer extends ModuleServerBase {
@@ -457,44 +457,31 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     }
 
     public async getDataImportHistorics(num: number): Promise<DataImportHistoricVO[]> {
-
-        return await ModuleDAOServer.getInstance().selectAll<DataImportHistoricVO>(
-            DataImportHistoricVO.API_TYPE_ID, 'WHERE t.data_import_format_id = $1 LIMIT 50;', [num]);
+        return await query(DataImportHistoricVO.API_TYPE_ID).filter_by_num_eq('data_import_format_id', num).set_limit(50).select_vos<DataImportHistoricVO>();
     }
 
     public async getDataImportHistoric(num: number): Promise<DataImportHistoricVO> {
-
-        return await ModuleDAOServer.getInstance().selectOne<DataImportHistoricVO>(
-            DataImportHistoricVO.API_TYPE_ID, 'WHERE t.id = $1;', [num]);
+        return await query(DataImportHistoricVO.API_TYPE_ID).filter_by_id(num).select_vo<DataImportHistoricVO>();
     }
 
     public async getDataImportLogs(num: number): Promise<DataImportLogVO[]> {
-
-        return await ModuleDAOServer.getInstance().selectAll<DataImportLogVO>(
-            DataImportLogVO.API_TYPE_ID, 'WHERE t.data_import_format_id = $1 LIMIT 50;', [num]);
+        return await query(DataImportLogVO.API_TYPE_ID).filter_by_num_eq('data_import_format_id', num).set_limit(50).select_vos<DataImportLogVO>();
     }
 
     public async getDataImportFiles(): Promise<DataImportFormatVO[]> {
-
-        return await ModuleDAO.getInstance().getVos<DataImportFormatVO>(DataImportFormatVO.API_TYPE_ID);
+        return await query(DataImportFormatVO.API_TYPE_ID).select_vos<DataImportFormatVO>();
     }
 
     public async getDataImportFile(text: string): Promise<DataImportFormatVO> {
-
-        return await ModuleDAOServer.getInstance().selectOne<DataImportFormatVO>(
-            DataImportFormatVO.API_TYPE_ID, 'WHERE t.import_uid = $1', [text]);
+        return await query(DataImportFormatVO.API_TYPE_ID).filter_by_text_eq('import_uid', text).select_vo<DataImportFormatVO>();
     }
 
     public async getImportFormatsForApiTypeId(API_TYPE_ID: string): Promise<DataImportFormatVO[]> {
-
-        return await ModuleDAOServer.getInstance().selectAll<DataImportFormatVO>(
-            DataImportFormatVO.API_TYPE_ID, 'WHERE t.api_type_id = $1', [API_TYPE_ID]);
+        return await query(DataImportFormatVO.API_TYPE_ID).filter_by_text_eq('api_type_id', API_TYPE_ID).select_vos<DataImportFormatVO>();
     }
 
     public async getDataImportColumnsFromFormatId(num: number): Promise<DataImportColumnVO[]> {
-
-        return await ModuleDAOServer.getInstance().selectAll<DataImportColumnVO>(
-            DataImportColumnVO.API_TYPE_ID, 'WHERE t.data_import_format_id = $1', [num]);
+        return await query(DataImportColumnVO.API_TYPE_ID).filter_by_num_eq('data_import_format_id', num).select_vos<DataImportColumnVO>();
     }
 
     /**
@@ -1041,7 +1028,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         let filter = new ContextFilterVO();
         filter.field_id = 'importation_state';
         filter.vo_type = raw_api_type_id;
-        filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+        filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
         filter.param_numeric = importation_state;
 
         /**

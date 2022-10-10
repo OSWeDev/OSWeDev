@@ -3,6 +3,7 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
@@ -150,7 +151,7 @@ export default class ModuleVocusServer extends ModuleServerBase {
         for (let i in refFields) {
             let refField = refFields[i];
 
-            let refvos: IDistantVOBase[] = await ModuleDAO.getInstance().getVosByRefFieldIds(refField.module_table.vo_type, refField.field_id, [id]);
+            let refvos: IDistantVOBase[] = await query(refField.module_table.vo_type).filter_by_num_eq(refField.field_id, id).select_vos<IDistantVOBase>();
 
             for (let j in refvos) {
                 let refvo: IDistantVOBase = refvos[j];

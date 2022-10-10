@@ -4,6 +4,7 @@ import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -698,7 +699,7 @@ export default class PushDataServerController {
         let promises = [];
 
         try {
-            let role: RoleVO = await ModuleDAOServer.getInstance().selectOne<RoleVO>(RoleVO.API_TYPE_ID, ' where translatable_name=$1;', [role_name]);
+            let role: RoleVO = await query(RoleVO.API_TYPE_ID).filter_by_text_eq('translatable_name', role_name).select_vo<RoleVO>();
             if (!role) {
                 ConsoleHandler.getInstance().error('broadcastRoleSimple:Role introuvable:' + role_name + ':');
                 return;
@@ -752,7 +753,7 @@ export default class PushDataServerController {
         let promises = [];
 
         try {
-            let role: RoleVO = await ModuleDAOServer.getInstance().selectOne<RoleVO>(RoleVO.API_TYPE_ID, ' where translatable_name=$1;', [role_name]);
+            let role: RoleVO = await query(RoleVO.API_TYPE_ID).filter_by_text_eq('translatable_name', role_name).select_vo<RoleVO>();
             if (!role) {
                 ConsoleHandler.getInstance().error('broadcastRoleRedirect:Role introuvable:' + role_name + ':');
                 return;

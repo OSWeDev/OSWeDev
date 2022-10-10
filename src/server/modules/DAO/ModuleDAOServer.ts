@@ -72,6 +72,8 @@ import { DatabaseError, Pool } from 'pg';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ThrottledSelectQueryParam from './vos/ThrottledSelectQueryParam';
 import RequestResponseCacheVO from '../../../shared/modules/AjaxCache/vos/RequestResponseCacheVO';
+import pgPromise = require('pg-promise');
+import { all_promises } from '../../../shared/tools/PromiseTools';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -142,45 +144,61 @@ export default class ModuleDAOServer extends ModuleServerBase {
      * On définit les droits d'accès du module
      */
     public async registerAccessPolicies(): Promise<void> {
+        let promises = [];
         let group_overall: AccessPolicyGroupVO = new AccessPolicyGroupVO();
-        group_overall.translatable_name = ModuleDAO.POLICY_GROUP_OVERALL;
-        group_overall = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group_overall, new DefaultTranslation({
-            'fr-fr': '!!! Accès à toutes les tables'
-        }));
+        promises.push((async () => {
+            group_overall.translatable_name = ModuleDAO.POLICY_GROUP_OVERALL;
+            group_overall = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group_overall, new DefaultTranslation({
+                'fr-fr': '!!! Accès à toutes les tables'
+            }));
+        })());
 
         let group_datas: AccessPolicyGroupVO = new AccessPolicyGroupVO();
-        group_datas.translatable_name = ModuleDAO.POLICY_GROUP_DATAS;
-        group_datas = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group_datas, new DefaultTranslation({
-            'fr-fr': 'Données'
-        }));
+        promises.push((async () => {
+            group_datas.translatable_name = ModuleDAO.POLICY_GROUP_DATAS;
+            group_datas = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group_datas, new DefaultTranslation({
+                'fr-fr': 'Données'
+            }));
+        })());
 
         let group_modules_conf: AccessPolicyGroupVO = new AccessPolicyGroupVO();
-        group_modules_conf.translatable_name = ModuleDAO.POLICY_GROUP_MODULES_CONF;
-        group_modules_conf = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group_modules_conf, new DefaultTranslation({
-            'fr-fr': 'Paramètres des modules'
-        }));
+        promises.push((async () => {
+            group_modules_conf.translatable_name = ModuleDAO.POLICY_GROUP_MODULES_CONF;
+            group_modules_conf = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group_modules_conf, new DefaultTranslation({
+                'fr-fr': 'Paramètres des modules'
+            }));
+        })());
 
-        // On déclare un droit permettant de faire appel à la fonction query du module dao server
-        let query_access: AccessPolicyVO = new AccessPolicyVO();
-        query_access.group_id = group_overall.id;
-        query_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        query_access.translatable_name = ModuleDAO.DAO_ACCESS_QUERY;
-        query_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(query_access, new DefaultTranslation({
-            'fr-fr': 'Utiliser la fonction QUERY'
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        await all_promises(promises);
+        promises = [];
 
-        // On déclare un droit global d'accès qui déclenche tous les autres
+        promises.push((async () => {
+            // On déclare un droit permettant de faire appel à la fonction query du module dao server
+            let query_access: AccessPolicyVO = new AccessPolicyVO();
+            query_access.group_id = group_overall.id;
+            query_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            query_access.translatable_name = ModuleDAO.DAO_ACCESS_QUERY;
+            query_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(query_access, new DefaultTranslation({
+                'fr-fr': 'Utiliser la fonction QUERY'
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        })());
+
         let global_access: AccessPolicyVO = new AccessPolicyVO();
-        global_access.group_id = group_overall.id;
-        global_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        global_access.translatable_name = ModuleDAO.POLICY_GROUP_OVERALL + '.' + ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS + "." + "___GLOBAL_ACCESS___";
-        global_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(global_access, new DefaultTranslation({
-            'fr-fr': 'Outrepasser les droits d\'accès'
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        promises.push((async () => {
+            // On déclare un droit global d'accès qui déclenche tous les autres
+            global_access.group_id = group_overall.id;
+            global_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            global_access.translatable_name = ModuleDAO.POLICY_GROUP_OVERALL + '.' + ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS + "." + "___GLOBAL_ACCESS___";
+            global_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(global_access, new DefaultTranslation({
+                'fr-fr': 'Outrepasser les droits d\'accès'
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        })());
+
+        await all_promises(promises);
+        promises = [];
 
         // On doit déclarer les access policies de tous les VO
         let lang: LangVO = await ModuleTranslation.getInstance().getLang(DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION);
-        let promises = [];
         let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL - 1));
 
         for (let i in VOsTypesManager.getInstance().moduleTables_by_voType) {
@@ -1537,6 +1555,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
 
+    /**
+     * @deprecated utiliser la version contextquery query(API_TYPE_ID).select_vos<T>();
+     */
     public async selectAll<T extends IDistantVOBase>(
         API_TYPE_ID: string, query_: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null,
         distinct: boolean = false, ranges: IRange[] = null, limit: number = 0, offset: number = 0): Promise<T[]> {
@@ -1618,6 +1639,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return res;
     }
 
+    /**
+     * @deprecated utiliser la version contextquery query(API_TYPE_ID).select_vo<T>();
+     */
     public async selectOne<T extends IDistantVOBase>(API_TYPE_ID: string, query_: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null, ranges: IRange[] = null): Promise<T> {
         let moduleTable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID];
 
@@ -1762,6 +1786,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let throttled_select_query_params_by_fields_labels: { [fields_labels: string]: ThrottledSelectQueryParam[] } = {};
 
             /**
+             * On essaie aussi d'identifier des requêtes parfaitement identiques pour pas les refaire 10 fois
+             *  donc où on a la même query et les mêmes values
+             * Si on en trouve plusieurs, on stocke les cbs, mais on oublie la seconde requete
+             */
+            let throttled_select_query_params_by_parameterized_full_query: { [parameterized_full_query: string]: ThrottledSelectQueryParam } = {};
+
+            /**
              * On se fait aussi une list par index de requete pour alléger les recherches par la suite
              */
             let throttled_select_query_params_by_index: { [index: number]: ThrottledSelectQueryParam } = {};
@@ -1770,13 +1801,29 @@ export default class ModuleDAOServer extends ModuleServerBase {
             for (let i in batch_throttled_select_query_params) {
                 let throttled_select_query_param: ThrottledSelectQueryParam = batch_throttled_select_query_params[i];
 
+                /**
+                 * Unicité des requêtes
+                 */
+                if (throttled_select_query_params_by_parameterized_full_query[throttled_select_query_param.parameterized_full_query]) {
+                    throttled_select_query_params_by_parameterized_full_query[throttled_select_query_param.parameterized_full_query].cbs.push(...throttled_select_query_param.cbs);
+                    continue;
+                }
+                throttled_select_query_params_by_parameterized_full_query[throttled_select_query_param.parameterized_full_query] = throttled_select_query_param;
                 throttled_select_query_params_by_index[throttled_select_query_param.index] = throttled_select_query_param;
 
                 let fields = throttled_select_query_param.context_query.fields;
                 let fields_labels = fields ? fields.map((field) => {
 
                     // On a besoin du type du champs et de l'alias
-                    let table_field_type = moduleTables_by_voType[field.api_type_id].getFieldFromId(field.field_id).field_type;
+                    let table_field_type = 'N/A';
+
+                    try {
+                        table_field_type = ((field.field_id == 'id') ? ModuleTableField.FIELD_TYPE_int :
+                            moduleTables_by_voType[field.api_type_id].getFieldFromId(field.field_id).field_type);
+                    } catch (error) {
+                        ConsoleHandler.getInstance().error('throttled_select_query : error while getting field type for field ' + field.field_id + ' of type ' + field.api_type_id);
+                    }
+
                     return table_field_type + ',' + field.alias;
 
                 }).join(';') : null;
@@ -1784,7 +1831,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 if (!fields_labels) {
                     ConsoleHandler.getInstance().warn('Throttled select query without fields, not supported yet');
                     promises.push((async () => {
-                        let res = await this.query(throttled_select_query_param.query_, throttled_select_query_param.values);
+                        let res = await this.query(throttled_select_query_param.parameterized_full_query);
 
                         for (let cbi in throttled_select_query_param.cbs) {
                             let cb = throttled_select_query_param.cbs[cbi];
@@ -1825,8 +1872,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         /**
                          * On ne doit avoir que des select
                          */
-                        if (!/^select /i.test(param.query_)) {
-                            ConsoleHandler.getInstance().error('Only select queries are allowed in throttled_select_query:' + param.query_);
+                        if (!/^select /i.test(param.parameterized_full_query)) {
+                            ConsoleHandler.getInstance().error('Only select queries are allowed in throttled_select_query:' + param.parameterized_full_query);
                             continue;
                         }
 
@@ -1834,25 +1881,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             request += " UNION ALL ";
                         }
 
-                        request += "(SELECT " + param.index + " as ___throttled_select_query___index, ___throttled_select_query___query.* from (" + param.query_ + ") ___throttled_select_query___query)";
+                        request += "(SELECT " + param.index + " as ___throttled_select_query___index, ___throttled_select_query___query.* from (" + param.parameterized_full_query + ") ___throttled_select_query___query)";
+                    }
 
-                        if (param.values && param.values.length) {
-                            cpt_field += param.values.length;
-                            values = values.concat(param.values);
-                        }
+                    if (request != "") {
 
-                        if (cpt_field >= 50000) {
-                            ConsoleHandler.getInstance().log('Throttled select query : too many fields, splitting request');
-
-                            let splitted_request = request;
-                            let splitted_values = values;
-                            cpt_field = 0;
-                            values = [];
-                            request = "";
-
-                            await this.do_throttled_select_query(splitted_request, splitted_values, throttled_select_query_params_by_index);
-                            continue;
-                        }
+                        await this.do_throttled_select_query(request, values, throttled_select_query_params_by_index);
                     }
                 })());
             }
@@ -2372,7 +2406,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         case ModuleTableField.FIELD_TYPE_tstz:
                         case ModuleTableField.FIELD_TYPE_foreign_key:
                             filter.param_numeric = vo[field.field_id];
-                            filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+                            filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
                             break;
                         default:
                             throw new Error('Not Implemented');
@@ -2979,6 +3013,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return ConfigurationService.getInstance().node_configuration.BASE_URL;
     }
 
+    /**
+     * @deprecated use await query(T.API_TYPE_ID).filter_by_num_eq('field_name', ids).select_vos<T>() instead
+     */
     private async getVosByRefFieldIds<T extends IDistantVOBase>(API_TYPE_ID: string, field_name: string, ids: number[]): Promise<T[]> {
 
         let moduleTable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID];
@@ -4729,7 +4766,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     private async do_throttled_select_query(request: string, values: any[], throttled_select_query_params_by_index: { [index: number]: ThrottledSelectQueryParam }) {
-        let results = await ModuleServiceBase.getInstance().db.query(request, values);
+        let results = null;
+
+        try {
+            results = await ModuleServiceBase.getInstance().db.query(request, values);
+        } catch (error) {
+            ConsoleHandler.getInstance().error('do_throttled_select_query:' + error);
+        }
 
         /**
          * On ventile les résultats par index
@@ -4746,26 +4789,15 @@ export default class ModuleDAOServer extends ModuleServerBase {
             results_by_index[index].push(result);
         }
 
-        for (let i in results_by_index) {
-            let results_of_index = results_by_index[i];
+        for (let i in throttled_select_query_params_by_index) {
             let index = parseInt(i);
-
-            let param = null;
-
-            if (throttled_select_query_params_by_index[index]) {
-                param = throttled_select_query_params_by_index[index];
-            }
-
-            if (!param) {
-                ConsoleHandler.getInstance().error('throttled_select_query:!throttled_select_query_param');
-                param.cb(0);
-                continue;
-            }
+            let results_of_index = results_by_index[index];
+            let param = throttled_select_query_params_by_index[index];
 
             for (let cbi in param.cbs) {
                 let cb = param.cbs[cbi];
 
-                await cb(results_of_index);
+                await cb(results_of_index ? results_of_index : null);
             }
         }
     }

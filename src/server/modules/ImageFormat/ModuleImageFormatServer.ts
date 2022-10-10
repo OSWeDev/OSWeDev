@@ -4,6 +4,7 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
@@ -111,9 +112,10 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
              *  Si on trouve, on envoie l'image
              *  Si on trouve pas on génère la nouvelle image et on la renvoie
              */
-            let fis: FormattedImageVO[] = await ModuleDAOServer.getInstance().selectAll<FormattedImageVO>(FormattedImageVO.API_TYPE_ID,
-                ' join ' + VOsTypesManager.getInstance().moduleTables_by_voType[ImageFormatVO.API_TYPE_ID].full_name +
-                ' imgfmt on imgfmt.id = t.image_format_id where imgfmt.name = $1 and t.image_src = $2;', [format_name, src]);
+            let fis: FormattedImageVO[] = await query(FormattedImageVO.API_TYPE_ID)
+                .filter_by_text_eq('name', format_name, ImageFormatVO.API_TYPE_ID)
+                .filter_by_text_eq('image_src', src)
+                .select_vos<FormattedImageVO>();
 
             let res_diff_min_value: number = null;
             let res_diff_min_fi: FormattedImageVO = null;

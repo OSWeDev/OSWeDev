@@ -23,6 +23,7 @@ import UserSessionVO from '../shared/modules/AccessPolicy/vos/UserSessionVO';
 import UserVO from '../shared/modules/AccessPolicy/vos/UserVO';
 import AjaxCacheController from '../shared/modules/AjaxCache/AjaxCacheController';
 import ModuleCommerce from '../shared/modules/Commerce/ModuleCommerce';
+import { query } from '../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
 import ModuleFile from '../shared/modules/File/ModuleFile';
 import FileVO from '../shared/modules/File/vos/FileVO';
@@ -684,7 +685,7 @@ export default abstract class ServerBase {
             await StackContext.getInstance().runPromise(
                 ServerExpressController.getInstance().getStackContextFromReq(req, session),
                 async () => {
-                    file = await ModuleDAOServer.getInstance().selectOne<FileVO>(FileVO.API_TYPE_ID, " where is_secured and path = $1;", [ModuleFile.SECURED_FILES_ROOT + folders + file_name]);
+                    file = await query(FileVO.API_TYPE_ID).filter_is_true('is_secured').filter_by_text_eq('path', ModuleFile.SECURED_FILES_ROOT + folders + file_name).select_vo<FileVO>();
                     has_access = (file && file.file_access_policy_name) ? ModuleAccessPolicyServer.getInstance().checkAccessSync(file.file_access_policy_name) : false;
                 });
 

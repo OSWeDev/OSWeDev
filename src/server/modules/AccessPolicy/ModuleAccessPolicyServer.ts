@@ -33,6 +33,7 @@ import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import TextHandler from '../../../shared/tools/TextHandler';
 import IServerUserSession from '../../IServerUserSession';
 import StackContext from '../../StackContext';
@@ -112,119 +113,145 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             'fr-fr': 'Droits d\'administration principaux'
         }));
 
-        let fo_access: AccessPolicyVO = new AccessPolicyVO();
-        fo_access.group_id = group.id;
-        fo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ANONYMOUS;
-        fo_access.translatable_name = ModuleAccessPolicy.POLICY_FO_ACCESS;
-        fo_access = await this.registerPolicy(fo_access, new DefaultTranslation({
-            'fr-fr': 'Accès au front'
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        let promises = [];
+
+        promises.push((async () => {
+            let fo_access: AccessPolicyVO = new AccessPolicyVO();
+            fo_access.group_id = group.id;
+            fo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ANONYMOUS;
+            fo_access.translatable_name = ModuleAccessPolicy.POLICY_FO_ACCESS;
+            fo_access = await this.registerPolicy(fo_access, new DefaultTranslation({
+                'fr-fr': 'Accès au front'
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        })());
 
 
-        let signin_access: AccessPolicyVO = new AccessPolicyVO();
-        signin_access.group_id = group.id;
-        signin_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        signin_access.translatable_name = ModuleAccessPolicy.POLICY_FO_SIGNIN_ACCESS;
-        signin_access = await this.registerPolicy(signin_access, new DefaultTranslation({
-            'fr-fr': 'Droit à l\'inscription'
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        promises.push((async () => {
+            let signin_access: AccessPolicyVO = new AccessPolicyVO();
+            signin_access.group_id = group.id;
+            signin_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            signin_access.translatable_name = ModuleAccessPolicy.POLICY_FO_SIGNIN_ACCESS;
+            signin_access = await this.registerPolicy(signin_access, new DefaultTranslation({
+                'fr-fr': 'Droit à l\'inscription'
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        })());
 
-        let sessionshare_access: AccessPolicyVO = new AccessPolicyVO();
-        sessionshare_access.group_id = group.id;
-        sessionshare_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        sessionshare_access.translatable_name = ModuleAccessPolicy.POLICY_SESSIONSHARE_ACCESS;
-        sessionshare_access = await this.registerPolicy(sessionshare_access, new DefaultTranslation({
-            'fr-fr': 'Accès au SessionShare'
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        promises.push((async () => {
+            let sessionshare_access: AccessPolicyVO = new AccessPolicyVO();
+            sessionshare_access.group_id = group.id;
+            sessionshare_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            sessionshare_access.translatable_name = ModuleAccessPolicy.POLICY_SESSIONSHARE_ACCESS;
+            sessionshare_access = await this.registerPolicy(sessionshare_access, new DefaultTranslation({
+                'fr-fr': 'Accès au SessionShare'
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        })());
 
-        let POLICY_IMPERSONATE: AccessPolicyVO = new AccessPolicyVO();
-        POLICY_IMPERSONATE.group_id = group.id;
-        POLICY_IMPERSONATE.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        POLICY_IMPERSONATE.translatable_name = ModuleAccessPolicy.POLICY_IMPERSONATE;
-        POLICY_IMPERSONATE = await this.registerPolicy(POLICY_IMPERSONATE, new DefaultTranslation({
-            'fr-fr': 'Impersonate'
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        promises.push((async () => {
+            let POLICY_IMPERSONATE: AccessPolicyVO = new AccessPolicyVO();
+            POLICY_IMPERSONATE.group_id = group.id;
+            POLICY_IMPERSONATE.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            POLICY_IMPERSONATE.translatable_name = ModuleAccessPolicy.POLICY_IMPERSONATE;
+            POLICY_IMPERSONATE = await this.registerPolicy(POLICY_IMPERSONATE, new DefaultTranslation({
+                'fr-fr': 'Impersonate'
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        })());
 
-        let POLICY_SENDINITPWD: AccessPolicyVO = new AccessPolicyVO();
-        POLICY_SENDINITPWD.group_id = group.id;
-        POLICY_SENDINITPWD.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        POLICY_SENDINITPWD.translatable_name = ModuleAccessPolicy.POLICY_SENDINITPWD;
-        POLICY_SENDINITPWD = await this.registerPolicy(POLICY_SENDINITPWD, new DefaultTranslation({
-            'fr-fr': 'Envoi Mail init PWD'
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        promises.push((async () => {
+            let POLICY_SENDINITPWD: AccessPolicyVO = new AccessPolicyVO();
+            POLICY_SENDINITPWD.group_id = group.id;
+            POLICY_SENDINITPWD.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            POLICY_SENDINITPWD.translatable_name = ModuleAccessPolicy.POLICY_SENDINITPWD;
+            POLICY_SENDINITPWD = await this.registerPolicy(POLICY_SENDINITPWD, new DefaultTranslation({
+                'fr-fr': 'Envoi Mail init PWD'
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        })());
 
-        let POLICY_SENDRECAPTURE: AccessPolicyVO = new AccessPolicyVO();
-        POLICY_SENDRECAPTURE.group_id = group.id;
-        POLICY_SENDRECAPTURE.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        POLICY_SENDRECAPTURE.translatable_name = ModuleAccessPolicy.POLICY_SENDRECAPTURE;
-        POLICY_SENDRECAPTURE = await this.registerPolicy(POLICY_SENDRECAPTURE, new DefaultTranslation({
-            'fr-fr': 'Envoi Mail relance'
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        promises.push((async () => {
+            let POLICY_SENDRECAPTURE: AccessPolicyVO = new AccessPolicyVO();
+            POLICY_SENDRECAPTURE.group_id = group.id;
+            POLICY_SENDRECAPTURE.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            POLICY_SENDRECAPTURE.translatable_name = ModuleAccessPolicy.POLICY_SENDRECAPTURE;
+            POLICY_SENDRECAPTURE = await this.registerPolicy(POLICY_SENDRECAPTURE, new DefaultTranslation({
+                'fr-fr': 'Envoi Mail relance'
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        })());
 
         let bo_access: AccessPolicyVO = new AccessPolicyVO();
-        bo_access.group_id = group.id;
-        bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        bo_access.translatable_name = ModuleAccessPolicy.POLICY_BO_ACCESS;
-        bo_access = await this.registerPolicy(bo_access, new DefaultTranslation({
-            'fr-fr': 'Accès à l\'administration'
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        promises.push((async () => {
+            bo_access.group_id = group.id;
+            bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            bo_access.translatable_name = ModuleAccessPolicy.POLICY_BO_ACCESS;
+            bo_access = await this.registerPolicy(bo_access, new DefaultTranslation({
+                'fr-fr': 'Accès à l\'administration'
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        })());
 
-        let modules_managment_access: AccessPolicyVO = new AccessPolicyVO();
-        modules_managment_access.group_id = group.id;
-        modules_managment_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        modules_managment_access.translatable_name = ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS;
-        modules_managment_access = await this.registerPolicy(modules_managment_access, new DefaultTranslation({
-            'fr-fr': 'Gestion des modules'
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
-        let dependency: PolicyDependencyVO = new PolicyDependencyVO();
-        dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
-        dependency.src_pol_id = modules_managment_access.id;
-        dependency.depends_on_pol_id = bo_access.id;
-        dependency = await this.registerPolicyDependency(dependency);
+        await all_promises(promises);
+        promises = [];
 
-        let rights_managment_access: AccessPolicyVO = new AccessPolicyVO();
-        rights_managment_access.group_id = group.id;
-        rights_managment_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        rights_managment_access.translatable_name = ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS;
-        rights_managment_access = await this.registerPolicy(rights_managment_access, new DefaultTranslation({
-            'fr-fr': 'Gestion des droits'
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
-        dependency = new PolicyDependencyVO();
-        dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
-        dependency.src_pol_id = rights_managment_access.id;
-        dependency.depends_on_pol_id = bo_access.id;
-        dependency = await this.registerPolicyDependency(dependency);
+        promises.push((async () => {
+            let modules_managment_access: AccessPolicyVO = new AccessPolicyVO();
+            modules_managment_access.group_id = group.id;
+            modules_managment_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            modules_managment_access.translatable_name = ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS;
+            modules_managment_access = await this.registerPolicy(modules_managment_access, new DefaultTranslation({
+                'fr-fr': 'Gestion des modules'
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+            let dependency: PolicyDependencyVO = new PolicyDependencyVO();
+            dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+            dependency.src_pol_id = modules_managment_access.id;
+            dependency.depends_on_pol_id = bo_access.id;
+            dependency = await this.registerPolicyDependency(dependency);
+        })());
 
-        let users_list_access: AccessPolicyVO = new AccessPolicyVO();
-        users_list_access.group_id = group.id;
-        users_list_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        users_list_access.translatable_name = ModuleAccessPolicy.POLICY_BO_USERS_LIST_ACCESS;
-        users_list_access = await this.registerPolicy(users_list_access, new DefaultTranslation({
-            'fr-fr': 'Liste des utilisateurs'
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
-        dependency = new PolicyDependencyVO();
-        dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
-        dependency.src_pol_id = users_list_access.id;
-        dependency.depends_on_pol_id = bo_access.id;
-        dependency = await this.registerPolicyDependency(dependency);
+        promises.push((async () => {
+            let rights_managment_access: AccessPolicyVO = new AccessPolicyVO();
+            rights_managment_access.group_id = group.id;
+            rights_managment_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            rights_managment_access.translatable_name = ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS;
+            rights_managment_access = await this.registerPolicy(rights_managment_access, new DefaultTranslation({
+                'fr-fr': 'Gestion des droits'
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+            let dependency = new PolicyDependencyVO();
+            dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+            dependency.src_pol_id = rights_managment_access.id;
+            dependency.depends_on_pol_id = bo_access.id;
+            dependency = await this.registerPolicyDependency(dependency);
+        })());
 
-        let users_managment_access: AccessPolicyVO = new AccessPolicyVO();
-        users_managment_access.group_id = group.id;
-        users_managment_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        users_managment_access.translatable_name = ModuleAccessPolicy.POLICY_BO_USERS_MANAGMENT_ACCESS;
-        users_managment_access = await this.registerPolicy(users_managment_access, new DefaultTranslation({
-            'fr-fr': 'Gestion des utilisateurs'
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
-        dependency = new PolicyDependencyVO();
-        dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
-        dependency.src_pol_id = users_managment_access.id;
-        dependency.depends_on_pol_id = bo_access.id;
-        dependency = await this.registerPolicyDependency(dependency);
-        dependency = new PolicyDependencyVO();
-        dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
-        dependency.src_pol_id = users_managment_access.id;
-        dependency.depends_on_pol_id = users_list_access.id;
-        dependency = await this.registerPolicyDependency(dependency);
+        promises.push((async () => {
+            let users_list_access: AccessPolicyVO = new AccessPolicyVO();
+            users_list_access.group_id = group.id;
+            users_list_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            users_list_access.translatable_name = ModuleAccessPolicy.POLICY_BO_USERS_LIST_ACCESS;
+            users_list_access = await this.registerPolicy(users_list_access, new DefaultTranslation({
+                'fr-fr': 'Liste des utilisateurs'
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+            let dependency = new PolicyDependencyVO();
+            dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+            dependency.src_pol_id = users_list_access.id;
+            dependency.depends_on_pol_id = bo_access.id;
+            dependency = await this.registerPolicyDependency(dependency);
+
+            let users_managment_access: AccessPolicyVO = new AccessPolicyVO();
+            users_managment_access.group_id = group.id;
+            users_managment_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            users_managment_access.translatable_name = ModuleAccessPolicy.POLICY_BO_USERS_MANAGMENT_ACCESS;
+            users_managment_access = await this.registerPolicy(users_managment_access, new DefaultTranslation({
+                'fr-fr': 'Gestion des utilisateurs'
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+            dependency = new PolicyDependencyVO();
+            dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+            dependency.src_pol_id = users_managment_access.id;
+            dependency.depends_on_pol_id = bo_access.id;
+            dependency = await this.registerPolicyDependency(dependency);
+            dependency = new PolicyDependencyVO();
+            dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+            dependency.src_pol_id = users_managment_access.id;
+            dependency.depends_on_pol_id = users_list_access.id;
+            dependency = await this.registerPolicyDependency(dependency);
+        })());
+        await all_promises(promises);
     }
 
     /**
@@ -981,7 +1008,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        let userRole: UserRoleVO = await ModuleDAOServer.getInstance().selectOne<UserRoleVO>(UserRoleVO.API_TYPE_ID, " WHERE t.user_id = $1 and t.role_id = $2", [user_id, role_id]);
+        let userRole: UserRoleVO = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('user_id', user_id).filter_by_num_eq('role_id', role_id).select_vo<UserRoleVO>();
 
         if (!userRole) {
             userRole = new UserRoleVO();
@@ -1469,12 +1496,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        let userRoles: UserRoleVO = await ModuleDAOServer.getInstance().selectOne<UserRoleVO>(
-            UserRoleVO.API_TYPE_ID,
-            " join " + VOsTypesManager.getInstance().moduleTables_by_voType[RoleVO.API_TYPE_ID].full_name + " r on r.id = t.role_id " +
-            " where t.user_id = $1 and r.translatable_name = $2",
-            [uid, text],
-            [UserVO.API_TYPE_ID, RoleVO.API_TYPE_ID]);
+        let userRoles: UserRoleVO = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('user_id', uid).filter_by_text_eq('translatable_name', text, RoleVO.API_TYPE_ID).select_vo<UserRoleVO>();
 
         if (userRoles) {
             return true;
@@ -1494,12 +1516,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        let userRoles: UserRoleVO = await ModuleDAOServer.getInstance().selectOne<UserRoleVO>(
-            UserRoleVO.API_TYPE_ID,
-            " join " + VOsTypesManager.getInstance().moduleTables_by_voType[RoleVO.API_TYPE_ID].full_name + " r on r.id = t.role_id " +
-            " where t.user_id = $1 and r.translatable_name = $2",
-            [uid, ModuleAccessPolicy.ROLE_ADMIN],
-            [UserVO.API_TYPE_ID, RoleVO.API_TYPE_ID]);
+        let userRoles: UserRoleVO = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('user_id', uid).filter_by_text_eq('translatable_name', ModuleAccessPolicy.ROLE_ADMIN, RoleVO.API_TYPE_ID).select_vo<UserRoleVO>();
 
         if (userRoles) {
             return true;
@@ -1601,7 +1618,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         if ((!vo) || (!vo.password)) {
             return true;
         }
-        let user: UserVO = await ModuleDAOServer.getInstance().selectOne<UserVO>(UserVO.API_TYPE_ID, " where email=$1", [vo.email]);
+        let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_text_eq('email', vo.email).select_vo<UserVO>();
         if (!!user) {
             await ModuleAccessPolicyServer.getInstance().sendErrorMsg('accesspolicy.user-create.mail.exists' + DefaultTranslation.DEFAULT_LABEL_EXTENSION);
             return false;
@@ -1949,7 +1966,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 return null;
             }
 
-            let user: UserVO = await ModuleDAOServer.getInstance().selectOne<UserVO>(UserVO.API_TYPE_ID, " where email=$1", [email]);
+            let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_text_eq('email', email).select_vo<UserVO>();
 
             if (!user) {
                 return null;

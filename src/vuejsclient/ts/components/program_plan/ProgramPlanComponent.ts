@@ -47,6 +47,7 @@ import ProgramPlanControllerBase from './ProgramPlanControllerBase';
 import ProgramPlanTools from './ProgramPlanTools';
 import { ModuleProgramPlanAction, ModuleProgramPlanGetter } from './store/ProgramPlanStore';
 import ProgramPlanComponentTargetListing from './TargetListing/ProgramPlanComponentTargetListing';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 
 
 
@@ -446,7 +447,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
             // managers du programme
             if (!!this.program_plan_shared_module.program_manager_type_id) {
                 promises.push((async () => {
-                    let program_managers: IPlanProgramManager[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanProgramManager>(this.program_plan_shared_module.program_manager_type_id, 'program_id', [self.program_id]);
+                    let program_managers: IPlanProgramManager[] = await query(this.program_plan_shared_module.program_manager_type_id).filter_by_num_eq('program_id', self.program_id).select_vos<IPlanProgramManager>();
                     self.storeDatas({ API_TYPE_ID: this.program_plan_shared_module.program_manager_type_id, vos: program_managers });
                 })());
             }
@@ -454,7 +455,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
             // animateurs du programme
             if (!!this.program_plan_shared_module.program_facilitator_type_id) {
                 promises.push((async () => {
-                    let program_facilitators: IPlanProgramFacilitator[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanProgramFacilitator>(this.program_plan_shared_module.program_facilitator_type_id, 'program_id', [self.program_id]);
+                    let program_facilitators: IPlanProgramFacilitator[] = await query(this.program_plan_shared_module.program_facilitator_type_id).filter_by_num_eq('program_id', self.program_id).select_vos<IPlanProgramFacilitator>();
                     self.storeDatas({ API_TYPE_ID: this.program_plan_shared_module.program_facilitator_type_id, vos: program_facilitators });
                 })());
             }
@@ -462,7 +463,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
             // établissements du programme
             if (!!this.program_plan_shared_module.program_target_type_id) {
                 promises.push((async () => {
-                    let program_targets: IPlanProgramTarget[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanProgramTarget>(this.program_plan_shared_module.program_target_type_id, 'program_id', [self.program_id]);
+                    let program_targets: IPlanProgramTarget[] = await query(this.program_plan_shared_module.program_target_type_id).filter_by_num_eq('program_id', self.program_id).select_vos<IPlanProgramTarget>();
                     self.storeDatas({ API_TYPE_ID: this.program_plan_shared_module.program_target_type_id, vos: program_targets });
                 })());
             }

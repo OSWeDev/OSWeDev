@@ -6,6 +6,7 @@ import RolePolicyVO from '../../../shared/modules/AccessPolicy/vos/RolePolicyVO'
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleVO from '../../../shared/modules/ModuleVO';
@@ -657,7 +658,7 @@ export default class AccessPolicyServerController {
             }
         }
 
-        let roleFromBDD: RoleVO = await ModuleDAOServer.getInstance().selectOne<RoleVO>(RoleVO.API_TYPE_ID, "where translatable_name = $1", [role.translatable_name]);
+        let roleFromBDD: RoleVO = await query(RoleVO.API_TYPE_ID).filter_by_text_eq('translatable_name', role.translatable_name).select_vo<RoleVO>();
         if (roleFromBDD) {
             this.registered_roles[translatable_name] = roleFromBDD;
             this.registered_roles_by_ids[roleFromBDD.id] = roleFromBDD;
@@ -701,7 +702,7 @@ export default class AccessPolicyServerController {
             DefaultTranslationManager.getInstance().registerDefaultTranslation(default_translation);
         }
 
-        let groupFromBDD: AccessPolicyGroupVO = await ModuleDAOServer.getInstance().selectOne<AccessPolicyGroupVO>(AccessPolicyGroupVO.API_TYPE_ID, "where translatable_name = $1", [group.translatable_name]);
+        let groupFromBDD: AccessPolicyGroupVO = await query(AccessPolicyGroupVO.API_TYPE_ID).filter_by_text_eq('translatable_name', group.translatable_name).select_vo<AccessPolicyGroupVO>();
         if (groupFromBDD) {
             this.registered_policy_groups[translatable_name] = groupFromBDD;
             return groupFromBDD;
@@ -749,7 +750,7 @@ export default class AccessPolicyServerController {
             DefaultTranslationManager.getInstance().registerDefaultTranslation(default_translation);
         }
 
-        let policyFromBDD: AccessPolicyVO = await ModuleDAOServer.getInstance().selectOne<AccessPolicyVO>(AccessPolicyVO.API_TYPE_ID, "where translatable_name = $1", [policy.translatable_name]);
+        let policyFromBDD: AccessPolicyVO = await query(AccessPolicyVO.API_TYPE_ID).filter_by_text_eq('translatable_name', policy.translatable_name).select_vo<AccessPolicyVO>();
         if (policyFromBDD) {
 
             // On vérifie les champs tout de même pour prendre en compte les modifs qui ont pu intervenir dans la définition du droit
@@ -807,7 +808,7 @@ export default class AccessPolicyServerController {
             this.registered_dependencies[dependency.src_pol_id] = [];
         }
 
-        let dependencyFromBDD: PolicyDependencyVO = await ModuleDAOServer.getInstance().selectOne<PolicyDependencyVO>(PolicyDependencyVO.API_TYPE_ID, "where src_pol_id = $1 and depends_on_pol_id = $2", [dependency.src_pol_id, dependency.depends_on_pol_id]);
+        let dependencyFromBDD: PolicyDependencyVO = await query(PolicyDependencyVO.API_TYPE_ID).filter_by_num_eq('src_pol_id', dependency.src_pol_id).filter_by_num_eq('depends_on_pol_id', dependency.depends_on_pol_id).select_vo<PolicyDependencyVO>();
         if (dependencyFromBDD) {
             this.registered_dependencies[dependency.src_pol_id].push(dependencyFromBDD);
             return dependencyFromBDD;

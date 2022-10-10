@@ -37,6 +37,7 @@ import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
@@ -832,56 +833,76 @@ export default class ModuleVarServer extends ModuleServerBase {
             'fr-fr': 'Variables'
         }));
 
-        let POLICY_FO_ACCESS: AccessPolicyVO = new AccessPolicyVO();
-        POLICY_FO_ACCESS.group_id = group.id;
-        POLICY_FO_ACCESS.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        POLICY_FO_ACCESS.translatable_name = ModuleVar.POLICY_FO_ACCESS;
-        POLICY_FO_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_FO_ACCESS, new DefaultTranslation({
-            'fr-fr': 'Accès aux Variables sur le front'
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        let promises = [];
 
-        let desc_mode_access: AccessPolicyVO = new AccessPolicyVO();
-        desc_mode_access.group_id = group.id;
-        desc_mode_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        desc_mode_access.translatable_name = ModuleVar.POLICY_DESC_MODE_ACCESS;
-        desc_mode_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(desc_mode_access, new DefaultTranslation({
-            'fr-fr': 'Accès au "Mode description"'
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        promises.push((async () => {
+            let POLICY_FO_ACCESS: AccessPolicyVO = new AccessPolicyVO();
+            POLICY_FO_ACCESS.group_id = group.id;
+            POLICY_FO_ACCESS.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            POLICY_FO_ACCESS.translatable_name = ModuleVar.POLICY_FO_ACCESS;
+            POLICY_FO_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_FO_ACCESS, new DefaultTranslation({
+                'fr-fr': 'Accès aux Variables sur le front'
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        })());
+
+        promises.push((async () => {
+            let desc_mode_access: AccessPolicyVO = new AccessPolicyVO();
+            desc_mode_access.group_id = group.id;
+            desc_mode_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            desc_mode_access.translatable_name = ModuleVar.POLICY_DESC_MODE_ACCESS;
+            desc_mode_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(desc_mode_access, new DefaultTranslation({
+                'fr-fr': 'Accès au "Mode description"'
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        })());
 
         let bo_access: AccessPolicyVO = new AccessPolicyVO();
-        bo_access.group_id = group.id;
-        bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        bo_access.translatable_name = ModuleVar.POLICY_BO_ACCESS;
-        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
-            'fr-fr': 'Administration des vars'
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
-
-        let bo_varconf_access: AccessPolicyVO = new AccessPolicyVO();
-        bo_varconf_access.group_id = group.id;
-        bo_varconf_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        bo_varconf_access.translatable_name = ModuleVar.POLICY_BO_VARCONF_ACCESS;
-        bo_varconf_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_varconf_access, new DefaultTranslation({
-            'fr-fr': 'Configuration des types de vars'
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
-        let access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
-        access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
-        access_dependency.src_pol_id = bo_varconf_access.id;
-        access_dependency.depends_on_pol_id = bo_access.id;
-        access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
-
+        promises.push((async () => {
+            bo_access.group_id = group.id;
+            bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            bo_access.translatable_name = ModuleVar.POLICY_BO_ACCESS;
+            bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
+                'fr-fr': 'Administration des vars'
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        })());
 
         let bo_imported_access: AccessPolicyVO = new AccessPolicyVO();
-        bo_imported_access.group_id = group.id;
-        bo_imported_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        bo_imported_access.translatable_name = ModuleVar.POLICY_BO_IMPORTED_ACCESS;
-        bo_imported_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_imported_access, new DefaultTranslation({
-            'fr-fr': 'Configuration des données importées'
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
-        access_dependency = new PolicyDependencyVO();
-        access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
-        access_dependency.src_pol_id = bo_imported_access.id;
-        access_dependency.depends_on_pol_id = bo_access.id;
-        access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
+        promises.push((async () => {
+            bo_imported_access.group_id = group.id;
+            bo_imported_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            bo_imported_access.translatable_name = ModuleVar.POLICY_BO_IMPORTED_ACCESS;
+            bo_imported_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_imported_access, new DefaultTranslation({
+                'fr-fr': 'Configuration des données importées'
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        })());
+
+        let bo_varconf_access: AccessPolicyVO = new AccessPolicyVO();
+        promises.push((async () => {
+            bo_varconf_access.group_id = group.id;
+            bo_varconf_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            bo_varconf_access.translatable_name = ModuleVar.POLICY_BO_VARCONF_ACCESS;
+            bo_varconf_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_varconf_access, new DefaultTranslation({
+                'fr-fr': 'Configuration des types de vars'
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        })());
+        await all_promises(promises);
+        promises = [];
+
+        promises.push((async () => {
+            let access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+            access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+            access_dependency.src_pol_id = bo_varconf_access.id;
+            access_dependency.depends_on_pol_id = bo_access.id;
+            access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
+        })());
+
+        promises.push((async () => {
+            let access_dependency = new PolicyDependencyVO();
+            access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+            access_dependency.src_pol_id = bo_imported_access.id;
+            access_dependency.depends_on_pol_id = bo_access.id;
+            access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
+        })());
+        await all_promises(promises);
     }
 
     /**
@@ -1624,7 +1645,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         let filter_ = new ContextFilterVO();
         filter_.field_id = 'type';
         filter_.vo_type = SlowVarVO.API_TYPE_ID;
-        filter_.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+        filter_.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
         filter_.param_numeric = SlowVarVO.TYPE_DENIED;
 
         let query_: ContextQueryVO = new ContextQueryVO();

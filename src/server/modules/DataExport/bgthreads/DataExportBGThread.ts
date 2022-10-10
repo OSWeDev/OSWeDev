@@ -10,6 +10,10 @@ import moment = require('moment');
 import ModulePushDataServer from '../../PushData/ModulePushDataServer';
 import PushDataServerController from '../../PushData/PushDataServerController';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import RangeHandler from '../../../../shared/tools/RangeHandler';
+import ContextFilterVO, { filter } from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import SortByVO from '../../../../shared/modules/ContextFilter/vos/SortByVO';
 
 export default class DataExportBGThread implements IBGThread {
 
@@ -42,11 +46,13 @@ export default class DataExportBGThread implements IBGThread {
             // Objectif, on prend l'export en attente le plus ancien, et on l'exécute. Si un export est en cours, à ce stade on devrait pas
             //  le voir, donc il y a eu une erreur, on l'indique (c'est peut-être juste un redémarrage serveur) et on relance.
 
-            let exhi: ExportHistoricVO = await ModuleDAOServer.getInstance().selectOne<ExportHistoricVO>(ExportHistoricVO.API_TYPE_ID,
-                DataExportBGThread.request, [
-                ExportHistoricVO.EXPORT_STATE_TODO,
-                ExportHistoricVO.EXPORT_STATE_RUNNING
-            ]);
+            let exhi: ExportHistoricVO = await query(ExportHistoricVO.API_TYPE_ID)
+                .add_filters([
+                    ContextFilterVO.or([
+                        filter(ExportHistoricVO.API_TYPE_ID, 'state').by_num_eq(ExportHistoricVO.EXPORT_STATE_TODO),
+                        filter(ExportHistoricVO.API_TYPE_ID, 'state').by_num_eq(ExportHistoricVO.EXPORT_STATE_RUNNING)
+                    ])]
+                ).set_limit(1).set_sort(new SortByVO(ExportHistoricVO.API_TYPE_ID, 'creation_date', true)).select_vo<ExportHistoricVO>();
 
             if (!exhi) {
                 return ModuleBGThreadServer.TIMEOUT_COEF_SLEEP;
