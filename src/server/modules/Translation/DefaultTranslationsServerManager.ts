@@ -62,7 +62,7 @@ export default class DefaultTranslationsServerManager {
             }
         })());
 
-        await all_promises(promises);
+        await Promise.all(promises);
 
         promises = [];
         for (let i in registered_default_translations) {
@@ -177,6 +177,9 @@ export default class DefaultTranslationsServerManager {
                 return;
             }
 
+            if (!translation_by_lang_id_and_text_id[lang.id]) {
+                translation_by_lang_id_and_text_id[lang.id] = {};
+            }
             translation_by_lang_id_and_text_id[lang.id][translatable.id] = translation;
         }
     }

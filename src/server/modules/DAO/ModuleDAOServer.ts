@@ -168,7 +168,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }));
         })());
 
-        await all_promises(promises);
+        await Promise.all(promises);
         promises = [];
 
         promises.push((async () => {
@@ -193,7 +193,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         })());
 
-        await all_promises(promises);
+        await Promise.all(promises);
         promises = [];
 
         // On doit déclarer les access policies de tous les VO
@@ -1759,10 +1759,19 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return new Promise(async (resolve, reject) => {
 
             let param = new ThrottledSelectQueryParam([resolve], context_query, query_, values);
-            self.throttled_select_query_params.push(param);
-            await self.throttled_select_query_({
-                [param.index]: param
-            });
+
+            if (ConfigurationService.getInstance().node_configuration.DEBUG_THROTTLED_SELECT) {
+                ConsoleHandler.getInstance().log('throttle_select_query:' + param.parameterized_full_query);
+            }
+
+            try {
+                self.throttled_select_query_params.push(param);
+                await self.throttled_select_query_({
+                    [param.index]: param
+                });
+            } catch (error) {
+                reject(error);
+            }
         });
     }
 
@@ -1782,7 +1791,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
              *  donc si on a pas de fields, il faudrait ressortir les fields du moduletable (mais il faut le faire en amont je pense)
              *  pour le moment je gère pas ce cas (et je log un warning)
              */
-            let throttled_select_query_params_by_fields_labels: { [fields_labels: string]: ThrottledSelectQueryParam[] } = {};
+            let throttled_select_query_params_by_fields_labels_by_index: { [fields_labels: string]: { [index: number]: ThrottledSelectQueryParam } } = {};
 
             /**
              * On essaie aussi d'identifier des requêtes parfaitement identiques pour pas les refaire 10 fois
@@ -1796,6 +1805,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
              */
             let throttled_select_query_params_by_index: { [index: number]: ThrottledSelectQueryParam } = {};
 
+            if (ConfigurationService.getInstance().node_configuration.DEBUG_THROTTLED_SELECT) {
+                ConsoleHandler.getInstance().log('throttled_select_query:IN:' + this.throttled_select_query_params.length);
+            }
+
             let promises = [];
             for (let i in batch_throttled_select_query_params) {
                 let throttled_select_query_param: ThrottledSelectQueryParam = batch_throttled_select_query_params[i];
@@ -1804,7 +1817,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
                  * Unicité des requêtes
                  */
                 if (throttled_select_query_params_by_parameterized_full_query[throttled_select_query_param.parameterized_full_query]) {
+
                     throttled_select_query_params_by_parameterized_full_query[throttled_select_query_param.parameterized_full_query].cbs.push(...throttled_select_query_param.cbs);
+                    if (ConfigurationService.getInstance().node_configuration.DEBUG_THROTTLED_SELECT) {
+                        ConsoleHandler.getInstance().log('throttled_select_query:found duplicated query:' + throttled_select_query_param.parameterized_full_query + ':' + throttled_select_query_params_by_parameterized_full_query[throttled_select_query_param.parameterized_full_query].cbs.length + 'x (counting cbs)');
+                    }
+
                     continue;
                 }
                 throttled_select_query_params_by_parameterized_full_query[throttled_select_query_param.parameterized_full_query] = throttled_select_query_param;
@@ -1841,25 +1859,22 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     continue;
                 }
 
-                if (!throttled_select_query_params_by_fields_labels[fields_labels]) {
-                    throttled_select_query_params_by_fields_labels[fields_labels] = [];
+                if (!throttled_select_query_params_by_fields_labels_by_index[fields_labels]) {
+                    throttled_select_query_params_by_fields_labels_by_index[fields_labels] = {};
                 }
 
-                /**
-                 * TODO FIXME : identifier des cas d'optimisation - par exemple une même requête avec des mêmes paramètres, inutile de la faire 10 fois
-                 */
-                throttled_select_query_params_by_fields_labels[fields_labels].push(throttled_select_query_param);
+                throttled_select_query_params_by_fields_labels_by_index[fields_labels][throttled_select_query_param.index] = throttled_select_query_param;
             }
 
-            for (let i in throttled_select_query_params_by_fields_labels) {
-                let throttled_select_query_params: ThrottledSelectQueryParam[] = throttled_select_query_params_by_fields_labels[i];
-
-                let values = [];
-                let cpt_field: number = 1;
+            for (let i in throttled_select_query_params_by_fields_labels_by_index) {
+                let throttled_select_query_params: { [index: number]: ThrottledSelectQueryParam } = throttled_select_query_params_by_fields_labels_by_index[i];
 
                 promises.push((async () => {
 
                     let request: string = "";
+                    if (ConfigurationService.getInstance().node_configuration.DEBUG_THROTTLED_SELECT) {
+                        ConsoleHandler.getInstance().log('throttled_select_query:do_throttled_select_query:PREPARE:' + i);
+                    }
                     for (let j in throttled_select_query_params) {
                         let param = throttled_select_query_params[j];
 
@@ -1880,12 +1895,21 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             request += " UNION ALL ";
                         }
 
-                        request += "(SELECT " + param.index + " as ___throttled_select_query___index, ___throttled_select_query___query.* from (" + param.parameterized_full_query + ") ___throttled_select_query___query)";
+                        let this_query = "(SELECT " + param.index + " as ___throttled_select_query___index, ___throttled_select_query___query.* from (" + param.parameterized_full_query + ") ___throttled_select_query___query)";
+                        if (ConfigurationService.getInstance().node_configuration.DEBUG_THROTTLED_SELECT) {
+                            ConsoleHandler.getInstance().log('throttled_select_query:do_throttled_select_query:this_query:' + this_query);
+                        }
+                        request += this_query;
                     }
 
                     if (request != "") {
-
-                        await this.do_throttled_select_query(request, values, throttled_select_query_params_by_index);
+                        if (ConfigurationService.getInstance().node_configuration.DEBUG_THROTTLED_SELECT) {
+                            ConsoleHandler.getInstance().log('throttled_select_query:do_throttled_select_query:START:' + i);
+                        }
+                        await this.do_throttled_select_query(request, [], throttled_select_query_params);
+                        if (ConfigurationService.getInstance().node_configuration.DEBUG_THROTTLED_SELECT) {
+                            ConsoleHandler.getInstance().log('throttled_select_query:do_throttled_select_query:END:' + i);
+                        }
                     }
                 })());
             }
@@ -2669,6 +2693,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }
 
                 const sql = "DELETE FROM " + full_name + " where id = ${id} RETURNING id";
+                if (ConfigurationService.getInstance().node_configuration.DEBUG_DELETEVOS) {
+                    ConsoleHandler.getInstance().log('DELETEVOS:oneOrNone:' + sql + ':' + JSON.stringify(vo));
+                }
+
                 deleted_vos.push(vo);
                 queries.push(t.oneOrNone(sql, vo)/*posttrigger pas si simple : .then(async (data) => {
                     await this.post_delete_trigger_hook.trigger(vo._type, vo);
@@ -2685,6 +2713,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             for (let i in deleted_vos) {
                 let deleted_vo = deleted_vos[i];
+                if (ConfigurationService.getInstance().node_configuration.DEBUG_DELETEVOS) {
+                    ConsoleHandler.getInstance().log('DELETEVOS:post_delete_trigger_hook:deleted_vo:' + JSON.stringify(deleted_vo));
+                }
+
                 await DAOServerController.getInstance().post_delete_trigger_hook.trigger(deleted_vo._type, deleted_vo);
             }
             return value;
@@ -4792,6 +4824,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let index = parseInt(i);
             let results_of_index = results_by_index[index];
             let param = throttled_select_query_params_by_index[index];
+
+            if (ConfigurationService.getInstance().node_configuration.DEBUG_THROTTLED_SELECT) {
+                ConsoleHandler.getInstance().log('do_throttled_select_query:results_of_index:' + index + ':' + (results_of_index ? JSON.stringify(results_of_index) : 'null'));
+            }
 
             for (let cbi in param.cbs) {
                 let cb = param.cbs[cbi];

@@ -146,7 +146,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             admin_access_dependency_fo_reporting = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency_fo_reporting);
         })());
 
-        await all_promises(promises);
+        await Promise.all(promises);
     }
 
     public registerAccessHooks(): void {

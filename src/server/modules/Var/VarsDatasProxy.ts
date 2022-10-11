@@ -823,7 +823,7 @@ export default class VarsDatasProxy {
         }
     }
 
-    private async order_vars_datas_buffer(vars_datas_buffer: Array<VarDataProxyWrapperVO<VarDataBaseVO>>) {
+    private order_vars_datas_buffer(vars_datas_buffer: Array<VarDataProxyWrapperVO<VarDataBaseVO>>) {
 
         let cardinaux: { [index: string]: number } = {};
 
@@ -834,7 +834,7 @@ export default class VarsDatasProxy {
 
         // Ensuite par hauteur dans l'arbre
         if (!VarsServerController.getInstance().varcontrollers_dag_depths) {
-            await VarsServerController.getInstance().init_varcontrollers_dag_depths();
+            VarsServerController.getInstance().init_varcontrollers_dag_depths();
         }
 
         vars_datas_buffer.sort((a: VarDataProxyWrapperVO<VarDataBaseVO>, b: VarDataProxyWrapperVO<VarDataBaseVO>): number => {

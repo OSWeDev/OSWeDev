@@ -452,7 +452,7 @@ export default abstract class VueAppBase {
                 return message;
             }
 
-            self.unregisterVarsBeforeUnload();
+            self.unregisterVarsBeforeUnload().then().catch((err) => ConsoleHandler.getInstance().error(err));
 
             return null;
         };

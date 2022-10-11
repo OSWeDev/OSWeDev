@@ -200,8 +200,7 @@ export default class TablesGraphComponent extends VueComponentBase {
                 db_cell_source.values_to_exclude.splice(startIndex, deleteCount);
                 this.toggle = false;
                 await ModuleDAO.getInstance().insertOrUpdateVO(db_cell_source); //Mise à jour de la base.
-                this.initgraph(); //TODO Peut être que cela est trop brutal, on peut essayer simplement avec initcell je pense.
-
+                await this.initgraph(); //TODO Peut être que cela est trop brutal, on peut essayer simplement avec initcell je pense.
             }
 
         } else if (checked) {
@@ -220,7 +219,7 @@ export default class TablesGraphComponent extends VueComponentBase {
                         this.toggle = true;
                         await ModuleDAO.getInstance().insertOrUpdateVO(db_cell_source); //Mise à jour de la base.
                     }
-                    this.initgraph(); //On relance le graphe.
+                    await this.initgraph(); //On relance le graphe.
                     break;
                 case true:
                     if (!db_cell_source.values_to_exclude.includes(arrowValue['field_id']['field_id_1'])) { //On évite les doublons
@@ -233,7 +232,7 @@ export default class TablesGraphComponent extends VueComponentBase {
                     }
                     await ModuleDAO.getInstance().insertOrUpdateVO(db_cell_source); //Mise à jour de la base.
 
-                    this.initgraph(); //On relance le graphe.
+                    await this.initgraph(); //On relance le graphe.
                     break;
             }
         }
@@ -261,7 +260,7 @@ export default class TablesGraphComponent extends VueComponentBase {
             delete this.cells[cellValue.value.tables_graph_vo_type];
             editor.graph.removeCells([cellValue]);
 
-            this.initgraph(); //On relance le graphe afin de réafficher les relations n/n si des cellules intermédiaires ont été supprimée.
+            await this.initgraph(); //On relance le graphe afin de réafficher les relations n/n si des cellules intermédiaires ont été supprimée.
 
             this.$emit("del_api_type_id", cellValue.value.tables_graph_vo_type);
         }
@@ -379,9 +378,9 @@ export default class TablesGraphComponent extends VueComponentBase {
             editor.graph.setAllowDanglingEdges(false);
 
             editor.graph.getSelectionModel().addListener(mxEvent.CHANGE, () => {
-                this.selectionChanged();
+                this.selectionChanged().then().catch((error) => { ConsoleHandler.getInstance().error(error); });
             });
-            this.selectionChanged();
+            this.selectionChanged().then().catch((error) => { ConsoleHandler.getInstance().error(error); });
             editor.graph.addListener('moveCells', async () => {
                 let cell = editor.graph.getSelectionCell();
                 let db_cells = await ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString<DashboardGraphVORefVO>(
@@ -706,7 +705,7 @@ export default class TablesGraphComponent extends VueComponentBase {
                                 values_to_exclude.push(field.field_id);
                                 cell.values_to_exclude = values_to_exclude;
                                 is_link_unccepted = true;
-                                ModuleDAO.getInstance().insertOrUpdateVO(cell);
+                                ModuleDAO.getInstance().insertOrUpdateVO(cell).then().catch((error) => { ConsoleHandler.getInstance().error(error); });
 
                             }
                         } catch {

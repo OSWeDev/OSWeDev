@@ -161,7 +161,7 @@ export default class VarsServerController {
         }
     }
 
-    public async init_varcontrollers_dag_depths() {
+    public init_varcontrollers_dag_depths() {
 
         if ((!this._varcontrollers_dag_depths) && this.varcontrollers_dag) {
             this._varcontrollers_dag_depths = {};

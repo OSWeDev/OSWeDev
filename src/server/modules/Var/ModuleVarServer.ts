@@ -798,7 +798,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 'fr-fr': 'Configuration des types de vars'
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         })());
-        await all_promises(promises);
+        await Promise.all(promises);
         promises = [];
 
         promises.push((async () => {
@@ -816,7 +816,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             access_dependency.depends_on_pol_id = bo_access.id;
             access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
         })());
-        await all_promises(promises);
+        await Promise.all(promises);
     }
 
     /**

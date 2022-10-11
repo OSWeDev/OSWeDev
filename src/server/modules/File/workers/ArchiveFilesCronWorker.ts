@@ -109,7 +109,7 @@ export default class ArchiveFilesCronWorker implements ICronWorker {
                                     file_vo.path = file_vo_updated;
                                 }
                             }
-                            ModuleDAO.getInstance().insertOrUpdateVO(file_vo);
+                            await ModuleDAO.getInstance().insertOrUpdateVO(file_vo);
                         }
                     });
                 }

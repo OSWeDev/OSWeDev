@@ -621,7 +621,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
                 'fr-fr': 'Outil - Choix de la langue'
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         })());
-        await all_promises(promises);
+        await Promise.all(promises);
     }
 
     public registerServerApiHandlers() {

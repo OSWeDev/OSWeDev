@@ -824,7 +824,7 @@ export default class TableWidgetComponent extends VueComponentBase {
                         default:
                             throw new Error('Not Implemented');
                     }
-                    self.do_update_visible_options();
+                    await self.do_update_visible_options();
 
                     resolve({
                         body: self.label('TableWidgetComponent.onchange_column.ok'),
@@ -838,7 +838,7 @@ export default class TableWidgetComponent extends VueComponentBase {
 
                 } catch (error) {
                     ConsoleHandler.getInstance().error(error);
-                    self.do_update_visible_options();
+                    await self.do_update_visible_options();
                     reject({
                         body: self.label('TableWidgetComponent.onchange_column.failed'),
                         config: {

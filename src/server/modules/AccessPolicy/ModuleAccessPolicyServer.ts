@@ -31,7 +31,6 @@ import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import { all_promises } from '../../../shared/tools/PromiseTools';
 import TextHandler from '../../../shared/tools/TextHandler';
 import IServerUserSession from '../../IServerUserSession';
 import StackContext from '../../StackContext';
@@ -184,7 +183,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         })());
 
-        await all_promises(promises);
+        await Promise.all(promises);
         promises = [];
 
         promises.push((async () => {
@@ -249,7 +248,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             dependency.depends_on_pol_id = users_list_access.id;
             dependency = await this.registerPolicyDependency(dependency);
         })());
-        await all_promises(promises);
+        await Promise.all(promises);
     }
 
     /**

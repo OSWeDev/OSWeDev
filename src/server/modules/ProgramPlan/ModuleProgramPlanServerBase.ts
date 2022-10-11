@@ -256,7 +256,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         })());
 
-        await all_promises(promises);
+        await Promise.all(promises);
         promises = [];
 
         promises.push((async () => {
@@ -276,7 +276,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         })());
         promises.push(this.registerFrontVisibilityAccessPolicies(group, fo_access));
         promises.push(this.registerFrontEditionAccessPolicies(group, fo_edit));
-        await all_promises(promises);
+        await Promise.all(promises);
     }
 
     public async getPrepsOfProgramSegment(program_id: number, timeSegment: TimeSegment): Promise<IPlanRDVPrep[]> {

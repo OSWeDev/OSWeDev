@@ -668,6 +668,8 @@ export default class AccessPolicyServerController {
                 let vos = await query(RoleVO.API_TYPE_ID).filter_by_text_eq('translatable_name', role.translatable_name).select_vos<RoleVO>();
                 await ModuleDAO.getInstance().deleteVOs(vos);
                 roleFromBDD = null;
+            } else {
+                throw error;
             }
         }
 
@@ -724,6 +726,8 @@ export default class AccessPolicyServerController {
                 let vos = await query(AccessPolicyGroupVO.API_TYPE_ID).filter_by_text_eq('translatable_name', group.translatable_name).select_vos<AccessPolicyGroupVO>();
                 await ModuleDAO.getInstance().deleteVOs(vos);
                 groupFromBDD = null;
+            } else {
+                throw error;
             }
         }
         if (groupFromBDD) {
@@ -782,7 +786,10 @@ export default class AccessPolicyServerController {
                 ConsoleHandler.getInstance().error('Duplicate policy ' + policy.translatable_name + ' detected, deleting it');
                 let vos = await query(AccessPolicyVO.API_TYPE_ID).filter_by_text_eq('translatable_name', policy.translatable_name).select_vos<AccessPolicyVO>();
                 await ModuleDAO.getInstance().deleteVOs(vos);
+                ConsoleHandler.getInstance().error('Duplicate policy ' + policy.translatable_name + ' detected, deleted');
                 policyFromBDD = null;
+            } else {
+                throw error;
             }
         }
 
@@ -853,6 +860,8 @@ export default class AccessPolicyServerController {
                 let vos = await query(PolicyDependencyVO.API_TYPE_ID).filter_by_num_eq('src_pol_id', dependency.src_pol_id).filter_by_num_eq('depends_on_pol_id', dependency.depends_on_pol_id).select_vos<PolicyDependencyVO>();
                 await ModuleDAO.getInstance().deleteVOs(vos);
                 dependencyFromBDD = null;
+            } else {
+                throw error;
             }
         }
         if (dependencyFromBDD) {
