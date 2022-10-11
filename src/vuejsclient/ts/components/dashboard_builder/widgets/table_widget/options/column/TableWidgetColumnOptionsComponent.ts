@@ -177,6 +177,10 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             return;
         }
 
+        if (this.object_column.bg_color_header == this.tmp_bg_color_header) {
+            return;
+        }
+
         this.object_column.bg_color_header = this.tmp_bg_color_header;
 
         this.$emit('update_column', this.object_column);
@@ -185,6 +189,10 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     @Watch('tmp_font_color_header')
     private async onchange_tmp_font_color_header() {
         if (!this.object_column) {
+            return;
+        }
+
+        if (this.object_column.font_color_header == this.tmp_font_color_header) {
             return;
         }
 
