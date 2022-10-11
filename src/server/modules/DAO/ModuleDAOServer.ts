@@ -1,5 +1,6 @@
-import { Readable } from 'stream';
+import { DatabaseError, Pool } from 'pg';
 import { from as copyFrom } from 'pg-copy-streams';
+import { Readable } from 'stream';
 import INamedVO from '../../../shared/interfaces/INamedVO';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
@@ -22,12 +23,14 @@ import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
 import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
 import FeedbackVO from '../../../shared/modules/Feedback/vos/FeedbackVO';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MaintenanceVO from '../../../shared/modules/Maintenance/vos/MaintenanceVO';
 import IMatroid from '../../../shared/modules/Matroid/interfaces/IMatroid';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
+import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ParamVO from '../../../shared/modules/Params/vos/ParamVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
@@ -43,6 +46,7 @@ import BooleanHandler from '../../../shared/tools/BooleanHandler';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../shared/tools/DateHandler';
 import MatroidIndexHandler from '../../../shared/tools/MatroidIndexHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import ConfigurationService from '../../env/ConfigurationService';
@@ -67,13 +71,8 @@ import DAOPreCreateTriggerHook from './triggers/DAOPreCreateTriggerHook';
 import DAOPreDeleteTriggerHook from './triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
-import ModuleParams from '../../../shared/modules/Params/ModuleParams';
-import { DatabaseError, Pool } from 'pg';
-import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ThrottledSelectQueryParam from './vos/ThrottledSelectQueryParam';
-import RequestResponseCacheVO from '../../../shared/modules/AjaxCache/vos/RequestResponseCacheVO';
 import pgPromise = require('pg-promise');
-import { all_promises } from '../../../shared/tools/PromiseTools';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
