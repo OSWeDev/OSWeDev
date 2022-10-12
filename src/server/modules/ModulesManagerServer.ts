@@ -1,7 +1,5 @@
-import ModuleVO from '../../shared/modules/ModuleVO';
-import ModuleDAOServer from './DAO/ModuleDAOServer';
-import ModuleDAO from '../../shared/modules/DAO/ModuleDAO';
 import { query } from '../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ModuleVO from '../../shared/modules/ModuleVO';
 
 export default class ModulesManagerServer {
 

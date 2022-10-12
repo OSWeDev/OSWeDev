@@ -1,5 +1,6 @@
 
 import Component from 'vue-class-component';
+import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleDataExport from '../../../../../../../shared/modules/DataExport/ModuleDataExport';
 import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';

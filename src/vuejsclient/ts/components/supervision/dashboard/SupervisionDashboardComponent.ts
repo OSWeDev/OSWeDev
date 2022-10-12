@@ -1,21 +1,21 @@
 import debounce from 'lodash/debounce';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import ISupervisedItem from '../../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import ISupervisedItemController from '../../../../../shared/modules/Supervision/interfaces/ISupervisedItemController';
 import SupervisionController from '../../../../../shared/modules/Supervision/SupervisionController';
 import SupervisedCategoryVO from '../../../../../shared/modules/Supervision/vos/SupervisedCategoryVO';
-import ObjectHandler from '../../../../../shared/tools/ObjectHandler';
 import VueComponentBase from '../../../../ts/components/VueComponentBase';
 import AjaxCacheClientController from '../../../modules/AjaxCache/AjaxCacheClientController';
 import SupervisedItemComponent from '../item/SupervisedItemComponent';
 import SupervisionAdminVueModule from '../SupervisionAdminVueModule';
-import SupervisionItemModalComponent from './item_modal/SupervisionItemModalComponent';
 import SupervisionDashboardItemComponent from './item/SupervisionDashboardItemComponent';
+import SupervisionItemModalComponent from './item_modal/SupervisionItemModalComponent';
+import './SupervisionDashboardComponent.scss';
 import { ModuleSupervisionAction, ModuleSupervisionGetter } from './SupervisionDashboardStore';
 import SupervisionDashboardWidgetComponent from './widget/SupervisionDashboardWidgetComponent';
-import './SupervisionDashboardComponent.scss';
 
 @Component({
     template: require('./SupervisionDashboardComponent.pug'),

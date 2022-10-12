@@ -6,6 +6,7 @@ import HtmlImgComponentVO from '../../../../shared/modules/CMS/page_components_t
 import ImgHtmlComponentVO from '../../../../shared/modules/CMS/page_components_types/ImgHtmlComponentVO';
 import PageAliasVO from '../../../../shared/modules/CMS/vos/PageAliasVO';
 import PageVO from '../../../../shared/modules/CMS/vos/PageVO';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';

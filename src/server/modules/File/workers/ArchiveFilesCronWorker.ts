@@ -41,7 +41,10 @@ export default class ArchiveFilesCronWorker implements ICronWorker {
                 //on boucle sur le resultat du readdir
                 for (let j in files) {
                     const file = files[j];
-                    var file_vos: FileVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString(FileVO.API_TYPE_ID, null, null, "path", [filterFileVO.path_to_check + "/" + file]);
+                    var file_vos: FileVO[] = await query(FileVO.API_TYPE_ID)
+                        .filter_by_text_eq('path', filterFileVO.path_to_check + "/" + file)
+                        .select_vos<FileVO>();
+
                     var file_vo: FileVO = file_vos[0] || null;
                     // on recuper les stat du fichier
                     fs.stat(filterFileVO.path_to_check + "/" + file, async (err2, stats) => {

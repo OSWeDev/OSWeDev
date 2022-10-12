@@ -1,6 +1,7 @@
 import { debounce } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import ISupervisedItem from '../../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import ISupervisedItemClientController from '../../../../../shared/modules/Supervision/interfaces/ISupervisedItemClientController';
@@ -9,6 +10,7 @@ import ISupervisedItemGraphSegmentation from '../../../../../shared/modules/Supe
 import ISupervisedItemURL from '../../../../../shared/modules/Supervision/interfaces/ISupervisedItemURL';
 import ModuleSupervision from '../../../../../shared/modules/Supervision/ModuleSupervision';
 import SupervisionController from '../../../../../shared/modules/Supervision/SupervisionController';
+import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import VueComponentBase from '../../../../ts/components/VueComponentBase';
 import AjaxCacheClientController from '../../../modules/AjaxCache/AjaxCacheClientController';
 import SupervisionDashboardItemComponent from '../dashboard/item/SupervisionDashboardItemComponent';
@@ -166,11 +168,26 @@ export default class SupervisedItemComponent extends VueComponentBase {
         }
 
         AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([this.supervised_item_vo_type, SupervisionController.getInstance().getSupHistVoType(this.supervised_item_vo_type)]);
-        this.supervised_item = await ModuleDAO.getInstance().getVoById(this.supervised_item_vo_type, this.supervised_item_id);
 
-        let tmp_hist: ISupervisedItem[] = await ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString<ISupervisedItem>(
-            SupervisionController.getInstance().getSupHistVoType(this.supervised_item_vo_type), null, null, 'name', [this.supervised_item.name]);
-        let current_value: ISupervisedItem = await ModuleDAO.getInstance().getNamedVoByName<ISupervisedItem>(this.supervised_item_vo_type, this.supervised_item.name);
+        let promises = [];
+        promises.push((async () => {
+            this.supervised_item = await query(this.supervised_item_vo_type).filter_by_id(this.supervised_item_id).select_vo<ISupervisedItem>();
+        })());
+        let tmp_hist: ISupervisedItem[] = null;
+        promises.push((async () => {
+            tmp_hist = await query(SupervisionController.getInstance().getSupHistVoType(this.supervised_item_vo_type))
+                .filter_by_text_eq('name', this.supervised_item.name)
+                .select_vos<ISupervisedItem>();
+
+        })());
+        let current_value: ISupervisedItem = null;
+        promises.push((async () => {
+            current_value = await query(this.supervised_item_vo_type)
+                .filter_by_text_eq('name', this.supervised_item.name)
+                .select_vo<ISupervisedItem>();
+        })());
+        await all_promises(promises);
+
         tmp_hist.push(current_value);
 
         tmp_hist = tmp_hist.filter((elt: ISupervisedItem) => (elt.last_update != null));

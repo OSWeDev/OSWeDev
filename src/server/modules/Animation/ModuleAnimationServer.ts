@@ -185,13 +185,9 @@ export default class ModuleAnimationServer extends ModuleServerBase {
                 role_names.push(role_by_ids[role_id].translatable_name);
             });
 
-            let langs: LangVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString<LangVO>(
-                LangVO.API_TYPE_ID,
-                null,
-                null,
-                'code_lang',
-                [ConfigurationService.getInstance().node_configuration.DEFAULT_LOCALE]
-            );
+            let langs: LangVO[] = await query(LangVO.API_TYPE_ID)
+                .filter_by_text_eq('code_lang', ConfigurationService.getInstance().node_configuration.DEFAULT_LOCALE)
+                .select_vos<LangVO>();
             let lang: LangVO = langs ? langs[0] : null;
 
             if (lang) {
@@ -728,9 +724,11 @@ export default class ModuleAnimationServer extends ModuleServerBase {
     }
 
     private async configure_vars() {
-        await VarDayPrctAvancementAnimationController.getInstance().initialize();
-        await VarDayPrctReussiteAnimationController.getInstance().initialize();
-        await VarDayPrctAtteinteSeuilAnimationController.getInstance().initialize();
-        await VarDayTempsPasseAnimationController.getInstance().initialize();
+        await all_promises([
+            VarDayPrctAvancementAnimationController.getInstance().initialize(),
+            VarDayPrctReussiteAnimationController.getInstance().initialize(),
+            VarDayPrctAtteinteSeuilAnimationController.getInstance().initialize(),
+            VarDayTempsPasseAnimationController.getInstance().initialize(),
+        ]);
     }
 }

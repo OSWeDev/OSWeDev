@@ -16,6 +16,7 @@ import TablesGraphItemComponent from './item/TablesGraphItemComponent';
 import './TablesGraphComponent.scss';
 import { watch } from 'fs';
 import { isUndefined, keys } from 'lodash';
+import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 const graphConfig = {
     mxBasePath: '/mx/', //Specifies the path in mxClient.basePath.
     mxImageBasePath: '/mx/images', // Specifies the path in mxClient.imageBasePath.
@@ -95,13 +96,10 @@ export default class TablesGraphComponent extends VueComponentBase {
 
                 switch (is_n_n) {
                     case (false):
-                        let db_cells_source = await ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString<DashboardGraphVORefVO>(
-                            DashboardGraphVORefVO.API_TYPE_ID,
-                            'dashboard_id',
-                            [this.dashboard.id],
-                            'vo_type',
-                            [vo_type]
-                        );
+                        let db_cells_source = await query(DashboardGraphVORefVO.API_TYPE_ID)
+                            .filter_by_text_eq('vo_type', vo_type)
+                            .filter_by_num_eq('dashboard_id', this.dashboard.id)
+                            .select_vos<DashboardGraphVORefVO>();
 
                         if ((!db_cells_source) || (!db_cells_source.length)) {
                             ConsoleHandler.getInstance().error('mxEvent.MOVE_END:no db cell');
@@ -165,13 +163,10 @@ export default class TablesGraphComponent extends VueComponentBase {
             await ModuleDAO.getInstance().insertOrUpdateVO(cell);
         }
         //Récupération de la cellule en base SQL
-        let db_cells_source = await ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString<DashboardGraphVORefVO>(
-            DashboardGraphVORefVO.API_TYPE_ID,
-            'dashboard_id',
-            [this.dashboard.id],
-            'vo_type',
-            [vo_type]
-        );
+        let db_cells_source = await query(DashboardGraphVORefVO.API_TYPE_ID)
+            .filter_by_num_eq('dashboard_id', this.dashboard.id)
+            .filter_by_text_eq('vo_type', vo_type)
+            .select_vos<DashboardGraphVORefVO>();
 
         if ((!db_cells_source) || (!db_cells_source.length)) {
             ConsoleHandler.getInstance().error('mxEvent.MOVE_END:no db cell');
@@ -242,13 +237,11 @@ export default class TablesGraphComponent extends VueComponentBase {
         /*Pour supprimer des cellules (et non des flèches)*/
 
         if (!cellValue.edge) {
-            let db_cells = await ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString<DashboardGraphVORefVO>(
-                DashboardGraphVORefVO.API_TYPE_ID,
-                'dashboard_id',
-                [this.dashboard.id],
-                'vo_type',
-                [cellValue.value.tables_graph_vo_type]
-            );
+            let db_cells = await query(DashboardGraphVORefVO.API_TYPE_ID)
+                .filter_by_num_eq('dashboard_id', this.dashboard.id)
+                .filter_by_text_eq('vo_type', cellValue.value.tables_graph_vo_type)
+                .select_vos<DashboardGraphVORefVO>();
+
             if ((!db_cells) || (!db_cells.length)) {
                 ConsoleHandler.getInstance().error('mxEvent.MOVE_END:no db cell');
                 return;
@@ -383,13 +376,11 @@ export default class TablesGraphComponent extends VueComponentBase {
             this.selectionChanged().then().catch((error) => { ConsoleHandler.getInstance().error(error); });
             editor.graph.addListener('moveCells', async () => {
                 let cell = editor.graph.getSelectionCell();
-                let db_cells = await ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString<DashboardGraphVORefVO>(
-                    DashboardGraphVORefVO.API_TYPE_ID,
-                    'dashboard_id',
-                    [this.dashboard.id],
-                    'vo_type',
-                    [cell.value.tables_graph_vo_type]
-                );
+                let db_cells = await query(DashboardGraphVORefVO.API_TYPE_ID)
+                    .filter_by_num_eq('dashboard_id', this.dashboard.id)
+                    .filter_by_text_eq('vo_type', cell.value.tables_graph_vo_type)
+                    .select_vos<DashboardGraphVORefVO>();
+
                 if ((!db_cells) || (!db_cells.length)) {
                     ConsoleHandler.getInstance().error('mxEvent.MOVE_END:no db cell');
                     return;

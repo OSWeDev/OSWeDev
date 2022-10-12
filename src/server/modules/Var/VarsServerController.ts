@@ -352,7 +352,7 @@ export default class VarsServerController {
             return varConf;
         }
 
-        let daoVarConf: VarConfVO = await ModuleDAO.getInstance().getNamedVoByName<VarConfVO>(varConf._type, varConf.name);
+        let daoVarConf: VarConfVO = await query(VarConfVO.API_TYPE_ID).filter_by_text_eq('name', varConf.name).select_vo<VarConfVO>();
 
         if (daoVarConf) {
 

@@ -34,12 +34,9 @@ export default abstract class SupervisedItemServerControllerBase<T extends ISupe
     public async work_invalid(): Promise<boolean> {
         try {
 
-            let supervised_pdvs: T[] = await ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString<T>(
-                this.api_type_id,
-                null,
-                null,
-                'invalid',
-                ['true']);
+            let supervised_pdvs: T[] = await query(this.api_type_id)
+                .filter_is_true('invalid')
+                .select_vos<T>();
 
             for (let i in supervised_pdvs) {
                 let supervised_pdv = supervised_pdvs[i];

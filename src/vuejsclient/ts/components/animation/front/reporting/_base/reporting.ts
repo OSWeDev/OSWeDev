@@ -12,6 +12,7 @@ import AnimationModuleVO from '../../../../../../../shared/modules/Animation/vos
 import AnimationThemeVO from '../../../../../../../shared/modules/Animation/vos/AnimationThemeVO';
 import AnimationUserModuleVO from '../../../../../../../shared/modules/Animation/vos/AnimationUserModuleVO';
 import APIControllerWrapper from '../../../../../../../shared/modules/API/APIControllerWrapper';
+import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import ExportHistoricVO from '../../../../../../../shared/modules/DataExport/vos/ExportHistoricVO';
 import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';

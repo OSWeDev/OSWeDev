@@ -2,6 +2,7 @@ import Component from 'vue-class-component';
 import VueComponentBase from '../../../VueComponentBase';
 import ProduitVO from '../../../../../../shared/modules/Commerce/Produit/vos/ProduitVO';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
+import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 
 @Component({
     template: require('./ProduitComplementaireComponent.pug'),

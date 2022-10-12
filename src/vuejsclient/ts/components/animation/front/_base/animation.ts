@@ -5,6 +5,7 @@ import ModuleAnimation from "../../../../../../shared/modules/Animation/ModuleAn
 import AnimationModuleVO from "../../../../../../shared/modules/Animation/vos/AnimationModuleVO";
 import AnimationParametersVO from "../../../../../../shared/modules/Animation/vos/AnimationParametersVO";
 import AnimationThemeVO from "../../../../../../shared/modules/Animation/vos/AnimationThemeVO";
+import { query } from "../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import ModuleDAO from "../../../../../../shared/modules/DAO/ModuleDAO";
 import DocumentVO from "../../../../../../shared/modules/Document/vos/DocumentVO";
 import FileVO from "../../../../../../shared/modules/File/vos/FileVO";

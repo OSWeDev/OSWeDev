@@ -1,4 +1,5 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';

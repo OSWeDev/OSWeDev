@@ -3,6 +3,7 @@ import ModuleAccessPolicy from '../shared/modules/AccessPolicy/ModuleAccessPolic
 import RoleVO from '../shared/modules/AccessPolicy/vos/RoleVO';
 import UserVO from '../shared/modules/AccessPolicy/vos/UserVO';
 import CacheInvalidationRulesVO from '../shared/modules/AjaxCache/vos/CacheInvalidationRulesVO';
+import { query } from '../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
 import ModuleFeedback from '../shared/modules/Feedback/ModuleFeedback';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';

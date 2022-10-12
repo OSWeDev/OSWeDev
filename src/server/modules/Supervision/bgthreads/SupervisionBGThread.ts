@@ -1,9 +1,11 @@
 import { throttle } from 'lodash';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import ISupervisedItem from '../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import ISupervisedItemController from '../../../../shared/modules/Supervision/interfaces/ISupervisedItemController';
 import SupervisionController from '../../../../shared/modules/Supervision/SupervisionController';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
+import { all_promises } from '../../../../shared/tools/PromiseTools';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ISupervisedItemServerController from '../interfaces/ISupervisedItemServerController';
@@ -42,6 +44,8 @@ export default class SupervisionBGThread implements IBGThread {
         try {
             let registered_api_types = SupervisionController.getInstance().registered_controllers;
 
+            let promises = [];
+
             for (let api_type_id in registered_api_types) {
                 let shared_controller: ISupervisedItemController<any> = SupervisionController.getInstance().registered_controllers[api_type_id];
                 let server_controller: ISupervisedItemServerController<any> = SupervisionServerController.getInstance().registered_controllers[api_type_id];
@@ -51,30 +55,30 @@ export default class SupervisionBGThread implements IBGThread {
                     continue;
                 }
 
-                let items: ISupervisedItem[] = await ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString<ISupervisedItem>(
-                    api_type_id,
-                    null,
-                    null,
-                    'invalid',
-                    ['true']
-                );
+                promises.push((async () => {
+                    let items: ISupervisedItem[] = await query(api_type_id)
+                        .filter_is_true('invalid').select_vos<ISupervisedItem>();
 
-                if (server_controller.already_work) {
-                    continue;
-                }
-
-                // Si j'ai des items invalid, je vais throttle le controller
-                if (items && items.length) {
-                    if (!this.throttle_by_api_type_id[api_type_id]) {
-                        this.throttle_by_api_type_id[api_type_id] = throttle(
-                            server_controller.work_invalid.bind(server_controller),
-                            server_controller.get_execute_time_ms(),
-                            { leading: false });
+                    if (server_controller.already_work) {
+                        return;
                     }
 
-                    await this.throttle_by_api_type_id[api_type_id]();
-                }
+                    // Si j'ai des items invalid, je vais throttle le controller
+                    if (items && items.length) {
+                        if (!this.throttle_by_api_type_id[api_type_id]) {
+                            this.throttle_by_api_type_id[api_type_id] = throttle(
+                                server_controller.work_invalid.bind(server_controller),
+                                server_controller.get_execute_time_ms(),
+                                { leading: false });
+                        }
+
+                        await this.throttle_by_api_type_id[api_type_id]();
+                    }
+                })());
             }
+
+            await all_promises(promises);
+
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
         }

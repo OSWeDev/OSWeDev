@@ -698,19 +698,51 @@ export default abstract class ServerBase {
         });
 
 
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.getInstance().log('ServerExpressController:configure_server_modules:START');
+        }
         await this.modulesService.configure_server_modules(this.app);
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.getInstance().log('ServerExpressController:configure_server_modules:END');
+        }
+
         // A ce stade on a chargé toutes les trads par défaut possible et immaginables
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.getInstance().log('ServerExpressController:saveDefaultTranslations:START');
+        }
         await DefaultTranslationsServerManager.getInstance().saveDefaultTranslations();
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.getInstance().log('ServerExpressController:saveDefaultTranslations:END');
+        }
+
         // Une fois tous les droits / rôles définis, on doit pouvoir initialiser les droits d'accès
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.getInstance().log('ServerExpressController:preload_access_rights:START');
+        }
         await ModuleAccessPolicyServer.getInstance().preload_access_rights();
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.getInstance().log('ServerExpressController:preload_access_rights:END');
+        }
 
         // Derniers chargements
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.getInstance().log('ServerExpressController:late_server_modules_configurations:START');
+        }
         await this.modulesService.late_server_modules_configurations();
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.getInstance().log('ServerExpressController:late_server_modules_configurations:END');
+        }
 
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.getInstance().log('ServerExpressController:i18nextInit:getALL_LOCALES:START');
+        }
         let i18nextInit = I18nextInit.getInstance(await ModuleTranslation.getInstance().getALL_LOCALES());
         this.app.use(i18nextInit.i18nextMiddleware.handle(i18nextInit.i18next, {
             ignoreRoutes: ["/public"]
         }));
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.getInstance().log('ServerExpressController:i18nextInit:getALL_LOCALES:END');
+        }
 
         this.app.get('/', async (req: Request, res: Response) => {
 

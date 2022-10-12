@@ -1,6 +1,7 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import CheckListVO from '../../../../../../../shared/modules/CheckList/vos/CheckListVO';
+import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';

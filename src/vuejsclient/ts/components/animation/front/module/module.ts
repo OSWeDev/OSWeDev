@@ -10,6 +10,7 @@ import AnimationQRVO from "../../../../../../shared/modules/Animation/vos/Animat
 import AnimationThemeVO from "../../../../../../shared/modules/Animation/vos/AnimationThemeVO";
 import AnimationUserModuleVO from "../../../../../../shared/modules/Animation/vos/AnimationUserModuleVO";
 import AnimationUserQRVO from "../../../../../../shared/modules/Animation/vos/AnimationUserQRVO";
+import { query } from "../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import ModuleDAO from "../../../../../../shared/modules/DAO/ModuleDAO";
 import SimpleDatatableField from "../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField";
 import NumRange from "../../../../../../shared/modules/DataRender/vos/NumRange";

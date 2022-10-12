@@ -1,5 +1,6 @@
 import { VueNestable, VueNestableHandle } from 'vue-nestable';
 import { Component, Prop, Watch } from 'vue-property-decorator';
+import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleMenu from '../../../../../shared/modules/Menu/ModuleMenu';

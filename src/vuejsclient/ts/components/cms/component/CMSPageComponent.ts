@@ -7,6 +7,7 @@ import IInstantiatedPageComponent from '../../../../../shared/modules/CMS/interf
 import ModuleCMS from '../../../../../shared/modules/CMS/ModuleCMS';
 import PageVO from '../../../../../shared/modules/CMS/vos/PageVO';
 import TemplateComponentVO from '../../../../../shared/modules/CMS/vos/TemplateComponentVO';
+import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
