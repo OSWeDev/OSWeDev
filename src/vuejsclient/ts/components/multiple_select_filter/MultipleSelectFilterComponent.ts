@@ -150,7 +150,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
                 }
             }
         }
-        if (this.have_options) {
+        if (this.have_options && this.function_group) {
             res = this.function_group(this.selectables_by_ids, this.actual_query);
         }
         if (this.sort_options_func) {
