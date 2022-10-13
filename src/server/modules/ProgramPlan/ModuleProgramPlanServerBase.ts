@@ -55,18 +55,18 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         //  Mise à jour du RDV : On demande à recalculer le statut du RDV
         //  Ajout / Suppression de CR ou Prep : On demande à recalculer le statut du RDV
         let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        preCreateTrigger.registerHandler(this.programplan_shared_module.rdv_type_id, this.handleTriggerSetStateRDV.bind(this));
+        preCreateTrigger.registerHandler(this.programplan_shared_module.rdv_type_id, this, this.handleTriggerSetStateRDV);
 
         let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
-        preUpdateTrigger.registerHandler(this.programplan_shared_module.rdv_type_id, this.handleTriggerSetStateRDVUpdate.bind(this));
+        preUpdateTrigger.registerHandler(this.programplan_shared_module.rdv_type_id, this, this.handleTriggerSetStateRDVUpdate);
 
-        preCreateTrigger.registerHandler(this.programplan_shared_module.rdv_cr_type_id, this.handleTriggerPreCreateCr.bind(this));
+        preCreateTrigger.registerHandler(this.programplan_shared_module.rdv_cr_type_id, this, this.handleTriggerPreCreateCr);
         let preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
-        preDeleteTrigger.registerHandler(this.programplan_shared_module.rdv_cr_type_id, this.handleTriggerPreDeleteCr.bind(this));
+        preDeleteTrigger.registerHandler(this.programplan_shared_module.rdv_cr_type_id, this, this.handleTriggerPreDeleteCr);
 
         if (!!this.programplan_shared_module.rdv_prep_type_id) {
-            preCreateTrigger.registerHandler(this.programplan_shared_module.rdv_prep_type_id, this.handleTriggerPreCreatePrep.bind(this));
-            preDeleteTrigger.registerHandler(this.programplan_shared_module.rdv_prep_type_id, this.handleTriggerPreDeletePrep.bind(this));
+            preCreateTrigger.registerHandler(this.programplan_shared_module.rdv_prep_type_id, this, this.handleTriggerPreCreatePrep);
+            preDeleteTrigger.registerHandler(this.programplan_shared_module.rdv_prep_type_id, this, this.handleTriggerPreDeletePrep);
         }
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
@@ -146,57 +146,32 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         // IPlanManager
         // id
         // READ team ou tous
-        ModuleDAOServer.getInstance().registerAccessHook(
-            this.programplan_shared_module.manager_type_id,
-            ModuleDAO.DAO_ACCESS_TYPE_READ,
-            this.filterManagerByIdByAccess.bind(this));
-        ModuleDAOServer.getInstance().registerContextAccessHook(
-            this.programplan_shared_module.manager_type_id,
-            this.filterManagerByIdByContextAccessHook.bind(this));
+        ModuleDAOServer.getInstance().registerAccessHook(this.programplan_shared_module.manager_type_id, ModuleDAO.DAO_ACCESS_TYPE_READ, this, this.filterManagerByIdByAccess);
+        ModuleDAOServer.getInstance().registerContextAccessHook(this.programplan_shared_module.manager_type_id, this, this.filterManagerByIdByContextAccessHook);
 
 
         // IPlanFacilitator
         // manager_id
         // READ team ou tous
-        ModuleDAOServer.getInstance().registerAccessHook(
-            this.programplan_shared_module.facilitator_type_id,
-            ModuleDAO.DAO_ACCESS_TYPE_READ,
-            this.filterIPlanFacilitatorByManagerByAccess.bind(this));
-        ModuleDAOServer.getInstance().registerContextAccessHook(
-            this.programplan_shared_module.facilitator_type_id,
-            this.filterIPlanFacilitatorByManagerByContextAccessHook.bind(this));
+        ModuleDAOServer.getInstance().registerAccessHook(this.programplan_shared_module.facilitator_type_id, ModuleDAO.DAO_ACCESS_TYPE_READ, this, this.filterIPlanFacilitatorByManagerByAccess);
+        ModuleDAOServer.getInstance().registerContextAccessHook(this.programplan_shared_module.facilitator_type_id, this, this.filterIPlanFacilitatorByManagerByContextAccessHook);
 
         // IPlanRDV
         // facilitator_id
         // READ team ou tous(en fonction du manager lié au facilitator_id du RDV ...)
-        ModuleDAOServer.getInstance().registerAccessHook(
-            this.programplan_shared_module.rdv_type_id,
-            ModuleDAO.DAO_ACCESS_TYPE_READ,
-            this.filterRDVsByFacilitatorIdByAccess.bind(this));
-        ModuleDAOServer.getInstance().registerContextAccessHook(
-            this.programplan_shared_module.rdv_type_id,
-            this.filterRDVsByFacilitatorIdByContextAccessHook.bind(this));
+        ModuleDAOServer.getInstance().registerAccessHook(this.programplan_shared_module.rdv_type_id, ModuleDAO.DAO_ACCESS_TYPE_READ, this, this.filterRDVsByFacilitatorIdByAccess);
+        ModuleDAOServer.getInstance().registerContextAccessHook(this.programplan_shared_module.rdv_type_id, this, this.filterRDVsByFacilitatorIdByContextAccessHook);
 
         // et CREATE / UPDATE / DELETE own / team / tous => on part du principe que c'est l'interface qui bloque à ce niveau
 
         // IPlanRDVCR => en fonction du IPlanRDV sur CRUD
-        ModuleDAOServer.getInstance().registerAccessHook(
-            this.programplan_shared_module.rdv_cr_type_id,
-            ModuleDAO.DAO_ACCESS_TYPE_READ,
-            this.filterRDVCRPrepsByFacilitatorIdByAccess.bind(this));
-        ModuleDAOServer.getInstance().registerContextAccessHook(
-            this.programplan_shared_module.rdv_cr_type_id,
-            this.filterRDVCRPrepsByFacilitatorIdByContextAccessHook.bind(this));
+        ModuleDAOServer.getInstance().registerAccessHook(this.programplan_shared_module.rdv_cr_type_id, ModuleDAO.DAO_ACCESS_TYPE_READ, this, this.filterRDVCRPrepsByFacilitatorIdByAccess);
+        ModuleDAOServer.getInstance().registerContextAccessHook(this.programplan_shared_module.rdv_cr_type_id, this, this.filterRDVCRPrepsByFacilitatorIdByContextAccessHook);
 
         if (!!this.programplan_shared_module.rdv_prep_type_id) {
             // IPlanRDVPrep => en fonction du IPlanRDV sur CRUD
-            ModuleDAOServer.getInstance().registerAccessHook(
-                this.programplan_shared_module.rdv_prep_type_id,
-                ModuleDAO.DAO_ACCESS_TYPE_READ,
-                this.filterRDVCRPrepsByFacilitatorIdByAccess.bind(this));
-            ModuleDAOServer.getInstance().registerContextAccessHook(
-                this.programplan_shared_module.rdv_prep_type_id,
-                this.filterRDVCRPrepsByFacilitatorIdByContextAccessHook.bind(this));
+            ModuleDAOServer.getInstance().registerAccessHook(this.programplan_shared_module.rdv_prep_type_id, ModuleDAO.DAO_ACCESS_TYPE_READ, this, this.filterRDVCRPrepsByFacilitatorIdByAccess);
+            ModuleDAOServer.getInstance().registerContextAccessHook(this.programplan_shared_module.rdv_prep_type_id, this, this.filterRDVCRPrepsByFacilitatorIdByContextAccessHook);
         }
     }
 

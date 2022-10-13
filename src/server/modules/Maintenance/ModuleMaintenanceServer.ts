@@ -111,7 +111,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
 
 
         let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        preCreateTrigger.registerHandler(MaintenanceVO.API_TYPE_ID, this.handleTriggerPreC_MaintenanceVO);
+        preCreateTrigger.registerHandler(MaintenanceVO.API_TYPE_ID, this, this.handleTriggerPreC_MaintenanceVO);
 
         // Quand on modifie une maintenance, quelle qu'elle soit, on informe pas, il faudrait informer les 3 threads
         //  ça se mettra à jour dans les 30 secondes

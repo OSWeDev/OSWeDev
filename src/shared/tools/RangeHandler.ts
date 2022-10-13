@@ -16,6 +16,7 @@ import ConsoleHandler from './ConsoleHandler';
 import HourSegmentHandler from './HourSegmentHandler';
 import MatroidIndexHandler from './MatroidIndexHandler';
 import NumSegmentHandler from './NumSegmentHandler';
+import { all_promises } from './PromiseTools';
 import TimeSegmentHandler from './TimeSegmentHandler';
 
 export default class RangeHandler {
@@ -995,7 +996,7 @@ export default class RangeHandler {
         for (let i in ranges) {
 
             if (promises && (promises.length >= batch_size)) {
-                await Promise.all(promises);
+                await all_promises(promises);
                 promises = [];
             }
 
@@ -1003,7 +1004,7 @@ export default class RangeHandler {
         }
 
         if (promises.length) {
-            await Promise.all(promises);
+            await all_promises(promises);
         }
     }
 
@@ -2024,7 +2025,7 @@ export default class RangeHandler {
                 }
                 break;
         }
-        await Promise.all(promises);
+        await all_promises(promises);
     }
 
     /**

@@ -16,6 +16,7 @@ import SupervisionItemModalComponent from './item_modal/SupervisionItemModalComp
 import './SupervisionDashboardComponent.scss';
 import { ModuleSupervisionAction, ModuleSupervisionGetter } from './SupervisionDashboardStore';
 import SupervisionDashboardWidgetComponent from './widget/SupervisionDashboardWidgetComponent';
+import { all_promises } from '../../../../../shared/tools/PromiseTools';
 
 @Component({
     template: require('./SupervisionDashboardComponent.pug'),
@@ -267,7 +268,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
             })());
         }
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         if (!this.get_api_type_ids || !this.get_api_type_ids.length) {
             // if (first_build) {

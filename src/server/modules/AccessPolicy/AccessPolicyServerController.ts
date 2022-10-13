@@ -13,6 +13,7 @@ import ModuleVO from '../../../shared/modules/ModuleVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import IServerUserSession from '../../IServerUserSession';
 import StackContext from '../../StackContext';
@@ -197,7 +198,7 @@ export default class AccessPolicyServerController {
             if (!this.access_matrix_heritance_only_validity) {
                 promises.push(ModuleAccessPolicy.getInstance().getAccessMatrix(true));
             }
-            await Promise.all(promises);
+            await all_promises(promises);
         });
     }
 

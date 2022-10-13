@@ -15,6 +15,7 @@ import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import ServerBase from '../../ServerBase';
 import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
@@ -545,6 +546,8 @@ export default class ContextQueryServerController {
                 first = false;
             }
 
+            let force_query_distinct: boolean = false;
+
             for (let i in context_query.fields) {
                 let context_field = context_query.fields[i];
 
@@ -593,25 +596,31 @@ export default class ContextQueryServerController {
                     case VarConfVO.NO_AGGREGATOR:
                         break;
 
+                    case VarConfVO.ARRAY_AGG_AND_IS_NULLABLE_AGGREGATOR:
                     case VarConfVO.ARRAY_AGG_AGGREGATOR:
                         aggregator_prefix = 'ARRAY_AGG(';
                         aggregator_suffix = ')';
+                        force_query_distinct = true;
                         break;
                     case VarConfVO.COUNT_AGGREGATOR:
                         aggregator_prefix = 'COUNT(';
                         aggregator_suffix = ')';
+                        force_query_distinct = true;
                         break;
                     case VarConfVO.MAX_AGGREGATOR:
                         aggregator_prefix = 'MAX(';
                         aggregator_suffix = ')';
+                        force_query_distinct = true;
                         break;
                     case VarConfVO.MIN_AGGREGATOR:
                         aggregator_prefix = 'MIN(';
                         aggregator_suffix = ')';
+                        force_query_distinct = true;
                         break;
                     case VarConfVO.SUM_AGGREGATOR:
                         aggregator_prefix = 'SUM(';
                         aggregator_suffix = ')';
+                        force_query_distinct = true;
                         break;
 
                     case VarConfVO.OR_AGGREGATOR:
@@ -669,7 +678,7 @@ export default class ContextQueryServerController {
 
 
             let GROUP_BY = ' ';
-            if (context_query.query_distinct) {
+            if (context_query.query_distinct || force_query_distinct) {
 
                 GROUP_BY = ' GROUP BY ';
                 let group_bys = [];
@@ -677,7 +686,7 @@ export default class ContextQueryServerController {
                     let context_field = context_query.fields[i];
 
                     // On ne rajoute pas dans le group by si on utilise l'aggregator ARRAY_AGG
-                    if (context_field.aggregator == VarConfVO.ARRAY_AGG_AGGREGATOR) {
+                    if ((context_field.aggregator == VarConfVO.ARRAY_AGG_AGGREGATOR) || (context_field.aggregator == VarConfVO.ARRAY_AGG_AND_IS_NULLABLE_AGGREGATOR)) {
                         continue;
                     }
 
@@ -947,7 +956,7 @@ export default class ContextQueryServerController {
                 })());
             }
 
-            await Promise.all(promises);
+            await all_promises(promises);
         }
 
         let context_query_fields_by_api_type_id: { [api_type_id: string]: ContextQueryFieldVO[] } = {};
@@ -993,7 +1002,7 @@ export default class ContextQueryServerController {
 
                         if (cq_fields && (cq_fields.length > 0)) {
                             for (let l in cq_fields) {
-                                if (cq_fields[l].aggregator == VarConfVO.IS_NULLABLE_AGGREGATOR) {
+                                if ((cq_fields[l].aggregator == VarConfVO.IS_NULLABLE_AGGREGATOR) || (cq_fields[l].aggregator == VarConfVO.ARRAY_AGG_AND_IS_NULLABLE_AGGREGATOR)) {
                                     is_nullable_aggregator = true;
                                     break;
                                 }

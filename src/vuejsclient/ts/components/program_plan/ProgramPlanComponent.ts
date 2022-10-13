@@ -48,6 +48,7 @@ import ProgramPlanTools from './ProgramPlanTools';
 import { ModuleProgramPlanAction, ModuleProgramPlanGetter } from './store/ProgramPlanStore';
 import ProgramPlanComponentTargetListing from './TargetListing/ProgramPlanComponentTargetListing';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import { all_promises } from '../../../../shared/tools/PromiseTools';
 
 
 
@@ -310,7 +311,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                 await self.reloadAsyncData();
             })());
 
-            await Promise.all(promises);
+            await all_promises(promises);
 
             // On limite à 20 tentatives
             let timeout: number = 20;
@@ -468,7 +469,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                 })());
             }
 
-            await Promise.all(promises);
+            await all_promises(promises);
             promises = [];
         }
 
@@ -601,7 +602,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
             self.setTargetsByIds(targets_by_ids);
         })());
 
-        await Promise.all(promises);
+        await all_promises(promises);
         self.nextLoadingStep();
         promises = [];
 
@@ -653,7 +654,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                 self.setEnseignesByIds(enseignes_by_ids);
             })());
         }
-        await Promise.all(promises);
+        await all_promises(promises);
 
         self.stopLoading();
     }
@@ -1237,7 +1238,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
             self.setCrsByIds(VOsTypesManager.getInstance().vosArray_to_vosByIds(await this.program_plan_shared_module.getCRsOfProgramSegment(self.program_id, self.fcSegment)));
         })());
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         this.set_filter_date_debut(this.fcSegment ? TimeSegmentHandler.getInstance().getStartTimeSegment(this.fcSegment) : null);
         this.set_filter_date_fin(this.fcSegment ? Dates.add(TimeSegmentHandler.getInstance().getEndTimeSegment(this.fcSegment), -1, TimeSegment.TYPE_DAY) : null);
@@ -1758,7 +1759,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
             self.addCrsByIds(vos);
         })());
 
-        await Promise.all(promises);
+        await all_promises(promises);
     }
 
 

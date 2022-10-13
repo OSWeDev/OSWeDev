@@ -388,13 +388,23 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
                 case ModuleTableField.FIELD_TYPE_float_array:
                 case ModuleTableField.FIELD_TYPE_int_array:
-                    return '{' + value.join() + '}';
-
                 case ModuleTableField.FIELD_TYPE_string_array:
-                    return '{' + value.join() + '}';
+                    // ATTENTION - INTERDITION DE METTRE UNE VIRGULE DANS UN CHAMP DE TYPE ARRAY SINON CA FAIT X VALEURS
+                    let values: any[] = [];
+
+                    for (let j in value) {
+                        if (value[j]) {
+                            values.push(value[j]);
+                        }
+                    }
+
+                    if (!values || !values.length) {
+                        return null;
+                    }
+
+                    return '{' + values + '}';
 
                 case ModuleTableField.FIELD_TYPE_html_array:
-                    return '{' + value.join() + '}';
 
                 case ModuleTableField.FIELD_TYPE_tstz:
                     switch (moduleTableField.segmentation_type) {

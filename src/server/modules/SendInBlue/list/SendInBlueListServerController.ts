@@ -7,6 +7,7 @@ import SendInBlueFoldersVO from '../../../../shared/modules/SendInBlue/vos/SendI
 import SendInBlueListDetailVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueListDetailVO';
 import SendInBlueListsVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueListsVO';
 import SendInBlueRequestResultVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueRequestResultVO';
+import { all_promises } from '../../../../shared/tools/PromiseTools';
 import SendInBlueServerController from '../SendInBlueServerController';
 
 export default class SendInBlueListServerController {
@@ -203,7 +204,7 @@ export default class SendInBlueListServerController {
                 promises.push((async () => await this.createContact(contacts[i]))());
             }
 
-            await Promise.all(promises);
+            await all_promises(promises);
         }
 
         let emails: string[] = contacts.map((c) => c.email);

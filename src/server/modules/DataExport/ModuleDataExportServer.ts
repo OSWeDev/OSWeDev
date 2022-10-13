@@ -28,6 +28,7 @@ import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
@@ -58,7 +59,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         ModuleBGThreadServer.getInstance().registerBGThread(DataExportBGThread.getInstance());
 
         let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        preCreateTrigger.registerHandler(ExportHistoricVO.API_TYPE_ID, this.handleTriggerExportHistoricVOCreate);
+        preCreateTrigger.registerHandler(ExportHistoricVO.API_TYPE_ID, this, this.handleTriggerExportHistoricVOCreate);
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Exports'
@@ -242,7 +243,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 let field = context_query.fields[j];
 
                 if (promises.length >= max) {
-                    await Promise.all(promises);
+                    await all_promises(promises);
                     promises = [];
                 }
 
@@ -268,7 +269,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             }
         }
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         return res;
     }
@@ -649,7 +650,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             promises.push(this.field_to_xlsx(field, e, res));
         }
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         return res;
     }
@@ -781,7 +782,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 let data = datas[i];
 
                 if ((!!max_connections_to_use) && (promises.length >= max_connections_to_use)) {
-                    await Promise.all(promises);
+                    await all_promises(promises);
                     promises = [];
                 }
 
@@ -791,6 +792,6 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             }
         }
 
-        await Promise.all(promises);
+        await all_promises(promises);
     }
 }

@@ -9,6 +9,7 @@ import ModuleFeedback from '../shared/modules/Feedback/ModuleFeedback';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
 import LangVO from '../shared/modules/Translation/vos/LangVO';
 import LocaleManager from '../shared/tools/LocaleManager';
+import { all_promises } from '../shared/tools/PromiseTools';
 import MenuController from './ts/components/menu/MenuController';
 import AjaxCacheClientController from './ts/modules/AjaxCache/AjaxCacheClientController';
 
@@ -109,7 +110,7 @@ export default abstract class VueAppController {
                 self.data_ui_debug = datas.data_ui_debug;
                 self.data_default_locale = datas.data_default_locale;
             })());
-            await Promise.all(innerpromises);
+            await all_promises(innerpromises);
 
             let accepted_language: string = self.SERVER_HEADERS['accept-language'];
             if (accepted_language) {
@@ -184,7 +185,7 @@ export default abstract class VueAppController {
             }
         })());
 
-        await Promise.all(promises);
+        await all_promises(promises);
     }
 
     public check_is_mobile(): boolean {

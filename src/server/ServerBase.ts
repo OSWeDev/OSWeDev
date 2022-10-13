@@ -1155,7 +1155,7 @@ export default abstract class ServerBase {
 
     // protected terminus() {
     //     ConsoleHandler.getInstance().log('Server is starting cleanup');
-    //     return Promise.all([
+    //     return all_promises([
     //         VarsDatasVoUpdateHandler.getInstance().handle_buffer(null)
     //     ]);
     // }

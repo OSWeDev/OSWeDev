@@ -1,6 +1,6 @@
 {
     "name": "oswedev",
-    "version": "0.26.22",
+    "version": "0.26.23",
     "description": "",
     "repository": {
         "type": "git",
@@ -76,7 +76,6 @@
         "@types/nodemailer": "4.6.0",
         "@types/socket.io": "1.4.38",
         "adm-zip": "0.5.9",
-        "autodetect-decoder-stream": "2.0.0",
         "axios": "0.19.0",
         "body-parser-with-msgpack": "1.17.0",
         "bootstrap": "4.4.1",
@@ -121,6 +120,7 @@
         "node-powershell": "4.0.0",
         "nodemailer": "4.6.5",
         "one-colorpicker": "1.0.12",
+        "oswedev-autodetect-decoder-stream": "2.0.4",
         "oswedev-connect-pg-simple": "7.0.1",
         "oswedev-trello-node-api": "0.0.11",
         "pg": "8.7.1",
