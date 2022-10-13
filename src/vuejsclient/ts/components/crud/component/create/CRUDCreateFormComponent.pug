@@ -1,19 +1,33 @@
 include ../../../../../views/mixins/loading.pug
-//- - var authorized = Boolean({copy_widget})
 .crud_create_form
     template(v-if= "copy_widget")
-            
-            //- p {{copy_widget}}
             .modal-dialog
                 .modal-content
                     .modal-header
                         h5#exampleModalLabel.modal-title Copier/déplacer le widget
-                        button.btn-close(type='button' data-bs-dismiss='modal' aria-label='Close')
+                        a.btn.close(@click="cancel") &times;
+                        
                     .modal-body
-                        | ...
+                        .pages
+                            template(v-for='(page_, pagei) in pages')
+                                .page 
+                                    template(v-if='page_.id == page_to_copy_in_id')
+                                        i.fa.fa-check-circle.fa-fw(aria-hidden="true")
+                                        //- Page selectionnée.
+                                    template(v-else)
+                                        i.fa.fa-hand-o-down.fa-fw.btn_icon(aria-hidden="true" @click="select_page_to_copy_in(page_)")
+
+                                    .name
+                                        Inlinetranslatabletext(:code_text="pages_name_code_text[pagei]" :is_editable="false")
                     .modal-footer
-                        button.btn.btn-secondary(type='button' data-bs-dismiss='modal') Copier
-                        button.btn.btn-primary(type='button') Déplacer
+                        .hide_navigation(:class='{"disabled" : page_to_copy_in_id == page_id , "not_disabled": page_to_copy_in_id != page_id}')
+                            //-On grise le button déplacer si jamais la page vers laquelle on souhaite effectuer des modifications est celle sur laquelle on est.
+                            template(v-if='page_to_copy_in_id == page_id')
+                                button.btn.btn-primary(type='button' data-bs-dismiss='modal' @click = "do_copy_widget") Copier
+                                button.btn.btn-primary.disabled(type='button') Déplacer
+                            template(v-else)
+                                button.btn.btn-primary(type='button' data-bs-dismiss='modal' @click = "do_copy_widget") Copier
+                                button.btn.btn-primary(type='button' @click = "do_transfert_widget") Déplacer
 
     template(v-else)
         .crud_create_form

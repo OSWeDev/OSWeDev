@@ -389,6 +389,13 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         this.$emit('select_page', page);
     }
 
+    private async reload_widgets() {
+        let self = this;
+
+        // On reload les widgets
+        await self.throttled_rebuild_page_layout();
+        self.select_widget(null);
+    }
     private isHide(item: DashboardPageWidgetVO): boolean {
         if (!item || !item.json_options) {
             return false;

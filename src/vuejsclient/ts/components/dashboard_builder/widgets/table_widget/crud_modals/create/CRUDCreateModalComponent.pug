@@ -4,6 +4,9 @@
             .modal-content 
                 Crudcreateformcomponent(
                     ref="Crudcreateformcomponent"
+                    :pages="pages"
+                    :page_widget="page_widget"
+                    :page_id="page_id"
                     :copy_widget="copy_widget"
                     :close_on_submit="true"
                     :show_insert_or_update_target="true"
@@ -11,4 +14,6 @@
                     :show_placeholder="true"
                     @close='close_modal'
                     @cancel='close_modal'
+                    @suppress_widget='delete_widget'
+                    @reload_widgets= 'reload_widgets'
                 )

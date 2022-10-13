@@ -16,6 +16,7 @@ import './DashboardBuilderBoardItemComponent.scss';
         CRUDCreateModalComponent: CRUDCreateModalComponent,
     }
 })
+
 export default class DashboardBuilderBoardItemComponent extends VueComponentBase {
 
     @ModuleDashboardPageGetter
@@ -32,6 +33,8 @@ export default class DashboardBuilderBoardItemComponent extends VueComponentBase
 
     @Prop()
     private page_widget: DashboardPageWidgetVO;
+
+
 
     @Prop({ default: true })
     private is_edit_mode: boolean;
@@ -68,7 +71,7 @@ export default class DashboardBuilderBoardItemComponent extends VueComponentBase
 
 
     private async copy_widget() {
-        await this.get_Crudcreatemodalcomponent.open_copy_modal(this.page_widget.id, null);
+        await this.get_Crudcreatemodalcomponent.open_copy_modal(this.page_widget, this.dashboard_pages, null);
 
         // this.$emit('copy_widget', this.page_widget);
     }

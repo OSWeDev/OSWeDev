@@ -17,11 +17,18 @@ import VueComponentBase from '../../../VueComponentBase';
 import CRUDComponentManager from '../../CRUDComponentManager';
 import CRUDFormServices from '../CRUDFormServices';
 import "./CRUDCreateFormComponent.scss";
+//Copy_widget
+import { cloneDeep } from "lodash";
+import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
+import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
+import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
+import DashboardBuilderWidgetsController from '../../../dashboard_builder/widgets/DashboardBuilderWidgetsController';
 
 @Component({
     template: require('./CRUDCreateFormComponent.pug'),
     components: {
-        Datatable: DatatableComponent
+        Datatable: DatatableComponent,
+        Inlinetranslatabletext: InlineTranslatableText //copy_widget
     },
 })
 export default class CRUDCreateFormComponent extends VueComponentBase {
@@ -64,6 +71,19 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
     @Prop({ default: null })
     private copy_widget: boolean;
 
+    @Prop({ default: null })
+    private page_widget: DashboardPageWidgetVO;
+
+    @Prop({ default: null })
+    private pages: DashboardPageVO[];
+
+
+    @Prop({ default: null }) //TODO Trouver le bon default.
+    private page_id: number; //Page en cours
+
+    private copy_to_page: DashboardPageVO = null; //Page vers laquel on souhaite copier/déplacer
+
+    //Id de la page à selectionner par defaut.
 
     private editableVO: IDistantVOBase = null;
     private newVO: IDistantVOBase = null;
@@ -76,12 +96,94 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
     private crud_createDatatable_key: number = 0;
     private crud: CRUD<any> = null;
 
+    //copy_widget
+
+    get page_to_copy_in_id(): number {
+
+        if (!this.page_id) {
+            return null;
+        }
+
+        if (this.pages.length < 2) {
+            return null;
+        }
+
+        if (this.copy_to_page == null) {
+            //Default case
+            let pagei = 0;
+
+            for (let i in this.pages) {
+                let page = this.pages[i];
+                if (page.id == this.page_id) {
+                    pagei = parseInt(i);
+                }
+            }
+            if (pagei == (this.pages.length - 1)) {
+                return this.pages[0].id;
+            }
+            return this.pages[pagei + 1].id;
+        } else {
+            return this.copy_to_page.id;
+        }
+    }
+
+
+
     public update_key() {
         if (this.crud && (this.crud_createDatatable_key != this.crud.createDatatable.key)) {
             this.crud_createDatatable_key = this.crud.createDatatable.key;
         }
     }
 
+
+
+    private async do_transfert_widget() {
+        /*Déplace un widget d'un onglet vers un autre onglet*/
+
+        let widget_to_copy: DashboardPageWidgetVO = new DashboardPageWidgetVO();
+        widget_to_copy = cloneDeep(this.page_widget);
+
+
+        //Déplacement
+        delete widget_to_copy.id;
+        let to_which_page_id: number = this.page_to_copy_in_id;
+        widget_to_copy.page_id = to_which_page_id;
+
+        //Enregistrement du widget déplacé en base.
+        let id = await ModuleDAO.getInstance().insertOrUpdateVO(widget_to_copy);
+
+        //Suppression du widget (recharge la page par la même occasion)
+        this.$emit('suppress_widget'); //Si on refuse la suppression , le widget est tout de même copié.
+
+        //Fermeture de la modale
+
+        this.$emit('cancel');
+    }
+
+    private async do_copy_widget() {
+        /*Copie un widget dans un même onglet*/
+        let widget_to_copy: DashboardPageWidgetVO = new DashboardPageWidgetVO();
+        widget_to_copy = cloneDeep(this.page_widget);
+
+
+        //Déplacement
+        delete widget_to_copy.id;
+        let to_which_page_id: number = this.page_to_copy_in_id;
+
+
+        widget_to_copy.page_id = to_which_page_id;
+
+        //Enregistrement du widget déplacé en base.
+        let id = await ModuleDAO.getInstance().insertOrUpdateVO(widget_to_copy);
+
+        //reload des widgets si jamais les pages sont identiques
+        if (this.page_to_copy_in_id == this.page_id) {
+            this.$emit('reload_widgets');
+        }
+        //Fermeture de la modale
+        this.$emit('cancel');
+
+    }
     @Watch("api_type_id", { immediate: true })
     private async onchange_api_type_id() {
         if (!this.api_type_id) {
@@ -137,12 +239,37 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
         }
     }
 
+    @Watch("page_id", { immediate: true })
+    private async updated_page_id() { //Si jamais on change d'onglet
+        if (this.copy_to_page) {
+            this.copy_to_page = null;
+        }
+    }
+
     private async prepareNewVO() {
 
         this.newVO = await CRUDFormServices.getInstance().getNewVO(
             this.crud, this.vo_init, this.onChangeVO
         );
     }
+
+    //copy_widget
+    get pages_name_code_text(): string[] {
+        let res: string[] = [];
+
+        if (!this.pages) {
+            return res;
+        }
+
+        for (let i in this.pages) {
+            let page = this.pages[i];
+
+            res.push(page.translatable_name_code_text ? page.translatable_name_code_text : null);
+        }
+
+        return res;
+    }
+
 
     get CRUDTitle(): string {
         if (!this.crud) {
@@ -154,6 +281,12 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
                 this.t(VOsTypesManager.getInstance().moduleTables_by_voType[this.crud.readDatatable.API_TYPE_ID].label.code_text)
         });
     }
+    //copy_widget
+
+    private select_page_to_copy_in(page: DashboardPageVO) {
+        this.copy_to_page = page;
+    }
+
 
     private async createVO() {
         let self = this;
@@ -371,4 +504,15 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
     private async cancel() {
         this.$emit('cancel');
     }
+
+    private async suppress_widget() {
+        this.$emit('supress_widget');
+    }
+
+    private async reload_widgets() {
+        //On recharge les widgets
+        this.$emit('reload_widgets');
+
+    }
+
 }
