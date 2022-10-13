@@ -1,6 +1,6 @@
 .advanced_date_filter_widget_opt
     .row.advanced_date_filter_widget_opt_conf
-        .name.col-md-8
+        .name.col-sm-8
             Crudcomponentfield(
                 :field="opt_name_editable_field"
                 :vo="object_opt"
@@ -10,17 +10,17 @@
                 :show_title='false'
             )
 
-        .remove_opt.col-md-2.text-center(@click="remove_opt")
+        .remove_opt.col-sm-2.text-center(@click="remove_opt")
             i.fa.fa-trash(aria-hidden="true")
 
         template(v-if='!show_options')
-            .show_options.col-md-2.text-center(@click="unhide_options")
+            .show_options.col-sm-2.text-center(@click="unhide_options")
                 i.fa.fa-cogs(aria-hidden="true")
         template(v-else)
-            .hide_options.col-md-2.text-center(@click="hide_options")
+            .hide_options.col-sm-2.text-center(@click="hide_options")
                 i.fa.fa-cogs(aria-hidden="true")
 
-            .col-md-12.mt-2
+            .col-sm-12.mt-2
                 .search_type
                     Crudcomponentfield(
                         :field="opt_search_type_editable_field"
@@ -33,7 +33,7 @@
                 template(v-if="is_search_type_last")
                     .search_type_last.mt-2
                         .row
-                            .value.col-md-6
+                            .value.col-sm-6
                                 Crudcomponentfield(
                                     :field="opt_value_editable_field"
                                     :vo="object_opt"
@@ -41,7 +41,7 @@
                                     :auto_update_field_value='true'
                                     :show_insert_or_update_target='false'
                                 )
-                            .segmentation_type.col-md-6
+                            .segmentation_type.col-sm-6
                                 Crudcomponentfield(
                                     :field="opt_segmentation_type_editable_field"
                                     :vo="object_opt"

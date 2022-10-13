@@ -1,4 +1,5 @@
 
+import { watch } from 'fs';
 import 'quill/dist/quill.bubble.css'; // Compliqué à lazy load
 import 'quill/dist/quill.core.css'; // Compliqué à lazy load
 import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
@@ -47,6 +48,7 @@ import TSRangesInputComponent from '../../../tsrangesinput/TSRangesInputComponen
 import TSTZInputComponent from '../../../tstzinput/TSTZInputComponent';
 import VueComponentBase from '../../../VueComponentBase';
 import CRUDComponentManager from '../../CRUDComponentManager';
+import CRUDFormServices from '../CRUDFormServices';
 import './CRUDComponentField.scss';
 let debounce = require('lodash/debounce');
 
@@ -158,6 +160,15 @@ export default class CRUDComponentField extends VueComponentBase
     @Prop({ default: true })
     private searchable: boolean;
 
+    @Prop({ default: false })
+    private auto_validate_inline_input: boolean;
+
+    /**
+     * La CSS i.inline_input_is_editing.auto_validate est en dur avec la même durée, au besoin la reprendre dans le projet pour adapter au cas par cas ou faire évoluer
+     */
+    @Prop({ default: 2 })
+    private auto_validate_inline_input_delay_sec: number;
+
     /**
      * Ajouté pour avoir une confirmation en notif pour les suppressions, dans certaines interfaces on peut supprimer très facilement par erreur sinon
      */
@@ -182,6 +193,8 @@ export default class CRUDComponentField extends VueComponentBase
 
     private this_CRUDComp_UID: number = null;
 
+    private auto_validate_start: number = null;
+
     private select_options: number[] = [];
     private isLoadingOptions: boolean = false;
     private field_value: any = null;
@@ -198,16 +211,23 @@ export default class CRUDComponentField extends VueComponentBase
 
     private is_readonly: boolean = false;
 
-    private debounced_reload_field_value = debounce(this.reload_field_value, 50);
-    private debounced_onchangevo_emitter = debounce(this.onchangevo_emitter, 100);
+    private debounced_reload_field_value = debounce(this.reload_field_value, 30);
+    private debounced_onchangevo_emitter = debounce(this.onchangevo_emitter, 30);
 
     private has_focus: boolean = false;
+
+    private debounced_validate_inline_input_auto = null;
+
+    @Watch('auto_validate_inline_input_delay_sec', { immediate: true })
+    public onchange_auto_validate_inline_input_delay_sec() {
+        this.debounced_validate_inline_input_auto = debounce(this.validate_inline_input, this.auto_validate_inline_input_delay_sec * 1000);
+    }
 
     public async mounted() {
 
         this.this_CRUDComp_UID = CRUDComponentField.CRUDComp_UID++;
         this.inline_input_is_editing = this.force_input_is_editing;
-        if (this.inline_input_mode && this.force_input_is_editing) {
+        if (this.inline_input_mode && this.force_input_is_editing && this.$refs.input_elt && !!this.$refs.input_elt['focus']) {
             let self = this;
             this.$nextTick(() => self.$refs.input_elt['focus']());
         }
@@ -263,6 +283,8 @@ export default class CRUDComponentField extends VueComponentBase
     public async validateSimpleInput(input_value: any) {
 
         if (this.inline_input_mode) {
+
+            await this.prepare_auto_validate();
             return;
         }
 
@@ -271,8 +293,11 @@ export default class CRUDComponentField extends VueComponentBase
             this.field_value = input_value;
         }
 
+        /**
+         * FIXME : Au fait on a pas le droit de faire ça .... on devrait pas changer la prop ici
+         */
         if (this.auto_update_field_value) {
-            this.vo[this.field.datatable_field_uid] = this.field_value;
+            this.vo[this.field.datatable_field_uid] = input_value;
         }
 
         if (this.field.onChange) {
@@ -472,6 +497,7 @@ export default class CRUDComponentField extends VueComponentBase
     private async validateInput(input: any) {
 
         if (this.inline_input_mode) {
+            await this.prepare_auto_validate();
             return;
         }
 
@@ -511,6 +537,7 @@ export default class CRUDComponentField extends VueComponentBase
 
         // Si je ne suis pas en inline edit, j'appelle le onchangevo
         // Cette fonction sera appelé directement dans la fonction de sauvegarde du inline edit
+        //  sauf si on a aussi caché les boutons d'enregisrement :)
         if (!this.inline_input_mode) {
             this.debounced_onchangevo_emitter();
         }
@@ -523,6 +550,7 @@ export default class CRUDComponentField extends VueComponentBase
         this.field_value = !this.field_value;
 
         if (this.inline_input_mode) {
+            await this.prepare_auto_validate();
             return;
         }
 
@@ -554,6 +582,7 @@ export default class CRUDComponentField extends VueComponentBase
 
     private async validateMultiInput(values: any[]) {
         if (this.inline_input_mode) {
+            await this.prepare_auto_validate();
             return;
         }
 
@@ -694,6 +723,7 @@ export default class CRUDComponentField extends VueComponentBase
     private async updateDateRange(input: any) {
 
         if (this.inline_input_mode) {
+            await this.prepare_auto_validate();
             return;
         }
 
@@ -952,6 +982,7 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         if (this.inline_input_mode) {
+            await this.prepare_auto_validate();
             return;
         }
 
@@ -1093,6 +1124,7 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         if (this.inline_input_mode) {
+            await this.prepare_auto_validate();
             return;
         }
 
@@ -1194,18 +1226,36 @@ export default class CRUDComponentField extends VueComponentBase
 
     private async validate_inline_input(event) {
 
+        if (this.auto_validate_start) {
+            CRUDFormServices.getInstance().auto_updates_waiting[this.this_CRUDComp_UID] = false;
+            this.auto_validate_start = null;
+        }
+
         if (event) {
             event.stopPropagation();
         }
 
         let alerts: Alert[] = this.field.validate_input ? this.field.validate_input(this.field_value, this.field, this.vo) : null;
-        if (alerts && alerts.length) {
 
-            // Si on a des alertes, d'une part on les register, d'autre part on check qu'on a pas des erreurs sinon il faut refuser l'input
-            this.replace_alerts({
-                alert_path: this.field.alert_path,
-                alerts: alerts
-            });
+        if (this.field_type == ModuleTableField.FIELD_TYPE_email) {
+            if (!alerts || !alerts.length) {
+                if (!(this.$refs.input_elt as any).checkValidity()) {
+                    if (!alerts) {
+                        alerts = [];
+                    }
+
+                    alerts.push(new Alert(this.field.alert_path, 'crud.field_error_format', Alert.TYPE_ERROR));
+                }
+            }
+        }
+
+        // Si on a des alertes, d'une part on les register, d'autre part on check qu'on a pas des erreurs sinon il faut refuser l'input
+        this.replace_alerts({
+            alert_path: this.field.alert_path,
+            alerts: alerts
+        });
+
+        if (alerts && alerts.length) {
 
             for (let i in alerts) {
                 let alert = alerts[i];
@@ -1225,7 +1275,6 @@ export default class CRUDComponentField extends VueComponentBase
         let old_value: any = this.vo[this.field.datatable_field_uid];
 
         this.inline_input_is_busy = true;
-        this.update_vo_field_value_from_input_field_value();
 
         if (this.auto_update_field_value) {
 
@@ -1271,7 +1320,6 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         // Mise en place d'un sémaphore sur l'édition inline : si on est en train d'éditer un champ, on ne peut pas en éditer un second,
-        //  sauf à valider un snotify
 
         /**
          * On va fluidifier un peu : si on change de champs sans enregistrer on annule la saisie et on snotify qu'il faut enregistrer pour prendre en compte une modif
@@ -1341,7 +1389,13 @@ export default class CRUDComponentField extends VueComponentBase
         if (!this.force_input_is_editing) {
             this.inline_input_is_editing = false;
         }
+
         this.field_value = this.field.dataToUpdateIHM(this.inline_input_read_value, this.vo);
+
+        this.replace_alerts({
+            alert_path: this.field.alert_path,
+            alerts: null
+        });
     }
 
     private async inline_input_submit() {
@@ -1349,10 +1403,15 @@ export default class CRUDComponentField extends VueComponentBase
             return;
         }
 
-        await this.validate_inline_input(null);
+        await this.prepare_auto_validate(true, null);
     }
 
     private async beforeDestroy() {
+
+        if (this.auto_validate_start) {
+            await this.prepare_auto_validate(true, null);
+        }
+
         delete CRUDComponentManager.getInstance().inline_input_mode_semaphore_disable_cb[this.this_CRUDComp_UID];
         if (this.inline_input_mode_semaphore && this.inline_input_is_editing) {
             CRUDComponentManager.getInstance().inline_input_mode_semaphore = false;
@@ -1370,7 +1429,7 @@ export default class CRUDComponentField extends VueComponentBase
 
         if (keynum == 'Enter') {
 
-            await this.validate_inline_input(null);
+            await this.prepare_auto_validate(true, null);
             return;
         }
 
@@ -1412,6 +1471,7 @@ export default class CRUDComponentField extends VueComponentBase
     }
 
     private on_blur($event) {
+
         // Pour le moment, on désactive ce truc car ça ne fonctionne pas
         return;
 
@@ -1419,6 +1479,10 @@ export default class CRUDComponentField extends VueComponentBase
 
         this.update_input_field_value_from_vo_field_value();
         this.inline_input_is_editing = false;
+    }
+
+    get is_auto_validating() {
+        return this.auto_validate_inline_input && !!this.auto_validate_start;
     }
 
     private update_input_field_value_from_vo_field_value() {
@@ -1441,21 +1505,31 @@ export default class CRUDComponentField extends VueComponentBase
 
         let field_value: any = this.field_value;
 
+        // FIXME : Pas possible de faire ça comme ça, ya des types de champs avec des contraintes de valeurs, ou mandatory. mais un field_id fixe c'est non
+        // let regex: RegExp = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+        // if (this.field.datatable_field_uid == 'email' && !regex.test(field_value)) {
+        //     return false;
+        // }
+        // if ((this.field.datatable_field_uid == 'email' || this.field.datatable_field_uid == 'name') && field_value == '') {
+        //     return false;
+        // }
+
         field_value = this.field.UpdateIHMToData(field_value, this.vo);
 
         if (this.vo[this.field.datatable_field_uid] != field_value) {
             this.vo[this.field.datatable_field_uid] = field_value;
         }
+        return;
     }
 
     private on_blur_emit($event) {
         this.on_blur($event);
-        this.$emit('blur', $event.target.value);
+        this.$emit('blur', $event.target ? $event.target.value : null);
     }
 
     private get_crud_link(api_type_id: string, vo_id: number): string {
         if (this.is_dashboard_builder) {
-            let res: string = this.$route.path;
+            let res: string = "#" + this.$route.path;
 
             if (res.charAt(res.length - 1) != '/') {
                 res += '/';
@@ -1623,5 +1697,32 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         return this.field.translatable_place_holder ? this.field.translatable_place_holder : this.field.translatable_title;
+    }
+
+    private async prepare_auto_validate(force_live_validation: boolean = false, event: any = null) {
+        this.update_vo_field_value_from_input_field_value();
+        if ((!force_live_validation) && this.auto_validate_inline_input) {
+
+            if (this.debounced_validate_inline_input_auto) {
+                this.debounced_validate_inline_input_auto();
+            }
+
+            /**
+             * Pour recharger les animations, il faut sortir du cas !!this.auto_validate_start
+             */
+            if (!!this.auto_validate_start) {
+                let self = this;
+
+                this.auto_validate_start = null;
+                setTimeout(() => {
+                    self.auto_validate_start = Dates.now();
+                }, 50);
+            } else {
+                this.auto_validate_start = Dates.now();
+                CRUDFormServices.getInstance().auto_updates_waiting[this.this_CRUDComp_UID] = true;
+            }
+        } else {
+            await this.validate_inline_input(event);
+        }
     }
 }

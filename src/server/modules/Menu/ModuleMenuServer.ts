@@ -3,6 +3,7 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleMenu from '../../../shared/modules/Menu/ModuleMenu';
@@ -194,12 +195,9 @@ export default class ModuleMenuServer extends ModuleServerBase {
 
         let res: MenuElementVO[] = [];
 
-        let all = await ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString<MenuElementVO>(
-            MenuElementVO.API_TYPE_ID,
-            null,
-            null,
-            'app_name',
-            [app_name]);
+        let all = await query(MenuElementVO.API_TYPE_ID)
+            .filter_by_text_eq('app_name', app_name)
+            .select_vos<MenuElementVO>();
         for (let i in all) {
             let elt = all[i];
 

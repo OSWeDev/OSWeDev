@@ -1,4 +1,4 @@
-import { cloneDeep } from 'lodash';
+import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
@@ -103,6 +103,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
     private item_id: number = null;
     private step_id: number = null;
     private last_calculation_cpt: number = 0;
+    private old_widget_options: ChecklistWidgetOptions = null;
 
     get pagination_pagesize(): number {
         if (!this.widget_options) {
@@ -261,7 +262,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
         this.stopLoading();
 
         if ((!this.checklists) || (!this.checklists.length)) {
-            this.checklists = await ModuleDAO.getInstance().getVos<CheckListVO>(CheckListVO.API_TYPE_ID);
+            this.checklists = await query(CheckListVO.API_TYPE_ID).select_vos<CheckListVO>();
             this.checklists_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(this.checklists);
         }
 
@@ -421,7 +422,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
             let filter = new ContextFilterVO();
             filter.field_id = 'checklist_id';
             filter.vo_type = self.checklist_shared_module.checklistitem_type_id;
-            filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+            filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
             filter.param_numeric = self.checklist.id;
 
             filters[self.checklist_shared_module.checklistitem_type_id]['checklist_id'] =
@@ -503,6 +504,13 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
 
     @Watch('widget_options', { immediate: true })
     private async onchange_widget_options() {
+        if (!!this.old_widget_options) {
+            if (isEqual(this.widget_options, this.old_widget_options)) {
+                return;
+            }
+        }
+
+        this.old_widget_options = cloneDeep(this.widget_options);
 
         await this.throttled_update_visible_options();
     }

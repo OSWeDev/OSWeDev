@@ -79,6 +79,7 @@ export default class HourrangeInputComponent extends VueComponentBase {
     @Watch('hourrange_end')
     private emitInput(): void {
 
+        let new_value = null;
         let hourstart: number = HourHandler.getInstance().formatHourFromIHM(this.hourrange_start, this.segmentation_type_value);
         let hourend: number = HourHandler.getInstance().formatHourFromIHM(this.hourrange_end, this.segmentation_type_value);
 
@@ -91,10 +92,21 @@ export default class HourrangeInputComponent extends VueComponentBase {
         }
 
         if (hourstart && hourend) {
-            this.new_value = RangeHandler.getInstance().createNew(HourRange.RANGE_TYPE, hourstart, hourend, true, false, this.segmentation_type_value);
+            new_value = RangeHandler.getInstance().createNew(HourRange.RANGE_TYPE, hourstart, hourend, true, false, this.segmentation_type_value);
         } else {
-            this.new_value = null;
+            new_value = null;
         }
+
+        /**
+         * On check que c'est bien une nouvelle value
+         */
+        let old_value = this.vo ? this.vo[this.field.datatable_field_uid] : null;
+        if ((old_value == new_value) ||
+            (RangeHandler.getInstance().is_same(old_value, new_value))) {
+            return;
+        }
+        this.new_value = new_value;
+
 
         this.$emit('input', this.new_value);
         this.$emit('input_with_infos', this.new_value, this.field, this.vo);

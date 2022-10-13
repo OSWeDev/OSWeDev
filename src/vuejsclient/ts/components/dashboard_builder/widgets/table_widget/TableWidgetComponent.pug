@@ -46,55 +46,57 @@ include ../../../../../views/mixins/loading.pug
                     thead
                         tr(v-if='has_group_headers')
                             template(v-for='column in columns')
+                                template(v-if="!column.hide_from_table")
                             
-                                //- debut de la colonne d'entete
-                                th.table_header(v-if="column.type == 5 && column.children.length > 0"
-                                    :style="get_style_th(column)"
-                                    :colspan="column.children.length"
-                                )
-                                    Inlinetranslatabletext.text-center(:code_text="column.get_translatable_name_code_text(page_widget.id)")
-                                
-                                th.table_header(v-if="column.type != 5")
+                                    //- debut de la colonne d'entete
+                                    th.table_header(v-if="column.type == 5 && column.children.length > 0"
+                                        :style="get_style_th(column)"
+                                        :colspan="column.children.length"
+                                    )
+                                        Inlinetranslatabletext.text-center(:code_text="column.get_translatable_name_code_text(page_widget.id)")
+                                    
+                                    th.table_header(v-if="column.type != 5")
                         tr
                             template(v-for='column in columns')
+                                template(v-if="!column.hide_from_table")
                                 
-                                th.table_header(
-                                    v-if="column.type != 5"
-                                    :class='{ order_asc: order_asc_on_id == column.id, order_desc: order_desc_on_id == column.id, "position-sticky": column.is_sticky}'
-                                    @click="sort_by(column)"
-                                    :style="get_style_th(column)"
-                                    )
+                                    th.table_header(
+                                        v-if="column.type != 5"
+                                        :class='{ order_asc: order_asc_on_id == column.id, order_desc: order_desc_on_id == column.id, "position-sticky": column.is_sticky}'
+                                        @click="sort_by(column)"
+                                        :style="get_style_th(column)"
+                                        )
 
 
-                                    template(v-if="column.type == 1")
-                                        .order_by
-                                            template(v-if='(order_asc_on_id != column.id) && (order_desc_on_id != column.id)')
-                                                i.fa.fa-sort.fa-fw(aria-hidden="true")
-                                            template(v-if='order_asc_on_id == column.id')
-                                                i.fa.fa-sort-asc.fa-fw(aria-hidden="true")
-                                            template(v-if='order_desc_on_id == column.id')
-                                                i.fa.fa-sort-desc.fa-fw(aria-hidden="true")
+                                        template(v-if="column.type == 1")
+                                            .order_by
+                                                template(v-if='(order_asc_on_id != column.id) && (order_desc_on_id != column.id)')
+                                                    i.fa.fa-sort.fa-fw(aria-hidden="true")
+                                                template(v-if='order_asc_on_id == column.id')
+                                                    i.fa.fa-sort-asc.fa-fw(aria-hidden="true")
+                                                template(v-if='order_desc_on_id == column.id')
+                                                    i.fa.fa-sort-desc.fa-fw(aria-hidden="true")
 
-                                    Inlinetranslatabletext( :code_text="column.get_translatable_name_code_text(page_widget.id)")
+                                        Inlinetranslatabletext( :code_text="column.get_translatable_name_code_text(page_widget.id)")
 
-                                th(
-                                    v-if="column.type == 5 && column.children.length > 0"
-                                    v-for='child in column.children'
-                                    :class="{order_asc: order_asc_on_id == child.id, order_desc: order_desc_on_id == child.id}"
-                                    :style="get_style_th(child)"
-                                    @click="sort_by(child)"
-                                    )
-                                    template(v-if="child.type == 1")
-                                        .order_by
-                                            template(v-if='(order_asc_on_id != child.id) && (order_desc_on_id != child.id)')
-                                                i.fa.fa-sort.fa-fw(aria-hidden="true")
-                                            template(v-if='order_asc_on_id == child.id')
-                                                i.fa.fa-sort-asc.fa-fw(aria-hidden="true")
-                                            template(v-if='order_desc_on_id == child.id')
-                                                i.fa.fa-sort-desc.fa-fw(aria-hidden="true")
-                                    Inlinetranslatabletext( :code_text="child.get_translatable_name_code_text(page_widget.id)")
-                                    template(v-if="child.type == 0")
-                                    Inlinetranslatabletext()
+                                    th(
+                                        v-if="column.type == 5 && column.children.length > 0"
+                                        v-for='child in column.children'
+                                        :class="{order_asc: order_asc_on_id == child.id, order_desc: order_desc_on_id == child.id}"
+                                        :style="get_style_th(child)"
+                                        @click="sort_by(child)"
+                                        )
+                                        template(v-if="child.type == 1")
+                                            .order_by
+                                                template(v-if='(order_asc_on_id != child.id) && (order_desc_on_id != child.id)')
+                                                    i.fa.fa-sort.fa-fw(aria-hidden="true")
+                                                template(v-if='order_asc_on_id == child.id')
+                                                    i.fa.fa-sort-asc.fa-fw(aria-hidden="true")
+                                                template(v-if='order_desc_on_id == child.id')
+                                                    i.fa.fa-sort-desc.fa-fw(aria-hidden="true")
+                                        Inlinetranslatabletext( :code_text="child.get_translatable_name_code_text(page_widget.id)")
+                                        template(v-if="child.type == 0")
+                                        Inlinetranslatabletext()
                     template(v-if="update_cpt_live <= 1")
                         tbody
                             tr.table_row(v-for='row in data_rows' :class='{"is_filtering": is_filtering_by, "filtered_value": is_filtering_by && !is_row_filter_ok(row)}')
@@ -149,6 +151,7 @@ include ../../../../../views/mixins/loading.pug
                                                                 :style="'width: ' + (column.column_width ? column.column_width + 'rem' : null)"
                                                                 :is_dashboard_builder="true"
                                                                 :show_tooltip="column.show_tooltip"
+                                                                :disabled_many_to_one_link="column.disabled_many_to_one_link"
                                                             )
 
                                                 template(v-else)
@@ -162,6 +165,10 @@ include ../../../../../views/mixins/loading.pug
                                                         :inline_input_read_value="row[column.datatable_field_uid]"
                                                         :key='"crudcomponentfield_" + column.datatable_field_uid + "___" + row.__crud_actions'
                                                         :is_dashboard_builder="true"
+                                                        :inline_input_show_clear='false'
+                                                        :auto_validate_inline_input='true'
+                                                        :force_input_is_editing='true'
+                                                        :inline_input_mode_input_only='true'
                                                     )
 
                                         template.table_col(
@@ -179,7 +186,8 @@ include ../../../../../views/mixins/loading.pug
                                                         :style="'width: ' + (child.column_width ? child.column_width + 'rem' : null)"
                                                         :is_dashboard_builder="true"
                                                         :show_tooltip="child.show_tooltip"
-                                                        )
+                                                        :disabled_many_to_one_link="column.disabled_many_to_one_link"
+                                                    )
                                                 template(v-if="child.type == 0 && !child.hide_from_table")
                                                     td.btn-group.d-print-none(
                                                         v-tooltip='label("table_widget_component.id", {id : row.__crud_actions})' :style="{width: (child.column_width ? child.column_width + 'rem' : null)}" 
@@ -194,22 +202,22 @@ include ../../../../../views/mixins/loading.pug
                                                             .btn.btn-sm.btn-danger(@click="confirm_delete(child.api_type_id, row.__crud_actions)")
                                                                 i.fa.fa-trash
                                                                             
-                    template(v-if="has_table_total_footer")
+                    template(v-if="has_table_total_footer && data_rows && (data_rows.length > 0)")
                         tfoot
                             template(v-if="!!colspan_total")
                                 td.text-center(:colspan='colspan_total') {{ label('table_widget_component.table_total_footer')}}
 
                             template(v-for='(column, index_column) in columns')
                                 template(v-if="is_column_type_number(column)")
-                                    td 
+                                    td.text-center
                                         template(v-if="column_total && column_total[column.api_type_id]")
-                                            span {{ column_total[column.api_type_id][column.field_id] }}
+                                            | {{ column_total[column.api_type_id][column.field_id] }}
 
                                 template(v-else)
-                                    template(v-if="!colspan_total || (parseInt(index_column) >= colspan_total)")
-                                        td 
+                                    template(v-if="(!colspan_total_with_hidden || (parseInt(index_column) >= colspan_total_with_hidden)) && !column.hide_from_table")
+                                        td.test(:field_id="column.field_id")
 
-            .lower_pagination
+            .lower_pagination(v-if="!hide_pagination_bottom")
                 Tablepaginationcomponent(
                     :pagination_offset='pagination_offset'
                     :pagination_pagesize='limit'

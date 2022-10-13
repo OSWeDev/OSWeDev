@@ -1,37 +1,37 @@
 .var_desc_registrations
     .row
-        .col-md-9
+        .col-sm-9
             svg(width=1200 height=800)
-        .col-md-3
+        .col-sm-3
             //- .row
-            //-     .col-md-12
+            //-     .col-sm-12
             //-         button.btn.btn-sm.btn-primary.pull-right(@click="refreshDependenciesHeatmap")
             //-             i.fa.fa-map.fa-lg.btn_icon(aria-hidden="true")
             //-             | {{ label('var_desc.refreshDependenciesHeatmap') }}
             
             //- .row
-            //-     .col-md-12
+            //-     .col-sm-12
             //-         hr
 
             //- .row
-            //-     .col-md-12
+            //-     .col-sm-12
             //-         button.btn.btn-sm.btn-secondary.pull-right(@click="clearDag")
             //-             i.fa.fa-trash.fa-lg.btn_icon(aria-hidden="true")
             //-             | {{ label('var_desc.clearDag') }}
             
             //- .row
-            //-     .col-md-12
+            //-     .col-sm-12
             //-         hr
 
             .row
-                .col-md-12
+                .col-sm-12
                     //- var-desc(:var_param='descSelectedParam')
                     //- .hover_desc {{ hover_desc }}
             .row
-                .col-md-12
+                .col-sm-12
                     textarea(rows=6, cols=30, id="graph_params", v-model="graph_params")
             .row
-                .col-md-12
+                .col-sm-12
                     button.btn.btn-sm.btn-secondary.pull-right(@click="createGraph")
                         i.fa.fa-refresh.fa-lg.btn_icon(aria-hidden="true")
                         | {{ label('var_desc.create_graph') }}

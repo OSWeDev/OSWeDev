@@ -1,7 +1,8 @@
-import { cloneDeep } from 'lodash';
+import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ModuleAjaxCache from '../../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import ContextFilterHandler from '../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
@@ -76,6 +77,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
     private data_rows_after: any[] = [];
     private last_calculation_cpt: number = 0;
+    private old_widget_options: BulkOpsWidgetOptions = null;
 
     private onchangevo(vo, field, field_value) {
         if (!this.editable_item) {
@@ -417,6 +419,13 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
     @Watch('widget_options', { immediate: true })
     private async onchange_widget_options() {
+        if (!!this.old_widget_options) {
+            if (isEqual(this.widget_options, this.old_widget_options)) {
+                return;
+            }
+        }
+
+        this.old_widget_options = cloneDeep(this.widget_options);
 
         await this.throttled_update_visible_options();
     }
@@ -452,8 +461,14 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
                                     await ModuleContextFilter.getInstance().update_vos(
                                         context_query,
-                                        self.field_id_selected, new_value);
+                                        self.field_id_selected,
+                                        new_value
+                                    );
+
+                                    ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([self.api_type_id]);
+
                                     await self.throttled_update_visible_options();
+
                                     resolve({
                                         body: self.label('BulkOpsWidgetComponent.bulkops.ok'),
                                         config: {

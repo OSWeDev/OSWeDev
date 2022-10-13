@@ -50,6 +50,6 @@ export default class VarCacheConfVO implements IDistantVOBase {
     public estimated_ctree_ddeps_get_node_deps_1k_card: number;
     public estimated_ctree_ddeps_handle_pixellisation_1k_card: number;
 
-    public estimated_load_nodes_datas_1k_card: number;
+    public estimated_load_node_datas_1k_card: number;
     public estimated_compute_node_1k_card: number;
 }

@@ -3,7 +3,7 @@
         .row
             template(v-if='!compressed')
                 template(v-if="show_limit_selectable && all_limit_selectable && (all_limit_selectable.length > 0)")
-                    .col-md-2
+                    .col-sm-2
                         .limit_selectable
                             multiselect#selected_limit(
                                 :multiple="false"
@@ -26,11 +26,11 @@
                             )
                 
                 template(v-if="show_pagination_resumee")
-                    .col-md-2
+                    .col-xs-2
                         .pagination_resumee {{ (pagination_offset + 1) + ' - ' + pagination_offset_end_page + ' / ' + pagination_count }}
                 template(v-if='max_page > 1')
                     template(v-if="show_pagination_slider")
-                        .col-md-2
+                        .col-xs-2
                             .pagination_slider
                                 v-slider(
                                     v-model="new_page" :min="1" :max="max_page" tooltip="none"
@@ -41,7 +41,7 @@
                                         .custom-dot {{ value }}
                                         
                     template(v-if="show_pagination_form")
-                        .col-md-6
+                        .col-xs-6
                             .pagination_form
                                 .pagination_arrow.go_back(:class="{disabled : new_page <= 1}" @click="goto_previous")
                                     i.fa.fa-chevron-left.fa-fw(aria-hidden="true")
@@ -56,7 +56,7 @@
                                     i.fa.fa-check.fa-fw.btn_icon(aria-hidden="true")
                                         
                     template(v-if="show_pagination_list")
-                        .col-md-6
+                        .col-xs-6
                             .pagination_list
                                 template(v-if="max_page > 5")
                                     .pagination_arrow.go_back(:class="{disabled : new_page <= 1}" @click="goto_first")
@@ -80,11 +80,11 @@
 
             template(v-else)
                 template(v-if="show_pagination_resumee")
-                    .col-md-3
+                    .col-sm-3
                         .pagination_resumee.compressed {{ (pagination_offset + 1) + ' - ' + pagination_offset_end_page + ' / ' + pagination_count }}
                 template(v-if='max_page > 1')
                     template(v-if="show_pagination_slider")
-                        .col-md-3
+                        .col-sm-3
                             .pagination_slider.compressed
                                 v-slider(
                                     v-model="new_page" :min="1" :max="max_page" tooltip="none"

@@ -13,15 +13,15 @@
         :drag-handle="'#dragsize_handle_' + uid" 
         :class="{'opened':opened}")
 
-        .col-md-12
+        .col-sm-12
             .row.dragsize_handle(:id='"dragsize_handle_" + uid')
-                .col-md-12  
+                .col-sm-12  
                     i.fa.fa-minus.fa-fw.pull-right(aria-hidden="true" v-show="opened" @click="opened = !opened")
                     i.fa.fa-plus.fa-fw.pull-right(aria-hidden="true" v-show="!opened" @click="opened = !opened")
                     i.fa.fa-arrows.fa-fw.pull-right(aria-hidden="true")
 
                     slot(name="icons")
             .row.dragsize_content
-                .col-md-12.no-padding
+                .col-sm-12.no-padding
                     .slot_wrapper(ref="wrapper")
                         slot

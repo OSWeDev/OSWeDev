@@ -1,5 +1,6 @@
 import debounce from 'lodash/debounce';
 import { Component, Vue, Watch } from "vue-property-decorator";
+import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
@@ -61,21 +62,21 @@ export default class OnPageTranslation extends VueComponentBase {
         let promises: Array<Promise<any>> = [];
 
         promises.push((async () => {
-            let vos: TranslatableTextVO[] = await ModuleDAO.getInstance().getVos<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID);
+            let vos: TranslatableTextVO[] = await query(TranslatableTextVO.API_TYPE_ID).select_vos<TranslatableTextVO>();
             self.storeDatas({
                 API_TYPE_ID: TranslatableTextVO.API_TYPE_ID,
                 vos: vos
             });
         })());
         promises.push((async () => {
-            let vos: LangVO[] = await ModuleDAO.getInstance().getVos<LangVO>(LangVO.API_TYPE_ID);
+            let vos: LangVO[] = await query(LangVO.API_TYPE_ID).select_vos<LangVO>();
             self.storeDatas({
                 API_TYPE_ID: LangVO.API_TYPE_ID,
                 vos: vos
             });
         })());
         promises.push((async () => {
-            let vos: TranslationVO[] = await ModuleDAO.getInstance().getVos<TranslationVO>(TranslationVO.API_TYPE_ID);
+            let vos: TranslationVO[] = await query(TranslationVO.API_TYPE_ID).select_vos<TranslationVO>();
             self.storeDatas({
                 API_TYPE_ID: TranslationVO.API_TYPE_ID,
                 vos: vos
@@ -248,7 +249,7 @@ export default class OnPageTranslation extends VueComponentBase {
 
             if (!this.other_langs) {
                 this.other_langs = [];
-                let langs: LangVO[] = await ModuleDAO.getInstance().getVos<LangVO>(LangVO.API_TYPE_ID);
+                let langs: LangVO[] = await query(LangVO.API_TYPE_ID).select_vos<LangVO>();
 
                 for (let i in langs) {
                     if (langs[i].id == this.lang_id) {

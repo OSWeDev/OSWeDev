@@ -2,6 +2,7 @@ import * as $ from 'jquery';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import Alert from '../../../../../shared/modules/Alert/vos/Alert';
+import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import CRUD from '../../../../../shared/modules/DAO/vos/CRUD';
 import Datatable from '../../../../../shared/modules/DAO/vos/datatable/Datatable';
@@ -335,7 +336,7 @@ export default class CRUDComponent extends VueComponentBase {
                 self.api_types_involved.push(reference.targetModuleTable.vo_type);
                 res.push(
                     (async () => {
-                        let vos: IDistantVOBase[] = await ModuleDAO.getInstance().getVos<IDistantVOBase>(reference.targetModuleTable.vo_type);
+                        let vos: IDistantVOBase[] = await query(reference.targetModuleTable.vo_type).select_vos<IDistantVOBase>();
                         self.storeDatas({
                             API_TYPE_ID: reference.targetModuleTable.vo_type,
                             vos: vos
@@ -358,7 +359,7 @@ export default class CRUDComponent extends VueComponentBase {
 
                 res.push(
                     (async () => {
-                        let vos: IDistantVOBase[] = await ModuleDAO.getInstance().getVos<IDistantVOBase>(reference.interModuleTable.vo_type);
+                        let vos: IDistantVOBase[] = await query(reference.interModuleTable.vo_type).select_vos<IDistantVOBase>();
                         self.storeDatas({
                             API_TYPE_ID: reference.interModuleTable.vo_type,
                             vos: vos
@@ -780,7 +781,7 @@ export default class CRUDComponent extends VueComponentBase {
                 }
 
                 let field: OneToManyReferenceDatatableField<any> = datatable.fields[i] as OneToManyReferenceDatatableField<any>;
-                let actual_links: IDistantVOBase[] = await ModuleDAO.getInstance().getVosByRefFieldIds(field.targetModuleTable.vo_type, field.destField.field_id, [db_vo.id]);
+                let actual_links: IDistantVOBase[] = await query(field.targetModuleTable.vo_type).filter_by_num_eq(field.destField.field_id, db_vo.id).select_vos<IDistantVOBase>();
                 let new_links_target_ids: number[] = datatable_vo[field.module_table_field_id];
 
                 let need_update_links: IDistantVOBase[] = [];
@@ -840,7 +841,7 @@ export default class CRUDComponent extends VueComponentBase {
 
                 let field: ManyToManyReferenceDatatableField<any, any> = datatable.fields[i] as ManyToManyReferenceDatatableField<any, any>;
                 let interSrcRefField = field.interSrcRefFieldId ? field.interModuleTable.getFieldFromId(field.interSrcRefFieldId) : field.interModuleTable.getRefFieldFromTargetVoType(db_vo._type);
-                let actual_links: IDistantVOBase[] = await ModuleDAO.getInstance().getVosByRefFieldIds(field.interModuleTable.vo_type, interSrcRefField.field_id, [db_vo.id]);
+                let actual_links: IDistantVOBase[] = await query(field.interModuleTable.vo_type).filter_by_num_eq(interSrcRefField.field_id, db_vo.id).select_vos<IDistantVOBase>();
                 let interDestRefField = field.interTargetRefFieldId ? field.interModuleTable.getFieldFromId(field.interTargetRefFieldId) : field.interModuleTable.getRefFieldFromTargetVoType(field.targetModuleTable.vo_type);
                 let new_links_target_ids: number[] = datatable_vo[field.module_table_field_id];
 

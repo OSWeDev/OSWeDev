@@ -28,7 +28,14 @@ export default class EnvParam implements IEnvParam {
     public AUTO_END_MAINTENANCE_ON_START: boolean = true;
     public CODE_GOOGLE_ANALYTICS: string = null;
     public DEBUG_VARS: boolean = false;
+    public DEBUG_PARAM_QUERIES?: boolean = false;
+    public DEBUG_DELETEVOS?: boolean = false;
+    public DEBUG_START_SERVER?: boolean = false;
+    public DEBUG_DB_QUERY_PERF?: boolean = false;
+    public DEBUG_INTERTHREADS_MESSAGES?: boolean = false;
     public DEBUG_IMPORTS?: boolean = false;
+    public DEBUG_THROTTLED_SELECT?: boolean = false;
     public ACTIVATE_PWA: boolean = false;
     public RETRY_FAILED_FAST_TRACK_IMPORTS_WITH_NORMAL_IMPORTATION?: boolean = true;
+    public IGNORE_ALL_DATABASE_FORMAT_CHECKS?: boolean = true;
 }

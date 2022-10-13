@@ -1,11 +1,11 @@
 .vocus
     .row
-        .col-md-6
+        .col-sm-6
             v-select(v-model="tmp_vo_type" :options="vo_types" :placeholder="label('vocus.vo_type')")
-        .col-md-6
+        .col-sm-6
             input(type="number" v-model="tmp_vo_id" :placeholder="label('vocus.id')")
     .row(v-if='vo && !is_loading')
-        .col-md-12
+        .col-sm-12
             table.table.table-condensed.table-striped.vocus_datatable
                 thead
                     tr
@@ -42,5 +42,5 @@
                                     router-link.btn.btn-sm.btn-danger.m-1(:to="getCRUDDeleteLink(refvo.linked_type, refvo.linked_id)")
                                         i.fa.fa-trash
     .row(v-if='limit1000')
-        .col-md-12
+        .col-sm-12
             .limit1000 {{ label('vocus.limit1000') }}

@@ -18,7 +18,7 @@ describe('DAG', () => {
     it('test add nodes', async () => {
         FakeDataHandler.initializeFakeDataVO();
 
-        let dag: VarDAG = new VarDAG(null);
+        let dag: VarDAG = new VarDAG();
 
         let var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
         let dagnodeA: VarDAGNode = VarDAGNode.getInstance(dag, var_data_A, VarsComputeController, true);
@@ -69,7 +69,7 @@ describe('DAG', () => {
     it('test add deps', async () => {
         FakeDataHandler.initializeFakeDataVO();
 
-        let dag: VarDAG = new VarDAG(null);
+        let dag: VarDAG = new VarDAG();
 
         let var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
 

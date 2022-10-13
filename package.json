@@ -1,6 +1,6 @@
 {
     "name": "oswedev",
-    "version": "0.26.4",
+    "version": "0.26.22",
     "description": "",
     "repository": {
         "type": "git",
@@ -75,7 +75,7 @@
         "@types/node": "13.1.1",
         "@types/nodemailer": "4.6.0",
         "@types/socket.io": "1.4.38",
-        "adm-zip": "^0.5.9",
+        "adm-zip": "0.5.9",
         "autodetect-decoder-stream": "2.0.0",
         "axios": "0.19.0",
         "body-parser-with-msgpack": "1.17.0",
@@ -110,7 +110,7 @@
         "jqueryui": "1.11.1",
         "lodash": "^4.17.21",
         "longjohn": "0.2.12",
-        "mathjs": "^10.6.4",
+        "mathjs": "10.6.4",
         "messagepack": "1.1.10",
         "mkdirp": "0.5.1",
         "moment": "2.24.0",
@@ -143,6 +143,7 @@
         "vue-bootstrap-toggle": "1.1.4",
         "vue-chartjs": "3.5.0",
         "vue-class-component": "6.2.0",
+        "vue-cookies-ts": "^1.5.19",
         "vue-draggable-resizable": "1.7.2",
         "vue-full-calendar": "2.7.0",
         "vue-grid-layout": "2.3.12",

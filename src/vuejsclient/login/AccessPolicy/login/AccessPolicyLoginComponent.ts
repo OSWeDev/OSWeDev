@@ -37,8 +37,11 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
 
     private has_error_form: boolean = false;
 
+    private is_ok_loging: boolean = false;
+
     private async mounted() {
         let promises = [];
+        this.is_ok_loging = false;
 
         promises.push(this.load_logo_url());
 
@@ -83,7 +86,11 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
 
     // On log si possible, si oui on redirige
     private async login() {
+        if (this.is_ok_loging) {
+            return;
+        }
 
+        this.is_ok_loging = true;
         this.has_error_form = false;
 
         let self = this;
@@ -106,6 +113,8 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
                     });
 
                     this.has_error_form = true;
+
+                    this.is_ok_loging = false;
                 } else {
                     resolve({
                         body: self.label('login.ok'),

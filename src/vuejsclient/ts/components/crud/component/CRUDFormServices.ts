@@ -1,5 +1,6 @@
 import { cloneDeep } from 'lodash';
 import Alert from '../../../../../shared/modules/Alert/vos/Alert';
+import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import CRUD from '../../../../../shared/modules/DAO/vos/CRUD';
 import Datatable from '../../../../../shared/modules/DAO/vos/datatable/Datatable';
@@ -32,6 +33,19 @@ export default class CRUDFormServices {
     }
 
     private static _instance: CRUDFormServices = null;
+
+    public auto_updates_waiting: {
+        [CRUDComp_UID: number]: boolean
+    } = {};
+
+    public has_auto_updates_waiting() {
+        for (let i in this.auto_updates_waiting) {
+            if (this.auto_updates_waiting[i]) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     public loadDatasFromDatatable(
         datatable: Datatable<IDistantVOBase>,
@@ -90,7 +104,7 @@ export default class CRUDFormServices {
                 api_types_involved.push(reference.targetModuleTable.vo_type);
                 res.push(
                     (async () => {
-                        let vos: IDistantVOBase[] = await ModuleDAO.getInstance().getVos<IDistantVOBase>(reference.targetModuleTable.vo_type);
+                        let vos: IDistantVOBase[] = await query(reference.targetModuleTable.vo_type).select_vos<IDistantVOBase>();
                         storeDatas({
                             API_TYPE_ID: reference.targetModuleTable.vo_type,
                             vos: vos
@@ -113,7 +127,7 @@ export default class CRUDFormServices {
 
                 res.push(
                     (async () => {
-                        let vos: IDistantVOBase[] = await ModuleDAO.getInstance().getVos<IDistantVOBase>(reference.interModuleTable.vo_type);
+                        let vos: IDistantVOBase[] = await query(reference.interModuleTable.vo_type).select_vos<IDistantVOBase>();
                         storeDatas({
                             API_TYPE_ID: reference.interModuleTable.vo_type,
                             vos: vos
@@ -347,7 +361,7 @@ export default class CRUDFormServices {
                 }
 
                 let field: OneToManyReferenceDatatableField<any> = datatable.fields[i] as OneToManyReferenceDatatableField<any>;
-                let actual_links: IDistantVOBase[] = await ModuleDAO.getInstance().getVosByRefFieldIds(field.targetModuleTable.vo_type, field.destField.field_id, [db_vo.id]);
+                let actual_links: IDistantVOBase[] = await query(field.targetModuleTable.vo_type).filter_by_num_eq(field.destField.field_id, db_vo.id).select_vos<IDistantVOBase>();
                 let new_links_target_ids: number[] = cloneDeep(datatable_vo[field.module_table_field_id]);
 
                 let need_update_links: IDistantVOBase[] = [];
@@ -411,7 +425,7 @@ export default class CRUDFormServices {
 
                 let field: ManyToManyReferenceDatatableField<any, any> = datatable.fields[i] as ManyToManyReferenceDatatableField<any, any>;
                 let interSrcRefField = field.interSrcRefFieldId ? field.interModuleTable.getFieldFromId(field.interSrcRefFieldId) : field.interModuleTable.getRefFieldFromTargetVoType(db_vo._type);
-                let actual_links: IDistantVOBase[] = await ModuleDAO.getInstance().getVosByRefFieldIds(field.interModuleTable.vo_type, interSrcRefField.field_id, [db_vo.id]);
+                let actual_links: IDistantVOBase[] = await query(field.interModuleTable.vo_type).filter_by_num_eq(interSrcRefField.field_id, db_vo.id).select_vos<IDistantVOBase>();
                 let interDestRefField = field.interTargetRefFieldId ? field.interModuleTable.getFieldFromId(field.interTargetRefFieldId) : field.interModuleTable.getRefFieldFromTargetVoType(field.targetModuleTable.vo_type);
                 let new_links_target_ids: number[] = cloneDeep(datatable_vo[field.module_table_field_id]);
 

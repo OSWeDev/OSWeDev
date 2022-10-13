@@ -24,7 +24,7 @@ export default class FakeEmpDistantDatasourceController extends DataSourceContro
         return var_data.ts_ranges;
     }
 
-    public async get_data(param: FakeEmpDayDataVO, ds_cache: { [ds_data_index: string]: any; }): Promise<FakeEmpDistantVO[]> {
+    public async get_data(param: FakeEmpDayDataVO): Promise<FakeEmpDistantVO[]> {
         let res: FakeEmpDistantVO[] = [];
 
         for (let i in FakeEmpDistantDatasourceController.fake_distant_datas) {

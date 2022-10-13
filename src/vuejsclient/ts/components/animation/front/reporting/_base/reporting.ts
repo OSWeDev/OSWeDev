@@ -12,6 +12,7 @@ import AnimationModuleVO from '../../../../../../../shared/modules/Animation/vos
 import AnimationThemeVO from '../../../../../../../shared/modules/Animation/vos/AnimationThemeVO';
 import AnimationUserModuleVO from '../../../../../../../shared/modules/Animation/vos/AnimationUserModuleVO';
 import APIControllerWrapper from '../../../../../../../shared/modules/API/APIControllerWrapper';
+import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import ExportHistoricVO from '../../../../../../../shared/modules/DataExport/vos/ExportHistoricVO';
 import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
@@ -150,16 +151,16 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
         let promises = [];
 
         promises.push((async () =>
-            all_anim_theme_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<AnimationThemeVO>(AnimationThemeVO.API_TYPE_ID))
+            all_anim_theme_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>())
         )());
 
         promises.push((async () =>
-            all_anim_module_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID))
+            all_anim_module_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>())
         )());
 
         await Promise.all(promises);
 
-        let aums: AnimationUserModuleVO[] = await ModuleDAO.getInstance().getVos<AnimationUserModuleVO>(AnimationUserModuleVO.API_TYPE_ID);
+        let aums: AnimationUserModuleVO[] = await query(AnimationUserModuleVO.API_TYPE_ID).select_vos<AnimationUserModuleVO>();
 
         for (let i in aums) {
             let aum: AnimationUserModuleVO = aums[i];

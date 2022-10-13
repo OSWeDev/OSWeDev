@@ -9,7 +9,7 @@
                 | {{ label('dashboard_viewer.loading_failed') }}
     template(v-else)
         .row 
-            .col-md-12
+            .col-sm-12
                 .header 
                     .name.display_inline_block
                         Inlinetranslatabletext(:code_text="dashboard_name_code_text" :is_editable="false")
@@ -17,7 +17,7 @@
                         router-link.btn.btn-primary(:to="{ name: 'DashboardBuilder_id', params: { dashboard_id : dashboard.id }}")
                             i.fa.fa-pencil.btn-primary
         .row 
-            .col-md-12
+            .col-sm-12
                 template(v-if='!pages')
                     template(v-if="loading")
                         .is_loading
@@ -46,7 +46,7 @@
 
         template(v-if='!page')
             .row
-                .col-md-12
+                .col-sm-12
                     template(v-if="loading")
                         .is_loading
                             i.fa.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
@@ -57,7 +57,7 @@
 
         template(v-else)
             .row
-                .col-md-12.viewer_wrapper
+                .col-sm-12.viewer_wrapper
                     Dashboardbuilderboardcomponent(
                         :dashboard_page='page' 
                         :dashboard_pages='pages'

@@ -14,7 +14,7 @@ import DAOPostDeleteTriggerHook from '../DAO/triggers/DAOPostDeleteTriggerHook';
 import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
-import PerfMonConfController from './PerfMonConfController';
+// import PerfMonConfController from './PerfMonConfController';
 
 export default class ModulePerfMonServer extends ModuleServerBase {
 
@@ -42,12 +42,12 @@ export default class ModulePerfMonServer extends ModuleServerBase {
             'menu.menuelements.admin.PerfMonAdminVueModule.___LABEL___'));
 
 
-        let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
-        postUpdateTrigger.registerHandler(PerfMonLineTypeVO.API_TYPE_ID, PerfMonConfController.getInstance().throttled_update_cached_perf_conf);
-        let postDeleteTrigger: DAOPostDeleteTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
-        postDeleteTrigger.registerHandler(PerfMonLineTypeVO.API_TYPE_ID, PerfMonConfController.getInstance().throttled_update_cached_perf_conf);
-        let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
-        postCreateTrigger.registerHandler(PerfMonLineTypeVO.API_TYPE_ID, PerfMonConfController.getInstance().throttled_update_cached_perf_conf);
+        // let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        // postUpdateTrigger.registerHandler(PerfMonLineTypeVO.API_TYPE_ID, PerfMonConfController.getInstance().throttled_update_cached_perf_conf);
+        // let postDeleteTrigger: DAOPostDeleteTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
+        // postDeleteTrigger.registerHandler(PerfMonLineTypeVO.API_TYPE_ID, PerfMonConfController.getInstance().throttled_update_cached_perf_conf);
+        // let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        // postCreateTrigger.registerHandler(PerfMonLineTypeVO.API_TYPE_ID, PerfMonConfController.getInstance().throttled_update_cached_perf_conf);
     }
 
     /**

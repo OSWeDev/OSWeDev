@@ -3,7 +3,7 @@ import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterHandler from '../../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ModuleContextFilter from '../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import ContextQueryVO from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ContextQueryVO, { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import DashboardBuilderController from '../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
@@ -134,14 +134,14 @@ export default class DashboardBuilderComponent extends VueComponentBase {
                     }
 
                     if ((!!import_on_vo) && (import_on_vo.id)) {
-                        let old_pages = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardPageVO>(DashboardPageVO.API_TYPE_ID, 'dashboard_id', [import_on_vo.id]);
+                        let old_pages = await query(DashboardPageVO.API_TYPE_ID).filter_by_num_eq('dashboard_id', import_on_vo.id).select_vos<DashboardPageVO>();
                         await ModuleDAO.getInstance().deleteVOs(old_pages);
                     }
 
                     let imported_datas = await ModuleDataImport.getInstance().importJSON(text, import_on_vo);
 
                     self.loading = true;
-                    self.dashboards = await ModuleDAO.getInstance().getVos<DashboardVO>(DashboardVO.API_TYPE_ID);
+                    self.dashboards = await query(DashboardVO.API_TYPE_ID).select_vos<DashboardVO>();
                     await self.on_load_dashboard();
                     // On crée des trads, on les recharge
                     await VueAppController.getInstance().initializeFlatLocales();
@@ -228,13 +228,13 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         let db = this.dashboard;
         export_vos.push(db_table.get_api_version(db));
 
-        let pages = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardPageVO>(DashboardPageVO.API_TYPE_ID, 'dashboard_id', [this.dashboard.id]);
+        let pages = await query(DashboardPageVO.API_TYPE_ID).filter_by_num_eq('dashboard_id', this.dashboard.id).select_vos<DashboardPageVO>();
         let page_table = VOsTypesManager.getInstance().moduleTables_by_voType[DashboardPageVO.API_TYPE_ID];
         if (pages && pages.length) {
             export_vos = export_vos.concat(pages.map((p) => page_table.get_api_version(p)));
         }
 
-        let graphvorefs = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardGraphVORefVO>(DashboardGraphVORefVO.API_TYPE_ID, 'dashboard_id', [this.dashboard.id]);
+        let graphvorefs = await query(DashboardGraphVORefVO.API_TYPE_ID).filter_by_num_eq('dashboard_id', this.dashboard.id).select_vos<DashboardGraphVORefVO>();
         let graphvoref_table = VOsTypesManager.getInstance().moduleTables_by_voType[DashboardGraphVORefVO.API_TYPE_ID];
         if (graphvorefs && graphvorefs.length) {
             export_vos = export_vos.concat(graphvorefs.map((p) => graphvoref_table.get_api_version(p)));
@@ -245,7 +245,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         for (let i in pages) {
             let page = pages[i];
 
-            let this_page_widgets = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardPageWidgetVO>(DashboardPageWidgetVO.API_TYPE_ID, 'page_id', [page.id]);
+            let this_page_widgets = await query(DashboardPageWidgetVO.API_TYPE_ID).filter_by_num_eq('page_id', page.id).select_vos<DashboardPageWidgetVO>();
             if (this_page_widgets && this_page_widgets.length) {
                 export_vos = export_vos.concat(this_page_widgets.map((p) => pagewidget_table.get_api_version(p)));
                 page_widgets = page_widgets ? page_widgets.concat(this_page_widgets) : this_page_widgets;
@@ -325,21 +325,11 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             /**
              * TableColumnDescVO, VOFieldRefVO
              */
-            let filter = new ContextFilterVO();
-            filter.field_id = 'code_text';
-            filter.filter_type = ContextFilterVO.TYPE_TEXT_STARTSWITH_ANY;
-            filter.vo_type = TranslatableTextVO.API_TYPE_ID;
-            filter.param_textarray = [
+            let page_widget_trads: TranslatableTextVO[] = await query(TranslatableTextVO.API_TYPE_ID).filter_by_text_starting_with('code_text', [
                 DashboardBuilderController.TableColumnDesc_NAME_CODE_PREFIX + page_widget.id + '.',
                 DashboardBuilderController.VOFIELDREF_NAME_CODE_PREFIX + page_widget.id + '.'
-            ];
+            ]).select_vos<TranslatableTextVO>();
 
-            let query: ContextQueryVO = new ContextQueryVO();
-            query.base_api_type_id = TranslatableTextVO.API_TYPE_ID;
-            query.active_api_type_ids = [TranslatableTextVO.API_TYPE_ID];
-            query.filters = [filter];
-
-            let page_widget_trads: TranslatableTextVO[] = await ModuleContextFilter.getInstance().select_vos(query);
             for (let j in page_widget_trads) {
                 let page_widget_trad = page_widget_trads[j];
 
@@ -413,7 +403,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     private async onchange_dashboard_id() {
         this.loading = true;
 
-        this.dashboards = await ModuleDAO.getInstance().getVos<DashboardVO>(DashboardVO.API_TYPE_ID);
+        this.dashboards = await query(DashboardVO.API_TYPE_ID).select_vos<DashboardVO>();
         if (!this.dashboard_id) {
             await this.init_dashboard();
             this.can_build_page = !!(this.dashboard.api_type_ids && this.dashboard.api_type_ids.length);

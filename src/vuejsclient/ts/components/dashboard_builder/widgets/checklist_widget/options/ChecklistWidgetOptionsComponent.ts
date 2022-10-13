@@ -1,6 +1,7 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import CheckListVO from '../../../../../../../shared/modules/CheckList/vos/CheckListVO';
+import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
@@ -59,7 +60,7 @@ export default class ChecklistWidgetOptionsComponent extends VueComponentBase {
     private async onchange_page_widget() {
 
         if ((!this.checklists) || (!this.checklists.length)) {
-            this.checklists = await ModuleDAO.getInstance().getVos<CheckListVO>(CheckListVO.API_TYPE_ID);
+            this.checklists = await query(CheckListVO.API_TYPE_ID).select_vos<CheckListVO>();
             this.checklists_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(this.checklists);
         }
 

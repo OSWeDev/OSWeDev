@@ -16,6 +16,7 @@ import './YearFilterWidgetComponent.scss';
 import YearFilterWidgetOptions from './options/YearFilterWidgetOptions';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import { cloneDeep, isEqual } from 'lodash';
 
 @Component({
     template: require('./YearFilterWidgetComponent.pug'),
@@ -42,6 +43,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
     private auto_select_year_relative_mode: boolean = null;
     private auto_select_year_min: number = null;
     private auto_select_year_max: number = null;
+    private old_widget_options: YearFilterWidgetOptions = null;
 
     private switch_selection(i: string) {
         this.selected_years[i] = !this.selected_years[i];
@@ -263,6 +265,13 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
 
     @Watch('widget_options', { immediate: true })
     private onchange_widget_options() {
+        if (!!this.old_widget_options) {
+            if (isEqual(this.widget_options, this.old_widget_options)) {
+                return;
+            }
+        }
+
+        this.old_widget_options = cloneDeep(this.widget_options);
 
         /**
          * Si on change la conf de auto_select on veut réinit le filtre (on est en modif donc et on vient de changer la conf on veut voir l'impact)

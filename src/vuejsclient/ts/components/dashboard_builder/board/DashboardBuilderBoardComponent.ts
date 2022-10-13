@@ -118,17 +118,22 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
             return;
         }
 
+        let has_diff_json_options: boolean = (this.editable_dashboard_page.layout[i]['json_options'] != widget.json_options) ? true : false;
+
         this.editable_dashboard_page.layout[i] = widget;
 
-        let res_key: number = -1;
+        // On va forcer le rechargement que si on modifie réellement les options
+        if (has_diff_json_options) {
+            let res_key: number = -1;
 
-        if (this.item_key[widget.id] != null) {
-            res_key = this.item_key[widget.id];
+            if (this.item_key[widget.id] != null) {
+                res_key = this.item_key[widget.id];
+            }
+
+            res_key++;
+
+            Vue.set(this.item_key, widget.id, res_key);
         }
-
-        res_key++;
-
-        Vue.set(this.item_key, widget.id, res_key);
     }
 
     @Watch("dashboard_page", { immediate: true })

@@ -1,20 +1,17 @@
 import cloneDeep = require('lodash/cloneDeep');
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
-import DAG from '../../../shared/modules/Var/graph/dagbase/DAG';
 import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import MainAggregateOperatorsHandlers from '../../../shared/modules/Var/MainAggregateOperatorsHandlers';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
+import ConfigurationService from '../../env/ConfigurationService';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
-import PerfMonConfController from '../PerfMon/PerfMonConfController';
-import PerfMonServerController from '../PerfMon/PerfMonServerController';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import VarsComputeController from './VarsComputeController';
 import VarsDatasProxy from './VarsDatasProxy';
-import VarsPerfMonServerController from './VarsPerfMonServerController';
 import VarsServerController from './VarsServerController';
 
 export default abstract class VarServerControllerBase<TData extends VarDataBaseVO> {
@@ -71,7 +68,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
         res.estimated_ctree_ddeps_load_imports_and_split_nodes_1k_card = 0.001;
         res.estimated_ctree_ddeps_try_load_cache_complet_1k_card = 0.001;
         res.estimated_ctree_ddeps_try_load_cache_partiel_1k_card = 0.001;
-        res.estimated_load_nodes_datas_1k_card = 0.001;
+        res.estimated_load_node_datas_1k_card = 0.001;
         return res;
     }
 
@@ -103,35 +100,26 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      */
     public async computeValue(varDAGNode: VarDAGNode) {
 
-        await PerfMonServerController.getInstance().monitor_async(
-            PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarServerControllerBase__computeValue],
-            async () => {
+        let value: number;
+        if (varDAGNode.is_aggregator) {
 
-                let value: number;
-                if (varDAGNode.is_aggregator) {
+            let values: number[] = [];
 
-                    let values: number[] = [];
+            for (let i in varDAGNode.outgoing_deps) {
+                let dep = varDAGNode.outgoing_deps[i];
 
-                    for (let i in varDAGNode.outgoing_deps) {
-                        let dep = varDAGNode.outgoing_deps[i];
+                values.push((dep.outgoing_node as VarDAGNode).var_data.value);
+            }
+            value = this.aggregateValues(values);
+        } else {
 
-                        values.push((dep.outgoing_node as VarDAGNode).var_data.value);
-                    }
-                    value = this.aggregateValues(values);
-                } else {
+            value = this.getValue(varDAGNode);
+        }
 
-                    value = this.getValue(varDAGNode);
-                }
-
-                varDAGNode.var_data.value = value;
-                varDAGNode.var_data.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
-                varDAGNode.var_data.value_ts = Dates.now();
-                await VarsDatasProxy.getInstance().update_existing_buffered_older_datas([varDAGNode.var_data], 'computeValue');
-            },
-            this,
-            null,
-            VarsPerfMonServerController.getInstance().generate_pmlinfos_from_node(varDAGNode)
-        );
+        varDAGNode.var_data.value = value;
+        varDAGNode.var_data.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
+        varDAGNode.var_data.value_ts = Dates.now();
+        await VarsDatasProxy.getInstance().update_existing_buffered_older_datas([varDAGNode.var_data], 'computeValue');
     }
 
     /**
@@ -164,6 +152,74 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      */
     public UT__getValue(param: TData, datasources_values: { [ds_name: string]: any } = null, deps_values: { [dep_id: string]: number } = null): number {
         return this.getValue(this.UT__getTestVarDAGNode(param, datasources_values, deps_values));
+    }
+
+    /**
+     * On ajoute une fonction qui prend toutes les modifs en cours, pour permettre des optis sur les vars sur des grands nombres de modifs concomittentes
+     */
+    public async get_invalid_params_intersectors_on_POST_C_POST_D_group(c_or_d_vos: IDistantVOBase[]): Promise<TData[]> {
+        let intersectors_by_index: { [index: string]: TData } = {};
+
+        /**
+         * On peut pas les mettre en // ?
+         */
+        let promises = [];
+        let limit = ConfigurationService.getInstance().node_configuration.MAX_POOL / 3;
+
+        for (let k in c_or_d_vos) {
+            let vo_create_or_delete = c_or_d_vos[k];
+
+            if (promises.length >= limit) {
+                await Promise.all(promises);
+                promises = [];
+            }
+
+            promises.push((async () => {
+                let tmp = await this.get_invalid_params_intersectors_on_POST_C_POST_D(vo_create_or_delete);
+                if ((!tmp) || (!tmp.length)) {
+                    return;
+                }
+                tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
+            })());
+        }
+
+        await Promise.all(promises);
+
+        return Object.values(intersectors_by_index);
+    }
+
+    /**
+     * On ajoute une fonction qui prend toutes les modifs en cours, pour permettre des optis sur les vars sur des grands nombres de modifs concomittentes
+     */
+    public async get_invalid_params_intersectors_on_POST_U_group<T extends IDistantVOBase>(u_vo_holders: Array<DAOUpdateVOHolder<T>>): Promise<TData[]> {
+        let intersectors_by_index: { [index: string]: TData } = {};
+
+        /**
+         * On peut pas les mettre en // ?
+         */
+        let promises = [];
+        let limit = ConfigurationService.getInstance().node_configuration.MAX_POOL / 3;
+
+        for (let k in u_vo_holders) {
+            let u_vo_holder = u_vo_holders[k];
+
+            if (promises.length >= limit) {
+                await Promise.all(promises);
+                promises = [];
+            }
+
+            promises.push((async () => {
+                let tmp = await this.get_invalid_params_intersectors_on_POST_U(u_vo_holder);
+                if ((!tmp) || (!tmp.length)) {
+                    return;
+                }
+                tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
+            })());
+        }
+
+        await Promise.all(promises);
+
+        return Object.values(intersectors_by_index);
     }
 
     /**
@@ -211,7 +267,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      * @param deps_values les valeurs des deps, par id de dep
      */
     private UT__getTestVarDAGNode(param: TData, datasources: { [ds_name: string]: any } = null, deps_values: { [dep_id: string]: number } = null): VarDAGNode {
-        let dag: VarDAG = new VarDAG(null);
+        let dag: VarDAG = new VarDAG();
         let varDAGNode: VarDAGNode = VarDAGNode.getInstance(dag, param, VarsComputeController, false);
 
         if (!varDAGNode) {

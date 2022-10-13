@@ -116,10 +116,20 @@ export default class TimestampInputComponent extends VueComponentBase {
     @Watch('date')
     @Watch('date_time')
     private emitInput(): void {
+
+        let old_new = this.new_value;
         this.reload_new_value();
 
-        this.$emit('input', this.new_value);
+        /**
+         * On check que c'est bien une nouvelle value
+         */
+        let old_value = this.vo ? this.vo[this.field.datatable_field_uid] : null;
+        if (old_value == this.new_value) {
+            this.new_value = old_new;
+            return;
+        }
 
+        this.$emit('input', this.new_value);
         if (!!this.vo) {
             this.$emit('input_with_infos', this.new_value, this.field, this.vo);
         }

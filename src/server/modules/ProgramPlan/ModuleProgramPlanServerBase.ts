@@ -9,7 +9,7 @@ import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapp
 import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
-import ContextQueryVO from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
@@ -24,6 +24,7 @@ import DefaultTranslationManager from '../../../shared/modules/Translation/Defau
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import TimeSegmentHandler from '../../../shared/tools/TimeSegmentHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -209,56 +210,73 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             'fr-fr': 'ProgramPlan - ' + this.programplan_shared_module.name
         }));
 
-        let bo_access: AccessPolicyVO = new AccessPolicyVO();
-        bo_access.group_id = group.id;
-        bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        bo_access.translatable_name = this.programplan_shared_module.POLICY_BO_ACCESS;
-        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
-            'fr-fr': 'Administration du ProgramPlan - ' + this.programplan_shared_module.name
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
-        let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
-        admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
-        admin_access_dependency.src_pol_id = bo_access.id;
-        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
-        await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
+        let promises = [];
+        promises.push((async () => {
+            let bo_access: AccessPolicyVO = new AccessPolicyVO();
+            bo_access.group_id = group.id;
+            bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            bo_access.translatable_name = this.programplan_shared_module.POLICY_BO_ACCESS;
+            bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
+                'fr-fr': 'Administration du ProgramPlan - ' + this.programplan_shared_module.name
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+            let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+            admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+            admin_access_dependency.src_pol_id = bo_access.id;
+            admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
+            await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
+        })());
 
         let fo_access: AccessPolicyVO = new AccessPolicyVO();
-        fo_access.group_id = group.id;
-        fo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        fo_access.translatable_name = this.programplan_shared_module.POLICY_FO_ACCESS;
-        fo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_access, new DefaultTranslation({
-            'fr-fr': 'Accès au ProgramPlan - ' + this.programplan_shared_module.name
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        promises.push((async () => {
+            fo_access.group_id = group.id;
+            fo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            fo_access.translatable_name = this.programplan_shared_module.POLICY_FO_ACCESS;
+            fo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_access, new DefaultTranslation({
+                'fr-fr': 'Accès au ProgramPlan - ' + this.programplan_shared_module.name
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        })());
 
         let fo_see_fc: AccessPolicyVO = new AccessPolicyVO();
-        fo_see_fc.group_id = group.id;
-        fo_see_fc.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        fo_see_fc.translatable_name = this.programplan_shared_module.POLICY_FO_SEE_FC;
-        fo_see_fc = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_see_fc, new DefaultTranslation({
-            'fr-fr': 'Vision calendrier du ProgramPlan - ' + this.programplan_shared_module.name
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
-        let front_access_dependency_seefc: PolicyDependencyVO = new PolicyDependencyVO();
-        front_access_dependency_seefc.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
-        front_access_dependency_seefc.src_pol_id = fo_see_fc.id;
-        front_access_dependency_seefc.depends_on_pol_id = fo_access.id;
-        await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(front_access_dependency_seefc);
-
+        promises.push((async () => {
+            fo_see_fc.group_id = group.id;
+            fo_see_fc.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            fo_see_fc.translatable_name = this.programplan_shared_module.POLICY_FO_SEE_FC;
+            fo_see_fc = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_see_fc, new DefaultTranslation({
+                'fr-fr': 'Vision calendrier du ProgramPlan - ' + this.programplan_shared_module.name
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        })());
 
         let fo_edit: AccessPolicyVO = new AccessPolicyVO();
-        fo_edit.group_id = group.id;
-        fo_edit.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        fo_edit.translatable_name = this.programplan_shared_module.POLICY_FO_EDIT;
-        fo_edit = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_edit, new DefaultTranslation({
-            'fr-fr': 'Edition du ProgramPlan - ' + this.programplan_shared_module.name
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
-        let front_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
-        front_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
-        front_access_dependency.src_pol_id = fo_edit.id;
-        front_access_dependency.depends_on_pol_id = fo_access.id;
-        await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(front_access_dependency);
+        promises.push((async () => {
+            fo_edit.group_id = group.id;
+            fo_edit.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            fo_edit.translatable_name = this.programplan_shared_module.POLICY_FO_EDIT;
+            fo_edit = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_edit, new DefaultTranslation({
+                'fr-fr': 'Edition du ProgramPlan - ' + this.programplan_shared_module.name
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        })());
 
-        await this.registerFrontVisibilityAccessPolicies(group, fo_access);
-        await this.registerFrontEditionAccessPolicies(group, fo_edit);
+        await Promise.all(promises);
+        promises = [];
+
+        promises.push((async () => {
+            let front_access_dependency_seefc: PolicyDependencyVO = new PolicyDependencyVO();
+            front_access_dependency_seefc.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+            front_access_dependency_seefc.src_pol_id = fo_see_fc.id;
+            front_access_dependency_seefc.depends_on_pol_id = fo_access.id;
+            await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(front_access_dependency_seefc);
+        })());
+
+        promises.push((async () => {
+            let front_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+            front_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+            front_access_dependency.src_pol_id = fo_edit.id;
+            front_access_dependency.depends_on_pol_id = fo_access.id;
+            await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(front_access_dependency);
+        })());
+        promises.push(this.registerFrontVisibilityAccessPolicies(group, fo_access));
+        promises.push(this.registerFrontEditionAccessPolicies(group, fo_edit));
+        await Promise.all(promises);
     }
 
     public async getPrepsOfProgramSegment(program_id: number, timeSegment: TimeSegment): Promise<IPlanRDVPrep[]> {
@@ -298,16 +316,17 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
         if (!this.programplan_shared_module.program_type_id) {
 
-            return await ModuleDAOServer.getInstance().selectAll<IPlanRDV>(
-                this.programplan_shared_module.rdv_type_id,
-                ' where start_time < $2 and end_time >= $1',
-                [start_time, end_time]);
+            return await query(this.programplan_shared_module.rdv_type_id)
+                .filter_by_date_before('start_time', end_time)
+                .filter_by_date_same_or_after('end_time', start_time)
+                .select_vos<IPlanRDV>();
         }
 
-        return await ModuleDAOServer.getInstance().selectAll<IPlanRDV>(
-            this.programplan_shared_module.rdv_type_id,
-            ' where start_time < $2 and end_time >= $1 and program_id = $3',
-            [start_time, end_time, program_id]);
+        return await query(this.programplan_shared_module.rdv_type_id)
+            .filter_by_date_before('start_time', end_time)
+            .filter_by_date_same_or_after('end_time', start_time)
+            .filter_by_num_eq('program_id', program_id)
+            .select_vos<IPlanRDV>();
     }
 
     private async registerFrontVisibilityAccessPolicies(group: AccessPolicyGroupVO, fo_access: AccessPolicyVO) {
@@ -426,12 +445,12 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         let is_own_facilitators_manager_filter: ContextFilterVO = new ContextFilterVO();
         is_own_facilitators_manager_filter.field_id = 'user_id';
         is_own_facilitators_manager_filter.vo_type = this.programplan_shared_module.manager_type_id;
-        is_own_facilitators_manager_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+        is_own_facilitators_manager_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
         is_own_facilitators_manager_filter.param_numeric = loggedUserId;
 
         let is_own_facilitator_filter: ContextFilterVO = new ContextFilterVO();
         is_own_facilitator_filter.field_id = 'user_id';
-        is_own_facilitator_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+        is_own_facilitator_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
         is_own_facilitator_filter.param_numeric = loggedUserId;
         is_own_facilitator_filter.vo_type = moduletable.vo_type;
 
@@ -493,12 +512,12 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         let is_own_facilitators_manager_filter: ContextFilterVO = new ContextFilterVO();
         is_own_facilitators_manager_filter.field_id = 'user_id';
         is_own_facilitators_manager_filter.vo_type = this.programplan_shared_module.facilitator_type_id;
-        is_own_facilitators_manager_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+        is_own_facilitators_manager_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
         is_own_facilitators_manager_filter.param_numeric = loggedUserId;
 
         let is_own_manager_filter: ContextFilterVO = new ContextFilterVO();
         is_own_manager_filter.field_id = 'user_id';
-        is_own_manager_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+        is_own_manager_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
         is_own_manager_filter.param_numeric = loggedUserId;
         is_own_manager_filter.vo_type = moduletable.vo_type;
 
@@ -721,7 +740,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         let is_own_facilitators_rdv_filter: ContextFilterVO = new ContextFilterVO();
         is_own_facilitators_rdv_filter.field_id = 'user_id';
         is_own_facilitators_rdv_filter.vo_type = this.programplan_shared_module.facilitator_type_id;
-        is_own_facilitators_rdv_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+        is_own_facilitators_rdv_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
         is_own_facilitators_rdv_filter.param_numeric = loggedUserId;
 
         let res: ContextQueryVO = new ContextQueryVO();
@@ -750,7 +769,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         let res: IPlanRDV[] = [];
 
         let facilitators_by_ids: { [id: number]: IPlanFacilitator } = VOsTypesManager.getInstance().vosArray_to_vosByIds(
-            await ModuleDAO.getInstance().getVos<IPlanFacilitator>(this.programplan_shared_module.facilitator_type_id)
+            await query(this.programplan_shared_module.facilitator_type_id).select_vos<IPlanFacilitator>()
         );
         for (let i in vos) {
             let vo = vos[i];
@@ -821,7 +840,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         let res = [];
 
         let rdvs_by_ids: { [id: number]: IPlanRDV } = VOsTypesManager.getInstance().vosArray_to_vosByIds(
-            await ModuleDAO.getInstance().getVos<IPlanRDV>(this.programplan_shared_module.rdv_type_id)
+            await query(this.programplan_shared_module.rdv_type_id).select_vos<IPlanRDV>()
         );
         for (let i in vos) {
             let vo = vos[i];

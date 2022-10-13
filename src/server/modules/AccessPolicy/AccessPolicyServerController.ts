@@ -6,6 +6,7 @@ import RolePolicyVO from '../../../shared/modules/AccessPolicy/vos/RolePolicyVO'
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleVO from '../../../shared/modules/ModuleVO';
@@ -105,7 +106,7 @@ export default class AccessPolicyServerController {
     public async preload_registered_roles_policies() {
         this.registered_roles_policies = {};
 
-        let rolesPolicies: RolePolicyVO[] = await ModuleDAO.getInstance().getVos<RolePolicyVO>(RolePolicyVO.API_TYPE_ID);
+        let rolesPolicies: RolePolicyVO[] = await query(RolePolicyVO.API_TYPE_ID).select_vos<RolePolicyVO>();
         for (let i in rolesPolicies) {
             let rolePolicy: RolePolicyVO = rolesPolicies[i];
 
@@ -203,7 +204,7 @@ export default class AccessPolicyServerController {
     public async preload_registered_users_roles() {
         this.registered_users_roles = {};
 
-        let usersRoles: UserRoleVO[] = await ModuleDAO.getInstance().getVos<UserRoleVO>(UserRoleVO.API_TYPE_ID);
+        let usersRoles: UserRoleVO[] = await query(UserRoleVO.API_TYPE_ID).select_vos<UserRoleVO>();
         for (let i in usersRoles) {
             let userRole: UserRoleVO = usersRoles[i];
 
@@ -219,7 +220,7 @@ export default class AccessPolicyServerController {
         // Normalement à ce stade toutes les déclarations sont en BDD, on clear et on reload bêtement
         this.clean_registered_roles();
 
-        let roles: RoleVO[] = await ModuleDAO.getInstance().getVos<RoleVO>(RoleVO.API_TYPE_ID);
+        let roles: RoleVO[] = await query(RoleVO.API_TYPE_ID).select_vos<RoleVO>();
         for (let i in roles) {
             let role: RoleVO = roles[i];
 
@@ -241,7 +242,7 @@ export default class AccessPolicyServerController {
         // Normalement à ce stade toutes les déclarations sont en BDD, on clear et on reload bêtement
         this.clean_registered_policies();
 
-        let policies: AccessPolicyVO[] = await ModuleDAO.getInstance().getVos<AccessPolicyVO>(AccessPolicyVO.API_TYPE_ID);
+        let policies: AccessPolicyVO[] = await query(AccessPolicyVO.API_TYPE_ID).select_vos<AccessPolicyVO>();
         for (let i in policies) {
             let policy: AccessPolicyVO = policies[i];
 
@@ -257,7 +258,7 @@ export default class AccessPolicyServerController {
         // Normalement à ce stade toutes les déclarations sont en BDD, on clear et on reload bêtement
         this.registered_dependencies = {};
 
-        let dependencies: PolicyDependencyVO[] = await ModuleDAO.getInstance().getVos<PolicyDependencyVO>(PolicyDependencyVO.API_TYPE_ID);
+        let dependencies: PolicyDependencyVO[] = await query(PolicyDependencyVO.API_TYPE_ID).select_vos<PolicyDependencyVO>();
         for (let i in dependencies) {
             let dependency: PolicyDependencyVO = dependencies[i];
 
@@ -657,7 +658,21 @@ export default class AccessPolicyServerController {
             }
         }
 
-        let roleFromBDD: RoleVO = await ModuleDAOServer.getInstance().selectOne<RoleVO>(RoleVO.API_TYPE_ID, "where translatable_name = $1", [role.translatable_name]);
+        let roleFromBDD: RoleVO = null;
+        try {
+            roleFromBDD = await query(RoleVO.API_TYPE_ID).filter_by_text_eq('translatable_name', role.translatable_name).select_vo<RoleVO>();
+        } catch (error) {
+            if (error.message == 'Multiple results on select_vo is not allowed') {
+                // Gestion cas duplication qui n'a aucun impact au fond faut juste vider et recréer
+                ConsoleHandler.getInstance().error('Duplicate role ' + role.translatable_name + ' detected, deleting it');
+                let vos = await query(RoleVO.API_TYPE_ID).filter_by_text_eq('translatable_name', role.translatable_name).select_vos<RoleVO>();
+                await ModuleDAO.getInstance().deleteVOs(vos);
+                roleFromBDD = null;
+            } else {
+                throw error;
+            }
+        }
+
         if (roleFromBDD) {
             this.registered_roles[translatable_name] = roleFromBDD;
             this.registered_roles_by_ids[roleFromBDD.id] = roleFromBDD;
@@ -701,7 +716,20 @@ export default class AccessPolicyServerController {
             DefaultTranslationManager.getInstance().registerDefaultTranslation(default_translation);
         }
 
-        let groupFromBDD: AccessPolicyGroupVO = await ModuleDAOServer.getInstance().selectOne<AccessPolicyGroupVO>(AccessPolicyGroupVO.API_TYPE_ID, "where translatable_name = $1", [group.translatable_name]);
+        let groupFromBDD: AccessPolicyGroupVO = null;
+        try {
+            groupFromBDD = await query(AccessPolicyGroupVO.API_TYPE_ID).filter_by_text_eq('translatable_name', group.translatable_name).select_vo<AccessPolicyGroupVO>();
+        } catch (error) {
+            if (error.message == 'Multiple results on select_vo is not allowed') {
+                // Gestion cas duplication qui n'a aucun impact au fond faut juste vider et recréer
+                ConsoleHandler.getInstance().error('Duplicate group ' + group.translatable_name + ' detected, deleting it');
+                let vos = await query(AccessPolicyGroupVO.API_TYPE_ID).filter_by_text_eq('translatable_name', group.translatable_name).select_vos<AccessPolicyGroupVO>();
+                await ModuleDAO.getInstance().deleteVOs(vos);
+                groupFromBDD = null;
+            } else {
+                throw error;
+            }
+        }
         if (groupFromBDD) {
             this.registered_policy_groups[translatable_name] = groupFromBDD;
             return groupFromBDD;
@@ -749,7 +777,22 @@ export default class AccessPolicyServerController {
             DefaultTranslationManager.getInstance().registerDefaultTranslation(default_translation);
         }
 
-        let policyFromBDD: AccessPolicyVO = await ModuleDAOServer.getInstance().selectOne<AccessPolicyVO>(AccessPolicyVO.API_TYPE_ID, "where translatable_name = $1", [policy.translatable_name]);
+        let policyFromBDD: AccessPolicyVO = null;
+        try {
+            policyFromBDD = await query(AccessPolicyVO.API_TYPE_ID).filter_by_text_eq('translatable_name', policy.translatable_name).select_vo<AccessPolicyVO>();
+        } catch (error) {
+            if (error.message == 'Multiple results on select_vo is not allowed') {
+                // Gestion cas duplication qui n'a aucun impact au fond faut juste vider et recréer
+                ConsoleHandler.getInstance().error('Duplicate policy ' + policy.translatable_name + ' detected, deleting it');
+                let vos = await query(AccessPolicyVO.API_TYPE_ID).filter_by_text_eq('translatable_name', policy.translatable_name).select_vos<AccessPolicyVO>();
+                await ModuleDAO.getInstance().deleteVOs(vos);
+                ConsoleHandler.getInstance().error('Duplicate policy ' + policy.translatable_name + ' detected, deleted');
+                policyFromBDD = null;
+            } else {
+                throw error;
+            }
+        }
+
         if (policyFromBDD) {
 
             // On vérifie les champs tout de même pour prendre en compte les modifs qui ont pu intervenir dans la définition du droit
@@ -807,7 +850,20 @@ export default class AccessPolicyServerController {
             this.registered_dependencies[dependency.src_pol_id] = [];
         }
 
-        let dependencyFromBDD: PolicyDependencyVO = await ModuleDAOServer.getInstance().selectOne<PolicyDependencyVO>(PolicyDependencyVO.API_TYPE_ID, "where src_pol_id = $1 and depends_on_pol_id = $2", [dependency.src_pol_id, dependency.depends_on_pol_id]);
+        let dependencyFromBDD: PolicyDependencyVO = null;
+        try {
+            dependencyFromBDD = await query(PolicyDependencyVO.API_TYPE_ID).filter_by_num_eq('src_pol_id', dependency.src_pol_id).filter_by_num_eq('depends_on_pol_id', dependency.depends_on_pol_id).select_vo<PolicyDependencyVO>();
+        } catch (error) {
+            if (error.message == 'Multiple results on select_vo is not allowed') {
+                // Gestion cas duplication de dépendance qui n'a aucun impact au fond faut juste vider et recréer
+                ConsoleHandler.getInstance().error('Duplicate policy dependency ' + dependency.src_pol_id + ' -> ' + dependency.depends_on_pol_id + ' detected, deleting it');
+                let vos = await query(PolicyDependencyVO.API_TYPE_ID).filter_by_num_eq('src_pol_id', dependency.src_pol_id).filter_by_num_eq('depends_on_pol_id', dependency.depends_on_pol_id).select_vos<PolicyDependencyVO>();
+                await ModuleDAO.getInstance().deleteVOs(vos);
+                dependencyFromBDD = null;
+            } else {
+                throw error;
+            }
+        }
         if (dependencyFromBDD) {
             this.registered_dependencies[dependency.src_pol_id].push(dependencyFromBDD);
             return dependencyFromBDD;

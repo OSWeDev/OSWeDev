@@ -3,6 +3,7 @@ import ModuleAccessPolicy from '../shared/modules/AccessPolicy/ModuleAccessPolic
 import RoleVO from '../shared/modules/AccessPolicy/vos/RoleVO';
 import UserVO from '../shared/modules/AccessPolicy/vos/UserVO';
 import CacheInvalidationRulesVO from '../shared/modules/AjaxCache/vos/CacheInvalidationRulesVO';
+import { query } from '../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
 import ModuleFeedback from '../shared/modules/Feedback/ModuleFeedback';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
@@ -72,20 +73,9 @@ export default abstract class VueAppController {
             await MenuController.getInstance().reload_from_db();
         })());
 
-        promises.push((async () => {
-            self.ALL_LANGS = await ModuleDAO.getInstance().getVos<LangVO>(LangVO.API_TYPE_ID);
-        })());
-
-        promises.push((async () => {
-            datas = JSON.parse(await AjaxCacheClientController.getInstance().get(null, '/api/clientappcontrollerinit', CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED) as string);
-        })());
 
         promises.push((async () => {
             self.data_user_roles = await ModuleAccessPolicy.getInstance().getMyRoles();
-        })());
-
-        promises.push((async () => {
-            self.ALL_LOCALES = await ModuleTranslation.getInstance().getALL_LOCALES();
         })());
 
         if (ModuleTranslation.getInstance().actif) {
@@ -101,19 +91,100 @@ export default abstract class VueAppController {
         }
 
         promises.push((async () => {
-            self.SERVER_HEADERS = JSON.parse(await AjaxCacheClientController.getInstance().get(null, '/api/reflect_headers?v=' + Date.now(), CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED) as string);
-        })());
 
-        promises.push((async () => {
-            self.data_user_lang = await ModuleAccessPolicy.getInstance().getMyLang();
+            let innerpromises = [];
+            innerpromises.push((async () => {
+                self.SERVER_HEADERS = JSON.parse(await AjaxCacheClientController.getInstance().get(
+                    null, '/api/reflect_headers?v=' + Date.now(), CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED) as string);
+            })());
+            innerpromises.push((async () => {
+                self.ALL_LANGS = await query(LangVO.API_TYPE_ID).select_vos<LangVO>();
+            })());
+            innerpromises.push((async () => {
+                self.data_user_lang = await ModuleAccessPolicy.getInstance().getMyLang();
+            })());
+            innerpromises.push((async () => {
+                datas = JSON.parse(await AjaxCacheClientController.getInstance().get(null, '/api/clientappcontrollerinit', CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED) as string);
+                self.data_user = (!!datas.data_user) ? datas.data_user : null;
+                self.data_ui_debug = datas.data_ui_debug;
+                self.data_default_locale = datas.data_default_locale;
+            })());
+            await Promise.all(innerpromises);
+
+            let accepted_language: string = self.SERVER_HEADERS['accept-language'];
+            if (accepted_language) {
+                accepted_language = accepted_language.split(";")[0].split(",")[0].split("-")[0];
+            }
+
+            let user_lang = self.data_user_lang ? self.data_user_lang.code_lang : null;
+
+            let language_found = false;
+            if (!!user_lang) {
+                let filtered = self.try_language(user_lang);
+
+                if (filtered) {
+                    LocaleManager.getInstance().setDefaultLocale(filtered);
+                    language_found = true;
+                }
+            }
+
+            if ((!language_found) && accepted_language) {
+                let filtered = self.try_language(accepted_language);
+
+                if (filtered) {
+                    LocaleManager.getInstance().setDefaultLocale(filtered);
+                    language_found = true;
+                }
+            }
+
+            if ((!language_found) && navigator.language) {
+                let filtered = self.try_language(navigator.language);
+
+                if (filtered) {
+                    LocaleManager.getInstance().setDefaultLocale(filtered);
+                    language_found = true;
+                }
+            }
+
+            if ((!language_found) && self.data_default_locale) {
+                let filtered = self.try_language(self.data_default_locale);
+
+                if (filtered) {
+                    LocaleManager.getInstance().setDefaultLocale(filtered);
+                    language_found = true;
+                }
+            }
+
+            if (!language_found) {
+                LocaleManager.getInstance().setDefaultLocale('fr-fr');
+            }
+
+            await self.initializeFlatLocales();
+            self.ALL_LOCALES = {};
+
+            self.ALL_LOCALES[LocaleManager.getInstance().getDefaultLocale()] = {};
+            for (let code_text in self.ALL_FLAT_LOCALE_TRANSLATIONS) {
+                let translation = self.ALL_FLAT_LOCALE_TRANSLATIONS[code_text];
+
+                let code_text_split = code_text.split('.');
+
+                let current = self.ALL_LOCALES[LocaleManager.getInstance().getDefaultLocale()];
+                for (let j in code_text_split) {
+                    let code_text_split_j = code_text_split[j];
+
+                    if (parseInt(j) == (code_text_split.length - 1)) {
+                        current[code_text_split_j] = translation;
+                    } else {
+                        if (!current[code_text_split_j]) {
+                            current[code_text_split_j] = {};
+                        }
+                        current = current[code_text_split_j];
+                    }
+                }
+            }
         })());
 
         await Promise.all(promises);
-
-        this.data_user = (!!datas.data_user) ? datas.data_user : null;
-        this.data_ui_debug = datas.data_ui_debug;
-        // this.data_base_api_url = datas.data_base_api_url;
-        this.data_default_locale = datas.data_default_locale;
     }
 
     public check_is_mobile(): boolean {
@@ -161,5 +232,40 @@ export default abstract class VueAppController {
             '});' +
             '</script>'
         );
+    }
+
+    private try_language(code_lang: string): string {
+        /**
+         * On tente de filtrer sur les langs existantes
+         */
+        if (!code_lang) {
+            return null;
+        }
+
+        let code_lang_separator = (code_lang.indexOf('-') > 0) ? '-' : '_';
+
+        let exact = null;
+        let start_exact = null;
+        let code_lang_start = (code_lang && (code_lang.indexOf(code_lang_separator) > 0)) ? code_lang.split(code_lang_separator)[0] : code_lang;
+        for (let i in this.ALL_LANGS) {
+            let lang = this.ALL_LANGS[i];
+
+            if (lang.code_lang.toLowerCase() == code_lang.toLowerCase()) {
+                exact = lang;
+                break;
+            }
+
+            let lang_code_lang_separator = (lang.code_lang.indexOf('-') > 0) ? '-' : '_';
+            let lang_start = (lang.code_lang && (lang.code_lang.indexOf(lang_code_lang_separator) > 0)) ? lang.code_lang.split(lang_code_lang_separator)[0] : lang.code_lang;
+            if (lang_start.toLowerCase() == code_lang_start.toLowerCase()) {
+                start_exact = lang;
+            }
+        }
+
+        if (exact) {
+            return exact.code_lang.toLowerCase();
+        } else if (start_exact) {
+            return start_exact.code_lang.toLowerCase();
+        }
     }
 }

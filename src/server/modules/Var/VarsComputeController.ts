@@ -19,18 +19,16 @@ import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ConfigurationService from '../../env/ConfigurationService';
-import PerfMonConfController from '../PerfMon/PerfMonConfController';
-import PerfMonServerController from '../PerfMon/PerfMonServerController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import DataSourcesController from './datasource/DataSourcesController';
 import NotifVardatasParam from './notifs/NotifVardatasParam';
+import PixelVarDataController from './PixelVarDataController';
 import SlowVarKiHandler from './SlowVarKi/SlowVarKiHandler';
 import VarDagPerfsServerController from './VarDagPerfsServerController';
 import VarsCacheController from './VarsCacheController';
 import VarsDatasProxy from './VarsDatasProxy';
 import VarsImportsHandler from './VarsImportsHandler';
-import VarsPerfMonServerController from './VarsPerfMonServerController';
 import VarsServerCallBackSubsController from './VarsServerCallBackSubsController';
 import VarsServerController from './VarsServerController';
 import VarsTabsSubsController from './VarsTabsSubsController';
@@ -166,7 +164,7 @@ export default class VarsComputeController {
         return res;
     }
 
-    public get_estimated_load_nodes_datas(var_dag_node: VarDAGNode): number {
+    public get_estimated_load_node_datas(var_dag_node: VarDAGNode): number {
 
         // pas de datasources => 0
         let var_data: VarDataBaseVO = var_dag_node.var_data;
@@ -179,7 +177,7 @@ export default class VarsComputeController {
         }
 
         let res = (MatroidController.getInstance().get_cardinal(var_data) / 1000)
-            * VarsServerController.getInstance().varcacheconf_by_var_ids[var_data.var_id].estimated_load_nodes_datas_1k_card;
+            * VarsServerController.getInstance().varcacheconf_by_var_ids[var_data.var_id].estimated_load_node_datas_1k_card;
         return res;
     }
 
@@ -195,60 +193,52 @@ export default class VarsComputeController {
      */
     public async compute(): Promise<void> {
 
-        // TODO PerfMonServerController monitor_async add infos
-        await PerfMonServerController.getInstance().monitor_async(
-            PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsComputeController__compute],
-            async () => {
+        /**
+         * L'invalidation des vars est faite en amont. On a que des vars à calculer ici, et on a donc "juste" à optimiser les calculs et donc les chargements de datas principalement puisque
+         *  c'est le point le plus lourd potentiellement. Donc l'objectif ça serait d'avoir un cache très malin dans le DataSource qu'on puisse s'assurer de vider entre chaque appel au compute
+         *  donc à la limite un cache externalisé, géré directement par le compute ça peut sembler beaucoup plus intéressant qu'un cache dans le datasource...
+         */
 
-                /**
-                 * L'invalidation des vars est faite en amont. On a que des vars à calculer ici, et on a donc "juste" à optimiser les calculs et donc les chargements de datas principalement puisque
-                 *  c'est le point le plus lourd potentiellement. Donc l'objectif ça serait d'avoir un cache très malin dans le DataSource qu'on puisse s'assurer de vider entre chaque appel au compute
-                 *  donc à la limite un cache externalisé, géré directement par le compute ça peut sembler beaucoup plus intéressant qu'un cache dans le datasource...
-                 */
+        /**
+         * Le cache des datas issues des datasources. Permet juste de s'assurer qu'on recharge pas 15 fois le cache pour un même index de donnée.
+         *  L'index de donnée est défini par le datasource pour indiquer une clé unique de classement des datas dans le cache, et donc si on veut une clé déjà connue, on a pas besoin de redemander au
+         *  datasource, on la récupère directement pour le donner à la var.
+         */
+        VarsdatasComputerBGThread.getInstance().current_batch_ds_cache = {};
 
-                /**
-                 * Le cache des datas issues des datasources. Permet juste de s'assurer qu'on recharge pas 15 fois le cache pour un même index de donnée.
-                 *  L'index de donnée est défini par le datasource pour indiquer une clé unique de classement des datas dans le cache, et donc si on veut une clé déjà connue, on a pas besoin de redemander au
-                 *  datasource, on la récupère directement pour le donner à la var.
-                 */
-                let ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } } = {};
+        // ConsoleHandler.getInstance().log('VarsdatasComputerBGThread compute - create_tree OLD OK (' + (perf_old_end - perf_old_start) + 'ms) ... ' + dag.nb_nodes + ' nodes, ' + Object.keys(dag.leafs).length + ' leafs, ' + Object.keys(dag.roots).length + ' roots');
 
-                // ConsoleHandler.getInstance().log('VarsdatasComputerBGThread compute - create_tree OLD OK (' + (perf_old_end - perf_old_start) + 'ms) ... ' + dag.nb_nodes + ' nodes, ' + Object.keys(dag.leafs).length + ' leafs, ' + Object.keys(dag.roots).length + ' roots');
+        let var_dag: VarDAG = VarsdatasComputerBGThread.getInstance().current_batch_vardag;
 
-                let var_dag: VarDAG = VarsdatasComputerBGThread.getInstance().current_batch_vardag;
+        await this.create_tree_perf_wrapper(var_dag);
 
-                await this.create_tree_perf_wrapper(var_dag, ds_cache);
+        ConsoleHandler.getInstance().log('VarsdatasComputerBGThread compute - ' + var_dag.nb_nodes + ' nodes, ' + Object.keys(var_dag.leafs).length + ' leafs, ' + Object.keys(var_dag.roots).length + ' roots');
 
-                ConsoleHandler.getInstance().log('VarsdatasComputerBGThread compute - ' + var_dag.nb_nodes + ' nodes, ' + Object.keys(var_dag.leafs).length + ' leafs, ' + Object.keys(var_dag.roots).length + ' roots');
+        if (!var_dag.nb_nodes) {
+            var_dag.perfs.compute_node_wrapper.skip_and_update_parents_perfs();
+            var_dag.perfs.load_nodes_datas.skip_and_update_parents_perfs();
+            return;
+        }
 
-                if (!var_dag.nb_nodes) {
-                    var_dag.perfs.compute_node_wrapper.skip_and_update_parents_perfs(var_dag);
-                    var_dag.perfs.load_nodes_datas.skip_and_update_parents_perfs(var_dag);
-                    return;
-                }
+        /**
+         * On a l'arbre. On charge les données qui restent à charger
+         */
+        await this.load_nodes_datas_perf_wrapper(var_dag);
 
-                /**
-                 * On a l'arbre. On charge les données qui restent à charger
-                 */
-                await this.load_nodes_datas_perf_wrapper(var_dag, ds_cache);
+        /**
+         * Tous les noeuds dont le var_data !has_valid_value sont à calculer
+         */
+        await this.compute_perf_wrapper(var_dag);
 
-                /**
-                 * Tous les noeuds dont le var_data !has_valid_value sont à calculer
-                 */
-                await this.compute_perf_wrapper(var_dag);
+        /**
+         * Mise en cache, suivant stratégie pour chaque param
+         */
+        await this.cache_datas_perf_wrapper(var_dag);
 
-                /**
-                 * Mise en cache, suivant stratégie pour chaque param
-                 */
-                await this.cache_datas_perf_wrapper(var_dag);
-
-                /**
-                 * On peut checker que l'arbre a bien été notifié
-                 */
-                await this.check_tree_notification(var_dag);
-            },
-            this,
-        );
+        /**
+         * On peut checker que l'arbre a bien été notifié
+         */
+        await this.check_tree_notification(var_dag);
     }
 
 
@@ -283,7 +273,6 @@ export default class VarsComputeController {
         var_dag: VarDAG,
         deployed_vars_datas: { [index: string]: boolean } = {},
         vars_datas: { [index: string]: VarDataBaseVO } = {},
-        ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } } = {},
         limit_to_aggregated_datas: boolean = false
     ) {
 
@@ -298,12 +287,12 @@ export default class VarsComputeController {
         if ((VarsServerController.getInstance().has_valid_value(node.var_data)) || (node.already_tried_loading_data_and_deploy)) {
             node.successfully_deployed = true;
 
-            node.perfs.ctree_ddeps_try_load_cache_complet.skip_and_update_parents_perfs(var_dag);
-            node.perfs.ctree_ddeps_load_imports_and_split_nodes.skip_and_update_parents_perfs(var_dag);
-            node.perfs.ctree_ddeps_handle_pixellisation.skip_and_update_parents_perfs(var_dag);
-            node.perfs.ctree_ddeps_try_load_cache_partiel.skip_and_update_parents_perfs(var_dag);
-            node.perfs.ctree_ddeps_get_node_deps.skip_and_update_parents_perfs(var_dag);
-            node.perfs.ctree_deploy_deps.skip_and_update_parents_perfs(var_dag);
+            node.perfs.ctree_ddeps_try_load_cache_complet.skip_and_update_parents_perfs();
+            node.perfs.ctree_ddeps_load_imports_and_split_nodes.skip_and_update_parents_perfs();
+            node.perfs.ctree_ddeps_handle_pixellisation.skip_and_update_parents_perfs();
+            node.perfs.ctree_ddeps_try_load_cache_partiel.skip_and_update_parents_perfs();
+            node.perfs.ctree_ddeps_get_node_deps.skip_and_update_parents_perfs();
+            node.perfs.ctree_deploy_deps.skip_and_update_parents_perfs();
             await this.notify_var_data_post_deploy(node);
 
             return;
@@ -311,188 +300,184 @@ export default class VarsComputeController {
         node.already_tried_loading_data_and_deploy = true;
 
         let DEBUG_VARS = ConfigurationService.getInstance().node_configuration.DEBUG_VARS;
-        await PerfMonServerController.getInstance().monitor_async(
-            PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsComputeController__deploy_deps],
-            async () => {
 
-                if (deployed_vars_datas[node.var_data.index]) {
-                    if (!node.successfully_deployed) {
-                        node.successfully_deployed = true;
-                    }
-                    node.perfs.ctree_ddeps_try_load_cache_complet.skip_and_update_parents_perfs(var_dag);
-                    node.perfs.ctree_ddeps_load_imports_and_split_nodes.skip_and_update_parents_perfs(var_dag);
-                    node.perfs.ctree_ddeps_handle_pixellisation.skip_and_update_parents_perfs(var_dag);
-                    node.perfs.ctree_ddeps_try_load_cache_partiel.skip_and_update_parents_perfs(var_dag);
-                    node.perfs.ctree_ddeps_get_node_deps.skip_and_update_parents_perfs(var_dag);
-                    node.perfs.ctree_deploy_deps.skip_and_update_parents_perfs(var_dag);
-                    await this.notify_var_data_post_deploy(node);
+        if (deployed_vars_datas[node.var_data.index]) {
+            if (!node.successfully_deployed) {
+                node.successfully_deployed = true;
+            }
+            node.perfs.ctree_ddeps_try_load_cache_complet.skip_and_update_parents_perfs();
+            node.perfs.ctree_ddeps_load_imports_and_split_nodes.skip_and_update_parents_perfs();
+            node.perfs.ctree_ddeps_handle_pixellisation.skip_and_update_parents_perfs();
+            node.perfs.ctree_ddeps_try_load_cache_partiel.skip_and_update_parents_perfs();
+            node.perfs.ctree_ddeps_get_node_deps.skip_and_update_parents_perfs();
+            node.perfs.ctree_deploy_deps.skip_and_update_parents_perfs();
+            await this.notify_var_data_post_deploy(node);
 
-                    return;
-                }
-                deployed_vars_datas[node.var_data.index] = true;
+            return;
+        }
+        deployed_vars_datas[node.var_data.index] = true;
 
-                let estimated_tree_computation_time_limit = await this.get_estimated_tree_computation_time_limit();
+        let estimated_tree_computation_time_limit = await this.get_estimated_tree_computation_time_limit();
 
-                let batchperf_computation_wrapper_total_estimated_remaining_time = Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.computation_wrapper));
-                let current_computation_wrapper_total_elapsed_time = performance.now() - var_dag.perfs.computation_wrapper.start_time;
+        let batchperf_computation_wrapper_total_estimated_remaining_time = var_dag.perfs ? Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.computation_wrapper)) : 0;
+        let current_computation_wrapper_total_elapsed_time = var_dag.perfs ? performance.now() - var_dag.perfs.computation_wrapper.start_time : 0;
 
-                if ((batchperf_computation_wrapper_total_estimated_remaining_time) && (current_computation_wrapper_total_elapsed_time) && ((batchperf_computation_wrapper_total_estimated_remaining_time + current_computation_wrapper_total_elapsed_time) > estimated_tree_computation_time_limit)) {
-                    if (DEBUG_VARS) {
-                        ConsoleHandler.getInstance().error('BATCH estimated work time (' +
-                            var_dag.perfs.computation_wrapper.updated_estimated_work_time +
-                            ') > limit (' + estimated_tree_computation_time_limit + ')');
+        if ((batchperf_computation_wrapper_total_estimated_remaining_time) && (current_computation_wrapper_total_elapsed_time) && ((batchperf_computation_wrapper_total_estimated_remaining_time + current_computation_wrapper_total_elapsed_time) > estimated_tree_computation_time_limit)) {
+            if (DEBUG_VARS) {
+                ConsoleHandler.getInstance().error('BATCH estimated work time (' +
+                    var_dag.perfs.computation_wrapper.updated_estimated_work_time +
+                    ') > limit (' + estimated_tree_computation_time_limit + ')');
 
-                        var_dag.timed_out = true;
-
-                        /**
-                         * Tous les noeuds qui ne sont pas successfully_deployed doivent être retirés de l'arbre à ce stade et on part en calcul
-                         */
-                        for (let i in var_dag.nodes) {
-                            let unsuccessfully_deployed_node = var_dag.nodes[i];
-
-                            if (!!unsuccessfully_deployed_node.successfully_deployed) {
-                                continue;
-                            }
-
-                            unsuccessfully_deployed_node.unlinkFromDAG();
-                        }
-                        return;
-                    }
-                }
-
-                this.start_node_deploiement(node);
-
-                let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
-                let varconf = VarsController.getInstance().var_conf_by_id[node.var_data.var_id];
+                var_dag.timed_out = true;
 
                 /**
-                 * Cache complet - inutile si on est sur un noeud du vars_datas ou si on a déjà fait le chargement
-                 *  on teste toujours de retrouver un calcul existant
+                 * Tous les noeuds qui ne sont pas successfully_deployed doivent être retirés de l'arbre à ce stade et on part en calcul
                  */
-                if ((!node.already_tried_load_cache_complet) && (!VarsServerController.getInstance().has_valid_value(node.var_data)) && (!vars_datas[node.var_data.index])) {
+                for (let i in var_dag.nodes) {
+                    let unsuccessfully_deployed_node = var_dag.nodes[i];
 
-                    await this.try_load_cache_complet_perf_wrapper(node);
-
-                    if (VarsServerController.getInstance().has_valid_value(node.var_data)) {
-
-                        node.perfs.ctree_ddeps_load_imports_and_split_nodes.skip_and_update_parents_perfs(var_dag);
-                        node.perfs.ctree_ddeps_handle_pixellisation.skip_and_update_parents_perfs(var_dag);
-                        node.perfs.ctree_ddeps_try_load_cache_partiel.skip_and_update_parents_perfs(var_dag);
-                        node.perfs.ctree_ddeps_get_node_deps.skip_and_update_parents_perfs(var_dag);
-                        this.end_node_deploiement(node);
-                        await this.notify_var_data_post_deploy(node);
-                        return;
+                    if (!!unsuccessfully_deployed_node.successfully_deployed) {
+                        continue;
                     }
-                } else {
-                    node.perfs.ctree_ddeps_try_load_cache_complet.skip_and_update_parents_perfs(var_dag);
+
+                    unsuccessfully_deployed_node.unlinkFromDAG();
                 }
+                return;
+            }
+        }
 
-                /**
-                 * On notifie d'un calcul en cours que si on a pas la valeur directement dans le cache ou en base de données
-                 */
-                await VarsTabsSubsController.getInstance().notify_vardatas([new NotifVardatasParam([node.var_data], true)]);
+        this.start_node_deploiement(node);
 
-                /**
-                 * Imports
-                 */
-                if ((!VarsServerController.getInstance().has_valid_value(node.var_data)) && (!controller || !controller.optimization__has_no_imports)) {
+        let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
+        let varconf = VarsController.getInstance().var_conf_by_id[node.var_data.var_id];
 
-                    /**
-                     * On doit essayer de récupérer des données parcellaires
-                     *  si on a des données parcellaires par définition on doit quand même déployer les deps
-                     */
+        /**
+         * Cache complet - inutile si on est sur un noeud du vars_datas ou si on a déjà fait le chargement
+         *  on teste toujours de retrouver un calcul existant
+         */
+        if ((!node.already_tried_load_cache_complet) && (!VarsServerController.getInstance().has_valid_value(node.var_data)) && (!vars_datas[node.var_data.index])) {
 
-                    await this.load_imports_and_split_nodes_perf_wrapper(node);
+            await this.try_load_cache_complet_perf_wrapper(node);
 
-                    if (VarsServerController.getInstance().has_valid_value(node.var_data)) {
+            if (VarsServerController.getInstance().has_valid_value(node.var_data)) {
 
-                        node.perfs.ctree_ddeps_handle_pixellisation.skip_and_update_parents_perfs(var_dag);
-                        node.perfs.ctree_ddeps_try_load_cache_partiel.skip_and_update_parents_perfs(var_dag);
-                        node.perfs.ctree_ddeps_get_node_deps.skip_and_update_parents_perfs(var_dag);
-                        this.end_node_deploiement(node);
-                        await this.notify_var_data_post_deploy(node);
-                        return;
-                    }
-                } else {
-                    node.perfs.ctree_ddeps_load_imports_and_split_nodes.skip_and_update_parents_perfs(var_dag);
-                }
+                node.perfs.ctree_ddeps_load_imports_and_split_nodes.skip_and_update_parents_perfs();
+                node.perfs.ctree_ddeps_handle_pixellisation.skip_and_update_parents_perfs();
+                node.perfs.ctree_ddeps_try_load_cache_partiel.skip_and_update_parents_perfs();
+                node.perfs.ctree_ddeps_get_node_deps.skip_and_update_parents_perfs();
+                this.end_node_deploiement(node);
+                await this.notify_var_data_post_deploy(node);
+                return;
+            }
+        } else {
+            node.perfs.ctree_ddeps_try_load_cache_complet.skip_and_update_parents_perfs();
+        }
 
-                /**
-                 * Cas de la pixellisation qu'on sort des autres types de cache
-                 */
-                if (varconf.pixel_activated) {
+        /**
+         * Imports
+         */
+        if ((!VarsServerController.getInstance().has_valid_value(node.var_data)) && (!controller || !controller.optimization__has_no_imports)) {
 
-                    await this.handle_pixellisation_perf_wrapper(node, varconf, var_dag, limit_to_aggregated_datas, DEBUG_VARS);
-                } else {
+            /**
+             * On doit essayer de récupérer des données parcellaires
+             *  si on a des données parcellaires par définition on doit quand même déployer les deps
+             */
 
-                    node.perfs.ctree_ddeps_handle_pixellisation.skip_and_update_parents_perfs(var_dag);
+            await this.load_imports_and_split_nodes_perf_wrapper(node);
 
-                    /**
-                     * Cache step C : cache partiel : uniquement si on a pas splitt sur import
-                     */
-                    if ((!VarsServerController.getInstance().has_valid_value(node.var_data)) && (!vars_datas[node.var_data.index]) &&
-                        (!node.is_aggregator) &&
-                        (VarsCacheController.getInstance().use_partial_cache(node))) {
+            if (VarsServerController.getInstance().has_valid_value(node.var_data)) {
 
-                        VarDagPerfsServerController.getInstance().start_nodeperfelement(node.perfs.ctree_ddeps_try_load_cache_partiel);
-                        await this.try_load_cache_partiel(node);
-                        VarDagPerfsServerController.getInstance().end_nodeperfelement(node.perfs.ctree_ddeps_try_load_cache_partiel);
+                node.perfs.ctree_ddeps_handle_pixellisation.skip_and_update_parents_perfs();
+                node.perfs.ctree_ddeps_try_load_cache_partiel.skip_and_update_parents_perfs();
+                node.perfs.ctree_ddeps_get_node_deps.skip_and_update_parents_perfs();
+                this.end_node_deploiement(node);
+                await this.notify_var_data_post_deploy(node);
+                return;
+            }
+        } else {
+            node.perfs.ctree_ddeps_load_imports_and_split_nodes.skip_and_update_parents_perfs();
+        }
 
-                        if (VarsServerController.getInstance().has_valid_value(node.var_data)) {
+        /**
+         * Cas de la pixellisation qu'on sort des autres types de cache
+         */
+        if (varconf.pixel_activated) {
 
-                            node.perfs.ctree_ddeps_get_node_deps.skip_and_update_parents_perfs(var_dag);
-                            this.end_node_deploiement(node);
-                            await this.notify_var_data_post_deploy(node);
-                            return;
-                        }
-                    } else {
-                        node.perfs.ctree_ddeps_try_load_cache_partiel.skip_and_update_parents_perfs(var_dag);
-                    }
-                }
+            await this.handle_pixellisation_perf_wrapper(node, varconf, var_dag, limit_to_aggregated_datas, DEBUG_VARS);
 
-                if (limit_to_aggregated_datas) {
+            if (node.successfully_deployed) {
+                return;
+            }
+        } else {
 
-                    // Si on a des données aggrégées elles sont déjà ok à renvoyer si on ne veut que savoir les données aggrégées
-                    node.perfs.ctree_ddeps_get_node_deps.skip_and_update_parents_perfs(var_dag);
+            node.perfs.ctree_ddeps_handle_pixellisation.skip_and_update_parents_perfs();
+
+            /**
+             * Cache step C : cache partiel : uniquement si on a pas splitt sur import
+             */
+            if ((!VarsServerController.getInstance().has_valid_value(node.var_data)) && (!vars_datas[node.var_data.index]) &&
+                (!node.is_aggregator) &&
+                (VarsCacheController.getInstance().use_partial_cache(node))) {
+
+                VarDagPerfsServerController.getInstance().start_nodeperfelement(node.perfs.ctree_ddeps_try_load_cache_partiel);
+                await this.try_load_cache_partiel(node);
+                VarDagPerfsServerController.getInstance().end_nodeperfelement(node.perfs.ctree_ddeps_try_load_cache_partiel);
+
+                if (VarsServerController.getInstance().has_valid_value(node.var_data)) {
+
+                    node.perfs.ctree_ddeps_get_node_deps.skip_and_update_parents_perfs();
                     this.end_node_deploiement(node);
                     await this.notify_var_data_post_deploy(node);
                     return;
                 }
+            } else {
+                node.perfs.ctree_ddeps_try_load_cache_partiel.skip_and_update_parents_perfs();
+            }
+        }
 
-                let deps: { [index: string]: VarDataBaseVO } = await this.get_node_deps_perf_wrapper(node, ds_cache);
+        if (limit_to_aggregated_datas) {
 
-                /**
-                 * Si dans les deps on a un denied, on refuse le tout
-                 */
-                for (let i in deps) {
-                    let dep = deps[i];
+            // Si on a des données aggrégées elles sont déjà ok à renvoyer si on ne veut que savoir les données aggrégées
+            node.perfs.ctree_ddeps_get_node_deps.skip_and_update_parents_perfs();
+            this.end_node_deploiement(node);
+            await this.notify_var_data_post_deploy(node);
+            return;
+        }
 
-                    if (dep.value_type == VarDataBaseVO.VALUE_TYPE_DENIED) {
-                        node.var_data.value_type = VarDataBaseVO.VALUE_TYPE_DENIED;
-                        node.var_data.value = 0;
-                        node.var_data.value_ts = Dates.now();
+        let deps: { [index: string]: VarDataBaseVO } = await this.get_node_deps_perf_wrapper(node);
 
-                        this.end_node_deploiement(node);
-                        await this.notify_var_data_post_deploy(node);
-                        return;
-                    }
+        /**
+         * Si dans les deps on a un denied, on refuse le tout
+         */
+        for (let i in deps) {
+            let dep = deps[i];
 
-                    if (DEBUG_VARS) {
-                        ConsoleHandler.getInstance().log('deploy_deps:' + node.var_data.index + ':dep:' + dep.index + ':');
-                    }
-                }
-
-                if (deps) {
-                    await this.handle_deploy_deps(node, deps, deployed_vars_datas, vars_datas, ds_cache);
-                }
+            if (dep.value_type == VarDataBaseVO.VALUE_TYPE_DENIED) {
+                node.var_data.value_type = VarDataBaseVO.VALUE_TYPE_DENIED;
+                node.var_data.value = 0;
+                node.var_data.value_ts = Dates.now();
 
                 this.end_node_deploiement(node);
                 await this.notify_var_data_post_deploy(node);
-            },
-            this,
-            null,
-            VarsPerfMonServerController.getInstance().generate_pmlinfos_from_node(node)
-        );
+                return;
+            }
+
+            if (DEBUG_VARS) {
+                ConsoleHandler.getInstance().log('deploy_deps:' + node.var_data.index + ':dep:' + dep.index + ':');
+            }
+        }
+
+        /**
+         * On notifie d'un calcul en cours que si on a pas la valeur directement dans le cache ou en base de données, ou en import, ou en pixel, ou on a limité à une question sur les aggregated_datas, ou c'est denied
+         */
+        await VarsTabsSubsController.getInstance().notify_vardatas([new NotifVardatasParam([node.var_data], true)]);
+
+        if (deps) {
+            await this.handle_deploy_deps(node, deps, deployed_vars_datas, vars_datas);
+        }
+
+        this.end_node_deploiement(node);
+        await this.notify_var_data_post_deploy(node);
     }
 
     /**
@@ -502,91 +487,81 @@ export default class VarsComputeController {
      */
     private async cache_datas(dag: VarDAG) {
 
-        await PerfMonServerController.getInstance().monitor_async(
-            PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsComputeController__cache_datas],
-            async () => {
+        // Si on a dans le buffer une version plus ancienne on doit mettre à jour
+        await VarsDatasProxy.getInstance().update_existing_buffered_older_datas(Object.values(dag.nodes).map((n) => n.var_data), 'cache_datas');
 
-                // Si on a dans le buffer une version plus ancienne on doit mettre à jour
-                await VarsDatasProxy.getInstance().update_existing_buffered_older_datas(Object.values(dag.nodes).map((n) => n.var_data), 'cache_datas');
+        for (let i in dag.nodes) {
+            let node = dag.nodes[i];
 
-                for (let i in dag.nodes) {
-                    let node = dag.nodes[i];
+            if (node.is_batch_var) {
+                continue;
+            }
 
-                    if (node.is_batch_var) {
-                        continue;
-                    }
-
-                    if (VarsCacheController.getInstance().BDD_do_cache_param_data(node.var_data, VarsServerController.getInstance().getVarControllerById(node.var_data.var_id), node.is_batch_var)) {
-                        await VarsDatasProxy.getInstance().append_var_datas([node.var_data], 'cache_datas');
-                    }
-                }
-            },
-            this
-        );
+            if (VarsCacheController.getInstance().BDD_do_cache_param_data(node.var_data, VarsServerController.getInstance().getVarControllerById(node.var_data.var_id), node.is_batch_var)) {
+                await VarsDatasProxy.getInstance().append_var_datas([node.var_data], 'cache_datas');
+            }
+        }
     }
 
-    private async load_nodes_datas(var_dag: VarDAG, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }) {
+    private async load_nodes_datas(var_dag: VarDAG) {
         let env = ConfigurationService.getInstance().node_configuration;
 
-        await PerfMonServerController.getInstance().monitor_async(
-            PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsComputeController__load_nodes_datas],
-            async () => {
+        let promises = [];
+        let load_node_data_db_connect_coef_sum: number = 0;
+        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 2));
 
-                let promises = [];
-                let load_node_data_db_connect_coef_sum: number = 0;
-                let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 2));
+        for (let i in var_dag.nodes) {
+            let node = var_dag.nodes[i];
+            let wrapper = VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes[node.var_data.index];
 
-                for (let i in var_dag.nodes) {
-                    let node = var_dag.nodes[i];
-                    let wrapper = VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes[node.var_data.index];
+            // Si le noeud a une valeur on se fout de load les datas
+            if (VarsServerController.getInstance().has_valid_value(node.var_data)) {
 
-                    // Si le noeud a une valeur on se fout de load les datas
-                    if (VarsServerController.getInstance().has_valid_value(node.var_data)) {
-
-                        if (env.DEBUG_VARS) {
-                            ConsoleHandler.getInstance().log('load_nodes_datas:has_valid_value:index:' + node.var_data.index + ":value:" + node.var_data.value + ":value_ts:" + node.var_data.value_ts + ":type:" + VarDataBaseVO.VALUE_TYPE_LABELS[node.var_data.value_type] +
-                                'client_user_id:' + (wrapper ? wrapper.client_user_id : 'N/A') + ':client_tab_id:' + (wrapper ? wrapper.client_tab_id : 'N/A') + ':is_server_request:' + (wrapper ? wrapper.is_server_request : 'N/A') + ':reason:' + (wrapper ? wrapper.reason : 'N/A'));
-                        }
-
-                        continue;
-                    }
-
-                    let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
-
-                    let dss: DataSourceControllerBase[] = controller.getDataSourcesDependencies();
-
-                    if (load_node_data_db_connect_coef_sum >= max) {
-                        await Promise.all(promises);
-                        load_node_data_db_connect_coef_sum = 0;
-                        promises = [];
-                    }
-
-                    for (let dssi in dss) {
-                        let ds = dss[dssi];
-                        load_node_data_db_connect_coef_sum += ds.load_node_data_db_connect_coef;
-                    }
-
-                    promises.push((async () => {
-
-                        VarDagPerfsServerController.getInstance().start_nodeperfelement(node.perfs.load_node_datas);
-
-                        await DataSourcesController.getInstance().load_node_datas(dss, node, ds_cache);
-
-                        VarDagPerfsServerController.getInstance().end_nodeperfelement(node.perfs.load_node_datas);
-                    })());
-
-                    if (env.DEBUG_VARS) {
-                        ConsoleHandler.getInstance().log('loaded_node_datas:index:' + node.var_data.index + ":value:" + node.var_data.value + ":value_ts:" + node.var_data.value_ts + ":type:" + VarDataBaseVO.VALUE_TYPE_LABELS[node.var_data.value_type] +
-                            'client_user_id:' + (wrapper ? wrapper.client_user_id : 'N/A') + ':client_tab_id:' + (wrapper ? wrapper.client_tab_id : 'N/A') + ':is_server_request:' + (wrapper ? wrapper.is_server_request : 'N/A') + ':reason:' + (wrapper ? wrapper.reason : 'N/A'));
-                    }
+                if (env.DEBUG_VARS) {
+                    ConsoleHandler.getInstance().log('load_nodes_datas:has_valid_value:index:' + node.var_data.index + ":value:" + node.var_data.value + ":value_ts:" + node.var_data.value_ts + ":type:" + VarDataBaseVO.VALUE_TYPE_LABELS[node.var_data.value_type] +
+                        ':client_user_id:' + (wrapper ? wrapper.client_user_id : 'N/A') + ':client_tab_id:' + (wrapper ? wrapper.client_tab_id : 'N/A') + ':is_server_request:' + (wrapper ? wrapper.is_server_request : 'N/A') + ':reason:' + (wrapper ? wrapper.reason : 'N/A'));
                 }
 
-                if (promises && promises.length) {
-                    await Promise.all(promises);
-                }
-            },
-            this
-        );
+                continue;
+            }
+
+            let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
+
+            let dss: DataSourceControllerBase[] = controller.getDataSourcesDependencies();
+
+            if ((!dss) || (!dss.length)) {
+                continue;
+            }
+
+            if (load_node_data_db_connect_coef_sum >= max) {
+                await Promise.all(promises);
+                load_node_data_db_connect_coef_sum = 0;
+                promises = [];
+            }
+
+            for (let dssi in dss) {
+                let ds = dss[dssi];
+                load_node_data_db_connect_coef_sum += ds.load_node_data_db_connect_coef;
+            }
+
+            promises.push((async () => {
+
+                VarDagPerfsServerController.getInstance().start_nodeperfelement(node.perfs.load_node_datas);
+
+                await DataSourcesController.getInstance().load_node_datas(dss, node);
+
+                VarDagPerfsServerController.getInstance().end_nodeperfelement(node.perfs.load_node_datas);
+            })());
+
+            if (env.DEBUG_VARS) {
+                ConsoleHandler.getInstance().log('loaded_node_datas:index:' + node.var_data.index + ":value:" + node.var_data.value + ":value_ts:" + node.var_data.value_ts + ":type:" + VarDataBaseVO.VALUE_TYPE_LABELS[node.var_data.value_type] +
+                    ':client_user_id:' + (wrapper ? wrapper.client_user_id : 'N/A') + ':client_tab_id:' + (wrapper ? wrapper.client_tab_id : 'N/A') + ':is_server_request:' + (wrapper ? wrapper.is_server_request : 'N/A') + ':reason:' + (wrapper ? wrapper.reason : 'N/A'));
+            }
+        }
+
+        if (promises && promises.length) {
+            await Promise.all(promises);
+        }
     }
 
     /**
@@ -595,169 +570,132 @@ export default class VarsComputeController {
      */
     private async compute_node(node: VarDAGNode) {
 
-        await PerfMonServerController.getInstance().monitor_async(
-            PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsComputeController__compute_node],
-            async () => {
+        VarDagPerfsServerController.getInstance().start_nodeperfelement(node.perfs.compute_node);
 
-                VarDagPerfsServerController.getInstance().start_nodeperfelement(node.perfs.compute_node);
+        let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
+        await controller.computeValue(node);
 
-                let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
-                await controller.computeValue(node);
+        VarDagPerfsServerController.getInstance().end_nodeperfelement(node.perfs.compute_node);
 
-                VarDagPerfsServerController.getInstance().end_nodeperfelement(node.perfs.compute_node);
-
-                await this.notify_var_data_post_deploy(node);
-            },
-            this,
-            null,
-            VarsPerfMonServerController.getInstance().generate_pmlinfos_from_node(node)
-        );
+        await this.notify_var_data_post_deploy(node);
     }
 
     private async handle_deploy_deps(
         node: VarDAGNode,
         deps: { [index: string]: VarDataBaseVO },
         deployed_vars_datas: { [index: string]: boolean },
-        vars_datas: { [index: string]: VarDataBaseVO },
-        ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }) {
+        vars_datas: { [index: string]: VarDataBaseVO }) {
 
-        return await PerfMonServerController.getInstance().monitor_async(
-            PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsComputeController__handle_deploy_deps],
-            async () => {
+        let deps_as_array = Object.values(deps);
+        let deps_ids_as_array = Object.keys(deps);
 
-                let deps_as_array = Object.values(deps);
-                let deps_ids_as_array = Object.keys(deps);
+        let deps_promises = [];
+        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 3));
 
-                let deps_promises = [];
-                let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 3));
+        let start_time = Dates.now();
+        let real_start_time = start_time;
 
-                let start_time = Dates.now();
-                let real_start_time = start_time;
+        for (let deps_i in deps_as_array) {
 
-                for (let deps_i in deps_as_array) {
+            if (node.var_dag.timed_out) {
+                return;
+            }
 
-                    if (node.var_dag.timed_out) {
-                        return;
-                    }
+            let actual_time = Dates.now();
 
-                    let actual_time = Dates.now();
+            if (actual_time > (start_time + 60)) {
+                start_time = actual_time;
+                ConsoleHandler.getInstance().warn('VarsComputeController:handle_deploy_deps:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
+            }
 
-                    if (actual_time > (start_time + 60)) {
-                        start_time = actual_time;
-                        ConsoleHandler.getInstance().warn('VarsComputeController:handle_deploy_deps:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
-                    }
+            /**
+             * On fait des packs de promises...
+             */
+            if (deps_promises.length >= max) {
+                await Promise.all(deps_promises);
+                deps_promises = [];
+            }
+            let dep = deps_as_array[deps_i];
+            let dep_id = deps_ids_as_array[deps_i];
 
-                    /**
-                     * On fait des packs de promises...
-                     */
-                    if (deps_promises.length >= max) {
-                        await Promise.all(deps_promises);
-                        deps_promises = [];
-                    }
-                    let dep = deps_as_array[deps_i];
-                    let dep_id = deps_ids_as_array[deps_i];
+            if (node.var_dag.nodes[dep.index]) {
+                node.addOutgoingDep(dep_id, node.var_dag.nodes[dep.index]);
+                continue;
+            }
 
-                    if (node.var_dag.nodes[dep.index]) {
-                        node.addOutgoingDep(dep_id, node.var_dag.nodes[dep.index]);
-                        continue;
-                    }
+            let dep_node = VarDAGNode.getInstance(node.var_dag, dep, VarsComputeController, false);
+            if (!dep_node) {
+                return;
+            }
 
-                    let dep_node = VarDAGNode.getInstance(node.var_dag, dep, VarsComputeController, false);
-                    if (!dep_node) {
-                        return;
-                    }
+            node.addOutgoingDep(dep_id, dep_node);
 
-                    node.addOutgoingDep(dep_id, dep_node);
+            deps_promises.push((async () => {
+                await this.load_caches_and_imports_on_var_to_deploy(dep_node.var_data, dep_node.var_dag, deployed_vars_datas, vars_datas);
+            })());
 
-                    deps_promises.push((async () => {
-                        await this.load_caches_and_imports_on_var_to_deploy(dep_node.var_data, dep_node.var_dag, deployed_vars_datas, vars_datas, ds_cache);
-                    })());
+            if (dep_node.var_dag.timed_out) {
+                return;
+            }
+        }
 
-                    if (dep_node.var_dag.timed_out) {
-                        return;
-                    }
-                }
-
-                if (deps_promises.length) {
-                    await Promise.all(deps_promises);
-                }
-            },
-            this,
-            null,
-            VarsPerfMonServerController.getInstance().generate_pmlinfos_from_node(node)
-        );
+        if (deps_promises.length) {
+            await Promise.all(deps_promises);
+        }
     }
 
     private async try_load_cache_complet(node: VarDAGNode) {
 
         let DEBUG_VARS = ConfigurationService.getInstance().node_configuration.DEBUG_VARS;
-        return await PerfMonServerController.getInstance().monitor_async(
-            PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsComputeController__try_load_cache_complet],
-            async () => {
 
-                node.already_tried_load_cache_complet = true;
-                let cache_complet = await VarsDatasProxy.getInstance().get_exact_param_from_buffer_or_bdd(node.var_data, false, 'try_load_cache_complet');
-                let wrapper = VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes[node.var_data.index];
+        node.already_tried_load_cache_complet = true;
+        let cache_complet = await VarsDatasProxy.getInstance().get_exact_param_from_buffer_or_bdd(node.var_data, false, 'try_load_cache_complet');
+        let wrapper = VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes[node.var_data.index];
 
-                if (!cache_complet) {
-                    if (DEBUG_VARS) {
-                        ConsoleHandler.getInstance().log('try_load_cache_complet:' + node.var_data.index + ':aucun cache complet' +
-                            'client_user_id:' + (wrapper ? wrapper.client_user_id : 'N/A') + ':client_tab_id:' + (wrapper ? wrapper.client_tab_id : 'N/A') + ':is_server_request:' + (wrapper ? wrapper.is_server_request : 'N/A') + ':reason:' + (wrapper ? wrapper.reason : 'N/A'));
-                    }
+        if (!cache_complet) {
+            if (DEBUG_VARS) {
+                ConsoleHandler.getInstance().log('try_load_cache_complet:' + node.var_data.index + ':aucun cache complet' +
+                    ':client_user_id:' + (wrapper ? wrapper.client_user_id : 'N/A') + ':client_tab_id:' + (wrapper ? wrapper.client_tab_id : 'N/A') + ':is_server_request:' + (wrapper ? wrapper.is_server_request : 'N/A') + ':reason:' + (wrapper ? wrapper.reason : 'N/A'));
+            }
 
-                    return;
-                }
+            return;
+        }
 
-                // NOTE : On peut éditer directement la vardata ici puisque celle en cache a déjà été mise à jour par get_exact_param_from_buffer_or_bdd au besoin
-                node.var_data.id = cache_complet.id;
-                node.var_data.value = cache_complet.value;
-                node.var_data.value_ts = cache_complet.value_ts;
-                node.var_data.value_type = cache_complet.value_type;
-                if (DEBUG_VARS) {
-                    ConsoleHandler.getInstance().log('try_load_cache_complet:' + node.var_data.index + ':OK:' + cache_complet.value + ':' + cache_complet.value_ts + ':' + cache_complet.id +
-                        'client_user_id:' + (wrapper ? wrapper.client_user_id : 'N/A') + ':client_tab_id:' + (wrapper ? wrapper.client_tab_id : 'N/A') + ':is_server_request:' + (wrapper ? wrapper.is_server_request : 'N/A') + ':reason:' + (wrapper ? wrapper.reason : 'N/A'));
-                }
-            },
-            this,
-            null,
-            VarsPerfMonServerController.getInstance().generate_pmlinfos_from_node(node)
-        );
+        // NOTE : On peut éditer directement la vardata ici puisque celle en cache a déjà été mise à jour par get_exact_param_from_buffer_or_bdd au besoin
+        node.var_data.id = cache_complet.id;
+        node.var_data.value = cache_complet.value;
+        node.var_data.value_ts = cache_complet.value_ts;
+        node.var_data.value_type = cache_complet.value_type;
+        if (DEBUG_VARS) {
+            ConsoleHandler.getInstance().log('try_load_cache_complet:' + node.var_data.index + ':OK:' + cache_complet.value + ':' + cache_complet.value_ts + ':' + cache_complet.id +
+                ':client_user_id:' + (wrapper ? wrapper.client_user_id : 'N/A') + ':client_tab_id:' + (wrapper ? wrapper.client_tab_id : 'N/A') + ':is_server_request:' + (wrapper ? wrapper.is_server_request : 'N/A') + ':reason:' + (wrapper ? wrapper.reason : 'N/A'));
+        }
     }
 
     private async try_load_cache_partiel(node: VarDAGNode) {
 
-        return await PerfMonServerController.getInstance().monitor_async(
-            PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsComputeController__try_load_cache_partiel],
-            async () => {
+        let caches_partiels: VarDataBaseVO[] = await ModuleDAO.getInstance().filterVosByMatroids(node.var_data._type, [node.var_data], null);
 
-                let caches_partiels: VarDataBaseVO[] = await ModuleDAO.getInstance().filterVosByMatroids(node.var_data._type, [node.var_data], null);
+        if ((!caches_partiels) || (!caches_partiels.length)) {
+            return;
+        }
 
-                if ((!caches_partiels) || (!caches_partiels.length)) {
-                    return;
-                }
+        let validated_caches_partiels: VarDataBaseVO[] = [];
 
-                let validated_caches_partiels: VarDataBaseVO[] = [];
+        for (let i in caches_partiels) {
+            let cache_partiel = caches_partiels[i];
 
-                for (let i in caches_partiels) {
-                    let cache_partiel = caches_partiels[i];
+            if (!VarsCacheController.getInstance().use_partial_cache_element(node, cache_partiel)) {
+                continue;
+            }
 
-                    if (!VarsCacheController.getInstance().use_partial_cache_element(node, cache_partiel)) {
-                        continue;
-                    }
+            validated_caches_partiels.push(cache_partiel);
+        }
 
-                    validated_caches_partiels.push(cache_partiel);
-                }
-
-                /**
-                 * On utilise la même méthode ensuite que pour les imports, sinon qu'on sait pas ce qui est en cache donc on peut pas optimiser en caches atomiques
-                 */
-                await VarsImportsHandler.getInstance().split_nodes(node, validated_caches_partiels, false);
-
-            },
-            this,
-            null,
-            VarsPerfMonServerController.getInstance().generate_pmlinfos_from_node(node)
-        );
+        /**
+         * On utilise la même méthode ensuite que pour les imports, sinon qu'on sait pas ce qui est en cache donc on peut pas optimiser en caches atomiques
+         */
+        await VarsImportsHandler.getInstance().split_nodes(node, validated_caches_partiels, false);
     }
 
     /**
@@ -765,57 +703,46 @@ export default class VarsComputeController {
      *      - Chargement des ds predeps du noeud
      *      - Chargement des deps
      */
-    private async get_node_deps(
-        node: VarDAGNode,
-        ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }): Promise<{ [dep_id: string]: VarDataBaseVO }> {
+    private async get_node_deps(node: VarDAGNode): Promise<{ [dep_id: string]: VarDataBaseVO }> {
 
-        return await PerfMonServerController.getInstance().monitor_async(
-            PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsComputeController__get_node_deps],
-            async () => {
+        if (node.is_aggregator) {
+            let aggregated_deps: { [dep_id: string]: VarDataBaseVO } = {};
+            let index = 0;
 
-                if (node.is_aggregator) {
-                    let aggregated_deps: { [dep_id: string]: VarDataBaseVO } = {};
-                    let index = 0;
+            for (let i in node.aggregated_datas) {
+                let data = node.aggregated_datas[i];
+                aggregated_deps['AGG_' + (index++)] = data;
 
-                    for (let i in node.aggregated_datas) {
-                        let data = node.aggregated_datas[i];
-                        aggregated_deps['AGG_' + (index++)] = data;
-
-                        // on peut essayer de notifier les deps issues des aggréagations qui auraient déjà une valeur valide
-                        let dep_node = VarDAGNode.getInstance(node.var_dag, data, VarsComputeController, false);
-                        if (!dep_node) {
-                            return null;
-                        }
-
-                        await this.notify_var_data_post_deploy(dep_node);
-                    }
-                    return aggregated_deps;
+                // on peut essayer de notifier les deps issues des aggréagations qui auraient déjà une valeur valide
+                let dep_node = VarDAGNode.getInstance(node.var_dag, data, VarsComputeController, false);
+                if (!dep_node) {
+                    return null;
                 }
 
-                let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
+                await this.notify_var_data_post_deploy(dep_node);
+            }
+            return aggregated_deps;
+        }
 
-                /**
-                 * On charge toutes les datas predeps
-                 */
-                let predeps_dss: DataSourceControllerBase[] = controller.getDataSourcesPredepsDependencies();
-                if (predeps_dss && predeps_dss.length) {
+        let controller = VarsServerController.getInstance().getVarControllerById(node.var_data.var_id);
 
-                    // VarDagPerfsServerController.getInstance().start_nodeperfelement(node.perfs.load_node_datas_predep);
+        /**
+         * On charge toutes les datas predeps
+         */
+        let predeps_dss: DataSourceControllerBase[] = controller.getDataSourcesPredepsDependencies();
+        if (predeps_dss && predeps_dss.length) {
 
-                    await DataSourcesController.getInstance().load_node_datas(predeps_dss, node, ds_cache);
+            // VarDagPerfsServerController.getInstance().start_nodeperfelement(node.perfs.load_node_datas_predep);
 
-                    // VarDagPerfsServerController.getInstance().end_nodeperfelement(node.perfs.load_node_datas_predeps);
-                }
+            await DataSourcesController.getInstance().load_node_datas(predeps_dss, node);
 
-                /**
-                 * On demande les deps
-                 */
-                return controller.getParamDependencies(node);
-            },
-            this,
-            null,
-            VarsPerfMonServerController.getInstance().generate_pmlinfos_from_node(node)
-        );
+            // VarDagPerfsServerController.getInstance().end_nodeperfelement(node.perfs.load_node_datas_predeps);
+        }
+
+        /**
+         * On demande les deps
+         */
+        return controller.getParamDependencies(node);
     }
 
 
@@ -835,195 +762,190 @@ export default class VarsComputeController {
      *      à la fin de chaque calcul on envoie et on flag comme envoyé
      *      à la fin du process on peut checker que l'arbre complet a bien été envoyé (on devrait avoir tout envoyé déjà)
      */
-    private async create_tree(ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }): Promise<VarDAG> {
+    private async create_tree(): Promise<VarDAG> {
 
         let DEBUG_VARS = ConfigurationService.getInstance().node_configuration.DEBUG_VARS;
 
-        return await PerfMonServerController.getInstance().monitor_async(
-            PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarsComputeController__create_tree],
-            async () => {
+        let var_dag: VarDAG = VarsdatasComputerBGThread.getInstance().current_batch_vardag;
 
-                let var_dag: VarDAG = VarsdatasComputerBGThread.getInstance().current_batch_vardag;
+        let estimated_tree_computation_time_target = await this.get_estimated_tree_computation_time_target();
+        let var_selection_pack_size = await this.get_var_selection_pack_size();
 
-                let estimated_tree_computation_time_target = await this.get_estimated_tree_computation_time_target();
-                let var_selection_pack_size = await this.get_var_selection_pack_size();
+        let all_selected_var_datas = [];
 
-                let all_selected_var_datas = [];
+        /**
+         * Tant que le temps estimé restant global + le temps déjà écoulé reste < à la limite principale (3 secondes par défaut) on continue de rajouter à l'arbre
+         */
+        let batchperf_computation_wrapper_total_estimated_remaining_time = var_dag.perfs ? Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.computation_wrapper)) : 0;
+        let current_total_elapsed_time = var_dag.perfs ? performance.now() - var_dag.perfs.computation_wrapper.start_time : 0;
+        while ((!batchperf_computation_wrapper_total_estimated_remaining_time) || (!current_total_elapsed_time) || ((batchperf_computation_wrapper_total_estimated_remaining_time + current_total_elapsed_time) < estimated_tree_computation_time_target)) {
 
-                /**
-                 * Tant que le temps estimé restant global + le temps déjà écoulé reste < à la limite principale (3 secondes par défaut) on continue de rajouter à l'arbre
-                 */
-                let batchperf_computation_wrapper_total_estimated_remaining_time = Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.computation_wrapper));
-                let current_total_elapsed_time = performance.now() - var_dag.perfs.computation_wrapper.start_time;
-                while ((!batchperf_computation_wrapper_total_estimated_remaining_time) || (!current_total_elapsed_time) || ((batchperf_computation_wrapper_total_estimated_remaining_time + current_total_elapsed_time) < estimated_tree_computation_time_target)) {
+            /**
+             * On commence par sélectionner la prochaine var, soit depuis les slow vars (si on est en position de le faire), soit depuis le cache
+             */
+            let selected_slow_var: VarDataBaseVO = await this.get_slow_var();
+            let selected_var_datas: VarDataBaseVO[] = selected_slow_var ? [selected_slow_var] : [];
 
-                    /**
-                     * On commence par sélectionner la prochaine var, soit depuis les slow vars (si on est en position de le faire), soit depuis le cache
-                     */
-                    let selected_slow_var: VarDataBaseVO = await this.get_slow_var();
-                    let selected_var_datas: VarDataBaseVO[] = selected_slow_var ? [selected_slow_var] : [];
+            if (!!selected_slow_var) {
+                ConsoleHandler.getInstance().error('SELECTED SLOW VAR :' + selected_slow_var.index);
+            }
 
-                    if (!!selected_slow_var) {
-                        ConsoleHandler.getInstance().error('SELECTED SLOW VAR :' + selected_slow_var.index);
+            /**
+             * Piocher une var, l'ajouter à l'arbre, déployer ses deps :
+             *  - Pendant le déploiement si on dépasse les 30 secondes estimées on coupe tout et on supprime les noeuds incomplets
+             *      (qui n'avaient pas fini de déployer leurs deps)
+             *  - A la fin du déploiement, si on est sous les 3 secondes estimées, on dépile à nouveau une var registered et on déploie
+             *  - Si on a plus rien à dépiler ou si on est au dessus des 3 secondes (ou des 30 après avoir nettoyé l'arbre) on valide l'arbre pour calcul
+             *
+             * Pour booster un peu tout ça et limiter le risque de calculer les vars une à une quand les estimations sont très élevée, on fait des paquets de x vars
+             *  à ajouter à l'arbre
+             */
+            if ((!selected_var_datas) || (!selected_var_datas.length)) {
+                let wrapped_select_var: VarDataProxyWrapperVO<VarDataBaseVO> = await VarsDatasProxy.getInstance().select_var_from_buffer();
+                let i = 0;
+                while ((wrapped_select_var) && (i < var_selection_pack_size)) {
+
+                    if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+                        ConsoleHandler.getInstance().log('SELECTED WRAPPED VAR :' + wrapped_select_var.var_data.index +
+                            ':client_user_id:' + wrapped_select_var.client_user_id +
+                            ':client_socket_id:' + wrapped_select_var.client_tab_id +
+                            ':is_server_request:' + wrapped_select_var.is_server_request +
+                            ':reason:' + wrapped_select_var.reason +
+                            ':creation_date:' + Dates.format(wrapped_select_var.creation_date, 'DD/MM/YYYY HH:mm:ss') +
+                            ':var_data_origin_value:' + wrapped_select_var.var_data_origin_value +
+                            ':var_data_origin_type:' + wrapped_select_var.var_data_origin_type +
+                            ':last_insert_or_update:' + Dates.format(wrapped_select_var.last_insert_or_update, 'DD/MM/YYYY HH:mm:ss') +
+                            ':'
+                        );
                     }
+                    selected_var_datas.push(wrapped_select_var.var_data);
+                    i++;
+                    wrapped_select_var = await VarsDatasProxy.getInstance().select_var_from_buffer();
+                }
+            }
 
-                    /**
-                     * Piocher une var, l'ajouter à l'arbre, déployer ses deps :
-                     *  - Pendant le déploiement si on dépasse les 30 secondes estimées on coupe tout et on supprime les noeuds incomplets
-                     *      (qui n'avaient pas fini de déployer leurs deps)
-                     *  - A la fin du déploiement, si on est sous les 3 secondes estimées, on dépile à nouveau une var registered et on déploie
-                     *  - Si on a plus rien à dépiler ou si on est au dessus des 3 secondes (ou des 30 après avoir nettoyé l'arbre) on valide l'arbre pour calcul
-                     *
-                     * Pour booster un peu tout ça et limiter le risque de calculer les vars une à une quand les estimations sont très élevée, on fait des paquets de x vars
-                     *  à ajouter à l'arbre
-                     */
-                    if ((!selected_var_datas) || (!selected_var_datas.length)) {
-                        let wrapped_select_var: VarDataProxyWrapperVO<VarDataBaseVO> = await VarsDatasProxy.getInstance().select_var_from_buffer();
-                        let i = 0;
-                        while ((wrapped_select_var) && (i < var_selection_pack_size)) {
+            if ((!selected_var_datas) || (!selected_var_datas.length)) {
 
-                            if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
-                                ConsoleHandler.getInstance().log('SELECTED WRAPPED VAR :' + wrapped_select_var.var_data.index +
-                                    ':client_user_id:' + wrapped_select_var.client_user_id +
-                                    ':client_socket_id:' + wrapped_select_var.client_tab_id +
-                                    ':is_server_request:' + wrapped_select_var.is_server_request +
-                                    ':reason:' + wrapped_select_var.reason +
-                                    ':creation_date:' + Dates.format(wrapped_select_var.creation_date, 'DD/MM/YYYY HH:mm:ss') +
-                                    ':var_data_origin_value:' + wrapped_select_var.var_data_origin_value +
-                                    ':var_data_origin_type:' + wrapped_select_var.var_data_origin_type +
-                                    ':last_insert_or_update:' + Dates.format(wrapped_select_var.last_insert_or_update, 'DD/MM/YYYY HH:mm:ss') +
-                                    ':'
-                                );
-                            }
-                            selected_var_datas.push(wrapped_select_var.var_data);
-                            i++;
-                            wrapped_select_var = await VarsDatasProxy.getInstance().select_var_from_buffer();
-                        }
-                    }
+                // On a tout dépilé a priori
 
-                    if ((!selected_var_datas) || (!selected_var_datas.length)) {
+                // Si on a des slow vars ici, on continue la boucle, on devrait pouvoir dépiler immédiatement la première
+                if (await this.check_tree_for_slow_vars(var_dag, all_selected_var_datas)) {
+                    all_selected_var_datas = [];
+                    batchperf_computation_wrapper_total_estimated_remaining_time = var_dag.perfs ? Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.computation_wrapper)) : 0;
+                    current_total_elapsed_time = var_dag.perfs ? performance.now() - var_dag.perfs.computation_wrapper.start_time : 0;
+                    continue;
+                }
+                return var_dag;
+            }
 
-                        // On a tout dépilé a priori
+            selected_var_datas = await this.filter_disabled_var(selected_var_datas);
 
-                        // Si on a des slow vars ici, on continue la boucle, on devrait pouvoir dépiler immédiatement la première
-                        if (await this.check_tree_for_slow_vars(var_dag, all_selected_var_datas)) {
-                            all_selected_var_datas = [];
-                            batchperf_computation_wrapper_total_estimated_remaining_time = Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.computation_wrapper));
-                            current_total_elapsed_time = performance.now() - var_dag.perfs.computation_wrapper.start_time;
-                            continue;
-                        }
-                        return var_dag;
-                    }
+            for (let i in selected_var_datas) {
+                let selected_var_data = selected_var_datas[i];
 
-                    selected_var_datas = await this.filter_disabled_var(selected_var_datas);
-
-                    for (let i in selected_var_datas) {
-                        let selected_var_data = selected_var_datas[i];
-
-                        if (var_dag.perfs.computation_wrapper.updated_estimated_work_time && (var_dag.perfs.computation_wrapper.updated_estimated_work_time >= estimated_tree_computation_time_target)) {
-                            break;
-                        }
-
-                        all_selected_var_datas.push(selected_var_data);
-                        batchperf_computation_wrapper_total_estimated_remaining_time = Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.computation_wrapper));
-
-                        let batchperf_create_tree_total_estimated_remaining_time = Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.create_tree));
-                        let batchperf_load_nodes_datas_total_estimated_remaining_time = Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.load_nodes_datas));
-                        let batchperf_compute_node_wrapper_total_estimated_remaining_time = Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.compute_node_wrapper));
-                        ConsoleHandler.getInstance().log('SELECTED VAR:' + selected_var_data.index + ':Total computation estimated time before adding this node:[' +
-                            Math.round(var_dag.perfs.computation_wrapper.updated_estimated_work_time ? var_dag.perfs.computation_wrapper.updated_estimated_work_time : 0) +
-                            ']:' +
-                            '{' +
-                            'create_tree:[' + Math.round(var_dag.perfs.create_tree.updated_estimated_work_time ? var_dag.perfs.create_tree.updated_estimated_work_time : 0) + '],' +
-                            'load_nodes_datas:[' + Math.round(var_dag.perfs.load_nodes_datas.updated_estimated_work_time ? var_dag.perfs.load_nodes_datas.updated_estimated_work_time : 0) + '],' +
-                            'compute_node_wrapper:[' + Math.round(var_dag.perfs.compute_node_wrapper.updated_estimated_work_time ? var_dag.perfs.compute_node_wrapper.updated_estimated_work_time : 0) +
-                            ']}' +
-                            ':Remaining:[' + batchperf_computation_wrapper_total_estimated_remaining_time + ']:' +
-                            '{' +
-                            'create_tree:[' + batchperf_create_tree_total_estimated_remaining_time + '],' +
-                            'load_nodes_datas:[' + batchperf_load_nodes_datas_total_estimated_remaining_time + '],' +
-                            'compute_node_wrapper:[' + batchperf_compute_node_wrapper_total_estimated_remaining_time +
-                            ']}');
-
-                        /**
-                         * On insère le noeud dans l'arbre en premier pour forcer le flag already_tried_load_cache_complet
-                         *  puisque si on avait ce cache on demanderait pas un calcul à ce stade
-                         */
-                        let var_dag_node = VarDAGNode.getInstance(var_dag, selected_var_data, VarsComputeController, true);
-                        if (!var_dag_node) {
-
-                            ConsoleHandler.getInstance().log('UNSELECTED VAR:' + selected_var_data.index);
-
-                            // Si on a des slow vars ici, on continue la boucle, on devrait pouvoir dépiler immédiatement la première
-                            if (await this.check_tree_for_slow_vars(var_dag, all_selected_var_datas)) {
-                                all_selected_var_datas = [];
-                                continue;
-                            }
-                            return var_dag;
-                        }
-
-                        if (DEBUG_VARS) {
-                            batchperf_computation_wrapper_total_estimated_remaining_time = VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.computation_wrapper);
-
-                            batchperf_create_tree_total_estimated_remaining_time = Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.create_tree));
-                            batchperf_load_nodes_datas_total_estimated_remaining_time = Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.load_nodes_datas));
-                            batchperf_compute_node_wrapper_total_estimated_remaining_time = Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.compute_node_wrapper));
-                            ConsoleHandler.getInstance().log('POST SELECT :' + selected_var_data.index + ':Total computation estimated time after adding this node:[' +
-                                Math.round(var_dag.perfs.computation_wrapper.updated_estimated_work_time ? var_dag.perfs.computation_wrapper.updated_estimated_work_time : 0) +
-                                ']:' +
-                                '{' +
-                                'create_tree:[' + Math.round(var_dag.perfs.create_tree.updated_estimated_work_time ? var_dag.perfs.create_tree.updated_estimated_work_time : 0) + '],' +
-                                'load_nodes_datas:[' + Math.round(var_dag.perfs.load_nodes_datas.updated_estimated_work_time ? var_dag.perfs.load_nodes_datas.updated_estimated_work_time : 0) + '],' +
-                                'compute_node_wrapper:[' + Math.round(var_dag.perfs.compute_node_wrapper.updated_estimated_work_time ? var_dag.perfs.compute_node_wrapper.updated_estimated_work_time : 0) +
-                                ']}' +
-                                ':Remaining:[' + batchperf_computation_wrapper_total_estimated_remaining_time + ']:' +
-                                '{' +
-                                'create_tree:[' + batchperf_create_tree_total_estimated_remaining_time + '],' +
-                                'load_nodes_datas:[' + batchperf_load_nodes_datas_total_estimated_remaining_time + '],' +
-                                'compute_node_wrapper:[' + batchperf_compute_node_wrapper_total_estimated_remaining_time +
-                                ']}');
-                        }
-
-                        var_dag_node.already_tried_load_cache_complet = true;
-                    }
-
-                    let vars_datas_to_deploy_by_controller_height = await this.get_vars_datas_by_controller_height(var_dag);
-                    let step = 1;
-                    while (Object.keys(vars_datas_to_deploy_by_controller_height).length) {
-
-                        // On sélectionne les vars à déployer
-                        let vars_to_deploy: { [index: string]: VarDataBaseVO } = this.get_vars_to_deploy(vars_datas_to_deploy_by_controller_height);
-
-                        if (DEBUG_VARS) {
-                            ConsoleHandler.getInstance().log('create_tree:Step ' + step + ':Deploying ' + Object.keys(vars_to_deploy).length + ' vars');
-                        }
-
-                        // on notifie du calcul en cours
-                        let vars_to_deploy_filtered_by_tab_subs = await VarsTabsSubsController.getInstance().filter_by_subs(Object.values(vars_to_deploy));
-                        await VarsTabsSubsController.getInstance().notify_vardatas(
-                            vars_to_deploy_filtered_by_tab_subs.map((vd) => new NotifVardatasParam([vd], true)));
-
-                        // On charge les caches pour ces noeuds
-                        //  et on récupère les nouveaux vars_datas à insérer dans l'arbre
-                        await this.load_caches_and_imports_on_vars_to_deploy(vars_to_deploy, var_dag);
-
-                        // On doit ensuite charger les ds pre deps
-                        await this.deploy_deps_on_vars_to_deploy(vars_to_deploy, var_dag, ds_cache);
-
-                        vars_datas_to_deploy_by_controller_height = await this.get_vars_datas_by_controller_height(var_dag);
-                        step++;
-                    }
-
-                    batchperf_computation_wrapper_total_estimated_remaining_time = Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.computation_wrapper));
-                    current_total_elapsed_time = performance.now() - var_dag.perfs.computation_wrapper.start_time;
+                if (var_dag.perfs && var_dag.perfs.computation_wrapper.updated_estimated_work_time && (var_dag.perfs.computation_wrapper.updated_estimated_work_time >= estimated_tree_computation_time_target)) {
+                    break;
                 }
 
-                // Si on a des slow vars ici, on reviendra par un nouveau batch
-                await this.check_tree_for_slow_vars(var_dag, all_selected_var_datas);
-                return var_dag;
-            },
-            this
-        );
+                all_selected_var_datas.push(selected_var_data);
+                batchperf_computation_wrapper_total_estimated_remaining_time = var_dag.perfs ? Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.computation_wrapper)) : 0;
+
+                let batchperf_create_tree_total_estimated_remaining_time = var_dag.perfs ? Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.create_tree)) : 0;
+                let batchperf_load_nodes_datas_total_estimated_remaining_time = var_dag.perfs ? Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.load_nodes_datas)) : 0;
+                let batchperf_compute_node_wrapper_total_estimated_remaining_time = var_dag.perfs ? Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.compute_node_wrapper)) : 0;
+                ConsoleHandler.getInstance().log('SELECTED VAR:' + selected_var_data.index + ':Total computation estimated time before adding this node:[' +
+                    (var_dag.perfs && Math.round(var_dag.perfs.computation_wrapper.updated_estimated_work_time) ? var_dag.perfs.computation_wrapper.updated_estimated_work_time : 0) +
+                    ']:' +
+                    '{' +
+                    'create_tree:[' + (var_dag.perfs && Math.round(var_dag.perfs.create_tree.updated_estimated_work_time) ? var_dag.perfs.create_tree.updated_estimated_work_time : 0) + '],' +
+                    'load_nodes_datas:[' + (var_dag.perfs && Math.round(var_dag.perfs.load_nodes_datas.updated_estimated_work_time) ? var_dag.perfs.load_nodes_datas.updated_estimated_work_time : 0) + '],' +
+                    'compute_node_wrapper:[' + (var_dag.perfs && Math.round(var_dag.perfs.compute_node_wrapper.updated_estimated_work_time) ? var_dag.perfs.compute_node_wrapper.updated_estimated_work_time : 0) +
+                    ']}' +
+                    ':Remaining:[' + batchperf_computation_wrapper_total_estimated_remaining_time + ']:' +
+                    '{' +
+                    'create_tree:[' + batchperf_create_tree_total_estimated_remaining_time + '],' +
+                    'load_nodes_datas:[' + batchperf_load_nodes_datas_total_estimated_remaining_time + '],' +
+                    'compute_node_wrapper:[' + batchperf_compute_node_wrapper_total_estimated_remaining_time +
+                    ']}');
+
+                /**
+                 * On insère le noeud dans l'arbre en premier pour forcer le flag already_tried_load_cache_complet
+                 *  puisque si on avait ce cache on demanderait pas un calcul à ce stade
+                 */
+                let var_dag_node = VarDAGNode.getInstance(var_dag, selected_var_data, VarsComputeController, true);
+                if (!var_dag_node) {
+
+                    ConsoleHandler.getInstance().log('UNSELECTED VAR:' + selected_var_data.index);
+
+                    // Si on a des slow vars ici, on continue la boucle, on devrait pouvoir dépiler immédiatement la première
+                    if (await this.check_tree_for_slow_vars(var_dag, all_selected_var_datas)) {
+                        all_selected_var_datas = [];
+                        continue;
+                    }
+                    return var_dag;
+                }
+
+                if (DEBUG_VARS && !!var_dag.perfs) {
+                    batchperf_computation_wrapper_total_estimated_remaining_time = VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.computation_wrapper);
+
+                    batchperf_create_tree_total_estimated_remaining_time = Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.create_tree));
+                    batchperf_load_nodes_datas_total_estimated_remaining_time = Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.load_nodes_datas));
+                    batchperf_compute_node_wrapper_total_estimated_remaining_time = Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.compute_node_wrapper));
+                    ConsoleHandler.getInstance().log('POST SELECT :' + selected_var_data.index + ':Total computation estimated time after adding this node:[' +
+                        Math.round(var_dag.perfs.computation_wrapper.updated_estimated_work_time ? var_dag.perfs.computation_wrapper.updated_estimated_work_time : 0) +
+                        ']:' +
+                        '{' +
+                        'create_tree:[' + Math.round(var_dag.perfs.create_tree.updated_estimated_work_time ? var_dag.perfs.create_tree.updated_estimated_work_time : 0) + '],' +
+                        'load_nodes_datas:[' + Math.round(var_dag.perfs.load_nodes_datas.updated_estimated_work_time ? var_dag.perfs.load_nodes_datas.updated_estimated_work_time : 0) + '],' +
+                        'compute_node_wrapper:[' + Math.round(var_dag.perfs.compute_node_wrapper.updated_estimated_work_time ? var_dag.perfs.compute_node_wrapper.updated_estimated_work_time : 0) +
+                        ']}' +
+                        ':Remaining:[' + batchperf_computation_wrapper_total_estimated_remaining_time + ']:' +
+                        '{' +
+                        'create_tree:[' + batchperf_create_tree_total_estimated_remaining_time + '],' +
+                        'load_nodes_datas:[' + batchperf_load_nodes_datas_total_estimated_remaining_time + '],' +
+                        'compute_node_wrapper:[' + batchperf_compute_node_wrapper_total_estimated_remaining_time +
+                        ']}');
+                }
+
+                var_dag_node.already_tried_load_cache_complet = true;
+            }
+
+            let vars_datas_to_deploy_by_controller_height = await this.get_vars_datas_by_controller_height(var_dag);
+            let step = 1;
+            while (Object.keys(vars_datas_to_deploy_by_controller_height).length) {
+
+                // On sélectionne les vars à déployer
+                let vars_to_deploy: { [index: string]: VarDataBaseVO } = this.get_vars_to_deploy(vars_datas_to_deploy_by_controller_height);
+
+                if (DEBUG_VARS) {
+                    ConsoleHandler.getInstance().log('create_tree:Step ' + step + ':Deploying ' + Object.keys(vars_to_deploy).length + ' vars');
+                }
+
+                // on notifie du calcul en cours
+                let vars_to_deploy_filtered_by_tab_subs_indexes = await VarsTabsSubsController.getInstance().filter_by_subs(Object.keys(vars_to_deploy));
+                if (vars_to_deploy_filtered_by_tab_subs_indexes && vars_to_deploy_filtered_by_tab_subs_indexes.length) {
+                    await VarsTabsSubsController.getInstance().notify_vardatas(
+                        vars_to_deploy_filtered_by_tab_subs_indexes.map((index: string) => new NotifVardatasParam([vars_to_deploy[index]], true)));
+                }
+
+                // On charge les caches pour ces noeuds
+                //  et on récupère les nouveaux vars_datas à insérer dans l'arbre
+                await this.load_caches_and_imports_on_vars_to_deploy(vars_to_deploy, var_dag);
+
+                // On doit ensuite charger les ds pre deps
+                await this.deploy_deps_on_vars_to_deploy(vars_to_deploy, var_dag);
+
+                vars_datas_to_deploy_by_controller_height = await this.get_vars_datas_by_controller_height(var_dag);
+                step++;
+            }
+
+            batchperf_computation_wrapper_total_estimated_remaining_time = var_dag.perfs ? Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.computation_wrapper)) : 0;
+            current_total_elapsed_time = var_dag.perfs ? (performance.now() - var_dag.perfs.computation_wrapper.start_time) : 0;
+        }
+
+        // Si on a des slow vars ici, on reviendra par un nouveau batch
+        await this.check_tree_for_slow_vars(var_dag, all_selected_var_datas);
+        return var_dag;
     }
 
     /**
@@ -1048,7 +970,7 @@ export default class VarsComputeController {
         VarsDatasProxy.getInstance().can_load_vars_to_test = true;
 
         // Les slow vars rencontrées n'indiquent pas la fin du dépilage des vars en attente.
-        // On doit donc tester asao de dépiler les vars potentiellement en attente
+        // On doit donc tester asap de dépiler les vars potentiellement en attente
         VarsdatasComputerBGThread.getInstance().force_run_asap();
 
         return true;
@@ -1228,8 +1150,7 @@ export default class VarsComputeController {
      */
     private async deploy_deps_on_vars_to_deploy(
         vars_to_deploy: { [index: string]: VarDataBaseVO },
-        var_dag: VarDAG,
-        ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }
+        var_dag: VarDAG
     ) {
 
         let promises = [];
@@ -1253,7 +1174,7 @@ export default class VarsComputeController {
                 return;
             }
 
-            promises.push(this.deploy_deps_on_var_to_deploy(var_dag_node, var_dag, ds_cache));
+            promises.push(this.deploy_deps_on_var_to_deploy(var_dag_node, var_dag));
         }
 
         if (promises && promises.length) {
@@ -1263,11 +1184,10 @@ export default class VarsComputeController {
 
     private async deploy_deps_on_var_to_deploy(
         var_dag_node: VarDAGNode,
-        var_dag: VarDAG,
-        ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }
+        var_dag: VarDAG
     ) {
 
-        let deps: { [index: string]: VarDataBaseVO } = await this.get_node_deps_perf_wrapper(var_dag_node, ds_cache);
+        let deps: { [index: string]: VarDataBaseVO } = await this.get_node_deps_perf_wrapper(var_dag_node);
 
         /**
          * Si dans les deps on a un denied, on refuse le tout
@@ -1410,7 +1330,7 @@ export default class VarsComputeController {
                 self.cached_var_selection_pack_size = await ModuleParams.getInstance().getParamValueAsInt(VarsComputeController.PARAM_NAME_var_selection_pack_size, 50);
             })());
             promises.push((async () => {
-                self.cached_estimated_tree_computation_time_limit = await ModuleParams.getInstance().getParamValueAsInt(VarsComputeController.PARAM_NAME_estimated_tree_computation_time_limit, 30000);
+                self.cached_estimated_tree_computation_time_limit = await ModuleParams.getInstance().getParamValueAsInt(VarsComputeController.PARAM_NAME_estimated_tree_computation_time_limit, 300000);
             })());
             promises.push((async () => {
                 self.cached_estimated_tree_computation_time_target = await ModuleParams.getInstance().getParamValueAsInt(VarsComputeController.PARAM_NAME_estimated_tree_computation_time_target, 3000);
@@ -1421,20 +1341,30 @@ export default class VarsComputeController {
         }
     }
 
-    private async create_tree_perf_wrapper(var_dag: VarDAG, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }) {
-        VarDagPerfsServerController.getInstance().start_nodeperfelement(var_dag.perfs.create_tree, 'create_tree');
-        await this.create_tree(ds_cache);
-        VarDagPerfsServerController.getInstance().end_nodeperfelement(var_dag.perfs.create_tree, 'create_tree');
+    private async create_tree_perf_wrapper(var_dag: VarDAG) {
+        if (var_dag.perfs) {
+            VarDagPerfsServerController.getInstance().start_nodeperfelement(var_dag.perfs.create_tree, 'create_tree');
+        }
+        await this.create_tree();
+        if (var_dag.perfs) {
+            VarDagPerfsServerController.getInstance().end_nodeperfelement(var_dag.perfs.create_tree, 'create_tree');
+        }
     }
 
-    private async load_nodes_datas_perf_wrapper(var_dag: VarDAG, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }) {
-        VarDagPerfsServerController.getInstance().start_nodeperfelement(var_dag.perfs.load_nodes_datas, 'load_nodes_datas');
-        await this.load_nodes_datas(var_dag, ds_cache);
-        VarDagPerfsServerController.getInstance().end_nodeperfelement(var_dag.perfs.load_nodes_datas, 'load_nodes_datas');
+    private async load_nodes_datas_perf_wrapper(var_dag: VarDAG) {
+        if (var_dag.perfs) {
+            VarDagPerfsServerController.getInstance().start_nodeperfelement(var_dag.perfs.load_nodes_datas, 'load_nodes_datas');
+        }
+        await this.load_nodes_datas(var_dag);
+        if (var_dag.perfs) {
+            VarDagPerfsServerController.getInstance().end_nodeperfelement(var_dag.perfs.load_nodes_datas, 'load_nodes_datas');
+        }
     }
 
     private async compute_perf_wrapper(var_dag: VarDAG) {
-        VarDagPerfsServerController.getInstance().start_nodeperfelement(var_dag.perfs.compute_node_wrapper, 'compute_node_wrapper');
+        if (var_dag.perfs) {
+            VarDagPerfsServerController.getInstance().start_nodeperfelement(var_dag.perfs.compute_node_wrapper, 'compute_node_wrapper');
+        }
         for (let i in var_dag.nodes) {
             let node = var_dag.nodes[i];
 
@@ -1445,13 +1375,19 @@ export default class VarsComputeController {
                     (next_node: VarDAGNode) => !VarsServerController.getInstance().has_valid_value(next_node.var_data));
             }
         }
-        VarDagPerfsServerController.getInstance().end_nodeperfelement(var_dag.perfs.compute_node_wrapper, 'compute_node_wrapper');
+        if (var_dag.perfs) {
+            VarDagPerfsServerController.getInstance().end_nodeperfelement(var_dag.perfs.compute_node_wrapper, 'compute_node_wrapper');
+        }
     }
 
     private async cache_datas_perf_wrapper(var_dag: VarDAG) {
-        VarDagPerfsServerController.getInstance().start_nodeperfelement(var_dag.perfs.cache_datas, 'cache_datas');
+        if (var_dag.perfs) {
+            VarDagPerfsServerController.getInstance().start_nodeperfelement(var_dag.perfs.cache_datas, 'cache_datas');
+        }
         await this.cache_datas(var_dag);
-        VarDagPerfsServerController.getInstance().end_nodeperfelement(var_dag.perfs.cache_datas, 'cache_datas');
+        if (var_dag.perfs) {
+            VarDagPerfsServerController.getInstance().end_nodeperfelement(var_dag.perfs.cache_datas, 'cache_datas');
+        }
     }
 
     private start_node_deploiement(node: VarDAGNode) {
@@ -1480,10 +1416,10 @@ export default class VarsComputeController {
         VarDagPerfsServerController.getInstance().end_nodeperfelement(node.perfs.ctree_ddeps_try_load_cache_complet);
     }
 
-    private async get_node_deps_perf_wrapper(node: VarDAGNode, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }): Promise<{ [index: string]: VarDataBaseVO }> {
+    private async get_node_deps_perf_wrapper(node: VarDAGNode): Promise<{ [index: string]: VarDataBaseVO }> {
         VarDagPerfsServerController.getInstance().start_nodeperfelement(node.perfs.ctree_ddeps_get_node_deps);
 
-        let deps: { [index: string]: VarDataBaseVO } = await this.get_node_deps(node, ds_cache);
+        let deps: { [index: string]: VarDataBaseVO } = await this.get_node_deps(node);
 
         VarDagPerfsServerController.getInstance().end_nodeperfelement(node.perfs.ctree_ddeps_get_node_deps);
 
@@ -1505,15 +1441,7 @@ export default class VarsComputeController {
      */
     private async handle_pixellisation(node: VarDAGNode, varconf: VarConfVO, var_dag: VarDAG, limit_to_aggregated_datas: boolean, DEBUG_VARS: boolean) {
 
-        let prod_cardinaux = 1;
-        let pixellised_fields_by_id: { [param_field_id: string]: VarPixelFieldConfVO } = {};
-        for (let i in varconf.pixel_fields) {
-            let pixel_field = varconf.pixel_fields[i];
-
-            pixellised_fields_by_id[pixel_field.pixel_param_field_id] = pixel_field;
-            let card = RangeHandler.getInstance().getCardinalFromArray(node.var_data[pixel_field.pixel_param_field_id]);
-            prod_cardinaux *= card;
-        }
+        let prod_cardinaux = PixelVarDataController.getInstance().get_pixel_card(node.var_data);
 
         if (prod_cardinaux == 1) {
             // c'est un pixel, on ignore
@@ -1521,6 +1449,13 @@ export default class VarsComputeController {
                 ConsoleHandler.getInstance().log('PIXEL Var:' + node.var_data.index + ':' + prod_cardinaux + ':is pixel but with no exact cache (already tried)');
             }
         } else {
+
+            let pixellised_fields_by_id: { [param_field_id: string]: VarPixelFieldConfVO } = {};
+            for (let i in varconf.pixel_fields) {
+                let pixel_field = varconf.pixel_fields[i];
+
+                pixellised_fields_by_id[pixel_field.pixel_param_field_id] = pixel_field;
+            }
 
             let pixel_query = query(varconf.var_data_vo_type)
                 .filter_by_num_eq('var_id', varconf.id)
@@ -1591,6 +1526,7 @@ export default class VarsComputeController {
                 }
 
                 // On notifie puisqu'on a le résultat
+                this.end_node_deploiement(node);
                 await this.notify_var_data_post_deploy(node);
             } else {
 
@@ -1661,6 +1597,7 @@ export default class VarsComputeController {
                     }
 
                     if (VarsServerController.getInstance().has_valid_value(dep_node.var_data)) {
+                        this.end_node_deploiement(dep_node);
                         await this.notify_var_data_post_deploy(dep_node);
                     }
                 }

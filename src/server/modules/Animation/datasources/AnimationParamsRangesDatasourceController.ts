@@ -18,7 +18,7 @@ export default class AnimationParamsRangesDatasourceController extends DataSourc
 
     protected static instance: AnimationParamsRangesDatasourceController = null;
 
-    public async get_data(param: ThemeModuleDataRangesVO, ds_cache): Promise<AnimationParametersVO> {
+    public async get_data(param: ThemeModuleDataRangesVO): Promise<AnimationParametersVO> {
         return await ModuleAnimation.getInstance().getParameters();
     }
 }

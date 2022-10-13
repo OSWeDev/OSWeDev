@@ -4,7 +4,7 @@ include ../../../../../../views/mixins/box.pug
 .rootElt.reporting_filtres
   +box("{{ label('animation.reporting.filtre') }}", 'fa-filter', "8px", "0px", 'false')
     .row
-      .col-md-6
+      .col-sm-6
         Multipleselectfiltercomponent(
           :placeholder="label('animation.reporting.filtre.anim_theme')",
           store_module_uid="AnimationReportingVuexStore",
@@ -37,7 +37,7 @@ include ../../../../../../views/mixins/box.pug
           :depends_on_call_condition_on_empty_active_options='{}'
         )
 
-      .col-md-6
+      .col-sm-6
         multiselect.mb-4(
           :preselect-first="false"
           :multiple="false"

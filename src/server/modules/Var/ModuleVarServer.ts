@@ -9,7 +9,6 @@ import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFi
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
@@ -37,16 +36,17 @@ import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
+import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import ContextQueryServerController from '../ContextFilter/ContextQueryServerController';
 import ModuleContextFilterServer from '../ContextFilter/ModuleContextFilterServer';
 import ParameterizedQueryWrapper from '../ContextFilter/vos/ParameterizedQueryWrapper';
-import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
 import DAOPostDeleteTriggerHook from '../DAO/triggers/DAOPostDeleteTriggerHook';
 import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
@@ -57,8 +57,6 @@ import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
-import PerfMonAdminTasksController from '../PerfMon/PerfMonAdminTasksController';
-import PerfMonConfController from '../PerfMon/PerfMonConfController';
 import PushDataServerController from '../PushData/PushDataServerController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
@@ -70,7 +68,6 @@ import VarsComputeController from './VarsComputeController';
 import VarsDatasProxy from './VarsDatasProxy';
 import VarsDatasVoUpdateHandler from './VarsDatasVoUpdateHandler';
 import VarServerControllerBase from './VarServerControllerBase';
-import VarsPerfMonServerController from './VarsPerfMonServerController';
 import VarsServerCallBackSubsController from './VarsServerCallBackSubsController';
 import VarsServerController from './VarsServerController';
 import VarsTabsSubsController from './VarsTabsSubsController';
@@ -116,87 +113,6 @@ export default class ModuleVarServer extends ModuleServerBase {
     }
 
     public async configure() {
-
-        let PML__VarsdatasComputerBGThread__do_calculation_run = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsdatasComputerBGThread__do_calculation_run);
-
-        let PML__VarServerControllerBase__computeValue = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarServerControllerBase__computeValue);
-
-        let PML__VarsDatasProxy__handle_buffer = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsDatasProxy__handle_buffer);
-        let PML__VarsDatasProxy__get_exact_param_from_buffer_or_bdd = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsDatasProxy__get_exact_param_from_buffer_or_bdd);
-        let PML__VarsDatasProxy__prepend_var_datas = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsDatasProxy__prepend_var_datas);
-        let PML__VarsDatasProxy__get_var_datas_or_ask_to_bgthread = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsDatasProxy__get_var_datas_or_ask_to_bgthread);
-        let PML__VarsDatasProxy__append_var_datas = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsDatasProxy__append_var_datas);
-        let PML__VarsDatasProxy__get_exact_params_from_buffer_or_bdd = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsDatasProxy__get_exact_params_from_buffer_or_bdd);
-        let PML__VarsDatasProxy__get_vars_to_compute_from_buffer_or_bdd = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsDatasProxy__get_vars_to_compute_from_buffer_or_bdd);
-        let PML__VarsDatasProxy__update_existing_buffered_older_datas = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsDatasProxy__update_existing_buffered_older_datas);
-        let PML__VarsDatasProxy__get_vars_to_compute_from_bdd = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsDatasProxy__get_vars_to_compute_from_bdd);
-        let PML__VarsDatasProxy__filter_var_datas_by_indexes = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsDatasProxy__filter_var_datas_by_indexes);
-
-        let PML__VarsComputeController__compute = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsComputeController__compute);
-        let PML__VarsComputeController__cache_datas = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsComputeController__cache_datas);
-        let PML__VarsComputeController__deploy_deps = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsComputeController__deploy_deps);
-        let PML__VarsComputeController__load_nodes_datas = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsComputeController__load_nodes_datas);
-        let PML__VarsComputeController__compute_node = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsComputeController__compute_node);
-        let PML__VarsComputeController__create_tree = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsComputeController__create_tree);
-        let PML__VarsComputeController__handle_deploy_deps = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsComputeController__handle_deploy_deps);
-        let PML__VarsComputeController__try_load_cache_complet = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsComputeController__try_load_cache_complet);
-        let PML__VarsComputeController__try_load_cache_partiel = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsComputeController__try_load_cache_partiel);
-        let PML__VarsComputeController__get_node_deps = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsComputeController__get_node_deps);
-
-        let PML__DataSourcesController__load_node_datas = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__DataSourcesController__load_node_datas);
-
-        let PML__DataSourceControllerBase__load_node_data = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__DataSourceControllerBase__load_node_data);
-
-        let PML__VarsPerfsController__update_perfs_in_bdd = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsPerfsController__update_perfs_in_bdd);
-        let PML__VarsDatasVoUpdateHandler__handle_buffer = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsDatasVoUpdateHandler__handle_buffer);
-        let PML__VarsDatasVoUpdateHandler__invalidate_datas_and_parents = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsDatasVoUpdateHandler__invalidate_datas_and_parents);
-        let PML__VarsDatasVoUpdateHandler__update_param = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsDatasVoUpdateHandler__update_param);
-        let PML__VarsDatasVoUpdateHandler__find_invalid_datas_and_push_for_update = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsDatasVoUpdateHandler__find_invalid_datas_and_push_for_update);
-        let PML__VarsCacheController__partially_clean_bdd_cache = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsCacheController__partially_clean_bdd_cache);
-        let PML__VarsImportsHandler__load_imports_and_split_nodes = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsImportsHandler__load_imports_and_split_nodes);
-        let PML__VarsImportsHandler__split_nodes = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsImportsHandler__split_nodes);
-        let PML__VarsImportsHandler__aggregate_imports_and_remaining_datas = await PerfMonConfController.getInstance().registerPerformanceType(VarsPerfMonServerController.PML__VarsImportsHandler__aggregate_imports_and_remaining_datas);
-
-        PerfMonAdminTasksController.getInstance().register_perfmon_pack("VARs", [
-            PML__VarsdatasComputerBGThread__do_calculation_run,
-
-            PML__VarServerControllerBase__computeValue,
-
-            PML__VarsDatasProxy__handle_buffer,
-            PML__VarsDatasProxy__get_exact_param_from_buffer_or_bdd,
-            PML__VarsDatasProxy__prepend_var_datas,
-            PML__VarsDatasProxy__get_var_datas_or_ask_to_bgthread,
-            PML__VarsDatasProxy__append_var_datas,
-            PML__VarsDatasProxy__get_exact_params_from_buffer_or_bdd,
-            PML__VarsDatasProxy__get_vars_to_compute_from_buffer_or_bdd,
-            PML__VarsDatasProxy__update_existing_buffered_older_datas,
-            PML__VarsDatasProxy__get_vars_to_compute_from_bdd,
-            PML__VarsDatasProxy__filter_var_datas_by_indexes,
-
-            PML__VarsComputeController__compute,
-            PML__VarsComputeController__cache_datas,
-            PML__VarsComputeController__deploy_deps,
-            PML__VarsComputeController__load_nodes_datas,
-            PML__VarsComputeController__compute_node,
-            PML__VarsComputeController__create_tree,
-            PML__VarsComputeController__handle_deploy_deps,
-            PML__VarsComputeController__try_load_cache_complet,
-            PML__VarsComputeController__try_load_cache_partiel,
-            PML__VarsComputeController__get_node_deps,
-
-            PML__DataSourcesController__load_node_datas,
-            PML__DataSourceControllerBase__load_node_data,
-
-            PML__VarsPerfsController__update_perfs_in_bdd,
-            PML__VarsDatasVoUpdateHandler__handle_buffer,
-            PML__VarsDatasVoUpdateHandler__invalidate_datas_and_parents,
-            PML__VarsDatasVoUpdateHandler__update_param,
-            PML__VarsDatasVoUpdateHandler__find_invalid_datas_and_push_for_update,
-            PML__VarsCacheController__partially_clean_bdd_cache,
-            PML__VarsImportsHandler__load_imports_and_split_nodes,
-            PML__VarsImportsHandler__split_nodes,
-            PML__VarsImportsHandler__aggregate_imports_and_remaining_datas
-        ]);
 
         VarsTabsSubsController.getInstance();
         VarsServerCallBackSubsController.getInstance();
@@ -800,6 +716,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         // APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getSimpleVarDataCachedValueFromParam, this.getSimpleVarDataCachedValueFromParam.bind(this));
         // APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_configureVarCache, this.configureVarCache.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_register_params, this.register_params.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_update_params_registration, this.update_params_registration.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_unregister_params, this.unregister_params.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_get_var_id_by_names, this.get_var_id_by_names.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_get_var_data_by_index, this.get_var_data_by_index.bind(this));
@@ -830,56 +747,76 @@ export default class ModuleVarServer extends ModuleServerBase {
             'fr-fr': 'Variables'
         }));
 
-        let POLICY_FO_ACCESS: AccessPolicyVO = new AccessPolicyVO();
-        POLICY_FO_ACCESS.group_id = group.id;
-        POLICY_FO_ACCESS.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        POLICY_FO_ACCESS.translatable_name = ModuleVar.POLICY_FO_ACCESS;
-        POLICY_FO_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_FO_ACCESS, new DefaultTranslation({
-            'fr-fr': 'Accès aux Variables sur le front'
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        let promises = [];
 
-        let desc_mode_access: AccessPolicyVO = new AccessPolicyVO();
-        desc_mode_access.group_id = group.id;
-        desc_mode_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        desc_mode_access.translatable_name = ModuleVar.POLICY_DESC_MODE_ACCESS;
-        desc_mode_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(desc_mode_access, new DefaultTranslation({
-            'fr-fr': 'Accès au "Mode description"'
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        promises.push((async () => {
+            let POLICY_FO_ACCESS: AccessPolicyVO = new AccessPolicyVO();
+            POLICY_FO_ACCESS.group_id = group.id;
+            POLICY_FO_ACCESS.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            POLICY_FO_ACCESS.translatable_name = ModuleVar.POLICY_FO_ACCESS;
+            POLICY_FO_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_FO_ACCESS, new DefaultTranslation({
+                'fr-fr': 'Accès aux Variables sur le front'
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        })());
+
+        promises.push((async () => {
+            let desc_mode_access: AccessPolicyVO = new AccessPolicyVO();
+            desc_mode_access.group_id = group.id;
+            desc_mode_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            desc_mode_access.translatable_name = ModuleVar.POLICY_DESC_MODE_ACCESS;
+            desc_mode_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(desc_mode_access, new DefaultTranslation({
+                'fr-fr': 'Accès au "Mode description"'
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        })());
 
         let bo_access: AccessPolicyVO = new AccessPolicyVO();
-        bo_access.group_id = group.id;
-        bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        bo_access.translatable_name = ModuleVar.POLICY_BO_ACCESS;
-        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
-            'fr-fr': 'Administration des vars'
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
-
-        let bo_varconf_access: AccessPolicyVO = new AccessPolicyVO();
-        bo_varconf_access.group_id = group.id;
-        bo_varconf_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        bo_varconf_access.translatable_name = ModuleVar.POLICY_BO_VARCONF_ACCESS;
-        bo_varconf_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_varconf_access, new DefaultTranslation({
-            'fr-fr': 'Configuration des types de vars'
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
-        let access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
-        access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
-        access_dependency.src_pol_id = bo_varconf_access.id;
-        access_dependency.depends_on_pol_id = bo_access.id;
-        access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
-
+        promises.push((async () => {
+            bo_access.group_id = group.id;
+            bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            bo_access.translatable_name = ModuleVar.POLICY_BO_ACCESS;
+            bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
+                'fr-fr': 'Administration des vars'
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        })());
 
         let bo_imported_access: AccessPolicyVO = new AccessPolicyVO();
-        bo_imported_access.group_id = group.id;
-        bo_imported_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        bo_imported_access.translatable_name = ModuleVar.POLICY_BO_IMPORTED_ACCESS;
-        bo_imported_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_imported_access, new DefaultTranslation({
-            'fr-fr': 'Configuration des données importées'
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
-        access_dependency = new PolicyDependencyVO();
-        access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
-        access_dependency.src_pol_id = bo_imported_access.id;
-        access_dependency.depends_on_pol_id = bo_access.id;
-        access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
+        promises.push((async () => {
+            bo_imported_access.group_id = group.id;
+            bo_imported_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            bo_imported_access.translatable_name = ModuleVar.POLICY_BO_IMPORTED_ACCESS;
+            bo_imported_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_imported_access, new DefaultTranslation({
+                'fr-fr': 'Configuration des données importées'
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        })());
+
+        let bo_varconf_access: AccessPolicyVO = new AccessPolicyVO();
+        promises.push((async () => {
+            bo_varconf_access.group_id = group.id;
+            bo_varconf_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            bo_varconf_access.translatable_name = ModuleVar.POLICY_BO_VARCONF_ACCESS;
+            bo_varconf_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_varconf_access, new DefaultTranslation({
+                'fr-fr': 'Configuration des types de vars'
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        })());
+        await Promise.all(promises);
+        promises = [];
+
+        promises.push((async () => {
+            let access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+            access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+            access_dependency.src_pol_id = bo_varconf_access.id;
+            access_dependency.depends_on_pol_id = bo_access.id;
+            access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
+        })());
+
+        promises.push((async () => {
+            let access_dependency = new PolicyDependencyVO();
+            access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+            access_dependency.src_pol_id = bo_imported_access.id;
+            access_dependency.depends_on_pol_id = bo_access.id;
+            access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
+        })());
+        await Promise.all(promises);
     }
 
     /**
@@ -1046,7 +983,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     private async get_var_id_by_names(): Promise<VarConfIds> {
         let res: VarConfIds = new VarConfIds();
-        let var_confs: VarConfVO[] = await ModuleDAO.getInstance().getVos<VarConfVO>(VarConfVO.API_TYPE_ID);
+        let var_confs: VarConfVO[] = await query(VarConfVO.API_TYPE_ID).select_vos<VarConfVO>();
         res.var_id_by_names = {};
 
         for (let i in var_confs) {
@@ -1056,6 +993,34 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         return res;
+    }
+
+    /**
+     * On ne fait que mettre à jour la date de sub pour s'assurer qu'on expire pas car l'onglet est toujours actif
+     * @param params
+     */
+    private async update_params_registration(params: VarDataBaseVO[]): Promise<void> {
+        if (!params) {
+            return;
+        }
+
+        /**
+         * On commence par refuser les params mal construits (champs null)
+         */
+        params = this.filter_null_fields_params(params);
+
+        let uid = StackContext.getInstance().get('UID');
+        let client_tab_id = StackContext.getInstance().get('CLIENT_TAB_ID');
+
+        VarsTabsSubsController.getInstance().register_sub(uid, client_tab_id, params ? params.map((param) => param.index) : []);
+
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+            for (let i in params) {
+                let param = params[i];
+
+                ConsoleHandler.getInstance().log('update_params_registration:' + param.index + ':UID:' + uid + ':CLIENT_TAB_ID:' + client_tab_id);
+            }
+        }
     }
 
     /**
@@ -1079,6 +1044,14 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         VarsTabsSubsController.getInstance().register_sub(uid, client_tab_id, params ? params.map((param) => param.index) : []);
 
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+            for (let i in params) {
+                let param = params[i];
+
+                ConsoleHandler.getInstance().log('register_params:' + param.index + ':UID:' + uid + ':CLIENT_TAB_ID:' + client_tab_id);
+            }
+        }
+
         /**
          * Si on trouve des datas existantes et valides en base, on les envoie, sinon on indique qu'on attend ces valeurs
          */
@@ -1092,47 +1065,15 @@ export default class ModuleVarServer extends ModuleServerBase {
             notifyable_vars.forEach((notifyable_var) => vars_to_notif.push(new VarDataValueResVO().set_from_vardata(notifyable_var)));
 
             await PushDataServerController.getInstance().notifyVarsDatas(uid, client_tab_id, vars_to_notif);
+
+            if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+                for (let i in notifyable_vars) {
+                    let param = notifyable_vars[i];
+
+                    ConsoleHandler.getInstance().log('register_param:NOTIFIED:' + param.index + ':UID:' + uid + ':CLIENT_TAB_ID:' + client_tab_id);
+                }
+            }
         }
-
-
-
-
-
-        // let promises = [];
-
-        // let vars_to_notif: VarDataValueResVO[] = [];
-        // let needs_var_computation: boolean = false;
-        // for (let i in params) {
-        //     let param = params[i];
-
-        //     if (!param.check_param_is_valid(param._type)) {
-        //         ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
-        //         continue;
-        //     }
-
-        //     // TODO FIXME promises.length
-        //     if (promises.length >= 10) {
-        //         await Promise.all(promises);
-        //         promises = [];
-        //     }
-
-        //     promises.push((async () => {
-
-        //         let in_db_data: VarDataBaseVO = await ModuleVarServer.getInstance().get_var_data_or_ask_to_bgthread(param);
-        //         if (!in_db_data) {
-        //             needs_var_computation = true;
-        //             return;
-        //         }
-
-        //         vars_to_notif.push(new VarDataValueResVO().set_from_vardata(in_db_data));
-        //     })());
-        // }
-
-        // await Promise.all(promises);
-
-        // if (vars_to_notif && vars_to_notif.length) {
-        //     await PushDataServerController.getInstance().notifyVarsDatas(uid, client_tab_id, vars_to_notif);
-        // }
     }
 
     private filter_null_fields_params(params: VarDataBaseVO[]): VarDataBaseVO[] {
@@ -1186,6 +1127,14 @@ export default class ModuleVarServer extends ModuleServerBase {
         let uid = StackContext.getInstance().get('UID');
         let client_tab_id = StackContext.getInstance().get('CLIENT_TAB_ID');
         VarsTabsSubsController.getInstance().unregister_sub(uid, client_tab_id, params.map((param) => param.check_param_is_valid(param._type) ? param.index : null));
+
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+            for (let i in params) {
+                let param = params[i];
+
+                ConsoleHandler.getInstance().log('unregister_param:' + param.index + ':UID:' + uid + ':CLIENT_TAB_ID:' + client_tab_id);
+            }
+        }
     }
 
     private async getVarControllerDSDeps(text: string): Promise<string[]> {
@@ -1231,7 +1180,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             return null;
         }
 
-        let dag: VarDAG = new VarDAG(null);
+        let dag: VarDAG = new VarDAG();
         let varDAGNode: VarDAGNode = VarDAGNode.getInstance(dag, param, VarsComputeController, false);
 
         if (!varDAGNode) {
@@ -1239,8 +1188,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         let predeps = var_controller.getDataSourcesPredepsDependencies();
-        let cache = {};
-        await DataSourcesController.getInstance().load_node_datas(predeps, varDAGNode, cache);
+        await DataSourcesController.getInstance().load_node_datas(predeps, varDAGNode);
 
         // TEMP DEBUG JFE :
         // ConsoleHandler.getInstance().log("cpt_for_datasources :: " + JSON.stringify(this.cpt_for_datasources));
@@ -1249,12 +1197,11 @@ export default class ModuleVarServer extends ModuleServerBase {
     }
 
     private async getAggregatedVarDatas(param: VarDataBaseVO): Promise<{ [var_data_index: string]: VarDataBaseVO }> {
-        let var_dag: VarDAG = new VarDAG(null);
+        let var_dag: VarDAG = new VarDAG();
         let deployed_vars_datas: { [index: string]: boolean } = {};
         let vars_datas: { [index: string]: VarDataBaseVO } = {
             [param.index]: param
         };
-        let ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } } = {};
 
         let node = VarDAGNode.getInstance(var_dag, param, VarsComputeController, false);
 
@@ -1262,13 +1209,12 @@ export default class ModuleVarServer extends ModuleServerBase {
             return null;
         }
 
-        // await VarsComputeController.getInstance().deploy_deps(node, deployed_vars_datas, vars_datas, ds_cache);
+        // await VarsComputeController.getInstance().deploy_deps(node, deployed_vars_datas, vars_datas);
         await VarsComputeController.getInstance().load_caches_and_imports_on_var_to_deploy(
             param,
             var_dag,
             deployed_vars_datas,
             vars_datas,
-            ds_cache,
             true);
 
         return node.aggregated_datas ? node.aggregated_datas : {};
@@ -1321,7 +1267,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         let datasources_deps: DataSourceControllerBase[] = VarsServerController.getInstance().get_datasource_deps_and_predeps(var_controller);
 
         // WARNING on se base sur un fake node par ce que je vois pas comment faire autrement...
-        let dag: VarDAG = new VarDAG(null);
+        let dag: VarDAG = new VarDAG();
         let varDAGNode: VarDAGNode = VarDAGNode.getInstance(dag, param, VarsComputeController, false);
 
         if (!varDAGNode) {
@@ -1331,8 +1277,6 @@ export default class ModuleVarServer extends ModuleServerBase {
         for (let i in datasources_deps) {
             let datasource_dep = datasources_deps[i];
 
-            let cache = {};
-
             // TEMP DEBUG JFE start
             // if (!this.cpt_for_datasources[datasource_dep.name]) {
             //     this.cpt_for_datasources[datasource_dep.name] = 0;
@@ -1340,7 +1284,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             // this.cpt_for_datasources[datasource_dep.name]++;
             // TEMP DEBUG JFE - end
 
-            await datasource_dep.load_node_data(varDAGNode, cache);
+            await datasource_dep.load_node_data(varDAGNode);
             let data = varDAGNode.datasources[datasource_dep.name];
 
             let data_jsoned: string = null;
@@ -1615,7 +1559,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         let filter_ = new ContextFilterVO();
         filter_.field_id = 'type';
         filter_.vo_type = SlowVarVO.API_TYPE_ID;
-        filter_.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+        filter_.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
         filter_.param_numeric = SlowVarVO.TYPE_DENIED;
 
         let query_: ContextQueryVO = new ContextQueryVO();
@@ -1678,7 +1622,13 @@ export default class ModuleVarServer extends ModuleServerBase {
                         indexes.push(var_data_index);
                     }
 
-                    let query_wrapper: ParameterizedQueryWrapper = await (await query(api_type_id).filter_by_text_has('_bdd_only_index', indexes).get_select_query_str());
+                    let query_wrapper: ParameterizedQueryWrapper = await query(api_type_id).filter_by_text_has('_bdd_only_index', indexes).get_select_query_str();
+
+                    if (!query_wrapper) {
+                        ConsoleHandler.getInstance().warn('Refused (probably session lost) to get_var_data_by_index for api_type_id ' + api_type_id);
+                        return;
+                    }
+
                     let results: VarDataBaseVO[] = await ModuleServiceBase.getInstance().db.query(query_wrapper.query, query_wrapper.params);
 
                     for (let i in results) {
