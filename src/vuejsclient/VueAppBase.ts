@@ -52,6 +52,7 @@ import VarsDirective from "./ts/components/Var/directives/vars-directive/VarsDir
 import VarsClientController from "./ts/components/Var/VarsClientController";
 import VarDataBaseVO from "../shared/modules/Var/vos/VarDataBaseVO";
 import ConsoleHandler from "../shared/tools/ConsoleHandler";
+import { all_promises } from "../shared/tools/PromiseTools";
 require('moment-json-parser').overrideDefault();
 
 
@@ -96,7 +97,7 @@ export default abstract class VueAppBase {
             await this.appController.initialize();
         })());
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         PushDataVueModule.getInstance();
 
@@ -130,11 +131,11 @@ export default abstract class VueAppBase {
                             module_.policies_loaded[policy_name] = await ModuleAccessPolicy.getInstance().testAccess(policy_name);
                         })());
                     }
-                    await Promise.all(local_promises);
+                    await all_promises(local_promises);
                 })());
             }
         }
-        await Promise.all(promises);
+        await all_promises(promises);
 
         // On lance les initializeAsync des modules Vue
         for (let i in ModulesManager.getInstance().modules_by_name) {

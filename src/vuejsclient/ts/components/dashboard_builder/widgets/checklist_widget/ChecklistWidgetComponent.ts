@@ -37,6 +37,7 @@ import './ChecklistWidgetComponent.scss';
 import ChecklistItemModalComponent from './checklist_item_modal/ChecklistItemModalComponent';
 import ChecklistWidgetOptions from './options/ChecklistWidgetOptions';
 import Vue from 'vue';
+import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 
 @Component({
     template: require('./ChecklistWidgetComponent.pug'),
@@ -461,7 +462,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
                 self.checklist_shared_module.checkpoint_type_id, 'checklist_id', [self.checklist.id]));
         })());
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         // Si je ne suis pas sur la dernière demande, je me casse
         if (this.last_calculation_cpt != launch_cpt) {

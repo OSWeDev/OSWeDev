@@ -3,6 +3,7 @@ import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQuery
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
+import { all_promises } from '../../../../shared/tools/PromiseTools';
 import WeightHandler from '../../../../shared/tools/WeightHandler';
 
 export default class MenuController {
@@ -46,7 +47,7 @@ export default class MenuController {
                 this.access_by_name[policy_name] = await ModuleAccessPolicy.getInstance().testAccess(policy_name);
             })());
         }
-        await Promise.all(promises);
+        await all_promises(promises);
     }
 
     /**

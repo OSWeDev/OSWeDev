@@ -21,6 +21,7 @@ import IDistantVOBase from "../../../../../../shared/modules/IDistantVOBase";
 import VarsController from "../../../../../../shared/modules/Var/VarsController";
 import VarDataBaseVO from "../../../../../../shared/modules/Var/vos/VarDataBaseVO";
 import VOsTypesManager from "../../../../../../shared/modules/VOsTypesManager";
+import { all_promises } from "../../../../../../shared/tools/PromiseTools";
 import RangeHandler from "../../../../../../shared/tools/RangeHandler";
 import AjaxCacheClientController from "../../../../modules/AjaxCache/AjaxCacheClientController";
 import IVarDirectiveParams from '../../../Var/directives/var-directive/IVarDirectiveParams';
@@ -89,7 +90,7 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
         promises.push((async () => this.animation_params = await ModuleAnimation.getInstance().getParameters())());
         promises.push((async () => this.has_access_inline_input_mode = await ModuleAccessPolicy.getInstance().testAccess(ModuleAnimation.POLICY_FO_REPORTING_ACCESS))());
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         for (let i in this.themes) {
             this.theme_id_ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(this.themes[i].id, NumSegment.TYPE_INT));
@@ -132,7 +133,7 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
             promises.push((async () => this.document = await ModuleDAO.getInstance().getVoById<DocumentVO>(DocumentVO.API_TYPE_ID, this.anim_module.document_id))());
         }
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         // Si module terminé et atteinte seuil pas atteint, on propose de recommencer le module
         if (this.um.end_date && !this.prct_atteinte_seuil_module) {
@@ -167,7 +168,7 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
             promises.push((async () => await this.reloadUqrs())());
         }
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         this.current_qr = this.ordered_qrs ? this.ordered_qrs[0] : null;
     }

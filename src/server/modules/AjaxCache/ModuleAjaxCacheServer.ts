@@ -11,6 +11,7 @@ import APIDefinition from '../../../shared/modules/API/vos/APIDefinition';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import EnvHandler from '../../../shared/tools/EnvHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import IServerUserSession from '../../IServerUserSession';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
@@ -129,7 +130,7 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
 
         }
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         return res;
     }

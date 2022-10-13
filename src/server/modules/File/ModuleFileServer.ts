@@ -100,8 +100,8 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
 
         let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
-        preCreateTrigger.registerHandler(FileVO.API_TYPE_ID, this.check_secured_files_conf);
-        preUpdateTrigger.registerHandler(FileVO.API_TYPE_ID, this.check_secured_files_conf_update);
+        preCreateTrigger.registerHandler(FileVO.API_TYPE_ID, this, this.check_secured_files_conf);
+        preUpdateTrigger.registerHandler(FileVO.API_TYPE_ID, this, this.check_secured_files_conf_update);
     }
 
     public create_folder_if_not_exists(folder: string) {

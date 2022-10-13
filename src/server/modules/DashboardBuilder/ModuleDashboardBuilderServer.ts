@@ -1231,8 +1231,8 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         ));
 
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this.onCDashboardPageWidgetVO);
-        preCTrigger.registerHandler(DashboardVO.API_TYPE_ID, this.onCDashboardVO);
+        preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.onCDashboardPageWidgetVO);
+        preCTrigger.registerHandler(DashboardVO.API_TYPE_ID, this, this.onCDashboardVO);
     }
 
     public async registerAccessPolicies(): Promise<void> {

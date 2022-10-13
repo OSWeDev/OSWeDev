@@ -20,6 +20,7 @@ import NumRange from '../../../../../../../shared/modules/DataRender/vos/NumRang
 import NumSegment from '../../../../../../../shared/modules/DataRender/vos/NumSegment';
 import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
+import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import VueAppController from '../../../../../../VueAppController';
 import AppVuexStoreManager from '../../../../../store/AppVuexStoreManager';
@@ -158,7 +159,7 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
             all_anim_module_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>())
         )());
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         let aums: AnimationUserModuleVO[] = await query(AnimationUserModuleVO.API_TYPE_ID).select_vos<AnimationUserModuleVO>();
 

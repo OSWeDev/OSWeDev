@@ -298,8 +298,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     public registerAccessHooks(): void {
 
-        ModuleDAOServer.getInstance().registerContextAccessHook(AccessPolicyVO.API_TYPE_ID, this.filterPolicyByActivModulesContextAccessHook.bind(this));
-        ModuleDAOServer.getInstance().registerAccessHook(AccessPolicyVO.API_TYPE_ID, ModuleDAO.DAO_ACCESS_TYPE_READ, this.filterPolicyByActivModules.bind(this));
+        ModuleDAOServer.getInstance().registerContextAccessHook(AccessPolicyVO.API_TYPE_ID, this, this.filterPolicyByActivModulesContextAccessHook);
+        ModuleDAOServer.getInstance().registerAccessHook(AccessPolicyVO.API_TYPE_ID, ModuleDAO.DAO_ACCESS_TYPE_READ, this, this.filterPolicyByActivModules);
     }
 
     public async configure() {
@@ -307,15 +307,15 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         // On ajoute un trigger pour la création du compte
         let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        preCreateTrigger.registerHandler(UserVO.API_TYPE_ID, this.handleTriggerUserVOCreate);
-        preCreateTrigger.registerHandler(UserVO.API_TYPE_ID, this.checkBlockingOrInvalidatingUser);
-        preCreateTrigger.registerHandler(UserVO.API_TYPE_ID, this.trimAndCheckUnicityUser);
+        preCreateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.handleTriggerUserVOCreate);
+        preCreateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.checkBlockingOrInvalidatingUser);
+        preCreateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.trimAndCheckUnicityUser);
 
         // On ajoute un trigger pour la modification du mot de passe
         let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
-        preUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this.handleTriggerUserVOUpdate);
-        preUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this.checkBlockingOrInvalidatingUserUpdate);
-        preUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this.trimAndCheckUnicityUserUpdate);
+        preUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.handleTriggerUserVOUpdate);
+        preUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.checkBlockingOrInvalidatingUserUpdate);
+        preUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.trimAndCheckUnicityUserUpdate);
 
         // On veut aussi des triggers pour tenir à jour les datas pre loadés des droits, comme ça si une mise à jour,
         //  ajout ou suppression on en prend compte immédiatement
@@ -323,23 +323,23 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
         let preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
 
-        postCreateTrigger.registerHandler(AccessPolicyVO.API_TYPE_ID, this.onCreateAccessPolicyVO);
-        postCreateTrigger.registerHandler(PolicyDependencyVO.API_TYPE_ID, this.onCreatePolicyDependencyVO);
-        postCreateTrigger.registerHandler(RolePolicyVO.API_TYPE_ID, this.onCreateRolePolicyVO);
-        postCreateTrigger.registerHandler(RoleVO.API_TYPE_ID, this.onCreateRoleVO);
-        postCreateTrigger.registerHandler(UserRoleVO.API_TYPE_ID, this.onCreateUserRoleVO);
+        postCreateTrigger.registerHandler(AccessPolicyVO.API_TYPE_ID, this, this.onCreateAccessPolicyVO);
+        postCreateTrigger.registerHandler(PolicyDependencyVO.API_TYPE_ID, this, this.onCreatePolicyDependencyVO);
+        postCreateTrigger.registerHandler(RolePolicyVO.API_TYPE_ID, this, this.onCreateRolePolicyVO);
+        postCreateTrigger.registerHandler(RoleVO.API_TYPE_ID, this, this.onCreateRoleVO);
+        postCreateTrigger.registerHandler(UserRoleVO.API_TYPE_ID, this, this.onCreateUserRoleVO);
 
-        postUpdateTrigger.registerHandler(AccessPolicyVO.API_TYPE_ID, this.onUpdateAccessPolicyVO);
-        postUpdateTrigger.registerHandler(PolicyDependencyVO.API_TYPE_ID, this.onUpdatePolicyDependencyVO);
-        postUpdateTrigger.registerHandler(RolePolicyVO.API_TYPE_ID, this.onUpdateRolePolicyVO);
-        postUpdateTrigger.registerHandler(RoleVO.API_TYPE_ID, this.onUpdateRoleVO);
-        postUpdateTrigger.registerHandler(UserRoleVO.API_TYPE_ID, this.onUpdateUserRoleVO);
+        postUpdateTrigger.registerHandler(AccessPolicyVO.API_TYPE_ID, this, this.onUpdateAccessPolicyVO);
+        postUpdateTrigger.registerHandler(PolicyDependencyVO.API_TYPE_ID, this, this.onUpdatePolicyDependencyVO);
+        postUpdateTrigger.registerHandler(RolePolicyVO.API_TYPE_ID, this, this.onUpdateRolePolicyVO);
+        postUpdateTrigger.registerHandler(RoleVO.API_TYPE_ID, this, this.onUpdateRoleVO);
+        postUpdateTrigger.registerHandler(UserRoleVO.API_TYPE_ID, this, this.onUpdateUserRoleVO);
 
-        preDeleteTrigger.registerHandler(AccessPolicyVO.API_TYPE_ID, this.onDeleteAccessPolicyVO);
-        preDeleteTrigger.registerHandler(PolicyDependencyVO.API_TYPE_ID, this.onDeletePolicyDependencyVO);
-        preDeleteTrigger.registerHandler(RolePolicyVO.API_TYPE_ID, this.onDeleteRolePolicyVO);
-        preDeleteTrigger.registerHandler(RoleVO.API_TYPE_ID, this.onDeleteRoleVO);
-        preDeleteTrigger.registerHandler(UserRoleVO.API_TYPE_ID, this.onDeleteUserRoleVO);
+        preDeleteTrigger.registerHandler(AccessPolicyVO.API_TYPE_ID, this, this.onDeleteAccessPolicyVO);
+        preDeleteTrigger.registerHandler(PolicyDependencyVO.API_TYPE_ID, this, this.onDeletePolicyDependencyVO);
+        preDeleteTrigger.registerHandler(RolePolicyVO.API_TYPE_ID, this, this.onDeleteRolePolicyVO);
+        preDeleteTrigger.registerHandler(RoleVO.API_TYPE_ID, this, this.onDeleteRoleVO);
+        preDeleteTrigger.registerHandler(UserRoleVO.API_TYPE_ID, this, this.onDeleteUserRoleVO);
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Partager la connexion'

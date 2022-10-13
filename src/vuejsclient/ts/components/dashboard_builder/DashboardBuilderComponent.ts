@@ -23,6 +23,7 @@ import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import LocaleManager from '../../../../shared/tools/LocaleManager';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../../shared/tools/PromiseTools';
 import WeightHandler from '../../../../shared/tools/WeightHandler';
 import VueAppController from '../../../VueAppController';
 import InlineTranslatableText from '../InlineTranslatableText/InlineTranslatableText';
@@ -355,7 +356,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             }
         }
 
-        await Promise.all(promises);
+        await all_promises(promises);
     }
 
     private async get_exportable_translation(

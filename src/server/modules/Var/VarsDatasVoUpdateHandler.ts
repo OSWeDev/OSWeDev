@@ -13,6 +13,7 @@ import VarDataInvalidatorVO from '../../../shared/modules/Var/vos/VarDataInvalid
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
@@ -138,6 +139,11 @@ export default class VarsDatasVoUpdateHandler {
      * @returns
      */
     public async push_invalidators(invalidators: VarDataInvalidatorVO[]): Promise<void> {
+
+        if ((!invalidators) || (!invalidators.length)) {
+            return;
+        }
+
         return new Promise(async (resolve, reject) => {
 
             if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
@@ -279,7 +285,7 @@ export default class VarsDatasVoUpdateHandler {
             }
 
             if (promises.length >= max) {
-                await Promise.all(promises);
+                await all_promises(promises);
                 promises = [];
             }
 
@@ -291,7 +297,7 @@ export default class VarsDatasVoUpdateHandler {
         }
 
         if (!!promises.length) {
-            await Promise.all(promises);
+            await all_promises(promises);
         }
     }
 
@@ -591,6 +597,10 @@ export default class VarsDatasVoUpdateHandler {
     }
 
     private throttled_push_invalidators(invalidators: VarDataInvalidatorVO[]) {
+        if ((!invalidators) || (!invalidators.length)) {
+            return;
+        }
+
         this.invalidators = this.invalidators.concat(invalidators);
         VarsdatasComputerBGThread.getInstance().force_run_asap();
     }
@@ -1156,7 +1166,7 @@ export default class VarsDatasVoUpdateHandler {
             }
 
             if ((!!max_connections_to_use) && (promises.length >= max_connections_to_use)) {
-                await Promise.all(promises);
+                await all_promises(promises);
                 promises = [];
             }
 
@@ -1188,7 +1198,7 @@ export default class VarsDatasVoUpdateHandler {
         }
 
         if (promises.length > 0) {
-            await Promise.all(promises);
+            await all_promises(promises);
             promises = [];
         }
 

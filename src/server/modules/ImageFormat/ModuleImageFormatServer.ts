@@ -63,7 +63,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
         let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
 
         // Quand on change un fichier on check si on doit changer l'url d'une image formattee au passage.
-        postUpdateTrigger.registerHandler(FileVO.API_TYPE_ID, this.force_formatted_image_path_from_file_changed);
+        postUpdateTrigger.registerHandler(FileVO.API_TYPE_ID, this, this.force_formatted_image_path_from_file_changed);
     }
 
     public registerServerApiHandlers() {
