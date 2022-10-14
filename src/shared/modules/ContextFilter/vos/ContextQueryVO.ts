@@ -359,7 +359,7 @@ export default class ContextQueryVO implements IDistantVOBase {
      * @param id_ranges les ids qu'on filtre
      * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
      */
-    public filter_by_ids(id_ranges: NumRange[], API_TYPE_ID: string = null): ContextQueryVO {
+    public filter_by_ids(id_ranges: number[] | NumRange[], API_TYPE_ID: string = null): ContextQueryVO {
         return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id).by_ids(id_ranges)]);
     }
 

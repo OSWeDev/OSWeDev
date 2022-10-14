@@ -648,10 +648,17 @@ export default class ContextFilterVO implements IDistantVOBase {
      * Filter sur le champs id, avec un numranges à intersecter
      * @param id_ranges les ids qu'on filtre
      */
-    public by_ids(id_ranges: NumRange[]): ContextFilterVO {
+    public by_ids(id_ranges: NumRange[] | number[]): ContextFilterVO {
         this.field_id = 'id';
-        this.filter_type = ContextFilterVO.TYPE_NUMERIC_INTERSECTS;
-        this.param_numranges = id_ranges;
+
+        if (Array.isArray(id_ranges) && (id_ranges.length > 0) && (typeof id_ranges[0] === 'number')) {
+            this.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ANY;
+            this.param_numeric_array = id_ranges as number[];
+        } else {
+            this.filter_type = ContextFilterVO.TYPE_NUMERIC_INTERSECTS;
+            this.param_numranges = id_ranges as NumRange[];
+        }
+
         return this;
     }
 

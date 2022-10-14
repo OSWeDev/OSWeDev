@@ -129,18 +129,9 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
             TimeSegmentHandler.getInstance().getEndTimeSegment(timeSegment),
             rendered_data_time_segment_type
         );
-        let timeSegments_in: string = null;
-        for (let i in timeSegments) {
-            let timeSegment_: TimeSegment = timeSegments[i];
-
-            if (!timeSegments_in) {
-                timeSegments_in = "" + timeSegment_.index;
-            } else {
-
-                timeSegments_in += "," + timeSegment_.index;
-            }
-        }
-        return await ModuleDAOServer.getInstance().selectAll<T>(datatable.vo_type, ' where data_dateindex in (' + timeSegments_in + ')') as T[];
+        return await query(datatable.vo_type)
+            .filter_by_num_has('data_dateindex', timeSegments.map((ts: TimeSegment) => ts.index))
+            .select_vos<T>();
     }
 
     public async clearDataSegments(moduletable: ModuleTable<any>, timeSegments: TimeSegment[], date_field_name: string = 'data_dateindex'): Promise<void> {

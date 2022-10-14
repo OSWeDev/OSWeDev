@@ -3610,8 +3610,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private async getVos<T extends IDistantVOBase>(text: string, limit: number = 0, offset: number = 0): Promise<T[]> {
 
         // On filtre les res suivant les droits d'accès
-        // return await this.selectAll(apiDAOParamVOs);
-        return await this.selectAll<T>(text, null, null, null, false, null, limit, offset);
+        return await query(text).set_limit(limit, offset).select_vos<T>();
     }
 
     /**
