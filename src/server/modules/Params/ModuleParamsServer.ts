@@ -4,6 +4,7 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
@@ -73,7 +74,7 @@ export default class ModuleParamsServer extends ModuleServerBase {
     }
 
     public async setParamValue(param_name: string, param_value: string | number | boolean) {
-        let param: ParamVO = await ModuleDAO.getInstance().getNamedVoByName<ParamVO>(ParamVO.API_TYPE_ID, param_name);
+        let param: ParamVO = await query(ParamVO.API_TYPE_ID).filter_by_text_eq('name', param_name).select_vo<ParamVO>();
 
         if (!param) {
             param = new ParamVO();
@@ -85,7 +86,7 @@ export default class ModuleParamsServer extends ModuleServerBase {
     }
 
     public async setParamValue_if_not_exists(param_name: string, param_value: string | number | boolean) {
-        let param: ParamVO = await ModuleDAO.getInstance().getNamedVoByName<ParamVO>(ParamVO.API_TYPE_ID, param_name);
+        let param: ParamVO = await query(ParamVO.API_TYPE_ID).filter_by_text_eq('name', param_name).select_vo<ParamVO>();
 
         if (!!param) {
             return;
@@ -99,7 +100,7 @@ export default class ModuleParamsServer extends ModuleServerBase {
     }
 
     public async getParamValue(text: string): Promise<string> {
-        let param: ParamVO = await ModuleDAO.getInstance().getNamedVoByName<ParamVO>(ParamVO.API_TYPE_ID, text);
+        let param: ParamVO = await query(ParamVO.API_TYPE_ID).filter_by_text_eq('name', text).select_vo<ParamVO>();
         return param ? param.value : null;
     }
 }

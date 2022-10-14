@@ -580,12 +580,15 @@ export default class ContextFilterVO implements IDistantVOBase {
      * Filtre par == de date
      * @param date
      */
-    public by_date_eq(date: number | TSRange | TSRange[]): ContextFilterVO {
+    public by_date_eq(date: number | number[] | TSRange | TSRange[]): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_DATE_EQUALS;
         if (typeof date === "number") {
-            this.param_tsranges = [RangeHandler.getInstance().create_single_elt_TSRange(date, TimeSegment.TYPE_SECOND)];
+            this.param_numeric = date;
+        } else if (Array.isArray(date) && (date.length > 0) && (typeof date[0] === "number")) {
+            // cas number[]
+            this.param_numeric_array = date as number[];
         } else {
-            this.param_tsranges = isArray(date) ? date : (date ? [date] : null);
+            this.param_tsranges = isArray(date) ? date as TSRange[] : (date ? [date] : null);
         }
         return this;
     }

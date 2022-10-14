@@ -4,7 +4,12 @@ import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
 import NumRange from "../../DataRender/vos/NumRange";
 import TimeSegment from "../../DataRender/vos/TimeSegment";
 import TSRange from "../../DataRender/vos/TSRange";
+import IMatroid from "../../Matroid/interfaces/IMatroid";
+import MatroidController from "../../Matroid/MatroidController";
+import RangesCutResult from "../../Matroid/vos/RangesCutResult";
+import ModuleTableField from "../../ModuleTableField";
 import VarConfVO from "../../Var/vos/VarConfVO";
+import VOsTypesManager from "../../VOsTypesManager";
 import ModuleContextFilter from "../ModuleContextFilter";
 import ContextFilterVO, { filter } from "./ContextFilterVO";
 import ContextQueryFieldVO from "./ContextQueryFieldVO";
@@ -316,7 +321,7 @@ export default class ContextQueryVO implements IDistantVOBase {
      * @param ranges les valeurs qu'on veut filtrer
      * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
      */
-    public filter_by_date_eq(field_id: string, date: number | TSRange | TSRange[], API_TYPE_ID: string = null): ContextQueryVO {
+    public filter_by_date_eq(field_id: string, date: number | number[] | TSRange | TSRange[], API_TYPE_ID: string = null): ContextQueryVO {
         return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_date_eq(date)]);
     }
 
@@ -396,6 +401,136 @@ export default class ContextQueryVO implements IDistantVOBase {
      */
     public filter_by_text_starting_with(field_id: string, starts_with: string | string[], API_TYPE_ID: string = null): ContextQueryVO {
         return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_starting_with(starts_with)]);
+    }
+
+    /**
+     * @param matroids les matroids qu'on veut utiliser pour le filtrage. ATTENTION on force un seul type de matroid dans la liste. On cherche une inclusion dans 1 des matroids
+     * @param filter_var_id_if_field_exists Ajouter un filtrage sur le var_id si il existe un fields var_id sur le type cible de la recheche et sur le matroid
+     * @param API_TYPE_ID
+     * @param fields_ids_mapper
+     */
+    public filter_by_matroids_inclusion(
+        matroids: IMatroid[],
+        filter_var_id_if_field_exists: boolean = true,
+        API_TYPE_ID: string = null,
+        fields_ids_mapper: { [matroid_field_id: string]: string } = null): ContextQueryVO {
+
+        let target_API_TYPE_ID = API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id;
+        if (!matroids || !matroids.length) {
+            // Si on a pas de matroid mais qu'on veut filtrer par inclu dans le matroid on a donc aucun résultat possible
+            return this.filter_is_null('id', target_API_TYPE_ID);
+        }
+
+        let matroid_api_type_id: string = matroids[0]._type;
+        for (let i in matroids) {
+            let matroid = matroids[i];
+            if (matroid._type != matroid_api_type_id) {
+                throw new Error('filter_by_matroids_inclusion: Tous les matroids doivent être du même type');
+            }
+        }
+
+        let matroid_head_filter: ContextFilterVO = null;
+        let target_moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[target_API_TYPE_ID];
+        let var_id_field_id = (fields_ids_mapper && fields_ids_mapper['var_id']) ? fields_ids_mapper['var_id'] : 'var_id';
+        let target_has_var_id_field = target_moduletable.get_field_by_id(var_id_field_id);
+
+        let matroid_module_table = VOsTypesManager.getInstance().moduleTables_by_voType[matroid_api_type_id];
+        let matroid_has_var_id_field = matroid_module_table.get_field_by_id('var_id');
+        let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getInstance().getMatroidFields(matroid_api_type_id);
+
+        for (let i in matroids) {
+            let matroid: IMatroid = matroids[i];
+            let this_matroid_head_filter: ContextFilterVO = null;
+
+            if (filter_var_id_if_field_exists && matroid_has_var_id_field && target_has_var_id_field) {
+                this_matroid_head_filter = filter(target_API_TYPE_ID, var_id_field_id).by_num_eq(matroid['var_id']);
+            }
+
+            for (let j in matroid_fields) {
+                let matroid_field = matroid_fields[j];
+                let matroid_field_id = matroid_field.field_id;
+                let target_field_id = (fields_ids_mapper && fields_ids_mapper[matroid_field_id]) ? fields_ids_mapper[matroid_field_id] : matroid_field_id;
+
+                let this_filter = null;
+                switch (matroid_field.field_type) {
+                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                        this_filter = filter(target_API_TYPE_ID, target_field_id).by_date_is_in_ranges(matroid[matroid_field_id]);
+                        break;
+                    default:
+                        this_filter = filter(target_API_TYPE_ID, target_field_id).by_num_is_in_ranges(matroid[matroid_field_id]);
+                }
+                this_matroid_head_filter = this_matroid_head_filter ? this_matroid_head_filter.and(this_filter) : this_filter;
+            }
+
+            matroid_head_filter = matroid_head_filter ? matroid_head_filter.or(this_matroid_head_filter) : this_matroid_head_filter;
+        }
+
+        return matroid_head_filter ? this.add_filters([matroid_head_filter]) : this;
+    }
+
+    /**
+     * @param matroids les matroids qu'on veut utiliser pour le filtrage. ATTENTION on force un seul type de matroid dans la liste. On cherche une intersection avec 1 des matroids
+     * @param filter_var_id_if_field_exists Ajouter un filtrage sur le var_id si il existe un fields var_id sur le type cible de la recheche et sur le matroid
+     * @param API_TYPE_ID
+     * @param fields_ids_mapper
+     */
+    public filter_by_matroids_intersection(
+        matroids: IMatroid[],
+        filter_var_id_if_field_exists: boolean = true,
+        API_TYPE_ID: string = null,
+        fields_ids_mapper: { [matroid_field_id: string]: string } = null): ContextQueryVO {
+
+        let target_API_TYPE_ID = API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id;
+        if (!matroids || !matroids.length) {
+            // Si on a pas de matroid mais qu'on veut filtrer par inclu dans le matroid on a donc aucun résultat possible
+            return this.filter_is_null('id', target_API_TYPE_ID);
+        }
+
+        let matroid_api_type_id: string = matroids[0]._type;
+        for (let i in matroids) {
+            let matroid = matroids[i];
+            if (matroid._type != matroid_api_type_id) {
+                throw new Error('filter_by_matroids_inclusion: Tous les matroids doivent être du même type');
+            }
+        }
+
+        let matroid_head_filter: ContextFilterVO = null;
+        let target_moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[target_API_TYPE_ID];
+        let var_id_field_id = (fields_ids_mapper && fields_ids_mapper['var_id']) ? fields_ids_mapper['var_id'] : 'var_id';
+        let target_has_var_id_field = target_moduletable.get_field_by_id(var_id_field_id);
+
+        let matroid_module_table = VOsTypesManager.getInstance().moduleTables_by_voType[matroid_api_type_id];
+        let matroid_has_var_id_field = matroid_module_table.get_field_by_id('var_id');
+        let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getInstance().getMatroidFields(matroid_api_type_id);
+
+        for (let i in matroids) {
+            let matroid: IMatroid = matroids[i];
+            let this_matroid_head_filter: ContextFilterVO = null;
+
+            if (filter_var_id_if_field_exists && matroid_has_var_id_field && target_has_var_id_field) {
+                this_matroid_head_filter = filter(target_API_TYPE_ID, var_id_field_id).by_num_eq(matroid['var_id']);
+            }
+
+            for (let j in matroid_fields) {
+                let matroid_field = matroid_fields[j];
+                let matroid_field_id = matroid_field.field_id;
+                let target_field_id = (fields_ids_mapper && fields_ids_mapper[matroid_field_id]) ? fields_ids_mapper[matroid_field_id] : matroid_field_id;
+
+                let this_filter = null;
+                switch (matroid_field.field_type) {
+                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                        this_filter = filter(target_API_TYPE_ID, target_field_id).by_date_x_ranges(matroid[matroid_field_id]);
+                        break;
+                    default:
+                        this_filter = filter(target_API_TYPE_ID, target_field_id).by_num_x_ranges(matroid[matroid_field_id]);
+                }
+                this_matroid_head_filter = this_matroid_head_filter ? this_matroid_head_filter.and(this_filter) : this_filter;
+            }
+
+            matroid_head_filter = matroid_head_filter ? matroid_head_filter.or(this_matroid_head_filter) : this_matroid_head_filter;
+        }
+
+        return matroid_head_filter ? this.add_filters([matroid_head_filter]) : this;
     }
 
     /**

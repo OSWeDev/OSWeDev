@@ -1629,12 +1629,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             res = moduleTable.forceNumerics(vos);
         } else {
-            let query_string = "SELECT " + (distinct ? 'distinct' : '') + " t.* FROM " + moduleTable.full_name + " t ";
+            let query_string = "SELECT " + (distinct ? 'distinct' : '') + " t.* FROM " + moduleTable.full_name + " t " +
+                (query_ ? query_ : '') + (limit ? ' limit ' + limit : '') + (offset ? ' offset ' + offset : '');
             let query_uid = this.log_db_query_perf_start('selectAll', query_string, '!is_segmented');
 
             res = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query(
-                query_string +
-                (query_ ? query_ : '') + (limit ? ' limit ' + limit : '') + (offset ? ' offset ' + offset : ''), queryParams ? queryParams : []) as T[]);
+                query_string, queryParams ? queryParams : []) as T[]);
 
             this.log_db_query_perf_end(query_uid, 'selectAll', query_string, '!is_segmented');
         }
@@ -3682,6 +3682,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return res;
     }
 
+    /**
+     * @deprecated use query instead
+     */
     private async filterVosByMatroids<T extends IDistantVOBase>(
         api_type_id: string,
         matroids: IMatroid[],
@@ -3734,6 +3737,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return res;
     }
 
+    /**
+     * @deprecated use query instead
+     */
     private async getDAOsByMatroid<T extends IDistantVOBase>(api_type_id: string, matroid: IMatroid, fields_ids_mapper: { [matroid_field_id: string]: string }, additional_condition: string): Promise<T[]> {
         if (!matroid) {
             return null;
@@ -3839,10 +3845,16 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
     }
 
+    /**
+     * @deprecated use query instead
+     */
     private async getVarImportsByMatroidParam<T extends IDistantVOBase>(api_type_id: string, matroid: IMatroid, fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<T[]> {
         return await this.getDAOsByMatroid(api_type_id, matroid, fields_ids_mapper, ' and value_type = 0');
     }
 
+    /**
+     * @deprecated use query instead
+     */
     private async filterVosByMatroid<T extends IDistantVOBase>(api_type_id: string, matroid: IMatroid, fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<T[]> {
         return await this.getDAOsByMatroid(api_type_id, matroid, fields_ids_mapper, null);
     }
@@ -4776,7 +4788,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         if (ConfigurationService.getInstance().node_configuration.DEBUG_DB_QUERY_PERF) {
             let uid = this.log_db_query_perf_uid++;
             this.log_db_query_perf_start_by_uid[uid] = Dates.now_ms();
-            let query_s = (query_string ? query_string.substring(0, 200) : 'N/A');
+            let query_s = (query_string ? query_string.substring(0, 1000) : 'N/A');
             query_s = (query_s ? query_s.replace(/;/g, '') : 'N/A');
             ConsoleHandler.getInstance().log('log_db_query_perf_start;ModuleDAOServer;IN;' + uid + ';' + this.log_db_query_perf_start_by_uid[uid] + ';0;' + method_name +
                 ';' + (step_name ? step_name : 'N/A') +
@@ -4791,7 +4803,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         if (ConfigurationService.getInstance().node_configuration.DEBUG_DB_QUERY_PERF && !!this.log_db_query_perf_start_by_uid[uid]) {
             let end_ms = Dates.now_ms();
             let duration = end_ms - this.log_db_query_perf_start_by_uid[uid];
-            let query_s = (query_string ? query_string.substring(0, 200) : 'N/A');
+            let query_s = (query_string ? query_string.substring(0, 1000) : 'N/A');
             query_s = (query_s ? query_s.replace(/;/g, '') : 'N/A');
             ConsoleHandler.getInstance().log('log_db_query_perf_start;ModuleDAOServer;OUT;' + uid + ';' + end_ms + ';' + duration + ';' + method_name +
                 ';' + (step_name ? step_name : 'N/A') +
@@ -4822,7 +4834,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let results = null;
 
         try {
+            let uid = this.log_db_query_perf_start('do_throttled_select_query', request);
             results = await ModuleServiceBase.getInstance().db.query(request, values);
+            this.log_db_query_perf_end(uid, 'do_throttled_select_query', request);
         } catch (error) {
             ConsoleHandler.getInstance().error('do_throttled_select_query:' + error);
         }

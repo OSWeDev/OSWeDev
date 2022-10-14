@@ -1,4 +1,5 @@
 import { Component } from 'vue-property-decorator';
+import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import MatroidBaseController from '../../../../../../../shared/modules/Matroid/MatroidBaseController';
 import MatroidController from '../../../../../../../shared/modules/Matroid/MatroidController';
@@ -106,7 +107,10 @@ export default class VarsDatasExplorerActionsComponent extends VueComponentBase 
         for (let i in this.get_filter_params) {
             let filter_param = this.get_filter_params[i];
 
-            let datas: VarDataBaseVO[] = await ModuleDAO.getInstance().filterVosByMatroidsIntersections(filter_param._type, [filter_param], null);
+            let datas: VarDataBaseVO[] = await query(filter_param._type)
+                .filter_by_matroids_intersection([filter_param])
+                .select_vos<VarDataBaseVO>();
+
             for (let j in datas) {
                 let data = datas[j];
                 res[data.index] = data;
@@ -129,7 +133,10 @@ export default class VarsDatasExplorerActionsComponent extends VueComponentBase 
         for (let i in this.get_filter_params) {
             let filter_param = this.get_filter_params[i];
 
-            let datas: VarDataBaseVO[] = await ModuleDAO.getInstance().filterVosByMatroids(filter_param._type, [filter_param], null);
+            let datas: VarDataBaseVO[] = await query(filter_param._type)
+                .filter_by_matroids_inclusion([filter_param])
+                .select_vos<VarDataBaseVO>();
+
             for (let j in datas) {
                 let data = datas[j];
                 res[data.index] = data;

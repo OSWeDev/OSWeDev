@@ -244,6 +244,22 @@ export default class ContextFilterServerController {
                             throw new Error('Not Implemented');
                         }
 
+                        if (active_field_filter.param_numeric_array != null) {
+
+                            for (let i in active_field_filter.param_numeric_array) {
+                                ContextQueryInjectionCheckHandler.assert_numeric(active_field_filter.param_numeric_array[i]);
+                            }
+                            // Si on demande sur plusieurs numerics c'est qu'on cherche une valeur dans le lot
+                            // FIXME séparer comme pour tous les autres en ANY et ALL ? (pour le moment on fait un ANY)
+                            where_conditions.push(field_id + " = ANY(ARRAY[" + active_field_filter.param_numeric_array.join(',') + '])');
+                            break;
+                        } else if (active_field_filter.param_numeric != null) {
+
+                            ContextQueryInjectionCheckHandler.assert_numeric(active_field_filter.param_numeric);
+                            where_conditions.push(field_id + " = " + active_field_filter.param_numeric);
+                            break;
+                        }
+
                         if ((active_field_filter.param_alias == null) && (active_field_filter.param_numeric == null)) {
 
                             /**
@@ -1273,7 +1289,7 @@ export default class ContextFilterServerController {
                             for (let i in active_field_filter.param_numeric_array) {
                                 ContextQueryInjectionCheckHandler.assert_numeric(active_field_filter.param_numeric_array[i]);
                             }
-                            where_conditions.push(field_id + " <= ALL(" + active_field_filter.param_numeric_array.join(',') + ')');
+                            where_conditions.push(field_id + " <= ALL(ARRAY[" + active_field_filter.param_numeric_array.join(',') + '])');
                         } else if (active_field_filter.param_numeric != null) {
                             ContextQueryInjectionCheckHandler.assert_numeric(active_field_filter.param_numeric);
                             where_conditions.push(field_id + " <= " + active_field_filter.param_numeric);
@@ -1367,7 +1383,7 @@ export default class ContextFilterServerController {
                             for (let i in active_field_filter.param_numeric_array) {
                                 ContextQueryInjectionCheckHandler.assert_numeric(active_field_filter.param_numeric_array[i]);
                             }
-                            where_conditions.push(field_id + " < ALL(" + active_field_filter.param_numeric_array.join(',') + ')');
+                            where_conditions.push(field_id + " < ALL(ARRAY[" + active_field_filter.param_numeric_array.join(',') + '])');
                         } else if (active_field_filter.param_numeric != null) {
                             ContextQueryInjectionCheckHandler.assert_numeric(active_field_filter.param_numeric);
                             where_conditions.push(field_id + " < " + active_field_filter.param_numeric);
@@ -1414,7 +1430,7 @@ export default class ContextFilterServerController {
                             for (let i in active_field_filter.param_numeric_array) {
                                 ContextQueryInjectionCheckHandler.assert_numeric(active_field_filter.param_numeric_array[i]);
                             }
-                            where_conditions.push(field_id + " < ANY(" + active_field_filter.param_numeric_array.join(',') + ')');
+                            where_conditions.push(field_id + " < ANY(ARRAY[" + active_field_filter.param_numeric_array.join(',') + '])');
                         } else if (active_field_filter.param_numeric != null) {
                             ContextQueryInjectionCheckHandler.assert_numeric(active_field_filter.param_numeric);
                             where_conditions.push(field_id + " < " + active_field_filter.param_numeric);
@@ -1461,7 +1477,7 @@ export default class ContextFilterServerController {
                             for (let i in active_field_filter.param_numeric_array) {
                                 ContextQueryInjectionCheckHandler.assert_numeric(active_field_filter.param_numeric_array[i]);
                             }
-                            where_conditions.push(field_id + " > ALL(" + active_field_filter.param_numeric_array.join(',') + ')');
+                            where_conditions.push(field_id + " > ALL(ARRAY[" + active_field_filter.param_numeric_array.join(',') + '])');
                         } else if (active_field_filter.param_numeric != null) {
                             ContextQueryInjectionCheckHandler.assert_numeric(active_field_filter.param_numeric);
                             where_conditions.push(field_id + " > " + active_field_filter.param_numeric);
@@ -1508,7 +1524,7 @@ export default class ContextFilterServerController {
                             for (let i in active_field_filter.param_numeric_array) {
                                 ContextQueryInjectionCheckHandler.assert_numeric(active_field_filter.param_numeric_array[i]);
                             }
-                            where_conditions.push(field_id + " > ANY(" + active_field_filter.param_numeric_array.join(',') + ')');
+                            where_conditions.push(field_id + " > ANY(ARRAY[" + active_field_filter.param_numeric_array.join(',') + '])');
                         } else if (active_field_filter.param_numeric != null) {
                             ContextQueryInjectionCheckHandler.assert_numeric(active_field_filter.param_numeric);
                             where_conditions.push(field_id + " > " + active_field_filter.param_numeric);
@@ -1555,7 +1571,7 @@ export default class ContextFilterServerController {
                             for (let i in active_field_filter.param_numeric_array) {
                                 ContextQueryInjectionCheckHandler.assert_numeric(active_field_filter.param_numeric_array[i]);
                             }
-                            where_conditions.push(field_id + " >= ALL(" + active_field_filter.param_numeric_array.join(',') + ')');
+                            where_conditions.push(field_id + " >= ALL(ARRAY[" + active_field_filter.param_numeric_array.join(',') + '])');
                         } else if (active_field_filter.param_numeric != null) {
                             ContextQueryInjectionCheckHandler.assert_numeric(active_field_filter.param_numeric);
                             where_conditions.push(field_id + " >= " + active_field_filter.param_numeric);
@@ -1655,7 +1671,7 @@ export default class ContextFilterServerController {
                             for (let i in active_field_filter.param_numeric_array) {
                                 ContextQueryInjectionCheckHandler.assert_numeric(active_field_filter.param_numeric_array[i]);
                             }
-                            where_conditions.push(field_id + " != ALL(" + active_field_filter.param_numeric_array.join(',') + ')');
+                            where_conditions.push(field_id + " != ALL(ARRAY[" + active_field_filter.param_numeric_array.join(',') + '])');
                         }
 
                         if (active_field_filter.param_numeric != null) {
@@ -1809,7 +1825,7 @@ export default class ContextFilterServerController {
                             for (let i in active_field_filter.param_numeric_array) {
                                 ContextQueryInjectionCheckHandler.assert_numeric(active_field_filter.param_numeric_array[i]);
                             }
-                            where_conditions.push(field_id + " = ALL(" + active_field_filter.param_numeric_array.join(',') + ')');
+                            where_conditions.push(field_id + " = ALL(ARRAY[" + active_field_filter.param_numeric_array.join(',') + '])');
                         }
 
                         if ((active_field_filter.param_alias == null) && (active_field_filter.param_numeric == null)) {

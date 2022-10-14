@@ -37,5 +37,4 @@ export default class EnvParam implements IEnvParam {
     public DEBUG_THROTTLED_SELECT?: boolean = false;
     public ACTIVATE_PWA: boolean = false;
     public RETRY_FAILED_FAST_TRACK_IMPORTS_WITH_NORMAL_IMPORTATION?: boolean = true;
-    public IGNORE_ALL_DATABASE_FORMAT_CHECKS?: boolean = true;
 }

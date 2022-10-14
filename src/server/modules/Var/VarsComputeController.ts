@@ -675,7 +675,9 @@ export default class VarsComputeController {
 
     private async try_load_cache_partiel(node: VarDAGNode) {
 
-        let caches_partiels: VarDataBaseVO[] = await ModuleDAO.getInstance().filterVosByMatroids(node.var_data._type, [node.var_data], null);
+        let caches_partiels: VarDataBaseVO[] = await query(node.var_data._type)
+            .filter_by_matroids_inclusion([node.var_data])
+            .select_vos<VarDataBaseVO>();
 
         if ((!caches_partiels) || (!caches_partiels.length)) {
             return;

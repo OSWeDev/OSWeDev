@@ -123,6 +123,7 @@ export default abstract class ServerBase {
         this.version = this.getVersion();
 
         this.envParam = ConfigurationService.getInstance().node_configuration;
+
         EnvHandler.getInstance().BASE_URL = this.envParam.BASE_URL;
         EnvHandler.getInstance().NODE_VERBOSE = !!this.envParam.NODE_VERBOSE;
         EnvHandler.getInstance().IS_DEV = !!this.envParam.ISDEV;
