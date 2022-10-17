@@ -41,7 +41,6 @@ export default class OnPageTranslation extends VueComponentBase {
     private editable_translations: EditablePageTranslationItem[] = [];
 
     private translations_by_code: { [translation_code: string]: TranslationVO } = {};
-    private translatables_by_code: { [translation_code: string]: TranslatableTextVO } = {};
 
     private show_other_langs: { [translation_code: string]: boolean } = {};
     private translations: { [lang: string]: { [translation_code: string]: TranslationVO } } = {};
@@ -54,7 +53,7 @@ export default class OnPageTranslation extends VueComponentBase {
     // Pas idéal mais en attendant de gérer les trads en interne.
     private lang_id: number = null;
 
-    private debounced_onChange_getPageTranslations = debounce(this.change_page_translations_wrapper, 500);
+    private debounced_onChange_getPageTranslations = debounce(this.change_page_translations_wrapper.bind(this), 500);
 
     public async mounted() {
         this.startLoading();
@@ -63,23 +62,9 @@ export default class OnPageTranslation extends VueComponentBase {
         let promises: Array<Promise<any>> = [];
 
         promises.push((async () => {
-            let vos: TranslatableTextVO[] = await query(TranslatableTextVO.API_TYPE_ID).select_vos<TranslatableTextVO>();
-            self.storeDatas({
-                API_TYPE_ID: TranslatableTextVO.API_TYPE_ID,
-                vos: vos
-            });
-        })());
-        promises.push((async () => {
             let vos: LangVO[] = await query(LangVO.API_TYPE_ID).select_vos<LangVO>();
             self.storeDatas({
                 API_TYPE_ID: LangVO.API_TYPE_ID,
-                vos: vos
-            });
-        })());
-        promises.push((async () => {
-            let vos: TranslationVO[] = await query(TranslationVO.API_TYPE_ID).select_vos<TranslationVO>();
-            self.storeDatas({
-                API_TYPE_ID: TranslationVO.API_TYPE_ID,
                 vos: vos
             });
         })());
@@ -95,9 +80,6 @@ export default class OnPageTranslation extends VueComponentBase {
             }
         }
 
-        this.setTranslatables_by_code();
-        this.setTranslations_by_code();
-
         this.stopLoading();
     }
 
@@ -106,30 +88,6 @@ export default class OnPageTranslation extends VueComponentBase {
 
         // On debounce pour un lancement uniquement toutes les 2 secondes, sinon on va tout écrouler...
         this.debounced_onChange_getPageTranslations();
-    }
-
-    private setTranslations_by_code() {
-        this.translations_by_code = {};
-
-        for (let i in this.getStoredDatas[TranslationVO.API_TYPE_ID]) {
-            let translation: TranslationVO = this.getStoredDatas[TranslationVO.API_TYPE_ID][i] as TranslationVO;
-            let translatable: TranslatableTextVO = this.getStoredDatas[TranslatableTextVO.API_TYPE_ID][translation.text_id] as TranslatableTextVO;
-
-            if (translation.lang_id != this.lang_id) {
-                continue;
-            }
-            this.translations_by_code[translatable.code_text] = translation;
-        }
-    }
-
-    private setTranslatables_by_code() {
-        this.translatables_by_code = {};
-
-        for (let i in this.getStoredDatas[TranslatableTextVO.API_TYPE_ID]) {
-            let translatable: TranslatableTextVO = this.getStoredDatas[TranslatableTextVO.API_TYPE_ID][i] as TranslatableTextVO;
-
-            this.translatables_by_code[translatable.code_text] = translatable;
-        }
     }
 
     get missingTranslationsNumber(): number {
@@ -202,7 +160,9 @@ export default class OnPageTranslation extends VueComponentBase {
             // c'est une création
 
             // on doit tester d'abord le translatable puis la translation
-            let translatable: TranslatableTextVO = this.translatables_by_code[editable_translation.translation_code];
+            let translatable: TranslatableTextVO = await query(TranslatableTextVO.API_TYPE_ID)
+                .filter_by_text_eq('code_text', editable_translation.translation_code)
+                .select_vo<TranslatableTextVO>();
             if (!translatable) {
                 translatable = new TranslatableTextVO();
                 translatable.code_text = editable_translation.translation_code;
@@ -227,6 +187,7 @@ export default class OnPageTranslation extends VueComponentBase {
             translation.id = insertOrDeleteQueryResult.id;
             editable_translation.translation = translation;
             this.storeData(translation);
+            this.translations_by_code[editable_translation.translation_code] = translation;
             this.snotify.success(this.label('on_page_translation.save_translation.ok'));
             return;
         }
@@ -277,13 +238,10 @@ export default class OnPageTranslation extends VueComponentBase {
 
                     Vue.set(this.translations_loaded[other_lang.code_lang], editable_translation.translation_code, true);
 
-                    if (!this.translatables_by_code[editable_translation.translation_code]) {
-                        continue;
-                    }
-
-                    let translation: TranslationVO = await ModuleTranslation.getInstance().getTranslation(
-                        other_lang.id,
-                        this.translatables_by_code[editable_translation.translation_code].id);
+                    let translation: TranslationVO = await query(TranslationVO.API_TYPE_ID)
+                        .filter_by_text_eq('code_text', editable_translation.translation_code, TranslatableTextVO.API_TYPE_ID)
+                        .filter_by_id(other_lang.id, LangVO.API_TYPE_ID)
+                        .select_vo<TranslationVO>();
                     Vue.set(this.translations[other_lang.code_lang], editable_translation.translation_code, translation);
                     Vue.set(this.translations_loaded[other_lang.code_lang], editable_translation.translation_code, true);
                 }
@@ -344,19 +302,30 @@ export default class OnPageTranslation extends VueComponentBase {
         }
     }
 
-    private change_page_translations_wrapper() {
+    private async change_page_translations_wrapper() {
+
+        if (!this.lang_id) {
+            return;
+        }
 
         let new_editable_translations: EditablePageTranslationItem[] = [];
 
-        this.setTranslatables_by_code();
-        this.setTranslations_by_code();
-
+        let promises = [];
         for (let i in this.getPageTranslations) {
             let pageTranslation: OnPageTranslationItem = this.getPageTranslations[i];
 
-            let editable_translation: EditablePageTranslationItem = new EditablePageTranslationItem(pageTranslation.translation_code, this.translations_by_code[pageTranslation.translation_code]);
-            new_editable_translations.push(editable_translation);
+            promises.push((async () => {
+                if (!this.translations_by_code[pageTranslation.translation_code]) {
+                    this.translations_by_code[pageTranslation.translation_code] = await query(TranslationVO.API_TYPE_ID)
+                        .filter_by_text_eq('code_text', pageTranslation.translation_code, TranslatableTextVO.API_TYPE_ID)
+                        .filter_by_num_eq('lang_id', this.lang_id)
+                        .select_vo<TranslationVO>();
+                }
+                let editable_translation: EditablePageTranslationItem = new EditablePageTranslationItem(pageTranslation.translation_code, this.translations_by_code[pageTranslation.translation_code]);
+                new_editable_translations.push(editable_translation);
+            })());
         }
+        await all_promises(promises);
 
         new_editable_translations.sort((a: EditablePageTranslationItem, b: EditablePageTranslationItem) => {
             if (a.missing && !b.missing) {

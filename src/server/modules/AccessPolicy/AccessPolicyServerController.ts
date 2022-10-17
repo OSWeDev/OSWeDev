@@ -17,7 +17,6 @@ import { all_promises } from '../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import IServerUserSession from '../../IServerUserSession';
 import StackContext from '../../StackContext';
-import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModulesManagerServer from '../ModulesManagerServer';
@@ -70,6 +69,12 @@ export default class AccessPolicyServerController {
     public access_matrix_heritance_only_validity: boolean = false;
 
     public registered_roles_by_ids: { [role_id: number]: RoleVO } = {};
+
+    /**
+     * Opti pour le démarrage du serveur
+     */
+    private registered_dependencies_for_loading_process: { [src_pol_id: number]: { [dst_pol_id: number]: PolicyDependencyVO } } = {};
+
     private registered_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {};
 
     private registered_users_roles: { [uid: number]: RoleVO[] } = {};
@@ -227,13 +232,13 @@ export default class AccessPolicyServerController {
 
             this.set_registered_role(role);
 
-            if (role.translatable_name == this.role_admin.translatable_name) {
+            if (role.translatable_name == ModuleAccessPolicy.ROLE_ADMIN) {
                 this.role_admin = role;
             }
-            if (role.translatable_name == this.role_anonymous.translatable_name) {
+            if (role.translatable_name == ModuleAccessPolicy.ROLE_ANONYMOUS) {
                 this.role_anonymous = role;
             }
-            if (role.translatable_name == this.role_logged.translatable_name) {
+            if (role.translatable_name == ModuleAccessPolicy.ROLE_LOGGED) {
                 this.role_logged = role;
             }
         }
@@ -267,6 +272,11 @@ export default class AccessPolicyServerController {
                 this.registered_dependencies[dependency.src_pol_id] = [];
             }
             this.registered_dependencies[dependency.src_pol_id].push(dependency);
+
+            if (!this.registered_dependencies_for_loading_process[dependency.src_pol_id]) {
+                this.registered_dependencies_for_loading_process[dependency.src_pol_id] = [];
+            }
+            this.registered_dependencies_for_loading_process[dependency.src_pol_id][dependency.depends_on_pol_id] = dependency;
         }
     }
 
@@ -405,6 +415,9 @@ export default class AccessPolicyServerController {
         if ((!vo_update_holder) || (!vo_update_holder.post_update_vo)) {
             return;
         }
+
+        delete this.registered_dependencies_for_loading_process[vo_update_holder.pre_update_vo.src_pol_id][vo_update_holder.pre_update_vo.depends_on_pol_id];
+        this.registered_dependencies_for_loading_process[vo_update_holder.post_update_vo.src_pol_id][vo_update_holder.post_update_vo.depends_on_pol_id] = vo_update_holder.post_update_vo;
 
         for (let i in this.registered_dependencies[vo_update_holder.post_update_vo.src_pol_id]) {
             if (this.registered_dependencies[vo_update_holder.post_update_vo.src_pol_id][i].id == vo_update_holder.post_update_vo.id) {
@@ -573,6 +586,8 @@ export default class AccessPolicyServerController {
      * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
      */
     public delete_registered_policy_dependency(object: PolicyDependencyVO) {
+
+        delete this.registered_dependencies_for_loading_process[object.src_pol_id][object.depends_on_pol_id];
 
         for (let i in this.registered_dependencies[object.src_pol_id]) {
             if (this.registered_dependencies[object.src_pol_id][i].id == object.id) {
@@ -834,17 +849,20 @@ export default class AccessPolicyServerController {
 
     public async registerPolicyDependency(dependency: PolicyDependencyVO): Promise<PolicyDependencyVO> {
 
+        if (this.registered_dependencies_for_loading_process && this.registered_dependencies_for_loading_process[dependency.src_pol_id] && this.registered_dependencies_for_loading_process[dependency.src_pol_id][dependency.depends_on_pol_id]) {
+            return this.registered_dependencies_for_loading_process[dependency.src_pol_id][dependency.depends_on_pol_id];
+        }
+
         if (!this.registered_dependencies) {
             this.registered_dependencies = {};
         }
 
-        if (this.registered_dependencies[dependency.src_pol_id]) {
+        if (!this.registered_dependencies_for_loading_process) {
+            this.registered_dependencies_for_loading_process = {};
+        }
 
-            for (let i in this.registered_dependencies[dependency.src_pol_id]) {
-                if (this.registered_dependencies[dependency.src_pol_id][i].depends_on_pol_id == dependency.depends_on_pol_id) {
-                    return this.registered_dependencies[dependency.src_pol_id][i];
-                }
-            }
+        if (!this.registered_dependencies_for_loading_process[dependency.src_pol_id]) {
+            this.registered_dependencies_for_loading_process[dependency.src_pol_id] = {};
         }
 
         if (!this.registered_dependencies[dependency.src_pol_id]) {
@@ -867,6 +885,7 @@ export default class AccessPolicyServerController {
         }
         if (dependencyFromBDD) {
             this.registered_dependencies[dependency.src_pol_id].push(dependencyFromBDD);
+            this.registered_dependencies_for_loading_process[dependency.src_pol_id][dependency.depends_on_pol_id] = dependencyFromBDD;
             return dependencyFromBDD;
         }
 

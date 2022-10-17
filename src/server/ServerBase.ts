@@ -118,7 +118,13 @@ export default abstract class ServerBase {
     /* istanbul ignore next: FIXME Don't want to test this file, but there are many things that should be externalized in smaller files and tested */
     public async initializeNodeServer() {
 
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.getInstance().log('ServerExpressController:createMandatoryFolders:START');
+        }
         await this.createMandatoryFolders();
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.getInstance().log('ServerExpressController:createMandatoryFolders:END');
+        }
 
         this.version = this.getVersion();
 
@@ -149,9 +155,21 @@ export default abstract class ServerBase {
         this.db.$pool.options.idleTimeoutMillis = 120000;
 
         let GM = this.modulesService;
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.getInstance().log('ServerExpressController:register_all_modules:START');
+        }
         await GM.register_all_modules(this.db);
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.getInstance().log('ServerExpressController:register_all_modules:END');
+        }
 
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.getInstance().log('ServerExpressController:initializeDataImports:START');
+        }
         await this.initializeDataImports();
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.getInstance().log('ServerExpressController:initializeDataImports:END');
+        }
 
         this.spawn = child_process.spawn;
 
@@ -209,6 +227,9 @@ export default abstract class ServerBase {
         //   }*/
         // );
 
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.getInstance().log('ServerExpressController:express:START');
+        }
         this.app = express();
 
         // createTerminus(this.app, { onSignal: ServerBase.getInstance().terminus });
@@ -326,10 +347,19 @@ export default abstract class ServerBase {
             }
             next();
         };
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.getInstance().log('ServerExpressController:express:END');
+        }
 
         this.hook_configure_express();
 
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.getInstance().log('ServerExpressController:hook_pwa_init:START');
+        }
         await this.hook_pwa_init();
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.getInstance().log('ServerExpressController:hook_pwa_init:END');
+        }
 
         // app.get(/^[/]public[/]generated[/].*/, function (req, res, next) {
         //     tryuseGZ('client', req, res, next);
@@ -344,7 +374,13 @@ export default abstract class ServerBase {
         //     next();
         // });
 
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.getInstance().log('ServerExpressController:registerApis:START');
+        }
         this.registerApis(this.app);
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.getInstance().log('ServerExpressController:registerApis:END');
+        }
 
         // Pour activation auto let's encrypt
         this.app.use('/.well-known', express.static('.well-known'));
@@ -698,6 +734,14 @@ export default abstract class ServerBase {
             res.sendFile(path.resolve(file.path));
         });
 
+        // On préload les droits / users / groupes / deps pour accélérer le démarrage
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.getInstance().log('ServerExpressController:preload_access_rights:START');
+        }
+        await ModuleAccessPolicyServer.getInstance().preload_access_rights();
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.getInstance().log('ServerExpressController:preload_access_rights:END');
+        }
 
         if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.getInstance().log('ServerExpressController:configure_server_modules:START');
@@ -714,15 +758,6 @@ export default abstract class ServerBase {
         await DefaultTranslationsServerManager.getInstance().saveDefaultTranslations();
         if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.getInstance().log('ServerExpressController:saveDefaultTranslations:END');
-        }
-
-        // Une fois tous les droits / rôles définis, on doit pouvoir initialiser les droits d'accès
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
-            ConsoleHandler.getInstance().log('ServerExpressController:preload_access_rights:START');
-        }
-        await ModuleAccessPolicyServer.getInstance().preload_access_rights();
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
-            ConsoleHandler.getInstance().log('ServerExpressController:preload_access_rights:END');
         }
 
         // Derniers chargements
@@ -1054,7 +1089,13 @@ export default abstract class ServerBase {
 
                 // ServerBase.getInstance().testNotifs();
 
+                if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+                    ConsoleHandler.getInstance().log('ServerExpressController:hook_on_ready:START');
+                }
                 await ServerBase.getInstance().hook_on_ready();
+                if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+                    ConsoleHandler.getInstance().log('ServerExpressController:hook_on_ready:END');
+                }
 
                 // //TODO DELETE TEST JNE
                 // let fake_file: FileVO = new FileVO();
@@ -1066,7 +1107,13 @@ export default abstract class ServerBase {
                 //     fake_file
                 // ]);
 
+                if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+                    ConsoleHandler.getInstance().log('ServerExpressController:fork_threads:START');
+                }
                 await ForkServerController.getInstance().fork_threads();
+                if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+                    ConsoleHandler.getInstance().log('ServerExpressController:fork_threads:END');
+                }
                 BGThreadServerController.getInstance().server_ready = true;
 
                 if (ConfigurationService.getInstance().node_configuration.AUTO_END_MAINTENANCE_ON_START) {

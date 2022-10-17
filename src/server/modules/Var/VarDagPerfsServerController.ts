@@ -46,6 +46,10 @@ export default class VarDagPerfsServerController {
     }
 
     public start_nodeperfelement(nodeperfelement: VarNodePerfElementVO, log_perf_name: string = null) {
+        if (!nodeperfelement) {
+            return;
+        }
+
         nodeperfelement.start_time = performance.now();
 
         if (log_perf_name && ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
@@ -58,6 +62,10 @@ export default class VarDagPerfsServerController {
     }
 
     public end_nodeperfelement(nodeperfelement: VarNodePerfElementVO, log_perf_name: string = null) {
+        if (!nodeperfelement) {
+            return;
+        }
+
         nodeperfelement.end_time = performance.now();
         let nodeperfelement_elapsed_time = nodeperfelement.end_time - nodeperfelement.start_time;
         nodeperfelement.total_elapsed_time = (!nodeperfelement.total_elapsed_time) ? nodeperfelement_elapsed_time : (nodeperfelement.total_elapsed_time + nodeperfelement_elapsed_time);

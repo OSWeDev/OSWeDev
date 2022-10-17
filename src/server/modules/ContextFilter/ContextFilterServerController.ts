@@ -1749,6 +1749,7 @@ export default class ContextFilterServerController {
                                 ContextQueryInjectionCheckHandler.assert_numeric(active_field_filter.param_numeric_array[i]);
                             }
                             where_conditions.push(field_id + " = ANY(ARRAY[" + active_field_filter.param_numeric_array.join(',') + '])');
+                            break;
                         }
 
                         if ((active_field_filter.param_alias == null) && (active_field_filter.param_numeric == null)) {
@@ -1826,6 +1827,7 @@ export default class ContextFilterServerController {
                                 ContextQueryInjectionCheckHandler.assert_numeric(active_field_filter.param_numeric_array[i]);
                             }
                             where_conditions.push(field_id + " = ALL(ARRAY[" + active_field_filter.param_numeric_array.join(',') + '])');
+                            break;
                         }
 
                         if ((active_field_filter.param_alias == null) && (active_field_filter.param_numeric == null)) {

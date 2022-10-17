@@ -286,6 +286,16 @@ export default class ContextQueryVO implements IDistantVOBase {
     }
 
     /**
+     * Sucre syntaxique pour une filtre numeric equals NONE
+     * @param field_id le field qu'on veut filtrer
+     * @param num la valeur qu'on veut filtrer
+     * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
+     */
+    public filter_by_num_not_eq(field_id: string, num: number, API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_num_not_eq(num)]);
+    }
+
+    /**
      * Sucre syntaxique pour une filtre numeric equals ALL
      * @param field_id le field qu'on veut filtrer
      * @param num la valeur qu'on veut filtrer
@@ -599,6 +609,16 @@ export default class ContextQueryVO implements IDistantVOBase {
      */
     public filter_is_null_or_empty(field_id: string, API_TYPE_ID: string = null): ContextQueryVO {
         return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).is_null_or_empty()]);
+    }
+
+    /**
+     * Filter sur le champs par boolean suivant param
+     */
+    public filter_boolean_value(field_id: string, boolean_value: boolean, API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([
+            boolean_value ?
+                filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).is_true() :
+                filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).is_false()]);
     }
 
     /**
