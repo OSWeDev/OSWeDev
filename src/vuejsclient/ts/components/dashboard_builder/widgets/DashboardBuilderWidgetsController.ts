@@ -1,3 +1,4 @@
+import { query } from "../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import ModuleDAO from "../../../../../shared/modules/DAO/ModuleDAO";
 import InsertOrDeleteQueryResult from "../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult";
 import DashboardPageWidgetVO from "../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
@@ -31,7 +32,7 @@ export default class DashboardBuilderWidgetsController {
             return;
         }
 
-        this.sorted_widgets = await ModuleDAO.getInstance().getVos<DashboardWidgetVO>(DashboardWidgetVO.API_TYPE_ID);
+        this.sorted_widgets = await query(DashboardWidgetVO.API_TYPE_ID).select_vos<DashboardWidgetVO>();
         if (!this.sorted_widgets) {
             this.sorted_widgets = [];
         }

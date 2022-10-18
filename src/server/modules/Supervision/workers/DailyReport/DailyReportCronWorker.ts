@@ -1,3 +1,4 @@
+import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleParams from '../../../../../shared/modules/Params/ModuleParams';
 import SendInBlueMailVO from '../../../../../shared/modules/SendInBlue/vos/SendInBlueMailVO';
@@ -47,7 +48,7 @@ export default class DailyReportCronWorker implements ICronWorker {
          */
         // On commence par récupérer toutes les sondes et catégories
         let category_by_ids: { [id: number]: SupervisedCategoryVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(
-            await ModuleDAO.getInstance().getVos<SupervisedCategoryVO>(SupervisedCategoryVO.API_TYPE_ID)
+            await query(SupervisedCategoryVO.API_TYPE_ID).select_vos<SupervisedCategoryVO>()
         );
         let supervised_items_by_names: { [name: string]: ISupervisedItem } = await this.load_supervised_items(category_by_ids);
         let ordered_supervised_items_by_state: { [state: number]: ISupervisedItem[] } = this.get_ordered_supervised_items_by_state(supervised_items_by_names);
@@ -191,7 +192,7 @@ export default class DailyReportCronWorker implements ICronWorker {
             }
 
             promises.push((async () => {
-                let items = await ModuleDAO.getInstance().getVos<ISupervisedItem>(api_type_id);
+                let items = await query(api_type_id).select_vos<ISupervisedItem>();
 
                 for (let i in items) {
                     let item = items[i];

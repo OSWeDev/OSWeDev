@@ -83,6 +83,12 @@ export default abstract class GeneratorBase {
 
         ConfigurationService.getInstance().setEnvParams(this.STATIC_ENV_PARAMS);
 
+        /**
+         * Le générateur est fait pour faire les checks de format en bdd, donc on force ce paramètre
+         *  par défaut il est actif sur le lancement du server pour gagner du temps
+         */
+        ConfigurationService.getInstance().node_configuration.IGNORE_ALL_DATABASE_FORMAT_CHECKS = false;
+
         FileLoggerHandler.getInstance().prepare().then(() => {
             ConsoleHandler.getInstance().logger_handler = FileLoggerHandler.getInstance();
             ConsoleHandler.getInstance().log("Generator starting");

@@ -1,7 +1,6 @@
 import cloneDeep = require('lodash/cloneDeep');
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
-import DAG from '../../../shared/modules/Var/graph/dagbase/DAG';
 import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import MainAggregateOperatorsHandlers from '../../../shared/modules/Var/MainAggregateOperatorsHandlers';
@@ -11,12 +10,9 @@ import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import ConfigurationService from '../../env/ConfigurationService';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
-import PerfMonConfController from '../PerfMon/PerfMonConfController';
-import PerfMonServerController from '../PerfMon/PerfMonServerController';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import VarsComputeController from './VarsComputeController';
 import VarsDatasProxy from './VarsDatasProxy';
-import VarsPerfMonServerController from './VarsPerfMonServerController';
 import VarsServerController from './VarsServerController';
 
 export default abstract class VarServerControllerBase<TData extends VarDataBaseVO> {
@@ -105,35 +101,26 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      */
     public async computeValue(varDAGNode: VarDAGNode) {
 
-        await PerfMonServerController.getInstance().monitor_async(
-            PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__VarServerControllerBase__computeValue],
-            async () => {
+        let value: number;
+        if (varDAGNode.is_aggregator) {
 
-                let value: number;
-                if (varDAGNode.is_aggregator) {
+            let values: number[] = [];
 
-                    let values: number[] = [];
+            for (let i in varDAGNode.outgoing_deps) {
+                let dep = varDAGNode.outgoing_deps[i];
 
-                    for (let i in varDAGNode.outgoing_deps) {
-                        let dep = varDAGNode.outgoing_deps[i];
+                values.push((dep.outgoing_node as VarDAGNode).var_data.value);
+            }
+            value = this.aggregateValues(values);
+        } else {
 
-                        values.push((dep.outgoing_node as VarDAGNode).var_data.value);
-                    }
-                    value = this.aggregateValues(values);
-                } else {
+            value = this.getValue(varDAGNode);
+        }
 
-                    value = this.getValue(varDAGNode);
-                }
-
-                varDAGNode.var_data.value = value;
-                varDAGNode.var_data.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
-                varDAGNode.var_data.value_ts = Dates.now();
-                await VarsDatasProxy.getInstance().update_existing_buffered_older_datas([varDAGNode.var_data], 'computeValue');
-            },
-            this,
-            null,
-            VarsPerfMonServerController.getInstance().generate_pmlinfos_from_node(varDAGNode)
-        );
+        varDAGNode.var_data.value = value;
+        varDAGNode.var_data.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
+        varDAGNode.var_data.value_ts = Dates.now();
+        await VarsDatasProxy.getInstance().update_existing_buffered_older_datas([varDAGNode.var_data], 'computeValue');
     }
 
     /**

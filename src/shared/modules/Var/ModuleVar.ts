@@ -6,6 +6,7 @@ import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import ContextFilterVO from '../ContextFilter/vos/ContextFilterVO';
+import { query } from '../ContextFilter/vos/ContextQueryVO';
 import ManualTasksController from '../Cron/ManualTasksController';
 import ModuleDAO from '../DAO/ModuleDAO';
 import APISimpleVOParamVO, { APISimpleVOParamVOStatic } from '../DAO/vos/APISimpleVOParamVO';
@@ -336,7 +337,7 @@ export default class ModuleVar extends Module {
 
     public async initializeasync(var_conf_by_id: { [var_id: number]: VarConfVO } = null) {
         if (!var_conf_by_id) {
-            await VarsController.getInstance().initializeasync(VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<VarConfVO>(VarConfVO.API_TYPE_ID)));
+            await VarsController.getInstance().initializeasync(VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(VarConfVO.API_TYPE_ID).select_vos<VarConfVO>()));
         } else {
             await VarsController.getInstance().initializeasync(var_conf_by_id);
         }

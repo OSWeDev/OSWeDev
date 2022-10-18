@@ -93,13 +93,13 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
              *  - compute_node :
              *      - le compute_node est bien appelé dans compute_node_wrapper (batch perfs) et on peut donc faire le ratio entre les temps de la var et la somme des temps des vars, puis appliquer le ratio sur le temps réel total
              */
-            this.set_mean_estimation(last_x_perfs, 'ctree_ddeps_try_load_cache_complet', ['ctree_ddeps_try_load_cache_complet', 'ctree_ddeps_load_imports_and_split_nodes', 'ctree_ddeps_try_load_cache_partiel', 'ctree_ddeps_get_node_deps', 'ctree_ddeps_handle_pixellisation'], 'create_tree', varcacheconf);
-            this.set_mean_estimation(last_x_perfs, 'ctree_ddeps_load_imports_and_split_nodes', ['ctree_ddeps_try_load_cache_complet', 'ctree_ddeps_load_imports_and_split_nodes', 'ctree_ddeps_try_load_cache_partiel', 'ctree_ddeps_get_node_deps', 'ctree_ddeps_handle_pixellisation'], 'create_tree', varcacheconf);
-            this.set_mean_estimation(last_x_perfs, 'ctree_ddeps_try_load_cache_partiel', ['ctree_ddeps_try_load_cache_complet', 'ctree_ddeps_load_imports_and_split_nodes', 'ctree_ddeps_try_load_cache_partiel', 'ctree_ddeps_get_node_deps', 'ctree_ddeps_handle_pixellisation'], 'create_tree', varcacheconf);
-            this.set_mean_estimation(last_x_perfs, 'ctree_ddeps_get_node_deps', ['ctree_ddeps_try_load_cache_complet', 'ctree_ddeps_load_imports_and_split_nodes', 'ctree_ddeps_try_load_cache_partiel', 'ctree_ddeps_get_node_deps', 'ctree_ddeps_handle_pixellisation'], 'create_tree', varcacheconf);
-            this.set_mean_estimation(last_x_perfs, 'ctree_ddeps_handle_pixellisation', ['ctree_ddeps_try_load_cache_complet', 'ctree_ddeps_load_imports_and_split_nodes', 'ctree_ddeps_try_load_cache_partiel', 'ctree_ddeps_get_node_deps', 'ctree_ddeps_handle_pixellisation'], 'create_tree', varcacheconf);
-            this.set_mean_estimation(last_x_perfs, 'load_node_datas', ['load_node_datas'], 'load_nodes_datas', varcacheconf);
-            this.set_mean_estimation(last_x_perfs, 'compute_node', ['compute_node'], 'compute_node_wrapper', varcacheconf);
+            await this.set_mean_estimation(last_x_perfs, 'ctree_ddeps_try_load_cache_complet', ['ctree_ddeps_try_load_cache_complet', 'ctree_ddeps_load_imports_and_split_nodes', 'ctree_ddeps_try_load_cache_partiel', 'ctree_ddeps_get_node_deps', 'ctree_ddeps_handle_pixellisation'], 'create_tree', varcacheconf);
+            await this.set_mean_estimation(last_x_perfs, 'ctree_ddeps_load_imports_and_split_nodes', ['ctree_ddeps_try_load_cache_complet', 'ctree_ddeps_load_imports_and_split_nodes', 'ctree_ddeps_try_load_cache_partiel', 'ctree_ddeps_get_node_deps', 'ctree_ddeps_handle_pixellisation'], 'create_tree', varcacheconf);
+            await this.set_mean_estimation(last_x_perfs, 'ctree_ddeps_try_load_cache_partiel', ['ctree_ddeps_try_load_cache_complet', 'ctree_ddeps_load_imports_and_split_nodes', 'ctree_ddeps_try_load_cache_partiel', 'ctree_ddeps_get_node_deps', 'ctree_ddeps_handle_pixellisation'], 'create_tree', varcacheconf);
+            await this.set_mean_estimation(last_x_perfs, 'ctree_ddeps_get_node_deps', ['ctree_ddeps_try_load_cache_complet', 'ctree_ddeps_load_imports_and_split_nodes', 'ctree_ddeps_try_load_cache_partiel', 'ctree_ddeps_get_node_deps', 'ctree_ddeps_handle_pixellisation'], 'create_tree', varcacheconf);
+            await this.set_mean_estimation(last_x_perfs, 'ctree_ddeps_handle_pixellisation', ['ctree_ddeps_try_load_cache_complet', 'ctree_ddeps_load_imports_and_split_nodes', 'ctree_ddeps_try_load_cache_partiel', 'ctree_ddeps_get_node_deps', 'ctree_ddeps_handle_pixellisation'], 'create_tree', varcacheconf);
+            await this.set_mean_estimation(last_x_perfs, 'load_node_datas', ['load_node_datas'], 'load_nodes_datas', varcacheconf);
+            await this.set_mean_estimation(last_x_perfs, 'compute_node', ['compute_node'], 'compute_node_wrapper', varcacheconf);
 
             varcacheconfs.push(varcacheconf);
         }

@@ -92,6 +92,9 @@ export default class ModuleDAO extends Module {
     public selectUsersForCheckUnicity: (name: string, email: string, phone: string, user_id: number) => Promise<boolean> =
         APIControllerWrapper.sah(ModuleDAO.APINAME_selectUsersForCheckUnicity);
 
+    /**
+     * @deprecated
+     */
     public getVosByRefFieldsIdsAndFieldsString: <T extends IDistantVOBase>(
         API_TYPE_ID: string,
         field_name1: string, ids1: number[],
@@ -143,8 +146,17 @@ export default class ModuleDAO extends Module {
     public insertOrUpdateVOsMulticonnections: (vos: IDistantVOBase[]) => Promise<InsertOrDeleteQueryResult[]> = APIControllerWrapper.sah(ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS_MULTICONNECTIONS);
 
     public insertOrUpdateVO: (vo: IDistantVOBase) => Promise<InsertOrDeleteQueryResult> = APIControllerWrapper.sah(ModuleDAO.APINAME_INSERT_OR_UPDATE_VO);
+    /**
+     * @deprecated
+     */
     public getNamedVoByName: <T extends INamedVO>(API_TYPE_ID: string, vo_name: string) => Promise<T> = APIControllerWrapper.sah(ModuleDAO.APINAME_GET_NAMED_VO_BY_NAME);
+    /**
+     * @deprecated
+     */
     public getVoById: <T extends IDistantVOBase>(API_TYPE_ID: string, id: number, segmentation_ranges?: IRange[]) => Promise<T> = APIControllerWrapper.sah(ModuleDAO.APINAME_GET_VO_BY_ID);
+    /**
+     * @deprecated
+     */
     public getVosByIds: <T extends IDistantVOBase>(API_TYPE_ID: string, ids: number[]) => Promise<T[]> = APIControllerWrapper.sah(
         ModuleDAO.APINAME_GET_VOS_BY_IDS,
         null,
@@ -162,6 +174,9 @@ export default class ModuleDAO extends Module {
 
             return true;
         });
+    /**
+     * @deprecated
+     */
     public getVosByIdsRanges: <T extends IDistantVOBase>(API_TYPE_ID: string, ranges: NumRange[]) => Promise<T[]> = APIControllerWrapper.sah(
         ModuleDAO.APINAME_GET_VOS_BY_IDS_RANGES,
         null,
@@ -245,7 +260,13 @@ export default class ModuleDAO extends Module {
             return true;
         });
 
+    /**
+     * @deprecated
+     */
     public getVosByRefFieldIds: <T extends IDistantVOBase>(API_TYPE_ID: string, field_name: string, ids: number[]) => Promise<T[]> = APIControllerWrapper.sah(ModuleDAO.APINAME_GET_VOS_BY_REFFIELD_IDS);
+    /**
+     * @deprecated
+     */
     public getVosByRefFieldsIds: <T extends IDistantVOBase>(
         API_TYPE_ID: string,
         field_name1: string, ids1: number[],
@@ -271,6 +292,9 @@ export default class ModuleDAO extends Module {
                 return true;
             });
 
+    /**
+     * @deprecated
+     */
     public getVos: <T extends IDistantVOBase>(API_TYPE_ID: string, limit?: number, offset?: number) => Promise<T[]> = APIControllerWrapper.sah(ModuleDAO.APINAME_GET_VOS);
 
     private constructor() {

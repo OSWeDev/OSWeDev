@@ -7,6 +7,7 @@ import IInstantiatedPageComponent from '../../../../../shared/modules/CMS/interf
 import ModuleCMS from '../../../../../shared/modules/CMS/ModuleCMS';
 import PageVO from '../../../../../shared/modules/CMS/vos/PageVO';
 import TemplateComponentVO from '../../../../../shared/modules/CMS/vos/TemplateComponentVO';
+import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
@@ -102,7 +103,7 @@ export default class CMSPageComponent extends VueComponentBase {
             return;
         }
 
-        this.storeDatas({ API_TYPE_ID: TemplateComponentVO.API_TYPE_ID, vos: await ModuleDAO.getInstance().getVos<TemplateComponentVO>(TemplateComponentVO.API_TYPE_ID) });
+        this.storeDatas({ API_TYPE_ID: TemplateComponentVO.API_TYPE_ID, vos: await query(TemplateComponentVO.API_TYPE_ID).select_vos<TemplateComponentVO>() });
 
         $("#sortable_page_component_list").sortable({
             revert: true,
@@ -270,7 +271,7 @@ export default class CMSPageComponent extends VueComponentBase {
             this.instantiated_page_components = [];
         }
 
-        this.storeDatas({ API_TYPE_ID: TemplateComponentVO.API_TYPE_ID, vos: await ModuleDAO.getInstance().getVos<TemplateComponentVO>(TemplateComponentVO.API_TYPE_ID) });
+        this.storeDatas({ API_TYPE_ID: TemplateComponentVO.API_TYPE_ID, vos: await query(TemplateComponentVO.API_TYPE_ID).select_vos<TemplateComponentVO>() });
 
         // $("#sortable_page_component_list").sortable({
         //     revert: true,

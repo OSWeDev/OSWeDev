@@ -52,6 +52,7 @@ import ModuleVar from '../../shared/modules/Var/ModuleVar';
 import ModuleVersioned from '../../shared/modules/Versioned/ModuleVersioned';
 import ModuleVocus from '../../shared/modules/Vocus/ModuleVocus';
 import ConsoleHandler from '../../shared/tools/ConsoleHandler';
+import { all_promises } from '../../shared/tools/PromiseTools';
 import ConfigurationService from '../env/ConfigurationService';
 import ModuleAccessPolicyServer from './AccessPolicy/ModuleAccessPolicyServer';
 import ModuleAjaxCacheServer from './AjaxCache/ModuleAjaxCacheServer';
@@ -322,17 +323,39 @@ export default abstract class ModuleServiceBase {
         for (let i in this.server_modules) {
             let server_module: ModuleServerBase = this.server_modules[i];
 
-            if (server_module.actif) {
-                await server_module.registerAccessPolicies();
-                await server_module.registerAccessRoles();
+            if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+                ConsoleHandler.getInstance().log('configure_server_modules:server_module:' + server_module.name + ':START');
+            }
 
-                await server_module.registerImport();
+            if (server_module.actif) {
+
+                await all_promises([
+                    server_module.registerAccessPolicies(),
+                    server_module.registerAccessRoles(),
+                    server_module.registerImport(),
+                ]);
+
+                if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+                    ConsoleHandler.getInstance().log('configure_server_modules:server_module:' + server_module.name + ':registerCrons');
+                }
+
                 server_module.registerCrons();
+
+                if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+                    ConsoleHandler.getInstance().log('configure_server_modules:server_module:' + server_module.name + ':registerAccessHooks');
+                }
                 server_module.registerAccessHooks();
 
                 if (app) {
+                    if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+                        ConsoleHandler.getInstance().log('configure_server_modules:server_module:' + server_module.name + ':registerExpressApis');
+                    }
                     server_module.registerExpressApis(app);
                 }
+            }
+
+            if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+                ConsoleHandler.getInstance().log('configure_server_modules:server_module:' + server_module.name + ':END');
             }
         }
     }

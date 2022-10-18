@@ -65,7 +65,7 @@ export default class VarsClientController {
         this.prepare_next_check();
 
         // On lance aussi un process pour update les subs côté serveur et pas les perdre sur un timeout
-        this.update_params_registration();
+        this.update_params_registration().then().catch((err) => ConsoleHandler.getInstance().error(err));
     }
 
     /**

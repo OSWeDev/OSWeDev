@@ -14,6 +14,7 @@ import SendInBlueMailServerController from '../../../SendInBlue/SendInBlueMailSe
 import SendInBlueMailVO from '../../../../../shared/modules/SendInBlue/vos/SendInBlueMailVO';
 import ModuleParams from '../../../../../shared/modules/Params/ModuleParams';
 import ModuleAccessPolicyServer from '../../ModuleAccessPolicyServer';
+import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 
 
 export default class PasswordInvalidationCronWorker implements ICronWorker {
@@ -47,7 +48,7 @@ export default class PasswordInvalidationCronWorker implements ICronWorker {
 
     public async work() {
         // On check les dates d'invalidation et de reminder
-        let users: UserVO[] = await ModuleDAO.getInstance().getVos<UserVO>(UserVO.API_TYPE_ID);
+        let users: UserVO[] = await query(UserVO.API_TYPE_ID).select_vos<UserVO>();
         let translatable_mail_invalidation_subject: TranslatableTextVO = await ModuleTranslation.getInstance().getTranslatableText(PasswordInvalidationCronWorker.CODE_TEXT_MAIL_SUBJECT_INVALIDATION);
         let translatable_mail_reminder1_subject: TranslatableTextVO = await ModuleTranslation.getInstance().getTranslatableText(PasswordInvalidationCronWorker.CODE_TEXT_MAIL_SUBJECT_REMINDER1);
         let translatable_mail_reminder2_subject: TranslatableTextVO = await ModuleTranslation.getInstance().getTranslatableText(PasswordInvalidationCronWorker.CODE_TEXT_MAIL_SUBJECT_REMINDER2);

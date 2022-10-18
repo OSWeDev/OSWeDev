@@ -1,6 +1,7 @@
 /* istanbul ignore file: no unit tests on patchs */
 
 import { IDatabase } from 'pg-promise';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleDashboardBuilder from '../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
 import DashboardWidgetVO from '../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
@@ -28,7 +29,7 @@ export default class Patch20220725DashboardWidgetUpdate implements IGeneratorWor
             return;
         }
 
-        let dws: DashboardWidgetVO[] = await ModuleDAO.getInstance().getVos<DashboardWidgetVO>(DashboardWidgetVO.API_TYPE_ID);
+        let dws: DashboardWidgetVO[] = await query(DashboardWidgetVO.API_TYPE_ID).select_vos<DashboardWidgetVO>();
 
         let dw_names_filter: string[] = [
             'fieldvaluefilter',

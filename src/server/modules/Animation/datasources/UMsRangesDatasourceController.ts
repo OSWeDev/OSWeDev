@@ -1,5 +1,6 @@
 import ThemeModuleDataRangesVO from "../../../../shared/modules/Animation/params/theme_module/ThemeModuleDataRangesVO";
 import AnimationUserModuleVO from "../../../../shared/modules/Animation/vos/AnimationUserModuleVO";
+import { query } from "../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import ModuleDAO from "../../../../shared/modules/DAO/ModuleDAO";
 import RangeHandler from "../../../../shared/tools/RangeHandler";
 import DataSourceControllerMatroidIndexedBase from "../../Var/datasource/DataSourceControllerMatroidIndexedBase";
@@ -40,17 +41,9 @@ export default class UMsRangesDatasourceController extends DataSourceControllerM
                 user_ids,
             );
         } else if (module_ids) {
-            ums = await ModuleDAO.getInstance().getVosByRefFieldIds<AnimationUserModuleVO>(
-                AnimationUserModuleVO.API_TYPE_ID,
-                'module_id',
-                module_ids,
-            );
+            ums = await query(AnimationUserModuleVO.API_TYPE_ID).filter_by_num_has('module_id', module_ids).select_vos<AnimationUserModuleVO>();
         } else if (user_ids) {
-            ums = await ModuleDAO.getInstance().getVosByRefFieldIds<AnimationUserModuleVO>(
-                AnimationUserModuleVO.API_TYPE_ID,
-                'user_id',
-                user_ids,
-            );
+            ums = await query(AnimationUserModuleVO.API_TYPE_ID).filter_by_num_has('user_id', user_ids).select_vos<AnimationUserModuleVO>();
         }
 
         for (let i in ums) {

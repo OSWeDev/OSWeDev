@@ -228,7 +228,7 @@ export default class CheckListModalComponent extends VueComponentBase {
         let filter = new ContextFilterVO();
         filter.field_id = 'checklist_id';
         filter.vo_type = this.checklist_controller.checklist_shared_module.checklistitem_type_id;
-        filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+        filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
         filter.param_numeric = this.checklist.id;
 
         let query_: ContextQueryVO = query(this.checklist_controller.checklist_shared_module.checklistitem_type_id).set_limit(this.checklist.limit_affichage ? this.checklist.limit_affichage : 0, 0);

@@ -4,10 +4,7 @@ import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
 import VarsController from '../../../../shared/modules/Var/VarsController';
 import { all_promises } from '../../../../shared/tools/PromiseTools';
 import ConfigurationService from '../../../env/ConfigurationService';
-import PerfMonConfController from '../../PerfMon/PerfMonConfController';
-import PerfMonServerController from '../../PerfMon/PerfMonServerController';
 import VarsdatasComputerBGThread from '../bgthreads/VarsdatasComputerBGThread';
-import VarsPerfMonServerController from '../VarsPerfMonServerController';
 import DataSourceControllerBase from './DataSourceControllerBase';
 
 export default class DataSourcesController {
@@ -39,48 +36,28 @@ export default class DataSourcesController {
      */
     public async load_node_datas(dss: DataSourceControllerBase[], node: VarDAGNode): Promise<void> {
 
-        await PerfMonServerController.getInstance().monitor_async(
-            PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__DataSourcesController__load_node_datas],
-            async () => {
+        let promises = [];
+        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 3));
 
-                let promises = [];
-                let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 3));
+        for (let i in dss) {
+            let ds = dss[i];
 
-                for (let i in dss) {
-                    let ds = dss[i];
+            if (!VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[ds.name]) {
+                VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[ds.name] = {};
+            }
 
-                    if (!VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[ds.name]) {
-                        VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[ds.name] = {};
-                    }
+            if (promises.length >= max) {
+                await Promise.all(promises);
+                promises = [];
+            }
 
-                    if (promises.length >= max) {
-                        await all_promises(promises);
-                        promises = [];
-                    }
+            // Si on est sur du perf monitoring on doit faire les appels séparément...
+            promises.push(ds.load_node_data(node));
+        }
 
-                    // Si on est sur du perf monitoring on doit faire les appels séparément...
-                    let perfmon = PerfMonConfController.getInstance().perf_type_by_name[VarsPerfMonServerController.PML__DataSourceControllerBase__load_node_data];
-                    if (perfmon.is_active) {
-                        await PerfMonServerController.getInstance().monitor_async(
-                            perfmon,
-                            ds.load_node_data,
-                            ds,
-                            [node],
-                            VarsPerfMonServerController.getInstance().generate_pmlinfos_from_node_and_ds(node, ds)
-                        );
-                    } else {
-                        promises.push(ds.load_node_data(node));
-                    }
-                }
-
-                if (promises && promises.length) {
-                    await all_promises(promises);
-                }
-            },
-            this,
-            null,
-            VarsPerfMonServerController.getInstance().generate_pmlinfos_from_node(node)
-        );
+        if (promises && promises.length) {
+            await Promise.all(promises);
+        }
     }
 
     public registerDataSource(

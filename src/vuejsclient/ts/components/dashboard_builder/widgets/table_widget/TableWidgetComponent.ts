@@ -824,7 +824,7 @@ export default class TableWidgetComponent extends VueComponentBase {
                         default:
                             throw new Error('Not Implemented');
                     }
-                    self.do_update_visible_options();
+                    await self.do_update_visible_options();
 
                     resolve({
                         body: self.label('TableWidgetComponent.onchange_column.ok'),
@@ -838,7 +838,7 @@ export default class TableWidgetComponent extends VueComponentBase {
 
                 } catch (error) {
                     ConsoleHandler.getInstance().error(error);
-                    self.do_update_visible_options();
+                    await self.do_update_visible_options();
                     reject({
                         body: self.label('TableWidgetComponent.onchange_column.failed'),
                         config: {
@@ -1131,11 +1131,10 @@ export default class TableWidgetComponent extends VueComponentBase {
         );
         query_.set_sort(null);
 
-        let db_cells_source = await ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString<DashboardGraphVORefVO>(
-            DashboardGraphVORefVO.API_TYPE_ID,
-            'dashboard_id',
-            [this.dashboard.id],
-        );
+        let db_cells_source = await query(DashboardGraphVORefVO.API_TYPE_ID)
+            .filter_by_num_eq('dashboard_id', this.dashboard.id)
+            .select_vos<DashboardGraphVORefVO>();
+
         let db_cell_source_by_vo_type: { [vo_type: string]: DashboardGraphVORefVO } = {};
 
         for (let i in db_cells_source) {

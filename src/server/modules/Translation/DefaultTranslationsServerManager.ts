@@ -1,3 +1,4 @@
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
@@ -33,13 +34,13 @@ export default class DefaultTranslationsServerManager {
 
         let langs: LangVO[] = null;
         promises.push((async () => {
-            langs = await ModuleDAO.getInstance().getVos<LangVO>(LangVO.API_TYPE_ID);
+            langs = await query(LangVO.API_TYPE_ID).select_vos<LangVO>();
         })());
 
         let translatables: TranslatableTextVO[] = null;
         let translatable_by_code_text: { [code_text: string]: TranslatableTextVO } = {};
         promises.push((async () => {
-            translatables = await ModuleDAO.getInstance().getVos<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID);
+            translatables = await query(TranslatableTextVO.API_TYPE_ID).select_vos<TranslatableTextVO>();
             for (let i in translatables) {
                 let translatable = translatables[i];
                 translatable_by_code_text[translatable.code_text] = translatable;
@@ -49,7 +50,7 @@ export default class DefaultTranslationsServerManager {
         let translations: TranslationVO[] = null;
         let translation_by_lang_id_and_text_id: { [lang_id: number]: { [text_id: number]: TranslationVO } } = {};
         promises.push((async () => {
-            translations = await ModuleDAO.getInstance().getVos<TranslationVO>(TranslationVO.API_TYPE_ID);
+            translations = await query(TranslationVO.API_TYPE_ID).select_vos<TranslationVO>();
 
             for (let i in translations) {
                 let translation = translations[i];
@@ -61,7 +62,7 @@ export default class DefaultTranslationsServerManager {
             }
         })());
 
-        await all_promises(promises);
+        await Promise.all(promises);
 
         promises = [];
         for (let i in registered_default_translations) {
@@ -133,7 +134,7 @@ export default class DefaultTranslationsServerManager {
             translatable.code_text = default_translation.code_text;
             await ModuleDAO.getInstance().insertOrUpdateVO(translatable);
             ConsoleHandler.getInstance().error("Ajout de translatable : " + JSON.stringify(translatable));
-            translatable = await ModuleDAOServer.getInstance().selectOne<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID, "where code_text=$1", [default_translation.code_text]);
+            translatable = await query(TranslatableTextVO.API_TYPE_ID).filter_by_text_eq('code_text', default_translation.code_text).select_vo<TranslatableTextVO>();
         }
 
         if (!translatable) {
@@ -168,7 +169,7 @@ export default class DefaultTranslationsServerManager {
                 translation.text_id = translatable.id;
                 translation.translated = translation_str;
                 await ModuleDAO.getInstance().insertOrUpdateVO(translation);
-                translation = await ModuleDAOServer.getInstance().selectOne<TranslationVO>(TranslationVO.API_TYPE_ID, "where lang_id=$1 and text_id=$2", [lang.id, translatable.id]);
+                translation = await query(TranslationVO.API_TYPE_ID).filter_by_id(lang.id, LangVO.API_TYPE_ID).filter_by_id(translatable.id, TranslatableTextVO.API_TYPE_ID).select_vo<TranslationVO>();
             }
 
             if (!translation) {
@@ -176,6 +177,9 @@ export default class DefaultTranslationsServerManager {
                 return;
             }
 
+            if (!translation_by_lang_id_and_text_id[lang.id]) {
+                translation_by_lang_id_and_text_id[lang.id] = {};
+            }
             translation_by_lang_id_and_text_id[lang.id][translatable.id] = translation;
         }
     }
