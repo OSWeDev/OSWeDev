@@ -731,6 +731,7 @@ export default class ContextQueryVO implements IDistantVOBase {
         } else {
             this.sort_by = [sort];
         }
+        this.update_active_api_type_ids_from_sorts([sort]);
 
         return this;
     }
@@ -742,6 +743,7 @@ export default class ContextQueryVO implements IDistantVOBase {
     public set_sorts(sorts: SortByVO[]): ContextQueryVO {
 
         this.sort_by = sorts;
+        this.update_active_api_type_ids_from_sorts(sorts);
 
         return this;
     }
@@ -889,6 +891,23 @@ export default class ContextQueryVO implements IDistantVOBase {
         let api_type_ids = filters.map((f) => f.vo_type);
         return this.using(api_type_ids);
     }
+
+    /**
+     * Objectif automatiser la définition des tables à utiliser pour la requête a minima sur les
+     *  éléments qui sont explicitement demandés. Reste à ajouter manuellement les tables de liaisons
+     *  qui ne sont pas des manytomany (qui sont elles ajoutées automatiquement entre les types actifs)
+     * @param sorts les sorts dont on veut vérifier les api_type_ids
+     */
+    private update_active_api_type_ids_from_sorts(sorts: SortByVO[]): ContextQueryVO {
+
+        if (!sorts) {
+            return this;
+        }
+
+        let api_type_ids = sorts.map((f) => f.vo_type);
+        return this.using(api_type_ids);
+    }
+
 }
 
 /**
