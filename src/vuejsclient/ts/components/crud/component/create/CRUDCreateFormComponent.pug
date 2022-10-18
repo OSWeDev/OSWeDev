@@ -27,7 +27,7 @@ include ../../../../../views/mixins/loading.pug
                                 button.btn.btn-primary.disabled(type='button') Déplacer
                             template(v-else)
                                 button.btn.btn-primary(type='button' data-bs-dismiss='modal' @click = "do_copy_widget") Copier
-                                button.btn.btn-primary(type='button' @click = "do_transfert_widget") Déplacer
+                                button.btn.btn-primary(type='button' @click = "do_transfert_widget(false)") Déplacer
 
     template(v-else)
         .crud_create_form
