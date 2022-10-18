@@ -4,7 +4,7 @@
             .delete_button
                 i.fa.fa-trash.fa-fw.btn_icon(aria-hidden="true" @click="delete_widget")  
             .copy_widget 
-               button.btn.btn-sm.btn-secondary(@click="copy_widget")     
+                i.fa.fa-duotone.fa-clone(@click="copy_widget")     
         .widget_component_wrapper
             .widget_component(
                 :is='widget.widget_component' 

@@ -11,17 +11,17 @@ include ../../../../../views/mixins/loading.pug
                         .pages
                             template(v-for='(page_, pagei) in pages')
                                 .page 
-                                    template(v-if='page_.id == page_to_copy_in_id')
+                                    .selected(v-if='page_.id == page_to_copy_in_id')
                                         i.fa.fa-check-circle.fa-fw(aria-hidden="true")
                                         //- Page selectionnée.
-                                    template(v-else)
+                                    .select(v-else)
                                         i.fa.fa-hand-o-down.fa-fw.btn_icon(aria-hidden="true" @click="select_page_to_copy_in(page_)")
 
                                     .name
                                         Inlinetranslatabletext(:code_text="pages_name_code_text[pagei]" :is_editable="false")
                     .modal-footer
                         .hide_navigation(:class='{"disabled" : page_to_copy_in_id == page_id , "not_disabled": page_to_copy_in_id != page_id}')
-                            //-On grise le button déplacer si jamais la page vers laquelle on souhaite effectuer des modifications est celle sur laquelle on est.
+                            //-On grise le button "déplacer" si jamais la page vers laquelle on souhaite effectuer des modifications est celle sur laquelle on est.
                             template(v-if='page_to_copy_in_id == page_id')
                                 button.btn.btn-primary(type='button' data-bs-dismiss='modal' @click = "do_copy_widget") Copier
                                 button.btn.btn-primary.disabled(type='button') Déplacer

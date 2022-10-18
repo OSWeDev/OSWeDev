@@ -42,11 +42,6 @@ import { ModuleTranslatableTextAction } from '../../../InlineTranslatableText/Tr
 })
 export default class CRUDCreateFormComponent extends VueComponentBase {
 
-    @ModuleDroppableVoFieldsAction
-    private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
-
-    @ModuleTranslatableTextAction
-    private set_flat_locale_translation: (translation: { code_text: string, value: string }) => void;
 
     @ModuleDAOGetter
     private getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
@@ -95,6 +90,11 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
     private crud: CRUD<any> = null;
 
     /*Propriété pour la copie d'un widget */
+
+
+    @ModuleTranslatableTextAction
+    private set_flat_locale_translation: (translation: { code_text: string, value: string }) => void;
+
     @Prop({ default: null })
     private copy_widget: boolean;
 
@@ -109,7 +109,6 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
     private page_id: number; //Page en cours
 
     private copy_to_page: DashboardPageVO = null; //Page vers laquel on souhaite copier/déplacer
-    private widget: DashboardWidgetVO = null; //Widget à copier/déplacer
 
     public update_key() {
         if (this.crud && (this.crud_createDatatable_key != this.crud.createDatatable.key)) {

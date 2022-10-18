@@ -4,6 +4,57 @@
 
     padding: 2em;
 
+    .modal-body {
+        height: 100%
+    }
+
+    .pages {
+        border-radius: 2px;
+        margin-bottom: 1em;
+        margin-left: -5px;
+
+
+        .page {
+
+            display: inline-block;
+            background: #F5F5F5;
+            padding: 1em;
+            margin: 5px;
+            box-shadow: 1px 1px 20px #e0e0e0;
+            border-radius: 4px;
+
+            &:hover {
+                box-shadow: 1px 1px 20px #888;
+            }
+
+            .select,
+            .selected {
+                background: green;
+            }
+
+
+
+            .name {
+                display: inline-block;
+
+                input {
+                    border: none;
+                    padding: 0.5em;
+                    margin-right: 0.5em;
+                }
+
+            }
+
+        }
+    }
+
+    .modal-footer {
+        button {
+
+            margin-left: 7px
+        }
+    }
+
     .crud_create_form_header {
 
         .title {
@@ -24,7 +75,7 @@
             margin-left: 1em;
         }
 
-        label.vue-js-switch{
+        label.vue-js-switch {
             margin-left: 1em;
         }
 
@@ -40,7 +91,7 @@
             margin-left: 10px;
         }
 
-        input[type=checkbox].v-switch-input{
+        input[type=checkbox].v-switch-input {
             display: none;
         }
 
