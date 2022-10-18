@@ -6,7 +6,6 @@ import TimeSegment from "../../DataRender/vos/TimeSegment";
 import TSRange from "../../DataRender/vos/TSRange";
 import IMatroid from "../../Matroid/interfaces/IMatroid";
 import MatroidController from "../../Matroid/MatroidController";
-import RangesCutResult from "../../Matroid/vos/RangesCutResult";
 import ModuleTableField from "../../ModuleTableField";
 import VarConfVO from "../../Var/vos/VarConfVO";
 import VOsTypesManager from "../../VOsTypesManager";
