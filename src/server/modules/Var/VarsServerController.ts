@@ -54,6 +54,8 @@ export default class VarsServerController {
     // CUD during run, broadcasting CUD
     private _varcacheconf_by_var_ids: { [var_id: number]: VarCacheConfVO } = {};
     private _varcacheconf_by_api_type_ids: { [api_type_id: string]: { [var_id: number]: VarCacheConfVO } } = {};
+
+    private preloadedVarConfs: boolean = false;
     /**
      * ----- Global application cache - Brocasted CUD - Local R
      */
@@ -79,6 +81,23 @@ export default class VarsServerController {
 
     get varcontrollers_dag_depths() {
         return this._varcontrollers_dag_depths;
+    }
+
+    public async preloadVarConfs() {
+
+        if (this.preloadedVarConfs) {
+            return;
+        }
+        this.preloadedVarConfs = true;
+
+        let var_confs = await query(VarConfVO.API_TYPE_ID).select_vos<VarConfVO>();
+
+        for (let i in var_confs) {
+            let var_conf = var_confs[i];
+
+            this._registered_vars[var_conf.name] = var_conf;
+            this._registered_vars_by_ids[var_conf.id] = var_conf;
+        }
     }
 
     public update_registered_varconf(id: number, conf: VarConfVO) {
@@ -341,18 +360,20 @@ export default class VarsServerController {
             return null;
         }
 
-        if (this._registered_vars && this._registered_vars[varConf.name]) {
-            this.setVar(this._registered_vars[varConf.name], controller);
-            return this._registered_vars[varConf.name];
+        if (!this.preloadedVarConfs) {
+            await this.preloadVarConfs();
         }
+
+        let daoVarConf: VarConfVO = this._registered_vars ? this._registered_vars[varConf.name] : null;
 
         // Pour les tests unitaires, on fournit l'id du varconf directement pour éviter cette étape
-        if ((varConf.id != null) && (typeof varConf.id != 'undefined')) {
-            this.setVar(varConf, controller);
-            return varConf;
+        if ((!daoVarConf) && (varConf.id != null) && (typeof varConf.id != 'undefined')) {
+            daoVarConf = varConf;
         }
 
-        let daoVarConf: VarConfVO = await query(VarConfVO.API_TYPE_ID).filter_by_text_eq('name', varConf.name).select_vo<VarConfVO>();
+        if (!daoVarConf) {
+            daoVarConf = await query(VarConfVO.API_TYPE_ID).filter_by_text_eq('name', varConf.name).select_vo<VarConfVO>();
+        }
 
         if (daoVarConf) {
 

@@ -93,6 +93,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         //  avoir été ajoutée en parralèle des déclarations dans le source
         await AccessPolicyServerController.getInstance().preload_registered_roles();
         await AccessPolicyServerController.getInstance().preload_registered_policies();
+        await AccessPolicyServerController.getInstance().preload_registered_policy_groups();
         await AccessPolicyServerController.getInstance().preload_registered_dependencies();
 
         await AccessPolicyServerController.getInstance().preload_registered_users_roles();
@@ -2067,6 +2068,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     private async filterPolicyByActivModules(datatable: ModuleTable<AccessPolicyVO>, vos: AccessPolicyVO[], uid: number, user_data: IUserData): Promise<AccessPolicyVO[]> {
         let res: AccessPolicyVO[] = [];
 
+        await ModulesManagerServer.getInstance().preload_modules();
         for (let i in vos) {
             let vo: AccessPolicyVO = vos[i];
             let moduleVO: ModuleVO = vo.module_id ? await ModulesManagerServer.getInstance().getModuleVOById(vo.module_id) : null;

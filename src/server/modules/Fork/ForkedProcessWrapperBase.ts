@@ -6,6 +6,7 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import EnvParam from '../../env/EnvParam';
 import FileLoggerHandler from '../../FileLoggerHandler';
+import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ServerAPIController from '../API/ServerAPIController';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
 import CronServerController from '../Cron/CronServerController';
@@ -101,6 +102,15 @@ export default abstract class ForkedProcessWrapperBase {
         await this.modulesService.register_all_modules(db);
         if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.getInstance().log('ForkedProcessWrapperBase:register_all_modules:END');
+        }
+
+        // On préload les droits / users / groupes / deps pour accélérer le démarrage
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.getInstance().log('ForkedProcessWrapperBase:preload_access_rights:START');
+        }
+        await ModuleAccessPolicyServer.getInstance().preload_access_rights();
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.getInstance().log('ForkedProcessWrapperBase:preload_access_rights:END');
         }
 
         if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {

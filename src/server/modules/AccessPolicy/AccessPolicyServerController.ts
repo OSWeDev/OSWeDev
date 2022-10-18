@@ -126,23 +126,27 @@ export default class AccessPolicyServerController {
 
     public has_access_by_name(policy_name: string, roles_names: string[]): boolean {
 
-        if (!this.registered_policies[policy_name]) {
+        if (!policy_name) {
+            return false;
+        }
+
+        if (!this.registered_policies[policy_name.toLowerCase()]) {
             ConsoleHandler.getInstance().error('has_access_by_name:Failed find policy by name:' + policy_name);
             return false;
         }
 
-        let policy_id: number = this.registered_policies[policy_name].id;
+        let policy_id: number = this.registered_policies[policy_name.toLowerCase()].id;
         let roles_ids: number[] = [];
 
         for (let i in roles_names) {
             let role_name = roles_names[i];
 
-            if (!this.registered_roles[role_name]) {
+            if (!this.registered_roles[role_name.toLowerCase()]) {
                 ConsoleHandler.getInstance().error('has_access_by_name:Failed find role by name:' + role_name);
                 return false;
             }
 
-            roles_ids.push(this.registered_roles[role_name].id);
+            roles_ids.push(this.registered_roles[role_name.toLowerCase()].id);
         }
 
         return this.has_access_by_ids(policy_id, roles_ids);
@@ -248,6 +252,7 @@ export default class AccessPolicyServerController {
         // Normalement à ce stade toutes les déclarations sont en BDD, on clear et on reload bêtement
         this.clean_registered_policies();
 
+        await ModulesManagerServer.getInstance().preload_modules();
         let policies: AccessPolicyVO[] = await query(AccessPolicyVO.API_TYPE_ID).select_vos<AccessPolicyVO>();
         for (let i in policies) {
             let policy: AccessPolicyVO = policies[i];
@@ -257,6 +262,18 @@ export default class AccessPolicyServerController {
                 continue;
             }
             this.set_registered_policy(policy);
+        }
+    }
+
+    public async preload_registered_policy_groups() {
+        // Normalement à ce stade toutes les déclarations sont en BDD, on clear et on reload bêtement
+        this.clean_registered_policy_groups();
+
+        let groups: AccessPolicyGroupVO[] = await query(AccessPolicyGroupVO.API_TYPE_ID).select_vos<AccessPolicyGroupVO>();
+        for (let i in groups) {
+            let group: AccessPolicyGroupVO = groups[i];
+
+            this.set_registered_policy_group(group);
         }
     }
 
@@ -647,8 +664,8 @@ export default class AccessPolicyServerController {
             this.registered_roles_by_ids = {};
         }
 
-        if (this.registered_roles[translatable_name]) {
-            return this.registered_roles[translatable_name];
+        if (this.registered_roles[translatable_name.toLowerCase()]) {
+            return this.registered_roles[translatable_name.toLowerCase()];
         }
 
         if (default_translation) {
@@ -690,7 +707,7 @@ export default class AccessPolicyServerController {
         }
 
         if (roleFromBDD) {
-            this.registered_roles[translatable_name] = roleFromBDD;
+            this.registered_roles[translatable_name.toLowerCase()] = roleFromBDD;
             this.registered_roles_by_ids[roleFromBDD.id] = roleFromBDD;
             return roleFromBDD;
         }
@@ -702,7 +719,7 @@ export default class AccessPolicyServerController {
         }
 
         role.id = insertOrDeleteQueryResult.id;
-        this.registered_roles[role.translatable_name] = role;
+        this.registered_roles[role.translatable_name.toLowerCase()] = role;
         this.registered_roles_by_ids[role.id] = role;
         ConsoleHandler.getInstance().error('Ajout du role OK:' + role.translatable_name + ':');
         return role;
@@ -723,8 +740,8 @@ export default class AccessPolicyServerController {
             this.registered_policy_groups = {};
         }
 
-        if (this.registered_policy_groups[translatable_name]) {
-            return this.registered_policy_groups[translatable_name];
+        if (this.registered_policy_groups[translatable_name.toLowerCase()]) {
+            return this.registered_policy_groups[translatable_name.toLowerCase()];
         }
 
         if (default_translation) {
@@ -747,7 +764,7 @@ export default class AccessPolicyServerController {
             }
         }
         if (groupFromBDD) {
-            this.registered_policy_groups[translatable_name] = groupFromBDD;
+            this.registered_policy_groups[translatable_name.toLowerCase()] = groupFromBDD;
             return groupFromBDD;
         }
 
@@ -758,7 +775,7 @@ export default class AccessPolicyServerController {
         }
 
         group.id = insertOrDeleteQueryResult.id;
-        this.registered_policy_groups[translatable_name] = group;
+        this.registered_policy_groups[translatable_name.toLowerCase()] = group;
         ConsoleHandler.getInstance().error('Ajout du groupe OK :' + group.translatable_name + ':');
         return group;
     }
@@ -784,8 +801,8 @@ export default class AccessPolicyServerController {
             this.registered_policies_by_ids = {};
         }
 
-        if (this.registered_policies[translatable_name]) {
-            return this.registered_policies[translatable_name];
+        if (this.registered_policies[translatable_name.toLowerCase()]) {
+            return this.registered_policies[translatable_name.toLowerCase()];
         }
 
         if (default_translation) {
@@ -829,7 +846,7 @@ export default class AccessPolicyServerController {
                 ConsoleHandler.getInstance().error('Modification du droit :' + policyFromBDD.translatable_name + ': OK');
             }
 
-            this.registered_policies[translatable_name] = policyFromBDD;
+            this.registered_policies[translatable_name.toLowerCase()] = policyFromBDD;
             this.registered_policies_by_ids[policyFromBDD.id] = policyFromBDD;
             return policyFromBDD;
         }
@@ -841,7 +858,7 @@ export default class AccessPolicyServerController {
         }
 
         policy.id = insertOrDeleteQueryResult.id;
-        this.registered_policies[translatable_name] = policy;
+        this.registered_policies[translatable_name.toLowerCase()] = policy;
         this.registered_policies_by_ids[policy.id] = policy;
         ConsoleHandler.getInstance().error('Ajout du droit OK :' + policy.translatable_name + ':');
         return policy;
