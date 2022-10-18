@@ -306,6 +306,46 @@ export default class ContextQueryVO implements IDistantVOBase {
     }
 
     /**
+     * Sucre syntaxique pour une filtre numeric >
+     * @param field_id le field qu'on veut filtrer
+     * @param num la valeur qu'on veut filtrer
+     * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
+     */
+    public filter_by_num_sup(field_id: string, num: number, API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_num_sup(num)]);
+    }
+
+    /**
+     * Sucre syntaxique pour une filtre numeric >=
+     * @param field_id le field qu'on veut filtrer
+     * @param num la valeur qu'on veut filtrer
+     * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
+     */
+    public filter_by_num_sup_eq(field_id: string, num: number, API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_num_sup_eq(num)]);
+    }
+
+    /**
+     * Sucre syntaxique pour une filtre numeric <
+     * @param field_id le field qu'on veut filtrer
+     * @param num la valeur qu'on veut filtrer
+     * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
+     */
+    public filter_by_num_inf(field_id: string, num: number, API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_num_inf(num)]);
+    }
+
+    /**
+     * Sucre syntaxique pour une filtre numeric <=
+     * @param field_id le field qu'on veut filtrer
+     * @param num la valeur qu'on veut filtrer
+     * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
+     */
+    public filter_by_num_inf_eq(field_id: string, num: number, API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_num_inf_eq(num)]);
+    }
+
+    /**
      * Sucre syntaxique pour une filtre numeric intersects ranges
      * @param field_id le field qu'on veut filtrer
      * @param ranges les valeurs qu'on veut filtrer

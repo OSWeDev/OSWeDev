@@ -64,10 +64,12 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
     private static instance: ModuleDataImportServer = null;
 
+    private has_preloaded_difs_by_uid: boolean = false;
+    private preloaded_difs_by_uid: { [uid: string]: DataImportFormatVO } = {};
+
     private constructor() {
         super(ModuleDataImport.getInstance().name);
     }
-
 
     /**
      * On définit les droits d'accès du module
@@ -472,8 +474,16 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         return await query(DataImportFormatVO.API_TYPE_ID).select_vos<DataImportFormatVO>();
     }
 
+    /**
+     * N'utiliser que dans le cadre de l'init des formats de type d'import, on preload un cache et on le maintien pas à jour donc si on veut des données à jour => query
+     */
     public async getDataImportFile(text: string): Promise<DataImportFormatVO> {
-        return await query(DataImportFormatVO.API_TYPE_ID).filter_by_text_eq('import_uid', text).select_vo<DataImportFormatVO>();
+
+        if (!this.has_preloaded_difs_by_uid) {
+            await this.preload_difs_by_uid();
+        }
+
+        return this.preloaded_difs_by_uid[text];
     }
 
     public async getImportFormatsForApiTypeId(API_TYPE_ID: string): Promise<DataImportFormatVO[]> {
@@ -960,7 +970,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         // PostTraitement des données avec les hooks pour générer les questions et intégrer ce qui peut l'être
         let postTraitementModule: DataImportModuleBase<any> = (ModulesManager.getInstance().getModuleByNameAndRole(postTreatementModuleVO.name, DataImportModuleBase.DataImportRoleName)) as DataImportModuleBase<any>;
         try {
-            if (!await postTraitementModule.hook_merge_imported_datas_in_database(validated_imported_datas, importHistoric)) {
+            if (!await postTraitementModule.hook_merge_imported_datas_in_database(validated_imported_datas, importHistoric, format)) {
                 return false;
             }
         } catch (error) {
@@ -1421,6 +1431,19 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                     }
                 }
             }
+        }
+    }
+
+    private async preload_difs_by_uid() {
+        if (this.has_preloaded_difs_by_uid) {
+            return;
+        }
+        this.has_preloaded_difs_by_uid = true;
+
+        let difs: DataImportFormatVO[] = await query(DataImportFormatVO.API_TYPE_ID).select_vos<DataImportFormatVO>();
+        for (let i in difs) {
+            let dif = difs[i];
+            this.preloaded_difs_by_uid[dif.import_uid] = dif;
         }
     }
 }

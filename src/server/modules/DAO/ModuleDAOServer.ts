@@ -116,7 +116,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private log_db_query_perf_start_by_uid: { [uid: number]: number } = {};
 
     private throttled_refuse = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.refuse.bind(this), 1000, { leading: false, trailing: true });
-    private throttled_select_query_ = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.throttled_select_query.bind(this), 2, { leading: false, trailing: true });
+    private throttled_select_query_ = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.throttled_select_query.bind(this), 1, { leading: false, trailing: true });
 
     private constructor() {
         super(ModuleDAO.getInstance().name);
@@ -4816,7 +4816,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             let throttled_select_query_size_ms = this.throttled_select_query_size_ms;
             try {
-                throttled_select_query_size_ms = await ModuleParams.getInstance().getParamValueAsInt(ModuleDAOServer.PARAM_NAME_throttled_select_query_size_ms, 10);
+                throttled_select_query_size_ms = await ModuleParams.getInstance().getParamValueAsInt(ModuleDAOServer.PARAM_NAME_throttled_select_query_size_ms, 1);
                 this.throttled_select_query_size_ms = throttled_select_query_size_ms;
             } catch (error) {
                 // Normal pendant le démarrage
