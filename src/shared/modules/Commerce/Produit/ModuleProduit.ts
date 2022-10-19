@@ -61,7 +61,7 @@ export default class ModuleProduit extends Module {
     }
 
     public async getProduitById(produitId: number): Promise<ProduitVO> {
-        return ModuleDAO.getInstance().getVoById<ProduitVO>(ProduitVO.API_TYPE_ID, produitId);
+        return query(ProduitVO.API_TYPE_ID).filter_by_id(produitId).select_vo<ProduitVO>();
     }
 
     // REFONTE API needs rebuild with dedicated paramvo

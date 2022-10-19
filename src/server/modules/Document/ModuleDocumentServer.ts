@@ -186,7 +186,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
             return true;
         }
 
-        let file: FileVO = await ModuleDAO.getInstance().getVoById<FileVO>(FileVO.API_TYPE_ID, d.file_id);
+        let file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(d.file_id).select_vo<FileVO>();
 
         if (!file) {
             return false;
@@ -207,7 +207,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
             return;
         }
 
-        let docs: DocumentVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<DocumentVO>(DocumentVO.API_TYPE_ID, 'file_id', [f.id]);
+        let docs: DocumentVO[] = await query(DocumentVO.API_TYPE_ID).filter_by_num_eq('file_id', f.id).select_vos<DocumentVO>();
         if ((!docs) || (!docs.length)) {
             return;
         }

@@ -144,7 +144,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
             return;
         }
 
-        let maintenance: MaintenanceVO = await ModuleDAO.getInstance().getVoById<MaintenanceVO>(MaintenanceVO.API_TYPE_ID, num);
+        let maintenance: MaintenanceVO = await query(MaintenanceVO.API_TYPE_ID).filter_by_id(num).select_vo<MaintenanceVO>();
 
         maintenance.maintenance_over = true;
         maintenance.end_ts = Dates.now();

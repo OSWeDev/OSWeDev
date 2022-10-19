@@ -151,7 +151,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
     private async testFileExistenz(num: number): Promise<boolean> {
 
         try {
-            let fileVo: FileVO = await ModuleDAO.getInstance().getVoById<FileVO>(FileVO.API_TYPE_ID, num);
+            let fileVo: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(num).select_vo<FileVO>();
 
             if (!!fileVo) {
                 return fs.existsSync(fileVo.path);

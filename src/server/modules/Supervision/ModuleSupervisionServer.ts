@@ -295,7 +295,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
 
         // Si on a une catégorie sans notif, on sort
         if (supervised_item.category_id) {
-            let category: SupervisedCategoryVO = await ModuleDAO.getInstance().getVoById<SupervisedCategoryVO>(SupervisedCategoryVO.API_TYPE_ID, supervised_item.category_id);
+            let category: SupervisedCategoryVO = await query(SupervisedCategoryVO.API_TYPE_ID).filter_by_id(supervised_item.category_id).select_vo<SupervisedCategoryVO>();
 
             if (category && !category.notify) {
                 return;
@@ -340,7 +340,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
 
         // Si on a une catégorie sans notif, on sort
         if (supervised_item.category_id) {
-            let category: SupervisedCategoryVO = await ModuleDAO.getInstance().getVoById<SupervisedCategoryVO>(SupervisedCategoryVO.API_TYPE_ID, supervised_item.category_id);
+            let category: SupervisedCategoryVO = await query(SupervisedCategoryVO.API_TYPE_ID).filter_by_id(supervised_item.category_id).select_vo<SupervisedCategoryVO>();
 
             if (category && !category.notify) {
                 return;

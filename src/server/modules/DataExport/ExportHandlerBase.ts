@@ -70,7 +70,7 @@ export default abstract class ExportHandlerBase implements IExportHandler {
             if (user_id == exhi.export_to_uid) {
                 user = await ModuleAccessPolicyServer.getInstance().getSelfUser();
             } else {
-                user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, exhi.export_to_uid);
+                user = await query(UserVO.API_TYPE_ID).filter_by_id(exhi.export_to_uid).select_vo<UserVO>();
                 if (!user) {
                     ConsoleHandler.getInstance().error('Failed loading user');
                     return false;
@@ -82,7 +82,7 @@ export default abstract class ExportHandlerBase implements IExportHandler {
             let mail_param: {} = {};
 
             if (!!exhi.exported_file_id) {
-                let exported_file: FileVO = !!exhi.exported_file_id ? await ModuleDAO.getInstance().getVoById<FileVO>(FileVO.API_TYPE_ID, exhi.exported_file_id) : null;
+                let exported_file: FileVO = !!exhi.exported_file_id ? await query(FileVO.API_TYPE_ID).filter_by_id(exhi.exported_file_id).select_vo<FileVO>() : null;
                 subject = await ModuleTranslation.getInstance().getTranslatableText(ExportHandlerBase.CODE_TEXT_MAIL_SUBJECT_DEFAULT);
                 content = default_mail_html_template;
 

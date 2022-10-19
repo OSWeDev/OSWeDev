@@ -134,7 +134,7 @@ export default class PasswordInitialisation {
 
         phone = phone.replace(' ', '');
 
-        let lang = await ModuleDAO.getInstance().getVoById<LangVO>(LangVO.API_TYPE_ID, user.lang_id);
+        let lang = await query(LangVO.API_TYPE_ID).filter_by_id(user.lang_id).select_vo<LangVO>();
         let translatable_text = await ModuleTranslation.getInstance().getTranslatableText(PasswordInitialisation.CODE_TEXT_SMS_initpwd);
         let translation = await ModuleTranslation.getInstance().getTranslation(lang.id, translatable_text.id);
 

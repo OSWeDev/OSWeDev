@@ -1,4 +1,5 @@
 import { EventObjectInput, View } from 'fullcalendar';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import Module from '../../../../shared/modules/Module';
@@ -155,9 +156,7 @@ export default abstract class ProgramPlanControllerBase {
             if (task_type.order_tasks_on_same_target) {
                 // il faut faire un chargement de tous les RDVs de cette target et de ce task_type_id
                 // dans le cas d'un choix auto on interdit de remettre un RDV avant un RDV existant
-                let all_rdvs: IPlanRDV[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDV>(
-                    this.programplan_shared_module.rdv_type_id,
-                    'target_id', [rdv.target_id]);
+                let all_rdvs: IPlanRDV[] = await query(this.programplan_shared_module.rdv_type_id).filter_by_num_eq('target_id', rdv.target_id).select_vos<IPlanRDV>();
 
                 let max_weight: number = -1;
                 let max_weight_task: IPlanTask = null;

@@ -360,6 +360,20 @@ export default class ContextFilterVO implements IDistantVOBase {
     }
 
     /**
+     * Filtrer par text différent systématiquement
+     * @param text le texte que l'on filtre
+     */
+    public by_text_has_none(text: string | string[]): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_NONE;
+        if (isArray(text)) {
+            this.param_textarray = text;
+        } else {
+            this.param_text = text;
+        }
+        return this;
+    }
+
+    /**
      * Filtrer par text contenu dans la valeur du champ
      * @param included le texte qu'on veut voir apparaître dans la valeur du champs
      */

@@ -458,8 +458,8 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
 
         let checkpoints: { [id: number]: ICheckPoint } = {};
         promises.push((async () => {
-            checkpoints = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVosByRefFieldIds<ICheckPoint>(
-                self.checklist_shared_module.checkpoint_type_id, 'checklist_id', [self.checklist.id]));
+            checkpoints = VOsTypesManager.getInstance().vosArray_to_vosByIds(
+                await query(self.checklist_shared_module.checkpoint_type_id).filter_by_num_eq('checklist_id', self.checklist.id).select_vos<ICheckPoint>());
         })());
 
         await all_promises(promises);

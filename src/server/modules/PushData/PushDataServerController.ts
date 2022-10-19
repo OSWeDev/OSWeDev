@@ -706,7 +706,8 @@ export default class PushDataServerController {
                 return;
             }
 
-            let usersRoles: UserRoleVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<UserRoleVO>(UserRoleVO.API_TYPE_ID, 'role_id', [role.id]);
+            let usersRoles: UserRoleVO[] = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('role_id', role.id).select_vos<UserRoleVO>();
+
             if (!usersRoles) {
                 ConsoleHandler.getInstance().error('broadcastRoleSimple:usersRoles introuvables:' + role_name + ':' + role.id);
                 return;
@@ -717,7 +718,7 @@ export default class PushDataServerController {
                 user_ids.push(usersRoles[i].user_id);
             }
 
-            let users: UserVO[] = await ModuleDAO.getInstance().getVosByIds<UserVO>(UserVO.API_TYPE_ID, user_ids);
+            let users: UserVO[] = await query(UserVO.API_TYPE_ID).filter_by_ids(user_ids).select_vos<UserVO>();
             if (!users) {
                 ConsoleHandler.getInstance().error('broadcastRoleSimple:users introuvables:' + role_name + ':' + role.id);
                 return;
@@ -760,7 +761,7 @@ export default class PushDataServerController {
                 return;
             }
 
-            let usersRoles: UserRoleVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<UserRoleVO>(UserRoleVO.API_TYPE_ID, 'role_id', [role.id]);
+            let usersRoles: UserRoleVO[] = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('role_id', role.id).select_vos<UserRoleVO>();
             if (!usersRoles) {
                 ConsoleHandler.getInstance().error('broadcastRoleRedirect:usersRoles introuvables:' + role_name + ':' + role.id);
                 return;
@@ -771,7 +772,8 @@ export default class PushDataServerController {
                 user_ids.push(usersRoles[i].user_id);
             }
 
-            let users: UserVO[] = await ModuleDAO.getInstance().getVosByIds<UserVO>(UserVO.API_TYPE_ID, user_ids);
+            let users: UserVO[] = await query(UserVO.API_TYPE_ID).filter_by_ids(user_ids).select_vos<UserVO>();
+
             if (!users) {
                 ConsoleHandler.getInstance().error('broadcastRoleRedirect:users introuvables:' + role_name + ':' + role.id);
                 return;

@@ -160,28 +160,11 @@ export default class CheckListComponent extends VueComponentBase {
 
         let checkpoints: { [id: number]: ICheckPoint } = {};
         promises.push((async () => {
-            checkpoints = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVosByRefFieldIds<ICheckPoint>(
-                self.checklist_shared_module.checkpoint_type_id, 'checklist_id', [self.list_id]));
+            checkpoints = VOsTypesManager.getInstance().vosArray_to_vosByIds(
+                await query(self.checklist_shared_module.checkpoint_type_id).filter_by_num_eq('checklist_id', self.list_id).select_vos<ICheckPoint>());
         })());
 
         await all_promises(promises);
-
-        // promises = [];
-        // let checkpoints_ids = ObjectHandler.getInstance().getIdsList(checkpoints);
-
-        // let checkpointsdeps: ICheckPointDep[] = [];
-        // promises.push((async () => {
-        //     checkpointsdeps = await ModuleDAO.getInstance().getVosByRefFieldIds<ICheckPointDep>(
-        //         this.checklist_shared_module.checkpoint_type_id, 'checkpoint_id', checkpoints_ids);
-        // })());
-
-        // let checklistitemcheckpoints: ICheckListItemCheckPoints[] = [];
-        // promises.push((async () => {
-        //     checklistitemcheckpoints = await ModuleDAO.getInstance().getVosByRefFieldIds<ICheckListItemCheckPoints>(
-        //         this.checklist_shared_module.checklistitemcheckpoints_type_id, 'checkpoint_id', checkpoints_ids);
-        // })());
-
-        // await all_promises(promises);
 
         self.checklist = checklist;
         self.checklistitems = checklistitems;

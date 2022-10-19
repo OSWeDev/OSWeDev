@@ -2766,7 +2766,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         // En fait avec les triggers qui prennent en param le vo, on est obligé de faire une requete sur le vo avant d'en demander la suppression...
-        let vos: IDistantVOBase[] = await this.getVosByIds(API_TYPE_ID, ids);
+        let vos: IDistantVOBase[] = await query(API_TYPE_ID).filter_by_ids(ids).select_vos();
 
         // On ajoute un filtrage via hook
         let tmp_vos = [];
@@ -3844,18 +3844,17 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
     }
 
-    /**
-     * @deprecated use query instead
-     */
     private async getVarImportsByMatroidParam<T extends IDistantVOBase>(api_type_id: string, matroid: IMatroid, fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<T[]> {
-        return await this.getDAOsByMatroid(api_type_id, matroid, fields_ids_mapper, ' and value_type = 0');
+        return await query(api_type_id)
+            .filter_by_matroids_inclusion([matroid], true, api_type_id, fields_ids_mapper)
+            .filter_by_num_eq('value_type', VarDataBaseVO.VALUE_TYPE_IMPORT)
+            .select_vos<T>();
     }
 
-    /**
-     * @deprecated use query instead
-     */
     private async filterVosByMatroid<T extends IDistantVOBase>(api_type_id: string, matroid: IMatroid, fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<T[]> {
-        return await this.getDAOsByMatroid(api_type_id, matroid, fields_ids_mapper, null);
+        return await query(api_type_id)
+            .filter_by_matroids_inclusion([matroid], true, api_type_id, fields_ids_mapper)
+            .select_vos<T>();
     }
 
     private get_matroid_fields_ranges_by_datatable_field_id(matroid: IMatroid, moduleTable: ModuleTable<any>, fields_ids_mapper: { [matroid_field_id: string]: string }): { [field_id: string]: IRange[] } {

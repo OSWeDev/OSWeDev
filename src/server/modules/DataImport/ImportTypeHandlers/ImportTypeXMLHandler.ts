@@ -112,7 +112,7 @@ export default class ImportTypeXMLHandler {
 
         return new Promise(async (resolve, reject) => {
 
-            let fileVO: FileVO = await ModuleDAO.getInstance().getVoById<FileVO>(FileVO.API_TYPE_ID, importHistoric.file_id);
+            let fileVO: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(importHistoric.file_id).select_vo<FileVO>();
 
             if ((!fileVO) || (!fileVO.path)) {
                 if (!muted) {

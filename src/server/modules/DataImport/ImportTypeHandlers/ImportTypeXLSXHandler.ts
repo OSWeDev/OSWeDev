@@ -470,7 +470,7 @@ export default class ImportTypeXLSXHandler {
 
     private async loadWorkbook(importHistoric: DataImportHistoricVO, dataImportFormat: DataImportFormatVO, muted: boolean = true): Promise<WorkBook> {
         let workbook: WorkBook = null;
-        let fileVO: FileVO = await ModuleDAO.getInstance().getVoById<FileVO>(FileVO.API_TYPE_ID, importHistoric.file_id);
+        let fileVO: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(importHistoric.file_id).select_vo<FileVO>();
 
         if ((!fileVO) || (!fileVO.path)) {
             if (!muted) {

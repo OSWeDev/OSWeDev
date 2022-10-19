@@ -134,7 +134,7 @@ export default class ModuleCommande extends Module {
     }
 
     public async getCommandeById(commandeId: number): Promise<CommandeVO> {
-        return ModuleDAO.getInstance().getVoById<CommandeVO>(CommandeVO.API_TYPE_ID, commandeId);
+        return query(CommandeVO.API_TYPE_ID).filter_by_id(commandeId).select_vo<CommandeVO>();
     }
 
     public async getDetailsLignesCommandeByCommandeId(commandeId: number): Promise<LigneCommandeDetailsVO[]> {
@@ -147,7 +147,7 @@ export default class ModuleCommande extends Module {
                 let ligne: LigneCommandeVO = lignes[i];
                 let produit: ProduitVO = await ModuleProduit.getInstance().getProduitById(ligne.produit_id);
                 let informations: InformationsVO = await ModuleClient.getInstance().getInformationsById(ligne.informations_id);
-                let typeProduit: TypeProduitVO = (produit) ? await ModuleDAO.getInstance().getVoById<TypeProduitVO>(TypeProduitVO.API_TYPE_ID, produit.type_produit_id) : null;
+                let typeProduit: TypeProduitVO = (produit) ? await query(TypeProduitVO.API_TYPE_ID).filter_by_id(produit.type_produit_id).select_vo<TypeProduitVO>() : null;
                 let ligneParam: ParamLigneCommandeVO = (typeProduit) ? await this.getParamLigneCommandeById(ligne.id, typeProduit.vo_type_param) : null;
 
                 detailLigneCommande.push(

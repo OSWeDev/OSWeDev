@@ -44,7 +44,7 @@ export default class FeedbackConfirmationMail {
             if (user_id == target_user_id) {
                 user = await ModuleAccessPolicyServer.getInstance().getSelfUser();
             } else {
-                user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, target_user_id);
+                user = await query(UserVO.API_TYPE_ID).filter_by_id(target_user_id).select_vo<UserVO>();
             }
 
             let FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValue(FeedbackConfirmationMail.PARAM_NAME_FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID);

@@ -1768,6 +1768,26 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_int_array:
                     case ModuleTableField.FIELD_TYPE_float_array:
                     case ModuleTableField.FIELD_TYPE_tstz_array:
+
+                        // if (active_field_filter.param_alias != null) {
+                        // TODO FIXME il y a une ambiguité sur le tpye array ou pas du field alias... il faut séparer les cas, ou préciser par ailleurs, ....
+                        // where_conditions.push(active_field_filter.param_alias + " = ANY(" + field_id + ")");
+                        // break;
+                        // }
+
+                        if (active_field_filter.param_numeric != null) {
+                            ContextQueryInjectionCheckHandler.assert_numeric(active_field_filter.param_numeric);
+                            where_conditions.push(active_field_filter.param_numeric + " = ANY(" + field_id + ")");
+                            break;
+                        }
+
+                        if (active_field_filter.param_numeric_array != null) {
+                            for (let i in active_field_filter.param_numeric_array) {
+                                ContextQueryInjectionCheckHandler.assert_numeric(active_field_filter.param_numeric_array[i]);
+                            }
+                            where_conditions.push(field_id + " && ARRAY[" + active_field_filter.param_numeric_array.join(',') + ']');
+                            break;
+                        }
                         throw new Error('Not Implemented');
 
                     case ModuleTableField.FIELD_TYPE_numrange:

@@ -71,7 +71,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
     }
 
     private async force_formatted_image_path_from_file_changed(vo_update_handler: DAOUpdateVOHolder<FileVO>) {
-        let fimgs: FormattedImageVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<FormattedImageVO>(FormattedImageVO.API_TYPE_ID, 'file_id', [vo_update_handler.post_update_vo.id]);
+        let fimgs: FormattedImageVO[] = await query(FormattedImageVO.API_TYPE_ID).filter_by_num_eq('file_id', vo_update_handler.post_update_vo.id).select_vos<FormattedImageVO>();
 
         if ((!fimgs) || (!fimgs.length)) {
             return;

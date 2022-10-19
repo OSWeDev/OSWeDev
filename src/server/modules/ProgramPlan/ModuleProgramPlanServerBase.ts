@@ -264,7 +264,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         for (let i in rdvs) {
             ids.push(rdvs[i].id);
         }
-        return await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVPrep>(this.programplan_shared_module.rdv_prep_type_id, 'rdv_id', ids);
+        return await query(this.programplan_shared_module.rdv_prep_type_id).filter_by_num_has('rdv_id', ids).select_vos<IPlanRDVPrep>();
     }
 
     public async getCRsOfProgramSegment(program_id: number, timeSegment: TimeSegment): Promise<IPlanRDVCR[]> {
@@ -277,7 +277,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         for (let i in rdvs) {
             ids.push(rdvs[i].id);
         }
-        return await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVCR>(this.programplan_shared_module.rdv_cr_type_id, 'rdv_id', ids);
+        return await query(this.programplan_shared_module.rdv_cr_type_id).filter_by_num_has('rdv_id', ids).select_vos<IPlanRDVCR>();
     }
 
     public async getRDVsOfProgramSegment(program_id: number, timeSegment: TimeSegment): Promise<IPlanRDV[]> {
@@ -550,8 +550,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         }
 
         // On check si on est un manager
-        let user_managers: IPlanManager[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanManager>(
-            this.programplan_shared_module.manager_type_id, 'user_id', [loggedUserId]);
+        let user_managers: IPlanManager[] = await query(this.programplan_shared_module.manager_type_id).filter_by_num_eq('user_id', loggedUserId).select_vos<IPlanManager>();
         if ((!!user_managers) && (user_managers.length > 0)) {
 
             let res_: IPlanFacilitator[] = [];
@@ -573,8 +572,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return res_;
         }
 
-        let user_facilitators: IPlanFacilitator[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanFacilitator>(
-            this.programplan_shared_module.facilitator_type_id, 'user_id', [loggedUserId]);
+        let user_facilitators: IPlanFacilitator[] = await query(this.programplan_shared_module.facilitator_type_id).filter_by_num_eq('user_id', loggedUserId).select_vos<IPlanFacilitator>();
 
         if ((!user_facilitators) || (!user_facilitators.length)) {
             return null;
@@ -634,8 +632,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         }
 
         // On check si on est un manager
-        let user_managers: IPlanManager[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanManager>(
-            this.programplan_shared_module.manager_type_id, 'user_id', [loggedUserId]);
+        let user_managers: IPlanManager[] = await query(this.programplan_shared_module.manager_type_id).filter_by_num_eq('user_id', loggedUserId).select_vos<IPlanManager>();
         if ((!!user_managers) && (user_managers.length > 0)) {
 
             let res_: IPlanFacilitator[] = [];
@@ -657,8 +654,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return res_;
         }
 
-        let user_facilitators: IPlanFacilitator[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanFacilitator>(
-            this.programplan_shared_module.facilitator_type_id, 'user_id', [loggedUserId]);
+        let user_facilitators: IPlanFacilitator[] = await query(this.programplan_shared_module.facilitator_type_id).filter_by_num_eq('user_id', loggedUserId).select_vos<IPlanFacilitator>();
 
         if ((!user_facilitators) || (!user_facilitators.length)) {
             return null;
@@ -847,13 +843,13 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         }
         if ((rdv.state == this.programplan_shared_module.RDV_STATE_CREATED) && (rdv.target_validation)) {
 
-            let crs: IPlanRDVCR[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVCR>(this.programplan_shared_module.rdv_cr_type_id, 'rdv_id', [rdv.id]);
+            let crs: IPlanRDVCR[] = await query(this.programplan_shared_module.rdv_cr_type_id).filter_by_num_eq('rdv_id', rdv.id).select_vos<IPlanRDVCR>();
 
             let cr = crs ? crs[0] : null;
 
             let prep = null;
             if (!!this.programplan_shared_module.rdv_prep_type_id) {
-                let preps: IPlanRDVPrep[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVPrep>(this.programplan_shared_module.rdv_prep_type_id, 'rdv_id', [rdv.id]);
+                let preps: IPlanRDVPrep[] = await query(this.programplan_shared_module.rdv_prep_type_id).filter_by_num_eq('rdv_id', rdv.id).select_vos<IPlanRDVPrep>();
                 prep = preps ? preps[0] : null;
             }
 
@@ -882,7 +878,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
         let prep = null;
         if (!!this.programplan_shared_module.rdv_prep_type_id) {
-            let preps: IPlanRDVPrep[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVPrep>(this.programplan_shared_module.rdv_prep_type_id, 'rdv_id', [rdv.id]);
+            let preps: IPlanRDVPrep[] = await query(this.programplan_shared_module.rdv_prep_type_id).filter_by_num_eq('rdv_id', rdv.id).select_vos<IPlanRDVPrep>();
 
             prep = preps ? preps[0] : null;
         }
@@ -912,7 +908,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return true;
         }
 
-        let crs: IPlanRDVCR[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVCR>(this.programplan_shared_module.rdv_cr_type_id, 'rdv_id', [rdv.id]);
+        let crs: IPlanRDVCR[] = await query(this.programplan_shared_module.rdv_cr_type_id).filter_by_num_eq('rdv_id', rdv.id).select_vos<IPlanRDVCR>();
 
         let cr = crs ? crs[0] : null;
 
@@ -940,7 +936,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         let prep = null;
 
         if (!!this.programplan_shared_module.rdv_prep_type_id) {
-            let preps: IPlanRDVPrep[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVPrep>(this.programplan_shared_module.rdv_prep_type_id, 'rdv_id', [rdv.id]);
+            let preps: IPlanRDVPrep[] = await query(this.programplan_shared_module.rdv_prep_type_id).filter_by_num_eq('rdv_id', rdv.id).select_vos<IPlanRDVPrep>();
 
             prep = preps ? preps[0] : null;
         }
@@ -964,13 +960,13 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return false;
         }
 
-        let rdv: IPlanRDV = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.programplan_shared_module.rdv_type_id, prep.rdv_id);
+        let rdv: IPlanRDV = await query(this.programplan_shared_module.rdv_type_id).filter_by_id(prep.rdv_id).select_vo<IPlanRDV>();
 
         if ((!rdv) || (!rdv.id)) {
             return true;
         }
 
-        let crs: IPlanRDVCR[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVCR>(this.programplan_shared_module.rdv_cr_type_id, 'rdv_id', [rdv.id]);
+        let crs: IPlanRDVCR[] = await query(this.programplan_shared_module.rdv_cr_type_id).filter_by_num_eq('rdv_id', rdv.id).select_vos<IPlanRDVCR>();
 
         let cr = crs ? crs[0] : null;
 

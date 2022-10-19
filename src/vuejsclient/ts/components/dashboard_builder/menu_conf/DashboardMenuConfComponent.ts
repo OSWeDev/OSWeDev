@@ -1,5 +1,6 @@
 import Component from 'vue-class-component';
 import { Prop, Vue, Watch } from 'vue-property-decorator';
+import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleDashboardBuilder from '../../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
@@ -127,8 +128,8 @@ export default class DashboardMenuConfComponent extends VueComponentBase {
                 let db_translatable_text = await ModuleTranslation.getInstance().getTranslatableText(this.dashboard.translatable_name_code_text);
                 if (db_translatable_text) {
 
-                    let translations: TranslationVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<TranslationVO>(
-                        TranslationVO.API_TYPE_ID, 'text_id', [db_translatable_text.id]);
+                    let translations: TranslationVO[] = await query(TranslationVO.API_TYPE_ID).filter_by_num_eq('text_id', db_translatable_text.id).select_vos<TranslationVO>();
+
                     for (let i in translations) {
                         let translation = translations[i];
 

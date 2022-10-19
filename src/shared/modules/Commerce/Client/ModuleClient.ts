@@ -86,10 +86,10 @@ export default class ModuleClient extends Module {
     }
 
     public async getClientById(clientId: number): Promise<ClientVO> {
-        return ModuleDAO.getInstance().getVoById<ClientVO>(ClientVO.API_TYPE_ID, clientId);
+        return query(ClientVO.API_TYPE_ID).filter_by_id(clientId).select_vo<ClientVO>();
     }
 
     public async getInformationsById(infoId: number): Promise<InformationsVO> {
-        return ModuleDAO.getInstance().getVoById<InformationsVO>(InformationsVO.API_TYPE_ID, infoId);
+        return query(InformationsVO.API_TYPE_ID).filter_by_id(infoId).select_vo<InformationsVO>();
     }
 }

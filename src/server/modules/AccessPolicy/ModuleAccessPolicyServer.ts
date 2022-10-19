@@ -1056,7 +1056,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         if (!user) {
             return null;
         }
-        return await ModuleDAO.getInstance().getVoById<LangVO>(LangVO.API_TYPE_ID, user.lang_id);
+        return await query(LangVO.API_TYPE_ID).filter_by_id(user.lang_id).select_vo<LangVO>();
     }
 
     public async generate_challenge(user: UserVO) {
@@ -1209,7 +1209,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             let user: UserVO = null;
 
             await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
-                user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, uid);
+                user = await query(UserVO.API_TYPE_ID).filter_by_id(uid).select_vo<UserVO>();
             });
 
             if (!user) {
@@ -2157,7 +2157,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             await StackContext.getInstance().runPromise(
                 { IS_CLIENT: false },
                 async () => {
-                    old_user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, user.id);
+                    old_user = await query(UserVO.API_TYPE_ID).filter_by_id(user.id).select_vo<UserVO>();
                 });
         }
 

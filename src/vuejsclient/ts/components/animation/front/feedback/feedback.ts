@@ -5,6 +5,7 @@ import ModuleAnimation from "../../../../../../shared/modules/Animation/ModuleAn
 import AnimationModuleVO from "../../../../../../shared/modules/Animation/vos/AnimationModuleVO";
 import AnimationThemeVO from "../../../../../../shared/modules/Animation/vos/AnimationThemeVO";
 import AnimationUserModuleVO from "../../../../../../shared/modules/Animation/vos/AnimationUserModuleVO";
+import { query } from "../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import ModuleDAO from "../../../../../../shared/modules/DAO/ModuleDAO";
 import SimpleDatatableField from "../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField";
 import VarsController from "../../../../../../shared/modules/Var/VarsController";
@@ -34,7 +35,7 @@ export default class VueAnimationModuleFeedbackComponent extends VueComponentBas
         let promises = [];
 
         promises.push((async () => this.user_id = await ModuleAccessPolicy.getInstance().getLoggedUserId())());
-        promises.push((async () => this.anim_module = await ModuleDAO.getInstance().getVoById<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID, this.module_id))());
+        promises.push((async () => this.anim_module = await query(AnimationModuleVO.API_TYPE_ID).filter_by_id(this.module_id).select_vo<AnimationModuleVO>())());
 
         await all_promises(promises);
 
@@ -42,7 +43,7 @@ export default class VueAnimationModuleFeedbackComponent extends VueComponentBas
 
         promises.push((async () => this.user_module = await ModuleAnimation.getInstance().getUserModule(this.user_id, this.anim_module.id))());
 
-        promises.push((async () => this.theme = await ModuleDAO.getInstance().getVoById<AnimationThemeVO>(AnimationThemeVO.API_TYPE_ID, this.anim_module.theme_id))());
+        promises.push((async () => this.theme = await query(AnimationThemeVO.API_TYPE_ID).filter_by_id(this.anim_module.theme_id).select_vo<AnimationThemeVO>())());
 
         await all_promises(promises);
     }

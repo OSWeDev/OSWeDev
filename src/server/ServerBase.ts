@@ -626,7 +626,7 @@ export default abstract class ServerBase {
                     await StackContext.getInstance().runPromise(
                         { IS_CLIENT: false },
                         async () => {
-                            user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, session.uid);
+                            user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).select_vo<UserVO>();
                         });
 
                     if ((!user) || user.blocked || user.invalidated) {
@@ -875,7 +875,7 @@ export default abstract class ServerBase {
                 await StackContext.getInstance().runPromise(
                     { IS_CLIENT: false },
                     async () => {
-                        user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, session.uid);
+                        user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).select_vo<UserVO>();
                     });
                 if ((!user) || user.blocked || user.invalidated) {
 
