@@ -4463,6 +4463,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         let ranges_query: string = DAOServerController.getInstance().get_ranges_translated_to_bdd_queryable_ranges(field_ranges, field, filter_field_type);
 
+        if (!ranges_query) {
+            throw new Error('Error should not filter on empty range array');
+        }
+
         switch (field.field_type) {
             case ModuleTableField.FIELD_TYPE_email:
             case ModuleTableField.FIELD_TYPE_string:
@@ -4576,7 +4580,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
          * A <@ ANY(ARRAY['[1,2)'::numrange])
          */
 
-        let ranges_query = 'ANY(' + DAOServerController.getInstance().get_ranges_translated_to_bdd_queryable_ranges(field_ranges, field, filter_field_type) + ')';
+        let range_to_db = DAOServerController.getInstance().get_ranges_translated_to_bdd_queryable_ranges(field_ranges, field, filter_field_type);
+
+        if (!range_to_db) {
+            throw new Error('Error should not filter on empty range array get_ranges_query_cardinal_supp_1');
+        }
+
+        let ranges_query = 'ANY(' + range_to_db + ')';
 
         /**
          * Dans le cas d'un champs de type range[]

@@ -96,7 +96,7 @@ export default class ContextQueryServerController {
 
         if (query_wrapper.is_segmented_non_existing_table) {
             // Si on a une table segmentée qui n'existe pas, on ne fait rien
-            return null;
+            return [];
         }
 
         let query_res = null;
@@ -107,7 +107,7 @@ export default class ContextQueryServerController {
         }
 
         if ((!query_res) || (!query_res.length)) {
-            return null;
+            return [];
         }
 
         let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[context_query.base_api_type_id];
@@ -148,7 +148,7 @@ export default class ContextQueryServerController {
 
         if (query_wrapper.is_segmented_non_existing_table) {
             // Si on a une table segmentée qui n'existe pas, on ne fait rien
-            return null;
+            return [];
         }
 
         let query_res = null;
@@ -159,7 +159,7 @@ export default class ContextQueryServerController {
         }
 
         if ((!query_res) || (!query_res.length)) {
-            return null;
+            return [];
         }
 
         // Anonymisation
@@ -192,7 +192,7 @@ export default class ContextQueryServerController {
 
         if (query_wrapper.is_segmented_non_existing_table) {
             // Si on a une table segmentée qui n'existe pas, on ne fait rien
-            return null;
+            return [];
         }
 
         let query_res = null;
@@ -203,7 +203,7 @@ export default class ContextQueryServerController {
         }
 
         if ((!query_res) || (!query_res.length)) {
-            return null;
+            return [];
         }
 
         // Anonymisation

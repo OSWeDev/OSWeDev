@@ -157,6 +157,10 @@ export default class ContextFilterServerController {
                             query_result.params.push("%" + text + "%");
                             where_conditions.push(field_id + " ILIKE $" + query_result.params.length);
                         } else if (active_field_filter.param_textarray != null) {
+                            if (active_field_filter.param_textarray.length == 0) {
+                                where_conditions.push("false");
+                            }
+
                             let like_array = [];
                             for (let i in active_field_filter.param_textarray) {
                                 let text = active_field_filter.param_textarray[i];
@@ -245,6 +249,10 @@ export default class ContextFilterServerController {
                         }
 
                         if (active_field_filter.param_numeric_array != null) {
+
+                            if (active_field_filter.param_numeric_array.length == 0) {
+                                where_conditions.push("false");
+                            }
 
                             for (let i in active_field_filter.param_numeric_array) {
                                 ContextQueryInjectionCheckHandler.assert_numeric(active_field_filter.param_numeric_array[i]);
@@ -494,6 +502,11 @@ export default class ContextFilterServerController {
                             query_result.params.push(text);
                             where_conditions.push(field_id + " = $" + query_result.params.length);
                         } else if (active_field_filter.param_textarray != null) {
+
+                            if (active_field_filter.param_textarray.length == 0) {
+                                where_conditions.push("false");
+                            }
+
                             let like_array = [];
                             for (let i in active_field_filter.param_textarray) {
                                 let text = active_field_filter.param_textarray[i];
@@ -602,6 +615,10 @@ export default class ContextFilterServerController {
                             query_result.params.push(text + "%");
                             where_conditions.push(field_id + " ILIKE $" + query_result.params.length);
                         } else if (active_field_filter.param_textarray != null) {
+                            if (active_field_filter.param_textarray.length == 0) {
+                                where_conditions.push("false");
+                            }
+
                             let like_array = [];
                             for (let i in active_field_filter.param_textarray) {
                                 let text = active_field_filter.param_textarray[i];
@@ -717,6 +734,9 @@ export default class ContextFilterServerController {
                             where_conditions.push(field_id + " ILIKE $" + query_result.params.length);
 
                         } else if (active_field_filter.param_textarray != null) {
+                            if (active_field_filter.param_textarray.length == 0) {
+                                where_conditions.push("false");
+                            }
 
                             let like_array = [];
                             for (let i in active_field_filter.param_textarray) {
@@ -1333,6 +1353,10 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_prct:
                     case ModuleTableField.FIELD_TYPE_tstz:
                         if (active_field_filter.param_numeric_array != null) {
+                            if (active_field_filter.param_numeric_array.length == 0) {
+                                where_conditions.push("false");
+                            }
+
                             for (let i in active_field_filter.param_numeric_array) {
                                 ContextQueryInjectionCheckHandler.assert_numeric(active_field_filter.param_numeric_array[i]);
                             }
@@ -1427,6 +1451,10 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_prct:
                     case ModuleTableField.FIELD_TYPE_tstz:
                         if (active_field_filter.param_numeric_array != null) {
+                            if (active_field_filter.param_numeric_array.length == 0) {
+                                where_conditions.push("false");
+                            }
+
                             for (let i in active_field_filter.param_numeric_array) {
                                 ContextQueryInjectionCheckHandler.assert_numeric(active_field_filter.param_numeric_array[i]);
                             }
@@ -1521,6 +1549,10 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_prct:
                     case ModuleTableField.FIELD_TYPE_tstz:
                         if (active_field_filter.param_numeric_array != null) {
+                            if (active_field_filter.param_numeric_array.length == 0) {
+                                where_conditions.push("false");
+                            }
+
                             for (let i in active_field_filter.param_numeric_array) {
                                 ContextQueryInjectionCheckHandler.assert_numeric(active_field_filter.param_numeric_array[i]);
                             }
@@ -1615,6 +1647,10 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_prct:
                     case ModuleTableField.FIELD_TYPE_tstz:
                         if (active_field_filter.param_numeric_array != null) {
+                            if (active_field_filter.param_numeric_array.length == 0) {
+                                where_conditions.push("false");
+                            }
+
                             for (let i in active_field_filter.param_numeric_array) {
                                 ContextQueryInjectionCheckHandler.assert_numeric(active_field_filter.param_numeric_array[i]);
                             }
@@ -1745,6 +1781,10 @@ export default class ContextFilterServerController {
                         }
 
                         if (active_field_filter.param_numeric_array != null) {
+                            if (active_field_filter.param_numeric_array.length == 0) {
+                                where_conditions.push("false");
+                            }
+
                             for (let i in active_field_filter.param_numeric_array) {
                                 ContextQueryInjectionCheckHandler.assert_numeric(active_field_filter.param_numeric_array[i]);
                             }
@@ -2350,22 +2390,140 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
                     case ModuleTableField.FIELD_TYPE_refrange_array:
 
-                        let table = VOsTypesManager.getInstance().moduleTables_by_voType[active_field_filter.vo_type];
-                        let table_name = table.full_name.split('.')[1];
-                        let ranges_query = 'ANY(' + DAOServerController.getInstance().get_ranges_translated_to_bdd_queryable_ranges(
-                            active_field_filter.param_numranges, field, field.field_type
-                        ) + ')';
+                        if (active_field_filter.param_numranges && active_field_filter.param_numranges.length) {
 
-                        where_conditions.push(
-                            '(' +
-                            '  select count(1)' +
-                            '  from (' +
-                            '   select unnest(tempo2.' + field.field_id + ') a' +
-                            '  from ' + table.full_name + ' tempo2' +
-                            '  where tempo2.id = ' + tables_aliases_by_type[active_field_filter.vo_type] + '.id) tempo1' +
-                            '  where tempo1.a <@ ' + ranges_query +
-                            '  ) = array_length(' + tables_aliases_by_type[active_field_filter.vo_type] + '.' + field.field_id + ',1) ');
-                        break;
+                            let range_to_db = DAOServerController.getInstance().get_ranges_translated_to_bdd_queryable_ranges(
+                                active_field_filter.param_numranges, field, field.field_type
+                            );
+
+                            if (!range_to_db) {
+                                throw new Error('Error should not filter on empty range array TYPE_NUMERIC_IS_INCLUDED_IN');
+                            }
+
+                            let table = VOsTypesManager.getInstance().moduleTables_by_voType[active_field_filter.vo_type];
+                            let table_name = table.full_name.split('.')[1];
+                            let ranges_query = 'ANY(' + range_to_db + ')';
+
+                            where_conditions.push(
+                                '(' +
+                                '  select count(1)' +
+                                '  from (' +
+                                '   select unnest(tempo2.' + field.field_id + ') a' +
+                                '  from ' + table.full_name + ' tempo2' +
+                                '  where tempo2.id = ' + tables_aliases_by_type[active_field_filter.vo_type] + '.id) tempo1' +
+                                '  where tempo1.a <@ ' + ranges_query +
+                                '  ) = array_length(' + tables_aliases_by_type[active_field_filter.vo_type] + '.' + field.field_id + ',1) ');
+                            break;
+                        }
+
+                        if (active_field_filter.param_tsranges && active_field_filter.param_tsranges.length) {
+
+                            let range_to_db = DAOServerController.getInstance().get_ranges_translated_to_bdd_queryable_ranges(
+                                active_field_filter.param_tsranges, field, field.field_type
+                            );
+
+                            if (!range_to_db) {
+                                throw new Error('Error should not filter on empty range array TYPE_NUMERIC_IS_INCLUDED_IN');
+                            }
+
+                            let table = VOsTypesManager.getInstance().moduleTables_by_voType[active_field_filter.vo_type];
+                            let table_name = table.full_name.split('.')[1];
+                            let ranges_query = 'ANY(' + range_to_db + ')';
+
+                            where_conditions.push(
+                                '(' +
+                                '  select count(1)' +
+                                '  from (' +
+                                '   select unnest(tempo2.' + field.field_id + ') a' +
+                                '  from ' + table.full_name + ' tempo2' +
+                                '  where tempo2.id = ' + tables_aliases_by_type[active_field_filter.vo_type] + '.id) tempo1' +
+                                '  where tempo1.a <@ ' + ranges_query +
+                                '  ) = array_length(' + tables_aliases_by_type[active_field_filter.vo_type] + '.' + field.field_id + ',1) ');
+                            break;
+                        }
+
+                    case ModuleTableField.FIELD_TYPE_amount:
+                    case ModuleTableField.FIELD_TYPE_enum:
+                    case ModuleTableField.FIELD_TYPE_file_ref:
+                    case ModuleTableField.FIELD_TYPE_float:
+                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableField.FIELD_TYPE_foreign_key:
+                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableField.FIELD_TYPE_image_ref:
+                    case ModuleTableField.FIELD_TYPE_int:
+                    case ModuleTableField.FIELD_TYPE_prct:
+                    case ModuleTableField.FIELD_TYPE_tstz:
+
+                    case ModuleTableField.FIELD_TYPE_isoweekdays:
+                    case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
+                    case ModuleTableField.FIELD_TYPE_tstz_array:
+
+                    case ModuleTableField.FIELD_TYPE_numrange:
+                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    default:
+                        throw new Error('Not Implemented');
+                }
+                break;
+
+            case ContextFilterVO.TYPE_DATE_IS_INCLUDED_IN:
+                switch (field_type) {
+                    case ModuleTableField.FIELD_TYPE_numrange_array:
+                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableField.FIELD_TYPE_refrange_array:
+
+                        if (active_field_filter.param_numranges && active_field_filter.param_numranges.length) {
+
+                            let range_to_db = DAOServerController.getInstance().get_ranges_translated_to_bdd_queryable_ranges(
+                                active_field_filter.param_numranges, field, field.field_type
+                            );
+
+                            if (!range_to_db) {
+                                throw new Error('Error should not filter on empty range array TYPE_DATE_IS_INCLUDED_IN');
+                            }
+
+                            let table = VOsTypesManager.getInstance().moduleTables_by_voType[active_field_filter.vo_type];
+                            let table_name = table.full_name.split('.')[1];
+                            let ranges_query = 'ANY(' + range_to_db + ')';
+
+                            where_conditions.push(
+                                '(' +
+                                '  select count(1)' +
+                                '  from (' +
+                                '   select unnest(tempo2.' + field.field_id + ') a' +
+                                '  from ' + table.full_name + ' tempo2' +
+                                '  where tempo2.id = ' + tables_aliases_by_type[active_field_filter.vo_type] + '.id) tempo1' +
+                                '  where tempo1.a <@ ' + ranges_query +
+                                '  ) = array_length(' + tables_aliases_by_type[active_field_filter.vo_type] + '.' + field.field_id + ',1) ');
+                            break;
+                        }
+
+                        if (active_field_filter.param_tsranges && active_field_filter.param_tsranges.length) {
+
+                            let range_to_db = DAOServerController.getInstance().get_ranges_translated_to_bdd_queryable_ranges(
+                                active_field_filter.param_tsranges, field, field.field_type
+                            );
+
+                            if (!range_to_db) {
+                                throw new Error('Error should not filter on empty range array TYPE_DATE_IS_INCLUDED_IN');
+                            }
+
+                            let table = VOsTypesManager.getInstance().moduleTables_by_voType[active_field_filter.vo_type];
+                            let table_name = table.full_name.split('.')[1];
+                            let ranges_query = 'ANY(' + range_to_db + ')';
+
+                            where_conditions.push(
+                                '(' +
+                                '  select count(1)' +
+                                '  from (' +
+                                '   select unnest(tempo2.' + field.field_id + ') a' +
+                                '  from ' + table.full_name + ' tempo2' +
+                                '  where tempo2.id = ' + tables_aliases_by_type[active_field_filter.vo_type] + '.id) tempo1' +
+                                '  where tempo1.a <@ ' + ranges_query +
+                                '  ) = array_length(' + tables_aliases_by_type[active_field_filter.vo_type] + '.' + field.field_id + ',1) ');
+                            break;
+                        }
 
                     case ModuleTableField.FIELD_TYPE_amount:
                     case ModuleTableField.FIELD_TYPE_enum:
