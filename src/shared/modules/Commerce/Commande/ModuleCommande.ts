@@ -3,6 +3,7 @@ import NumberAndStringParamVO, { NumberAndStringParamVOStatic } from '../../API/
 import NumberParamVO, { NumberParamVOStatic } from '../../API/vos/apis/NumberParamVO';
 import GetAPIDefinition from '../../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../../API/vos/PostAPIDefinition';
+import { query } from '../../ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../DAO/ModuleDAO';
 import Module from '../../Module';
 import ModuleTable from '../../ModuleTable';

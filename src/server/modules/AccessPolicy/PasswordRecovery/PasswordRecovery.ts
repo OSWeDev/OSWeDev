@@ -1,6 +1,7 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import UserLogVO from '../../../../shared/modules/AccessPolicy/vos/UserLogVO';
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import ModuleSendInBlue from '../../../../shared/modules/SendInBlue/ModuleSendInBlue';

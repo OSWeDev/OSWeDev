@@ -15,6 +15,7 @@ import IExportableDatas from './interfaces/IExportableDatas';
 import IExportHandler from './interfaces/IExportHandler';
 import ModuleDataExportServer from './ModuleDataExportServer';
 import default_mail_html_template_error from './default_export_mail_html_template_error.html';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 
 export default abstract class ExportHandlerBase implements IExportHandler {
 

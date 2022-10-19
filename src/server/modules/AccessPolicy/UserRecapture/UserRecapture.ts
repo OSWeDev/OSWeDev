@@ -1,13 +1,11 @@
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
-import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import ModuleSendInBlue from '../../../../shared/modules/SendInBlue/ModuleSendInBlue';
 import SendInBlueMailVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueMailVO';
 import SendInBlueSmsFormatVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueSmsFormatVO';
 import ModuleTranslation from '../../../../shared/modules/Translation/ModuleTranslation';
 import LangVO from '../../../../shared/modules/Translation/vos/LangVO';
-import TranslatableTextVO from '../../../../shared/modules/Translation/vos/TranslatableTextVO';
-import TranslationVO from '../../../../shared/modules/Translation/vos/TranslationVO';
 import StackContext from '../../../StackContext';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ModuleMailerServer from '../../Mailer/ModuleMailerServer';

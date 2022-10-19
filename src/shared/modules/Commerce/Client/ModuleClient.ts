@@ -2,6 +2,7 @@ import UserVO from '../../AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../../API/APIControllerWrapper';
 import NumberParamVO, { NumberParamVOStatic } from '../../API/vos/apis/NumberParamVO';
 import GetAPIDefinition from '../../API/vos/GetAPIDefinition';
+import { query } from '../../ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../DAO/ModuleDAO';
 import Module from '../../Module';
 import ModuleTable from '../../ModuleTable';

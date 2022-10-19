@@ -12,6 +12,7 @@ import ModuleServerBase from '../ModuleServerBase';
 import PushDataServerController from '../PushData/PushDataServerController';
 import FileServerController from './FileServerController';
 import ArchiveFilesWorkersHandler from './ArchiveFilesWorkersHandler';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 
 export default abstract class ModuleFileServerBase<T extends FileVO> extends ModuleServerBase {
 

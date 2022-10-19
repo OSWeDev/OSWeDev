@@ -20,6 +20,7 @@ import ImportLogger from '../logger/ImportLogger';
 import TextHandler from '../../../../shared/tools/TextHandler';
 import moment = require('moment');
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 
 export default class ImportTypeXLSXHandler {
     public static getInstance() {
