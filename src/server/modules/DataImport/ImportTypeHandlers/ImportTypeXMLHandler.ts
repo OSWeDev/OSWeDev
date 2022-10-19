@@ -1,13 +1,15 @@
 
 
-import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
+import { readFileSync } from 'fs';
 import ModuleDAOServer from '../../../../server/modules/DAO/ModuleDAOServer';
+import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import IImportedData from '../../../../shared/modules/DataImport/interfaces/IImportedData';
 import ModuleDataImport from '../../../../shared/modules/DataImport/ModuleDataImport';
 import DataImportColumnVO from '../../../../shared/modules/DataImport/vos/DataImportColumnVO';
 import DataImportFormatVO from '../../../../shared/modules/DataImport/vos/DataImportFormatVO';
 import DataImportHistoricVO from '../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
 import DataImportLogVO from '../../../../shared/modules/DataImport/vos/DataImportLogVO';
+import XmlNode from '../../../../shared/modules/DataImport/vos/XmlNode';
 import FileVO from '../../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleTable from '../../../../shared/modules/ModuleTable';
@@ -15,14 +17,11 @@ import ModuleTableField from '../../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../shared/tools/DateHandler';
-import TextHandler from '../../../../shared/tools/TextHandler';
-import TypesHandler from '../../../../shared/tools/TypesHandler';
+import FileHandler from '../../../../shared/tools/FileHandler';
 import ImportLogger from '../logger/ImportLogger';
 import moment = require('moment');
-import { createReadStream, ReadStream, readFileSync, readlink } from 'fs';
-import FileHandler from '../../../../shared/tools/FileHandler';
-import XmlNode from '../../../../shared/modules/DataImport/vos/XmlNode';
 const XmlReader = require('xml-reader');
+const he = require('he');
 
 export default class ImportTypeXMLHandler {
     public static getInstance() {
@@ -165,17 +164,7 @@ export default class ImportTypeXMLHandler {
                 res = '' + res;
             }
 
-            res = res.replace(/&apos;/ig, "'");
-            res = res.replace(/&quot;/ig, '"');
-            res = res.replace(/&lt;/ig, '<');
-            res = res.replace(/&gt;/ig, '>');
-            res = res.replace(/&amp;/ig, '&');
-
-            // a priori "" ça veut dire escape de "
-            res = res.replace(/""/ig, '"');
-
-            res = res.replace(/&#x000d;<br\/>/ig, "\n");
-
+            res = he.decode(res);
         }
 
         return res;

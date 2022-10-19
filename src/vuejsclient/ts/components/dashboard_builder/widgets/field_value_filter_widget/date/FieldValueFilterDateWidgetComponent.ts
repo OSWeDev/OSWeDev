@@ -160,6 +160,7 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
                     options.separation_active_filter,
                     options.vo_field_sort_lvl2,
                     options.autovalidate_advanced_filter,
+                    options.add_is_null_selectable,
                 ) : null;
             }
         } catch (error) {

@@ -97,6 +97,7 @@
         "flatted": "2.0.2",
         "fullcalendar": "3.9.0",
         "fullcalendar-scheduler": "1.9.4",
+        "he": "1.2.0",
         "helmet": "3.21.1",
         "html2canvas": "1.0.0-rc.5",
         "http": "0.0.0",
