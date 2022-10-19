@@ -24,9 +24,12 @@ export default class FileDatatableFieldComponent extends VueComponentBase {
     @Prop({ default: null })
     public button_label: string;
 
+
     private file: FileVO = null;
     private loaded: boolean = false;
     private path: string = null;
+    private file_name: string = null;
+
 
     private throttled_load_file = ThrottleHelper.getInstance().declare_throttle_without_args(this.load_file.bind(this), 100);
 
@@ -54,8 +57,14 @@ export default class FileDatatableFieldComponent extends VueComponentBase {
 
         if (this.file) {
             this.path = this.file.path;
+            this.file_name = this.path.substring(this.path.lastIndexOf('/') + 1);
+            this.file_name = this.file_name.substring(0, this.file_name.lastIndexOf('.'));
+
+
         } else {
             this.path = this.file_path;
+            this.file_name = this.path.substring(this.path.lastIndexOf('/') + 1);
+            this.file_name = this.file_name.substring(0, this.file_name.lastIndexOf('.'));
         }
 
         if (!this.loaded) {

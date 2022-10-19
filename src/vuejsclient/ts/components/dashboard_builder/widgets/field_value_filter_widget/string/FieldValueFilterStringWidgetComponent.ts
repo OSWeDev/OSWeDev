@@ -29,6 +29,7 @@ import ValidationFiltersWidgetController from '../../validation_filters_widget/V
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
+import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 
 @Component({
     template: require('./FieldValueFilterStringWidgetComponent.pug'),
@@ -134,11 +135,22 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
     }
 
     @Watch('tmp_filter_active_options')
-    private onchange_tmp_filter_active_options() {
+    private async onchange_tmp_filter_active_options() {
 
         if (!this.widget_options) {
             return;
         }
+
+        //Enregistrons les modifications pour que celle-ci soient bien mises par défaut
+        this.widget_options.default_filter_opt_values = this.tmp_filter_active_options;
+
+        try {
+            this.page_widget.json_options = JSON.stringify(this.widget_options);
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
+        //enregistrement
+        await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
 
         // Si on doit masquer le lvl2, on va désactiver tous les options lvl2 qui ne doivent plus être cochées
         if (this.hide_lvl2_if_lvl1_not_selected) {

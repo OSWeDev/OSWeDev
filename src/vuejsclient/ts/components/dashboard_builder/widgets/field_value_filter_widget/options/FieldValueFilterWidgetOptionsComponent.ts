@@ -154,6 +154,8 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         if (!this.filter_visible_options || !this.filter_visible_options.length) {
             this.throttled_update_visible_options();
         }
+
+
     }
 
     @Watch('max_visible_options')

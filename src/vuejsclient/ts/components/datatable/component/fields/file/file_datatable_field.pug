@@ -5,6 +5,7 @@
     template(v-else)
         template(v-if='path')
             .text-center
-                a.btn.btn-primary(:href="'/' + path" target='_blank' v-tooltip='show_tooltip ? "/" + path : null') {{ button_label ? button_label : label('file_datatable_field.download') }}
+                p {{file_name}}
+                a.btn.btn-primary(:href="'/' + path" :download='file_name' target='_blank'  v-tooltip='show_tooltip ? "/" + path : null') {{ button_label ? button_label : label('file_datatable_field.download') }}
         template(v-else)
             .introuvable {{ label('file_datatable_field.introuvable', { file_id: file_id }) }}
