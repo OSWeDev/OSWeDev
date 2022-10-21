@@ -1335,6 +1335,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 let fieldValue = vo[field.field_id];
 
+                /**
+                 * Cas des undefined
+                 */
                 if (typeof fieldValue == "undefined") {
                     if (field.has_default && typeof field.field_default == 'undefined') {
                         fieldValue = field.field_default;
@@ -1349,6 +1352,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     break;
                 }
 
+                /**
+                 * Cas des strings
+                 */
                 let stringified = (fieldValue == null) ? '' : JSON.stringify(fieldValue);
                 if ((!!stringified) && (typeof fieldValue == 'string')) {
                     if (stringified.length == 2) {
@@ -1356,6 +1362,19 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     } else {
                         stringified = "'" + stringified.substring(1, stringified.length - 1).replace(/\\"/g, '"').replace(/'/g, "''") + "'";
                     }
+                }
+
+                /**
+                 * Cas des arrays
+                 */
+                if (Array.isArray(fieldValue) &&
+                    ((field.field_type == ModuleTableField.FIELD_TYPE_int_array) ||
+                        (field.field_type == ModuleTableField.FIELD_TYPE_html_array) ||
+                        (field.field_type == ModuleTableField.FIELD_TYPE_tstz_array) ||
+                        (field.field_type == ModuleTableField.FIELD_TYPE_float_array) ||
+                        (field.field_type == ModuleTableField.FIELD_TYPE_string_array))) {
+
+                    stringified = 'ARRAY' + stringified;
                 }
                 setters.push(stringified);
 
