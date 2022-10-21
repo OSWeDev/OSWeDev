@@ -1922,7 +1922,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         if (ConfigurationService.getInstance().node_configuration.DEBUG_THROTTLED_SELECT) {
                             ConsoleHandler.getInstance().log('throttled_select_query:do_throttled_select_query:START:' + i);
                         }
-                        await this.do_throttled_select_query(request, [], throttled_select_query_params);
+                        await this.do_throttled_select_query(request, null, throttled_select_query_params);
                         if (ConfigurationService.getInstance().node_configuration.DEBUG_THROTTLED_SELECT) {
                             ConsoleHandler.getInstance().log('throttled_select_query:do_throttled_select_query:END:' + i);
                         }

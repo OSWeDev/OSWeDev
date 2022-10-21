@@ -288,12 +288,14 @@ export default class VarsComputeController {
         if ((VarsServerController.getInstance().has_valid_value(node.var_data)) || (node.already_tried_loading_data_and_deploy)) {
             node.successfully_deployed = true;
 
-            node.perfs.ctree_ddeps_try_load_cache_complet.skip_and_update_parents_perfs();
-            node.perfs.ctree_ddeps_load_imports_and_split_nodes.skip_and_update_parents_perfs();
-            node.perfs.ctree_ddeps_handle_pixellisation.skip_and_update_parents_perfs();
-            node.perfs.ctree_ddeps_try_load_cache_partiel.skip_and_update_parents_perfs();
-            node.perfs.ctree_ddeps_get_node_deps.skip_and_update_parents_perfs();
-            node.perfs.ctree_deploy_deps.skip_and_update_parents_perfs();
+            if (node.perfs && node.perfs.ctree_ddeps_try_load_cache_complet) {
+                node.perfs.ctree_ddeps_try_load_cache_complet.skip_and_update_parents_perfs();
+                node.perfs.ctree_ddeps_load_imports_and_split_nodes.skip_and_update_parents_perfs();
+                node.perfs.ctree_ddeps_handle_pixellisation.skip_and_update_parents_perfs();
+                node.perfs.ctree_ddeps_try_load_cache_partiel.skip_and_update_parents_perfs();
+                node.perfs.ctree_ddeps_get_node_deps.skip_and_update_parents_perfs();
+                node.perfs.ctree_deploy_deps.skip_and_update_parents_perfs();
+            }
             await this.notify_var_data_post_deploy(node);
 
             return;
@@ -306,12 +308,14 @@ export default class VarsComputeController {
             if (!node.successfully_deployed) {
                 node.successfully_deployed = true;
             }
-            node.perfs.ctree_ddeps_try_load_cache_complet.skip_and_update_parents_perfs();
-            node.perfs.ctree_ddeps_load_imports_and_split_nodes.skip_and_update_parents_perfs();
-            node.perfs.ctree_ddeps_handle_pixellisation.skip_and_update_parents_perfs();
-            node.perfs.ctree_ddeps_try_load_cache_partiel.skip_and_update_parents_perfs();
-            node.perfs.ctree_ddeps_get_node_deps.skip_and_update_parents_perfs();
-            node.perfs.ctree_deploy_deps.skip_and_update_parents_perfs();
+            if (node.perfs && node.perfs.ctree_ddeps_try_load_cache_complet) {
+                node.perfs.ctree_ddeps_try_load_cache_complet.skip_and_update_parents_perfs();
+                node.perfs.ctree_ddeps_load_imports_and_split_nodes.skip_and_update_parents_perfs();
+                node.perfs.ctree_ddeps_handle_pixellisation.skip_and_update_parents_perfs();
+                node.perfs.ctree_ddeps_try_load_cache_partiel.skip_and_update_parents_perfs();
+                node.perfs.ctree_ddeps_get_node_deps.skip_and_update_parents_perfs();
+                node.perfs.ctree_deploy_deps.skip_and_update_parents_perfs();
+            }
             await this.notify_var_data_post_deploy(node);
 
             return;
@@ -362,16 +366,20 @@ export default class VarsComputeController {
 
             if (VarsServerController.getInstance().has_valid_value(node.var_data)) {
 
-                node.perfs.ctree_ddeps_load_imports_and_split_nodes.skip_and_update_parents_perfs();
-                node.perfs.ctree_ddeps_handle_pixellisation.skip_and_update_parents_perfs();
-                node.perfs.ctree_ddeps_try_load_cache_partiel.skip_and_update_parents_perfs();
-                node.perfs.ctree_ddeps_get_node_deps.skip_and_update_parents_perfs();
+                if (node.perfs && node.perfs.ctree_ddeps_load_imports_and_split_nodes) {
+                    node.perfs.ctree_ddeps_load_imports_and_split_nodes.skip_and_update_parents_perfs();
+                    node.perfs.ctree_ddeps_handle_pixellisation.skip_and_update_parents_perfs();
+                    node.perfs.ctree_ddeps_try_load_cache_partiel.skip_and_update_parents_perfs();
+                    node.perfs.ctree_ddeps_get_node_deps.skip_and_update_parents_perfs();
+                }
                 this.end_node_deploiement(node);
                 await this.notify_var_data_post_deploy(node);
                 return;
             }
         } else {
-            node.perfs.ctree_ddeps_try_load_cache_complet.skip_and_update_parents_perfs();
+            if (node.perfs && node.perfs.ctree_ddeps_try_load_cache_complet) {
+                node.perfs.ctree_ddeps_try_load_cache_complet.skip_and_update_parents_perfs();
+            }
         }
 
         /**
@@ -388,15 +396,19 @@ export default class VarsComputeController {
 
             if (VarsServerController.getInstance().has_valid_value(node.var_data)) {
 
-                node.perfs.ctree_ddeps_handle_pixellisation.skip_and_update_parents_perfs();
-                node.perfs.ctree_ddeps_try_load_cache_partiel.skip_and_update_parents_perfs();
-                node.perfs.ctree_ddeps_get_node_deps.skip_and_update_parents_perfs();
+                if (node.perfs && node.perfs.ctree_ddeps_handle_pixellisation) {
+                    node.perfs.ctree_ddeps_handle_pixellisation.skip_and_update_parents_perfs();
+                    node.perfs.ctree_ddeps_try_load_cache_partiel.skip_and_update_parents_perfs();
+                    node.perfs.ctree_ddeps_get_node_deps.skip_and_update_parents_perfs();
+                }
                 this.end_node_deploiement(node);
                 await this.notify_var_data_post_deploy(node);
                 return;
             }
         } else {
-            node.perfs.ctree_ddeps_load_imports_and_split_nodes.skip_and_update_parents_perfs();
+            if (node.perfs && node.perfs.ctree_ddeps_load_imports_and_split_nodes) {
+                node.perfs.ctree_ddeps_load_imports_and_split_nodes.skip_and_update_parents_perfs();
+            }
         }
 
         /**
@@ -411,7 +423,9 @@ export default class VarsComputeController {
             }
         } else {
 
-            node.perfs.ctree_ddeps_handle_pixellisation.skip_and_update_parents_perfs();
+            if (node.perfs && node.perfs.ctree_ddeps_handle_pixellisation) {
+                node.perfs.ctree_ddeps_handle_pixellisation.skip_and_update_parents_perfs();
+            }
 
             /**
              * Cache step C : cache partiel : uniquement si on a pas splitt sur import
@@ -426,20 +440,26 @@ export default class VarsComputeController {
 
                 if (VarsServerController.getInstance().has_valid_value(node.var_data)) {
 
-                    node.perfs.ctree_ddeps_get_node_deps.skip_and_update_parents_perfs();
+                    if (node.perfs && node.perfs.ctree_ddeps_get_node_deps) {
+                        node.perfs.ctree_ddeps_get_node_deps.skip_and_update_parents_perfs();
+                    }
                     this.end_node_deploiement(node);
                     await this.notify_var_data_post_deploy(node);
                     return;
                 }
             } else {
-                node.perfs.ctree_ddeps_try_load_cache_partiel.skip_and_update_parents_perfs();
+                if (node.perfs && node.perfs.ctree_ddeps_try_load_cache_partiel) {
+                    node.perfs.ctree_ddeps_try_load_cache_partiel.skip_and_update_parents_perfs();
+                }
             }
         }
 
         if (limit_to_aggregated_datas) {
 
             // Si on a des données aggrégées elles sont déjà ok à renvoyer si on ne veut que savoir les données aggrégées
-            node.perfs.ctree_ddeps_get_node_deps.skip_and_update_parents_perfs();
+            if (node.perfs && node.perfs.ctree_ddeps_get_node_deps) {
+                node.perfs.ctree_ddeps_get_node_deps.skip_and_update_parents_perfs();
+            }
             this.end_node_deploiement(node);
             await this.notify_var_data_post_deploy(node);
             return;
@@ -450,6 +470,9 @@ export default class VarsComputeController {
         /**
          * Si dans les deps on a un denied, on refuse le tout
          */
+        if (DEBUG_VARS) {
+            ConsoleHandler.getInstance().log('deploy_deps:' + node.var_data.index + ':IN:' + (deps ? Object.keys(deps).length : 0));
+        }
         for (let i in deps) {
             let dep = deps[i];
 
@@ -467,18 +490,34 @@ export default class VarsComputeController {
                 ConsoleHandler.getInstance().log('deploy_deps:' + node.var_data.index + ':dep:' + dep.index + ':');
             }
         }
+        if (DEBUG_VARS) {
+            ConsoleHandler.getInstance().log('deploy_deps:' + node.var_data.index + ':OUT:');
+        }
 
         /**
          * On notifie d'un calcul en cours que si on a pas la valeur directement dans le cache ou en base de données, ou en import, ou en pixel, ou on a limité à une question sur les aggregated_datas, ou c'est denied
          */
         await VarsTabsSubsController.getInstance().notify_vardatas([new NotifVardatasParam([node.var_data], true)]);
+        if (DEBUG_VARS) {
+            ConsoleHandler.getInstance().log('deploy_deps:' + node.var_data.index + ':notify_vardatas:OUT:');
+        }
 
         if (deps) {
             await this.handle_deploy_deps(node, deps, deployed_vars_datas, vars_datas);
         }
+        if (DEBUG_VARS) {
+            ConsoleHandler.getInstance().log('deploy_deps:' + node.var_data.index + ':handle_deploy_deps:OUT:');
+        }
 
         this.end_node_deploiement(node);
+        if (DEBUG_VARS) {
+            ConsoleHandler.getInstance().log('deploy_deps:' + node.var_data.index + ':end_node_deploiement:OUT:');
+        }
+
         await this.notify_var_data_post_deploy(node);
+        if (DEBUG_VARS) {
+            ConsoleHandler.getInstance().log('deploy_deps:' + node.var_data.index + ':notify_var_data_post_deploy:OUT:');
+        }
     }
 
     /**
@@ -591,7 +630,7 @@ export default class VarsComputeController {
         let deps_ids_as_array = Object.keys(deps);
 
         let deps_promises = [];
-        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 3));
+        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 2));
 
         let start_time = Dates.now();
         let real_start_time = start_time;
@@ -919,24 +958,39 @@ export default class VarsComputeController {
 
                 // On sélectionne les vars à déployer
                 let vars_to_deploy: { [index: string]: VarDataBaseVO } = this.get_vars_to_deploy(vars_datas_to_deploy_by_controller_height);
+                let vars_to_deploy_indexs: string[] = vars_to_deploy ? Object.keys(vars_to_deploy) : [];
 
                 if (DEBUG_VARS) {
-                    ConsoleHandler.getInstance().log('create_tree:Step ' + step + ':Deploying ' + Object.keys(vars_to_deploy).length + ' vars');
+                    ConsoleHandler.getInstance().log('create_tree:Step ' + step + ':Deploying ' + vars_to_deploy_indexs.length + ' vars');
                 }
 
                 // on notifie du calcul en cours
-                let vars_to_deploy_filtered_by_tab_subs_indexes = await VarsTabsSubsController.getInstance().filter_by_subs(Object.keys(vars_to_deploy));
-                if (vars_to_deploy_filtered_by_tab_subs_indexes && vars_to_deploy_filtered_by_tab_subs_indexes.length) {
+                // pas utile de demander le filtrage par sub, on notifie juste pas si personne est en attente, et par ailleurs
+                //  la notification est en throttle donc on perd pas de temps alors que le filtrage par sub attend le res du main thread
+                // let vars_to_deploy_filtered_by_tab_subs_indexes = await VarsTabsSubsController.getInstance().filter_by_subs(vars_to_deploy_indexs);
+                if (vars_to_deploy_indexs && vars_to_deploy_indexs.length) {
                     await VarsTabsSubsController.getInstance().notify_vardatas(
-                        vars_to_deploy_filtered_by_tab_subs_indexes.map((index: string) => new NotifVardatasParam([vars_to_deploy[index]], true)));
+                        vars_to_deploy_indexs.map((index: string) => new NotifVardatasParam([vars_to_deploy[index]], true)));
+                }
+
+                if (DEBUG_VARS) {
+                    ConsoleHandler.getInstance().log('create_tree:Step ' + step + ':Notified ' + (vars_to_deploy_indexs ? vars_to_deploy_indexs.length : 0) + ' vars');
                 }
 
                 // On charge les caches pour ces noeuds
                 //  et on récupère les nouveaux vars_datas à insérer dans l'arbre
                 await this.load_caches_and_imports_on_vars_to_deploy(vars_to_deploy, var_dag);
 
+                if (DEBUG_VARS) {
+                    ConsoleHandler.getInstance().log('create_tree:Step ' + step + ':load_caches_and_imports_on_vars_to_deploy: OUT');
+                }
+
                 // On doit ensuite charger les ds pre deps
                 await this.deploy_deps_on_vars_to_deploy(vars_to_deploy, var_dag);
+
+                if (DEBUG_VARS) {
+                    ConsoleHandler.getInstance().log('create_tree:Step ' + step + ':deploy_deps_on_vars_to_deploy: OUT');
+                }
 
                 vars_datas_to_deploy_by_controller_height = await this.get_vars_datas_by_controller_height(var_dag);
                 step++;
@@ -1109,7 +1163,7 @@ export default class VarsComputeController {
         var_dag: VarDAG) {
 
         let promises = [];
-        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 3));
+        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 2));
 
         for (let i in vars_to_deploy) {
 
@@ -1157,7 +1211,7 @@ export default class VarsComputeController {
     ) {
 
         let promises = [];
-        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 3));
+        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 2));
 
         for (let i in vars_to_deploy) {
             let var_to_deploy = vars_to_deploy[i];
