@@ -418,8 +418,8 @@ export default class ContextQueryVO implements IDistantVOBase {
      * @param included le texte qu'on veut voir apparaître dans la valeur du champs
      * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
      */
-    public filter_by_text_including(field_id: string, included: string | string[], API_TYPE_ID: string = null): ContextQueryVO {
-        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_including(included)]);
+    public filter_by_text_including(field_id: string, included: string | string[], API_TYPE_ID: string = null, ignore_case: boolean = true): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_including(included, ignore_case)]);
     }
 
     /**
@@ -428,8 +428,8 @@ export default class ContextQueryVO implements IDistantVOBase {
      * @param text le texte que l'on doit retrouver à l'identique en base
      * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
      */
-    public filter_by_text_has(field_id: string, text: string | string[], API_TYPE_ID: string = null): ContextQueryVO {
-        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_has(text)]);
+    public filter_by_text_has(field_id: string, text: string | string[], API_TYPE_ID: string = null, ignore_case: boolean = false): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_has(text, ignore_case)]);
     }
 
     /**
@@ -438,8 +438,8 @@ export default class ContextQueryVO implements IDistantVOBase {
      * @param text le texte à filtrer
      * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
      */
-    public filter_by_text_has_none(field_id: string, text: string | string[], API_TYPE_ID: string = null): ContextQueryVO {
-        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_has_none(text)]);
+    public filter_by_text_has_none(field_id: string, text: string | string[], API_TYPE_ID: string = null, ignore_case: boolean = false): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_has_none(text, ignore_case)]);
     }
 
     /**
@@ -448,8 +448,8 @@ export default class ContextQueryVO implements IDistantVOBase {
      * @param text le texte que l'on doit retrouver à l'identique en base
      * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
      */
-    public filter_by_text_eq(field_id: string, text: string | string[], API_TYPE_ID: string = null): ContextQueryVO {
-        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_eq(text)]);
+    public filter_by_text_eq(field_id: string, text: string | string[], API_TYPE_ID: string = null, ignore_case: boolean = false): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_eq(text, ignore_case)]);
     }
 
     /**
@@ -458,8 +458,8 @@ export default class ContextQueryVO implements IDistantVOBase {
      * @param included le texte qu'on veut voir apparaître au début de la valeur du champs
      * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
      */
-    public filter_by_text_starting_with(field_id: string, starts_with: string | string[], API_TYPE_ID: string = null): ContextQueryVO {
-        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_starting_with(starts_with)]);
+    public filter_by_text_starting_with(field_id: string, starts_with: string | string[], API_TYPE_ID: string = null, ignore_case: boolean = true): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_starting_with(starts_with, ignore_case)]);
     }
 
     /**

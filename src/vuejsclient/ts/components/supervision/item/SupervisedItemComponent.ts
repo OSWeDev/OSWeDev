@@ -183,7 +183,7 @@ export default class SupervisedItemComponent extends VueComponentBase {
         let current_value: ISupervisedItem = null;
         promises.push((async () => {
             current_value = await query(this.supervised_item_vo_type)
-                .filter_by_text_eq('name', this.supervised_item.name)
+                .filter_by_text_eq('name', this.supervised_item.name, this.supervised_item_vo_type, true)
                 .select_vo<ISupervisedItem>();
         })());
         await all_promises(promises);

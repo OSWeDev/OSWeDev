@@ -100,7 +100,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
             let param_height = parseInt(height.toString());
             let param_width = parseInt(width.toString());
 
-            let format: ImageFormatVO = await ModuleDAO.getInstance().getNamedVoByName<ImageFormatVO>(ImageFormatVO.API_TYPE_ID, format_name);
+            let format: ImageFormatVO = await query(ImageFormatVO.API_TYPE_ID).filter_by_text_eq('name', format_name, ImageFormatVO.API_TYPE_ID, true).select_vo<ImageFormatVO>();
 
             if (!format) {
                 ConsoleHandler.getInstance().error('Impossible de charger le format d\'image :' + format_name);
