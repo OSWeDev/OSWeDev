@@ -1628,10 +1628,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     request += ' UNION ALL ';
                 }
 
-                let db_full_name = moduleTable.database + '.' + segmentation_table;
-
                 request += "SELECT " + (distinct ? 'distinct' : '') + " t.* ";
-                request += " FROM " + db_full_name + ' t ';
+                request += " FROM " + segmentation_table + ' t ';
                 request += (query_ ? query_.replace(/;/g, '') : '');
             }
 
