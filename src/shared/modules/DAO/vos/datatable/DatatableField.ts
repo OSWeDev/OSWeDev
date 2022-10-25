@@ -117,7 +117,7 @@ export default abstract class DatatableField<T, U> {
     public auto_update_datatable_field_uid_with_vo_type() {
         if (!this.semaphore_auto_update_datatable_field_uid_with_vo_type) {
             this.semaphore_auto_update_datatable_field_uid_with_vo_type = true;
-            this.datatable_field_uid = this.moduleTable.vo_type + '___' + this.datatable_field_uid;
+            this.datatable_field_uid = (this.moduleTable ? this.moduleTable.vo_type : this.type) + '___' + this.datatable_field_uid;
         }
         return this;
     }

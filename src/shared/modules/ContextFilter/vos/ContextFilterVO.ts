@@ -302,6 +302,15 @@ export default class ContextFilterVO implements IDistantVOBase {
     public param_hourranges: HourRange[];
 
     /**
+     * Permet d'influer sur les filtrage en indiquant un lower sur le field et sur le param du filtrage pour test en ignore_case
+     */
+    public text_ignore_case: boolean = true;
+    /**
+     * Permet d'influer sur les filtrage en indiquant un trim sur le field et sur le param du filtrage
+     */
+    // public text_trim: boolean = false;
+
+    /**
      * En fait on stocke pas pour le moment en base, à voir après comment on pourra repeupler ces fields au chargement depuis la bdd si besoin
      */
     public left_hook: ContextFilterVO;
@@ -321,13 +330,17 @@ export default class ContextFilterVO implements IDistantVOBase {
      * Filtrer par text en début de la valeur du champ
      * @param included le texte qu'on veut voir apparaître au début de la valeur du champs
      */
-    public by_text_starting_with(starts_with: string | string[]): ContextFilterVO {
+    public by_text_starting_with(starts_with: string | string[], text_ignore_case: boolean = true/*, text_trim: boolean = false*/): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_TEXT_STARTSWITH_ANY;
         if (isArray(starts_with)) {
             this.param_textarray = starts_with;
         } else {
             this.param_text = starts_with;
         }
+
+        this.text_ignore_case = text_ignore_case;
+        // this.text_trim = text_trim;
+
         return this;
     }
 
@@ -335,13 +348,17 @@ export default class ContextFilterVO implements IDistantVOBase {
      * Filtrer par text strictement égal
      * @param text le texte que l'on doit retrouver à l'identique en base
      */
-    public by_text_eq(text: string | string[]): ContextFilterVO {
+    public by_text_eq(text: string | string[], text_ignore_case: boolean = false/*, text_trim: boolean = false*/): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ALL;
         if (isArray(text)) {
             this.param_textarray = text;
         } else {
             this.param_text = text;
         }
+
+        this.text_ignore_case = text_ignore_case;
+        // this.text_trim = text_trim;
+
         return this;
     }
 
@@ -349,13 +366,17 @@ export default class ContextFilterVO implements IDistantVOBase {
      * Filtrer par text égal (au moins une fois)
      * @param text le texte que l'on doit retrouver à l'identique en base
      */
-    public by_text_has(text: string | string[]): ContextFilterVO {
+    public by_text_has(text: string | string[], text_ignore_case: boolean = false/*, text_trim: boolean = false*/): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ANY;
         if (isArray(text)) {
             this.param_textarray = text;
         } else {
             this.param_text = text;
         }
+
+        this.text_ignore_case = text_ignore_case;
+        // this.text_trim = text_trim;
+
         return this;
     }
 
@@ -363,13 +384,17 @@ export default class ContextFilterVO implements IDistantVOBase {
      * Filtrer par text différent systématiquement
      * @param text le texte que l'on filtre
      */
-    public by_text_has_none(text: string | string[]): ContextFilterVO {
+    public by_text_has_none(text: string | string[], text_ignore_case: boolean = false/*, text_trim: boolean = false*/): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_NONE;
         if (isArray(text)) {
             this.param_textarray = text;
         } else {
             this.param_text = text;
         }
+
+        this.text_ignore_case = text_ignore_case;
+        // this.text_trim = text_trim;
+
         return this;
     }
 
@@ -377,13 +402,17 @@ export default class ContextFilterVO implements IDistantVOBase {
      * Filtrer par text contenu dans la valeur du champ
      * @param included le texte qu'on veut voir apparaître dans la valeur du champs
      */
-    public by_text_including(included: string | string[]): ContextFilterVO {
+    public by_text_including(included: string | string[], text_ignore_case: boolean = true/*, text_trim: boolean = false*/): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_TEXT_INCLUDES_ANY;
         if (isArray(included)) {
             this.param_textarray = included;
         } else {
             this.param_text = included;
         }
+
+        this.text_ignore_case = text_ignore_case;
+        // this.text_trim = text_trim;
+
         return this;
     }
 
