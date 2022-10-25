@@ -52,6 +52,7 @@ import ImportTypeXLSXHandler from './ImportTypeHandlers/ImportTypeXLSXHandler';
 import ImportLogger from './logger/ImportLogger';
 import ContextQueryVO from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ImportTypeXMLHandler from './ImportTypeHandlers/ImportTypeXMLHandler';
+import DataImportErrorLogVO from '../../../shared/modules/DataImport/vos/DataImportErrorLogVO';
 
 export default class ModuleDataImportServer extends ModuleServerBase {
 
@@ -623,6 +624,19 @@ export default class ModuleDataImportServer extends ModuleServerBase {
             let prevalidation_datas = datas;
             datas = ((!importHistoric.use_fast_track) && format.batch_import) ?
                 [] : await postTraitementModule.validate_formatted_data(datas, importHistoric, format);
+
+            if (format.save_error_logs) {
+                let error_logs: DataImportErrorLogVO[] = [];
+                let error_datas = datas.filter((d) => d.importation_state = ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED);
+
+                for (let ed in error_datas) {
+                    let data: IImportedData = error_datas[ed];
+                    let log: DataImportErrorLogVO = DataImportErrorLogVO.createNew(data.not_validated_msg, importHistoric.id);
+                    error_logs.push(log);
+                }
+
+                await ModuleDAO.getInstance().insertOrUpdateVOs(error_logs);
+            }
 
             has_datas = has_datas || ((pre_validation_formattedDatasStats.nb_row_unvalidated + pre_validation_formattedDatasStats.nb_row_validated) > 0);
             all_formats_datas[format.id] = datas;
