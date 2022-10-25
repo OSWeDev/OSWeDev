@@ -1,5 +1,6 @@
 
 
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -160,7 +161,7 @@ export default class VarsServerController {
         }
     }
 
-    public async init_varcontrollers_dag_depths() {
+    public init_varcontrollers_dag_depths() {
 
         if ((!this._varcontrollers_dag_depths) && this.varcontrollers_dag) {
             this._varcontrollers_dag_depths = {};
@@ -351,7 +352,7 @@ export default class VarsServerController {
             return varConf;
         }
 
-        let daoVarConf: VarConfVO = await ModuleDAO.getInstance().getNamedVoByName<VarConfVO>(varConf._type, varConf.name);
+        let daoVarConf: VarConfVO = await query(VarConfVO.API_TYPE_ID).filter_by_text_eq('name', varConf.name).select_vo<VarConfVO>();
 
         if (daoVarConf) {
 
@@ -380,7 +381,7 @@ export default class VarsServerController {
 
     public async configureVarCache(var_conf: VarConfVO, var_cache_conf: VarCacheConfVO): Promise<VarCacheConfVO> {
 
-        let existing_bdd_conf: VarCacheConfVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<VarCacheConfVO>(VarCacheConfVO.API_TYPE_ID, 'var_id', [var_cache_conf.var_id]);
+        let existing_bdd_conf: VarCacheConfVO[] = await query(VarCacheConfVO.API_TYPE_ID).filter_by_num_eq('var_id', var_cache_conf.var_id).select_vos<VarCacheConfVO>();
 
         if ((!!existing_bdd_conf) && existing_bdd_conf.length) {
 

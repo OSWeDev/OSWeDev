@@ -42,6 +42,14 @@
         }
     }
 
+    .upper_pagination {
+        display: flex;
+
+        .table_pagination {
+            flex: 1;
+        }
+    }
+
     .crud_actions.btn-group.d-print-none {
         text-align: right;
         float: right;
@@ -172,5 +180,10 @@
             }
         }
     }
-    
+
+    @media (max-width: 767px) {
+        .upper_pagination {
+            flex-direction: column;
+        }
+    }
 }

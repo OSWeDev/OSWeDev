@@ -6,6 +6,7 @@ import CommandeVO from '../../../../shared/modules/Commerce/Commande/vos/Command
 import LigneCommandeVO from '../../../../shared/modules/Commerce/Commande/vos/LigneCommandeVO';
 import ParamLigneCommandeVO from '../../../../shared/modules/Commerce/Commande/vos/ParamLigneCommandeVO';
 import ProduitParamLigneParamVO from '../../../../shared/modules/Commerce/Produit/vos/apis/ProduitParamLigneParamVO';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -40,20 +41,11 @@ export default class ModuleCommandeServer extends ModuleServerBase {
     }
 
     public async getCommandesUser(num: number): Promise<CommandeVO[]> {
-        return await ModuleDAOServer.getInstance().selectAll<CommandeVO>(
-            CommandeVO.API_TYPE_ID,
-            ' JOIN ' + VOsTypesManager.getInstance().moduleTables_by_voType[ClientVO.API_TYPE_ID].full_name + ' c on c.id = t.client_id ' +
-            ' WHERE c.user_id = $1', [num]
-        );
+        return await query(CommandeVO.API_TYPE_ID).filter_by_num_eq('user_id', num, ClientVO.API_TYPE_ID).select_vos<CommandeVO>();
     }
 
     public async getLignesCommandeByCommandeId(num: number): Promise<LigneCommandeVO[]> {
-        return await ModuleDAOServer.getInstance().selectAll<LigneCommandeVO>(
-            LigneCommandeVO.API_TYPE_ID,
-            ' JOIN ' + VOsTypesManager.getInstance().moduleTables_by_voType[CommandeVO.API_TYPE_ID].full_name + ' commande on commande.id = t.commande_id ' +
-            ' JOIN ' + VOsTypesManager.getInstance().moduleTables_by_voType[ClientVO.API_TYPE_ID].full_name + ' client on client.id = commande.client_id ' +
-            ' WHERE t.commande_id = $1', [num]
-        );
+        return await query(LigneCommandeVO.API_TYPE_ID).filter_by_num_eq('commande_id', num).select_vos<LigneCommandeVO>();
     }
 
     public async creationPanier(): Promise<CommandeVO> {

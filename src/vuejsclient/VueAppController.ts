@@ -3,6 +3,7 @@ import ModuleAccessPolicy from '../shared/modules/AccessPolicy/ModuleAccessPolic
 import RoleVO from '../shared/modules/AccessPolicy/vos/RoleVO';
 import UserVO from '../shared/modules/AccessPolicy/vos/UserVO';
 import CacheInvalidationRulesVO from '../shared/modules/AjaxCache/vos/CacheInvalidationRulesVO';
+import { query } from '../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
 import ModuleFeedback from '../shared/modules/Feedback/ModuleFeedback';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
@@ -98,7 +99,7 @@ export default abstract class VueAppController {
                     null, '/api/reflect_headers?v=' + Date.now(), CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED) as string);
             })());
             innerpromises.push((async () => {
-                self.ALL_LANGS = await ModuleDAO.getInstance().getVos<LangVO>(LangVO.API_TYPE_ID);
+                self.ALL_LANGS = await query(LangVO.API_TYPE_ID).select_vos<LangVO>();
             })());
             innerpromises.push((async () => {
                 self.data_user_lang = await ModuleAccessPolicy.getInstance().getMyLang();

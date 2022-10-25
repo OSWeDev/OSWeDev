@@ -139,7 +139,8 @@ export default class ContextFilterVO implements IDistantVOBase {
      * On stocke la valeur dans param_numranges
      */
     public static TYPE_NUMERIC_INTERSECTS: number = 11;
-    public static TYPE_NUMERIC_EQUALS: number = 12;
+    public static TYPE_NUMERIC_EQUALS_ALL: number = 12;
+    public static TYPE_NUMERIC_EQUALS_ANY: number = 58;
     public static TYPE_NUMERIC_INCLUDES: number = 13;
     public static TYPE_NUMERIC_IS_INCLUDED_IN: number = 14;
     public static TYPE_NUMERIC_NOT_EQUALS: number = 57;
@@ -294,6 +295,7 @@ export default class ContextFilterVO implements IDistantVOBase {
 
     public param_text: string;
     public param_numeric: number;
+    public param_numeric_array: number[];
     public param_textarray: string[];
     public param_tsranges: TSRange[];
     public param_numranges: NumRange[];
@@ -504,26 +506,52 @@ export default class ContextFilterVO implements IDistantVOBase {
     }
 
     /**
-     * Filtre par un nombre simple ==
-     * @param num le nombre à utiliser dans le filtre
+     * Filtre par un nombre simple == ALL
+     * @param alias alias du champs à comparer
      */
     public by_num_eq_alias(alias: string): ContextFilterVO {
-        this.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+        this.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
         this.param_alias = alias;
         return this;
     }
 
     /**
-     * Filtre par un nombre simple ==
+     * Filtre par un nombre simple == ALL
      * @param num le nombre à utiliser dans le filtre
      */
-    public by_num_eq(num: number | NumRange | NumRange[]): ContextFilterVO {
-        this.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+    public by_num_eq(num: number | NumRange | NumRange[] | number[]): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
         if (typeof num === "number") {
             this.param_numeric = num;
         } else {
-            this.param_numranges = isArray(num) ? num : (num ? [num] : null);
+
+            if (isArray(num) && (num.length > 0) && (typeof num[0] === "number")) {
+                this.param_numeric_array = num as number[];
+            } else {
+                this.param_numranges = isArray(num) ? num as NumRange[] : (num ? [num] as NumRange[] : null);
+            }
         }
+
+        return this;
+    }
+
+    /**
+     * Filtre par un nombre simple == ANY
+     * @param alias alias du champs à comparer
+     */
+    public by_num_has_alias(alias: string): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ANY;
+        this.param_alias = alias;
+        return this;
+    }
+
+    /**
+     * Filtre par un nombre simple == ANY
+     * @param nums les nombres à utiliser dans le filtre
+     */
+    public by_num_has(nums: number[]): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ANY;
+        this.param_numeric_array = nums;
 
         return this;
     }
@@ -608,7 +636,7 @@ export default class ContextFilterVO implements IDistantVOBase {
      */
     public by_id(id: number): ContextFilterVO {
         this.field_id = 'id';
-        this.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+        this.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
         this.param_numeric = id;
         return this;
     }

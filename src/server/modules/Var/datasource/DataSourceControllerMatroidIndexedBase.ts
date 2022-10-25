@@ -25,6 +25,10 @@ export default abstract class DataSourceControllerMatroidIndexedBase extends Dat
             return;
         }
 
+        if (!VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name]) {
+            VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name] = {};
+        }
+
         let data_index: string = this.get_data_index(node.var_data) as string;
         if (typeof VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][data_index] === 'undefined') {
             let data = await this.get_data(node.var_data);

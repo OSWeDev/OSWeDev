@@ -151,7 +151,7 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
                 case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
                 case ModuleTableField.FIELD_TYPE_hours_and_minutes:
                 case ModuleTableField.FIELD_TYPE_hour:
-                    translated_active_options.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+                    translated_active_options.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
                     translated_active_options.param_numeric = this.row_value[column.field_id];
                     break;
 

@@ -1,4 +1,5 @@
 import * as $ from 'jquery';
+import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import DataImportFormatVO from '../../../../../shared/modules/DataImport/vos/DataImportFormatVO';
 import DataImportHistoricVO from '../../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
@@ -69,7 +70,7 @@ export default abstract class DataImportComponentBase extends VueComponentBase {
         promises.push((async () => {
             self.storeDatas({
                 API_TYPE_ID: DataImportFormatVO.API_TYPE_ID,
-                vos: await ModuleDAO.getInstance().getVos<DataImportFormatVO>(DataImportFormatVO.API_TYPE_ID)
+                vos: await query(DataImportFormatVO.API_TYPE_ID).select_vos<DataImportFormatVO>()
             });
         })());
 

@@ -1,18 +1,19 @@
 import debounce from 'lodash/debounce';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import ISupervisedItem from '../../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import ISupervisedItemController from '../../../../../shared/modules/Supervision/interfaces/ISupervisedItemController';
 import SupervisionController from '../../../../../shared/modules/Supervision/SupervisionController';
 import SupervisedCategoryVO from '../../../../../shared/modules/Supervision/vos/SupervisedCategoryVO';
-import ObjectHandler from '../../../../../shared/tools/ObjectHandler';
 import VueComponentBase from '../../../../ts/components/VueComponentBase';
 import AjaxCacheClientController from '../../../modules/AjaxCache/AjaxCacheClientController';
 import SupervisedItemComponent from '../item/SupervisedItemComponent';
 import SupervisionAdminVueModule from '../SupervisionAdminVueModule';
-import SupervisionItemModalComponent from './item_modal/SupervisionItemModalComponent';
 import SupervisionDashboardItemComponent from './item/SupervisionDashboardItemComponent';
+import SupervisionItemModalComponent from './item_modal/SupervisionItemModalComponent';
+import './SupervisionDashboardComponent.scss';
 import { ModuleSupervisionAction, ModuleSupervisionGetter } from './SupervisionDashboardStore';
 import SupervisionDashboardWidgetComponent from './widget/SupervisionDashboardWidgetComponent';
 import './SupervisionDashboardComponent.scss';
@@ -211,7 +212,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
 
         // récupération des catégories et filtrage en fonction de enabled_categories
         if (!this.get_categorys || !this.get_categorys.length) {
-            let categorys = await ModuleDAO.getInstance().getVos<SupervisedCategoryVO>(SupervisedCategoryVO.API_TYPE_ID);
+            let categorys = await query(SupervisedCategoryVO.API_TYPE_ID).select_vos<SupervisedCategoryVO>();
             this.set_categorys(categorys.filter((category) => !this.enabled_categories || this.enabled_categories.includes(category.name)));
         }
 
@@ -239,7 +240,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
             promises.push((async () => {
                 // pour éviter de récuperer le cache
                 AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([api_type_id]);
-                let items = await ModuleDAO.getInstance().getVos<ISupervisedItem>(api_type_id);
+                let items = await query(api_type_id).select_vos<ISupervisedItem>();
 
                 for (let i in items) {
                     let item = items[i];

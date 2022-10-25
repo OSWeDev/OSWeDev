@@ -22,7 +22,7 @@ import moment = require('moment');
 import { createReadStream, ReadStream } from 'fs';
 import FileHandler from '../../../../shared/tools/FileHandler';
 const CsvReadableStream = require('csv-reader');
-const AutoDetectDecoderStream = require('autodetect-decoder-stream');
+const AutoDetectDecoderStream = require('oswedev-autodetect-decoder-stream');
 
 export default class ImportTypeCSVHandler {
     public static getInstance() {
@@ -379,7 +379,7 @@ export default class ImportTypeCSVHandler {
                     .on('error', async function (err) {
                         error_handler(err);
                     })
-                    .pipe(new AutoDetectDecoderStream({ defaultEncoding: '1255' })) // If failed to guess encoding, default to 1255
+                    .pipe(new AutoDetectDecoderStream({ defaultEncoding: 'windows-1252' })) // If failed to guess encoding, default to 1255
                     .on('error', async function (err) {
                         error_handler(err);
                     });

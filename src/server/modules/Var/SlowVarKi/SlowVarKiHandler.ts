@@ -139,7 +139,7 @@ export default class SlowVarKiHandler {
         let filter = new ContextFilterVO();
         filter.field_id = 'type';
         filter.vo_type = SlowVarVO.API_TYPE_ID;
-        filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+        filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
         filter.param_numeric = SlowVarVO.TYPE_TESTING;
 
         let query_: ContextQueryVO = new ContextQueryVO();

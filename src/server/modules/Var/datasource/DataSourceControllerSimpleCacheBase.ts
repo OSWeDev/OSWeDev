@@ -28,6 +28,10 @@ export default abstract class DataSourceControllerSimpleCacheBase extends DataSo
             return;
         }
 
+        if (!VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name]) {
+            VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name] = {};
+        }
+
         if (typeof VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name]['c'] === 'undefined') {
 
             this.nodes_waiting_for_semaphore[node.var_data.index] = node;

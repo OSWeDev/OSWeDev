@@ -10,22 +10,7 @@ include ../../../../../views/mixins/loading.pug
 
             .table_header {{ table_header_title }}
 
-            .upper_pagination
-                template(v-if='!!crud_activated_api_type')
-                    .crud_actions.btn-group.d-print-none
-                        button.btn.btn-sm.btn-danger(v-if='can_delete_all', @click='confirm_delete_all')
-                            i.fa.fa-trash.fa-lg.btn_icon(aria-hidden="true")
-                            | {{ label('crud.actions.delete_all') }}
-                        button.btn.btn-sm.btn-secondary(v-if='can_refresh', @click='refresh')
-                            i.fa.fa-refresh.fa-lg.btn_icon(aria-hidden="true")
-                            | {{ label('crud.actions.refresh') }}
-                        button.btn.btn-sm.btn-outline-dark(v-if='can_export' @click="choose_export_type")
-                            i.fa.fa-download.fa-lg.btn_icon
-                            | {{ label('crud.actions.export') }}
-                        button.btn.btn-sm.btn-success(v-if='can_create' @click="open_create")
-                            i.fa.fa-plus-circle.fa-lg.btn_icon
-                            | {{ label('crud.actions.create') }}
-                            
+            .upper_pagination                            
                 Tablepaginationcomponent(
                     :pagination_offset='pagination_offset'
                     :pagination_pagesize='limit'
@@ -40,6 +25,21 @@ include ../../../../../views/mixins/loading.pug
                     @change_offset='change_offset'
                     @change_limit='change_limit'
                 )
+
+                template(v-if='!!crud_activated_api_type')
+                    .crud_actions.btn-group.d-print-none
+                        button.btn.btn-sm.btn-danger(v-if='can_delete_all', @click='confirm_delete_all')
+                            i.fa.fa-trash.fa-lg.btn_icon(aria-hidden="true")
+                            | {{ label('crud.actions.delete_all') }}
+                        button.btn.btn-sm.btn-secondary(v-if='can_refresh', @click='refresh')
+                            i.fa.fa-refresh.fa-lg.btn_icon(aria-hidden="true")
+                            | {{ label('crud.actions.refresh') }}
+                        button.btn.btn-sm.btn-outline-dark(v-if='can_export' @click="choose_export_type")
+                            i.fa.fa-download.fa-lg.btn_icon
+                            | {{ label('crud.actions.export') }}
+                        button.btn.btn-sm.btn-success(v-if='can_create' @click="open_create")
+                            i.fa.fa-plus-circle.fa-lg.btn_icon
+                            | {{ label('crud.actions.create') }}
 
             .table_wrapper
                 table.table-striped.table-hover(:class='{"has_sticky_cols": has_sticky_cols}')

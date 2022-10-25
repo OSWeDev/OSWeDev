@@ -4,6 +4,7 @@ import ModuleAccessPolicy from '../../shared/modules/AccessPolicy/ModuleAccessPo
 import AccessPolicyVO from '../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import RolePolicyVO from '../../shared/modules/AccessPolicy/vos/RolePolicyVO';
 import RoleVO from '../../shared/modules/AccessPolicy/vos/RoleVO';
+import { query } from '../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../shared/modules/DAO/ModuleDAO';
 import IGeneratorWorker from '../IGeneratorWorker';
 
@@ -32,7 +33,7 @@ export default abstract class PostModulesPoliciesPatchBase implements IGenerator
 
     protected async get_roles_ids_by_name(): Promise<{ [role_name: string]: number }> {
         let roles_ids_by_name: { [role_name: string]: number } = {};
-        let roles: RoleVO[] = await ModuleDAO.getInstance().getVos<RoleVO>(RoleVO.API_TYPE_ID);
+        let roles: RoleVO[] = await query(RoleVO.API_TYPE_ID).select_vos<RoleVO>();
 
         for (let i in roles) {
             let role = roles[i];
@@ -45,7 +46,7 @@ export default abstract class PostModulesPoliciesPatchBase implements IGenerator
 
     protected async get_policies_ids_by_name(): Promise<{ [policy_name: string]: number }> {
         let policies_ids_by_name: { [role_name: string]: number } = {};
-        let policies: AccessPolicyVO[] = await ModuleDAO.getInstance().getVos<AccessPolicyVO>(AccessPolicyVO.API_TYPE_ID);
+        let policies: AccessPolicyVO[] = await query(AccessPolicyVO.API_TYPE_ID).select_vos<AccessPolicyVO>();
 
         for (let i in policies) {
             let policy = policies[i];
@@ -106,17 +107,13 @@ export default abstract class PostModulesPoliciesPatchBase implements IGenerator
         /**
          * Supprimer les droits existants du role_destination
          */
-        let rights_role_destination: RolePolicyVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds(
-            RolePolicyVO.API_TYPE_ID, 'role_id', [role_destination.id]
-        );
+        let rights_role_destination: RolePolicyVO[] = await query(RolePolicyVO.API_TYPE_ID).filter_by_num_eq('role_id', role_destination.id).select_vos<RolePolicyVO>();
         await ModuleDAO.getInstance().deleteVOs(rights_role_destination);
 
         /**
          * Charger les droits du role_source
          */
-        let rights_role_source: RolePolicyVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds(
-            RolePolicyVO.API_TYPE_ID, 'role_id', [role_source.id]
-        );
+        let rights_role_source: RolePolicyVO[] = await query(RolePolicyVO.API_TYPE_ID).filter_by_num_eq('role_id', role_source.id).select_vos<RolePolicyVO>();
 
         /**
          * Dupliquer pour le role_destination

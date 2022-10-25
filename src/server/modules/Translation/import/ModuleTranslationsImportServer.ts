@@ -1,6 +1,7 @@
 import AccessPolicyGroupVO from '../../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleDataImport from '../../../../shared/modules/DataImport/ModuleDataImport';
@@ -110,7 +111,7 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
     }
 
     private async get_langs_by_code(): Promise<{ [code_lang: string]: LangVO }> {
-        let langs: LangVO[] = await ModuleDAO.getInstance().getVos<LangVO>(LangVO.API_TYPE_ID);
+        let langs: LangVO[] = await query(LangVO.API_TYPE_ID).select_vos<LangVO>();
         let langs_by_code: { [code_lang: string]: LangVO } = {};
 
         for (let i in langs) {
@@ -123,7 +124,7 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
     }
 
     private async get_translatables_by_code(): Promise<{ [code_text: string]: TranslatableTextVO }> {
-        let translatables: TranslatableTextVO[] = await ModuleDAO.getInstance().getVos<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID);
+        let translatables: TranslatableTextVO[] = await query(TranslatableTextVO.API_TYPE_ID).select_vos<TranslatableTextVO>();
         let translatables_by_code: { [code_text: string]: TranslatableTextVO } = {};
 
         for (let i in translatables) {

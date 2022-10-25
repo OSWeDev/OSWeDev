@@ -4,6 +4,7 @@ import ModuleAPI from '../../../../shared/modules/API/ModuleAPI';
 import ModuleClient from '../../../../shared/modules/Commerce/Client/ModuleClient';
 import ClientVO from '../../../../shared/modules/Commerce/Client/vos/ClientVO';
 import InformationsVO from '../../../../shared/modules/Commerce/Client/vos/InformationsVO';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ModuleServerBase from '../../ModuleServerBase';
@@ -41,10 +42,7 @@ export default class ModuleClientServer extends ModuleServerBase {
             return null;
         }
 
-        return await ModuleDAOServer.getInstance().selectAll<ClientVO>(
-            ClientVO.API_TYPE_ID,
-            ' WHERE t.user_id = $1', [num]
-        );
+        return await query(ClientVO.API_TYPE_ID).filter_by_num_eq('user_id', num).select_vos<ClientVO>();
     }
 
     public async getFirstClientByUser(user: UserVO): Promise<ClientVO> {

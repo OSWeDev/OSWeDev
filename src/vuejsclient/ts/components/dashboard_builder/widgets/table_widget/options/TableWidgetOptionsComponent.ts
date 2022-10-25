@@ -316,23 +316,6 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         }
     }
 
-    // private async changed_columns() {
-
-    //     /**
-    //      * On applique les nouveaux poids
-    //      */
-    //     for (let i in this.editable_columns) {
-    //         let column = this.editable_columns[i];
-
-    //         this.columns.find((c) => c.id == column.id).weight = parseInt(i.toString());
-    //     }
-
-    //     await ModuleDAO.getInstance().insertOrUpdateVOs(this.columns);
-    //     this.next_update_options = this.widget_options;
-    //     this.next_update_options.columns = this.editable_columns;
-    //     // this.next_update_options.columns = this.columns;
-    //     await this.throttled_update_options();
-    // }
     private async changed_columns() {
 
         /**
@@ -340,23 +323,18 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
          */
         for (let i in this.editable_columns) {
             let column = this.editable_columns[i];
-            this.columns.find((c) => {
-                if (column.type == 5) {
-                    for (let r in column.children) {
-                        let child = column.children[r];
-                        if (c.id == child.id) {
-                            c.weight = parseInt(r.toString());
-                        }
-                    }
-                } else {
-                    if (c.id == column.id) {
-                        c.weight = parseInt(i.toString());
-                    }
+
+            if (column.type == TableColumnDescVO.TYPE_header) {
+                for (let j in column.children) {
+                    let child = column.children[j];
+
+                    child.weight = parseInt(j);
                 }
-            });
+            } else {
+                column.weight = parseInt(i);
+            }
         }
 
-        await ModuleDAO.getInstance().insertOrUpdateVOs(this.columns);
         this.next_update_options = this.widget_options;
         this.next_update_options.columns = this.editable_columns;
         await this.throttled_update_options();
@@ -539,23 +517,21 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     }
 
     private beforeMove({ dragItem, pathFrom, pathTo }) {
+        // Si on essaye de faire un 3eme niveau, on refuse
         if (pathTo.length > 2) {
             return false;
         }
+
+        // On ne peut mettre les type header que sur le 1er niveau
         if (dragItem.type == TableColumnDescVO.TYPE_header) {
             return pathTo.length === 1;
         }
-        // on rentre
-        if (pathFrom.length === 1 && dragItem.type == TableColumnDescVO.TYPE_vo_field_ref && this.columns[pathTo[0]].type == TableColumnDescVO.TYPE_vo_field_ref) {
+
+        // Si on essaye de créer un 2nd niveau sur une colonne qui n'est pas header, on refuse
+        if ((pathFrom.length === 1) && (pathTo.length == 2) && this.columns[pathTo[0]].type == TableColumnDescVO.TYPE_vo_field_ref) {
             return false;
         }
-        // on sort
-        if (pathFrom.length === 2 && dragItem.type == TableColumnDescVO.TYPE_vo_field_ref) {
-            return true;
-        }
-        // if (dragItem.type == TableColumnDescVO.TYPE_vo_field_ref) {
-        //     return pathTo.length === 2 || pathTo.length === 1;
-        // }
+
         return true;
     }
 

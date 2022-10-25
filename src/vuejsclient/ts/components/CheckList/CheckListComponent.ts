@@ -136,7 +136,7 @@ export default class CheckListComponent extends VueComponentBase {
             let filter = new ContextFilterVO();
             filter.field_id = 'checklist_id';
             filter.vo_type = self.checklist_shared_module.checklistitem_type_id;
-            filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+            filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
             filter.param_numeric = self.list_id;
 
             checklist = await ModuleDAO.getInstance().getVoById<ICheckList>(self.checklist_shared_module.checklist_type_id, self.list_id);

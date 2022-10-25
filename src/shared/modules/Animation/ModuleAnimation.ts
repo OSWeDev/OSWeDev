@@ -3,6 +3,7 @@ import RoleVO from '../AccessPolicy/vos/RoleVO';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
+import { query } from '../ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../DAO/ModuleDAO';
 import DataFilterOption from '../DataRender/vos/DataFilterOption';
 import TimeSegment from '../DataRender/vos/TimeSegment';
@@ -135,7 +136,7 @@ export default class ModuleAnimation extends Module {
     }
 
     public async getParameters(): Promise<AnimationParametersVO> {
-        let res: AnimationParametersVO[] = await ModuleDAO.getInstance().getVos<AnimationParametersVO>(AnimationParametersVO.API_TYPE_ID);
+        let res: AnimationParametersVO[] = await query(AnimationParametersVO.API_TYPE_ID).select_vos<AnimationParametersVO>();
 
         return res ? res[0] : null;
     }

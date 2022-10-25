@@ -33,6 +33,9 @@ export default abstract class DataSourceControllerNumRangeIndexedBase extends Da
         }
 
         node.datasources[this.name] = {};
+        if (!VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name]) {
+            VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name] = {};
+        }
         await RangeHandler.getInstance().foreach_ranges(data_index, async (i: number) => {
 
             if (typeof VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][i] === 'undefined') {

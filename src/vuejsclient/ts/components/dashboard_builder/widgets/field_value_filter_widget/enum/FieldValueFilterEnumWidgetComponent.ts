@@ -4,15 +4,12 @@ import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterHandler from '../../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import ContextQueryFieldVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
-import ContextQueryVO, { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
-import NumSegment from '../../../../../../../shared/modules/DataRender/vos/NumSegment';
-import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
@@ -117,9 +114,15 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
         let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id];
         let field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
+        let has_null_value: boolean = false;
 
         for (let i in locale_tmp_filter_active_options) {
-            let active_option = locale_tmp_filter_active_options[i];
+            let active_option: DataFilterOption = locale_tmp_filter_active_options[i];
+
+            if (active_option.id == RangeHandler.MIN_INT) {
+                has_null_value = true;
+                continue;
+            }
 
             let new_translated_active_options = ContextFilterHandler.getInstance().get_ContextFilterVO_from_DataFilterOption(active_option, null, field, this.vo_field_ref);
 
@@ -131,6 +134,19 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
                 translated_active_options = new_translated_active_options;
             } else {
                 translated_active_options = ContextFilterHandler.getInstance().merge_ContextFilterVOs(translated_active_options, new_translated_active_options);
+            }
+        }
+
+        if (has_null_value) {
+            let cf_null_value: ContextFilterVO = new ContextFilterVO();
+            cf_null_value.field_id = this.vo_field_ref.field_id;
+            cf_null_value.vo_type = this.vo_field_ref.api_type_id;
+            cf_null_value.filter_type = ContextFilterVO.TYPE_NULL_OR_EMPTY;
+
+            if (!translated_active_options) {
+                translated_active_options = cf_null_value;
+            } else {
+                translated_active_options = ContextFilterVO.or([cf_null_value, translated_active_options]);
             }
         }
 
@@ -223,15 +239,23 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         }
 
         if (!tmp) {
-            this.filter_visible_options = [];
-        } else {
-
-            for (let i in tmp) {
-                let tmpi = tmp[i];
-                tmpi.label = this.t(tmpi.label);
-            }
-            this.filter_visible_options = tmp;
+            tmp = [];
         }
+
+        for (let i in tmp) {
+            let tmpi = tmp[i];
+            tmpi.label = this.t(tmpi.label);
+        }
+
+        if (this.add_is_null_selectable) {
+            tmp.unshift(new DataFilterOption(
+                DataFilterOption.STATE_SELECTABLE,
+                this.label('datafilteroption.is_null'),
+                RangeHandler.MIN_INT,
+            ));
+        }
+
+        this.filter_visible_options = tmp;
     }
 
     private try_apply_actual_active_filters(filter: ContextFilterVO): boolean {
@@ -303,6 +327,15 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         }
 
         return !!this.widget_options.can_select_multiple;
+    }
+
+    get add_is_null_selectable(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.add_is_null_selectable;
     }
 
     get vo_field_ref(): VOFieldRefVO {
@@ -424,6 +457,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
                     options.separation_active_filter,
                     options.vo_field_sort_lvl2,
                     options.autovalidate_advanced_filter,
+                    options.add_is_null_selectable,
                 ) : null;
             }
         } catch (error) {
