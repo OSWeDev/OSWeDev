@@ -1,0 +1,4 @@
+.alerts_list_content(v-if="!!has_alert")
+    p.alerts_list_content_title(v-if="!!has_title") {{ label(title_translatable_code, title_translation_params) }}
+    template(v-for='alert in alerts')
+        Alertviewcomponent(v-if='!alert.not_in_list' :alert='alert', :show_alert_date="show_alert_date", :show_alert_content="true")

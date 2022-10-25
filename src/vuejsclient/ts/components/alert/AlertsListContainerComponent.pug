@@ -1,0 +1,11 @@
+.alerts_list_component(id="alerts_list_component", ref="alerts_list_component")
+    .alerts_list_container
+        .text-right.close
+            div(v-on:click="close()")
+                i.fa.fa-times
+
+        h1 {{ label(title_code_trad) }}
+        p(v-if="!!desc_code_trad") {{ label(desc_code_trad) }}
+        template(v-if='alerts_paths && alerts_paths.length > 0')
+            template(v-for='alerts_path in alerts_paths')
+                Alertslistcontentcomponent(:alerts_path='alerts_path', :show_alert_date="show_alert_date")

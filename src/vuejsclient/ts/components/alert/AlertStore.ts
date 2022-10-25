@@ -9,6 +9,9 @@ export type AlertContext = ActionContext<IAlertState, any>;
 
 export interface IAlertState {
     alerts: { [path: string]: Alert[] };
+    titles: { [path: string]: { translatable_code: string, translation_params: { [param_name: string]: any } } };
+    alerts_list: { [path: string]: number };
+    show_alerts_list: boolean;
 }
 
 export default class AlertStore implements IStoreModule<IAlertState, AlertContext> {
@@ -34,12 +37,18 @@ export default class AlertStore implements IStoreModule<IAlertState, AlertContex
 
 
         this.state = {
-            alerts: {}
+            alerts: {},
+            titles: {},
+            alerts_list: {},
+            show_alerts_list: false,
         };
 
 
         this.getters = {
             get_alerts: (state: IAlertState): any => state.alerts,
+            get_titles: (state: IAlertState): any => state.titles,
+            get_alerts_list: (state: IAlertState): any => state.alerts_list,
+            get_show_alerts_list: (state: IAlertState): any => state.show_alerts_list,
         };
 
         this.mutations = {
@@ -155,8 +164,40 @@ export default class AlertStore implements IStoreModule<IAlertState, AlertContex
 
                 Vue.set(state.alerts as any, params.alert_path, new_alerts);
             },
-        };
 
+            set_title: (state: IAlertState, params: { alert_path: string, translatable_code: string, translation_params: { [param_name: string]: any } }) => {
+                if (!params.alert_path) {
+                    return;
+                }
+                state.titles[params.alert_path] = { translatable_code: params.translatable_code, translation_params: params.translation_params };
+            },
+
+            register_path_in_alerts_list: (state: IAlertState, alert_path: string) => {
+                if (!alert_path) {
+                    return;
+                }
+
+                if (!state.alerts_list[alert_path]) {
+                    state.alerts_list[alert_path] = 0;
+                }
+                state.alerts_list[alert_path]++;
+            },
+
+            unregister_path_in_alerts_list: (state: IAlertState, alert_path: string) => {
+                if (!alert_path) {
+                    return;
+                }
+
+                if (!state.alerts_list[alert_path]) {
+                    return;
+                }
+                state.alerts_list[alert_path]--;
+            },
+
+            toggle_show_alerts_list: (state: IAlertState) => {
+                state.show_alerts_list = !state.show_alerts_list;
+            },
+        };
 
 
         this.actions = {
@@ -164,6 +205,10 @@ export default class AlertStore implements IStoreModule<IAlertState, AlertContex
             register_alert: (context: AlertContext, alert: Alert) => commit_register_alert(context, alert),
             register_alerts: (context: AlertContext, alerts: Alert[]) => commit_register_alerts(context, alerts),
             replace_alerts: (context: AlertContext, params: { alert_path: string, alerts: Alert[] }) => commit_replace_alerts(context, params),
+            set_title: (context: AlertContext, params: { alert_path: string, title: string }) => commit_set_title(context, params),
+            register_path_in_alerts_list: (context: AlertContext, alert_path: string) => commit_register_path_in_alerts_list(context, alert_path),
+            unregister_path_in_alerts_list: (context: AlertContext, alert_path: string) => commit_unregister_path_in_alerts_list(context, alert_path),
+            toggle_show_alerts_list: (context: AlertContext) => commit_toggle_show_alerts_list(context, null),
         };
     }
 }
@@ -177,3 +222,7 @@ export const commit_clear_alerts = commit(AlertStore.getInstance().mutations.cle
 export const commit_register_alert = commit(AlertStore.getInstance().mutations.register_alert);
 export const commit_register_alerts = commit(AlertStore.getInstance().mutations.register_alerts);
 export const commit_replace_alerts = commit(AlertStore.getInstance().mutations.replace_alerts);
+export const commit_set_title = commit(AlertStore.getInstance().mutations.set_title);
+export const commit_register_path_in_alerts_list = commit(AlertStore.getInstance().mutations.register_path_in_alerts_list);
+export const commit_unregister_path_in_alerts_list = commit(AlertStore.getInstance().mutations.unregister_path_in_alerts_list);
+export const commit_toggle_show_alerts_list = commit(AlertStore.getInstance().mutations.toggle_show_alerts_list);
