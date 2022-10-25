@@ -2,6 +2,7 @@ import NumRange from '../../../../shared/modules/DataRender/vos/NumRange';
 import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
+import VarsdatasComputerBGThread from '../bgthreads/VarsdatasComputerBGThread';
 import DataSourceControllerBase from './DataSourceControllerBase';
 
 export default abstract class DataSourceControllerNumRangeIndexedBase extends DataSourceControllerBase {
@@ -18,9 +19,8 @@ export default abstract class DataSourceControllerNumRangeIndexedBase extends Da
      * Par défaut on décrit une gestion de type index de matroid
      *  Mais pour des datasources qui utilise un range plutôt pour décrire les datas à utiliser ou à charger, on utilise d'autres stratégies
      * @param node
-     * @param ds_cache
      */
-    public async load_node_data(node: VarDAGNode, ds_cache: { [ds_data_index: string]: any }) {
+    public async load_node_data(node: VarDAGNode) {
         if (typeof node.datasources[this.name] !== 'undefined') {
             return;
         }
@@ -35,8 +35,8 @@ export default abstract class DataSourceControllerNumRangeIndexedBase extends Da
         node.datasources[this.name] = {};
         await RangeHandler.getInstance().foreach_ranges(data_index, async (i: number) => {
 
-            if (typeof ds_cache[i] === 'undefined') {
-                let data = await this.get_data(node.var_data, ds_cache);
+            if (typeof VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][i] === 'undefined') {
+                let data = await this.get_data(node.var_data);
 
                 for (let j in data) {
                     let e = data[j];
@@ -44,14 +44,14 @@ export default abstract class DataSourceControllerNumRangeIndexedBase extends Da
                     /**
                      * On ne change pas les datas qu'on avait déjà
                      */
-                    if (typeof ds_cache[j] === 'undefined') {
-                        ds_cache[j] = ((typeof e === 'undefined') ? null : e);
+                    if (typeof VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][j] === 'undefined') {
+                        VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][j] = ((typeof e === 'undefined') ? null : e);
                     }
                 }
             }
 
-            if (ds_cache[i]) {
-                node.datasources[this.name][i] = ds_cache[i];
+            if (VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][i]) {
+                node.datasources[this.name][i] = VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][i];
             }
         });
     }
@@ -60,5 +60,5 @@ export default abstract class DataSourceControllerNumRangeIndexedBase extends Da
      * Dans ce cas la fonction qui load les datas doit aussi faire le lien entre le int qui vient du numrange et chaque valeur
      * @param param
      */
-    public abstract get_data(param: VarDataBaseVO, ds_cache: { [ds_data_index: string]: any }): Promise<{ [i: number]: any }>;
+    public abstract get_data(param: VarDataBaseVO): Promise<{ [i: number]: any }>;
 }

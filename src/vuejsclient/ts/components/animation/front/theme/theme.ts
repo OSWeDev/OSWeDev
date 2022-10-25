@@ -12,6 +12,7 @@ import NumSegment from "../../../../../../shared/modules/DataRender/vos/NumSegme
 import DocumentVO from "../../../../../../shared/modules/Document/vos/DocumentVO";
 import VarsController from "../../../../../../shared/modules/Var/VarsController";
 import VarDataBaseVO from "../../../../../../shared/modules/Var/vos/VarDataBaseVO";
+import { all_promises } from "../../../../../../shared/tools/PromiseTools";
 import RangeHandler from "../../../../../../shared/tools/RangeHandler";
 import VarDataRefComponent from '../../../Var/components/dataref/VarDataRefComponent';
 import VarsClientController from "../../../Var/VarsClientController";
@@ -82,7 +83,7 @@ export default class VueAnimationThemeComponent extends VueComponentBase {
             }
         }
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         // trie les mosule en fonction de l'tat d'avancement (ceux réussis en dernier)
         if (this.modules) {

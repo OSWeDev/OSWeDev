@@ -43,10 +43,10 @@ export default class ModulePushDataServer extends ModuleServerBase {
 
         // Triggers pour mettre à jour les dates
         let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        preCreateTrigger.registerHandler(NotificationVO.API_TYPE_ID, this.handleNotificationCreation);
+        preCreateTrigger.registerHandler(NotificationVO.API_TYPE_ID, this, this.handleNotificationCreation);
 
         let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
-        preUpdateTrigger.registerHandler(NotificationVO.API_TYPE_ID, this.handleNotificationUpdate);
+        preUpdateTrigger.registerHandler(NotificationVO.API_TYPE_ID, this, this.handleNotificationUpdate);
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Valider'

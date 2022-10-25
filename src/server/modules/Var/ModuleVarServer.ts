@@ -37,6 +37,7 @@ import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
@@ -215,13 +216,13 @@ export default class ModuleVarServer extends ModuleServerBase {
         let preUTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
 
         // Trigger sur les varcacheconfs pour mettre à jour les confs en cache en même temps qu'on les modifie dans l'outil
-        postCTrigger.registerHandler(VarCacheConfVO.API_TYPE_ID, this.onCVarCacheConf);
-        postUTrigger.registerHandler(VarCacheConfVO.API_TYPE_ID, this.onUVarCacheConf);
-        postDTrigger.registerHandler(VarCacheConfVO.API_TYPE_ID, this.onPostDVarCacheConf);
+        postCTrigger.registerHandler(VarCacheConfVO.API_TYPE_ID, this, this.onCVarCacheConf);
+        postUTrigger.registerHandler(VarCacheConfVO.API_TYPE_ID, this, this.onUVarCacheConf);
+        postDTrigger.registerHandler(VarCacheConfVO.API_TYPE_ID, this, this.onPostDVarCacheConf);
 
-        postCTrigger.registerHandler(VarConfVO.API_TYPE_ID, this.onCVarConf);
-        postUTrigger.registerHandler(VarConfVO.API_TYPE_ID, this.onUVarConf);
-        postDTrigger.registerHandler(VarConfVO.API_TYPE_ID, this.onPostDVarConf);
+        postCTrigger.registerHandler(VarConfVO.API_TYPE_ID, this, this.onCVarConf);
+        postUTrigger.registerHandler(VarConfVO.API_TYPE_ID, this, this.onUVarConf);
+        postDTrigger.registerHandler(VarConfVO.API_TYPE_ID, this, this.onPostDVarConf);
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Calculée'
@@ -451,9 +452,9 @@ export default class ModuleVarServer extends ModuleServerBase {
              */
             for (let api_type_id in VarsServerController.getInstance().registered_vars_controller_by_api_type_id) {
 
-                postCTrigger.registerHandler(api_type_id, this.invalidate_var_cache_from_vo_cd);
-                postUTrigger.registerHandler(api_type_id, this.invalidate_var_cache_from_vo_u);
-                postDTrigger.registerHandler(api_type_id, this.invalidate_var_cache_from_vo_cd);
+                postCTrigger.registerHandler(api_type_id, this, this.invalidate_var_cache_from_vo_cd);
+                postUTrigger.registerHandler(api_type_id, this, this.invalidate_var_cache_from_vo_u);
+                postDTrigger.registerHandler(api_type_id, this, this.invalidate_var_cache_from_vo_cd);
             }
 
             /**
@@ -462,12 +463,12 @@ export default class ModuleVarServer extends ModuleServerBase {
              */
             for (let api_type_id in VarsServerController.getInstance().varcacheconf_by_api_type_ids) {
 
-                preCTrigger.registerHandler(api_type_id, this.prepare_bdd_index_for_c);
-                preUTrigger.registerHandler(api_type_id, this.prepare_bdd_index_for_u);
+                preCTrigger.registerHandler(api_type_id, this, this.prepare_bdd_index_for_c);
+                preUTrigger.registerHandler(api_type_id, this, this.prepare_bdd_index_for_u);
 
                 // On invalide l'arbre par intersection si on passe un type en import, ou si on change la valeur d'un import, ou si on passe de import à calculé
-                postCTrigger.registerHandler(api_type_id, this.invalidate_imports_for_c);
-                postUTrigger.registerHandler(api_type_id, this.invalidate_imports_for_u);
+                postCTrigger.registerHandler(api_type_id, this, this.invalidate_imports_for_c);
+                postUTrigger.registerHandler(api_type_id, this, this.invalidate_imports_for_u);
             }
 
             VarsServerController.getInstance().init_varcontrollers_dag();
@@ -801,6 +802,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         // APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getSimpleVarDataCachedValueFromParam, this.getSimpleVarDataCachedValueFromParam.bind(this));
         // APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_configureVarCache, this.configureVarCache.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_register_params, this.register_params.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_update_params_registration, this.update_params_registration.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_unregister_params, this.unregister_params.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_get_var_id_by_names, this.get_var_id_by_names.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_get_var_data_by_index, this.get_var_data_by_index.bind(this));
@@ -1060,6 +1062,34 @@ export default class ModuleVarServer extends ModuleServerBase {
     }
 
     /**
+     * On ne fait que mettre à jour la date de sub pour s'assurer qu'on expire pas car l'onglet est toujours actif
+     * @param params
+     */
+    private async update_params_registration(params: VarDataBaseVO[]): Promise<void> {
+        if (!params) {
+            return;
+        }
+
+        /**
+         * On commence par refuser les params mal construits (champs null)
+         */
+        params = this.filter_null_fields_params(params);
+
+        let uid = StackContext.getInstance().get('UID');
+        let client_tab_id = StackContext.getInstance().get('CLIENT_TAB_ID');
+
+        VarsTabsSubsController.getInstance().register_sub(uid, client_tab_id, params ? params.map((param) => param.index) : []);
+
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+            for (let i in params) {
+                let param = params[i];
+
+                ConsoleHandler.getInstance().log('update_params_registration:' + param.index + ':UID:' + uid + ':CLIENT_TAB_ID:' + client_tab_id);
+            }
+        }
+    }
+
+    /**
      * Fonction qui demande l'abonnement d'un socket (celui par lequel arrive la demande) sur la mise à jour des
      *  valeurs des vardatas correspondants aux params. Et si on a déjà une valeur à fournir, alors on l'envoie directement
      * @param api_param
@@ -1084,7 +1114,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             for (let i in params) {
                 let param = params[i];
 
-                ConsoleHandler.getInstance().log('register_param:' + param.index + ':UID:' + uid + ':CLIENT_TAB_ID:' + client_tab_id);
+                ConsoleHandler.getInstance().log('register_params:' + param.index + ':UID:' + uid + ':CLIENT_TAB_ID:' + client_tab_id);
             }
         }
 
@@ -1110,46 +1140,6 @@ export default class ModuleVarServer extends ModuleServerBase {
                 }
             }
         }
-
-
-
-
-
-        // let promises = [];
-
-        // let vars_to_notif: VarDataValueResVO[] = [];
-        // let needs_var_computation: boolean = false;
-        // for (let i in params) {
-        //     let param = params[i];
-
-        //     if (!param.check_param_is_valid(param._type)) {
-        //         ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
-        //         continue;
-        //     }
-
-        //     // TODO FIXME promises.length
-        //     if (promises.length >= 10) {
-        //         await Promise.all(promises);
-        //         promises = [];
-        //     }
-
-        //     promises.push((async () => {
-
-        //         let in_db_data: VarDataBaseVO = await ModuleVarServer.getInstance().get_var_data_or_ask_to_bgthread(param);
-        //         if (!in_db_data) {
-        //             needs_var_computation = true;
-        //             return;
-        //         }
-
-        //         vars_to_notif.push(new VarDataValueResVO().set_from_vardata(in_db_data));
-        //     })());
-        // }
-
-        // await Promise.all(promises);
-
-        // if (vars_to_notif && vars_to_notif.length) {
-        //     await PushDataServerController.getInstance().notifyVarsDatas(uid, client_tab_id, vars_to_notif);
-        // }
     }
 
     private filter_null_fields_params(params: VarDataBaseVO[]): VarDataBaseVO[] {
@@ -1256,7 +1246,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             return null;
         }
 
-        let dag: VarDAG = new VarDAG(null);
+        let dag: VarDAG = new VarDAG();
         let varDAGNode: VarDAGNode = VarDAGNode.getInstance(dag, param, VarsComputeController, false);
 
         if (!varDAGNode) {
@@ -1264,8 +1254,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         let predeps = var_controller.getDataSourcesPredepsDependencies();
-        let cache = {};
-        await DataSourcesController.getInstance().load_node_datas(predeps, varDAGNode, cache);
+        await DataSourcesController.getInstance().load_node_datas(predeps, varDAGNode);
 
         // TEMP DEBUG JFE :
         // ConsoleHandler.getInstance().log("cpt_for_datasources :: " + JSON.stringify(this.cpt_for_datasources));
@@ -1274,12 +1263,11 @@ export default class ModuleVarServer extends ModuleServerBase {
     }
 
     private async getAggregatedVarDatas(param: VarDataBaseVO): Promise<{ [var_data_index: string]: VarDataBaseVO }> {
-        let var_dag: VarDAG = new VarDAG(null);
+        let var_dag: VarDAG = new VarDAG();
         let deployed_vars_datas: { [index: string]: boolean } = {};
         let vars_datas: { [index: string]: VarDataBaseVO } = {
             [param.index]: param
         };
-        let ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } } = {};
 
         let node = VarDAGNode.getInstance(var_dag, param, VarsComputeController, false);
 
@@ -1287,13 +1275,12 @@ export default class ModuleVarServer extends ModuleServerBase {
             return null;
         }
 
-        // await VarsComputeController.getInstance().deploy_deps(node, deployed_vars_datas, vars_datas, ds_cache);
+        // await VarsComputeController.getInstance().deploy_deps(node, deployed_vars_datas, vars_datas);
         await VarsComputeController.getInstance().load_caches_and_imports_on_var_to_deploy(
             param,
             var_dag,
             deployed_vars_datas,
             vars_datas,
-            ds_cache,
             true);
 
         return node.aggregated_datas ? node.aggregated_datas : {};
@@ -1346,7 +1333,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         let datasources_deps: DataSourceControllerBase[] = VarsServerController.getInstance().get_datasource_deps_and_predeps(var_controller);
 
         // WARNING on se base sur un fake node par ce que je vois pas comment faire autrement...
-        let dag: VarDAG = new VarDAG(null);
+        let dag: VarDAG = new VarDAG();
         let varDAGNode: VarDAGNode = VarDAGNode.getInstance(dag, param, VarsComputeController, false);
 
         if (!varDAGNode) {
@@ -1356,8 +1343,6 @@ export default class ModuleVarServer extends ModuleServerBase {
         for (let i in datasources_deps) {
             let datasource_dep = datasources_deps[i];
 
-            let cache = {};
-
             // TEMP DEBUG JFE start
             // if (!this.cpt_for_datasources[datasource_dep.name]) {
             //     this.cpt_for_datasources[datasource_dep.name] = 0;
@@ -1365,7 +1350,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             // this.cpt_for_datasources[datasource_dep.name]++;
             // TEMP DEBUG JFE - end
 
-            await datasource_dep.load_node_data(varDAGNode, cache);
+            await datasource_dep.load_node_data(varDAGNode);
             let data = varDAGNode.datasources[datasource_dep.name];
 
             let data_jsoned: string = null;
@@ -1468,7 +1453,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             })(matroid_field_));
         }
 
-        await Promise.all(field_promises);
+        await all_promises(field_promises);
 
         return refuse_param ? null : var_param;
     }
@@ -1703,7 +1688,13 @@ export default class ModuleVarServer extends ModuleServerBase {
                         indexes.push(var_data_index);
                     }
 
-                    let query_wrapper: ParameterizedQueryWrapper = await (await query(api_type_id).filter_by_text_has('_bdd_only_index', indexes).get_select_query_str());
+                    let query_wrapper: ParameterizedQueryWrapper = await query(api_type_id).filter_by_text_has('_bdd_only_index', indexes).get_select_query_str();
+
+                    if (!query_wrapper) {
+                        ConsoleHandler.getInstance().warn('Refused (probably session lost) to get_var_data_by_index for api_type_id ' + api_type_id);
+                        return;
+                    }
+
                     let results: VarDataBaseVO[] = await ModuleServiceBase.getInstance().db.query(query_wrapper.query, query_wrapper.params);
 
                     for (let i in results) {
@@ -1729,7 +1720,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 })());
             }
 
-            await Promise.all(promises);
+            await all_promises(promises);
 
             /**
              * On appelle les callbacks qui n'ont pas été appelés

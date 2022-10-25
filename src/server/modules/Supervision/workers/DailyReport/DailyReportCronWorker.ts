@@ -9,6 +9,7 @@ import TeamsWebhookContentSectionVO from '../../../../../shared/modules/TeamsAPI
 import TeamsWebhookContentVO from '../../../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentVO';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
+import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import ConfigurationService from '../../../../env/ConfigurationService';
 import ICronWorker from '../../../Cron/interfaces/ICronWorker';
 import SendInBlueMailServerController from '../../../SendInBlue/SendInBlueMailServerController';
@@ -205,7 +206,7 @@ export default class DailyReportCronWorker implements ICronWorker {
             })());
         }
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         return supervised_items_by_names;
     }

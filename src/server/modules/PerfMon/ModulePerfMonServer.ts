@@ -43,11 +43,11 @@ export default class ModulePerfMonServer extends ModuleServerBase {
 
 
         let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
-        postUpdateTrigger.registerHandler(PerfMonLineTypeVO.API_TYPE_ID, PerfMonConfController.getInstance().throttled_update_cached_perf_conf);
+        postUpdateTrigger.registerHandler(PerfMonLineTypeVO.API_TYPE_ID, PerfMonConfController.getInstance(), PerfMonConfController.getInstance().throttled_update_cached_perf_conf);
         let postDeleteTrigger: DAOPostDeleteTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
-        postDeleteTrigger.registerHandler(PerfMonLineTypeVO.API_TYPE_ID, PerfMonConfController.getInstance().throttled_update_cached_perf_conf);
+        postDeleteTrigger.registerHandler(PerfMonLineTypeVO.API_TYPE_ID, PerfMonConfController.getInstance(), PerfMonConfController.getInstance().throttled_update_cached_perf_conf);
         let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
-        postCreateTrigger.registerHandler(PerfMonLineTypeVO.API_TYPE_ID, PerfMonConfController.getInstance().throttled_update_cached_perf_conf);
+        postCreateTrigger.registerHandler(PerfMonLineTypeVO.API_TYPE_ID, PerfMonConfController.getInstance(), PerfMonConfController.getInstance().throttled_update_cached_perf_conf);
     }
 
     /**

@@ -8,6 +8,7 @@ import AnimationThemeVO from "../../../../../../shared/modules/Animation/vos/Ani
 import ModuleDAO from "../../../../../../shared/modules/DAO/ModuleDAO";
 import DocumentVO from "../../../../../../shared/modules/Document/vos/DocumentVO";
 import FileVO from "../../../../../../shared/modules/File/vos/FileVO";
+import { all_promises } from "../../../../../../shared/tools/PromiseTools";
 import VueComponentBase from '../../../VueComponentBase';
 import VueAnimationThemeComponent from "../theme/theme";
 import './animation.scss';
@@ -47,7 +48,7 @@ export default class VueAnimationComponent extends VueComponentBase {
             }
         })());
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         promises = [];
 
@@ -63,7 +64,7 @@ export default class VueAnimationComponent extends VueComponentBase {
             promises.push((async () => this.documents = await ModuleDAO.getInstance().getVosByIdsRanges<DocumentVO>(DocumentVO.API_TYPE_ID, this.animation_params.document_id_ranges))());
         }
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         this.skip_home = AnimationController.getInstance().skip_home;
     }

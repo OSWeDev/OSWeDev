@@ -9,6 +9,7 @@ import ModuleDAO from "../../../../../../shared/modules/DAO/ModuleDAO";
 import SimpleDatatableField from "../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField";
 import VarsController from "../../../../../../shared/modules/Var/VarsController";
 import VOsTypesManager from "../../../../../../shared/modules/VOsTypesManager";
+import { all_promises } from "../../../../../../shared/tools/PromiseTools";
 import VueComponentBase from '../../../VueComponentBase';
 import '../_base/animation.scss';
 @Component({
@@ -35,7 +36,7 @@ export default class VueAnimationModuleFeedbackComponent extends VueComponentBas
         promises.push((async () => this.user_id = await ModuleAccessPolicy.getInstance().getLoggedUserId())());
         promises.push((async () => this.anim_module = await ModuleDAO.getInstance().getVoById<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID, this.module_id))());
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         promises = [];
 
@@ -43,7 +44,7 @@ export default class VueAnimationModuleFeedbackComponent extends VueComponentBas
 
         promises.push((async () => this.theme = await ModuleDAO.getInstance().getVoById<AnimationThemeVO>(AnimationThemeVO.API_TYPE_ID, this.anim_module.theme_id))());
 
-        await Promise.all(promises);
+        await all_promises(promises);
     }
 
     private async mounted() {

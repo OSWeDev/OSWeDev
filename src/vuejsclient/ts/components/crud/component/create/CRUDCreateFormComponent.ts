@@ -8,6 +8,7 @@ import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
 import { ModuleAlertAction } from '../../../alert/AlertStore';
 import { ModuleCRUDGetter } from '../../../crud/store/CRUDStore';
@@ -119,7 +120,7 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
         /**
          * On ne veut pas charger par défaut (sauf ref reflective dans un champ de l'objet) tous les vos du type du vo modifié
          */
-        await Promise.all(CRUDFormServices.getInstance().loadDatasFromDatatable(this.crud.createDatatable, this.api_types_involved, this.storeDatas, true));
+        await all_promises(CRUDFormServices.getInstance().loadDatasFromDatatable(this.crud.createDatatable, this.api_types_involved, this.storeDatas, true));
 
         await this.prepareNewVO();
 
@@ -261,6 +262,10 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
                     // On doit mettre à jour les OneToMany, et ManyToMany dans les tables correspondantes
                     await CRUDFormServices.getInstance().updateManyToMany(self.newVO, self.crud.createDatatable, createdVO, self.removeData, self.storeData, self);
                     await CRUDFormServices.getInstance().updateOneToMany(self.newVO, self.crud.createDatatable, createdVO, self.getStoredDatas, self.updateData);
+
+                    if (self.crud.postCreate) {
+                        await self.crud.postCreate(self.newVO);
+                    }
 
                     self.storeData(createdVO);
                 } catch (error) {

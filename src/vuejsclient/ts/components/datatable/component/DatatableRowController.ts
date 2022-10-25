@@ -11,6 +11,7 @@ import IDistantVOBase from "../../../../../shared/modules/IDistantVOBase";
 import ModuleTableField from "../../../../../shared/modules/ModuleTableField";
 import TableFieldTypesManager from "../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager";
 import ConsoleHandler from "../../../../../shared/tools/ConsoleHandler";
+import { all_promises } from "../../../../../shared/tools/PromiseTools";
 import RangeHandler from "../../../../../shared/tools/RangeHandler";
 
 export default class DatatableRowController {
@@ -442,7 +443,7 @@ export default class DatatableRowController {
                             })());
                         }
 
-                        await Promise.all(promises);
+                        await all_promises(promises);
                     }
                     break;
 
@@ -480,7 +481,7 @@ export default class DatatableRowController {
                             })());
                         }
 
-                        await Promise.all(promises);
+                        await all_promises(promises);
                     }
 
                     break;

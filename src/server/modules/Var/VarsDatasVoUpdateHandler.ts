@@ -7,12 +7,14 @@ import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
+import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataInvalidatorVO from '../../../shared/modules/Var/vos/VarDataInvalidatorVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
@@ -26,6 +28,7 @@ import PerfMonServerController from '../PerfMon/PerfMonServerController';
 import PushDataServerController from '../PushData/PushDataServerController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
+import PixelVarDataController from './PixelVarDataController';
 import VarsDatasProxy from './VarsDatasProxy';
 import VarServerControllerBase from './VarServerControllerBase';
 import VarsPerfMonServerController from './VarsPerfMonServerController';
@@ -140,6 +143,11 @@ export default class VarsDatasVoUpdateHandler {
      * @returns
      */
     public async push_invalidators(invalidators: VarDataInvalidatorVO[]): Promise<void> {
+
+        if ((!invalidators) || (!invalidators.length)) {
+            return;
+        }
+
         return new Promise(async (resolve, reject) => {
 
             if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
@@ -288,7 +296,7 @@ export default class VarsDatasVoUpdateHandler {
             }
 
             if (promises.length >= max) {
-                await Promise.all(promises);
+                await all_promises(promises);
                 promises = [];
             }
 
@@ -300,7 +308,7 @@ export default class VarsDatasVoUpdateHandler {
         }
 
         if (!!promises.length) {
-            await Promise.all(promises);
+            await all_promises(promises);
         }
     }
 
@@ -351,7 +359,7 @@ export default class VarsDatasVoUpdateHandler {
                             invalidator.invalidate_denied, invalidator.invalidate_imports);
 
                         if (promises.length >= max) {
-                            await Promise.all(promises);
+                            await all_promises(promises);
                             promises = [];
                         }
 
@@ -385,7 +393,7 @@ export default class VarsDatasVoUpdateHandler {
                     }
 
                     if (promises && promises.length) {
-                        await Promise.all(promises);
+                        await all_promises(promises);
                     }
                 }
 
@@ -440,7 +448,7 @@ export default class VarsDatasVoUpdateHandler {
     //                     invalidate_intersectors.push(intersector);
 
     //                     if (promises.length >= max) {
-    //                         await Promise.all(promises);
+    //                         await all_promises(promises);
     //                         promises = [];
     //                     }
 
@@ -473,7 +481,7 @@ export default class VarsDatasVoUpdateHandler {
     //                 }
 
     //                 if (promises && promises.length) {
-    //                     await Promise.all(promises);
+    //                     await all_promises(promises);
     //                 }
     //             }
 
@@ -704,6 +712,10 @@ export default class VarsDatasVoUpdateHandler {
     }
 
     private throttled_push_invalidators(invalidators: VarDataInvalidatorVO[]) {
+        if ((!invalidators) || (!invalidators.length)) {
+            return;
+        }
+
         this.invalidators = this.invalidators.concat(invalidators);
         VarsdatasComputerBGThread.getInstance().force_run_asap();
     }
@@ -985,6 +997,12 @@ export default class VarsDatasVoUpdateHandler {
     ) {
         let env = ConfigurationService.getInstance().node_configuration;
 
+        let var_data_by_index: { [index: string]: VarDataBaseVO } = {};
+        for (let i in var_datas) {
+            let var_data = var_datas[i];
+            var_data_by_index[var_data.index] = var_data;
+        }
+
         /**
          * On ajoute les vars subs (front et back) et les vars en cache
          */
@@ -993,11 +1011,12 @@ export default class VarsDatasVoUpdateHandler {
         // pour les vars subs en front,
         //  soit on est en bdd(donc on vient de la trouver et on peut filtrer sur celles chargées de la bdd)
         //  soit on est en cache et on les trouve en dessous
-        registered_var_datas = await VarsTabsSubsController.getInstance().filter_by_subs(var_datas);
+        let registered_var_datas_indexes = await VarsTabsSubsController.getInstance().filter_by_subs(Object.keys(var_data_by_index));
+        registered_var_datas = (registered_var_datas_indexes && registered_var_datas_indexes.length) ? registered_var_datas_indexes.map((index) => var_data_by_index[index]) : [];
         registered_var_datas = (registered_var_datas && registered_var_datas.length) ?
             ((cached && cached.length) ? registered_var_datas.concat(cached) : registered_var_datas) : cached;
 
-        let var_data_by_index: { [index: string]: VarDataBaseVO } = {};
+        var_data_by_index = {};
 
         /**
          * Tout sauf les imports et les denied
@@ -1135,8 +1154,11 @@ export default class VarsDatasVoUpdateHandler {
 
                 let conf = VarsController.getInstance().var_conf_by_id[unregistered_var_data.var_id];
                 if (conf.pixel_activated && conf.pixel_never_delete) {
-                    vars_to_append.push(unregistered_var_data);
-                    continue;
+
+                    // On remet en calcul les pixels, et uniquement les pixels
+                    if (PixelVarDataController.getInstance().get_pixel_card(unregistered_var_data) == 1) {
+                        vars_to_append.push(unregistered_var_data);
+                    }
                 }
             }
 
@@ -1259,7 +1281,7 @@ export default class VarsDatasVoUpdateHandler {
             }
 
             if ((!!max_connections_to_use) && (promises.length >= max_connections_to_use)) {
-                await Promise.all(promises);
+                await all_promises(promises);
                 promises = [];
             }
 
@@ -1291,7 +1313,7 @@ export default class VarsDatasVoUpdateHandler {
         }
 
         if (promises.length > 0) {
-            await Promise.all(promises);
+            await all_promises(promises);
             promises = [];
         }
 
@@ -1555,20 +1577,47 @@ export default class VarsDatasVoUpdateHandler {
 
         let intersectors_by_index: { [index: string]: VarDataBaseVO } = {};
 
+        // let vardag = new VarDAG();
+        // for (let i in vo_types) {
+        //     let vo_type = vo_types[i];
+
+        //     let vos = vos_create_or_delete_buffer[vo_type].concat(
+        //         vos_update_buffer[vo_type].map((e) => e.pre_update_vo),
+        //         vos_update_buffer[vo_type].map((e) => e.post_update_vo));
+        // }
+
         for (let i in vo_types) {
             let vo_type = vo_types[i];
 
             for (let j in VarsServerController.getInstance().registered_vars_controller_by_api_type_id[vo_type]) {
                 let var_controller = VarsServerController.getInstance().registered_vars_controller_by_api_type_id[vo_type][j];
 
-                let tmp = await var_controller.get_invalid_params_intersectors_on_POST_C_POST_D_group(vos_create_or_delete_buffer[vo_type]);
-                if (tmp && !!tmp.length) {
-                    tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
+                if ((!!vos_create_or_delete_buffer[vo_type]) && vos_create_or_delete_buffer[vo_type].length) {
+
+                    if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+                        ConsoleHandler.getInstance().log(
+                            'init_leaf_intersectors:get_invalid_params_intersectors_on_POST_C_POST_D_group:' +
+                            var_controller.varConf.id + ':' + var_controller.varConf.name + ':' + vos_create_or_delete_buffer[vo_type].length);
+                    }
+
+                    let tmp = await var_controller.get_invalid_params_intersectors_on_POST_C_POST_D_group(vos_create_or_delete_buffer[vo_type]);
+                    if (tmp && !!tmp.length) {
+                        tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
+                    }
                 }
 
-                tmp = await var_controller.get_invalid_params_intersectors_on_POST_U_group(vos_update_buffer[vo_type]);
-                if (tmp && !!tmp.length) {
-                    tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
+                if ((!!vos_update_buffer[vo_type]) && vos_update_buffer[vo_type].length) {
+
+                    if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+                        ConsoleHandler.getInstance().log(
+                            'init_leaf_intersectors:get_invalid_params_intersectors_on_POST_U_group:' +
+                            var_controller.varConf.id + ':' + var_controller.varConf.name + ':' + vos_update_buffer[vo_type].length);
+                    }
+
+                    let tmp = await var_controller.get_invalid_params_intersectors_on_POST_U_group(vos_update_buffer[vo_type]);
+                    if (tmp && !!tmp.length) {
+                        tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
+                    }
                 }
             }
         }
@@ -1593,7 +1642,7 @@ export default class VarsDatasVoUpdateHandler {
         let last_log_time = start_time;
 
         if (this.ordered_vos_cud && this.ordered_vos_cud.length) {
-            ConsoleHandler.getInstance().warn('VarsDatasVoUpdateHandler:prepare_updates:IN :ordered_vos_cud length:' + this.ordered_vos_cud.length);
+            ConsoleHandler.getInstance().log('VarsDatasVoUpdateHandler:prepare_updates:IN :ordered_vos_cud length:' + this.ordered_vos_cud.length);
         }
 
         while (this.ordered_vos_cud && this.ordered_vos_cud.length) {
@@ -1621,7 +1670,7 @@ export default class VarsDatasVoUpdateHandler {
 
             if (actual_time > (start_time + 60)) {
                 start_time = actual_time;
-                ConsoleHandler.getInstance().warn('VarsDatasVoUpdateHandler:prepare_updates:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
+                ConsoleHandler.getInstance().error('VarsDatasVoUpdateHandler:prepare_updates:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
             }
 
             let vo_cud = this.ordered_vos_cud.shift();
@@ -1647,7 +1696,7 @@ export default class VarsDatasVoUpdateHandler {
             }
         }
 
-        ConsoleHandler.getInstance().warn('VarsDatasVoUpdateHandler:prepare_updates:OUT:ordered_vos_cud length:' + this.ordered_vos_cud.length);
+        ConsoleHandler.getInstance().log('VarsDatasVoUpdateHandler:prepare_updates:OUT:ordered_vos_cud length:' + this.ordered_vos_cud.length);
     }
 
     private getJSONFrom_ordered_vos_cud(): string {

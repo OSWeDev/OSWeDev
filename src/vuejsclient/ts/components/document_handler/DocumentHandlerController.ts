@@ -17,6 +17,7 @@ import WeightHandler from '../../../../shared/tools/WeightHandler';
 import DocumentHandlerReloadListVO from './vos/DocumentHandlerReloadListVO';
 import DocumentHandlerDatasVO from './vos/DocumentHandlerDatasVO';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../../shared/tools/PromiseTools';
 
 export default class DocumentHandlerController {
 
@@ -51,7 +52,7 @@ export default class DocumentHandlerController {
             tmp_dtg_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(tmp_dtgs_by_weight);
         })());
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         promises = [];
 

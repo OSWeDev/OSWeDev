@@ -161,6 +161,7 @@ export default class VarsCacheController {
                     let var_cache_conf: VarCacheConfVO = VarsServerController.getInstance().varcacheconf_by_var_ids[var_id];
 
                     // anomalie constatée qui ne devrait pas arriver, je ne sais pas ce qui doit etre fait donc pour commencer je log
+                    //   => probablement revérifier en base la varconf et si elle a été supprimée, vider le cache qui lui fait ref
                     if (!var_cache_conf) {
                         ConsoleHandler.getInstance().error('partially_clean_bdd_cache:no var_cache_conf for var_id:' + var_id);
                     }
@@ -172,6 +173,7 @@ export default class VarsCacheController {
                     }
 
                     // anomalie constatée qui ne devrait pas arriver, je ne sais pas ce qui doit etre fait donc pour commencer je log
+                    //   => probablement revérifier en base la varconf et si elle a été supprimée, vider le cache qui lui fait ref
                     if (!controller) {
                         ConsoleHandler.getInstance().error('partially_clean_bdd_cache:no controller for var_id:' + var_id);
                     }
@@ -192,7 +194,7 @@ export default class VarsCacheController {
                     if ((!var_datas) || (var_datas.length < 100)) {
                         go_to_next_table = true;
                     }
-                    var_datas = var_datas.filter((vd) => vd.value_type == VarDataBaseVO.VALUE_TYPE_COMPUTED);
+                    var_datas = var_datas ? var_datas.filter((vd) => vd.value_type == VarDataBaseVO.VALUE_TYPE_COMPUTED) : [];
 
                     let invalidateds = [];
 
@@ -265,7 +267,10 @@ export default class VarsCacheController {
                         let invalidator = new VarDataInvalidatorVO(invalidated, VarDataInvalidatorVO.INVALIDATOR_TYPE_EXACT, false, false, false);
                         invalidators.push(invalidator);
                     }
-                    await VarsDatasVoUpdateHandler.getInstance().push_invalidators(invalidators);
+
+                    if (invalidators && invalidators.length) {
+                        await VarsDatasVoUpdateHandler.getInstance().push_invalidators(invalidators);
+                    }
 
                     if (go_to_next_table) {
                         this.partially_clean_bdd_cache_offset = 0;

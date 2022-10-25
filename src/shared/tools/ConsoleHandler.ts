@@ -72,6 +72,9 @@ export default class ConsoleHandler {
     }
 
     private get_timestamp(): string {
-        return Dates.format(Dates.now(), 'YYYY-MM-DD HH:mm:ss', true);
+        let ms = Math.floor(Dates.now_ms());
+        let seconds = Math.floor(ms / 1000);
+        ms = ms % 1000;
+        return Dates.format(seconds, 'YYYY-MM-DD HH:mm:ss.' + String(ms).padStart(3, '0'), true);
     }
 }

@@ -2,6 +2,8 @@
 
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
+import ModuleTableField from '../../../shared/modules/ModuleTableField';
+import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import SlowVarVO from '../../../shared/modules/Var/vos/SlowVarVO';
@@ -9,6 +11,8 @@ import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataProxyWrapperVO from '../../../shared/modules/Var/vos/VarDataProxyWrapperVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
+import RangeHandler from '../../../shared/tools/RangeHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
@@ -36,6 +40,8 @@ export default class VarsDatasProxy {
     public static TASK_NAME_append_var_datas = 'VarsDatasProxy.append_var_datas';
     public static TASK_NAME_update_existing_buffered_older_datas = 'VarsDatasProxy.update_existing_buffered_older_datas';
     public static TASK_NAME_has_cached_vars_waiting_for_compute = 'VarsDatasProxy.has_cached_vars_waiting_for_compute';
+
+    public static PARAM_NAME_filter_var_datas_by_index_size_limit = 'VarsDatasProxy.filter_var_datas_by_index_size_limit';
 
     /**
      * Multithreading notes :
@@ -369,13 +375,20 @@ export default class VarsDatasProxy {
                 for (let i in to_insert_by_type) {
                     let to_insert = to_insert_by_type[i];
 
+                    // on filtre les vars qui ont des indexs trops gros pour postgresql
+                    let filtered_insert = await this.filter_var_datas_by_index_size_limit(to_insert);
+
+                    if ((!filtered_insert) || (!filtered_insert.length)) {
+                        continue;
+                    }
+
                     promises.push((async () => {
-                        if (!await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(to_insert)) {
+                        if (!await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(filtered_insert)) {
                             result = false;
                         }
                     })());
                 }
-                await Promise.all(promises);
+                await all_promises(promises);
 
                 if (!result) {
                     throw new Error('VarsDatasProxy:handle_buffer:insert_without_triggers_using_COPY:Erreur - on garde dans le cache pour une prochaine tentative');
@@ -429,6 +442,56 @@ export default class VarsDatasProxy {
         } finally {
             this.semaphore_handle_buffer = false;
         }
+    }
+
+    /**
+     * Check la taille des champs de type ranges au format texte pour parer au bug de postgresql 13 :
+     *  'exceeds btree version 4 maximum 2704 for index'
+     * @param vardatas
+     * @returns
+     */
+    public async filter_var_datas_by_index_size_limit(vardatas: VarDataBaseVO[]): Promise<VarDataBaseVO[]> {
+        let res: VarDataBaseVO[] = [];
+        let vars_by_type: { [type: string]: VarDataBaseVO[] } = {};
+
+        // A priori la limite à pas à être de 2700, le champ est compressé par la suite, mais ça permet d'être sûr
+        let limit = await ModuleParams.getInstance().getParamValueAsInt(VarsDatasProxy.PARAM_NAME_filter_var_datas_by_index_size_limit, 2700);
+
+        for (let i in vardatas) {
+            let var_data = vardatas[i];
+            if (!vars_by_type[var_data._type]) {
+                vars_by_type[var_data._type] = [];
+            }
+            vars_by_type[var_data._type].push(var_data);
+        }
+
+        for (let _type in vars_by_type) {
+            let vars = vars_by_type[_type];
+
+            let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getInstance().getMatroidFields(_type);
+
+            for (let i in vars) {
+                let vardata = vars[i];
+                let refuse_var = false;
+
+                for (let j in matroid_fields) {
+                    let matroid_field = matroid_fields[j];
+
+                    let matroid_field_value = vardata[matroid_field.field_id];
+                    let matroid_field_value_index = RangeHandler.getInstance().translate_to_bdd(matroid_field_value);
+                    if (matroid_field_value_index && (matroid_field_value_index.length > limit)) {
+                        ConsoleHandler.getInstance().warn('VarsDatasProxy:filter_var_datas_by_index_size_limit:Le champ ' + matroid_field.field_id + ' de la matrice ' + _type + ' est trop long pour être indexé par postgresql, on le supprime de la requête:index:' + vardata.index);
+                        refuse_var = true;
+                        break;
+                    }
+                }
+
+                if (!refuse_var) {
+                    res.push(vardata);
+                }
+            }
+        }
+        return res;
     }
 
     /**
@@ -541,7 +604,7 @@ export default class VarsDatasProxy {
                     }
                 }
 
-                await Promise.all(promises);
+                await all_promises(promises);
 
                 return res;
             },
@@ -592,11 +655,93 @@ export default class VarsDatasProxy {
         let vars_datas_wrapper = Object.values(this.vars_datas_buffer_wrapped_indexes);
         let vars_datas: VarDataBaseVO[] = vars_datas_wrapper.map((v) => v.var_data);
 
-        let registered_var_datas: VarDataBaseVO[] = await VarsTabsSubsController.getInstance().filter_by_subs(vars_datas);
+        if ((!vars_datas) || (!vars_datas.length)) {
+            VarsdatasComputerBGThread.getInstance().current_batch_ordered_pick_list = [];
+            return;
+        }
+        let nb_vars_in_buffer = vars_datas.length;
+
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+            ConsoleHandler.getInstance().log('VarsDatasProxy:prepare_current_batch_ordered_pick_list:filter_by_subs:START:' + nb_vars_in_buffer);
+        }
+        let registered_var_datas_indexes: string[] = await VarsTabsSubsController.getInstance().filter_by_subs(vars_datas.map((v) => v.index));
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+            ConsoleHandler.getInstance().log('VarsDatasProxy:prepare_current_batch_ordered_pick_list:filter_by_subs:END:' + nb_vars_in_buffer);
+        }
+
+        let registered_var_datas_indexes_map: { [index: string]: boolean } = {};
+        for (let i in registered_var_datas_indexes) {
+            registered_var_datas_indexes_map[registered_var_datas_indexes[i]] = true;
+        }
+
+        let unregistered_var_datas_wrappers_map: { [index: string]: VarDataProxyWrapperVO<VarDataBaseVO> } = {};
+        for (let i in vars_datas) {
+            let index = vars_datas[i].index;
+
+            if (!registered_var_datas_indexes_map[index]) {
+                unregistered_var_datas_wrappers_map[index] = this.vars_datas_buffer_wrapped_indexes[index];
+            }
+        }
+
+        /**
+         * On clean le cache au passage, en retirant les vars inutiles à ce stade :
+         * - les vars unregistered
+         * - ni demandée par le serveur ni par un client
+         * - qui n'ont pas besoin d'être mise en bdd
+         */
+        if (unregistered_var_datas_wrappers_map && ObjectHandler.getInstance().hasAtLeastOneAttribute(unregistered_var_datas_wrappers_map)) {
+
+            let removed_vars: number = 0;
+            for (let i in unregistered_var_datas_wrappers_map) {
+                let unregistered_var_datas_wrapper = unregistered_var_datas_wrappers_map[i];
+
+                if ((!!unregistered_var_datas_wrapper.client_tab_id) || (!!unregistered_var_datas_wrapper.client_user_id)) {
+                    // En fait on a un client_tab_id mais sur une var unregistered donc on peut peut-être s'en débarrasser quand même ...
+                    // continue;
+                }
+
+                if (unregistered_var_datas_wrapper.is_server_request) {
+                    // est-ce qu'on est sensé arriver dans ce cas ?
+                    continue;
+                }
+
+                if (unregistered_var_datas_wrapper.needs_insert_or_update) {
+                    continue;
+                }
+
+                delete this.vars_datas_buffer_wrapped_indexes[unregistered_var_datas_wrapper.var_data._bdd_only_index];
+                removed_vars++;
+            }
+
+            if (removed_vars > 0) {
+
+                if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+                    ConsoleHandler.getInstance().log('VarsDatasProxy: removed ' + removed_vars + ' unregistered vars from cache');
+                }
+
+                vars_datas_wrapper = Object.values(this.vars_datas_buffer_wrapped_indexes);
+                vars_datas = vars_datas_wrapper.map((v) => v.var_data);
+
+                if ((!vars_datas) || (!vars_datas.length)) {
+                    VarsdatasComputerBGThread.getInstance().current_batch_ordered_pick_list = [];
+                    return;
+                }
+                nb_vars_in_buffer = vars_datas.length;
+            }
+        }
+
+        if ((!registered_var_datas_indexes) || (!registered_var_datas_indexes.length)) {
+            VarsdatasComputerBGThread.getInstance().current_batch_ordered_pick_list = [];
+            return;
+        }
+        let nb_registered_vars_in_buffer = registered_var_datas_indexes.length;
+
+        ConsoleHandler.getInstance().log('VarsDatasProxy.prepare_current_batch_ordered_pick_list:nb_vars_in_buffer|' + nb_vars_in_buffer + ':nb_registered_vars_in_buffer|' + nb_registered_vars_in_buffer);
+
         let registered_var_datas_by_index: { [index: string]: VarDataBaseVO } = {};
-        for (let i in registered_var_datas) {
-            let var_data = registered_var_datas[i];
-            registered_var_datas_by_index[var_data.index] = var_data;
+        for (let i in registered_var_datas_indexes) {
+            let var_data_index = registered_var_datas_indexes[i];
+            registered_var_datas_by_index[var_data_index] = this.vars_datas_buffer_wrapped_indexes[var_data_index].var_data;
         }
         for (let i in vars_datas_wrapper) {
             let var_data_wrapper = vars_datas_wrapper[i];

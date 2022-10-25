@@ -53,6 +53,7 @@ export default class ModuleVar extends Module {
 
     public static APINAME_get_var_id_by_names: string = 'get_var_id_by_names';
     public static APINAME_register_params: string = 'register_params';
+    public static APINAME_update_params_registration: string = 'update_params_registration';
     public static APINAME_unregister_params: string = 'unregister_params';
 
     public static APINAME_get_var_data_by_index: string = 'get_var_data_by_index';
@@ -101,6 +102,7 @@ export default class ModuleVar extends Module {
      * @see {@link ModuleVarServer.register_params}
      */
     public register_params: (params: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_register_params);
+    public update_params_registration: (params: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_update_params_registration);
     public unregister_params: (params: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_unregister_params);
     public get_var_id_by_names: () => Promise<VarConfIds> = APIControllerWrapper.sah(ModuleVar.APINAME_get_var_id_by_names);
 
@@ -152,6 +154,12 @@ export default class ModuleVar extends Module {
         APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<APISimpleVOsParamVO, void>(
             ModuleVar.POLICY_FO_ACCESS,
             ModuleVar.APINAME_register_params,
+            CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
+            APISimpleVOsParamVOStatic
+        ));
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<APISimpleVOsParamVO, void>(
+            ModuleVar.POLICY_FO_ACCESS,
+            ModuleVar.APINAME_update_params_registration,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
             APISimpleVOsParamVOStatic
         ));
@@ -446,15 +454,20 @@ export default class ModuleVar extends Module {
     private initVarNodePerfElementVO() {
 
         let datatable_fields = [
-            new ModuleTableField('start_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'start_time (ms)', false),
-            new ModuleTableField('initial_estimated_work_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'initial_estimated_work_time (ms)', false),
-            new ModuleTableField('updated_estimated_work_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'updated_estimated_work_time (ms)', false),
+            new ModuleTableField('_start_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'start_time (ms)', false),
+            new ModuleTableField('_initial_estimated_work_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'initial_estimated_work_time (ms)', false),
+            new ModuleTableField('_updated_estimated_work_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'updated_estimated_work_time (ms)', false),
             new ModuleTableField('total_elapsed_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'total_elapsed_time (ms)', false),
             new ModuleTableField('skipped', ModuleTableField.FIELD_TYPE_boolean, 'skipped', true, true, false),
             new ModuleTableField('end_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'end_time (ms)', false),
             new ModuleTableField('nb_calls', ModuleTableField.FIELD_TYPE_int, 'nb_calls', true, true, 0),
             new ModuleTableField('sum_card', ModuleTableField.FIELD_TYPE_int, 'sum_card', true, true, 0),
             new ModuleTableField('parent_perf_ref', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'parent_perf_ref', false).set_plain_obj_cstr(() => new VarNodeParentPerfVO()),
+            new ModuleTableField('_nb_started_global', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'nb_started_global', false),
+            new ModuleTableField('_initial_estimated_work_time_global', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'initial_estimated_work_time_global (ms)', false),
+            new ModuleTableField('_updated_estimated_work_time_global', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'updated_estimated_work_time_global (ms)', false),
+            new ModuleTableField('_start_time_global', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'start_time_global (ms)', false),
+            new ModuleTableField('_nb_noeuds_global', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'nb_noeuds_global', false),
         ];
 
         let datatable = new ModuleTable(this, VarNodePerfElementVO.API_TYPE_ID, () => new VarNodePerfElementVO(null, null, null), datatable_fields, null);
@@ -541,7 +554,7 @@ export default class ModuleVar extends Module {
             new ModuleTableField('estimated_ctree_ddeps_get_node_deps_1k_card', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'estimated_ctree_ddeps_get_node_deps_1k_card', true, true, 0.001),
             new ModuleTableField('estimated_ctree_ddeps_handle_pixellisation_1k_card', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'estimated_ctree_ddeps_handle_pixellisation_1k_card', true, true, 0.001),
 
-            new ModuleTableField('estimated_load_nodes_datas_1k_card', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'estimated_load_nodes_datas_1k_card', true, true, 0.001),
+            new ModuleTableField('estimated_load_node_datas_1k_card', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'estimated_load_node_datas_1k_card', true, true, 0.001),
             new ModuleTableField('estimated_compute_node_1k_card', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'estimated_compute_node_1k_card', true, true, 0.001),
         ];
 

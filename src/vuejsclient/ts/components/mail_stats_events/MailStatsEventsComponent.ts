@@ -5,6 +5,7 @@ import MailCategoryVO from '../../../../shared/modules/Mailer/vos/MailCategoryVO
 import MailEventVO from '../../../../shared/modules/Mailer/vos/MailEventVO';
 import MailVO from '../../../../shared/modules/Mailer/vos/MailVO';
 import ModuleSendInBlue from '../../../../shared/modules/SendInBlue/ModuleSendInBlue';
+import { all_promises } from '../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 import AjaxCacheClientController from '../../modules/AjaxCache/AjaxCacheClientController';
 import VueComponentBase from '../VueComponentBase';
@@ -120,7 +121,7 @@ export default class MailStatsEventsComponent extends VueComponentBase {
                     }
                 })());
             }
-            await Promise.all(promises);
+            await all_promises(promises);
 
             this.events_by_mail = events_by_mail;
             this.last_event = last_event;

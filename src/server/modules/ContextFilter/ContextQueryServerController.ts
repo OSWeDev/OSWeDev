@@ -15,6 +15,7 @@ import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import ServerBase from '../../ServerBase';
 import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
@@ -58,7 +59,19 @@ export default class ContextQueryServerController {
             throw new Error('Invalid context_query param');
         }
 
-        let query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
+        if (query_wrapper.is_segmented_non_existing_table) {
+            // Si on a une table segmentée qui n'existe pas, on ne fait rien
+            return 0;
+        }
+
+        let query_res = null;
+
+        if (context_query.throttle_query_select && context_query.fields && context_query.fields.length) {
+            query_res = await ModuleDAOServer.getInstance().throttle_select_query(query_wrapper.query, query_wrapper.params, context_query);
+        } else {
+            query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
+        }
+
         let c = (query_res && (query_res.length == 1) && (typeof query_res[0]['c'] != 'undefined') && (query_res[0]['c'] !== null)) ? query_res[0]['c'] : null;
         c = c ? parseInt(c.toString()) : 0;
         return c;
@@ -81,7 +94,18 @@ export default class ContextQueryServerController {
             throw new Error('Invalid query');
         }
 
-        let query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
+        if (query_wrapper.is_segmented_non_existing_table) {
+            // Si on a une table segmentée qui n'existe pas, on ne fait rien
+            return null;
+        }
+
+        let query_res = null;
+        if (context_query.throttle_query_select && context_query.fields && context_query.fields.length) {
+            query_res = await ModuleDAOServer.getInstance().throttle_select_query(query_wrapper.query, query_wrapper.params, context_query);
+        } else {
+            query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
+        }
+
         if ((!query_res) || (!query_res.length)) {
             return null;
         }
@@ -122,7 +146,18 @@ export default class ContextQueryServerController {
             throw new Error('Invalid query');
         }
 
-        let query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
+        if (query_wrapper.is_segmented_non_existing_table) {
+            // Si on a une table segmentée qui n'existe pas, on ne fait rien
+            return null;
+        }
+
+        let query_res = null;
+        if (context_query.throttle_query_select && context_query.fields && context_query.fields.length) {
+            query_res = await ModuleDAOServer.getInstance().throttle_select_query(query_wrapper.query, query_wrapper.params, context_query);
+        } else {
+            query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
+        }
+
         if ((!query_res) || (!query_res.length)) {
             return null;
         }
@@ -155,7 +190,18 @@ export default class ContextQueryServerController {
             throw new Error('Invalid query');
         }
 
-        let query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
+        if (query_wrapper.is_segmented_non_existing_table) {
+            // Si on a une table segmentée qui n'existe pas, on ne fait rien
+            return null;
+        }
+
+        let query_res = null;
+        if (context_query.throttle_query_select && context_query.fields && context_query.fields.length) {
+            query_res = await ModuleDAOServer.getInstance().throttle_select_query(query_wrapper.query, query_wrapper.params, context_query);
+        } else {
+            query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
+        }
+
         if ((!query_res) || (!query_res.length)) {
             return null;
         }
@@ -460,9 +506,11 @@ export default class ContextQueryServerController {
 
             /**
              * Cas du segmented table dont la table n'existe pas, donc on select null en somme (c'est pas une erreur en soit, juste il n'y a pas de données)
+             *  - mais on peut pas select null, ça génère un résultat non vide, dont le premier élément est une colonne null (dont le nom est ?column?)
              */
             if (!full_name) {
-                return query_result.set_query("SELECT NULL");
+                query_result.query = 'SELECT null';
+                return query_result.mark_as_is_segmented_non_existing_table();
             }
 
             FROM = " FROM " + full_name + " " + tables_aliases_by_type[context_query.base_api_type_id];
@@ -908,7 +956,7 @@ export default class ContextQueryServerController {
                 })());
             }
 
-            await Promise.all(promises);
+            await all_promises(promises);
         }
 
         let context_query_fields_by_api_type_id: { [api_type_id: string]: ContextQueryFieldVO[] } = {};
@@ -930,6 +978,15 @@ export default class ContextQueryServerController {
                 let query = querys[j];
 
                 let query_wrapper = await this.build_select_query(query);
+                if ((!query_wrapper) || (!query_wrapper.query)) {
+                    throw new Error('Invalid query');
+                }
+
+                if (query_wrapper.is_segmented_non_existing_table) {
+                    // Si on a une table segmentée qui n'existe pas, on ne fait rien
+                    continue;
+                }
+
                 let WHERE: string[] = [alias + '.id in (' + query_wrapper.query + ')'];
 
                 let is_nullable_aggregator: boolean = false;

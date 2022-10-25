@@ -16,6 +16,7 @@ import SupervisionDashboardItemComponent from './item/SupervisionDashboardItemCo
 import { ModuleSupervisionAction, ModuleSupervisionGetter } from './SupervisionDashboardStore';
 import SupervisionDashboardWidgetComponent from './widget/SupervisionDashboardWidgetComponent';
 import './SupervisionDashboardComponent.scss';
+import { all_promises } from '../../../../../shared/tools/PromiseTools';
 
 @Component({
     template: require('./SupervisionDashboardComponent.pug'),
@@ -87,6 +88,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
 
     /** liste des sondes */
     private supervised_items_by_names: { [name: string]: ISupervisedItem } = {};
+    private supervised_items_by_cat_id: { [cat_id: number]: ISupervisedItem } = {};
     private continue_reloading: boolean = true;
 
     // private api_type_ids_by_category_ids: { [id: number]: string[] } = {};
@@ -99,6 +101,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     private nb_warns_read: number = 0;
     private nb_unknowns: number = 0;
     private ordered_supervised_items: ISupervisedItem[] = null;
+    private filtered_categories_with_item: SupervisedCategoryVO[] = null;
 
     private filter_text: string = null;
 
@@ -146,6 +149,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
      */
     private debounce_on_change_show() {
         this.set_ordered_supervised_items();
+        this.set_filtered_categories_with_item();
     }
 
     private async created() {
@@ -203,6 +207,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
 
         /** liste des nouvelles sondes à afficher */
         let new_supervised_items_by_names: { [name: string]: ISupervisedItem } = {};
+        let new_supervised_items_by_cat_id: { [cat_id: number]: ISupervisedItem } = {};
 
         // récupération des catégories et filtrage en fonction de enabled_categories
         if (!this.get_categorys || !this.get_categorys.length) {
@@ -241,6 +246,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
 
                     if (this.is_item_accepted(item/*, (i % 1000 == 0) */) && (!item.category_id || (item.category_id && enabled_categories_ids.includes(item.category_id)))) {
                         new_supervised_items_by_names[item.name] = item;
+                        new_supervised_items_by_cat_id[item.category_id] = item;
 
                         if (first_build) {
                             if (!api_type_ids_by_category_ids[item.category_id]) {
@@ -262,7 +268,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
             })());
         }
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         if (!this.get_api_type_ids || !this.get_api_type_ids.length) {
             // if (first_build) {
@@ -272,6 +278,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
         }
 
         this.supervised_items_by_names = new_supervised_items_by_names;
+        this.supervised_items_by_cat_id = new_supervised_items_by_cat_id;
 
         this.debounced_on_change_show();
     }
@@ -390,6 +397,24 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
         });
 
         this.ordered_supervised_items = res;
+    }
+
+    private set_filtered_categories_with_item() {
+        let res: SupervisedCategoryVO[] = [];
+
+        if (!this.get_categorys || !this.get_categorys.length) {
+            return res;
+        }
+
+        for (let i in this.get_categorys) {
+            let cat: SupervisedCategoryVO = this.get_categorys[i];
+
+            if (!!this.get_api_type_ids_by_category_ids && !!this.get_api_type_ids_by_category_ids[cat.id] && !!this.get_api_type_ids_by_category_ids[cat.id].length) {
+                res.push(cat);
+            }
+        }
+
+        this.filtered_categories_with_item = res;
     }
 
     private is_cat_selected(category: SupervisedCategoryVO): boolean {

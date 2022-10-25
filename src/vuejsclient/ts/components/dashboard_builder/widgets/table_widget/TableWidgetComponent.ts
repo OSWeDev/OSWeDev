@@ -605,29 +605,34 @@ export default class TableWidgetComponent extends VueComponentBase {
         return (this.widget_options && this.widget_options.delete_button);
     }
 
-    private async sort_by(vo_field_ref: VOFieldRefVO) {
-        if (!vo_field_ref) {
+    private async sort_by(column: TableColumnDescVO) {
+        if (!column) {
             this.order_asc_on_id = null;
             this.order_desc_on_id = null;
             await this.update_visible_options();
             return;
         }
 
-        if ((this.order_asc_on_id != vo_field_ref.id) && (this.order_desc_on_id != vo_field_ref.id)) {
-            this.order_asc_on_id = vo_field_ref.id;
+        // Si colonne de type crud actions, on ne fait rien
+        if (column.type == TableColumnDescVO.TYPE_crud_actions) {
+            return;
+        }
+
+        if ((this.order_asc_on_id != column.id) && (this.order_desc_on_id != column.id)) {
+            this.order_asc_on_id = column.id;
             this.order_desc_on_id = null;
             await this.update_visible_options();
             return;
         }
 
-        if (this.order_asc_on_id != vo_field_ref.id) {
-            this.order_asc_on_id = vo_field_ref.id;
+        if (this.order_asc_on_id != column.id) {
+            this.order_asc_on_id = column.id;
             this.order_desc_on_id = null;
             await this.update_visible_options();
             return;
         }
 
-        this.order_desc_on_id = vo_field_ref.id;
+        this.order_desc_on_id = column.id;
         this.order_asc_on_id = null;
         await this.update_visible_options();
         return;
@@ -1361,7 +1366,7 @@ export default class TableWidgetComponent extends VueComponentBase {
             this.do_update_visible_options(),
             this.update_filter_by_access_cache()
         ];
-        await Promise.all(promises);
+        await all_promises(promises);
     }
 
     private async update_filter_by_access_cache() {
@@ -1378,7 +1383,7 @@ export default class TableWidgetComponent extends VueComponentBase {
                 })());
             }
         }
-        await Promise.all(promises);
+        await all_promises(promises);
     }
 
     get has_group_headers() {

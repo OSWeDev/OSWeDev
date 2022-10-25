@@ -5,6 +5,7 @@ import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import ConfigurationService from '../../env/ConfigurationService';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 
@@ -30,30 +31,62 @@ export default class DefaultTranslationsServerManager {
         let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 2));
         let registered_default_translations = this.clean_registered_default_translations();
 
+        let langs: LangVO[] = null;
+        promises.push((async () => {
+            langs = await ModuleDAO.getInstance().getVos<LangVO>(LangVO.API_TYPE_ID);
+        })());
+
+        let translatables: TranslatableTextVO[] = null;
+        let translatable_by_code_text: { [code_text: string]: TranslatableTextVO } = {};
+        promises.push((async () => {
+            translatables = await ModuleDAO.getInstance().getVos<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID);
+            for (let i in translatables) {
+                let translatable = translatables[i];
+                translatable_by_code_text[translatable.code_text] = translatable;
+            }
+        })());
+
+        let translations: TranslationVO[] = null;
+        let translation_by_lang_id_and_text_id: { [lang_id: number]: { [text_id: number]: TranslationVO } } = {};
+        promises.push((async () => {
+            translations = await ModuleDAO.getInstance().getVos<TranslationVO>(TranslationVO.API_TYPE_ID);
+
+            for (let i in translations) {
+                let translation = translations[i];
+
+                if (!translation_by_lang_id_and_text_id[translation.lang_id]) {
+                    translation_by_lang_id_and_text_id[translation.lang_id] = {};
+                }
+                translation_by_lang_id_and_text_id[translation.lang_id][translation.text_id] = translation;
+            }
+        })());
+
+        await all_promises(promises);
+
+        promises = [];
         for (let i in registered_default_translations) {
 
             if (promises.length >= max) {
-                await Promise.all(promises);
+                await all_promises(promises);
                 promises = [];
             }
 
-            promises.push(this.saveDefaultTranslation(registered_default_translations[i]));
+            promises.push(this.saveDefaultTranslation(registered_default_translations[i], langs, translatable_by_code_text, translation_by_lang_id_and_text_id));
 
             // await this.saveDefaultTranslation(registered_default_translations[i]);
         }
 
         if (promises && promises.length) {
-            await Promise.all(promises);
+            await all_promises(promises);
         }
 
-        await this.cleanTranslationCodes();
+        await this.cleanTranslationCodes(translatables);
     }
 
     /**
      * Makes sure to remove any invalid translation_code from the database
      */
-    private async cleanTranslationCodes() {
-        let codes: TranslatableTextVO[] = await ModuleDAO.getInstance().getVos<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID);
+    private async cleanTranslationCodes(codes: TranslatableTextVO[]) {
         let codes_to_deletes: TranslatableTextVO[] = [];
         ConsoleHandler.getInstance().log('cleanTranslationCodes:IN:');
 
@@ -82,14 +115,18 @@ export default class DefaultTranslationsServerManager {
         ConsoleHandler.getInstance().log('cleanTranslationCodes:OUT:');
     }
 
-    private async saveDefaultTranslation(default_translation: DefaultTranslation) {
+    private async saveDefaultTranslation(
+        default_translation: DefaultTranslation,
+        langs: LangVO[],
+        translatable_by_code_text: { [code_text: string]: TranslatableTextVO },
+        translation_by_lang_id_and_text_id: { [lang_id: number]: { [text_id: number]: TranslationVO } }) {
 
         if ((!default_translation) || (!default_translation.code_text)) {
             return;
         }
 
         // On cherche le translatable : si il existe pas on le crée
-        let translatable: TranslatableTextVO = await ModuleDAOServer.getInstance().selectOne<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID, "where code_text=$1", [default_translation.code_text]);
+        let translatable: TranslatableTextVO = translatable_by_code_text[default_translation.code_text];
 
         if (!translatable) {
             translatable = new TranslatableTextVO();
@@ -103,10 +140,9 @@ export default class DefaultTranslationsServerManager {
             ConsoleHandler.getInstance().error("Impossible de créer le translatable : " + default_translation.code_text);
             return;
         }
+        translatable_by_code_text[default_translation.code_text] = translatable;
 
         // On cherche les translated : si il en manque par rapport aux langs dispos sur le DefaultTranslations, on crée les manquantes
-        let langs: LangVO[] = await ModuleDAO.getInstance().getVos<LangVO>(LangVO.API_TYPE_ID);
-
         for (let i in langs) {
             let lang: LangVO = langs[i];
 
@@ -124,7 +160,7 @@ export default class DefaultTranslationsServerManager {
                 continue;
             }
 
-            let translation: TranslationVO = await ModuleDAOServer.getInstance().selectOne<TranslationVO>(TranslationVO.API_TYPE_ID, "where lang_id=$1 and text_id=$2", [lang.id, translatable.id]);
+            let translation: TranslationVO = translation_by_lang_id_and_text_id[lang.id] ? translation_by_lang_id_and_text_id[lang.id][translatable.id] : null;
 
             if (!translation) {
                 translation = new TranslationVO();
@@ -139,6 +175,8 @@ export default class DefaultTranslationsServerManager {
                 ConsoleHandler.getInstance().error("Impossible de créer le translation : " + lang.id + ":" + translatable.id + ":" + translation_str);
                 return;
             }
+
+            translation_by_lang_id_and_text_id[lang.id][translatable.id] = translation;
         }
     }
 

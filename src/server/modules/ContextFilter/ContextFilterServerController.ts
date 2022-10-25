@@ -1856,6 +1856,16 @@ export default class ContextFilterServerController {
                 }
 
                 let qr_TYPE_IN = await ContextQueryServerController.getInstance().build_select_query(active_field_filter.sub_query);
+
+                if ((!qr_TYPE_IN) || (!qr_TYPE_IN.query)) {
+                    throw new Error('Invalid query');
+                }
+
+                if (qr_TYPE_IN.is_segmented_non_existing_table) {
+                    // Si on a une table segmentée qui n'existe pas, on ne fait rien
+                    break;
+                }
+
                 if (qr_TYPE_IN.params && qr_TYPE_IN.params.length) {
                     query_result.params = query_result.params.concat(qr_TYPE_IN.params);
                 }
@@ -1870,6 +1880,16 @@ export default class ContextFilterServerController {
                 }
 
                 let qr_TYPE_NOT_IN = await ContextQueryServerController.getInstance().build_select_query(active_field_filter.sub_query);
+
+                if ((!qr_TYPE_NOT_IN) || (!qr_TYPE_NOT_IN.query)) {
+                    throw new Error('Invalid query');
+                }
+
+                if (qr_TYPE_NOT_IN.is_segmented_non_existing_table) {
+                    // Si on a une table segmentée qui n'existe pas, on ne fait rien
+                    break;
+                }
+
                 if (qr_TYPE_NOT_IN.params && qr_TYPE_NOT_IN.params.length) {
                     query_result.params = query_result.params.concat(qr_TYPE_NOT_IN.params);
                 }
@@ -1884,6 +1904,16 @@ export default class ContextFilterServerController {
                 }
 
                 let qr_TYPE_NOT_EXISTS = await ContextQueryServerController.getInstance().build_select_query(active_field_filter.sub_query);
+
+                if ((!qr_TYPE_NOT_EXISTS) || (!qr_TYPE_NOT_EXISTS.query)) {
+                    throw new Error('Invalid query');
+                }
+
+                if (qr_TYPE_NOT_EXISTS.is_segmented_non_existing_table) {
+                    // Si on a une table segmentée qui n'existe pas, on ne fait rien
+                    break;
+                }
+
                 if (qr_TYPE_NOT_EXISTS.params && qr_TYPE_NOT_EXISTS.params.length) {
                     query_result.params = query_result.params.concat(qr_TYPE_NOT_EXISTS.params);
                 }
@@ -2184,7 +2214,7 @@ export default class ContextFilterServerController {
         let full_name = moduletable.full_name;
 
         /**
-         * FIXME Les tables segmentées sont pas du tout compatibles pour le moment
+         * FIXME Les tables segmentées sont peu compatibles pour le moment
          */
         if (moduletable.is_segmented) {
 

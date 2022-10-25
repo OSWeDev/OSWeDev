@@ -28,6 +28,7 @@ import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/
 import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
 
 @Component({
     template: require('./FieldValueFilterStringWidgetComponent.pug'),
@@ -768,7 +769,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             }
 
             if (promises.length > 0) {
-                await Promise.all(promises);
+                await all_promises(promises);
             }
         }
 

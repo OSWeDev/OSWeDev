@@ -31,7 +31,7 @@ export default class FakeDataHandler {
      *                       E  F G  H
      */
     public static get_fake_triangular_dag(): VarDAG {
-        let dag: VarDAG = new VarDAG(null);
+        let dag: VarDAG = new VarDAG();
 
         let var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
         let dagnodeA: VarDAGNode = VarDAGNode.getInstance(dag, var_data_A, VarsComputeController, true);

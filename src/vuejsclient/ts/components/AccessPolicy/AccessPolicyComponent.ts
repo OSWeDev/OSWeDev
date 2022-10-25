@@ -9,6 +9,7 @@ import RolePolicyVO from '../../../../shared/modules/AccessPolicy/vos/RolePolicy
 import RoleVO from '../../../../shared/modules/AccessPolicy/vos/RoleVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
+import { all_promises } from '../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
 import { ModuleDAOAction, ModuleDAOGetter } from '../dao/store/DaoStore';
@@ -118,7 +119,7 @@ export default class AccessPolicyComponent extends VueComponentBase {
             self.inherited_access_matrix = await ModuleAccessPolicy.getInstance().getAccessMatrix(true);
         })());
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         for (let i in this.getStoredDatas[AccessPolicyGroupVO.API_TYPE_ID]) {
             let group: AccessPolicyGroupVO = this.getStoredDatas[AccessPolicyGroupVO.API_TYPE_ID][i] as AccessPolicyGroupVO;
@@ -456,7 +457,7 @@ export default class AccessPolicyComponent extends VueComponentBase {
             self.inherited_access_matrix = await ModuleAccessPolicy.getInstance().getAccessMatrix(true);
         })());
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         this.throttled_update_component();
 

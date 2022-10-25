@@ -16,6 +16,7 @@ import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../../shared/tools/PromiseTools';
 import WeightHandler from '../../../../shared/tools/WeightHandler';
 import CRUDFormServices from '../crud/component/CRUDFormServices';
 import { ModuleDAOAction, ModuleDAOGetter } from '../dao/store/DaoStore';
@@ -163,7 +164,7 @@ export default class CheckListComponent extends VueComponentBase {
                 self.checklist_shared_module.checkpoint_type_id, 'checklist_id', [self.list_id]));
         })());
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         // promises = [];
         // let checkpoints_ids = ObjectHandler.getInstance().getIdsList(checkpoints);
@@ -180,7 +181,7 @@ export default class CheckListComponent extends VueComponentBase {
         //         this.checklist_shared_module.checklistitemcheckpoints_type_id, 'checkpoint_id', checkpoints_ids);
         // })());
 
-        // await Promise.all(promises);
+        // await all_promises(promises);
 
         self.checklist = checklist;
         self.checklistitems = checklistitems;

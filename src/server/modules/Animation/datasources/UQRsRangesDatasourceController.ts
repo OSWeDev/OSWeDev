@@ -27,10 +27,9 @@ export default class UQRsRangesDatasourceController extends DataSourceController
      * récupère les paramètres pour charger les AnimationUserQRVO[] en fonction des modules et des utilisateurs.
      * Utilisé pour le calcul de variable @see {@link VarDayPrctAtteinteSeuilAnimationController}
      * @param param ThemeModuleDataRangesVO
-     * @param ds_cache
      * @returns AnimationUserQRVO[] by qr_id by module_id by theme_id
      */
-    public async get_data(param: ThemeModuleDataRangesVO, ds_cache: { [ds_data_index: string]: any; }): Promise<{ [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO[] } } }> {
+    public async get_data(param: ThemeModuleDataRangesVO): Promise<{ [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO[] } } }> {
         // Protection/ Détection Max_ranges
         let param_theme_ids: number[] = (param.theme_id_ranges && RangeHandler.getInstance().getSegmentedMin_from_ranges(param.theme_id_ranges) >= 0) ?
             RangeHandler.getInstance().get_all_segmented_elements_from_ranges(param.theme_id_ranges) :

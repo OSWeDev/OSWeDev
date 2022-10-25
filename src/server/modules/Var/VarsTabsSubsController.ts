@@ -1,6 +1,9 @@
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import SlowVarVO from '../../../shared/modules/Var/vos/SlowVarVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import PushDataServerController from '../PushData/PushDataServerController';
@@ -11,6 +14,9 @@ export default class VarsTabsSubsController {
 
     public static TASK_NAME_notify_vardatas: string = 'VarsTabsSubsController.notify_vardatas';
     public static TASK_NAME_filter_by_subs: string = 'VarsTabsSubsController.filter_by_subs';
+
+    public static PARAM_NAME_SUBS_CLEAN_THROTTLE: string = 'VarsTabsSubsController.SUBS_CLEAN_THROTTLE';
+    public static PARAM_NAME_SUBS_CLEAN_DELAY: string = 'VarsTabsSubsController.SUBS_CLEAN_DELAY';
 
     /**
      * Multithreading notes :
@@ -30,17 +36,20 @@ export default class VarsTabsSubsController {
 
     /**
      * Les client_tab_ids abonnés à chaque var_index
+     * On stocke la date de la dernière demande pour pouvoir faire un nettoyage
      */
-    private _tabs_subs: { [var_index: string]: { [user_id: number]: { [client_tab_id: string]: boolean } } } = {};
+    private _tabs_subs: { [var_index: string]: { [user_id: number]: { [client_tab_id: string]: number } } } = {};
+
+    private last_subs_clean: number = 0;
 
     protected constructor() {
         ForkedTasksController.getInstance().register_task(VarsTabsSubsController.TASK_NAME_notify_vardatas, this.notify_vardatas.bind(this));
         ForkedTasksController.getInstance().register_task(VarsTabsSubsController.TASK_NAME_filter_by_subs, this.filter_by_subs.bind(this));
     }
 
-    public get_subscribed_tabs_ids(index: string): { [user_id: number]: { [client_tab_id: string]: boolean } } {
-        return this._tabs_subs[index];
-    }
+    // public get_subscribed_tabs_ids(index: string): { [user_id: number]: { [client_tab_id: string]: number } } {
+    //     return this._tabs_subs[index];
+    // }
 
     /**
      * WARN : Only on main thread (express).
@@ -64,8 +73,10 @@ export default class VarsTabsSubsController {
                 this._tabs_subs[param_index][user_id] = {};
             }
             // ConsoleHandler.getInstance().log('REMOVETHIS:register_sub:' + param_index + ':user_id:' + user_id + ':client_tab_id:' + client_tab_id + ':');
-            this._tabs_subs[param_index][user_id][client_tab_id] = true;
+            this._tabs_subs[param_index][user_id][client_tab_id] = Dates.now();
         }
+
+        ConsoleHandler.getInstance().log('VarsTabsSubsController:post register_sub:nb_subs:' + Object.keys(this._tabs_subs).length + ':');
     }
 
     /**
@@ -85,6 +96,40 @@ export default class VarsTabsSubsController {
             // ConsoleHandler.getInstance().log('REMOVETHIS:unregister_sub:' + param_index + ':user_id:' + user_id + ':client_tab_id:' + client_tab_id + ':');
             delete this._tabs_subs[param_index][user_id][client_tab_id];
         }
+
+        let param_index_to_delete: string[] = [];
+        for (let param_index in this._tabs_subs) {
+            let _tabs_subs_index = this._tabs_subs[param_index];
+
+            if ((!_tabs_subs_index) || (!Object.keys(_tabs_subs_index).length)) {
+                param_index_to_delete.push(param_index);
+                continue;
+            }
+
+            let user_id_to_delete: string[] = [];
+            for (let _user_id in _tabs_subs_index) {
+                let _tabs_subs_index_user_id = _tabs_subs_index[_user_id];
+
+                if ((!_tabs_subs_index_user_id) || (!Object.keys(_tabs_subs_index_user_id).length)) {
+                    user_id_to_delete.push(_user_id);
+                    continue;
+                }
+            }
+
+            for (let i in user_id_to_delete) {
+                delete _tabs_subs_index[user_id_to_delete[i]];
+            }
+
+            if ((!_tabs_subs_index) || (!Object.keys(_tabs_subs_index).length)) {
+                param_index_to_delete.push(param_index);
+            }
+        }
+        for (let i in param_index_to_delete) {
+            delete this._tabs_subs[param_index_to_delete[i]];
+        }
+
+
+        ConsoleHandler.getInstance().log('VarsTabsSubsController:post unregister_sub:nb_subs:' + Object.keys(this._tabs_subs).length + ':');
     }
 
     /**
@@ -97,6 +142,8 @@ export default class VarsTabsSubsController {
         if (!await ForkedTasksController.getInstance().exec_self_on_main_process(VarsTabsSubsController.TASK_NAME_notify_vardatas, params)) {
             return false;
         }
+
+        await this.clean_old_subs();
 
         let datas_by_socketid_for_notif: { [socketid: number]: VarDataValueResVO[] } = {};
         for (let parami in params) {
@@ -141,11 +188,11 @@ export default class VarsTabsSubsController {
      * Méthode qui permet de filtrer un tableau de vars et de récupérer les vars actuellement subscribed par des utilisateurs.
      *  On peut ainsi prioriser une mise en cache avec les variables actuellement consultées
      */
-    public async filter_by_subs(var_datas: VarDataBaseVO[]): Promise<VarDataBaseVO[]> {
+    public async filter_by_subs(var_datas_indexes: string[]): Promise<string[]> {
 
-        let res: VarDataBaseVO[] = [];
+        let res: string[] = [];
 
-        if ((!var_datas) || (!var_datas.length)) {
+        if ((!var_datas_indexes) || (!var_datas_indexes.length)) {
             return null;
         }
 
@@ -154,15 +201,17 @@ export default class VarsTabsSubsController {
         return new Promise(async (resolve, reject) => {
 
             if (!await ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(
-                reject, VarsTabsSubsController.TASK_NAME_filter_by_subs, resolve, var_datas)) {
+                reject, VarsTabsSubsController.TASK_NAME_filter_by_subs, resolve, var_datas_indexes)) {
                 return;
             }
 
-            for (let i in var_datas) {
-                let var_data = var_datas[i];
+            await self.clean_old_subs();
 
-                if (self.has_registered_user(var_data.index)) {
-                    res.push(var_data);
+            for (let i in var_datas_indexes) {
+                let var_datas_index = var_datas_indexes[i];
+
+                if (self.has_registered_user(var_datas_index)) {
+                    res.push(var_datas_index);
                 }
             }
 
@@ -187,5 +236,69 @@ export default class VarsTabsSubsController {
             }
         }
         return false;
+    }
+
+    /**
+     * On nettoie les subs qui sont trop anciens, mais on ne fait le checke qu'une fois toutes les X minutes max
+     */
+    private async clean_old_subs() {
+
+        let now = Dates.now();
+        let SUBS_CLEAN_DELAY = await ModuleParams.getInstance().getParamValueAsInt(VarsTabsSubsController.PARAM_NAME_SUBS_CLEAN_DELAY, 1800);
+        let SUBS_CLEAN_THROTTLE = await ModuleParams.getInstance().getParamValueAsInt(VarsTabsSubsController.PARAM_NAME_SUBS_CLEAN_THROTTLE, 600);
+
+        if ((now - this.last_subs_clean) < SUBS_CLEAN_THROTTLE) {
+            return;
+        }
+        this.last_subs_clean = now;
+
+        let indexs_to_delete = [];
+        for (let index in this._tabs_subs) {
+            let subs = this._tabs_subs[index];
+
+            if (!Object.keys(subs).length) {
+                indexs_to_delete.push(index);
+                continue;
+            }
+
+            let user_ids_to_delete = [];
+            for (let user_id in subs) {
+                let subs_by_user = subs[user_id];
+
+                if (!Object.keys(subs_by_user).length) {
+                    user_ids_to_delete.push(user_id);
+                    continue;
+                }
+
+                let client_tab_ids_to_delete = [];
+                for (let client_tab_id in subs_by_user) {
+                    let sub_date = subs_by_user[client_tab_id];
+
+                    if ((now - sub_date) > SUBS_CLEAN_DELAY) {
+                        client_tab_ids_to_delete.push(client_tab_id);
+                    }
+                }
+                for (let i in client_tab_ids_to_delete) {
+                    delete subs_by_user[client_tab_ids_to_delete[i]];
+                }
+
+                if (!Object.keys(subs_by_user).length) {
+                    user_ids_to_delete.push(user_id);
+                }
+            }
+
+            for (let i in user_ids_to_delete) {
+                delete subs[user_ids_to_delete[i]];
+            }
+
+            if (!Object.keys(subs).length) {
+                indexs_to_delete.push(index);
+                continue;
+            }
+        }
+
+        for (let i in indexs_to_delete) {
+            delete this._tabs_subs[indexs_to_delete[i]];
+        }
     }
 }

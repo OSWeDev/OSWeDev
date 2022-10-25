@@ -12,6 +12,7 @@ import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/Data
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
+import CRUDFormServices from '../../crud/component/CRUDFormServices';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../dao/store/DaoStore';
 import VueComponentBase from '../../VueComponentBase';
 import CheckListControllerBase from '../CheckListControllerBase';
@@ -180,7 +181,7 @@ export default class CheckListModalComponent extends VueComponentBase {
     }
 
     private async finalize_checklist() {
-        if (this.finalize_checklist_starting) {
+        if (this.finalize_checklist_starting || CRUDFormServices.getInstance().has_auto_updates_waiting()) {
             return;
         }
 
@@ -283,6 +284,10 @@ export default class CheckListModalComponent extends VueComponentBase {
     }
 
     private change_checkpoint(cp: ICheckPoint) {
+        if (CRUDFormServices.getInstance().has_auto_updates_waiting()) {
+            return;
+        }
+
         if (this.state_steps[cp.name] == CheckPointVO.STATE_DISABLED) {
             return;
         }

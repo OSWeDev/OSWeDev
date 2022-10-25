@@ -17,6 +17,7 @@ import VueAppBase from '../../../VueAppBase';
 import VarsClientController from '../../components/Var/VarsClientController';
 import AjaxCacheClientController from '../AjaxCache/AjaxCacheClientController';
 import VueModuleBase from '../VueModuleBase';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 
 export default class PushDataVueModule extends VueModuleBase {
 
@@ -399,6 +400,11 @@ export default class PushDataVueModule extends VueModuleBase {
             let vos = Object.values(var_by_indexes);
 
             let types: { [name: string]: boolean } = {};
+
+            if (vos && vos.length) {
+                VarsClientController.getInstance().last_notif_received = Dates.now();
+            }
+
             for (let i in vos) {
                 let vo = vos[i];
 
@@ -424,6 +430,7 @@ export default class PushDataVueModule extends VueModuleBase {
                     AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([vo._type]);
                 }
             }
+
             // VueAppBase.instance_.vueInstance.$store.dispatch('VarStore/setVarsData', vos);
             await VarsClientController.getInstance().notifyCallbacks(vos);
         }

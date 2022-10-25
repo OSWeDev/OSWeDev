@@ -138,6 +138,14 @@ export default class ForkMessageController {
                 this.last_log_msg_error = log_msg_error;
                 ConsoleHandler.getInstance().error(error);
             }
+
+            /**
+             * si le pid du sendHandle est plus actif, ça sert à rien de retenter
+             */
+            if (msg_wrapper.sendHandle && msg_wrapper.sendHandle.pid && !msg_wrapper.sendHandle.connected) {
+                ConsoleHandler.getInstance().error('ForkMessageController.handle_send_error: sendHandle.pid:' + msg_wrapper.sendHandle.pid + ' is not connected');
+            }
+
             this.stacked_msg_waiting.push(msg_wrapper);
 
             /**

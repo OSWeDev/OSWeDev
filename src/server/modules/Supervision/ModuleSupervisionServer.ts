@@ -142,8 +142,8 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
 
         for (let vo_type in SupervisionController.getInstance().registered_controllers) {
-            preUpdateTrigger.registerHandler(vo_type, this.onPreU_SUP_ITEM_HISTORIZE);
-            preCreateTrigger.registerHandler(vo_type, this.onpreC_SUP_ITEM);
+            preUpdateTrigger.registerHandler(vo_type, this, this.onPreU_SUP_ITEM_HISTORIZE);
+            preCreateTrigger.registerHandler(vo_type, this, this.onpreC_SUP_ITEM);
         }
     }
 
