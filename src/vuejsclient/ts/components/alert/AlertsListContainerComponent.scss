@@ -1,26 +1,16 @@
 @import '../../../scss/base/skin.scss';
 
 .alerts_list_component {
-    position: fixed;
-    width: 700px;
-    z-index: 10000;
 
     & .alerts_list_container {
-        background: white;
-        position: absolute;
-        z-index: 99;
-        right: 0;
-        max-height: 390px;
-        overflow-y: auto;
-        border: 2px solid;
 
-        & .close {
-            position: absolute;
-            right: 5px;
-            top: 5px;
-            color: $button_primary_bg_color;
-            cursor: pointer;
-            opacity: 1;
+        & .alerts_list_header {
+            border-bottom: 1px solid #eee;
+            margin-bottom: 1.5rem;
+
+            & h1 {
+                font-size: 2rem;
+            }
         }
     }
 }

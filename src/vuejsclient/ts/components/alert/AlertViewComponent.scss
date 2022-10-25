@@ -2,13 +2,15 @@
 
 .alert_view_component {
 
+    padding-bottom: 1em;
+
     .type_icon_wrapper {
 
         i.fa {
             float: left;
-            font-size: 0.8em;
+            font-size: 1.2rem;
             margin: 0px;
-            margin-right: 0.3em;
+            margin-right: 0.8rem;
         }
 
         .alert_component_error {
@@ -28,11 +30,11 @@
         }
     }
 
-    .alert_content{
+    .alert_content {
         background: white;
-        padding: 1em;
+        padding: 0.3rem 1rem;
         border-radius: 3px;
-        font-size: 0.8em;
+        font-size: 1.2rem;
         text-align: justify;
     }
 

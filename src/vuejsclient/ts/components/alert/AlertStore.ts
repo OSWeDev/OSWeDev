@@ -192,6 +192,10 @@ export default class AlertStore implements IStoreModule<IAlertState, AlertContex
                     return;
                 }
                 state.alerts_list[alert_path]--;
+
+                if (state.alerts_list[alert_path] <= 0) {
+                    Vue.delete(state.alerts_list as any, alert_path);
+                }
             },
 
             toggle_show_alerts_list: (state: IAlertState) => {

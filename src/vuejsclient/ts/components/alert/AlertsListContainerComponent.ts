@@ -1,6 +1,5 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import Alert from '../../../../shared/modules/Alert/vos/Alert';
 import VueComponentBase from '../VueComponentBase';
 import './AlertsListContainerComponent.scss';
 import { ModuleAlertAction, ModuleAlertGetter } from './AlertStore';
@@ -9,7 +8,8 @@ import AlertsListContentComponent from './AlertsListContentComponent';
 @Component({
     template: require('./AlertsListContainerComponent.pug'),
     components: {
-        Alertslistcontentcomponent: AlertsListContentComponent
+        Alertslistcontentcomponent: AlertsListContentComponent,
+        Draggablewindowcomponent: () => import(/* webpackChunkName: "DraggableWindowComponent" */ '../../components/draggable_window/DraggableWindowComponent'),
     }
 })
 export default class AlertsListContainerComponent extends VueComponentBase {
@@ -25,6 +25,9 @@ export default class AlertsListContainerComponent extends VueComponentBase {
     @Prop({ default: true })
     private show_alert_date: boolean;
 
+    @Prop({ default: true })
+    private show_alert_icon: boolean;
+
     @Prop({ default: 'alert.list.title.default' })
     private title_code_trad: string;
 
@@ -32,12 +35,12 @@ export default class AlertsListContainerComponent extends VueComponentBase {
     private desc_code_trad: string;
 
     private mounted(): void {
-        $(this.$refs.alerts_list_component).draggable();
-        let offset = $(this.$el).parent().parent().offset();
-        $(this.$refs.alerts_list_component).css({
-            top: offset.top - $(window).scrollTop() + 34,
-            right: 0,
-        });
+        // $(this.$refs.alerts_list_header).draggable();
+        // let offset = $(this.$el).parent().parent().offset();
+        // $(this.$refs.alerts_list_component).css({
+        //     top: offset.top - $(window).scrollTop() + 34,
+        //     right: 0,
+        // });
     }
 
     private close(): void {

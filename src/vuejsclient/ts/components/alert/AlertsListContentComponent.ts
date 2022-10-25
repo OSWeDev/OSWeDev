@@ -2,7 +2,6 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import Alert from '../../../../shared/modules/Alert/vos/Alert';
 import VueComponentBase from '../VueComponentBase';
-import './AlertsListContentComponent.scss';
 import { ModuleAlertAction, ModuleAlertGetter } from './AlertStore';
 import AlertViewComponent from './AlertViewComponent';
 
@@ -28,6 +27,9 @@ export default class AlertsListContentComponent extends VueComponentBase {
 
     @Prop({ default: true })
     private show_alert_date: boolean;
+
+    @Prop({ default: true })
+    private show_alert_icon: boolean;
 
     @Prop({ default: true })
     private alerts_path: string;
