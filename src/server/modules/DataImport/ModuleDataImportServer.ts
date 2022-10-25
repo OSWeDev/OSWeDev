@@ -614,10 +614,14 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
             if (format.save_error_logs) {
                 let error_logs: DataImportErrorLogVO[] = [];
-                let error_datas = datas.filter((d) => d.importation_state = ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED);
 
-                for (let ed in error_datas) {
-                    let data: IImportedData = error_datas[ed];
+                for (let ed in datas) {
+                    let data: IImportedData = datas[ed];
+
+                    if (data.importation_state != ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED) {
+                        continue;
+                    }
+
                     let log: DataImportErrorLogVO = DataImportErrorLogVO.createNew(data.not_validated_msg, importHistoric.id);
                     error_logs.push(log);
                 }
