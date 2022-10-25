@@ -121,7 +121,7 @@ export default abstract class DataImportComponentBase extends VueComponentBase {
         }
         files_ids.push(historic.file_id);
         promises.push((async () => {
-            self.storeData(await ModuleDAO.getInstance().getVoById(FileVO.API_TYPE_ID, historic.file_id));
+            self.storeData(await query(FileVO.API_TYPE_ID).filter_by_id(historic.file_id).select_vo<FileVO>());
         })());
     }
 }
