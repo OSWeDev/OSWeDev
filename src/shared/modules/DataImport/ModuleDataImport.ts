@@ -402,7 +402,7 @@ export default class ModuleDataImport extends Module {
         this.datatables.push(datatable_log);
 
         //Création de la table dataimporterrorlogs
-        label_field = new ModuleTableField('msg_import', ModuleTableField.FIELD_TYPE_tstz, 'Message d\'import', true);
+        label_field = new ModuleTableField('msg_import', ModuleTableField.FIELD_TYPE_string, 'Message d\'import', true);
         let field_dih_id = new ModuleTableField('dih_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Historique', true);
         datatable_fields = [
             label_field,
