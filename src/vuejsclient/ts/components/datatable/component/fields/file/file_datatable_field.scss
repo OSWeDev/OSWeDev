@@ -1,5 +1,20 @@
-.file_datatable_field .text-center {
+.file_datatable_field .text-left {
+
+    p {
+        margin-left: 10px;
+        text-align: left;
+        margin-bottom: 1rem;
+        position: absolute;
+        color: #007bff;
+
+    }
+}
+
+
+.text-center {
     margin-top: 10px;
+
+
 
     .btn {
         margin-left: 5px;

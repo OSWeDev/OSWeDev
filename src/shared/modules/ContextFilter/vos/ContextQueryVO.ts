@@ -598,6 +598,7 @@ export default class ContextQueryVO implements IDistantVOBase {
     public async select_vo<T extends IDistantVOBase>(): Promise<T> {
         this.fields = null;
         let res: T[] = await ModuleContextFilter.getInstance().select_vos(this);
+        console.log(res);
         if (res && (res.length > 1)) {
             throw new Error('Multiple results on select_vo is not allowed');
         }
