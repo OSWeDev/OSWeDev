@@ -1,0 +1,16 @@
+@import '../../../scss/base/skin.scss';
+
+.alerts_list_component {
+
+    & .alerts_list_container {
+
+        & .alerts_list_header {
+            border-bottom: 1px solid #eee;
+            margin-bottom: 1.5rem;
+
+            & h1 {
+                font-size: 2rem;
+            }
+        }
+    }
+}

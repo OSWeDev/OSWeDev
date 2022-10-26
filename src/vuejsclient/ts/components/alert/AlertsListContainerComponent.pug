@@ -1,0 +1,30 @@
+Draggablewindowcomponent.alerts_list_component(
+    :initial_width="448"
+    :initial_height="840"
+    :minh="115"
+    :minw="448"
+    :initial_x="70"
+    :initial_y="56"
+    :initial_opened="true"
+    :opened_width="448"
+    :opened_height="840"
+    :closed_width="448"
+    :closed_height="37"
+    :unusable_height="37"
+    :opened_minh="115"
+    :opened_minw="448"
+    :closed_minh="37"
+    :closed_minw="448"
+)
+    .slot_header(slot='icons')
+        i.fa.fa-times.pull-right(aria-hidden="true" @click='close')
+
+    .alerts_list_container.col-sm-12
+        .alerts_list_header
+            h1 {{ label(title_code_trad) }}
+            p(v-if="!!desc_code_trad") {{ label(desc_code_trad) }}
+
+        .alerts_list_content
+            template(v-if='alerts_paths && alerts_paths.length > 0')
+                template(v-for='alerts_path in alerts_paths')
+                    Alertslistcontentcomponent(:alerts_path='alerts_path', :show_alert_date="show_alert_date", :show_alert_icon="show_alert_icon")

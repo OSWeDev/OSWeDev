@@ -9,13 +9,17 @@ import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
+import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../shared/modules/ModuleTable';
+import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
+import RangeHandler from '../../../shared/tools/RangeHandler';
 import ServerBase from '../../ServerBase';
 import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
@@ -239,12 +243,36 @@ export default class ContextQueryServerController {
             throw new Error('Invalid anon');
         }
 
+        /**
+         * Traitement des champs
+         */
         for (let i in query_res) {
-            let query_res_i = query_res[i];
+            let row = query_res[i];
 
-            if (query_res_i && query_res_i['___internal___label___rplcmt____']) {
-                query_res_i['label'] = query_res_i['___internal___label___rplcmt____'];
-                delete query_res_i['___internal___label___rplcmt____'];
+            if (row && row['___internal___label___rplcmt____']) {
+                row['label'] = row['___internal___label___rplcmt____'];
+                delete row['___internal___label___rplcmt____'];
+            }
+
+            for (let j in context_query.fields) {
+                let field = context_query.fields[j];
+
+                if (field.field_id == 'id') {
+                    continue;
+                }
+                let field_id = field.alias ? field.alias : field.field_id;
+
+                let module_table = VOsTypesManager.getInstance().moduleTables_by_voType[field.api_type_id];
+                let module_field = module_table.getFieldFromId(field.field_id);
+
+                switch (module_field.field_type) {
+                    case ModuleTableField.FIELD_TYPE_tsrange:
+                        row[field_id] = RangeHandler.getInstance().parseRangeBDD(
+                            TSRange.RANGE_TYPE, row[field_id], (module_field.segmentation_type ? module_field.segmentation_type : TimeSegment.TYPE_SECOND));
+                        break;
+                    default:
+                        break;
+                }
             }
         }
 
@@ -675,10 +703,18 @@ export default class ContextQueryServerController {
             }
 
             /**
-             * On join tous les types demandés dans la requête
+             * On join tous les types demandés dans les sorts dans la requête
              */
-            for (let i in context_query.active_api_type_ids) {
-                let active_api_type_id = context_query.active_api_type_ids[i];
+            for (let i in context_query.sort_by) {
+                let sort_by = context_query.sort_by[i];
+                let active_api_type_id = sort_by.vo_type;
+
+                if (!active_api_type_id) {
+                    continue;
+                }
+                if (tables_aliases_by_type[active_api_type_id]) {
+                    continue;
+                }
 
                 let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[active_api_type_id];
                 if (!moduletable) {
@@ -693,18 +729,15 @@ export default class ContextQueryServerController {
                 /**
                  * Si on découvre, et qu'on est pas sur la première table, on passe sur un join à mettre en place
                  */
-                if (!tables_aliases_by_type[active_api_type_id]) {
-
-                    aliases_n = await this.join_api_type_id(
-                        context_query,
-                        aliases_n,
-                        active_api_type_id,
-                        jointures,
-                        joined_tables_by_vo_type,
-                        tables_aliases_by_type,
-                        access_type
-                    );
-                }
+                aliases_n = await this.join_api_type_id(
+                    context_query,
+                    aliases_n,
+                    active_api_type_id,
+                    jointures,
+                    joined_tables_by_vo_type,
+                    tables_aliases_by_type,
+                    access_type
+                );
             }
 
             /**

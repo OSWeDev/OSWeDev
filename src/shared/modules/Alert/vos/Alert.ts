@@ -15,7 +15,8 @@ export default class Alert {
         public translatable_code: string,
         public type: number = Alert.TYPE_INFO,
         public translation_params: any = null,
-        public creation_date: number = Dates.now()
+        public not_in_list: boolean = false,
+        public creation_date: number = Dates.now(),
     ) { }
 
     public pin(): Alert {
