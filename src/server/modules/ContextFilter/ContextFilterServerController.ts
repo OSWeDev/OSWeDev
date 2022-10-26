@@ -2512,6 +2512,30 @@ export default class ContextFilterServerController {
 
                 break;
 
+            case ContextFilterVO.TYPE_EXISTS:
+                if (!active_field_filter.sub_query) {
+                    throw new Error('Not Implemented');
+                }
+
+                let qr_TYPE_EXISTS = await ContextQueryServerController.getInstance().build_select_query(active_field_filter.sub_query);
+
+                if ((!qr_TYPE_EXISTS) || (!qr_TYPE_EXISTS.query)) {
+                    throw new Error('Invalid query');
+                }
+
+                if (qr_TYPE_EXISTS.is_segmented_non_existing_table) {
+                    // Si on a une table segmentée qui n'existe pas, on ne fait rien
+                    break;
+                }
+
+                if (qr_TYPE_EXISTS.params && qr_TYPE_EXISTS.params.length) {
+                    query_result.params = query_result.params.concat(qr_TYPE_EXISTS.params);
+                }
+
+                where_conditions.push('EXISTS (' + qr_TYPE_EXISTS.query + ')');
+
+                break;
+
             case ContextFilterVO.TYPE_EMPTY:
                 switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_amount:
@@ -2776,7 +2800,6 @@ export default class ContextFilterServerController {
             case ContextFilterVO.TYPE_HOUR_INCLUDES:
             case ContextFilterVO.TYPE_HOUR_IS_INCLUDED_IN:
             case ContextFilterVO.TYPE_DATE_INCLUDES:
-            case ContextFilterVO.TYPE_DATE_IS_INCLUDED_IN:
             case ContextFilterVO.TYPE_TEXT_INCLUDES_ALL:
             case ContextFilterVO.TYPE_TEXT_STARTSWITH_ALL:
             case ContextFilterVO.TYPE_TEXT_ENDSWITH_ALL:

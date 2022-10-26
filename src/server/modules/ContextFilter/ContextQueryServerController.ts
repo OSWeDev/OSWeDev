@@ -175,12 +175,37 @@ export default class ContextQueryServerController {
 
     /**
      * Filtrer des infos avec les context filters, en indiquant obligatoirement les champs ciblés, qui peuvent appartenir à des tables différentes
+     *  Compatibilité avec l'alias 'label' qui est un mot réservé en bdd
      * @param context_query le champs fields doit être rempli avec les champs ciblés par la requête (et avec les alias voulus)
      */
     public async select_datatable_rows(context_query: ContextQueryVO): Promise<any[]> {
 
         if (!context_query) {
             throw new Error('Invalid context_query param');
+        }
+
+        /**
+         * Compatibilité avec l'alias 'label' qui est un mot réservé en bdd
+         */
+        for (let i in context_query.fields) {
+            let field = context_query.fields[i];
+            if (field.alias == 'label') {
+                field.alias = '___internal___label___rplcmt____';
+            }
+        }
+
+        for (let i in context_query.sort_by) {
+            let sort_by = context_query.sort_by[i];
+            if (sort_by.alias == 'label') {
+                sort_by.alias = '___internal___label___rplcmt____';
+            }
+        }
+
+        for (let i in context_query.filters) {
+            let filter = context_query.filters[i];
+            if (filter.param_alias == 'label') {
+                filter.param_alias = '___internal___label___rplcmt____';
+            }
         }
 
         // On force des résultats distincts sur un datatable row
@@ -212,6 +237,15 @@ export default class ContextQueryServerController {
             await ServerAnonymizationController.getInstance().anonymise_context_filtered_rows(query_res, context_query.fields, uid);
         } else {
             throw new Error('Invalid anon');
+        }
+
+        for (let i in query_res) {
+            let query_res_i = query_res[i];
+
+            if (query_res_i && query_res_i['___internal___label___rplcmt____']) {
+                query_res_i['label'] = query_res_i['___internal___label___rplcmt____'];
+                delete query_res_i['___internal___label___rplcmt____'];
+            }
         }
 
         return query_res;
@@ -637,7 +671,7 @@ export default class ContextQueryServerController {
                  *  - aggregator_prefix && aggregator_suffix: rempli par le serveur et si infos étranges, throw
                  *  - field_full_name && field_alias: on a checké le format pur texte de context_field.api_type_id, context_field.alias, context_field.field_id
                  */
-                SELECT += aggregator_prefix + field_full_name + aggregator_suffix + field_alias + ' ';
+                SELECT += aggregator_prefix + ContextQueryFieldServerController.getInstance().apply_modifier(context_field, field_full_name) + aggregator_suffix + field_alias + ' ';
             }
 
             /**
@@ -749,17 +783,28 @@ export default class ContextQueryServerController {
                     ContextQueryInjectionCheckHandler.assert_postgresql_name_format(sort_by.vo_type);
                     ContextQueryInjectionCheckHandler.assert_postgresql_name_format(sort_by.field_id);
 
-                    let is_selected_field = false;
-                    for (let i in context_query.fields) {
-                        let context_field = context_query.fields[i];
+                    /**
+                     * Si on utilise un alias, on considère que le field existe forcément
+                     *  et si on a un vo_type / field_id, on doit vérifier que le field est sélect et si oui, on copie l'alias si il y en a un de def
+                     */
+                    let is_selected_field = !!sort_by.alias;
+                    if (!is_selected_field) {
 
-                        if (context_field.api_type_id != sort_by.vo_type) {
-                            continue;
+                        for (let i in context_query.fields) {
+                            let context_field = context_query.fields[i];
+
+                            if (context_field.api_type_id != sort_by.vo_type) {
+                                continue;
+                            }
+                            if (context_field.field_id != sort_by.field_id) {
+                                continue;
+                            }
+
+                            if (!!context_field.alias) {
+                                sort_by.alias = context_field.alias;
+                            }
+                            is_selected_field = true;
                         }
-                        if (context_field.field_id != sort_by.field_id) {
-                            continue;
-                        }
-                        is_selected_field = true;
                     }
 
                     if (!first_sort_by) {
@@ -783,8 +828,13 @@ export default class ContextQueryServerController {
 
                     if (is_selected_field || !context_query.query_distinct) {
 
-                        SORT_BY += modifier_start + tables_aliases_by_type[sort_by.vo_type] + '.' + sort_by.field_id + modifier_end +
-                            (sort_by.sort_asc ? ' ASC ' : ' DESC ');
+                        if (!!sort_by.alias) {
+                            SORT_BY += modifier_start + sort_by.alias + modifier_end +
+                                (sort_by.sort_asc ? ' ASC ' : ' DESC ');
+                        } else {
+                            SORT_BY += modifier_start + tables_aliases_by_type[sort_by.vo_type] + '.' + sort_by.field_id + modifier_end +
+                                (sort_by.sort_asc ? ' ASC ' : ' DESC ');
+                        }
                     } else {
 
                         let sort_alias = 'sort_alias_' + Math.ceil(Math.random() * 100);

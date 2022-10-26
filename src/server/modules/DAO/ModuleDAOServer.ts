@@ -1883,11 +1883,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     promises.push((async () => {
                         let res = await this.query(throttled_select_query_param.parameterized_full_query);
 
+                        let pms = [];
                         for (let cbi in throttled_select_query_param.cbs) {
                             let cb = throttled_select_query_param.cbs[cbi];
 
-                            await cb(res);
+                            pms.push(cb(res));
                         }
+                        await all_promises(pms);
                     })());
                     continue;
                 }
@@ -4815,7 +4817,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             this.log_db_query_perf_start_by_uid[uid] = Dates.now_ms();
             let query_s = (query_string ? query_string.substring(0, 1000) : 'N/A');
             query_s = (query_s ? query_s.replace(/;/g, '') : 'N/A');
-            ConsoleHandler.getInstance().log('log_db_query_perf_start;ModuleDAOServer;IN;' + uid + ';' + this.log_db_query_perf_start_by_uid[uid] + ';0;' + method_name +
+            ConsoleHandler.getInstance().log('log_db_query_perf_start;;ModuleDAOServer;IN;' + uid + ';' + this.log_db_query_perf_start_by_uid[uid] + ';0;' + method_name +
                 ';' + (step_name ? step_name : 'N/A') +
                 ';' + query_s);
             return uid;
@@ -4830,9 +4832,22 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let duration = end_ms - this.log_db_query_perf_start_by_uid[uid];
             let query_s = (query_string ? query_string.substring(0, 1000) : 'N/A');
             query_s = (query_s ? query_s.replace(/;/g, '') : 'N/A');
-            ConsoleHandler.getInstance().log('log_db_query_perf_start;ModuleDAOServer;OUT;' + uid + ';' + end_ms + ';' + duration + ';' + method_name +
-                ';' + (step_name ? step_name : 'N/A') +
-                ';' + query_s);
+
+            if (ConfigurationService.getInstance().node_configuration.DEBUG_SLOW_QUERIES &&
+                (duration > (10 * ConfigurationService.getInstance().node_configuration.DEBUG_SLOW_QUERIES_MS_LIMIT))) {
+                ConsoleHandler.getInstance().error('log_db_query_perf_end;VERYSLOW;ModuleDAOServer;OUT;' + uid + ';' + end_ms + ';' + duration + ';' + method_name +
+                    ';' + (step_name ? step_name : 'N/A') +
+                    ';' + query_string);
+            } else if (ConfigurationService.getInstance().node_configuration.DEBUG_SLOW_QUERIES &&
+                (duration > ConfigurationService.getInstance().node_configuration.DEBUG_SLOW_QUERIES_MS_LIMIT)) {
+                ConsoleHandler.getInstance().warn('log_db_query_perf_end;SLOW;ModuleDAOServer;OUT;' + uid + ';' + end_ms + ';' + duration + ';' + method_name +
+                    ';' + (step_name ? step_name : 'N/A') +
+                    ';' + query_string);
+            } else {
+                ConsoleHandler.getInstance().log('log_db_query_perf_end;;ModuleDAOServer;OUT;' + uid + ';' + end_ms + ';' + duration + ';' + method_name +
+                    ';' + (step_name ? step_name : 'N/A') +
+                    ';' + query_s);
+            }
         }
     }
 
@@ -4881,6 +4896,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             results_by_index[index].push(result);
         }
 
+        let promises = [];
         for (let i in throttled_select_query_params_by_index) {
             let index = parseInt(i);
             let results_of_index = results_by_index[index];
@@ -4893,8 +4909,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
             for (let cbi in param.cbs) {
                 let cb = param.cbs[cbi];
 
-                await cb(results_of_index ? cloneDeep(results_of_index) : null);
+                promises.push(cb(results_of_index ? cloneDeep(results_of_index) : null));
             }
         }
+        await all_promises(promises);
     }
 }
