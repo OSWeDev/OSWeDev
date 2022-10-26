@@ -2216,6 +2216,10 @@ export default class RangeHandler {
      * @deprecated
      */
     public parseRangeBDD<T, U extends IRange>(range_type: number, rangeLiteral: string, segment_type: number): U {
+        if (!rangeLiteral) {
+            return null;
+        }
+
         var matches = rangeLiteral.match(RangeHandler.RANGE_MATCHER_BDD);
 
         if (!matches) {
