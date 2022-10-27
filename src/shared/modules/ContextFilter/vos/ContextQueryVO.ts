@@ -509,14 +509,27 @@ export default class ContextQueryVO implements IDistantVOBase {
                 let matroid_field = matroid_fields[j];
                 let matroid_field_id = matroid_field.field_id;
                 let target_field_id = (fields_ids_mapper && fields_ids_mapper[matroid_field_id]) ? fields_ids_mapper[matroid_field_id] : matroid_field_id;
+                let target_moduletable_field = target_moduletable.getFieldFromId(target_field_id);
 
                 let this_filter = null;
-                switch (matroid_field.field_type) {
+                switch (target_moduletable_field.field_type) {
+                    case ModuleTableField.FIELD_TYPE_tsrange:
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
                         this_filter = filter(target_API_TYPE_ID, target_field_id).by_date_is_in_ranges(matroid[matroid_field_id]);
                         break;
-                    default:
+                    case ModuleTableField.FIELD_TYPE_numrange:
+                    case ModuleTableField.FIELD_TYPE_hourrange:
+                    case ModuleTableField.FIELD_TYPE_numrange_array:
+                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableField.FIELD_TYPE_hourrange_array:
                         this_filter = filter(target_API_TYPE_ID, target_field_id).by_num_is_in_ranges(matroid[matroid_field_id]);
+                        break;
+                    case ModuleTableField.FIELD_TYPE_tstz:
+                        this_filter = filter(target_API_TYPE_ID, target_field_id).by_date_x_ranges(matroid[matroid_field_id]);
+                        break;
+                    default:
+                        this_filter = filter(target_API_TYPE_ID, target_field_id).by_num_x_ranges(matroid[matroid_field_id]);
+                        break;
                 }
                 this_matroid_head_filter = this_matroid_head_filter ? this_matroid_head_filter.and(this_filter) : this_filter;
             }
