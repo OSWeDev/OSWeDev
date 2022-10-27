@@ -4,6 +4,7 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
@@ -62,7 +63,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
         let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
 
         // Quand on change un fichier on check si on doit changer l'url d'une image formattee au passage.
-        postUpdateTrigger.registerHandler(FileVO.API_TYPE_ID, this.force_formatted_image_path_from_file_changed);
+        postUpdateTrigger.registerHandler(FileVO.API_TYPE_ID, this, this.force_formatted_image_path_from_file_changed);
     }
 
     public registerServerApiHandlers() {
@@ -70,7 +71,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
     }
 
     private async force_formatted_image_path_from_file_changed(vo_update_handler: DAOUpdateVOHolder<FileVO>) {
-        let fimgs: FormattedImageVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<FormattedImageVO>(FormattedImageVO.API_TYPE_ID, 'file_id', [vo_update_handler.post_update_vo.id]);
+        let fimgs: FormattedImageVO[] = await query(FormattedImageVO.API_TYPE_ID).filter_by_num_eq('file_id', vo_update_handler.post_update_vo.id).select_vos<FormattedImageVO>();
 
         if ((!fimgs) || (!fimgs.length)) {
             return;
@@ -99,7 +100,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
             let param_height = parseInt(height.toString());
             let param_width = parseInt(width.toString());
 
-            let format: ImageFormatVO = await ModuleDAO.getInstance().getNamedVoByName<ImageFormatVO>(ImageFormatVO.API_TYPE_ID, format_name);
+            let format: ImageFormatVO = await query(ImageFormatVO.API_TYPE_ID).filter_by_text_eq('name', format_name, ImageFormatVO.API_TYPE_ID, true).select_vo<ImageFormatVO>();
 
             if (!format) {
                 ConsoleHandler.getInstance().error('Impossible de charger le format d\'image :' + format_name);
@@ -111,9 +112,10 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
              *  Si on trouve, on envoie l'image
              *  Si on trouve pas on génère la nouvelle image et on la renvoie
              */
-            let fis: FormattedImageVO[] = await ModuleDAOServer.getInstance().selectAll<FormattedImageVO>(FormattedImageVO.API_TYPE_ID,
-                ' join ' + VOsTypesManager.getInstance().moduleTables_by_voType[ImageFormatVO.API_TYPE_ID].full_name +
-                ' imgfmt on imgfmt.id = t.image_format_id where imgfmt.name = $1 and t.image_src = $2;', [format_name, src]);
+            let fis: FormattedImageVO[] = await query(FormattedImageVO.API_TYPE_ID)
+                .filter_by_text_eq('name', format_name, ImageFormatVO.API_TYPE_ID)
+                .filter_by_text_eq('image_src', src)
+                .select_vos<FormattedImageVO>();
 
             let res_diff_min_value: number = null;
             let res_diff_min_fi: FormattedImageVO = null;

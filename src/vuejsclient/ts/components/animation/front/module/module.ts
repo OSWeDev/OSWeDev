@@ -10,6 +10,7 @@ import AnimationQRVO from "../../../../../../shared/modules/Animation/vos/Animat
 import AnimationThemeVO from "../../../../../../shared/modules/Animation/vos/AnimationThemeVO";
 import AnimationUserModuleVO from "../../../../../../shared/modules/Animation/vos/AnimationUserModuleVO";
 import AnimationUserQRVO from "../../../../../../shared/modules/Animation/vos/AnimationUserQRVO";
+import { query } from "../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import ModuleDAO from "../../../../../../shared/modules/DAO/ModuleDAO";
 import SimpleDatatableField from "../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField";
 import NumRange from "../../../../../../shared/modules/DataRender/vos/NumRange";
@@ -20,6 +21,7 @@ import IDistantVOBase from "../../../../../../shared/modules/IDistantVOBase";
 import VarsController from "../../../../../../shared/modules/Var/VarsController";
 import VarDataBaseVO from "../../../../../../shared/modules/Var/vos/VarDataBaseVO";
 import VOsTypesManager from "../../../../../../shared/modules/VOsTypesManager";
+import { all_promises } from "../../../../../../shared/tools/PromiseTools";
 import RangeHandler from "../../../../../../shared/tools/RangeHandler";
 import AjaxCacheClientController from "../../../../modules/AjaxCache/AjaxCacheClientController";
 import IVarDirectiveParams from '../../../Var/directives/var-directive/IVarDirectiveParams';
@@ -82,13 +84,13 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
         let promises = [];
 
         promises.push((async () => this.logged_user_id = await ModuleAccessPolicy.getInstance().getLoggedUserId())());
-        promises.push((async () => this.anim_module = await ModuleDAO.getInstance().getVoById<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID, this.module_id))());
-        promises.push((async () => this.qrs = await ModuleDAO.getInstance().getVosByRefFieldIds<AnimationQRVO>(AnimationQRVO.API_TYPE_ID, 'module_id', [this.module_id]))());
-        promises.push((async () => this.themes = await ModuleDAO.getInstance().getVos<AnimationThemeVO>(AnimationThemeVO.API_TYPE_ID))());
+        promises.push((async () => this.anim_module = await query(AnimationModuleVO.API_TYPE_ID).filter_by_id(this.module_id).select_vo<AnimationModuleVO>())());
+        promises.push((async () => this.qrs = await query(AnimationQRVO.API_TYPE_ID).filter_by_num_eq('module_id', this.module_id).select_vos<AnimationQRVO>())());
+        promises.push((async () => this.themes = await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>())());
         promises.push((async () => this.animation_params = await ModuleAnimation.getInstance().getParameters())());
         promises.push((async () => this.has_access_inline_input_mode = await ModuleAccessPolicy.getInstance().testAccess(ModuleAnimation.POLICY_FO_REPORTING_ACCESS))());
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         for (let i in this.themes) {
             this.theme_id_ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(this.themes[i].id, NumSegment.TYPE_INT));
@@ -128,10 +130,10 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
         )());
 
         if (this.anim_module.document_id) {
-            promises.push((async () => this.document = await ModuleDAO.getInstance().getVoById<DocumentVO>(DocumentVO.API_TYPE_ID, this.anim_module.document_id))());
+            promises.push((async () => this.document = await query(DocumentVO.API_TYPE_ID).filter_by_id(this.anim_module.document_id).select_vo<DocumentVO>())());
         }
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         // Si module terminé et atteinte seuil pas atteint, on propose de recommencer le module
         if (this.um.end_date && !this.prct_atteinte_seuil_module) {
@@ -157,16 +159,16 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
         let promises = [];
 
         promises.push((async () => this.file_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(
-            await ModuleDAO.getInstance().getVosByIds<FileVO>(FileVO.API_TYPE_ID, file_ids)
+            await query(FileVO.API_TYPE_ID).filter_by_ids(file_ids).select_vos<FileVO>()
         ))());
 
-        promises.push((async () => this.theme = await ModuleDAO.getInstance().getVoById<AnimationThemeVO>(AnimationThemeVO.API_TYPE_ID, this.anim_module.theme_id))());
+        promises.push((async () => this.theme = await query(AnimationThemeVO.API_TYPE_ID).filter_by_id(this.anim_module.theme_id).select_vo<AnimationThemeVO>())());
 
         if (this.qrs && this.qrs.length) {
             promises.push((async () => await this.reloadUqrs())());
         }
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         this.current_qr = this.ordered_qrs ? this.ordered_qrs[0] : null;
     }

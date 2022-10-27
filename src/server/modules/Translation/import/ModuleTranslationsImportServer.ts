@@ -1,6 +1,7 @@
 import AccessPolicyGroupVO from '../../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleDataImport from '../../../../shared/modules/DataImport/ModuleDataImport';
@@ -15,6 +16,7 @@ import LangVO from '../../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../../shared/modules/Translation/vos/TranslationVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
+import { all_promises } from '../../../../shared/tools/PromiseTools';
 import AccessPolicyServerController from '../../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../../AccessPolicy/ModuleAccessPolicyServer';
 import DataImportModuleBase from '../../DataImport/DataImportModuleBase/DataImportModuleBase';
@@ -87,9 +89,7 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
         return datas;
     }
 
-    public async hook_merge_imported_datas_in_database(datas: ImportTranslationRaw[], historic: DataImportHistoricVO): Promise<boolean> {
-
-        let format: DataImportFormatVO = await ModuleDAO.getInstance().getVoById<DataImportFormatVO>(DataImportFormatVO.API_TYPE_ID, historic.data_import_format_id);
+    public async hook_merge_imported_datas_in_database(datas: ImportTranslationRaw[], historic: DataImportHistoricVO, format: DataImportFormatVO): Promise<boolean> {
 
         let res: boolean = true;
         try {
@@ -109,7 +109,7 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
     }
 
     private async get_langs_by_code(): Promise<{ [code_lang: string]: LangVO }> {
-        let langs: LangVO[] = await ModuleDAO.getInstance().getVos<LangVO>(LangVO.API_TYPE_ID);
+        let langs: LangVO[] = await query(LangVO.API_TYPE_ID).select_vos<LangVO>();
         let langs_by_code: { [code_lang: string]: LangVO } = {};
 
         for (let i in langs) {
@@ -122,7 +122,7 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
     }
 
     private async get_translatables_by_code(): Promise<{ [code_text: string]: TranslatableTextVO }> {
-        let translatables: TranslatableTextVO[] = await ModuleDAO.getInstance().getVos<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID);
+        let translatables: TranslatableTextVO[] = await query(TranslatableTextVO.API_TYPE_ID).select_vos<TranslatableTextVO>();
         let translatables_by_code: { [code_text: string]: TranslatableTextVO } = {};
 
         for (let i in translatables) {
@@ -176,7 +176,7 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
                     continue;
                 }
 
-                translatable = await ModuleDAO.getInstance().getVoById<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID, insertRes.id);
+                translatable = await query(TranslatableTextVO.API_TYPE_ID).filter_by_id(insertRes.id).select_vo<TranslatableTextVO>();
             }
 
 
@@ -190,7 +190,7 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
             })());
         }
 
-        await Promise.all(promises);
+        await all_promises(promises);
         return true;
     }
 }

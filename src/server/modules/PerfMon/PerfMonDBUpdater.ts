@@ -1,4 +1,5 @@
 import { throttle } from 'lodash';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import PerfMonLineTypeVO from '../../../shared/modules/PerfMon/vos/PerfMonLineTypeVO';
@@ -26,7 +27,7 @@ export default class PerfMonDBUpdater {
         let copied_lines = Array.from(PerfMonServerController.getInstance().ordered_lines_to_update_in_db);
         let copied_childrens_per_parent_uid = Object.assign({}, PerfMonServerController.getInstance().childrens_per_parent_uid);
         PerfMonServerController.getInstance().ordered_lines_to_update_in_db = [];
-        let types_by_id = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<PerfMonLineTypeVO>(PerfMonLineTypeVO.API_TYPE_ID));
+        let types_by_id = VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(PerfMonLineTypeVO.API_TYPE_ID).select_vos<PerfMonLineTypeVO>());
 
         for (let i in copied_lines) {
             let perf_line = copied_lines[i];

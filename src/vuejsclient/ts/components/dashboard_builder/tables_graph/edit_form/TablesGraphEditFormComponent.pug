@@ -1,6 +1,16 @@
 .tables_graph_edit_form
     .tables_graph_edit_form_title {{ label('tables_graph_edit_form.title') }}
-    .tables_graph_edit_form_cell(v-if="cellData && cellData.value")
+    .tables_graph_edit_form_cell(v-if="cellData && cellData.value && cellData.edge")
+        .name Off/On: {{cellData.value}} 
+        toggle-button(
+                type="checkbox" 
+                id="myCheckbox"
+                @change="confirm_delete_arrow" 
+                :value= "!toggle" 
+                :sync="true"
+                :width="100"
+                )
+    .tables_graph_edit_form_cell(v-if="cellData && cellData.value && !cellData.edge")           
         .name {{ cell_name }}
         .delete(@click='confirm_delete_cell')
             i.fa.fa-trash.fa-fw(aria-hidden="true")

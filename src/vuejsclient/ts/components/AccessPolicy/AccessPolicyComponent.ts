@@ -7,8 +7,10 @@ import AccessPolicyVO from '../../../../shared/modules/AccessPolicy/vos/AccessPo
 import PolicyDependencyVO from '../../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import RolePolicyVO from '../../../../shared/modules/AccessPolicy/vos/RolePolicyVO';
 import RoleVO from '../../../../shared/modules/AccessPolicy/vos/RoleVO';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
+import { all_promises } from '../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
 import { ModuleDAOAction, ModuleDAOGetter } from '../dao/store/DaoStore';
@@ -76,35 +78,35 @@ export default class AccessPolicyComponent extends VueComponentBase {
 
         let promises: Array<Promise<any>> = [];
         promises.push((async () => {
-            let vos: IDistantVOBase[] = await ModuleDAO.getInstance().getVos<IDistantVOBase>(AccessPolicyVO.API_TYPE_ID);
+            let vos: IDistantVOBase[] = await query(AccessPolicyVO.API_TYPE_ID).select_vos<IDistantVOBase>();
             self.storeDatas({
                 API_TYPE_ID: AccessPolicyVO.API_TYPE_ID,
                 vos: vos
             });
         })());
         promises.push((async () => {
-            let vos: IDistantVOBase[] = await ModuleDAO.getInstance().getVos<IDistantVOBase>(AccessPolicyGroupVO.API_TYPE_ID);
+            let vos: IDistantVOBase[] = await query(AccessPolicyGroupVO.API_TYPE_ID).select_vos<IDistantVOBase>();
             self.storeDatas({
                 API_TYPE_ID: AccessPolicyGroupVO.API_TYPE_ID,
                 vos: vos
             });
         })());
         promises.push((async () => {
-            let vos: IDistantVOBase[] = await ModuleDAO.getInstance().getVos<IDistantVOBase>(PolicyDependencyVO.API_TYPE_ID);
+            let vos: IDistantVOBase[] = await query(PolicyDependencyVO.API_TYPE_ID).select_vos<IDistantVOBase>();
             self.storeDatas({
                 API_TYPE_ID: PolicyDependencyVO.API_TYPE_ID,
                 vos: vos
             });
         })());
         promises.push((async () => {
-            let vos: IDistantVOBase[] = await ModuleDAO.getInstance().getVos<IDistantVOBase>(RolePolicyVO.API_TYPE_ID);
+            let vos: IDistantVOBase[] = await query(RolePolicyVO.API_TYPE_ID).select_vos<IDistantVOBase>();
             self.storeDatas({
                 API_TYPE_ID: RolePolicyVO.API_TYPE_ID,
                 vos: vos
             });
         })());
         promises.push((async () => {
-            let vos: IDistantVOBase[] = await ModuleDAO.getInstance().getVos<IDistantVOBase>(RoleVO.API_TYPE_ID);
+            let vos: IDistantVOBase[] = await query(RoleVO.API_TYPE_ID).select_vos<IDistantVOBase>();
             self.storeDatas({
                 API_TYPE_ID: RoleVO.API_TYPE_ID,
                 vos: vos
@@ -118,7 +120,7 @@ export default class AccessPolicyComponent extends VueComponentBase {
             self.inherited_access_matrix = await ModuleAccessPolicy.getInstance().getAccessMatrix(true);
         })());
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         for (let i in this.getStoredDatas[AccessPolicyGroupVO.API_TYPE_ID]) {
             let group: AccessPolicyGroupVO = this.getStoredDatas[AccessPolicyGroupVO.API_TYPE_ID][i] as AccessPolicyGroupVO;
@@ -456,7 +458,7 @@ export default class AccessPolicyComponent extends VueComponentBase {
             self.inherited_access_matrix = await ModuleAccessPolicy.getInstance().getAccessMatrix(true);
         })());
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         this.throttled_update_component();
 

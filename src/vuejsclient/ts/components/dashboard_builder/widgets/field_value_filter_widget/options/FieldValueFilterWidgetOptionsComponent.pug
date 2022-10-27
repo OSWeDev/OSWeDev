@@ -92,6 +92,17 @@
                     :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                 )
 
+        .autovalidate_advanced_filter
+            .input_label {{ label('field_value_filter_widget_component.autovalidate_advanced_filter') }}
+            .input_wrapper
+                toggle-button(
+                    @change="switch_autovalidate_advanced_filter" 
+                    :value="autovalidate_advanced_filter" 
+                    :sync="false"
+                    :width="60"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                )
+
         template(v-if="is_type_string")
             .advanced_mode
                 .input_label {{ label('field_value_filter_widget_component.advanced_mode') }}
@@ -198,6 +209,16 @@
                             :width="60"
                             :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}")
                             
+                .separation_active_filter 
+                    .input_label {{ label('field_value_filter_widget_component.separation_active_filter') }}
+                    .input_wrapper
+                        toggle-button(
+                            @change="switch_separation_active_filter" 
+                            :value="separation_active_filter" 
+                            :sync="false"
+                            :width="60"
+                            :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}")
+                            
                 .field_ref_lvl2
                     .input_label {{ label('field_value_filter_widget_component.vo_field_ref_lvl2') }}
                     .input_wrapper
@@ -207,6 +228,15 @@
                         )
 
                 template(v-if="vo_field_ref_lvl2")
+                
+                    .field_sort_lvl2
+                        .input_label {{ label('field_value_filter_widget_component.vo_field_sort_lvl2') }}
+                        .input_wrapper
+                            Singlevofieldrefholdercomponent(
+                                :vo_field_ref="vo_field_sort_lvl2" @remove_field_ref="remove_field_sort_lvl2" @add_field_ref="add_field_sort_lvl2"
+                                :page_widget_id='page_widget ? page_widget.id : null'
+                            )
+
                     .hide_lvl2_if_lvl1_not_selected 
                         .input_label {{ label('field_value_filter_widget_component.hide_lvl2_if_lvl1_not_selected') }}
                         .input_wrapper
@@ -306,7 +336,7 @@
                         :deselect-group-label='label("multiselect.deselectGroupLabel")'
                     )
 
-        .exclude_filter_opt_values(v-if="is_type_string") 
+        .exclude_filter_opt_values(v-if="is_type_string || is_type_number || is_type_enum || is_type_date") 
             .input_label {{ label('field_value_filter_widget_component.exclude_filter_opt_values') }}
             .input_wrapper
                 template(v-if="is_type_string || is_type_number || is_type_enum")

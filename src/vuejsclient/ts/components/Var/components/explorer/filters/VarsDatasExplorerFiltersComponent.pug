@@ -1,7 +1,7 @@
 .vars_datas_explorer_filters
     .form
         .row
-            .col-md-12
+            .col-sm-12
                 multiselect(
                     :preselect-first="false"
                     :multiple="true"
@@ -30,7 +30,7 @@
         template(v-for='(field, field_id) in fields')
             template(v-if='fields_filters_is_valid[field_id]')
                 .row
-                    .col-md-12
+                    .col-sm-12
                         template(v-if='is_ts_range_type(field)')
                             Tsrangeinputcomponent(
                                 :value='fields_filters_range[field_id]'

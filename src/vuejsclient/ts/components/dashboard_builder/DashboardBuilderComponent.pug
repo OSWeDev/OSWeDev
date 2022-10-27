@@ -9,17 +9,17 @@
                 | {{ label('dashboard_builder.loading_failed') }}
     template(v-else)
         .row 
-            .col-md-12
+            .col-sm-12
                 .header 
                     .row 
-                        .col-md-2
+                        .col-sm-2
                             .title {{ label('dashboard_builder.title') }}
 
-                        .col-md-4
+                        .col-sm-4
                             .name
                                 Inlinetranslatabletext(:code_text="dashboard_name_code_text" :is_editable="true")
 
-                        .col-md-4
+                        .col-sm-4
                             .selector
                                 multiselect(
                                     :preselect-first="false"
@@ -46,7 +46,7 @@
                                     :deselect-group-label='label("multiselect.deselectGroupLabel")'
                                     )
 
-                        .col-md-2
+                        .col-sm-2
                             .copy_dashboard(v-if="can_use_clipboard")
                                 i.fa.fa-download.fa-fw.btn_icon(aria-hidden="true" @click="copy_dashboard" v-tooltip='label("dashboard_builder.copy_dashboard")')
                             .replace_dashboard(v-if="can_use_clipboard")
@@ -60,7 +60,7 @@
 
         
         .row 
-            .col-md-12
+            .col-sm-12
                 template(v-if='!pages')
                     template(v-if="loading")
                         .is_loading
@@ -72,9 +72,9 @@
 
                 template(v-else)
                     .row.steps
-                        .col-md-3.step.select_vos(@click='select_vos' :class="{'selected' : show_select_vos}") {{ label('dashboard_builder.select_vos') }}
-                        .col-md-3.step.build_page(v-if='can_build_page' @click='build_page' :class="{'selected' : show_build_page}") {{ label('dashboard_builder.build_page') }}
-                        .col-md-3.step.build_page(v-if='can_build_page' @click='menu_conf' :class="{'selected' : show_menu_conf}") {{ label('dashboard_builder.menu_conf') }}
+                        .col-sm-3.step.select_vos(@click='select_vos' :class="{'selected' : show_select_vos}") {{ label('dashboard_builder.select_vos') }}
+                        .col-sm-3.step.build_page(v-if='can_build_page' @click='build_page' :class="{'selected' : show_build_page}") {{ label('dashboard_builder.build_page') }}
+                        .col-sm-3.step.build_page(v-if='can_build_page' @click='menu_conf' :class="{'selected' : show_menu_conf}") {{ label('dashboard_builder.menu_conf') }}
 
                     .pages
                         template(v-if='has_navigation_history')
@@ -117,7 +117,7 @@
 
         template(v-if='!page')
             .row
-                .col-md-12
+                .col-sm-12
                     template(v-if="loading")
                         .is_loading
                             i.fa.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
@@ -128,7 +128,7 @@
 
         template(v-else)
             .row(v-if='show_select_vos')
-                .col-md-12.tables_graph_wrapper 
+                .col-sm-12.tables_graph_wrapper 
                     Tablesgraphcomponent(:dashboard='dashboard' @add_api_type_id='add_api_type_id' @del_api_type_id='del_api_type_id')
 
             
@@ -148,7 +148,7 @@
                     Droppablevofieldscomponent(:dashboard='dashboard')
             
             .row(v-if='show_build_page')
-                .col-md-12.builder_wrapper
+                .col-sm-12.builder_wrapper
                     Dashboardbuilderboardcomponent(
                         ref='Dashboardbuilderboardcomponent'
                         :dashboard_page='page' 
@@ -161,5 +161,5 @@
                     )
             
             .row(v-if='show_menu_conf')
-                .col-md-12.menu_conf_wrapper 
+                .col-sm-12.menu_conf_wrapper 
                     Dashboardmenuconfcomponent(:dashboard='dashboard')

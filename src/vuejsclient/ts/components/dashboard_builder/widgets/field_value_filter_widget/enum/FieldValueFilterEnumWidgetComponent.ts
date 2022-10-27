@@ -1,3 +1,4 @@
+import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterHandler from '../../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
@@ -62,34 +63,87 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     private is_init: boolean = false;
 
     private actual_query: string = null;
+    private old_widget_options: FieldValueFilterWidgetOptions = null;
 
     private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
     private last_calculation_cpt: number = 0;
-
-    get vo_field_ref_label(): string {
-        if ((!this.widget_options) || (!this.vo_field_ref)) {
-            return null;
-        }
-
-        return this.get_flat_locale_translations[this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id)];
-    }
 
     @Watch('get_active_field_filters', { deep: true })
     private async onchange_active_field_filters() {
         await this.throttled_update_visible_options();
     }
 
-    private async query_update_visible_options(queryStr: string) {
-        this.actual_query = queryStr;
+    @Watch('widget_options', { immediate: true })
+    private async onchange_widget_options() {
+        if (!!this.old_widget_options) {
+            if (isEqual(this.widget_options, this.old_widget_options)) {
+                return;
+            }
+        }
+
+        this.old_widget_options = cloneDeep(this.widget_options);
+
+        this.is_init = false;
+        ValidationFiltersWidgetController.getInstance().set_is_init(
+            this.dashboard_page,
+            this.page_widget,
+            false
+        );
         await this.throttled_update_visible_options();
     }
 
-    get field(): ModuleTableField<any> {
-        if (!this.vo_field_ref) {
-            return null;
+    @Watch('tmp_filter_active_options')
+    private onchange_tmp_filter_active_options() {
+
+        if (!this.widget_options) {
+            return;
         }
 
-        return VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
+        let translated_active_options: ContextFilterVO = null;
+        let locale_tmp_filter_active_options = null;
+
+        if (TypesHandler.getInstance().isArray(this.tmp_filter_active_options)) {
+            locale_tmp_filter_active_options = this.tmp_filter_active_options;
+        } else {
+            if (this.tmp_filter_active_options != null) {
+                locale_tmp_filter_active_options = [this.tmp_filter_active_options];
+            }
+        }
+
+        if ((!locale_tmp_filter_active_options) || (!locale_tmp_filter_active_options.length)) {
+            this.remove_active_field_filter({ vo_type: this.vo_field_ref.api_type_id, field_id: this.vo_field_ref.field_id });
+            return;
+        }
+
+        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id];
+        let field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
+
+        for (let i in locale_tmp_filter_active_options) {
+            let active_option = locale_tmp_filter_active_options[i];
+
+            let new_translated_active_options = ContextFilterHandler.getInstance().get_ContextFilterVO_from_DataFilterOption(active_option, null, field, this.vo_field_ref);
+
+            if (!new_translated_active_options) {
+                continue;
+            }
+
+            if (!translated_active_options) {
+                translated_active_options = new_translated_active_options;
+            } else {
+                translated_active_options = ContextFilterHandler.getInstance().merge_ContextFilterVOs(translated_active_options, new_translated_active_options);
+            }
+        }
+
+        this.set_active_field_filter({
+            field_id: this.vo_field_ref.field_id,
+            vo_type: this.vo_field_ref.api_type_id,
+            active_field_filter: translated_active_options,
+        });
+    }
+
+    private async query_update_visible_options(queryStr: string) {
+        this.actual_query = queryStr;
+        await this.throttled_update_visible_options();
     }
 
     private async update_visible_options() {
@@ -214,68 +268,24 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         return true;
     }
 
-    @Watch('widget_options', { immediate: true })
-    private async onchange_widget_options() {
-        this.is_init = false;
-        ValidationFiltersWidgetController.getInstance().set_is_init(
-            this.dashboard_page,
-            this.page_widget,
-            false
-        );
-        await this.throttled_update_visible_options();
-    }
-
-    @Watch('tmp_filter_active_options')
-    private onchange_tmp_filter_active_options() {
-
-        if (!this.widget_options) {
-            return;
-        }
-
-        let translated_active_options: ContextFilterVO = null;
-        let locale_tmp_filter_active_options = null;
-
-        if (TypesHandler.getInstance().isArray(this.tmp_filter_active_options)) {
-            locale_tmp_filter_active_options = this.tmp_filter_active_options;
-        } else {
-            if (this.tmp_filter_active_options != null) {
-                locale_tmp_filter_active_options = [this.tmp_filter_active_options];
-            }
-        }
-
-        if ((!locale_tmp_filter_active_options) || (!locale_tmp_filter_active_options.length)) {
-            this.remove_active_field_filter({ vo_type: this.vo_field_ref.api_type_id, field_id: this.vo_field_ref.field_id });
-            return;
-        }
-
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id];
-        let field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
-
-        for (let i in locale_tmp_filter_active_options) {
-            let active_option = locale_tmp_filter_active_options[i];
-
-            let new_translated_active_options = ContextFilterHandler.getInstance().get_ContextFilterVO_from_DataFilterOption(active_option, null, field, this.vo_field_ref);
-
-            if (!new_translated_active_options) {
-                continue;
-            }
-
-            if (!translated_active_options) {
-                translated_active_options = new_translated_active_options;
-            } else {
-                translated_active_options = ContextFilterHandler.getInstance().merge_ContextFilterVOs(translated_active_options, new_translated_active_options);
-            }
-        }
-
-        this.set_active_field_filter({
-            field_id: this.vo_field_ref.field_id,
-            vo_type: this.vo_field_ref.api_type_id,
-            active_field_filter: translated_active_options,
-        });
-    }
-
     private filter_visible_label(dfo: DataFilterOption): string {
         return dfo.label;
+    }
+
+    get vo_field_ref_label(): string {
+        if ((!this.widget_options) || (!this.vo_field_ref)) {
+            return null;
+        }
+
+        return this.get_flat_locale_translations[this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id)];
+    }
+
+    get field(): ModuleTableField<any> {
+        if (!this.vo_field_ref) {
+            return null;
+        }
+
+        return VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
     }
 
     get placeholder(): string {
@@ -411,6 +421,9 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
                     options.exclude_filter_opt_values,
                     options.exclude_ts_range_values,
                     options.placeholder_advanced_mode,
+                    options.separation_active_filter,
+                    options.vo_field_sort_lvl2,
+                    options.autovalidate_advanced_filter,
                 ) : null;
             }
         } catch (error) {

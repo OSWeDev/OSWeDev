@@ -1,5 +1,6 @@
 import { VueNestable, VueNestableHandle } from 'vue-nestable';
 import { Component, Prop, Watch } from 'vue-property-decorator';
+import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleMenu from '../../../../../shared/modules/Menu/ModuleMenu';
@@ -103,7 +104,7 @@ export default class MenuOrganizerComponent extends VueComponentBase {
             return;
         }
         await ModuleDAO.getInstance().insertOrUpdateVOs([this.selected_item]);
-        let item = await ModuleDAO.getInstance().getVoById<MenuElementVO>(MenuElementVO.API_TYPE_ID, this.selected_item.id);
+        let item = await query(MenuElementVO.API_TYPE_ID).filter_by_id(this.selected_item.id).select_vo<MenuElementVO>();
         this.db_menus_by_ids[item.id] = item;
         this.selected_item = item;
         this.has_modif_selected = false;
@@ -116,7 +117,7 @@ export default class MenuOrganizerComponent extends VueComponentBase {
             return;
         }
 
-        let item = await ModuleDAO.getInstance().getVoById<MenuElementVO>(MenuElementVO.API_TYPE_ID, this.selected_item.id);
+        let item = await query(MenuElementVO.API_TYPE_ID).filter_by_id(this.selected_item.id).select_vo<MenuElementVO>();
         this.db_menus_by_ids[item.id] = item;
         this.selected_item = item;
         this.has_modif_selected = false;
@@ -235,7 +236,7 @@ export default class MenuOrganizerComponent extends VueComponentBase {
             this.set_initialized(true);
         }
 
-        this.db_menus_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<MenuElementVO>(MenuElementVO.API_TYPE_ID));
+        this.db_menus_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(MenuElementVO.API_TYPE_ID).select_vos<MenuElementVO>());
 
         /**
          * On commence par mettre tous les noeuds de niveau 0 pour pouvoir ensuite les référencer

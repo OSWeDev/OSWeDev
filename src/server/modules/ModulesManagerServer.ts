@@ -1,6 +1,5 @@
+import { query } from '../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleVO from '../../shared/modules/ModuleVO';
-import ModuleDAOServer from './DAO/ModuleDAOServer';
-import ModuleDAO from '../../shared/modules/DAO/ModuleDAO';
 
 export default class ModulesManagerServer {
 
@@ -19,12 +18,28 @@ export default class ModulesManagerServer {
 
     private modulesVoByName: { [module_name: string]: ModuleVO } = {};
     private modulesVoById: { [id: number]: ModuleVO } = {};
-
+    private preloaded: boolean = false;
     /**
      * ----- Local thread cache
      */
 
     private constructor() { }
+
+    public async preload_modules() {
+
+        if (this.preloaded) {
+            return;
+        }
+        this.preloaded = true;
+
+        let modules = await query(ModuleVO.API_TYPE_ID).select_vos<ModuleVO>();
+
+        for (let i in modules) {
+            let module_ = modules[i];
+            this.modulesVoByName[module_.name] = module_;
+            this.modulesVoById[module_.id] = module_;
+        }
+    }
 
     public async getModuleVOByName(module_name: string): Promise<ModuleVO> {
         if (!module_name) {
@@ -32,7 +47,7 @@ export default class ModulesManagerServer {
         }
 
         if (!this.modulesVoByName[module_name]) {
-            this.modulesVoByName[module_name] = await ModuleDAOServer.getInstance().selectOne<ModuleVO>(ModuleVO.API_TYPE_ID, "where name = $1", [module_name]);
+            this.modulesVoByName[module_name] = await query(ModuleVO.API_TYPE_ID).filter_by_text_eq('name', module_name).select_vo<ModuleVO>();
             if (this.modulesVoByName[module_name]) {
                 this.modulesVoById[this.modulesVoByName[module_name].id] = this.modulesVoByName[module_name];
             }
@@ -47,7 +62,7 @@ export default class ModulesManagerServer {
         }
 
         if (!this.modulesVoById[module_id]) {
-            this.modulesVoById[module_id] = await ModuleDAO.getInstance().getVoById<ModuleVO>(ModuleVO.API_TYPE_ID, module_id);
+            this.modulesVoById[module_id] = await query(ModuleVO.API_TYPE_ID).filter_by_id(module_id).select_vo<ModuleVO>();
             if (this.modulesVoById[module_id]) {
                 this.modulesVoByName[this.modulesVoById[module_id].name] = this.modulesVoById[module_id];
             }

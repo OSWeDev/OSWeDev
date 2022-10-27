@@ -14,6 +14,7 @@ import AnimationModuleVO from '../../../../../../../shared/modules/Animation/vos
 import AppVuexStoreManager from '../../../../../store/AppVuexStoreManager';
 import ExportDataToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO';
 import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
 
 @Component({
     template: require('./AnimationImportQRAdminVue.pug'),
@@ -108,7 +109,7 @@ export default class AnimationImportQRAdminVue extends VueComponentBase {
             this.modules = await ModuleDAO.getInstance().getVos(AnimationModuleVO.API_TYPE_ID);
         })());
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         this.set_qrs_for_export();
 

@@ -139,7 +139,8 @@ export default class ContextFilterVO implements IDistantVOBase {
      * On stocke la valeur dans param_numranges
      */
     public static TYPE_NUMERIC_INTERSECTS: number = 11;
-    public static TYPE_NUMERIC_EQUALS: number = 12;
+    public static TYPE_NUMERIC_EQUALS_ALL: number = 12;
+    public static TYPE_NUMERIC_EQUALS_ANY: number = 58;
     public static TYPE_NUMERIC_INCLUDES: number = 13;
     public static TYPE_NUMERIC_IS_INCLUDED_IN: number = 14;
     public static TYPE_NUMERIC_NOT_EQUALS: number = 57;
@@ -294,10 +295,20 @@ export default class ContextFilterVO implements IDistantVOBase {
 
     public param_text: string;
     public param_numeric: number;
+    public param_numeric_array: number[];
     public param_textarray: string[];
     public param_tsranges: TSRange[];
     public param_numranges: NumRange[];
     public param_hourranges: HourRange[];
+
+    /**
+     * Permet d'influer sur les filtrage en indiquant un lower sur le field et sur le param du filtrage pour test en ignore_case
+     */
+    public text_ignore_case: boolean = true;
+    /**
+     * Permet d'influer sur les filtrage en indiquant un trim sur le field et sur le param du filtrage
+     */
+    // public text_trim: boolean = false;
 
     /**
      * En fait on stocke pas pour le moment en base, à voir après comment on pourra repeupler ces fields au chargement depuis la bdd si besoin
@@ -319,13 +330,17 @@ export default class ContextFilterVO implements IDistantVOBase {
      * Filtrer par text en début de la valeur du champ
      * @param included le texte qu'on veut voir apparaître au début de la valeur du champs
      */
-    public by_text_starting_with(starts_with: string | string[]): ContextFilterVO {
+    public by_text_starting_with(starts_with: string | string[], text_ignore_case: boolean = true/*, text_trim: boolean = false*/): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_TEXT_STARTSWITH_ANY;
         if (isArray(starts_with)) {
             this.param_textarray = starts_with;
         } else {
             this.param_text = starts_with;
         }
+
+        this.text_ignore_case = text_ignore_case;
+        // this.text_trim = text_trim;
+
         return this;
     }
 
@@ -333,13 +348,17 @@ export default class ContextFilterVO implements IDistantVOBase {
      * Filtrer par text strictement égal
      * @param text le texte que l'on doit retrouver à l'identique en base
      */
-    public by_text_eq(text: string | string[]): ContextFilterVO {
+    public by_text_eq(text: string | string[], text_ignore_case: boolean = false/*, text_trim: boolean = false*/): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ALL;
         if (isArray(text)) {
             this.param_textarray = text;
         } else {
             this.param_text = text;
         }
+
+        this.text_ignore_case = text_ignore_case;
+        // this.text_trim = text_trim;
+
         return this;
     }
 
@@ -347,13 +366,35 @@ export default class ContextFilterVO implements IDistantVOBase {
      * Filtrer par text égal (au moins une fois)
      * @param text le texte que l'on doit retrouver à l'identique en base
      */
-    public by_text_has(text: string | string[]): ContextFilterVO {
+    public by_text_has(text: string | string[], text_ignore_case: boolean = false/*, text_trim: boolean = false*/): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ANY;
         if (isArray(text)) {
             this.param_textarray = text;
         } else {
             this.param_text = text;
         }
+
+        this.text_ignore_case = text_ignore_case;
+        // this.text_trim = text_trim;
+
+        return this;
+    }
+
+    /**
+     * Filtrer par text différent systématiquement
+     * @param text le texte que l'on filtre
+     */
+    public by_text_has_none(text: string | string[], text_ignore_case: boolean = false/*, text_trim: boolean = false*/): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_NONE;
+        if (isArray(text)) {
+            this.param_textarray = text;
+        } else {
+            this.param_text = text;
+        }
+
+        this.text_ignore_case = text_ignore_case;
+        // this.text_trim = text_trim;
+
         return this;
     }
 
@@ -361,13 +402,17 @@ export default class ContextFilterVO implements IDistantVOBase {
      * Filtrer par text contenu dans la valeur du champ
      * @param included le texte qu'on veut voir apparaître dans la valeur du champs
      */
-    public by_text_including(included: string | string[]): ContextFilterVO {
+    public by_text_including(included: string | string[], text_ignore_case: boolean = true/*, text_trim: boolean = false*/): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_TEXT_INCLUDES_ANY;
         if (isArray(included)) {
             this.param_textarray = included;
         } else {
             this.param_text = included;
         }
+
+        this.text_ignore_case = text_ignore_case;
+        // this.text_trim = text_trim;
+
         return this;
     }
 
@@ -504,26 +549,52 @@ export default class ContextFilterVO implements IDistantVOBase {
     }
 
     /**
-     * Filtre par un nombre simple ==
-     * @param num le nombre à utiliser dans le filtre
+     * Filtre par un nombre simple == ALL
+     * @param alias alias du champs à comparer
      */
     public by_num_eq_alias(alias: string): ContextFilterVO {
-        this.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+        this.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
         this.param_alias = alias;
         return this;
     }
 
     /**
-     * Filtre par un nombre simple ==
+     * Filtre par un nombre simple == ALL
      * @param num le nombre à utiliser dans le filtre
      */
-    public by_num_eq(num: number | NumRange | NumRange[]): ContextFilterVO {
-        this.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+    public by_num_eq(num: number | NumRange | NumRange[] | number[]): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
         if (typeof num === "number") {
             this.param_numeric = num;
         } else {
-            this.param_numranges = isArray(num) ? num : (num ? [num] : null);
+
+            if (isArray(num) && (num.length > 0) && (typeof num[0] === "number")) {
+                this.param_numeric_array = num as number[];
+            } else {
+                this.param_numranges = isArray(num) ? num as NumRange[] : (num ? [num] as NumRange[] : null);
+            }
         }
+
+        return this;
+    }
+
+    /**
+     * Filtre par un nombre simple == ANY
+     * @param alias alias du champs à comparer
+     */
+    public by_num_has_alias(alias: string): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ANY;
+        this.param_alias = alias;
+        return this;
+    }
+
+    /**
+     * Filtre par un nombre simple == ANY
+     * @param nums les nombres à utiliser dans le filtre
+     */
+    public by_num_has(nums: number[]): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ANY;
+        this.param_numeric_array = nums;
 
         return this;
     }
@@ -549,15 +620,58 @@ export default class ContextFilterVO implements IDistantVOBase {
     }
 
     /**
+     * Filtre par un nombre simple field > nombre
+     * @param num le nombre à utiliser dans le filtre
+     */
+    public by_num_sup(num: number): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_NUMERIC_SUP_ALL;
+        this.param_numeric = num;
+        return this;
+    }
+
+    /**
+     * Filtre par un nombre simple field >= nombre
+     * @param num le nombre à utiliser dans le filtre
+     */
+    public by_num_sup_eq(num: number): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_NUMERIC_SUPEQ_ALL;
+        this.param_numeric = num;
+        return this;
+    }
+
+    /**
+     * Filtre par un nombre simple field < nombre
+     * @param num le nombre à utiliser dans le filtre
+     */
+    public by_num_inf(num: number): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_NUMERIC_INF_ALL;
+        this.param_numeric = num;
+        return this;
+    }
+
+    /**
+     * Filtre par un nombre simple field <= nombre
+     * @param num le nombre à utiliser dans le filtre
+     */
+    public by_num_inf_eq(num: number): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_NUMERIC_INFEQ_ALL;
+        this.param_numeric = num;
+        return this;
+    }
+
+    /**
      * Filtre par == de date
      * @param date
      */
-    public by_date_eq(date: number | TSRange | TSRange[]): ContextFilterVO {
+    public by_date_eq(date: number | number[] | TSRange | TSRange[]): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_DATE_EQUALS;
         if (typeof date === "number") {
-            this.param_tsranges = [RangeHandler.getInstance().create_single_elt_TSRange(date, TimeSegment.TYPE_SECOND)];
+            this.param_numeric = date;
+        } else if (Array.isArray(date) && (date.length > 0) && (typeof date[0] === "number")) {
+            // cas number[]
+            this.param_numeric_array = date as number[];
         } else {
-            this.param_tsranges = isArray(date) ? date : (date ? [date] : null);
+            this.param_tsranges = isArray(date) ? date as TSRange[] : (date ? [date] : null);
         }
         return this;
     }
@@ -608,7 +722,7 @@ export default class ContextFilterVO implements IDistantVOBase {
      */
     public by_id(id: number): ContextFilterVO {
         this.field_id = 'id';
-        this.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+        this.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
         this.param_numeric = id;
         return this;
     }
@@ -617,10 +731,17 @@ export default class ContextFilterVO implements IDistantVOBase {
      * Filter sur le champs id, avec un numranges à intersecter
      * @param id_ranges les ids qu'on filtre
      */
-    public by_ids(id_ranges: NumRange[]): ContextFilterVO {
+    public by_ids(id_ranges: NumRange[] | number[]): ContextFilterVO {
         this.field_id = 'id';
-        this.filter_type = ContextFilterVO.TYPE_NUMERIC_INTERSECTS;
-        this.param_numranges = id_ranges;
+
+        if (Array.isArray(id_ranges) && (id_ranges.length > 0) && (typeof id_ranges[0] === 'number')) {
+            this.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ANY;
+            this.param_numeric_array = id_ranges as number[];
+        } else {
+            this.filter_type = ContextFilterVO.TYPE_NUMERIC_INTERSECTS;
+            this.param_numranges = id_ranges as NumRange[];
+        }
+
         return this;
     }
 

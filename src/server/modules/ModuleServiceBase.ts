@@ -52,6 +52,7 @@ import ModuleVar from '../../shared/modules/Var/ModuleVar';
 import ModuleVersioned from '../../shared/modules/Versioned/ModuleVersioned';
 import ModuleVocus from '../../shared/modules/Vocus/ModuleVocus';
 import ConsoleHandler from '../../shared/tools/ConsoleHandler';
+import { all_promises } from '../../shared/tools/PromiseTools';
 import ConfigurationService from '../env/ConfigurationService';
 import ModuleAccessPolicyServer from './AccessPolicy/ModuleAccessPolicyServer';
 import ModuleAjaxCacheServer from './AjaxCache/ModuleAjaxCacheServer';
@@ -230,17 +231,36 @@ export default abstract class ModuleServiceBase {
             await this.install_modules();
         } else {
 
+            if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+                ConsoleHandler.getInstance().log('ModuleServiceBase:register_all_modules:load_or_create_module_is_actif:START');
+            }
             for (let i in this.registered_modules) {
                 let registered_module = this.registered_modules[i];
 
                 await ModuleDBService.getInstance(db).load_or_create_module_is_actif(registered_module);
             }
+            if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+                ConsoleHandler.getInstance().log('ModuleServiceBase:register_all_modules:load_or_create_module_is_actif:END');
+            }
         }
 
         // On lance la configuration des modules, et avant on configure les apis des modules server
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.getInstance().log('ModuleServiceBase:register_all_modules:configure_server_modules_apis:START');
+        }
         await this.configure_server_modules_apis();
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.getInstance().log('ModuleServiceBase:register_all_modules:configure_server_modules_apis:END');
+        }
+
         // On charge le cache des tables segmentées. On cherche à être exhaustifs pour le coup
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.getInstance().log('ModuleServiceBase:register_all_modules:preload_segmented_known_databases:START');
+        }
         await this.preload_segmented_known_databases();
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.getInstance().log('ModuleServiceBase:register_all_modules:preload_segmented_known_databases:END');
+        }
 
         // A mon avis c'est de la merde ça... on charge où la vérif des params, le hook install, ... ?
         // if ((!!is_generator) || (!ConfigurationService.getInstance().node_configuration.SERVER_START_BOOSTER)) {
@@ -322,17 +342,39 @@ export default abstract class ModuleServiceBase {
         for (let i in this.server_modules) {
             let server_module: ModuleServerBase = this.server_modules[i];
 
-            if (server_module.actif) {
-                await server_module.registerAccessPolicies();
-                await server_module.registerAccessRoles();
+            if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+                ConsoleHandler.getInstance().log('configure_server_modules:server_module:' + server_module.name + ':START');
+            }
 
-                await server_module.registerImport();
+            if (server_module.actif) {
+
+                await all_promises([
+                    server_module.registerAccessPolicies(),
+                    server_module.registerAccessRoles(),
+                    server_module.registerImport(),
+                ]);
+
+                if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+                    ConsoleHandler.getInstance().log('configure_server_modules:server_module:' + server_module.name + ':registerCrons');
+                }
+
                 server_module.registerCrons();
+
+                if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+                    ConsoleHandler.getInstance().log('configure_server_modules:server_module:' + server_module.name + ':registerAccessHooks');
+                }
                 server_module.registerAccessHooks();
 
                 if (app) {
+                    if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+                        ConsoleHandler.getInstance().log('configure_server_modules:server_module:' + server_module.name + ':registerExpressApis');
+                    }
                     server_module.registerExpressApis(app);
                 }
+            }
+
+            if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+                ConsoleHandler.getInstance().log('configure_server_modules:server_module:' + server_module.name + ':END');
             }
         }
     }

@@ -12,6 +12,7 @@ import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/Data
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
+import CRUDFormServices from '../../crud/component/CRUDFormServices';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../dao/store/DaoStore';
 import VueComponentBase from '../../VueComponentBase';
 import CheckListControllerBase from '../CheckListControllerBase';
@@ -47,6 +48,8 @@ export default class CheckListModalComponent extends VueComponentBase {
     private do_async_loading: boolean;
 
     private all_steps_done: boolean = false;
+    private has_previous_step: boolean = false;
+    private has_next_step: boolean = false;
     private state_steps: { [step_name: string]: number } = {};
     private debounced_update_state_step = debounce(this.update_state_step.bind(this), 100);
 
@@ -57,8 +60,8 @@ export default class CheckListModalComponent extends VueComponentBase {
     private finalize_checklist_starting: boolean = false;
     private all_editable_fields: Array<DatatableField<any, any>> = null;
 
-    private onchangevo(vo) {
-        this.$emit('onchangevo', vo);
+    private onchangevo(vo: IDistantVOBase, field: DatatableField<any, any>, value: any) {
+        this.$emit('onchangevo', vo, field, value);
     }
 
     @Watch('checklist_controller')
@@ -75,10 +78,14 @@ export default class CheckListModalComponent extends VueComponentBase {
 
     private async update_state_step() {
         this.all_steps_done = false;
+        this.has_previous_step = false;
+        this.has_next_step = false;
 
         let state_steps: { [step_name: string]: number } = {};
         let is_last_checklist_item: boolean = false;
         let all_steps_done: boolean = true;
+        let has_previous_step: boolean = false;
+        let has_next_step: boolean = false;
         let promises = [];
 
         if (!this.checklist_controller) {
@@ -114,6 +121,18 @@ export default class CheckListModalComponent extends VueComponentBase {
                 is_last_checklist_item = true;
             }
 
+            if (this.checkpoint) {
+                // On récupère le créneau juste avant et on vériifie si le step n'est pas disabled
+                if (this.ordered_checkpoints[(this.ordered_checkpoints.findIndex((e) => e.id == this.checkpoint.id) - 1)]) {
+                    has_previous_step = state_steps[this.ordered_checkpoints[(this.ordered_checkpoints.findIndex((e) => e.id == this.checkpoint.id) - 1)].name] != CheckPointVO.STATE_DISABLED;
+                }
+
+                // On récupère le créneau juste après et on vériifie si le step n'est pas disabled
+                if (this.ordered_checkpoints[(this.ordered_checkpoints.findIndex((e) => e.id == this.checkpoint.id) + 1)]) {
+                    has_next_step = state_steps[this.ordered_checkpoints[(this.ordered_checkpoints.findIndex((e) => e.id == this.checkpoint.id) + 1)].name] != CheckPointVO.STATE_DISABLED;
+                }
+            }
+
             for (let name in state_steps) {
                 if (state_steps[name] != CheckPointVO.STATE_OK) {
                     all_steps_done = false;
@@ -132,6 +151,8 @@ export default class CheckListModalComponent extends VueComponentBase {
         this.valid_fields = valid_fields;
         this.state_steps = state_steps;
         this.all_steps_done = all_steps_done;
+        this.has_previous_step = has_previous_step;
+        this.has_next_step = has_next_step;
 
         promises.push((async () => {
             this.checkpoint_description = await this.get_checkpoint_description();
@@ -160,7 +181,7 @@ export default class CheckListModalComponent extends VueComponentBase {
     }
 
     private async finalize_checklist() {
-        if (this.finalize_checklist_starting) {
+        if (this.finalize_checklist_starting || CRUDFormServices.getInstance().has_auto_updates_waiting()) {
             return;
         }
 
@@ -207,7 +228,7 @@ export default class CheckListModalComponent extends VueComponentBase {
         let filter = new ContextFilterVO();
         filter.field_id = 'checklist_id';
         filter.vo_type = this.checklist_controller.checklist_shared_module.checklistitem_type_id;
-        filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+        filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
         filter.param_numeric = this.checklist.id;
 
         let query_: ContextQueryVO = query(this.checklist_controller.checklist_shared_module.checklistitem_type_id).set_limit(this.checklist.limit_affichage ? this.checklist.limit_affichage : 0, 0);
@@ -263,6 +284,10 @@ export default class CheckListModalComponent extends VueComponentBase {
     }
 
     private change_checkpoint(cp: ICheckPoint) {
+        if (CRUDFormServices.getInstance().has_auto_updates_waiting()) {
+            return;
+        }
+
         if (this.state_steps[cp.name] == CheckPointVO.STATE_DISABLED) {
             return;
         }
@@ -272,6 +297,14 @@ export default class CheckListModalComponent extends VueComponentBase {
         }
 
         this.$emit('changecheckpoint', cp);
+    }
+
+    private previous_step() {
+        this.change_checkpoint(this.ordered_checkpoints[(this.ordered_checkpoints.findIndex((e) => e.id == this.checkpoint.id) - 1)]);
+    }
+
+    private next_step() {
+        this.change_checkpoint(this.ordered_checkpoints[(this.ordered_checkpoints.findIndex((e) => e.id == this.checkpoint.id) + 1)]);
     }
 
     get editable_fields(): Array<DatatableField<any, any>> {

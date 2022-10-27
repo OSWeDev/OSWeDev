@@ -1,5 +1,6 @@
 import * as $ from 'jquery';
 import { Component, Prop, Watch } from 'vue-property-decorator';
+import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import IPlanContact from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanContact';
@@ -83,14 +84,12 @@ export default class ProgramPlanComponentModalTargetInfos extends VueComponentBa
     private async onChangeSelectedRDV() {
         let target_contact_links: IPlanTargetContact[] = [];
         if (!!this.program_plan_shared_module.target_contact_type_id) {
-            target_contact_links = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanTargetContact>(
-                this.program_plan_shared_module.target_contact_type_id, "target_id", [this.selected_rdv.target_id]);
+            target_contact_links = await query(this.program_plan_shared_module.target_contact_type_id).filter_by_num_eq('target_id', this.selected_rdv.target_id).select_vos<IPlanTargetContact>();
         }
 
         let target_group_contact_links: IPlanTargetGroupContact[] = [];
         if (!!this.program_plan_shared_module.target_group_contact_type_id) {
-            target_group_contact_links = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanTargetGroupContact>(
-                this.program_plan_shared_module.target_group_contact_type_id, "target_group_id", [this.target.group_id]);
+            target_group_contact_links = await query(this.program_plan_shared_module.target_group_contact_type_id).filter_by_num_eq('target_group_id', this.target.group_id).select_vos<IPlanTargetGroupContact>();
         }
 
         let contacts_ids: number[] = [];
@@ -111,8 +110,7 @@ export default class ProgramPlanComponentModalTargetInfos extends VueComponentBa
             }
         }
 
-        this.target_contacts = await ModuleDAO.getInstance().getVosByIds<IPlanContact>(
-            this.program_plan_shared_module.contact_type_id, contacts_ids);
+        this.target_contacts = await query(this.program_plan_shared_module.contact_type_id).filter_by_ids(contacts_ids).select_vos<IPlanContact>();
     }
 
     get target(): IPlanTarget {

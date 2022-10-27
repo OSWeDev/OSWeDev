@@ -6,16 +6,17 @@ import RolePolicyVO from '../../../shared/modules/AccessPolicy/vos/RolePolicyVO'
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleVO from '../../../shared/modules/ModuleVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import IServerUserSession from '../../IServerUserSession';
 import StackContext from '../../StackContext';
-import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModulesManagerServer from '../ModulesManagerServer';
@@ -68,6 +69,12 @@ export default class AccessPolicyServerController {
     public access_matrix_heritance_only_validity: boolean = false;
 
     public registered_roles_by_ids: { [role_id: number]: RoleVO } = {};
+
+    /**
+     * Opti pour le démarrage du serveur
+     */
+    private registered_dependencies_for_loading_process: { [src_pol_id: number]: { [dst_pol_id: number]: PolicyDependencyVO } } = {};
+
     private registered_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {};
 
     private registered_users_roles: { [uid: number]: RoleVO[] } = {};
@@ -105,7 +112,7 @@ export default class AccessPolicyServerController {
     public async preload_registered_roles_policies() {
         this.registered_roles_policies = {};
 
-        let rolesPolicies: RolePolicyVO[] = await ModuleDAO.getInstance().getVos<RolePolicyVO>(RolePolicyVO.API_TYPE_ID);
+        let rolesPolicies: RolePolicyVO[] = await query(RolePolicyVO.API_TYPE_ID).select_vos<RolePolicyVO>();
         for (let i in rolesPolicies) {
             let rolePolicy: RolePolicyVO = rolesPolicies[i];
 
@@ -119,23 +126,27 @@ export default class AccessPolicyServerController {
 
     public has_access_by_name(policy_name: string, roles_names: string[]): boolean {
 
-        if (!this.registered_policies[policy_name]) {
+        if (!policy_name) {
+            return false;
+        }
+
+        if (!this.registered_policies[policy_name.toLowerCase()]) {
             ConsoleHandler.getInstance().error('has_access_by_name:Failed find policy by name:' + policy_name);
             return false;
         }
 
-        let policy_id: number = this.registered_policies[policy_name].id;
+        let policy_id: number = this.registered_policies[policy_name.toLowerCase()].id;
         let roles_ids: number[] = [];
 
         for (let i in roles_names) {
             let role_name = roles_names[i];
 
-            if (!this.registered_roles[role_name]) {
+            if (!this.registered_roles[role_name.toLowerCase()]) {
                 ConsoleHandler.getInstance().error('has_access_by_name:Failed find role by name:' + role_name);
                 return false;
             }
 
-            roles_ids.push(this.registered_roles[role_name].id);
+            roles_ids.push(this.registered_roles[role_name.toLowerCase()].id);
         }
 
         return this.has_access_by_ids(policy_id, roles_ids);
@@ -196,14 +207,14 @@ export default class AccessPolicyServerController {
             if (!this.access_matrix_heritance_only_validity) {
                 promises.push(ModuleAccessPolicy.getInstance().getAccessMatrix(true));
             }
-            await Promise.all(promises);
+            await all_promises(promises);
         });
     }
 
     public async preload_registered_users_roles() {
         this.registered_users_roles = {};
 
-        let usersRoles: UserRoleVO[] = await ModuleDAO.getInstance().getVos<UserRoleVO>(UserRoleVO.API_TYPE_ID);
+        let usersRoles: UserRoleVO[] = await query(UserRoleVO.API_TYPE_ID).select_vos<UserRoleVO>();
         for (let i in usersRoles) {
             let userRole: UserRoleVO = usersRoles[i];
 
@@ -219,19 +230,19 @@ export default class AccessPolicyServerController {
         // Normalement à ce stade toutes les déclarations sont en BDD, on clear et on reload bêtement
         this.clean_registered_roles();
 
-        let roles: RoleVO[] = await ModuleDAO.getInstance().getVos<RoleVO>(RoleVO.API_TYPE_ID);
+        let roles: RoleVO[] = await query(RoleVO.API_TYPE_ID).select_vos<RoleVO>();
         for (let i in roles) {
             let role: RoleVO = roles[i];
 
             this.set_registered_role(role);
 
-            if (role.translatable_name == this.role_admin.translatable_name) {
+            if (role.translatable_name == ModuleAccessPolicy.ROLE_ADMIN) {
                 this.role_admin = role;
             }
-            if (role.translatable_name == this.role_anonymous.translatable_name) {
+            if (role.translatable_name == ModuleAccessPolicy.ROLE_ANONYMOUS) {
                 this.role_anonymous = role;
             }
-            if (role.translatable_name == this.role_logged.translatable_name) {
+            if (role.translatable_name == ModuleAccessPolicy.ROLE_LOGGED) {
                 this.role_logged = role;
             }
         }
@@ -241,7 +252,8 @@ export default class AccessPolicyServerController {
         // Normalement à ce stade toutes les déclarations sont en BDD, on clear et on reload bêtement
         this.clean_registered_policies();
 
-        let policies: AccessPolicyVO[] = await ModuleDAO.getInstance().getVos<AccessPolicyVO>(AccessPolicyVO.API_TYPE_ID);
+        await ModulesManagerServer.getInstance().preload_modules();
+        let policies: AccessPolicyVO[] = await query(AccessPolicyVO.API_TYPE_ID).select_vos<AccessPolicyVO>();
         for (let i in policies) {
             let policy: AccessPolicyVO = policies[i];
 
@@ -253,11 +265,23 @@ export default class AccessPolicyServerController {
         }
     }
 
+    public async preload_registered_policy_groups() {
+        // Normalement à ce stade toutes les déclarations sont en BDD, on clear et on reload bêtement
+        this.clean_registered_policy_groups();
+
+        let groups: AccessPolicyGroupVO[] = await query(AccessPolicyGroupVO.API_TYPE_ID).select_vos<AccessPolicyGroupVO>();
+        for (let i in groups) {
+            let group: AccessPolicyGroupVO = groups[i];
+
+            this.set_registered_policy_group(group);
+        }
+    }
+
     public async preload_registered_dependencies() {
         // Normalement à ce stade toutes les déclarations sont en BDD, on clear et on reload bêtement
         this.registered_dependencies = {};
 
-        let dependencies: PolicyDependencyVO[] = await ModuleDAO.getInstance().getVos<PolicyDependencyVO>(PolicyDependencyVO.API_TYPE_ID);
+        let dependencies: PolicyDependencyVO[] = await query(PolicyDependencyVO.API_TYPE_ID).select_vos<PolicyDependencyVO>();
         for (let i in dependencies) {
             let dependency: PolicyDependencyVO = dependencies[i];
 
@@ -265,6 +289,11 @@ export default class AccessPolicyServerController {
                 this.registered_dependencies[dependency.src_pol_id] = [];
             }
             this.registered_dependencies[dependency.src_pol_id].push(dependency);
+
+            if (!this.registered_dependencies_for_loading_process[dependency.src_pol_id]) {
+                this.registered_dependencies_for_loading_process[dependency.src_pol_id] = [];
+            }
+            this.registered_dependencies_for_loading_process[dependency.src_pol_id][dependency.depends_on_pol_id] = dependency;
         }
     }
 
@@ -403,6 +432,9 @@ export default class AccessPolicyServerController {
         if ((!vo_update_holder) || (!vo_update_holder.post_update_vo)) {
             return;
         }
+
+        delete this.registered_dependencies_for_loading_process[vo_update_holder.pre_update_vo.src_pol_id][vo_update_holder.pre_update_vo.depends_on_pol_id];
+        this.registered_dependencies_for_loading_process[vo_update_holder.post_update_vo.src_pol_id][vo_update_holder.post_update_vo.depends_on_pol_id] = vo_update_holder.post_update_vo;
 
         for (let i in this.registered_dependencies[vo_update_holder.post_update_vo.src_pol_id]) {
             if (this.registered_dependencies[vo_update_holder.post_update_vo.src_pol_id][i].id == vo_update_holder.post_update_vo.id) {
@@ -572,6 +604,8 @@ export default class AccessPolicyServerController {
      */
     public delete_registered_policy_dependency(object: PolicyDependencyVO) {
 
+        delete this.registered_dependencies_for_loading_process[object.src_pol_id][object.depends_on_pol_id];
+
         for (let i in this.registered_dependencies[object.src_pol_id]) {
             if (this.registered_dependencies[object.src_pol_id][i].id == object.id) {
                 this.registered_dependencies[object.src_pol_id].splice(parseInt(i), 1);
@@ -630,8 +664,8 @@ export default class AccessPolicyServerController {
             this.registered_roles_by_ids = {};
         }
 
-        if (this.registered_roles[translatable_name]) {
-            return this.registered_roles[translatable_name];
+        if (this.registered_roles[translatable_name.toLowerCase()]) {
+            return this.registered_roles[translatable_name.toLowerCase()];
         }
 
         if (default_translation) {
@@ -657,9 +691,23 @@ export default class AccessPolicyServerController {
             }
         }
 
-        let roleFromBDD: RoleVO = await ModuleDAOServer.getInstance().selectOne<RoleVO>(RoleVO.API_TYPE_ID, "where translatable_name = $1", [role.translatable_name]);
+        let roleFromBDD: RoleVO = null;
+        try {
+            roleFromBDD = await query(RoleVO.API_TYPE_ID).filter_by_text_eq('translatable_name', role.translatable_name).select_vo<RoleVO>();
+        } catch (error) {
+            if (error.message == 'Multiple results on select_vo is not allowed') {
+                // Gestion cas duplication qui n'a aucun impact au fond faut juste vider et recréer
+                ConsoleHandler.getInstance().error('Duplicate role ' + role.translatable_name + ' detected, deleting it');
+                let vos = await query(RoleVO.API_TYPE_ID).filter_by_text_eq('translatable_name', role.translatable_name).select_vos<RoleVO>();
+                await ModuleDAO.getInstance().deleteVOs(vos);
+                roleFromBDD = null;
+            } else {
+                throw error;
+            }
+        }
+
         if (roleFromBDD) {
-            this.registered_roles[translatable_name] = roleFromBDD;
+            this.registered_roles[translatable_name.toLowerCase()] = roleFromBDD;
             this.registered_roles_by_ids[roleFromBDD.id] = roleFromBDD;
             return roleFromBDD;
         }
@@ -671,7 +719,7 @@ export default class AccessPolicyServerController {
         }
 
         role.id = insertOrDeleteQueryResult.id;
-        this.registered_roles[role.translatable_name] = role;
+        this.registered_roles[role.translatable_name.toLowerCase()] = role;
         this.registered_roles_by_ids[role.id] = role;
         ConsoleHandler.getInstance().error('Ajout du role OK:' + role.translatable_name + ':');
         return role;
@@ -692,8 +740,8 @@ export default class AccessPolicyServerController {
             this.registered_policy_groups = {};
         }
 
-        if (this.registered_policy_groups[translatable_name]) {
-            return this.registered_policy_groups[translatable_name];
+        if (this.registered_policy_groups[translatable_name.toLowerCase()]) {
+            return this.registered_policy_groups[translatable_name.toLowerCase()];
         }
 
         if (default_translation) {
@@ -701,9 +749,22 @@ export default class AccessPolicyServerController {
             DefaultTranslationManager.getInstance().registerDefaultTranslation(default_translation);
         }
 
-        let groupFromBDD: AccessPolicyGroupVO = await ModuleDAOServer.getInstance().selectOne<AccessPolicyGroupVO>(AccessPolicyGroupVO.API_TYPE_ID, "where translatable_name = $1", [group.translatable_name]);
+        let groupFromBDD: AccessPolicyGroupVO = null;
+        try {
+            groupFromBDD = await query(AccessPolicyGroupVO.API_TYPE_ID).filter_by_text_eq('translatable_name', group.translatable_name).select_vo<AccessPolicyGroupVO>();
+        } catch (error) {
+            if (error.message == 'Multiple results on select_vo is not allowed') {
+                // Gestion cas duplication qui n'a aucun impact au fond faut juste vider et recréer
+                ConsoleHandler.getInstance().error('Duplicate group ' + group.translatable_name + ' detected, deleting it');
+                let vos = await query(AccessPolicyGroupVO.API_TYPE_ID).filter_by_text_eq('translatable_name', group.translatable_name).select_vos<AccessPolicyGroupVO>();
+                await ModuleDAO.getInstance().deleteVOs(vos);
+                groupFromBDD = null;
+            } else {
+                throw error;
+            }
+        }
         if (groupFromBDD) {
-            this.registered_policy_groups[translatable_name] = groupFromBDD;
+            this.registered_policy_groups[translatable_name.toLowerCase()] = groupFromBDD;
             return groupFromBDD;
         }
 
@@ -714,7 +775,7 @@ export default class AccessPolicyServerController {
         }
 
         group.id = insertOrDeleteQueryResult.id;
-        this.registered_policy_groups[translatable_name] = group;
+        this.registered_policy_groups[translatable_name.toLowerCase()] = group;
         ConsoleHandler.getInstance().error('Ajout du groupe OK :' + group.translatable_name + ':');
         return group;
     }
@@ -740,8 +801,8 @@ export default class AccessPolicyServerController {
             this.registered_policies_by_ids = {};
         }
 
-        if (this.registered_policies[translatable_name]) {
-            return this.registered_policies[translatable_name];
+        if (this.registered_policies[translatable_name.toLowerCase()]) {
+            return this.registered_policies[translatable_name.toLowerCase()];
         }
 
         if (default_translation) {
@@ -749,7 +810,22 @@ export default class AccessPolicyServerController {
             DefaultTranslationManager.getInstance().registerDefaultTranslation(default_translation);
         }
 
-        let policyFromBDD: AccessPolicyVO = await ModuleDAOServer.getInstance().selectOne<AccessPolicyVO>(AccessPolicyVO.API_TYPE_ID, "where translatable_name = $1", [policy.translatable_name]);
+        let policyFromBDD: AccessPolicyVO = null;
+        try {
+            policyFromBDD = await query(AccessPolicyVO.API_TYPE_ID).filter_by_text_eq('translatable_name', policy.translatable_name).select_vo<AccessPolicyVO>();
+        } catch (error) {
+            if (error.message == 'Multiple results on select_vo is not allowed') {
+                // Gestion cas duplication qui n'a aucun impact au fond faut juste vider et recréer
+                ConsoleHandler.getInstance().error('Duplicate policy ' + policy.translatable_name + ' detected, deleting it');
+                let vos = await query(AccessPolicyVO.API_TYPE_ID).filter_by_text_eq('translatable_name', policy.translatable_name).select_vos<AccessPolicyVO>();
+                await ModuleDAO.getInstance().deleteVOs(vos);
+                ConsoleHandler.getInstance().error('Duplicate policy ' + policy.translatable_name + ' detected, deleted');
+                policyFromBDD = null;
+            } else {
+                throw error;
+            }
+        }
+
         if (policyFromBDD) {
 
             // On vérifie les champs tout de même pour prendre en compte les modifs qui ont pu intervenir dans la définition du droit
@@ -770,7 +846,7 @@ export default class AccessPolicyServerController {
                 ConsoleHandler.getInstance().error('Modification du droit :' + policyFromBDD.translatable_name + ': OK');
             }
 
-            this.registered_policies[translatable_name] = policyFromBDD;
+            this.registered_policies[translatable_name.toLowerCase()] = policyFromBDD;
             this.registered_policies_by_ids[policyFromBDD.id] = policyFromBDD;
             return policyFromBDD;
         }
@@ -782,7 +858,7 @@ export default class AccessPolicyServerController {
         }
 
         policy.id = insertOrDeleteQueryResult.id;
-        this.registered_policies[translatable_name] = policy;
+        this.registered_policies[translatable_name.toLowerCase()] = policy;
         this.registered_policies_by_ids[policy.id] = policy;
         ConsoleHandler.getInstance().error('Ajout du droit OK :' + policy.translatable_name + ':');
         return policy;
@@ -790,26 +866,43 @@ export default class AccessPolicyServerController {
 
     public async registerPolicyDependency(dependency: PolicyDependencyVO): Promise<PolicyDependencyVO> {
 
+        if (this.registered_dependencies_for_loading_process && this.registered_dependencies_for_loading_process[dependency.src_pol_id] && this.registered_dependencies_for_loading_process[dependency.src_pol_id][dependency.depends_on_pol_id]) {
+            return this.registered_dependencies_for_loading_process[dependency.src_pol_id][dependency.depends_on_pol_id];
+        }
+
         if (!this.registered_dependencies) {
             this.registered_dependencies = {};
         }
 
-        if (this.registered_dependencies[dependency.src_pol_id]) {
+        if (!this.registered_dependencies_for_loading_process) {
+            this.registered_dependencies_for_loading_process = {};
+        }
 
-            for (let i in this.registered_dependencies[dependency.src_pol_id]) {
-                if (this.registered_dependencies[dependency.src_pol_id][i].depends_on_pol_id == dependency.depends_on_pol_id) {
-                    return this.registered_dependencies[dependency.src_pol_id][i];
-                }
-            }
+        if (!this.registered_dependencies_for_loading_process[dependency.src_pol_id]) {
+            this.registered_dependencies_for_loading_process[dependency.src_pol_id] = {};
         }
 
         if (!this.registered_dependencies[dependency.src_pol_id]) {
             this.registered_dependencies[dependency.src_pol_id] = [];
         }
 
-        let dependencyFromBDD: PolicyDependencyVO = await ModuleDAOServer.getInstance().selectOne<PolicyDependencyVO>(PolicyDependencyVO.API_TYPE_ID, "where src_pol_id = $1 and depends_on_pol_id = $2", [dependency.src_pol_id, dependency.depends_on_pol_id]);
+        let dependencyFromBDD: PolicyDependencyVO = null;
+        try {
+            dependencyFromBDD = await query(PolicyDependencyVO.API_TYPE_ID).filter_by_num_eq('src_pol_id', dependency.src_pol_id).filter_by_num_eq('depends_on_pol_id', dependency.depends_on_pol_id).select_vo<PolicyDependencyVO>();
+        } catch (error) {
+            if (error.message == 'Multiple results on select_vo is not allowed') {
+                // Gestion cas duplication de dépendance qui n'a aucun impact au fond faut juste vider et recréer
+                ConsoleHandler.getInstance().error('Duplicate policy dependency ' + dependency.src_pol_id + ' -> ' + dependency.depends_on_pol_id + ' detected, deleting it');
+                let vos = await query(PolicyDependencyVO.API_TYPE_ID).filter_by_num_eq('src_pol_id', dependency.src_pol_id).filter_by_num_eq('depends_on_pol_id', dependency.depends_on_pol_id).select_vos<PolicyDependencyVO>();
+                await ModuleDAO.getInstance().deleteVOs(vos);
+                dependencyFromBDD = null;
+            } else {
+                throw error;
+            }
+        }
         if (dependencyFromBDD) {
             this.registered_dependencies[dependency.src_pol_id].push(dependencyFromBDD);
+            this.registered_dependencies_for_loading_process[dependency.src_pol_id][dependency.depends_on_pol_id] = dependencyFromBDD;
             return dependencyFromBDD;
         }
 

@@ -79,9 +79,18 @@ export default class TSTZInputComponent extends VueComponentBase {
     @Watch('date_value')
     @Watch('time_value')
     private emitInput(): void {
-        this.new_value = this.tstz_value;
-        this.$emit('input', this.new_value);
+        let new_value = this.tstz_value;
 
+        /**
+         * On check que c'est bien une nouvelle value
+         */
+        let old_value = this.vo ? this.vo[this.field.datatable_field_uid] : null;
+        if (old_value == new_value) {
+            return;
+        }
+        this.new_value = new_value;
+
+        this.$emit('input', new_value);
         if (!!this.vo) {
             this.$emit('input_with_infos', this.new_value, this.field, this.vo);
         }

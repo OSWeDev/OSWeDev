@@ -1,7 +1,9 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
+import { all_promises } from '../../../../shared/tools/PromiseTools';
 import WeightHandler from '../../../../shared/tools/WeightHandler';
 
 export default class MenuController {
@@ -26,7 +28,7 @@ export default class MenuController {
     public callback_reload_menus = null;
 
     public async reload_from_db() {
-        this.reload(await ModuleDAO.getInstance().getVos<MenuElementVO>(MenuElementVO.API_TYPE_ID));
+        this.reload(await query(MenuElementVO.API_TYPE_ID).select_vos<MenuElementVO>());
 
         this.access_by_name = {};
         for (let i in this.menus_by_ids) {
@@ -45,7 +47,7 @@ export default class MenuController {
                 this.access_by_name[policy_name] = await ModuleAccessPolicy.getInstance().testAccess(policy_name);
             })());
         }
-        await Promise.all(promises);
+        await all_promises(promises);
     }
 
     /**

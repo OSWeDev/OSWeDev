@@ -1,5 +1,5 @@
 .row.filtre.list(v-if="all_values")
-    .col-md-6.filter-col
+    .col-sm-6.filter-col
         v-select.v-select-multiple(:placeholder="label('client.reporting.filtre.placeholder.' + name)", v-model="values", multiple, :options="all_values")
             span(slot="no-options") -
             template(slot="option", slot-scope="option")

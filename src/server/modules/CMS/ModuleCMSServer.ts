@@ -7,6 +7,7 @@ import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import IInstantiatedPageComponent from '../../../shared/modules/CMS/interfaces/IInstantiatedPageComponent';
 import ModuleCMS from '../../../shared/modules/CMS/ModuleCMS';
 import TemplateComponentVO from '../../../shared/modules/CMS/vos/TemplateComponentVO';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import WeightHandler from '../../../shared/tools/WeightHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
@@ -79,7 +80,7 @@ export default class ModuleCMSServer extends ModuleServerBase {
 
             let registered_template_component: TemplateComponentVO = ModuleCMS.getInstance().registered_template_components_by_type[i];
 
-            let type_page_components: IInstantiatedPageComponent[] = await ModuleDAOServer.getInstance().selectAll<IInstantiatedPageComponent>(registered_template_component.type_id, 'where page_id = $1', [num]);
+            let type_page_components: IInstantiatedPageComponent[] = await query(registered_template_component.type_id).filter_by_num_eq('page_id', num).select_vos<IInstantiatedPageComponent>();
 
             res = res.concat(type_page_components);
         }

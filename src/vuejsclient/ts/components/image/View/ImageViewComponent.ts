@@ -39,7 +39,7 @@ export default class ImageViewComponent extends VueComponentBase {
 
         let self = this;
         this.$nextTick(async () => {
-            self.imagevo = await ModuleDAO.getInstance().getVoById<ImageVO>(ImageVO.API_TYPE_ID, self.imagevo_id);
+            self.imagevo = await query(ImageVO.API_TYPE_ID).filter_by_id(self.imagevo_id).select_vo<ImageVO>();
             self.storeData(self.imagevo);
         });
     }

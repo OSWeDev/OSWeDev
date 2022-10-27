@@ -4,7 +4,7 @@
         
         template(v-if="opts && (opts.length > 0)")
             .row
-                .opts(:class="{['col-md-7']: is_type_custom, ['col-md-12']: !is_type_custom}")
+                .opts(:class="{['col-sm-7']: is_type_custom, ['col-sm-12']: !is_type_custom}")
                     template(v-if="is_checkbox")
                         template(v-for="opt in opts")
                             .filter_opt
@@ -34,7 +34,7 @@
                         )
 
                 template(v-if="is_type_custom")
-                    .type_custom.col-md-5
+                    .type_custom.col-sm-5
                         Tsrangeinputcomponent(
                             v-model="tmp_ts_range"
                             :field="field_date"

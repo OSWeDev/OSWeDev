@@ -33,7 +33,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
     @Prop({
         default: null
     })
-    private option_label_func: (vo: IDistantVOBase, dfo_options: any[]) => string;
+    private option_label_func: (vo: IDistantVOBase, dfo_options: DataFilterOption[]) => string;
 
     /**
      * Pour cacher l'input si on a une seule option possible
@@ -100,7 +100,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
     @Prop({
         default: null
     })
-    private function_group: (vo: { [id: number]: IDistantVOBase }, actual_query: string) => any;
+    private function_group: (selectables_by_ids: { [id: number]: IDistantVOBase }, actual_query: string) => DataFilterOption[];
     @Prop({
         default: false
     })
@@ -150,7 +150,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
                 }
             }
         }
-        if (this.have_options) {
+        if (this.have_options && this.function_group) {
             res = this.function_group(this.selectables_by_ids, this.actual_query);
         }
         if (this.sort_options_func) {
@@ -304,7 +304,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
         return {};
     }
 
-    private get_label(vo: IDistantVOBase, dfo_options: any[] = null): string {
+    private get_label(vo: IDistantVOBase, dfo_options: DataFilterOption[] = null): string {
 
         if (!vo) {
             return null;
@@ -368,10 +368,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
         for (let i in this.selectables_by_ids) {
             let vo: IDistantVOBase = this.selectables_by_ids[i];
 
-            let label = this.get_label(vo);
-            let dfto = new DataFilterOption(DataFilterOption.STATE_SELECTABLE, label, vo.id);
-            dfto.custom_name = label;
-            res.push(dfto);
+            res.push(new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.get_label(vo), vo.id));
         }
 
         this.tmp_filter_active_options = res;

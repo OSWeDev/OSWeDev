@@ -27,10 +27,6 @@ export default class ValidationFiltersWidgetComponent extends VueComponentBase {
 
     private start_update: boolean = false;
 
-    @Watch('widget_options', { immediate: true })
-    private onchange_widget_options() {
-    }
-
     private async validate() {
         if (this.start_update) {
             return;

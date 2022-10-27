@@ -18,7 +18,7 @@ export default class QRsRangesDatasourceController extends DataSourceControllerM
 
     protected static instance: QRsRangesDatasourceController = null;
 
-    public async get_data(param: ThemeModuleDataRangesVO, ds_cache: { [ds_data_index: string]: any; }): Promise<{ [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationQRVO } } }> {
+    public async get_data(param: ThemeModuleDataRangesVO): Promise<{ [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationQRVO } } }> {
 
         let module_ids: number[] = [];
         let theme_ids: number[] = [];

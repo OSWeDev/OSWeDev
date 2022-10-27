@@ -14,6 +14,7 @@ import BroadcastWrapperForkMessage from '../Fork/messages/BroadcastWrapperForkMe
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 
 export default class CronServerController {
 
@@ -97,7 +98,7 @@ export default class CronServerController {
 
         try {
 
-            let plannedWorkers: CronWorkerPlanification[] = await ModuleDAO.getInstance().getVos<CronWorkerPlanification>(CronWorkerPlanification.API_TYPE_ID);
+            let plannedWorkers: CronWorkerPlanification[] = await query(CronWorkerPlanification.API_TYPE_ID).select_vos<CronWorkerPlanification>();
 
             if (plannedWorkers) {
                 plannedWorkers = plannedWorkers.sort((a: CronWorkerPlanification, b: CronWorkerPlanification) => {

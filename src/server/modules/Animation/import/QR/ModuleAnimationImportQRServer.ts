@@ -79,9 +79,7 @@ export default class ModuleAnimationImportQRServer extends DataImportModuleBase<
         return qr_datas;
     }
 
-    public async hook_merge_imported_datas_in_database(QRDatas: AnimationImportQRVO[], historic: DataImportHistoricVO): Promise<boolean> {
-
-        let format: DataImportFormatVO = await ModuleDAO.getInstance().getVoById<DataImportFormatVO>(DataImportFormatVO.API_TYPE_ID, historic.data_import_format_id);
+    public async hook_merge_imported_datas_in_database(QRDatas: AnimationImportQRVO[], historic: DataImportHistoricVO, format: DataImportFormatVO): Promise<boolean> {
 
         let res: boolean = true;
         try {

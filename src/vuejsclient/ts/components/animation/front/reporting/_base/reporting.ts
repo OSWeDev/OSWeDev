@@ -12,6 +12,7 @@ import AnimationModuleVO from '../../../../../../../shared/modules/Animation/vos
 import AnimationThemeVO from '../../../../../../../shared/modules/Animation/vos/AnimationThemeVO';
 import AnimationUserModuleVO from '../../../../../../../shared/modules/Animation/vos/AnimationUserModuleVO';
 import APIControllerWrapper from '../../../../../../../shared/modules/API/APIControllerWrapper';
+import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import ExportHistoricVO from '../../../../../../../shared/modules/DataExport/vos/ExportHistoricVO';
 import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
@@ -19,6 +20,7 @@ import NumRange from '../../../../../../../shared/modules/DataRender/vos/NumRang
 import NumSegment from '../../../../../../../shared/modules/DataRender/vos/NumSegment';
 import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
+import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import VueAppController from '../../../../../../VueAppController';
 import AppVuexStoreManager from '../../../../../store/AppVuexStoreManager';
@@ -150,16 +152,16 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
         let promises = [];
 
         promises.push((async () =>
-            all_anim_theme_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<AnimationThemeVO>(AnimationThemeVO.API_TYPE_ID))
+            all_anim_theme_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>())
         )());
 
         promises.push((async () =>
-            all_anim_module_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID))
+            all_anim_module_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>())
         )());
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
-        let aums: AnimationUserModuleVO[] = await ModuleDAO.getInstance().getVos<AnimationUserModuleVO>(AnimationUserModuleVO.API_TYPE_ID);
+        let aums: AnimationUserModuleVO[] = await query(AnimationUserModuleVO.API_TYPE_ID).select_vos<AnimationUserModuleVO>();
 
         for (let i in aums) {
             let aum: AnimationUserModuleVO = aums[i];
@@ -196,11 +198,13 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
         }
 
         if (user_ids.length > 0) {
-            all_user_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVosByIds<UserVO>(UserVO.API_TYPE_ID, user_ids));
+            all_user_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(
+                await query(UserVO.API_TYPE_ID).filter_by_ids(user_ids).select_vos<UserVO>());
         }
 
         if (role_ids.length > 0) {
-            all_role_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVosByIds<RoleVO>(RoleVO.API_TYPE_ID, role_ids));
+            all_role_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(
+                await query(RoleVO.API_TYPE_ID).filter_by_ids(role_ids).select_vos<RoleVO>());
         }
 
         this.init({

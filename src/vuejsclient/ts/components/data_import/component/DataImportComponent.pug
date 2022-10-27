@@ -1,15 +1,15 @@
 include ../../../../views/mixins/loading.pug
 
-.data-import.col-md-12
+.data-import.col-sm-12
     +loading()
         include ../base/DataImportHeader.pug
 
         template(v-if="hasValidOptions && show_import")
             .row.justify-content-between
-                .col-md-1
+                .col-sm-1
                     button.btn.btn-primary.pull-left(@click="previous_segments")
                         i.fa.fa-arrow-left(aria-hidden="true")
-                .col-md-1
+                .col-sm-1
                     button.btn.btn-primary.pull-right(@click="next_segments")
                         i.fa.fa-arrow-right(aria-hidden="true")
             .row.justify-content-between.segments_overviews
@@ -42,7 +42,7 @@ include ../../../../views/mixins/loading.pug
 
                             fileinput(:key="'fileinput_'+segment.index" :muted="true" :options="dropzoneOptions[segment.index]" @uploaded="uploadedFile(segment.index, ...arguments)")
             .row.justify-content-between.multiple_segments(v-if="show_multiple_segments")
-                .col-md-4.multiple_segments_block
+                .col-sm-4.multiple_segments_block
                     .row
                         .col-sm.multiple_segments_header {{ label('import.multiple_segments') }}
                     .row

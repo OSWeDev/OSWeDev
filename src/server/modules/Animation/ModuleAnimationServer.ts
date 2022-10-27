@@ -17,7 +17,7 @@ import AnimationUserQRVO from '../../../shared/modules/Animation/vos/AnimationUs
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
-import ContextQueryVO from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
@@ -32,6 +32,7 @@ import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
@@ -40,6 +41,7 @@ import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
+import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import DataExportServerController from '../DataExport/DataExportServerController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
@@ -83,62 +85,74 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             'fr-fr': 'Animation'
         }));
 
-        let bo_access: AccessPolicyVO = new AccessPolicyVO();
-        bo_access.group_id = group.id;
-        bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        bo_access.translatable_name = ModuleAnimation.POLICY_BO_ACCESS;
-        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
-            'fr-fr': 'Administration Animation'
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
-        let admin_access_dependency_bo: PolicyDependencyVO = new PolicyDependencyVO();
-        admin_access_dependency_bo.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
-        admin_access_dependency_bo.src_pol_id = bo_access.id;
-        admin_access_dependency_bo.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
-        admin_access_dependency_bo = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency_bo);
+        let promises = [];
 
-        let fo_access: AccessPolicyVO = new AccessPolicyVO();
-        fo_access.group_id = group.id;
-        fo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        fo_access.translatable_name = ModuleAnimation.POLICY_FO_ACCESS;
-        fo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_access, new DefaultTranslation({
-            'fr-fr': 'Front Animation'
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
-        let admin_access_dependency_fo: PolicyDependencyVO = new PolicyDependencyVO();
-        admin_access_dependency_fo.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
-        admin_access_dependency_fo.src_pol_id = fo_access.id;
-        admin_access_dependency_fo.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_FO_ACCESS).id;
-        admin_access_dependency_fo = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency_fo);
+        promises.push((async () => {
+            let bo_access: AccessPolicyVO = new AccessPolicyVO();
+            bo_access.group_id = group.id;
+            bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            bo_access.translatable_name = ModuleAnimation.POLICY_BO_ACCESS;
+            bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
+                'fr-fr': 'Administration Animation'
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+            let admin_access_dependency_bo: PolicyDependencyVO = new PolicyDependencyVO();
+            admin_access_dependency_bo.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+            admin_access_dependency_bo.src_pol_id = bo_access.id;
+            admin_access_dependency_bo.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
+            admin_access_dependency_bo = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency_bo);
+        })());
 
-        let fo_inline_edit_access: AccessPolicyVO = new AccessPolicyVO();
-        fo_inline_edit_access.group_id = group.id;
-        fo_inline_edit_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        fo_inline_edit_access.translatable_name = ModuleAnimation.POLICY_FO_INLINE_EDIT_ACCESS;
-        fo_inline_edit_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_inline_edit_access, new DefaultTranslation({
-            'fr-fr': 'Front Animation - Inline Edit'
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
-        let admin_access_dependency_fo_inline_edit: PolicyDependencyVO = new PolicyDependencyVO();
-        admin_access_dependency_fo_inline_edit.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
-        admin_access_dependency_fo_inline_edit.src_pol_id = fo_inline_edit_access.id;
-        admin_access_dependency_fo_inline_edit.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_FO_ACCESS).id;
-        admin_access_dependency_fo_inline_edit = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency_fo_inline_edit);
+        promises.push((async () => {
+            let fo_access: AccessPolicyVO = new AccessPolicyVO();
+            fo_access.group_id = group.id;
+            fo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            fo_access.translatable_name = ModuleAnimation.POLICY_FO_ACCESS;
+            fo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_access, new DefaultTranslation({
+                'fr-fr': 'Front Animation'
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+            let admin_access_dependency_fo: PolicyDependencyVO = new PolicyDependencyVO();
+            admin_access_dependency_fo.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+            admin_access_dependency_fo.src_pol_id = fo_access.id;
+            admin_access_dependency_fo.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_FO_ACCESS).id;
+            admin_access_dependency_fo = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency_fo);
+        })());
 
-        let fo_reporting_access: AccessPolicyVO = new AccessPolicyVO();
-        fo_reporting_access.group_id = group.id;
-        fo_reporting_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        fo_reporting_access.translatable_name = ModuleAnimation.POLICY_FO_REPORTING_ACCESS;
-        fo_reporting_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_reporting_access, new DefaultTranslation({
-            'fr-fr': 'Front Animation Reporting'
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
-        let admin_access_dependency_fo_reporting: PolicyDependencyVO = new PolicyDependencyVO();
-        admin_access_dependency_fo_reporting.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
-        admin_access_dependency_fo_reporting.src_pol_id = fo_reporting_access.id;
-        admin_access_dependency_fo_reporting.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_FO_ACCESS).id;
-        admin_access_dependency_fo_reporting = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency_fo_reporting);
+        promises.push((async () => {
+            let fo_inline_edit_access: AccessPolicyVO = new AccessPolicyVO();
+            fo_inline_edit_access.group_id = group.id;
+            fo_inline_edit_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            fo_inline_edit_access.translatable_name = ModuleAnimation.POLICY_FO_INLINE_EDIT_ACCESS;
+            fo_inline_edit_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_inline_edit_access, new DefaultTranslation({
+                'fr-fr': 'Front Animation - Inline Edit'
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+            let admin_access_dependency_fo_inline_edit: PolicyDependencyVO = new PolicyDependencyVO();
+            admin_access_dependency_fo_inline_edit.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+            admin_access_dependency_fo_inline_edit.src_pol_id = fo_inline_edit_access.id;
+            admin_access_dependency_fo_inline_edit.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_FO_ACCESS).id;
+            admin_access_dependency_fo_inline_edit = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency_fo_inline_edit);
+        })());
+
+        promises.push((async () => {
+            let fo_reporting_access: AccessPolicyVO = new AccessPolicyVO();
+            fo_reporting_access.group_id = group.id;
+            fo_reporting_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            fo_reporting_access.translatable_name = ModuleAnimation.POLICY_FO_REPORTING_ACCESS;
+            fo_reporting_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_reporting_access, new DefaultTranslation({
+                'fr-fr': 'Front Animation Reporting'
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+            let admin_access_dependency_fo_reporting: PolicyDependencyVO = new PolicyDependencyVO();
+            admin_access_dependency_fo_reporting.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+            admin_access_dependency_fo_reporting.src_pol_id = fo_reporting_access.id;
+            admin_access_dependency_fo_reporting.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_FO_ACCESS).id;
+            admin_access_dependency_fo_reporting = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency_fo_reporting);
+        })());
+
+        await Promise.all(promises);
     }
 
     public registerAccessHooks(): void {
-        ModuleDAOServer.getInstance().registerAccessHook(AnimationModuleVO.API_TYPE_ID, ModuleDAO.DAO_ACCESS_TYPE_READ, this.filterAnimationModule.bind(this));
-        ModuleDAOServer.getInstance().registerContextAccessHook(AnimationModuleVO.API_TYPE_ID, this.filterAnimationModuleContextAccessHook.bind(this));
+        ModuleDAOServer.getInstance().registerAccessHook(AnimationModuleVO.API_TYPE_ID, ModuleDAO.DAO_ACCESS_TYPE_READ, this, this.filterAnimationModule);
+        ModuleDAOServer.getInstance().registerContextAccessHook(AnimationModuleVO.API_TYPE_ID, this, this.filterAnimationModuleContextAccessHook);
     }
 
     public async configure() {
@@ -146,11 +160,15 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         DataExportServerController.getInstance().register_export_handler(ModuleAnimation.EXPORT_API_TYPE_ID, AnimationReportingExportHandler.getInstance());
 
         let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
-        preUpdateTrigger.registerHandler(AnimationModuleVO.API_TYPE_ID, this.handleTriggerPreAnimationModuleVO.bind(this));
+        preUpdateTrigger.registerHandler(AnimationModuleVO.API_TYPE_ID, this, this.handleTriggerPreUpdateAnimationModuleVO);
 
         let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        preCreateTrigger.registerHandler(AnimationModuleVO.API_TYPE_ID, this.handleTriggerPreAnimationModuleVO.bind(this));
+        preCreateTrigger.registerHandler(AnimationModuleVO.API_TYPE_ID, this, this.handleTriggerPreAnimationModuleVO);
         await this.initializeTranslations();
+    }
+
+    private async handleTriggerPreUpdateAnimationModuleVO(update: DAOUpdateVOHolder<AnimationModuleVO>): Promise<boolean> {
+        return this.handleTriggerPreAnimationModuleVO(update.post_update_vo);
     }
 
     private async handleTriggerPreAnimationModuleVO(vo: AnimationModuleVO): Promise<boolean> {
@@ -161,7 +179,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         vo.computed_name = vo.name;
 
         if (vo.role_id_ranges && vo.role_id_ranges.length) {
-            let role_by_ids: { [id: number]: RoleVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<RoleVO>(RoleVO.API_TYPE_ID));
+            let role_by_ids: { [id: number]: RoleVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(RoleVO.API_TYPE_ID).select_vos<RoleVO>());
             let role_names: string[] = [];
 
             RangeHandler.getInstance().foreach_ranges_sync(vo.role_id_ranges, (role_id: number) => {
@@ -172,13 +190,9 @@ export default class ModuleAnimationServer extends ModuleServerBase {
                 role_names.push(role_by_ids[role_id].translatable_name);
             });
 
-            let langs: LangVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString<LangVO>(
-                LangVO.API_TYPE_ID,
-                null,
-                null,
-                'code_lang',
-                [ConfigurationService.getInstance().node_configuration.DEFAULT_LOCALE]
-            );
+            let langs: LangVO[] = await query(LangVO.API_TYPE_ID)
+                .filter_by_text_eq('code_lang', ConfigurationService.getInstance().node_configuration.DEFAULT_LOCALE)
+                .select_vos<LangVO>();
             let lang: LangVO = langs ? langs[0] : null;
 
             if (lang) {
@@ -195,10 +209,10 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         let res: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationQRVO } } } = {};
 
         let all_module_ids: number[] = await this.getAllModuleIds(theme_ids, module_ids);
-        let qrs: AnimationQRVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<AnimationQRVO>(AnimationQRVO.API_TYPE_ID, 'module_id', all_module_ids);
+        let qrs: AnimationQRVO[] = await query(AnimationQRVO.API_TYPE_ID).filter_by_num_has('module_id', all_module_ids).select_vos<AnimationQRVO>();
 
         let module_by_ids: { [id: number]: AnimationModuleVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(
-            await ModuleDAO.getInstance().getVosByIds<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID, all_module_ids)
+            await query(AnimationModuleVO.API_TYPE_ID).filter_by_ids(all_module_ids).select_vos<AnimationModuleVO>()
         );
 
         for (let i in qrs) {
@@ -234,7 +248,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         let res: { [theme_id: number]: { [module_id: number]: { [qr_id: number]: AnimationUserQRVO[] } } } = {};
 
         let all_module_ids: number[] = await this.getAllModuleIds(theme_ids, module_ids);
-        let qrs: AnimationQRVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<AnimationQRVO>(AnimationQRVO.API_TYPE_ID, 'module_id', all_module_ids);
+        let qrs: AnimationQRVO[] = await query(AnimationQRVO.API_TYPE_ID).filter_by_num_has('module_id', all_module_ids).select_vos<AnimationQRVO>();
         let qr_by_ids: { [id: number]: AnimationQRVO } = {};
         let qr_ids: number[] = [];
 
@@ -252,7 +266,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         );
 
         let module_by_ids: { [id: number]: AnimationModuleVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(
-            await ModuleDAO.getInstance().getVosByIds<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID, all_module_ids)
+            await query(AnimationModuleVO.API_TYPE_ID).filter_by_ids(all_module_ids).select_vos<AnimationModuleVO>()
         );
 
         for (let i in uqrs) {
@@ -298,7 +312,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         if (module_ids && module_ids.length > 0) {
             res = module_ids;
         } else if (theme_ids && theme_ids.length > 0) {
-            let modules: AnimationModuleVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID, 'theme_id', theme_ids);
+            let modules: AnimationModuleVO[] = await query(AnimationModuleVO.API_TYPE_ID).filter_by_num_has('theme_id', theme_ids).select_vos<AnimationModuleVO>();
 
             if (modules && modules.length > 0) {
                 res = res.concat(modules.map((m) => m.id));
@@ -341,7 +355,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
 
         if (!res.end_date) {
 
-            let themes: AnimationThemeVO[] = await ModuleDAO.getInstance().getVos<AnimationThemeVO>(AnimationThemeVO.API_TYPE_ID);
+            let themes: AnimationThemeVO[] = await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>();
 
             let theme_id_ranges: NumRange[] = [];
 
@@ -414,7 +428,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
                 user_ids,
             );
         } else {
-            aums = await ModuleDAO.getInstance().getVos<AnimationUserModuleVO>(AnimationUserModuleVO.API_TYPE_ID);
+            aums = await query(AnimationUserModuleVO.API_TYPE_ID).select_vos<AnimationUserModuleVO>();
         }
 
         if (!aums) {
@@ -422,10 +436,10 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         }
 
         let anim_theme_by_ids: { [id: number]: AnimationThemeVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(
-            await ModuleDAO.getInstance().getVos<AnimationThemeVO>(AnimationThemeVO.API_TYPE_ID)
+            await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>()
         );
         let anim_module_by_ids: { [id: number]: AnimationModuleVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(
-            await ModuleDAO.getInstance().getVos<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID)
+            await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>()
         );
         let anim_param: AnimationParametersVO = await ModuleAnimation.getInstance().getParameters();
 
@@ -715,9 +729,11 @@ export default class ModuleAnimationServer extends ModuleServerBase {
     }
 
     private async configure_vars() {
-        await VarDayPrctAvancementAnimationController.getInstance().initialize();
-        await VarDayPrctReussiteAnimationController.getInstance().initialize();
-        await VarDayPrctAtteinteSeuilAnimationController.getInstance().initialize();
-        await VarDayTempsPasseAnimationController.getInstance().initialize();
+        await all_promises([
+            VarDayPrctAvancementAnimationController.getInstance().initialize(),
+            VarDayPrctReussiteAnimationController.getInstance().initialize(),
+            VarDayPrctAtteinteSeuilAnimationController.getInstance().initialize(),
+            VarDayTempsPasseAnimationController.getInstance().initialize(),
+        ]);
     }
 }

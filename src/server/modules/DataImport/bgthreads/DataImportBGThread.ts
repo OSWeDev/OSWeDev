@@ -1,28 +1,26 @@
+import ModuleContextFilter from '../../../../shared/modules/ContextFilter/ModuleContextFilter';
+import ContextFilterVO, { filter } from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextQueryVO, { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import SortByVO from '../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import IImportedData from '../../../../shared/modules/DataImport/interfaces/IImportedData';
 import ModuleDataImport from '../../../../shared/modules/DataImport/ModuleDataImport';
 import DataImportHistoricVO from '../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
 import DataImportLogVO from '../../../../shared/modules/DataImport/vos/DataImportLogVO';
+import NumSegment from '../../../../shared/modules/DataRender/vos/NumSegment';
+import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
+import RangeHandler from '../../../../shared/tools/RangeHandler';
+import TypesHandler from '../../../../shared/tools/TypesHandler';
+import ConfigurationService from '../../../env/ConfigurationService';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
-import ModuleDAOServer from '../../DAO/ModuleDAOServer';
-import ModuleDataImportServer from '../ModuleDataImportServer';
-import VarsDatasVoUpdateHandler from '../../Var/VarsDatasVoUpdateHandler';
-import TypesHandler from '../../../../shared/tools/TypesHandler';
-import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
-import ModuleContextFilter from '../../../../shared/modules/ContextFilter/ModuleContextFilter';
-import ContextFilterVO, { filter } from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import VarsDatasProxy from '../../Var/VarsDatasProxy';
-import IImportedData from '../../../../shared/modules/DataImport/interfaces/IImportedData';
-import ContextQueryVO, { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import NumRange from '../../../../shared/modules/DataRender/vos/NumRange';
-import RangeHandler from '../../../../shared/tools/RangeHandler';
-import NumSegment from '../../../../shared/modules/DataRender/vos/NumSegment';
-import SortByVO from '../../../../shared/modules/ContextFilter/vos/SortByVO';
-import ConfigurationService from '../../../env/ConfigurationService';
+import VarsDatasVoUpdateHandler from '../../Var/VarsDatasVoUpdateHandler';
+import ModuleDataImportServer from '../ModuleDataImportServer';
 
 export default class DataImportBGThread implements IBGThread {
 
@@ -37,13 +35,12 @@ export default class DataImportBGThread implements IBGThread {
 
     // private static request: string = ' where state in ($1, $3, $4, $5) or (state = $2 and autovalidate = true) order by last_up_date desc limit 1;';
 
-    private static request_all_reimports: string = ' where state = $1 order by start_date asc, id asc;';
     private static importing_dih_id_param_name: string = 'DataImportBGThread.importing_dih_id';
     private static wait_for_empty_vars_vos_cud_param_name: string = 'DataImportBGThread.wait_for_empty_vars_vos_cud';
     private static wait_for_empty_cache_vars_waiting_for_compute_param_name: string = 'DataImportBGThread.wait_for_empty_cache_vars_waiting_for_compute';
 
-    public current_timeout: number = 2000;
-    public MAX_timeout: number = 2000;
+    public current_timeout: number = 5000;
+    public MAX_timeout: number = 5000;
     public MIN_timeout: number = 100;
 
     private waiting_for_empty_vars_vos_cud: boolean = false;
@@ -95,7 +92,7 @@ export default class DataImportBGThread implements IBGThread {
             let dih: DataImportHistoricVO = null;
             if (!!importing_dih_id_param) {
                 importing_dih_id = parseInt(importing_dih_id_param);
-                dih = await ModuleDAO.getInstance().getVoById<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID, importing_dih_id);
+                dih = await query(DataImportHistoricVO.API_TYPE_ID).filter_by_id(importing_dih_id).select_vo<DataImportHistoricVO>();
 
                 if ((!dih) || (
                     (dih.state != ModuleDataImport.IMPORTATION_STATE_UPLOADED) &&
@@ -190,10 +187,12 @@ export default class DataImportBGThread implements IBGThread {
     }
 
     private async prepare_reimports() {
-        let dihs = await ModuleDAOServer.getInstance().selectAll<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID,
-            DataImportBGThread.request_all_reimports, [
-            ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT
-        ]);
+        let dihs = await query(DataImportHistoricVO.API_TYPE_ID)
+            .filter_by_num_eq('state', ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT)
+            .set_sorts([
+                new SortByVO(DataImportHistoricVO.API_TYPE_ID, 'start_date', true),
+                new SortByVO(DataImportHistoricVO.API_TYPE_ID, 'id', true)
+            ]).select_vos<DataImportHistoricVO>();
 
         for (let i in dihs) {
             let dih = dihs[i];
@@ -401,7 +400,7 @@ export default class DataImportBGThread implements IBGThread {
         let filter_state = new ContextFilterVO();
         filter_state.field_id = 'state';
         filter_state.vo_type = DataImportHistoricVO.API_TYPE_ID;
-        filter_state.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+        filter_state.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
         filter_state.param_numeric = ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION;
 
         let filter_reimport_of_dih_id = new ContextFilterVO();
@@ -440,6 +439,6 @@ export default class DataImportBGThread implements IBGThread {
 
         let dih = dihs[0];
         await ModuleDataImport.getInstance().reimportdih(dih);
-        return await ModuleDAO.getInstance().getVoById<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID, dih.id);
+        return await query(DataImportHistoricVO.API_TYPE_ID).filter_by_id(dih.id).select_vo<DataImportHistoricVO>();
     }
 }

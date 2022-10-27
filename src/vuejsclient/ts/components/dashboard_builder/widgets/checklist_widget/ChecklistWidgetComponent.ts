@@ -1,4 +1,4 @@
-import { cloneDeep } from 'lodash';
+import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
@@ -37,6 +37,7 @@ import './ChecklistWidgetComponent.scss';
 import ChecklistItemModalComponent from './checklist_item_modal/ChecklistItemModalComponent';
 import ChecklistWidgetOptions from './options/ChecklistWidgetOptions';
 import Vue from 'vue';
+import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 
 @Component({
     template: require('./ChecklistWidgetComponent.pug'),
@@ -103,6 +104,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
     private item_id: number = null;
     private step_id: number = null;
     private last_calculation_cpt: number = 0;
+    private old_widget_options: ChecklistWidgetOptions = null;
 
     get pagination_pagesize(): number {
         if (!this.widget_options) {
@@ -261,7 +263,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
         this.stopLoading();
 
         if ((!this.checklists) || (!this.checklists.length)) {
-            this.checklists = await ModuleDAO.getInstance().getVos<CheckListVO>(CheckListVO.API_TYPE_ID);
+            this.checklists = await query(CheckListVO.API_TYPE_ID).select_vos<CheckListVO>();
             this.checklists_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(this.checklists);
         }
 
@@ -421,7 +423,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
             let filter = new ContextFilterVO();
             filter.field_id = 'checklist_id';
             filter.vo_type = self.checklist_shared_module.checklistitem_type_id;
-            filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS;
+            filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
             filter.param_numeric = self.checklist.id;
 
             filters[self.checklist_shared_module.checklistitem_type_id]['checklist_id'] =
@@ -456,11 +458,11 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
 
         let checkpoints: { [id: number]: ICheckPoint } = {};
         promises.push((async () => {
-            checkpoints = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVosByRefFieldIds<ICheckPoint>(
-                self.checklist_shared_module.checkpoint_type_id, 'checklist_id', [self.checklist.id]));
+            checkpoints = VOsTypesManager.getInstance().vosArray_to_vosByIds(
+                await query(self.checklist_shared_module.checkpoint_type_id).filter_by_num_eq('checklist_id', self.checklist.id).select_vos<ICheckPoint>());
         })());
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         // Si je ne suis pas sur la dernière demande, je me casse
         if (this.last_calculation_cpt != launch_cpt) {
@@ -503,6 +505,13 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
 
     @Watch('widget_options', { immediate: true })
     private async onchange_widget_options() {
+        if (!!this.old_widget_options) {
+            if (isEqual(this.widget_options, this.old_widget_options)) {
+                return;
+            }
+        }
+
+        this.old_widget_options = cloneDeep(this.widget_options);
 
         await this.throttled_update_visible_options();
     }

@@ -39,8 +39,12 @@ export default class ModuleDAO extends Module {
     public static APINAME_delete_all_vos_triggers_ok = "delete_all_vos_triggers_ok";
 
     public static APINAME_DELETE_VOS = "DAO_DELETE_VOS";
+    public static APINAME_DELETE_VOS_MULTICONNECTIONS = "DAO_DELETE_VOS_MULTICONNECTIONS";
+
     public static APINAME_DELETE_VOS_BY_IDS = "DAO_DELETE_VOS_BY_IDS";
     public static APINAME_INSERT_OR_UPDATE_VOS = "DAO_INSERT_OR_UPDATE_VOS";
+    public static APINAME_INSERT_OR_UPDATE_VOS_MULTICONNECTIONS = "DAO_INSERT_OR_UPDATE_VOS_MULTICONNEXIONS";
+
     public static APINAME_INSERT_OR_UPDATE_VO = "DAO_INSERT_OR_UPDATE_VO";
     public static APINAME_SELECT_ALL = "SELECT_ALL";
     public static APINAME_SELECT_ONE = "SELECT_ONE";
@@ -88,6 +92,9 @@ export default class ModuleDAO extends Module {
     public selectUsersForCheckUnicity: (name: string, email: string, phone: string, user_id: number) => Promise<boolean> =
         APIControllerWrapper.sah(ModuleDAO.APINAME_selectUsersForCheckUnicity);
 
+    /**
+     * @deprecated
+     */
     public getVosByRefFieldsIdsAndFieldsString: <T extends IDistantVOBase>(
         API_TYPE_ID: string,
         field_name1: string, ids1: number[],
@@ -132,11 +139,24 @@ export default class ModuleDAO extends Module {
 
             return true;
         });
+
+    public deleteVOsMulticonnections: (vos: IDistantVOBase[]) => Promise<any[]> = APIControllerWrapper.sah(ModuleDAO.APINAME_DELETE_VOS_MULTICONNECTIONS);
     public deleteVOs: (vos: IDistantVOBase[]) => Promise<any[]> = APIControllerWrapper.sah(ModuleDAO.APINAME_DELETE_VOS);
     public insertOrUpdateVOs: (vos: IDistantVOBase[]) => Promise<InsertOrDeleteQueryResult[]> = APIControllerWrapper.sah(ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS);
+    public insertOrUpdateVOsMulticonnections: (vos: IDistantVOBase[]) => Promise<InsertOrDeleteQueryResult[]> = APIControllerWrapper.sah(ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS_MULTICONNECTIONS);
+
     public insertOrUpdateVO: (vo: IDistantVOBase) => Promise<InsertOrDeleteQueryResult> = APIControllerWrapper.sah(ModuleDAO.APINAME_INSERT_OR_UPDATE_VO);
+    /**
+     * @deprecated
+     */
     public getNamedVoByName: <T extends INamedVO>(API_TYPE_ID: string, vo_name: string) => Promise<T> = APIControllerWrapper.sah(ModuleDAO.APINAME_GET_NAMED_VO_BY_NAME);
+    /**
+     * @deprecated
+     */
     public getVoById: <T extends IDistantVOBase>(API_TYPE_ID: string, id: number, segmentation_ranges?: IRange[]) => Promise<T> = APIControllerWrapper.sah(ModuleDAO.APINAME_GET_VO_BY_ID);
+    /**
+     * @deprecated
+     */
     public getVosByIds: <T extends IDistantVOBase>(API_TYPE_ID: string, ids: number[]) => Promise<T[]> = APIControllerWrapper.sah(
         ModuleDAO.APINAME_GET_VOS_BY_IDS,
         null,
@@ -154,6 +174,9 @@ export default class ModuleDAO extends Module {
 
             return true;
         });
+    /**
+     * @deprecated
+     */
     public getVosByIdsRanges: <T extends IDistantVOBase>(API_TYPE_ID: string, ranges: NumRange[]) => Promise<T[]> = APIControllerWrapper.sah(
         ModuleDAO.APINAME_GET_VOS_BY_IDS_RANGES,
         null,
@@ -204,6 +227,7 @@ export default class ModuleDAO extends Module {
         });
 
     /**
+     * @deprecated
      * Retourne tous les matroids inclus les matroids en param
      * @param API_TYPE_ID
      * @param matroids
@@ -221,6 +245,7 @@ export default class ModuleDAO extends Module {
         });
 
     /**
+     * @deprecated
      * Retourne tous les matroids intersectant les matroids en param
      * @param API_TYPE_ID
      * @param matroids
@@ -237,7 +262,13 @@ export default class ModuleDAO extends Module {
             return true;
         });
 
+    /**
+     * @deprecated
+     */
     public getVosByRefFieldIds: <T extends IDistantVOBase>(API_TYPE_ID: string, field_name: string, ids: number[]) => Promise<T[]> = APIControllerWrapper.sah(ModuleDAO.APINAME_GET_VOS_BY_REFFIELD_IDS);
+    /**
+     * @deprecated
+     */
     public getVosByRefFieldsIds: <T extends IDistantVOBase>(
         API_TYPE_ID: string,
         field_name1: string, ids1: number[],
@@ -263,6 +294,9 @@ export default class ModuleDAO extends Module {
                 return true;
             });
 
+    /**
+     * @deprecated
+     */
     public getVos: <T extends IDistantVOBase>(API_TYPE_ID: string, limit?: number, offset?: number) => Promise<T[]> = APIControllerWrapper.sah(ModuleDAO.APINAME_GET_VOS);
 
     private constructor() {
@@ -272,6 +306,23 @@ export default class ModuleDAO extends Module {
     }
 
     public registerApis() {
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<IDistantVOBase[], any[]>(
+            null,
+            ModuleDAO.APINAME_DELETE_VOS_MULTICONNECTIONS,
+            (params: IDistantVOBase[]) => {
+                let res: string[] = [];
+
+                for (let i in params) {
+                    let param = params[i];
+
+                    if (res.indexOf(param._type) < 0) {
+                        res.push(param._type);
+                    }
+                }
+
+                return res;
+            }
+        ));
         APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<IDistantVOBase[], any[]>(
             null,
             ModuleDAO.APINAME_DELETE_VOS,
@@ -298,6 +349,23 @@ export default class ModuleDAO extends Module {
         APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<IDistantVOBase[], InsertOrDeleteQueryResult[]>(
             null,
             ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS,
+            (params: IDistantVOBase[]) => {
+                let res: string[] = [];
+
+                for (let i in params) {
+                    let param = params[i];
+
+                    if (res.indexOf(param._type) < 0) {
+                        res.push(param._type);
+                    }
+                }
+
+                return res;
+            }
+        ));
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<IDistantVOBase[], InsertOrDeleteQueryResult[]>(
+            null,
+            ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS_MULTICONNECTIONS,
             (params: IDistantVOBase[]) => {
                 let res: string[] = [];
 

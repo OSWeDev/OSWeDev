@@ -17,6 +17,7 @@ import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import MailCategoryVO from '../../../shared/modules/Mailer/vos/MailCategoryVO';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 
 export default class SendInBlueMailServerController {
 
@@ -235,7 +236,7 @@ export default class SendInBlueMailServerController {
         return await StackContext.getInstance().runPromise(
             { IS_CLIENT: false },
             async () => {
-                let user: UserVO = await ModuleDAOServer.getInstance().selectOne<UserVO>(UserVO.API_TYPE_ID, " where email=$1", [email]);
+                let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_text_eq('email', email).select_vo<UserVO>();
                 if (!!user) {
                     return user.id;
                 }

@@ -93,6 +93,12 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Tout'
         }, 'table_widget.choose_export_type.all.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Choisir une option d\'export par défaut'
+        }, 'table_widget_options_component.default_export_options.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Attribuer une option d\'export par défaut'
+        }, 'table_widget_options_component.has_default_export_option.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Confirmer la suppression'
@@ -305,6 +311,15 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Confirmer'
         }, 'BulkOpsWidgetComponent.bulkops.confirmation.title.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Modifications terminées'
+        }, 'BulkOpsWidgetComponent.bulkops.ok.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Début modification en masse'
+        }, 'BulkOpsWidgetComponent.bulkops.start.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Modifications échouées'
+        }, 'BulkOpsWidgetComponent.bulkops.failed.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Modifier les données en masse'
         }, 'bulkops.actions.confirm_bulkops.___LABEL___'));
@@ -889,12 +904,20 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'field_value_filter_widget_component.show_search_field.___LABEL___'
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Séparer les données activées et les options" },
+            'field_value_filter_widget_component.separation_active_filter.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Champ à afficher au 2ème niveau" },
             'field_value_filter_widget_component.vo_field_ref_lvl2.___LABEL___'
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Champ pour trier l'affichage du filtre" },
             'field_value_filter_widget_component.vo_field_sort.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Champ pour trier l'affichage du filtre de niveau 2" },
+            'field_value_filter_widget_component.vo_field_sort_lvl2.___LABEL___'
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Granularité" },
@@ -1037,6 +1060,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'table_widget_column_conf.editable_column.many_to_many_aggregate.hide.___LABEL___'
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Désactiver les liens ManyToOne" },
+            'table_widget_column_conf.editable_column.disabled_many_to_one_link.show.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Désactiver les liens ManyToOne" },
+            'table_widget_column_conf.editable_column.disabled_many_to_one_link.hide.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "La donnée peut être vide si ContextAccessHook présent" },
             'table_widget_column_conf.editable_column.is_nullable.show.___LABEL___'
         ));
@@ -1127,6 +1158,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'field_value_filter_widget_component.other_ref_api_type_id.___LABEL___'
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Validation automatique du filtre avancé" },
+            'field_value_filter_widget_component.autovalidate_advanced_filter.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Grouper les filtres" },
             'dashboard_viewer.group_filters.___LABEL___'
         ));
@@ -1134,10 +1169,70 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Valider" },
             'dashboard_viewer.block_widgets_updates.___LABEL___'
         ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Masquer la pagination du bas" },
+            'table_widget_options_component.hide_pagination_bottom.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Non" },
+            'table_widget_options_component.hide_pagination_bottom.hidden.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Oui" },
+            'table_widget_options_component.hide_pagination_bottom.visible.___LABEL___'
+        ));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Désactiver les liens ManyToOne pour ne pas rendre la donnée cliquable dans le tableau" },
+            'table_widget_column_conf.disabled_many_to_one_link.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Activer / Désactiver l'export de la donnée" },
+            'table_widget_column_conf.exportable_column.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Conditionne l'affichage de la donnée" },
+            'table_widget_column_conf.filter_by_access.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher / Masquer la donnée dans le tableau (dans tous les cas, charge la donnée via la requête)" },
+            'table_widget_column_conf.hide_from_table_column.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            {
+                'fr-fr': "Dans le cas d'un champ externe à l'api_type_id de la table, on indique s'il est possible qu'il n'y ai pas de VO lié. <br/>" +
+                    "Exemple: On affiche la liste des utilisateurs (UserVO) avec le nom du rôle (RoleVO). Si l'utilisateur n'a pas de rôle et qu'il y a un ContextFilterHook sur les rôles, la ligne ne s'affichera pas dans le tableau.<br/>" +
+                    "Si on coche cette case, la ligne s'affichera quand même mais le champ rôle sera vide."
+            },
+            'table_widget_column_conf.is_nullable.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Figer la colonne du tableau pour qu'elle soit toujours visible au niveau du scroll." },
+            'table_widget_column_conf.is_sticky_column.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            {
+                'fr-fr': "Aggréger les données ManyToMany pour regrouper les données sur une seul ligne.<br/>" +
+                    "Exemple: On affiche la liste des utilisateurs (UserVO) avec le nom des rôles (RoleVO). Si un utilisateur a plusieurs rôles, on va afficher sur une seule ligne avec un séparateur."
+            },
+            'table_widget_column_conf.many_to_many_aggregate.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher une popup sur les champs du tableau" },
+            'table_widget_column_conf.show_tooltip.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "La colonne peut-être éditée directement dans le tableau" },
+            'table_widget_column_conf.editable_column.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "La colonne est filtrable en cliquant directement sur la donnée" },
+            'table_widget_column_conf.can_filter_by_column.___LABEL___'
+        ));
 
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this.onCDashboardPageWidgetVO);
-        preCTrigger.registerHandler(DashboardVO.API_TYPE_ID, this.onCDashboardVO);
+        preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.onCDashboardPageWidgetVO);
+        preCTrigger.registerHandler(DashboardVO.API_TYPE_ID, this, this.onCDashboardVO);
     }
 
     public async registerAccessPolicies(): Promise<void> {

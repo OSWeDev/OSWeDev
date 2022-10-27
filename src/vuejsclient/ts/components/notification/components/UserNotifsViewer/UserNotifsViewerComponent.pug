@@ -1,12 +1,12 @@
 .UserNotifsViewerComponent
 
     .row.notifs_viewer_header
-        .col-md-12
+        .col-sm-12
             i.fa.fa-times.fa-fw.push-right(aria-hidden="true" @click='set_notif_viewer_opened(false)')
             .notifs_viewer_title {{ label('UserNotifsViewerComponent.title') }}
         
     .row.notifs_viewer_content
-        .col-md-12
+        .col-sm-12
 
             template(v-if='get_nb_unread > 0')
                 template(v-for='notif in notifs_by_priority')
@@ -17,6 +17,6 @@
                 .card.notifs_viewer_placeholder {{ label('UserNotifsViewerComponent.placeholder') }}
 
     .row.notifs_viewer_footer(v-if='get_nb_unread > 0')
-        .col-md-12
+        .col-sm-12
             i.fa.fa-trash.fa-fw.push-right(aria-hidden="true"  @click='delete_all')
             .push-right.notifs_viewer_footer(@click='delete_all') {{ label('UserNotifsViewerComponent.footer_delete_all') }}

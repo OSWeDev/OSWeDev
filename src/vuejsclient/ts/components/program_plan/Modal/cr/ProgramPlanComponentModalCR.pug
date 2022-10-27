@@ -1,21 +1,21 @@
 #rdv_modal_cr
 
     .row(v-if='!!selected_rdv_cr')
-        .col-md-12.crsandnew
+        .col-sm-12.crsandnew
             .crs(v-if="!edited_cr")
                 .cr
                     .row
-                        .col-md-12
+                        .col-sm-12
                             i.fa.fa-trash(aria-hidden="true", @click="delete_cr(selected_rdv_cr)" v-if='can_edit')
                             i.fa.fa-pencil(aria-hidden="true", @click="editCR(selected_rdv_cr)" v-if='can_edit')
                     .row
-                        .col-md-12
+                        .col-sm-12
                             .custom_cr_read_component(:is="custom_cr_read_component" :rdv='selected_rdv' :cr='selected_rdv_cr')
                     
     .row(v-if="selected_rdv && selected_rdv.id && canaddcr")
-        .col-md-12.newcr
+        .col-sm-12.newcr
             .custom_cr_create_component(:is="custom_cr_create_component" :rdv='selected_rdv' :create_cr="create_cr")
                                   
     .row(v-if="selected_rdv && selected_rdv.id && edited_cr && can_edit")
-        .col-md-12.updatecr
+        .col-sm-12.updatecr
             .custom_cr_update_component(:is="custom_cr_update_component" :rdv='selected_rdv' :cr='edited_cr' :update_cr='update_cr' :cancel_edition='cancel_edition')

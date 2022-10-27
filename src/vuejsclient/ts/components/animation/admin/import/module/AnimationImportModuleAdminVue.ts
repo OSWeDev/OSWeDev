@@ -17,6 +17,8 @@ import NumRange from '../../../../../../../shared/modules/DataRender/vos/NumRang
 import RoleVO from '../../../../../../../shared/modules/AccessPolicy/vos/RoleVO';
 import { namespace } from 'vuex-class/lib/bindings';
 import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
+import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 
 @Component({
     template: require('./AnimationImportModuleAdminVue.pug'),
@@ -110,7 +112,7 @@ export default class AnimationImportModuleAdminVue extends VueComponentBase {
             this.themes = await ModuleDAO.getInstance().getVos(AnimationThemeVO.API_TYPE_ID);
         })());
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         await this.set_modules_for_export();
 
@@ -164,7 +166,7 @@ export default class AnimationImportModuleAdminVue extends VueComponentBase {
     }
 
     private async getRoleNamesFromRange(role_id_ranges: NumRange[]): Promise<string[]> {
-        let roles: RoleVO[] = await ModuleDAO.getInstance().getVosByIdsRanges(RoleVO.API_TYPE_ID, role_id_ranges);
+        let roles: RoleVO[] = await query(RoleVO.API_TYPE_ID).filter_by_ids(role_id_ranges).select_vos<RoleVO>();
         let names: string[] = [];
 
         if (roles && roles.length > 0) {

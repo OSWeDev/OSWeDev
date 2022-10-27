@@ -1,10 +1,10 @@
 include ../../../../../views/mixins/box.pug
 
-.col-md-6.hidden-print(v-if="cards")
+.col-sm-6.hidden-print(v-if="cards")
     +box("{{ t(card_title) }}", '', "8px", "0px")
         i.box-header-icon.fa.fa-database
         .row
-            .col-md-4(v-for="card in cards")
+            .col-sm-4(v-for="card in cards")
                 card_widget(
                     :title='card.title',
                     :img_type="card.img_type",

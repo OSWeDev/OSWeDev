@@ -1,9 +1,11 @@
 import Component from 'vue-class-component';
 import { Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import ModuleTranslation from '../../../../shared/modules/Translation/ModuleTranslation';
 import LangVO from '../../../../shared/modules/Translation/vos/LangVO';
+import { all_promises } from '../../../../shared/tools/PromiseTools';
 import VueAppController from '../../../VueAppController';
 import VueComponentBase from '../VueComponentBase';
 import './LangSelectorComponent.scss';
@@ -36,7 +38,7 @@ export default class LangSelectorComponent extends VueComponentBase {
             return;
         }
 
-        let langs_: LangVO[] = await ModuleDAO.getInstance().getVos<LangVO>(LangVO.API_TYPE_ID);
+        let langs_: LangVO[] = await query(LangVO.API_TYPE_ID).select_vos<LangVO>();
 
         // Si on a qu'une langue, on ne choisit pas
         if ((!langs_) || (langs_.length <= 1)) {
@@ -55,7 +57,7 @@ export default class LangSelectorComponent extends VueComponentBase {
             })());
         }
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         // Si la langue a été forcée à une langue à laquelle on a pas accès, on affiche pas le composant
         if (!self.langs_by_ids[this.user_lang_id]) {

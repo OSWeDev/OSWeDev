@@ -1,5 +1,6 @@
 
 
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -8,6 +9,7 @@ import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultT
 import DAG from '../../../shared/modules/Var/graph/dagbase/DAG';
 import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
+import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
@@ -42,8 +44,6 @@ export default class VarsServerController {
     private _varcontrollers_dag_depths: { [var_id: number]: number } = null;
 
     // NO CUD during run, just init in each thread - no multithreading special handlers needed
-    private _registered_vars: { [name: string]: VarConfVO } = {};
-    private _registered_vars_by_ids: { [id: number]: VarConfVO } = {};
     private _registered_vars_controller: { [name: string]: VarServerControllerBase<any> } = {};
     private _registered_vars_by_datasource: { [datasource_id: string]: Array<VarServerControllerBase<any>> } = {};
 
@@ -53,6 +53,8 @@ export default class VarsServerController {
     // CUD during run, broadcasting CUD
     private _varcacheconf_by_var_ids: { [var_id: number]: VarCacheConfVO } = {};
     private _varcacheconf_by_api_type_ids: { [api_type_id: string]: { [var_id: number]: VarCacheConfVO } } = {};
+
+    private preloadedVarConfs: boolean = false;
     /**
      * ----- Global application cache - Brocasted CUD - Local R
      */
@@ -63,8 +65,6 @@ export default class VarsServerController {
     public clear_all_inits() {
         VarsServerController.getInstance()._varcontrollers_dag = null;
         VarsServerController.getInstance()._varcontrollers_dag_depths = null;
-        VarsServerController.getInstance()._registered_vars = {};
-        VarsServerController.getInstance()._registered_vars_by_ids = {};
         VarsServerController.getInstance()._registered_vars_controller = {};
         VarsServerController.getInstance()._registered_vars_by_datasource = {};
         VarsServerController.getInstance()._registered_vars_controller_by_api_type_id = {};
@@ -81,19 +81,8 @@ export default class VarsServerController {
     }
 
     public update_registered_varconf(id: number, conf: VarConfVO) {
-        this._registered_vars_by_ids[id] = conf;
-        for (let i in this._registered_vars) {
-            let registered_var = this._registered_vars[i];
-
-            if (!registered_var) {
-                continue;
-            }
-
-            if (registered_var.id == id) {
-                this._registered_vars[i] = conf;
-                return;
-            }
-        }
+        VarsController.getInstance().var_conf_by_id[id] = conf;
+        VarsController.getInstance().var_conf_by_name[conf.name] = conf;
 
         if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
             ConsoleHandler.getInstance().log('update_registered_varconf:UPDATED VARCConf VAR_ID:' + conf.id + ':' + JSON.stringify(conf));
@@ -101,25 +90,12 @@ export default class VarsServerController {
     }
 
     public delete_registered_varconf(id: number) {
-        delete this._registered_vars_by_ids[id];
-        let deleted_var = null;
-
-        for (let i in this._registered_vars) {
-            let registered_var = this._registered_vars[i];
-
-            if (!registered_var) {
-                continue;
-            }
-
-            if (registered_var.id == id) {
-                deleted_var = registered_var;
-                delete this._registered_vars[i];
-                return;
-            }
-        }
+        let name = VarsController.getInstance().var_conf_by_id[id].name;
+        delete VarsController.getInstance().var_conf_by_id[id];
+        delete VarsController.getInstance().var_conf_by_name[name];
 
         if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
-            ConsoleHandler.getInstance().log('delete_registered_varconf:DELETED VARCConf VAR_ID:' + (deleted_var ? deleted_var.id : 'N/A') + ':' + (deleted_var ? JSON.stringify(deleted_var) : 'N/A'));
+            ConsoleHandler.getInstance().log('delete_registered_varconf:DELETED VARCConf VAR_ID:' + id + ':' + name);
         }
     }
 
@@ -160,7 +136,7 @@ export default class VarsServerController {
         }
     }
 
-    public async init_varcontrollers_dag_depths() {
+    public init_varcontrollers_dag_depths() {
 
         if ((!this._varcontrollers_dag_depths) && this.varcontrollers_dag) {
             this._varcontrollers_dag_depths = {};
@@ -257,11 +233,11 @@ export default class VarsServerController {
     }
 
     public getVarConf(var_name: string): VarConfVO {
-        return this._registered_vars ? (this._registered_vars[var_name] ? this._registered_vars[var_name] : null) : null;
+        return VarsController.getInstance().var_conf_by_name ? (VarsController.getInstance().var_conf_by_name[var_name] ? VarsController.getInstance().var_conf_by_name[var_name] : null) : null;
     }
 
     public getVarConfById(var_id: number): VarConfVO {
-        return this._registered_vars_by_ids ? (this._registered_vars_by_ids[var_id] ? this._registered_vars_by_ids[var_id] : null) : null;
+        return VarsController.getInstance().var_conf_by_id ? (VarsController.getInstance().var_conf_by_id[var_id] ? VarsController.getInstance().var_conf_by_id[var_id] : null) : null;
     }
 
     public getVarController(var_name: string): VarServerControllerBase<any> {
@@ -269,12 +245,12 @@ export default class VarsServerController {
     }
 
     public getVarControllerById(var_id: number): VarServerControllerBase<any> {
-        if ((!this._registered_vars_by_ids) || (!this._registered_vars_by_ids[var_id]) ||
+        if ((!VarsController.getInstance().var_conf_by_id) || (!VarsController.getInstance().var_conf_by_id[var_id]) ||
             (!this._registered_vars_controller)) {
             return null;
         }
 
-        let res = this._registered_vars_controller[this._registered_vars_by_ids[var_id].name];
+        let res = this._registered_vars_controller[VarsController.getInstance().var_conf_by_id[var_id].name];
         return res ? res : null;
     }
 
@@ -340,18 +316,20 @@ export default class VarsServerController {
             return null;
         }
 
-        if (this._registered_vars && this._registered_vars[varConf.name]) {
-            this.setVar(this._registered_vars[varConf.name], controller);
-            return this._registered_vars[varConf.name];
+        if (!ModuleVar.getInstance().initializedasync_VarsController) {
+            await ModuleVar.getInstance().initializeasync();
         }
+
+        let daoVarConf: VarConfVO = VarsController.getInstance().var_conf_by_name ? VarsController.getInstance().var_conf_by_name[varConf.name] : null;
 
         // Pour les tests unitaires, on fournit l'id du varconf directement pour éviter cette étape
-        if ((varConf.id != null) && (typeof varConf.id != 'undefined')) {
-            this.setVar(varConf, controller);
-            return varConf;
+        if ((!daoVarConf) && (varConf.id != null) && (typeof varConf.id != 'undefined')) {
+            daoVarConf = varConf;
         }
 
-        let daoVarConf: VarConfVO = await ModuleDAO.getInstance().getNamedVoByName<VarConfVO>(varConf._type, varConf.name);
+        if (!daoVarConf) {
+            daoVarConf = await query(VarConfVO.API_TYPE_ID).filter_by_text_eq('name', varConf.name, VarConfVO.API_TYPE_ID, true).select_vo<VarConfVO>();
+        }
 
         if (daoVarConf) {
 
@@ -380,7 +358,7 @@ export default class VarsServerController {
 
     public async configureVarCache(var_conf: VarConfVO, var_cache_conf: VarCacheConfVO): Promise<VarCacheConfVO> {
 
-        let existing_bdd_conf: VarCacheConfVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<VarCacheConfVO>(VarCacheConfVO.API_TYPE_ID, 'var_id', [var_cache_conf.var_id]);
+        let existing_bdd_conf: VarCacheConfVO[] = await query(VarCacheConfVO.API_TYPE_ID).filter_by_num_eq('var_id', var_cache_conf.var_id).select_vos<VarCacheConfVO>();
 
         if ((!!existing_bdd_conf) && existing_bdd_conf.length) {
 
@@ -451,9 +429,9 @@ export default class VarsServerController {
     }
 
     private setVar(varConf: VarConfVO, controller: VarServerControllerBase<any>) {
-        this._registered_vars[varConf.name] = varConf;
+        VarsController.getInstance().var_conf_by_name[varConf.name] = varConf;
         this._registered_vars_controller[varConf.name] = controller;
-        this._registered_vars_by_ids[varConf.id] = varConf;
+        VarsController.getInstance().var_conf_by_id[varConf.id] = varConf;
 
         let dss: DataSourceControllerBase[] = this.get_datasource_deps_and_predeps(controller);
         dss = (!!dss) ? dss : [];

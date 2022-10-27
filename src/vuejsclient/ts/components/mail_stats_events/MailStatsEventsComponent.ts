@@ -1,10 +1,12 @@
 import { Component, Prop, Watch } from 'vue-property-decorator';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MailCategoryVO from '../../../../shared/modules/Mailer/vos/MailCategoryVO';
 import MailEventVO from '../../../../shared/modules/Mailer/vos/MailEventVO';
 import MailVO from '../../../../shared/modules/Mailer/vos/MailVO';
 import ModuleSendInBlue from '../../../../shared/modules/SendInBlue/ModuleSendInBlue';
+import { all_promises } from '../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 import AjaxCacheClientController from '../../modules/AjaxCache/AjaxCacheClientController';
 import VueComponentBase from '../VueComponentBase';
@@ -76,12 +78,9 @@ export default class MailStatsEventsComponent extends VueComponentBase {
 
         if (changed_category || this.force_reload) {
             if (this.email_to) {
-                this.mails = await ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString<MailVO>(
-                    MailVO.API_TYPE_ID, 'category_id', [this.category.id],
-                    'email', [this.email_to]);
+                this.mails = await query(MailVO.API_TYPE_ID).filter_by_num_eq('category_id', this.category.id).filter_by_text_eq('email', this.email_to).select_vos<MailVO>();
             } else {
-                this.mails = await ModuleDAO.getInstance().getVosByRefFieldIds<MailVO>(
-                    MailVO.API_TYPE_ID, 'category_id', [this.category.id]);
+                this.mails = await query(MailVO.API_TYPE_ID).filter_by_num_eq('category_id', this.category.id).select_vos<MailVO>();
             }
 
             let promises = [];
@@ -97,7 +96,7 @@ export default class MailStatsEventsComponent extends VueComponentBase {
                 let mail = this.mails[i];
 
                 promises.push((async () => {
-                    let events = await ModuleDAO.getInstance().getVosByRefFieldIds<MailEventVO>(MailEventVO.API_TYPE_ID, 'mail_id', [mail.id]);
+                    let events = await query(MailEventVO.API_TYPE_ID).filter_by_num_eq('mail_id', mail.id).select_vos<MailEventVO>();
                     events_by_mail[mail.id] = events;
                     for (let e in events) {
                         let event = events[e];
@@ -120,7 +119,7 @@ export default class MailStatsEventsComponent extends VueComponentBase {
                     }
                 })());
             }
-            await Promise.all(promises);
+            await all_promises(promises);
 
             this.events_by_mail = events_by_mail;
             this.last_event = last_event;

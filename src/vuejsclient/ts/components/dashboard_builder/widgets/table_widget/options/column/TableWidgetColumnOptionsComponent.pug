@@ -2,7 +2,7 @@
     template(v-if='!column')
         .new_column_select_type 
             .new_column_select_type_label {{ label('table_widget_column.new_header_column_select_type_label') }}
-            template
+
             .d-flex.justify-content-between.mb-2
                 form
                     input.form.control.mr-3(:class='{"is-invalid": error}' type="text" placeholder="..." v-model="new_header_columns")
@@ -70,7 +70,8 @@
                 Inlinetranslatabletext(
                     :code_text="translatable_name_code_text"
                     :is_editable="true"
-                    :default_translation="default_column_label")
+                    :default_translation="default_column_label"
+                )
 
             .remove_column(@click="remove_column" v-tooltip='vo_ref_tooltip')
                 i.fa.fa-trash(aria-hidden="true")
@@ -94,7 +95,7 @@
                     .column_width
                         input(type='number' min='0' v-model='column_width' v-tooltip='label("table_widget_column_conf.column_width")')
 
-                    .editable_column(v-if='can_be_editable')
+                    .editable_column(v-if='can_be_editable', v-tooltip='label("table_widget_column_conf.editable_column")')
                         toggle-button(
                             @change="switch_readonly" 
                             :value="!column.readonly" 
@@ -102,7 +103,7 @@
                             :width="100"
                             :labels="{checked: label('table_widget_column_conf.editable_column.editable'), unchecked: label('table_widget_column_conf.editable_column.readonly')}")
 
-                    .exportable_column
+                    .exportable_column(v-tooltip='label("table_widget_column_conf.exportable_column")')
                         toggle-button(
                             @change="switch_exportable" 
                             :value="column.exportable" 
@@ -110,7 +111,7 @@
                             :width="105"
                             :labels="{checked: label('table_widget_column_conf.editable_column.exportable'), unchecked: label('table_widget_column_conf.editable_column.not_exportable')}")
 
-                    .hide_from_table_column
+                    .hide_from_table_column(v-tooltip='label("table_widget_column_conf.hide_from_table_column")')
                         toggle-button(
                             @change="switch_hide_from_table" 
                             :value="!column.hide_from_table" 
@@ -118,7 +119,7 @@
                             :width="75"
                             :labels="{checked: label('table_widget_column_conf.editable_column.show_in_table'), unchecked: label('table_widget_column_conf.editable_column.hide_from_table')}")
 
-                    .can_filter_by_column(v-if='can_filter_by_table && (column.datatable_field_uid != "__crud_actions")')
+                    .can_filter_by_column(v-if='can_filter_by_table && (column.datatable_field_uid != "__crud_actions")', v-tooltip='label("table_widget_column_conf.can_filter_by_column")')
                         toggle-button(
                             @change="switch_can_filter_by" 
                             :value="column.can_filter_by" 
@@ -126,7 +127,7 @@
                             :width="100"
                             :labels="{checked: label('table_widget_column_conf.editable_column.can_filter_by'), unchecked: label('table_widget_column_conf.editable_column.cannot_filter_by')}")
                     
-                    .is_sticky_column
+                    .is_sticky_column(v-tooltip='label("table_widget_column_conf.is_sticky_column")')
                         toggle-button(
                             @change="switch_is_sticky"
                             :value="column.is_sticky"
@@ -134,15 +135,24 @@
                             :width="100"
                             :labels="{checked: label('table_widget_column_conf.editable_column.is_sticky'), unchecked: label('table_widget_column_conf.editable_column.is_not_sticky')}")
 
-                    .many_to_many_aggregate.mt-2
+                    .many_to_many_aggregate.mt-2(v-tooltip='label("table_widget_column_conf.many_to_many_aggregate")')
                         toggle-button(
                             @change="switch_many_to_many_aggregate" 
                             :value="column.many_to_many_aggregate" 
                             :sync="true"
-                            :width="160"
+                            :width="200"
                             :labels="{checked: label('table_widget_column_conf.editable_column.many_to_many_aggregate.show'), unchecked: label('table_widget_column_conf.editable_column.many_to_many_aggregate.hide')}")
 
-                    .is_nullable.mt-2
+                    template(v-if="is_fkey")
+                        .disabled_many_to_one_link.mt-2(v-tooltip='label("table_widget_column_conf.disabled_many_to_one_link")')
+                            toggle-button(
+                                @change="switch_disabled_many_to_one_link" 
+                                :value="column.disabled_many_to_one_link" 
+                                :sync="true"
+                                :width="200"
+                                :labels="{checked: label('table_widget_column_conf.editable_column.disabled_many_to_one_link.show'), unchecked: label('table_widget_column_conf.editable_column.disabled_many_to_one_link.hide')}")
+
+                    .is_nullable.mt-2(v-tooltip='label("table_widget_column_conf.is_nullable")')
                         toggle-button(
                             @change="switch_is_nullable" 
                             :value="column.is_nullable" 
@@ -150,7 +160,7 @@
                             :width="320"
                             :labels="{checked: label('table_widget_column_conf.editable_column.is_nullable.show'), unchecked: label('table_widget_column_conf.editable_column.is_nullable.hide')}")
 
-                    .show_tooltip.mt-2
+                    .show_tooltip.mt-2(v-tooltip='label("table_widget_column_conf.show_tooltip")')
                         toggle-button(
                             @change="switch_show_tooltip" 
                             :value="column.show_tooltip" 
@@ -158,7 +168,7 @@
                             :width="160"
                             :labels="{checked: label('table_widget_column_conf.editable_column.show_tooltip.show'), unchecked: label('table_widget_column_conf.editable_column.show_tooltip.hide')}")
 
-                    .filter_by_access
+                    .filter_by_access(v-tooltip='label("table_widget_column_conf.filter_by_access")')
                         multiselect(
                             :preselect-first="false"
                             :multiple="false"

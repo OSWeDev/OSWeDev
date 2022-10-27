@@ -47,6 +47,8 @@ import ProgramPlanControllerBase from './ProgramPlanControllerBase';
 import ProgramPlanTools from './ProgramPlanTools';
 import { ModuleProgramPlanAction, ModuleProgramPlanGetter } from './store/ProgramPlanStore';
 import ProgramPlanComponentTargetListing from './TargetListing/ProgramPlanComponentTargetListing';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import { all_promises } from '../../../../shared/tools/PromiseTools';
 
 
 
@@ -309,7 +311,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                 await self.reloadAsyncData();
             })());
 
-            await Promise.all(promises);
+            await all_promises(promises);
 
             // On limite à 20 tentatives
             let timeout: number = 20;
@@ -421,32 +423,32 @@ export default class ProgramPlanComponent extends VueComponentBase {
             // partenaires (on charge tous les partenaires ça parait pas être voué à exploser comme donnée mais à suivre)
             if (!!this.program_plan_shared_module.partner_type_id) {
                 promises.push((async () => {
-                    self.setPartnersByIds(VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<IPlanPartner>(this.program_plan_shared_module.partner_type_id)));
+                    self.setPartnersByIds(VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(this.program_plan_shared_module.partner_type_id).select_vos<IPlanPartner>()));
                 })());
             }
 
             if (!!this.program_plan_shared_module.target_region_type_id) {
                 promises.push((async () => {
-                    self.set_targets_regions_by_ids(VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<IPlanTargetRegion>(this.program_plan_shared_module.target_region_type_id)));
+                    self.set_targets_regions_by_ids(VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(this.program_plan_shared_module.target_region_type_id).select_vos<IPlanTargetRegion>()));
                 })());
             }
 
             if (!!this.program_plan_shared_module.target_zone_type_id) {
                 promises.push((async () => {
-                    self.set_targets_zones_by_ids(VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<IPlanTargetZone>(this.program_plan_shared_module.target_zone_type_id)));
+                    self.set_targets_zones_by_ids(VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(this.program_plan_shared_module.target_zone_type_id).select_vos<IPlanTargetZone>()));
                 })());
             }
 
             if (!!this.program_plan_shared_module.target_group_type_id) {
                 promises.push((async () => {
-                    self.set_targets_groups_by_ids(VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<IPlanTargetGroup>(this.program_plan_shared_module.target_group_type_id)));
+                    self.set_targets_groups_by_ids(VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(this.program_plan_shared_module.target_group_type_id).select_vos<IPlanTargetGroup>()));
                 })());
             }
 
             // managers du programme
             if (!!this.program_plan_shared_module.program_manager_type_id) {
                 promises.push((async () => {
-                    let program_managers: IPlanProgramManager[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanProgramManager>(this.program_plan_shared_module.program_manager_type_id, 'program_id', [self.program_id]);
+                    let program_managers: IPlanProgramManager[] = await query(this.program_plan_shared_module.program_manager_type_id).filter_by_num_eq('program_id', self.program_id).select_vos<IPlanProgramManager>();
                     self.storeDatas({ API_TYPE_ID: this.program_plan_shared_module.program_manager_type_id, vos: program_managers });
                 })());
             }
@@ -454,7 +456,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
             // animateurs du programme
             if (!!this.program_plan_shared_module.program_facilitator_type_id) {
                 promises.push((async () => {
-                    let program_facilitators: IPlanProgramFacilitator[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanProgramFacilitator>(this.program_plan_shared_module.program_facilitator_type_id, 'program_id', [self.program_id]);
+                    let program_facilitators: IPlanProgramFacilitator[] = await query(this.program_plan_shared_module.program_facilitator_type_id).filter_by_num_eq('program_id', self.program_id).select_vos<IPlanProgramFacilitator>();
                     self.storeDatas({ API_TYPE_ID: this.program_plan_shared_module.program_facilitator_type_id, vos: program_facilitators });
                 })());
             }
@@ -462,12 +464,12 @@ export default class ProgramPlanComponent extends VueComponentBase {
             // établissements du programme
             if (!!this.program_plan_shared_module.program_target_type_id) {
                 promises.push((async () => {
-                    let program_targets: IPlanProgramTarget[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanProgramTarget>(this.program_plan_shared_module.program_target_type_id, 'program_id', [self.program_id]);
+                    let program_targets: IPlanProgramTarget[] = await query(this.program_plan_shared_module.program_target_type_id).filter_by_num_eq('program_id', self.program_id).select_vos<IPlanProgramTarget>();
                     self.storeDatas({ API_TYPE_ID: this.program_plan_shared_module.program_target_type_id, vos: program_targets });
                 })());
             }
 
-            await Promise.all(promises);
+            await all_promises(promises);
             promises = [];
         }
 
@@ -486,11 +488,9 @@ export default class ProgramPlanComponent extends VueComponentBase {
                         let program_manager: IPlanProgramManager = self.getStoredDatas[this.program_plan_shared_module.program_manager_type_id][i] as IPlanProgramManager;
                         ids[program_manager.manager_id] = true;
                     }
-                    managers = await ModuleDAO.getInstance().getVosByIds<IPlanManager>(
-                        this.program_plan_shared_module.manager_type_id,
-                        ObjectHandler.getInstance().getNumberMapIndexes(ids));
+                    managers = await query(this.program_plan_shared_module.manager_type_id).filter_by_ids(ObjectHandler.getInstance().getNumberMapIndexes(ids)).select_vos<IPlanManager>();
                 } else {
-                    managers = await ModuleDAO.getInstance().getVos<IPlanManager>(this.program_plan_shared_module.manager_type_id);
+                    managers = await query(this.program_plan_shared_module.manager_type_id).select_vos<IPlanManager>();
                 }
 
                 let managers_by_ids: { [id: number]: IPlanManager } = {};
@@ -511,7 +511,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         // Task Types
         if (!!this.program_plan_shared_module.task_type_type_id) {
             promises.push((async () => {
-                let task_types: IPlanTaskType[] = await ModuleDAO.getInstance().getVos<IPlanTaskType>(this.program_plan_shared_module.task_type_type_id);
+                let task_types: IPlanTaskType[] = await query(this.program_plan_shared_module.task_type_type_id).select_vos<IPlanTaskType>();
                 self.set_task_types_by_ids(VOsTypesManager.getInstance().vosArray_to_vosByIds(task_types));
             })());
         }
@@ -519,7 +519,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         // Tasks
         if (!!this.program_plan_shared_module.task_type_id) {
             promises.push((async () => {
-                let tasks: IPlanTask[] = await ModuleDAO.getInstance().getVos<IPlanTask>(this.program_plan_shared_module.task_type_id);
+                let tasks: IPlanTask[] = await query(this.program_plan_shared_module.task_type_id).select_vos<IPlanTask>();
                 let tmps: IPlanTask[] = [];
 
                 for (let i in tasks) {
@@ -543,11 +543,9 @@ export default class ProgramPlanComponent extends VueComponentBase {
                     let program_facilitator: IPlanProgramFacilitator = self.getStoredDatas[this.program_plan_shared_module.program_facilitator_type_id][i] as IPlanProgramFacilitator;
                     ids[program_facilitator.facilitator_id] = true;
                 }
-                facilitators = await ModuleDAO.getInstance().getVosByIds<IPlanFacilitator>(
-                    this.program_plan_shared_module.facilitator_type_id,
-                    ObjectHandler.getInstance().getNumberMapIndexes(ids));
+                facilitators = await query(this.program_plan_shared_module.facilitator_type_id).filter_by_ids(ObjectHandler.getInstance().getNumberMapIndexes(ids)).select_vos<IPlanFacilitator>();
             } else {
-                facilitators = await ModuleDAO.getInstance().getVos<IPlanFacilitator>(this.program_plan_shared_module.facilitator_type_id);
+                facilitators = await query(this.program_plan_shared_module.facilitator_type_id).select_vos<IPlanFacilitator>();
             }
 
             let facilitators_by_ids: { [id: number]: IPlanFacilitator } = {};
@@ -575,11 +573,9 @@ export default class ProgramPlanComponent extends VueComponentBase {
                     let program_target: IPlanProgramTarget = self.getStoredDatas[this.program_plan_shared_module.program_target_type_id][i] as IPlanProgramTarget;
                     ids[program_target.target_id] = true;
                 }
-                targets = await ModuleDAO.getInstance().getVosByIds<IPlanTarget>(
-                    this.program_plan_shared_module.target_type_id,
-                    ObjectHandler.getInstance().getNumberMapIndexes(ids));
+                targets = await query(this.program_plan_shared_module.target_type_id).filter_by_ids(ObjectHandler.getInstance().getNumberMapIndexes(ids)).select_vos<IPlanTarget>();
             } else {
-                targets = await ModuleDAO.getInstance().getVos<IPlanTarget>(this.program_plan_shared_module.target_type_id);
+                targets = await query(this.program_plan_shared_module.target_type_id).select_vos<IPlanTarget>();
             }
 
             let targets_by_ids: { [id: number]: IPlanTarget } = {};
@@ -600,7 +596,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
             self.setTargetsByIds(targets_by_ids);
         })());
 
-        await Promise.all(promises);
+        await all_promises(promises);
         self.nextLoadingStep();
         promises = [];
 
@@ -638,9 +634,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                         ids[target.enseigne_id] = true;
                     }
                 }
-                let enseignes: IPlanEnseigne[] = await ModuleDAO.getInstance().getVosByIds<IPlanEnseigne>(
-                    this.program_plan_shared_module.enseigne_type_id,
-                    ObjectHandler.getInstance().getNumberMapIndexes(ids));
+                let enseignes: IPlanEnseigne[] = await query(this.program_plan_shared_module.enseigne_type_id).filter_by_ids(ObjectHandler.getInstance().getNumberMapIndexes(ids)).select_vos<IPlanEnseigne>();
 
                 let enseignes_by_ids: { [id: number]: IPlanEnseigne } = {};
                 for (let i in enseignes) {
@@ -652,7 +646,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                 self.setEnseignesByIds(enseignes_by_ids);
             })());
         }
-        await Promise.all(promises);
+        await all_promises(promises);
 
         self.stopLoading();
     }
@@ -1009,9 +1003,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                             // On check qu'on ne change pas l'ordre des RDVs sur la cible
                             // il faut faire un chargement de tous les RDVs de cette target et de ce task_type_id
                             // dans le cas d'un choix auto on interdit de remettre un RDV avant un RDV existant
-                            let all_rdvs: IPlanRDV[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDV>(
-                                this.program_plan_shared_module.rdv_type_id,
-                                'target_id', [rdv.target_id]);
+                            let all_rdvs: IPlanRDV[] = await query(this.program_plan_shared_module.rdv_type_id).filter_by_num_eq('target_id', rdv.target_id).select_vos<IPlanRDV>();
 
                             for (let i in all_rdvs) {
                                 let all_rdv = all_rdvs[i];
@@ -1236,7 +1228,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
             self.setCrsByIds(VOsTypesManager.getInstance().vosArray_to_vosByIds(await this.program_plan_shared_module.getCRsOfProgramSegment(self.program_id, self.fcSegment)));
         })());
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         this.set_filter_date_debut(this.fcSegment ? TimeSegmentHandler.getInstance().getStartTimeSegment(this.fcSegment) : null);
         this.set_filter_date_fin(this.fcSegment ? Dates.add(TimeSegmentHandler.getInstance().getEndTimeSegment(this.fcSegment), -1, TimeSegment.TYPE_DAY) : null);
@@ -1317,9 +1309,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
                             // il faut faire un chargement de tous les RDVs de cette target et de ce task_type_id
                             // dans le cas d'un choix auto on interdit de remettre un RDV avant un RDV existant
-                            let all_rdvs: IPlanRDV[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDV>(
-                                self.program_plan_shared_module.rdv_type_id,
-                                'target_id', [rdv.target_id]);
+                            let all_rdvs: IPlanRDV[] = await query(this.program_plan_shared_module.rdv_type_id).filter_by_num_eq('target_id', rdv.target_id).select_vos<IPlanRDV>();
 
                             let max_weight: number = -1;
                             let max_weight_task: IPlanTask = null;
@@ -1558,9 +1548,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                 // On check qu'on ne change pas l'ordre des RDVs sur la cible
                 // il faut faire un chargement de tous les RDVs de cette target et de ce task_type_id
                 // dans le cas d'un choix auto on interdit de remettre un RDV avant un RDV existant
-                let all_rdvs: IPlanRDV[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDV>(
-                    this.program_plan_shared_module.rdv_type_id,
-                    'target_id', [this.selected_rdv.target_id]);
+                let all_rdvs: IPlanRDV[] = await query(this.program_plan_shared_module.rdv_type_id).filter_by_num_eq('target_id', this.selected_rdv.target_id).select_vos<IPlanRDV>();
 
                 for (let i in all_rdvs) {
                     let all_rdv = all_rdvs[i];
@@ -1738,7 +1726,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
         let self = this;
 
-        let rdvs: IPlanRDV[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDV>(this.program_plan_shared_module.rdv_type_id, 'target_id', [this.selected_rdv.target_id]);
+        let rdvs: IPlanRDV[] = await query(this.program_plan_shared_module.rdv_type_id).filter_by_num_eq('target_id', this.selected_rdv.target_id).select_vos<IPlanRDV>();
 
         let rdvs_by_ids: { [id: number]: IPlanRDV } = VOsTypesManager.getInstance().vosArray_to_vosByIds(rdvs);
         self.addRdvsByIds(rdvs_by_ids);
@@ -1748,16 +1736,16 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
         if (!!this.program_plan_shared_module.rdv_prep_type_id) {
             promises.push((async () => {
-                let vos: IPlanRDVPrep[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVPrep>(this.program_plan_shared_module.rdv_prep_type_id, 'rdv_id', rdvs_ids);
+                let vos: IPlanRDVPrep[] = await query(this.program_plan_shared_module.rdv_prep_type_id).filter_by_num_has('rdv_id', rdvs_ids).select_vos<IPlanRDVPrep>();
                 self.addPrepsByIds(vos);
             })());
         }
         promises.push((async () => {
-            let vos: IPlanRDVCR[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVCR>(this.program_plan_shared_module.rdv_cr_type_id, 'rdv_id', rdvs_ids);
+            let vos: IPlanRDVCR[] = await query(this.program_plan_shared_module.rdv_cr_type_id).filter_by_num_has('rdv_id', rdvs_ids).select_vos<IPlanRDVCR>();
             self.addCrsByIds(vos);
         })());
 
-        await Promise.all(promises);
+        await all_promises(promises);
     }
 
 

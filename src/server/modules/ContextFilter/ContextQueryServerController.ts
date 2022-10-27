@@ -15,6 +15,7 @@ import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import ServerBase from '../../ServerBase';
 import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
@@ -58,7 +59,19 @@ export default class ContextQueryServerController {
             throw new Error('Invalid context_query param');
         }
 
-        let query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
+        if (query_wrapper.is_segmented_non_existing_table) {
+            // Si on a une table segmentée qui n'existe pas, on ne fait rien
+            return 0;
+        }
+
+        let query_res = null;
+
+        if (context_query.throttle_query_select && context_query.fields && context_query.fields.length) {
+            query_res = await ModuleDAOServer.getInstance().throttle_select_query(query_wrapper.query, query_wrapper.params, context_query);
+        } else {
+            query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
+        }
+
         let c = (query_res && (query_res.length == 1) && (typeof query_res[0]['c'] != 'undefined') && (query_res[0]['c'] !== null)) ? query_res[0]['c'] : null;
         c = c ? parseInt(c.toString()) : 0;
         return c;
@@ -81,9 +94,20 @@ export default class ContextQueryServerController {
             throw new Error('Invalid query');
         }
 
-        let query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
+        if (query_wrapper.is_segmented_non_existing_table) {
+            // Si on a une table segmentée qui n'existe pas, on ne fait rien
+            return [];
+        }
+
+        let query_res = null;
+        if (context_query.throttle_query_select && context_query.fields && context_query.fields.length) {
+            query_res = await ModuleDAOServer.getInstance().throttle_select_query(query_wrapper.query, query_wrapper.params, context_query);
+        } else {
+            query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
+        }
+
         if ((!query_res) || (!query_res.length)) {
-            return null;
+            return [];
         }
 
         let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[context_query.base_api_type_id];
@@ -122,9 +146,20 @@ export default class ContextQueryServerController {
             throw new Error('Invalid query');
         }
 
-        let query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
+        if (query_wrapper.is_segmented_non_existing_table) {
+            // Si on a une table segmentée qui n'existe pas, on ne fait rien
+            return [];
+        }
+
+        let query_res = null;
+        if (context_query.throttle_query_select && context_query.fields && context_query.fields.length) {
+            query_res = await ModuleDAOServer.getInstance().throttle_select_query(query_wrapper.query, query_wrapper.params, context_query);
+        } else {
+            query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
+        }
+
         if ((!query_res) || (!query_res.length)) {
-            return null;
+            return [];
         }
 
         // Anonymisation
@@ -155,9 +190,20 @@ export default class ContextQueryServerController {
             throw new Error('Invalid query');
         }
 
-        let query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
+        if (query_wrapper.is_segmented_non_existing_table) {
+            // Si on a une table segmentée qui n'existe pas, on ne fait rien
+            return [];
+        }
+
+        let query_res = null;
+        if (context_query.throttle_query_select && context_query.fields && context_query.fields.length) {
+            query_res = await ModuleDAOServer.getInstance().throttle_select_query(query_wrapper.query, query_wrapper.params, context_query);
+        } else {
+            query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
+        }
+
         if ((!query_res) || (!query_res.length)) {
-            return null;
+            return [];
         }
 
         // Anonymisation
@@ -209,6 +255,7 @@ export default class ContextQueryServerController {
                 case ContextFilterVO.TYPE_TEXT_INCLUDES_NONE:
                 case ContextFilterVO.TYPE_TEXT_STARTSWITH_NONE:
                 case ContextFilterVO.TYPE_TEXT_ENDSWITH_NONE:
+                case ContextFilterVO.TYPE_NUMERIC_NOT_EQUALS:
                     break;
 
                 default:
@@ -343,7 +390,7 @@ export default class ContextQueryServerController {
                 vos.forEach((vo) => {
                     vo[field.field_id] = moduletable.default_get_field_api_version(new_api_translated_value, field);
                 });
-                await ModuleDAO.getInstance().insertOrUpdateVOs(vos);
+                await ModuleDAOServer.getInstance().insertOrUpdateVOsMulticonnections(vos);
 
                 might_have_more = (vos.length >= context_query.query_limit);
                 context_query.query_offset += change_offset ? context_query.query_limit : 0;
@@ -459,9 +506,11 @@ export default class ContextQueryServerController {
 
             /**
              * Cas du segmented table dont la table n'existe pas, donc on select null en somme (c'est pas une erreur en soit, juste il n'y a pas de données)
+             *  - mais on peut pas select null, ça génère un résultat non vide, dont le premier élément est une colonne null (dont le nom est ?column?)
              */
             if (!full_name) {
-                return query_result.set_query("SELECT NULL");
+                query_result.query = 'SELECT null';
+                return query_result.mark_as_is_segmented_non_existing_table();
             }
 
             FROM = " FROM " + full_name + " " + tables_aliases_by_type[context_query.base_api_type_id];
@@ -496,6 +545,8 @@ export default class ContextQueryServerController {
                 SELECT += context_query.request_id + " as request_id";
                 first = false;
             }
+
+            let force_query_distinct: boolean = false;
 
             for (let i in context_query.fields) {
                 let context_field = context_query.fields[i];
@@ -545,25 +596,31 @@ export default class ContextQueryServerController {
                     case VarConfVO.NO_AGGREGATOR:
                         break;
 
+                    case VarConfVO.ARRAY_AGG_AND_IS_NULLABLE_AGGREGATOR:
                     case VarConfVO.ARRAY_AGG_AGGREGATOR:
                         aggregator_prefix = 'ARRAY_AGG(';
                         aggregator_suffix = ')';
+                        force_query_distinct = true;
                         break;
                     case VarConfVO.COUNT_AGGREGATOR:
                         aggregator_prefix = 'COUNT(';
                         aggregator_suffix = ')';
+                        force_query_distinct = true;
                         break;
                     case VarConfVO.MAX_AGGREGATOR:
                         aggregator_prefix = 'MAX(';
                         aggregator_suffix = ')';
+                        force_query_distinct = true;
                         break;
                     case VarConfVO.MIN_AGGREGATOR:
                         aggregator_prefix = 'MIN(';
                         aggregator_suffix = ')';
+                        force_query_distinct = true;
                         break;
                     case VarConfVO.SUM_AGGREGATOR:
                         aggregator_prefix = 'SUM(';
                         aggregator_suffix = ')';
+                        force_query_distinct = true;
                         break;
 
                     case VarConfVO.OR_AGGREGATOR:
@@ -581,6 +638,39 @@ export default class ContextQueryServerController {
                  *  - field_full_name && field_alias: on a checké le format pur texte de context_field.api_type_id, context_field.alias, context_field.field_id
                  */
                 SELECT += aggregator_prefix + field_full_name + aggregator_suffix + field_alias + ' ';
+            }
+
+            /**
+             * On join tous les types demandés dans la requête
+             */
+            for (let i in context_query.active_api_type_ids) {
+                let active_api_type_id = context_query.active_api_type_ids[i];
+
+                let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[active_api_type_id];
+                if (!moduletable) {
+                    return null;
+                }
+
+                /**
+                 * Checker le format des types
+                 */
+                ContextQueryInjectionCheckHandler.assert_api_type_id_format(active_api_type_id);
+
+                /**
+                 * Si on découvre, et qu'on est pas sur la première table, on passe sur un join à mettre en place
+                 */
+                if (!tables_aliases_by_type[active_api_type_id]) {
+
+                    aliases_n = await this.join_api_type_id(
+                        context_query,
+                        aliases_n,
+                        active_api_type_id,
+                        jointures,
+                        joined_tables_by_vo_type,
+                        tables_aliases_by_type,
+                        access_type
+                    );
+                }
             }
 
             /**
@@ -621,7 +711,7 @@ export default class ContextQueryServerController {
 
 
             let GROUP_BY = ' ';
-            if (context_query.query_distinct) {
+            if (context_query.query_distinct || force_query_distinct) {
 
                 GROUP_BY = ' GROUP BY ';
                 let group_bys = [];
@@ -629,7 +719,7 @@ export default class ContextQueryServerController {
                     let context_field = context_query.fields[i];
 
                     // On ne rajoute pas dans le group by si on utilise l'aggregator ARRAY_AGG
-                    if (context_field.aggregator == VarConfVO.ARRAY_AGG_AGGREGATOR) {
+                    if ((context_field.aggregator == VarConfVO.ARRAY_AGG_AGGREGATOR) || (context_field.aggregator == VarConfVO.ARRAY_AGG_AND_IS_NULLABLE_AGGREGATOR)) {
                         continue;
                     }
 
@@ -677,14 +767,28 @@ export default class ContextQueryServerController {
                     }
                     first_sort_by = false;
 
+                    let modifier_start = '';
+                    let modifier_end = '';
+                    switch (sort_by.modifier) {
+                        case SortByVO.MODIFIER_LOWER:
+                            modifier_start = 'LOWER(';
+                            modifier_end = ')';
+                            break;
+
+                        case SortByVO.MODIFIER_UPPER:
+                            modifier_start = 'UPPER(';
+                            modifier_end = ')';
+                            break;
+                    }
+
                     if (is_selected_field || !context_query.query_distinct) {
 
-                        SORT_BY += tables_aliases_by_type[sort_by.vo_type] + '.' + sort_by.field_id +
+                        SORT_BY += modifier_start + tables_aliases_by_type[sort_by.vo_type] + '.' + sort_by.field_id + modifier_end +
                             (sort_by.sort_asc ? ' ASC ' : ' DESC ');
                     } else {
 
                         let sort_alias = 'sort_alias_' + Math.ceil(Math.random() * 100);
-                        SORT_BY += sort_alias + (sort_by.sort_asc ? ' ASC ' : ' DESC ');
+                        SORT_BY += modifier_start + sort_alias + modifier_end + (sort_by.sort_asc ? ' ASC ' : ' DESC ');
 
                         if (!tables_aliases_by_type[sort_by.vo_type]) {
                             aliases_n = await this.join_api_type_id(
@@ -899,7 +1003,7 @@ export default class ContextQueryServerController {
                 })());
             }
 
-            await Promise.all(promises);
+            await all_promises(promises);
         }
 
         let context_query_fields_by_api_type_id: { [api_type_id: string]: ContextQueryFieldVO[] } = {};
@@ -921,6 +1025,15 @@ export default class ContextQueryServerController {
                 let query = querys[j];
 
                 let query_wrapper = await this.build_select_query(query);
+                if ((!query_wrapper) || (!query_wrapper.query)) {
+                    throw new Error('Invalid query');
+                }
+
+                if (query_wrapper.is_segmented_non_existing_table) {
+                    // Si on a une table segmentée qui n'existe pas, on ne fait rien
+                    continue;
+                }
+
                 let WHERE: string[] = [alias + '.id in (' + query_wrapper.query + ')'];
 
                 let is_nullable_aggregator: boolean = false;
@@ -936,7 +1049,7 @@ export default class ContextQueryServerController {
 
                         if (cq_fields && (cq_fields.length > 0)) {
                             for (let l in cq_fields) {
-                                if (cq_fields[l].aggregator == VarConfVO.IS_NULLABLE_AGGREGATOR) {
+                                if ((cq_fields[l].aggregator == VarConfVO.IS_NULLABLE_AGGREGATOR) || (cq_fields[l].aggregator == VarConfVO.ARRAY_AGG_AND_IS_NULLABLE_AGGREGATOR)) {
                                     is_nullable_aggregator = true;
                                     break;
                                 }

@@ -1,25 +1,25 @@
 .rootElt
     vue-draggable-resizable.row#external-events(:resizable="opened" ref="external_events" :w="width" :h="height" :minh="minh" :minw="minw" :x="initialx" :y="10" :z="10000" drag-handle="#external_events_drag_handle" v-on:resizing="onResize" :class="{'opened':opened}")
-        .col-md-12
+        .col-sm-12
             .row#external_events_drag_handle
-                .col-md-12  
+                .col-sm-12  
                     i.fa.fa-minus.fa-fw.pull-right(aria-hidden="true" v-show="opened" @click="opened=!opened")
                     i.fa.fa-plus.fa-fw.pull-right(aria-hidden="true" v-show="!opened" @click="opened=!opened")
                     i.fa.fa-arrows.fa-fw.pull-right(aria-hidden="true")
             .row.filter
-                .col-md-12.no-padding
+                .col-sm-12.no-padding
                     input.form-input#filtre_etablissement(ref="filtre_etablissement" v-model="filtre_etablissement" placeholder="Filtrer" v-show="opened")        
             .droppable_targets(ref="droppable_targets")
                 template(v-if='use_targets')
                     .row(v-for="(target, i) in filtered_ordered_targets")
-                        .col-md-12
+                        .col-sm-12
                             program-plan-component-rdv(
                                 :program_plan_shared_module='program_plan_shared_module'
                                 :program_plan_controller='program_plan_controller' 
                                 :event_type="target._type", :event_name="target.name", :event_id="target.id", :key="target.id")
                 template(v-else)
                     .row(v-for="(t_ou_tt, i) in filtered_ordered_tasks_or_tasks_types")
-                        .col-md-12
+                        .col-sm-12
                             program-plan-component-rdv(
                                 :program_plan_shared_module='program_plan_shared_module'
                                 :program_plan_controller='program_plan_controller' 

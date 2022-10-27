@@ -2,7 +2,6 @@ import { performance } from "perf_hooks";
 import VarNodePerfElementVO from "../../../shared/modules/Var/vos/VarNodePerfElementVO";
 import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
 import ConfigurationService from "../../env/ConfigurationService";
-import VarsdatasComputerBGThread from "./bgthreads/VarsdatasComputerBGThread";
 
 export default class VarDagPerfsServerController {
 
@@ -18,8 +17,6 @@ export default class VarDagPerfsServerController {
     protected constructor() {
     }
 
-
-
     /**
      * 2 cas : on a des enfants : on prend la somme des estimations de temps restant sur les enfants. sinon on calcul sur soi
      * @param nodeperfelement
@@ -27,21 +24,19 @@ export default class VarDagPerfsServerController {
      */
     public get_nodeperfelement_estimated_remaining_work_time(nodeperfelement: VarNodePerfElementVO): number {
 
+        if (!nodeperfelement) {
+            return 0;
+        }
+
         if (nodeperfelement.child_perfs_ref && nodeperfelement.child_perfs_ref.length) {
-            let res = 0;
-            let var_dag = VarsdatasComputerBGThread.getInstance().current_batch_vardag;
-
-            if (!var_dag) {
-                return 0;
-            }
-
-            for (let i in nodeperfelement.child_perfs_ref) {
-                let child_perf = VarNodePerfElementVO.get_perf_by_ref(nodeperfelement.child_perfs_ref[i], var_dag);
-                if (!!child_perf) {
-                    res += this.get_nodeperfelement_estimated_remaining_work_time(child_perf);
-                }
-            }
-            return res;
+            return (
+                Math.max(
+                    0,
+                    (nodeperfelement.start_time_global - nodeperfelement.nb_started_global * performance.now()) +
+                    ((nodeperfelement.updated_estimated_work_time_global / nodeperfelement.nb_noeuds_global) * nodeperfelement.nb_started_global))
+            ) + (
+                    (nodeperfelement.updated_estimated_work_time_global / nodeperfelement.nb_noeuds_global) * (nodeperfelement.nb_noeuds_global - nodeperfelement.nb_started_global)
+                );
         }
 
         return Math.max(0, (
@@ -51,6 +46,10 @@ export default class VarDagPerfsServerController {
     }
 
     public start_nodeperfelement(nodeperfelement: VarNodePerfElementVO, log_perf_name: string = null) {
+        if (!nodeperfelement) {
+            return;
+        }
+
         nodeperfelement.start_time = performance.now();
 
         if (log_perf_name && ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
@@ -63,6 +62,10 @@ export default class VarDagPerfsServerController {
     }
 
     public end_nodeperfelement(nodeperfelement: VarNodePerfElementVO, log_perf_name: string = null) {
+        if (!nodeperfelement) {
+            return;
+        }
+
         nodeperfelement.end_time = performance.now();
         let nodeperfelement_elapsed_time = nodeperfelement.end_time - nodeperfelement.start_time;
         nodeperfelement.total_elapsed_time = (!nodeperfelement.total_elapsed_time) ? nodeperfelement_elapsed_time : (nodeperfelement.total_elapsed_time + nodeperfelement_elapsed_time);

@@ -2,6 +2,7 @@ import moment = require('moment');
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MailEventVO from '../../../shared/modules/Mailer/vos/MailEventVO';
@@ -84,14 +85,14 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
             return;
         }
 
-        let mail: MailVO = await ModuleDAO.getInstance().getVoById<MailVO>(MailVO.API_TYPE_ID, mail_id);
+        let mail: MailVO = await query(MailVO.API_TYPE_ID).filter_by_id(mail_id).select_vo<MailVO>();
 
         if ((!mail) || (!mail.message_id)) {
             ConsoleHandler.getInstance().error('sendinblue_refresh_mail_events:mail not found or !message_id:' + mail_id);
             return;
         }
 
-        let bdd_events = await ModuleDAO.getInstance().getVosByRefFieldIds<MailEventVO>(MailEventVO.API_TYPE_ID, 'mail_id', [mail.id]);
+        let bdd_events = await query(MailEventVO.API_TYPE_ID).filter_by_num_eq('mail_id', mail.id).select_vos<MailEventVO>();
 
         let api_res: { events: SendInBlueMailEventVO[] } = await SendInBlueServerController.getInstance().sendRequestFromApp(
             ModuleRequest.METHOD_GET,
@@ -128,11 +129,10 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
             { IS_CLIENT: false },
             async () => {
 
-                let mails: MailVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString<MailVO>(MailVO.API_TYPE_ID,
-                    null, null,
-                    "message_id", [event.messageId],
-                    "email", [event.email]
-                );
+                let mails: MailVO[] = await query(MailVO.API_TYPE_ID)
+                    .filter_by_text_eq('message_id', event.messageId)
+                    .filter_by_text_eq('email', event.email)
+                    .select_vos<MailVO>();
 
                 if ((!mails) || (!mails.length)) {
                     // il s'avère que SendInBlue envoie en masse tous les projets on peut pas scinder au sein d'un compte, donc
@@ -148,7 +148,7 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
                     return;
                 }
 
-                let bdd_events = await ModuleDAO.getInstance().getVosByRefFieldIds<MailEventVO>(MailEventVO.API_TYPE_ID, 'mail_id', [mail.id]);
+                let bdd_events = await query(MailEventVO.API_TYPE_ID).filter_by_num_eq('mail_id', mail.id).select_vos<MailEventVO>()
 
                 await this.update_mail_event(mail, event, bdd_events);
             });

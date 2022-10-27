@@ -18,7 +18,7 @@
     //-         span Item :: {{ item.text }}
 
     .row
-        .col-md-12
+        .col-sm-12
             .app_name_title {{ label('menu_organizer.app_name_title', { app_name : app_name }) }}
             Vuenestable(
                 v-model="nestable_items"
@@ -44,7 +44,7 @@
         .collapsible_component_wrapper(:class='{"collapsed":collapsed_options_wrapper}')
             .add_menu_wrapper
                 .row
-                    .col-md-12
+                    .col-sm-12
                         .add(@click="add_menu")
                             i.fa.fa-plus.fa-fw(aria-hidden="true")
                             | {{ label('menu_organizer.add') }}
@@ -52,12 +52,12 @@
             template(v-if='has_modif')
                 .update_cancel_menu_wrapper
                     .row
-                        .col-md-12
+                        .col-sm-12
                             .save(@click="update_db_menu")
                                 i.fa.fa-floppy-o.fa-fw(aria-hidden="true")
                                 | {{ label('menu_organizer.save') }}
                     .row
-                        .col-md-12
+                        .col-sm-12
                             .cancel(@click="reload_from_db")
                                 i.fa.fa-refresh.fa-fw(aria-hidden="true")
                                 | {{ label('menu_organizer.cancel') }}
@@ -68,16 +68,16 @@
                         i.fa.fa-times.fa-fw(aria-hidden="true")
 
                     .row
-                        .col-md-12
+                        .col-sm-12
                             .label {{ label('menu_organizer.selected_item.label') }}
                             Inlinetranslatabletext(:code_text="selected_item_translatable_title" :is_editable="true")
 
                     .row
-                        .col-md-12
+                        .col-sm-12
                             .explaination {{ label('menu_organizer.selected_item.explaination') }}
 
                     .row
-                        .col-md-12
+                        .col-sm-12
                             .label {{ label('menu_organizer.hidden.label') }}
                             toggle-button(
                                 @change="switch_selected_hidden"
@@ -87,7 +87,7 @@
                                 :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}")
 
                     .row
-                        .col-md-12
+                        .col-sm-12
                             .label {{ label('menu_organizer.advanced_selected_item_mode.label') }}
                             toggle-button(
                                 @change="switch_advanced_selected_item_mode"
@@ -98,16 +98,16 @@
 
                     template(v-if='advanced_selected_item_mode')
                         .row
-                            .col-md-12
+                            .col-sm-12
                                 .label {{ label('menu_organizer.fa_class.label') }}
                                 input(type='text' v-model='selected_item.fa_class' @input='changed_selected')
                         .row
-                            .col-md-12
+                            .col-sm-12
                                 .label {{ label('menu_organizer.target.label') }}
                                 input(type='text' v-model='selected_item.target' @input='changed_selected')
 
                         .row
-                            .col-md-12
+                            .col-sm-12
                                 .label {{ label('menu_organizer.target_is_routename.label') }}
                                 toggle-button(
                                     @change="switch_target_is_routename"
@@ -117,22 +117,22 @@
                                     :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}")
 
                         .row
-                            .col-md-12
+                            .col-sm-12
                                 .label {{ label('menu_organizer.target_route_params.label') }}
                                 input(type='text' v-model='selected_item.target_route_params' @input='changed_selected')
                         .row
-                            .col-md-12
+                            .col-sm-12
                                 .label {{ label('menu_organizer.access_policy_name.label') }}
                                 input(type='text' v-model='selected_item.access_policy_name' @input='changed_selected')
 
                     template(v-if='has_modif_selected')
                         .row
-                            .col-md-12
+                            .col-sm-12
                                 .save(@click="update_selected")
                                     i.fa.fa-floppy-o.fa-fw(aria-hidden="true")
                                     | {{ label('menu_organizer.save_selected') }}
                         .row
-                            .col-md-12
+                            .col-sm-12
                                 .cancel(@click="reload_selected")
                                     i.fa.fa-refresh.fa-fw(aria-hidden="true")
                                     | {{ label('menu_organizer.cancel_selected') }}
@@ -140,7 +140,7 @@
             template(v-if='(!selected_item) && app_names && !!app_names.length')
                 .select_app_wrapper
                     .row
-                        .col-md-12
+                        .col-sm-12
                             .select_app_name
                                 .label {{ label('menu_organizer.select_app_name') }}
                                 .input_wrapper

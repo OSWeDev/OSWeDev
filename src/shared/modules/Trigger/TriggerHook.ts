@@ -21,14 +21,14 @@ export default abstract class TriggerHook<Conditions, Params, Out> {
 
     public abstract getConditionUID_from_Conditions(conditions: Conditions): string;
 
-    public registerHandler(conditions: Conditions, handler: (params: Params) => Promise<Out>) {
+    public registerHandler(conditions: Conditions, handler_bind_this: any, handler: (params: Params) => Promise<Out>) {
         let conditionUID: string = conditions ? this.getConditionUID_from_Conditions(conditions) : TriggerHook.NO_CONDITION_UID;
 
         if (!this.registered_handlers[conditionUID]) {
             this.registered_handlers[conditionUID] = [] as any;
         }
 
-        this.registered_handlers[conditionUID].push(handler);
+        this.registered_handlers[conditionUID].push(handler.bind(handler_bind_this));
     }
 
     public async trigger(conditions: Conditions, params: Params): Promise<Out[]> {

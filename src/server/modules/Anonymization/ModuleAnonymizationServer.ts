@@ -112,12 +112,12 @@ export default class ModuleAnonymizationServer extends ModuleServerBase {
         let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
         let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
         let postDeleteTrigger: DAOPostDeleteTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
-        postCreateTrigger.registerHandler(AnonymizationFieldConfVO.API_TYPE_ID, ServerAnonymizationController.getInstance().reload_conf);
-        postUpdateTrigger.registerHandler(AnonymizationFieldConfVO.API_TYPE_ID, ServerAnonymizationController.getInstance().reload_conf);
-        postDeleteTrigger.registerHandler(AnonymizationFieldConfVO.API_TYPE_ID, ServerAnonymizationController.getInstance().reload_conf);
-        postCreateTrigger.registerHandler(AnonymizationUserConfVO.API_TYPE_ID, ServerAnonymizationController.getInstance().reload_conf);
-        postUpdateTrigger.registerHandler(AnonymizationUserConfVO.API_TYPE_ID, ServerAnonymizationController.getInstance().reload_conf);
-        postDeleteTrigger.registerHandler(AnonymizationUserConfVO.API_TYPE_ID, ServerAnonymizationController.getInstance().reload_conf);
+        postCreateTrigger.registerHandler(AnonymizationFieldConfVO.API_TYPE_ID, ServerAnonymizationController.getInstance(), ServerAnonymizationController.getInstance().reload_conf);
+        postUpdateTrigger.registerHandler(AnonymizationFieldConfVO.API_TYPE_ID, ServerAnonymizationController.getInstance(), ServerAnonymizationController.getInstance().reload_conf);
+        postDeleteTrigger.registerHandler(AnonymizationFieldConfVO.API_TYPE_ID, ServerAnonymizationController.getInstance(), ServerAnonymizationController.getInstance().reload_conf);
+        postCreateTrigger.registerHandler(AnonymizationUserConfVO.API_TYPE_ID, ServerAnonymizationController.getInstance(), ServerAnonymizationController.getInstance().reload_conf);
+        postUpdateTrigger.registerHandler(AnonymizationUserConfVO.API_TYPE_ID, ServerAnonymizationController.getInstance(), ServerAnonymizationController.getInstance().reload_conf);
+        postDeleteTrigger.registerHandler(AnonymizationUserConfVO.API_TYPE_ID, ServerAnonymizationController.getInstance(), ServerAnonymizationController.getInstance().reload_conf);
 
         if (ForkServerController.getInstance().is_main_process) {
             await ServerAnonymizationController.getInstance().reload_conf();
@@ -133,8 +133,8 @@ export default class ModuleAnonymizationServer extends ModuleServerBase {
             // ModuleDAOServer.getInstance().registerContextAccessHook(moduletable.vo_type, ServerAnonymizationController.getInstance().anonymiseContextAccessHook.bind(ServerAnonymizationController.getInstance()));
 
             // On doit refuser d'insérer/modifier des vos anonymisés
-            ModuleDAOServer.getInstance().registerAccessHook(moduletable.vo_type, ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, ServerAnonymizationController.getInstance().check_is_anonymise.bind(ServerAnonymizationController.getInstance()));
-            ModuleDAOServer.getInstance().registerAccessHook(moduletable.vo_type, ModuleDAO.DAO_ACCESS_TYPE_DELETE, ServerAnonymizationController.getInstance().check_is_anonymise.bind(ServerAnonymizationController.getInstance()));
+            ModuleDAOServer.getInstance().registerAccessHook(moduletable.vo_type, ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, ServerAnonymizationController.getInstance(), ServerAnonymizationController.getInstance().check_is_anonymise);
+            ModuleDAOServer.getInstance().registerAccessHook(moduletable.vo_type, ModuleDAO.DAO_ACCESS_TYPE_DELETE, ServerAnonymizationController.getInstance(), ServerAnonymizationController.getInstance().check_is_anonymise);
         }
     }
 }

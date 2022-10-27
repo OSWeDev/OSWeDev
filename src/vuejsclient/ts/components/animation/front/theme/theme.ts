@@ -6,12 +6,14 @@ import ThemeModuleDataRangesVO from "../../../../../../shared/modules/Animation/
 import AnimationModuleVO from "../../../../../../shared/modules/Animation/vos/AnimationModuleVO";
 import AnimationThemeVO from "../../../../../../shared/modules/Animation/vos/AnimationThemeVO";
 import AnimationUserModuleVO from "../../../../../../shared/modules/Animation/vos/AnimationUserModuleVO";
+import { query } from "../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import ModuleDAO from "../../../../../../shared/modules/DAO/ModuleDAO";
 import NumRange from "../../../../../../shared/modules/DataRender/vos/NumRange";
 import NumSegment from "../../../../../../shared/modules/DataRender/vos/NumSegment";
 import DocumentVO from "../../../../../../shared/modules/Document/vos/DocumentVO";
 import VarsController from "../../../../../../shared/modules/Var/VarsController";
 import VarDataBaseVO from "../../../../../../shared/modules/Var/vos/VarDataBaseVO";
+import { all_promises } from "../../../../../../shared/tools/PromiseTools";
 import RangeHandler from "../../../../../../shared/tools/RangeHandler";
 import VarDataRefComponent from '../../../Var/components/dataref/VarDataRefComponent';
 import VarsClientController from "../../../Var/VarsClientController";
@@ -78,11 +80,11 @@ export default class VueAnimationThemeComponent extends VueComponentBase {
             promises.push((async () => this.um_by_module_id[anim_module.id] = await ModuleAnimation.getInstance().getUserModule(this.logged_user_id, anim_module.id))());
 
             if (anim_module.document_id) {
-                promises.push((async () => this.document_by_module_id[anim_module.id] = await ModuleDAO.getInstance().getVoById<DocumentVO>(DocumentVO.API_TYPE_ID, anim_module.document_id))());
+                promises.push((async () => this.document_by_module_id[anim_module.id] = await query(DocumentVO.API_TYPE_ID).filter_by_id(anim_module.document_id).select_vo<DocumentVO>())());
             }
         }
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         // trie les mosule en fonction de l'tat d'avancement (ceux réussis en dernier)
         if (this.modules) {

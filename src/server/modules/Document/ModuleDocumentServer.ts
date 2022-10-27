@@ -3,6 +3,7 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleDocument from '../../../shared/modules/Document/ModuleDocument';
 import DocumentLangVO from '../../../shared/modules/Document/vos/DocumentLangVO';
@@ -153,11 +154,11 @@ export default class ModuleDocumentServer extends ModuleServerBase {
         let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
-        preCreateTrigger.registerHandler(DocumentVO.API_TYPE_ID, this.force_document_path_from_file);
-        preUpdateTrigger.registerHandler(DocumentVO.API_TYPE_ID, this.force_document_path_from_file_update);
+        preCreateTrigger.registerHandler(DocumentVO.API_TYPE_ID, this, this.force_document_path_from_file);
+        preUpdateTrigger.registerHandler(DocumentVO.API_TYPE_ID, this, this.force_document_path_from_file_update);
 
         // Quand on change un fichier on check si on doit changer l'url d'un doc au passage.
-        postUpdateTrigger.registerHandler(FileVO.API_TYPE_ID, this.force_document_path_from_file_changed);
+        postUpdateTrigger.registerHandler(FileVO.API_TYPE_ID, this, this.force_document_path_from_file_changed);
     }
 
     public registerServerApiHandlers() {
@@ -185,7 +186,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
             return true;
         }
 
-        let file: FileVO = await ModuleDAO.getInstance().getVoById<FileVO>(FileVO.API_TYPE_ID, d.file_id);
+        let file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(d.file_id).select_vo<FileVO>();
 
         if (!file) {
             return false;
@@ -206,7 +207,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
             return;
         }
 
-        let docs: DocumentVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<DocumentVO>(DocumentVO.API_TYPE_ID, 'file_id', [f.id]);
+        let docs: DocumentVO[] = await query(DocumentVO.API_TYPE_ID).filter_by_num_eq('file_id', f.id).select_vos<DocumentVO>();
         if ((!docs) || (!docs.length)) {
             return;
         }
@@ -228,7 +229,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
 
 
     private async get_ds_by_user_lang(): Promise<DocumentVO[]> {
-        let vos: DocumentVO[] = await ModuleDAO.getInstance().getVos<DocumentVO>(DocumentVO.API_TYPE_ID);
+        let vos: DocumentVO[] = await query(DocumentVO.API_TYPE_ID).select_vos<DocumentVO>();
         if ((!vos) || (!vos.length)) {
             return null;
         }
@@ -272,7 +273,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
     }
 
     private async get_dts_by_user_lang(): Promise<DocumentTagVO[]> {
-        let vos: DocumentTagVO[] = await ModuleDAO.getInstance().getVos<DocumentTagVO>(DocumentTagVO.API_TYPE_ID);
+        let vos: DocumentTagVO[] = await query(DocumentTagVO.API_TYPE_ID).select_vos<DocumentTagVO>();
         if ((!vos) || (!vos.length)) {
             return vos;
         }
@@ -296,7 +297,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
     }
 
     private async get_dtgs_by_user_lang(): Promise<DocumentTagGroupVO[]> {
-        let vos: DocumentTagGroupVO[] = await ModuleDAO.getInstance().getVos<DocumentTagGroupVO>(DocumentTagGroupVO.API_TYPE_ID);
+        let vos: DocumentTagGroupVO[] = await query(DocumentTagGroupVO.API_TYPE_ID).select_vos<DocumentTagGroupVO>();
         if ((!vos) || (!vos.length)) {
             return vos;
         }

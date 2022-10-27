@@ -48,7 +48,7 @@ export default class Patch20220222MigrationCodesTradsDB implements IGeneratorWor
 
         // let lang = await ModuleTranslation.getInstance().getLang('fr-fr');
 
-        // let page_widgets: DashboardPageWidgetVO[] = await ModuleDAO.getInstance().getVos<DashboardPageWidgetVO>(DashboardPageWidgetVO.API_TYPE_ID);
+        // let page_widgets: DashboardPageWidgetVO[] = await query(DashboardPageWidgetVO.API_TYPE_ID).select_vos<DashboardPageWidgetVO>();
         // for (let i in page_widgets) {
         //     let page_widget = page_widgets[i];
 

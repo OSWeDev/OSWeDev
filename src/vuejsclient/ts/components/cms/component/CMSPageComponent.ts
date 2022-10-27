@@ -7,9 +7,11 @@ import IInstantiatedPageComponent from '../../../../../shared/modules/CMS/interf
 import ModuleCMS from '../../../../../shared/modules/CMS/ModuleCMS';
 import PageVO from '../../../../../shared/modules/CMS/vos/PageVO';
 import TemplateComponentVO from '../../../../../shared/modules/CMS/vos/TemplateComponentVO';
+import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
+import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import WeightHandler from '../../../../../shared/tools/WeightHandler';
 import VueComponentBase from '../../../../ts/components/VueComponentBase';
 import AjaxCacheClientController from '../../../modules/AjaxCache/AjaxCacheClientController';
@@ -79,7 +81,7 @@ export default class CMSPageComponent extends VueComponentBase {
 
         let promises: Array<Promise<any>> = [];
         promises.push((async () => {
-            self.page_vo = await ModuleDAO.getInstance().getVoById<PageVO>(PageVO.API_TYPE_ID, self.page_id);
+            self.page_vo = await query(PageVO.API_TYPE_ID).filter_by_id(self.page_id).select_vo<PageVO>();
         })());
         promises.push((async () => {
             self.instantiated_page_components = await ModuleCMS.getInstance().getPageComponents(self.page_id);
@@ -91,7 +93,7 @@ export default class CMSPageComponent extends VueComponentBase {
             self.has_access_to_cms_fo_admin = await ModuleAccessPolicy.getInstance().testAccess(ModuleCMS.POLICY_BO_ACCESS);
         })());
 
-        await Promise.all(promises);
+        await all_promises(promises);
         this.stopLoading();
     }
 
@@ -101,7 +103,7 @@ export default class CMSPageComponent extends VueComponentBase {
             return;
         }
 
-        this.storeDatas({ API_TYPE_ID: TemplateComponentVO.API_TYPE_ID, vos: await ModuleDAO.getInstance().getVos<TemplateComponentVO>(TemplateComponentVO.API_TYPE_ID) });
+        this.storeDatas({ API_TYPE_ID: TemplateComponentVO.API_TYPE_ID, vos: await query(TemplateComponentVO.API_TYPE_ID).select_vos<TemplateComponentVO>() });
 
         $("#sortable_page_component_list").sortable({
             revert: true,
@@ -269,7 +271,7 @@ export default class CMSPageComponent extends VueComponentBase {
             this.instantiated_page_components = [];
         }
 
-        this.storeDatas({ API_TYPE_ID: TemplateComponentVO.API_TYPE_ID, vos: await ModuleDAO.getInstance().getVos<TemplateComponentVO>(TemplateComponentVO.API_TYPE_ID) });
+        this.storeDatas({ API_TYPE_ID: TemplateComponentVO.API_TYPE_ID, vos: await query(TemplateComponentVO.API_TYPE_ID).select_vos<TemplateComponentVO>() });
 
         // $("#sortable_page_component_list").sortable({
         //     revert: true,

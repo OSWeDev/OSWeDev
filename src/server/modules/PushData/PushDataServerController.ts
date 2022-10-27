@@ -4,6 +4,7 @@ import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -12,6 +13,7 @@ import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultT
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import IServerUserSession from '../../IServerUserSession';
@@ -50,7 +52,7 @@ export default class PushDataServerController {
     public static TASK_NAME_notifySession: string = 'PushDataServerController' + '.notifySession';
     public static TASK_NAME_notifyReload: string = 'PushDataServerController' + '.notifyReload';
     public static TASK_NAME_notifyTabReload: string = 'PushDataServerController' + '.notifyTabReload';
-    public static TASK_NAME_notifyVarsTabsReload: string = 'PushDataServerController' + '.notifyVarsTabsReload';
+    // public static TASK_NAME_notifyVarsTabsReload: string = 'PushDataServerController' + '.notifyVarsTabsReload';
 
     public static getInstance(): PushDataServerController {
         if (!PushDataServerController.instance) {
@@ -100,7 +102,7 @@ export default class PushDataServerController {
         for (let socket_id in params) {
             promises.push(PushDataServerController.getInstance().notifyVarsDatasBySocket_(socket_id, params[socket_id]));
         }
-        await Promise.all(promises);
+        await all_promises(promises);
     }, 100, { leading: false, trailing: true });
 
     private constructor() {
@@ -126,7 +128,7 @@ export default class PushDataServerController {
         // ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyReload, this.notifyReload.bind(this));
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyUserLoggedAndRedirectHome, this.notifyUserLoggedAndRedirectHome.bind(this));
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyTabReload, this.notifyTabReload.bind(this));
-        ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyVarsTabsReload, this.notifyVarsTabsReload.bind(this));
+        // ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyVarsTabsReload, this.notifyVarsTabsReload.bind(this));
 
     }
 
@@ -479,30 +481,30 @@ export default class PushDataServerController {
         await ThreadHandler.getInstance().sleep(PushDataServerController.NOTIF_INTERVAL_MS);
     }
 
-    /**
-     * On notifie toutes les tabs subscribed à cet index pour reload
-     */
-    public async notifyVarsTabsReload(var_index: string) {
+    // /**
+    //  * On notifie toutes les tabs subscribed à cet index pour reload
+    //  */
+    // public async notifyVarsTabsReload(var_index: string) {
 
-        // Permet d'assurer un lancement uniquement sur le main process
-        return new Promise(async (resolve, reject) => {
+    //     // Permet d'assurer un lancement uniquement sur le main process
+    //     return new Promise(async (resolve, reject) => {
 
-            if (!await ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(
-                reject, PushDataServerController.TASK_NAME_notifyVarsTabsReload, resolve, var_index)) {
-                return;
-            }
+    //         if (!await ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(
+    //             reject, PushDataServerController.TASK_NAME_notifyVarsTabsReload, resolve, var_index)) {
+    //             return;
+    //         }
 
-            let tabs: { [user_id: number]: { [client_tab_id: string]: boolean } } = VarsTabsSubsController.getInstance().get_subscribed_tabs_ids(var_index);
-            for (let uid in tabs) {
-                let tab = tabs[uid];
+    //         let tabs: { [user_id: number]: { [client_tab_id: string]: number } } = VarsTabsSubsController.getInstance().get_subscribed_tabs_ids(var_index);
+    //         for (let uid in tabs) {
+    //             let tab = tabs[uid];
 
-                for (let tabid in tab) {
-                    await this.notifyTabReload(parseInt(uid.toString()), tabid);
-                }
-            }
-            resolve(true);
-        });
-    }
+    //             for (let tabid in tab) {
+    //                 await this.notifyTabReload(parseInt(uid.toString()), tabid);
+    //             }
+    //         }
+    //         resolve(true);
+    //     });
+    // }
 
 
     // /**
@@ -668,7 +670,7 @@ export default class PushDataServerController {
                 await this.notifySimple(null, userId, null, msg_type, code_text, auto_read_if_connected, simple_notif_json_params);
             })());
         }
-        await Promise.all(promises);
+        await all_promises(promises);
     }
 
     public async broadcastAllSimple(msg_type: number, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null) {
@@ -678,7 +680,7 @@ export default class PushDataServerController {
         }
 
         let promises = [];
-        let users = await ModuleDAO.getInstance().getVos<UserVO>(UserVO.API_TYPE_ID);
+        let users = await query(UserVO.API_TYPE_ID).select_vos<UserVO>();
         for (let i in users) {
             let user = users[i];
 
@@ -686,7 +688,7 @@ export default class PushDataServerController {
                 await this.notifySimple(null, user.id, null, msg_type, code_text, auto_read_if_connected, simple_notif_json_params);
             })());
         }
-        await Promise.all(promises);
+        await all_promises(promises);
     }
 
     public async broadcastRoleSimple(role_name: string, msg_type: number, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null) {
@@ -698,13 +700,14 @@ export default class PushDataServerController {
         let promises = [];
 
         try {
-            let role: RoleVO = await ModuleDAOServer.getInstance().selectOne<RoleVO>(RoleVO.API_TYPE_ID, ' where translatable_name=$1;', [role_name]);
+            let role: RoleVO = await query(RoleVO.API_TYPE_ID).filter_by_text_eq('translatable_name', role_name).select_vo<RoleVO>();
             if (!role) {
                 ConsoleHandler.getInstance().error('broadcastRoleSimple:Role introuvable:' + role_name + ':');
                 return;
             }
 
-            let usersRoles: UserRoleVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<UserRoleVO>(UserRoleVO.API_TYPE_ID, 'role_id', [role.id]);
+            let usersRoles: UserRoleVO[] = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('role_id', role.id).select_vos<UserRoleVO>();
+
             if (!usersRoles) {
                 ConsoleHandler.getInstance().error('broadcastRoleSimple:usersRoles introuvables:' + role_name + ':' + role.id);
                 return;
@@ -715,7 +718,7 @@ export default class PushDataServerController {
                 user_ids.push(usersRoles[i].user_id);
             }
 
-            let users: UserVO[] = await ModuleDAO.getInstance().getVosByIds<UserVO>(UserVO.API_TYPE_ID, user_ids);
+            let users: UserVO[] = await query(UserVO.API_TYPE_ID).filter_by_ids(user_ids).select_vos<UserVO>();
             if (!users) {
                 ConsoleHandler.getInstance().error('broadcastRoleSimple:users introuvables:' + role_name + ':' + role.id);
                 return;
@@ -731,7 +734,7 @@ export default class PushDataServerController {
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
         }
-        await Promise.all(promises);
+        await all_promises(promises);
     }
 
     // Notifications qui redirigent sur une route avec ou sans paramètres
@@ -752,13 +755,13 @@ export default class PushDataServerController {
         let promises = [];
 
         try {
-            let role: RoleVO = await ModuleDAOServer.getInstance().selectOne<RoleVO>(RoleVO.API_TYPE_ID, ' where translatable_name=$1;', [role_name]);
+            let role: RoleVO = await query(RoleVO.API_TYPE_ID).filter_by_text_eq('translatable_name', role_name).select_vo<RoleVO>();
             if (!role) {
                 ConsoleHandler.getInstance().error('broadcastRoleRedirect:Role introuvable:' + role_name + ':');
                 return;
             }
 
-            let usersRoles: UserRoleVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<UserRoleVO>(UserRoleVO.API_TYPE_ID, 'role_id', [role.id]);
+            let usersRoles: UserRoleVO[] = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('role_id', role.id).select_vos<UserRoleVO>();
             if (!usersRoles) {
                 ConsoleHandler.getInstance().error('broadcastRoleRedirect:usersRoles introuvables:' + role_name + ':' + role.id);
                 return;
@@ -769,7 +772,8 @@ export default class PushDataServerController {
                 user_ids.push(usersRoles[i].user_id);
             }
 
-            let users: UserVO[] = await ModuleDAO.getInstance().getVosByIds<UserVO>(UserVO.API_TYPE_ID, user_ids);
+            let users: UserVO[] = await query(UserVO.API_TYPE_ID).filter_by_ids(user_ids).select_vos<UserVO>();
+
             if (!users) {
                 ConsoleHandler.getInstance().error('broadcastRoleRedirect:users introuvables:' + role_name + ':' + role.id);
                 return;
@@ -785,7 +789,7 @@ export default class PushDataServerController {
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
         }
-        await Promise.all(promises);
+        await all_promises(promises);
     }
 
 

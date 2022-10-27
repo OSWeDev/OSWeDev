@@ -19,6 +19,8 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
     public static USE_MAX_X_LAST_PERFS_PARAM_NAME: string = 'UpdateEstimatedDurationsCronWorker.USE_MAX_X_LAST_PERFS';
     public static USE_MIN_X_LAST_PERFS_PARAM_NAME: string = 'UpdateEstimatedDurationsCronWorker.USE_MIN_X_LAST_PERFS';
 
+    public static DEBUG_PARAM_NAME: string = 'UpdateEstimatedDurationsCronWorker.DEBUG';
+
     public static getInstance() {
         if (!UpdateEstimatedDurationsCronWorker.instance) {
             UpdateEstimatedDurationsCronWorker.instance = new UpdateEstimatedDurationsCronWorker();
@@ -33,6 +35,8 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
 
     private USE_MAX_X_LAST_PERFS: number = 0;
     private USE_MIN_X_LAST_PERFS: number = 0;
+
+    private debug: boolean = false;
 
     private constructor() {
     }
@@ -50,6 +54,8 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
 
         this.USE_MAX_X_LAST_PERFS = await ModuleParams.getInstance().getParamValueAsInt(UpdateEstimatedDurationsCronWorker.USE_MAX_X_LAST_PERFS_PARAM_NAME, 100);
         this.USE_MIN_X_LAST_PERFS = await ModuleParams.getInstance().getParamValueAsInt(UpdateEstimatedDurationsCronWorker.USE_MIN_X_LAST_PERFS_PARAM_NAME, 10);
+
+        this.debug = await ModuleParams.getInstance().getParamValueAsBoolean(UpdateEstimatedDurationsCronWorker.DEBUG_PARAM_NAME, false);
 
         this.batchs_cache = {};
         this.batchs_vars_cache = {};
@@ -87,13 +93,13 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
              *  - compute_node :
              *      - le compute_node est bien appelé dans compute_node_wrapper (batch perfs) et on peut donc faire le ratio entre les temps de la var et la somme des temps des vars, puis appliquer le ratio sur le temps réel total
              */
-            this.set_mean_estimation(last_x_perfs, 'ctree_ddeps_try_load_cache_complet', ['ctree_ddeps_try_load_cache_complet', 'ctree_ddeps_load_imports_and_split_nodes', 'ctree_ddeps_try_load_cache_partiel', 'ctree_ddeps_get_node_deps', 'ctree_ddeps_handle_pixellisation'], 'create_tree', varcacheconf);
-            this.set_mean_estimation(last_x_perfs, 'ctree_ddeps_load_imports_and_split_nodes', ['ctree_ddeps_try_load_cache_complet', 'ctree_ddeps_load_imports_and_split_nodes', 'ctree_ddeps_try_load_cache_partiel', 'ctree_ddeps_get_node_deps', 'ctree_ddeps_handle_pixellisation'], 'create_tree', varcacheconf);
-            this.set_mean_estimation(last_x_perfs, 'ctree_ddeps_try_load_cache_partiel', ['ctree_ddeps_try_load_cache_complet', 'ctree_ddeps_load_imports_and_split_nodes', 'ctree_ddeps_try_load_cache_partiel', 'ctree_ddeps_get_node_deps', 'ctree_ddeps_handle_pixellisation'], 'create_tree', varcacheconf);
-            this.set_mean_estimation(last_x_perfs, 'ctree_ddeps_get_node_deps', ['ctree_ddeps_try_load_cache_complet', 'ctree_ddeps_load_imports_and_split_nodes', 'ctree_ddeps_try_load_cache_partiel', 'ctree_ddeps_get_node_deps', 'ctree_ddeps_handle_pixellisation'], 'create_tree', varcacheconf);
-            this.set_mean_estimation(last_x_perfs, 'ctree_ddeps_handle_pixellisation', ['ctree_ddeps_try_load_cache_complet', 'ctree_ddeps_load_imports_and_split_nodes', 'ctree_ddeps_try_load_cache_partiel', 'ctree_ddeps_get_node_deps', 'ctree_ddeps_handle_pixellisation'], 'create_tree', varcacheconf);
-            this.set_mean_estimation(last_x_perfs, 'load_node_datas', ['load_node_datas'], 'load_nodes_datas', varcacheconf);
-            this.set_mean_estimation(last_x_perfs, 'compute_node', ['compute_node'], 'compute_node_wrapper', varcacheconf);
+            await this.set_mean_estimation(last_x_perfs, 'ctree_ddeps_try_load_cache_complet', ['ctree_ddeps_try_load_cache_complet', 'ctree_ddeps_load_imports_and_split_nodes', 'ctree_ddeps_try_load_cache_partiel', 'ctree_ddeps_get_node_deps', 'ctree_ddeps_handle_pixellisation'], 'create_tree', varcacheconf);
+            await this.set_mean_estimation(last_x_perfs, 'ctree_ddeps_load_imports_and_split_nodes', ['ctree_ddeps_try_load_cache_complet', 'ctree_ddeps_load_imports_and_split_nodes', 'ctree_ddeps_try_load_cache_partiel', 'ctree_ddeps_get_node_deps', 'ctree_ddeps_handle_pixellisation'], 'create_tree', varcacheconf);
+            await this.set_mean_estimation(last_x_perfs, 'ctree_ddeps_try_load_cache_partiel', ['ctree_ddeps_try_load_cache_complet', 'ctree_ddeps_load_imports_and_split_nodes', 'ctree_ddeps_try_load_cache_partiel', 'ctree_ddeps_get_node_deps', 'ctree_ddeps_handle_pixellisation'], 'create_tree', varcacheconf);
+            await this.set_mean_estimation(last_x_perfs, 'ctree_ddeps_get_node_deps', ['ctree_ddeps_try_load_cache_complet', 'ctree_ddeps_load_imports_and_split_nodes', 'ctree_ddeps_try_load_cache_partiel', 'ctree_ddeps_get_node_deps', 'ctree_ddeps_handle_pixellisation'], 'create_tree', varcacheconf);
+            await this.set_mean_estimation(last_x_perfs, 'ctree_ddeps_handle_pixellisation', ['ctree_ddeps_try_load_cache_complet', 'ctree_ddeps_load_imports_and_split_nodes', 'ctree_ddeps_try_load_cache_partiel', 'ctree_ddeps_get_node_deps', 'ctree_ddeps_handle_pixellisation'], 'create_tree', varcacheconf);
+            await this.set_mean_estimation(last_x_perfs, 'load_node_datas', ['load_node_datas'], 'load_nodes_datas', varcacheconf);
+            await this.set_mean_estimation(last_x_perfs, 'compute_node', ['compute_node'], 'compute_node_wrapper', varcacheconf);
 
             varcacheconfs.push(varcacheconf);
         }
@@ -134,7 +140,7 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
             return;
         }
 
-        ConsoleHandler.getInstance().log(`Setting estimated_${perf_name}_1k_card to ${mean_estimation} for var_id:${last_x_perfs[0].var_id}`);
+        ConsoleHandler.getInstance().log(`Changing estimated_${perf_name}_1k_card from ${varcacheconf['estimated_' + perf_name + '_1k_card']} to ${mean_estimation} for var_id:${last_x_perfs[0].var_id}`);
 
         varcacheconf['estimated_' + perf_name + '_1k_card'] = mean_estimation;
     }
@@ -152,8 +158,14 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
         // on fait la somme des batchs_vars_cache de tous les var_id, sur le last_x_perf.var_batch_perf_id
         let batch_id = last_x_perf.var_batch_perf_id;
         let perf = last_x_perf[perf_name] as VarPerfElementVO;
-        if ((!perf) || (!perf.realised_sum_ms) || (!perf.realised_nb_card) || (!this.batchs_vars_cache[batch_id])) {
+        if ((!perf) || (!perf.realised_sum_ms) || (!perf.realised_nb_card) || (!this.batchs_vars_cache[batch_id]) || (!this.batchs_cache[batch_id])) {
             return null;
+        }
+
+        if (this.debug) {
+            ConsoleHandler.getInstance().log(
+                'UpdateEstimationVarPerfHandler.get_ratiod_mean: start for ' + perf_name +
+                ' on [' + last_x_perf.var_id + '] ' + VarsServerController.getInstance().getVarConfById(last_x_perf.var_id).name);
         }
 
         let all_var_ids_means_sum = 0;
@@ -169,6 +181,14 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
                 }
 
                 all_var_ids_means_sum += (ratio_perf.realised_sum_ms / ratio_perf.realised_nb_card);
+
+                if (this.debug) {
+                    ConsoleHandler.getInstance().log(
+                        'UpdateEstimationVarPerfHandler.get_ratiod_mean: all_var_ids_means_sum ' + perf_name +
+                        ' on [' + last_x_perf.var_id + '] ' + VarsServerController.getInstance().getVarConfById(last_x_perf.var_id).name +
+                        ' : all_var_ids_means_sum += (ratio_perf.realised_sum_ms / ratio_perf.realised_nb_card) : ' + all_var_ids_means_sum + ' : (+' + (ratio_perf.realised_sum_ms / ratio_perf.realised_nb_card) + ') : ' +
+                        ' ratio_perf.realised_sum_ms : ' + ratio_perf.realised_sum_ms + ' : ratio_perf.realised_nb_card : ' + ratio_perf.realised_nb_card);
+                }
             }
         }
 
@@ -176,8 +196,23 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
 
         // Le coef est compilé en prenant le temps de la stat ciblée perf_name, ramené au cardinal, divisé par la somme des temps de toutes les stats ratio_perfs_names (composants au final batch_perf_name et dont fait partie la perf_name), ramenées au cardinal également
         let coef = ((perf.realised_sum_ms / perf.realised_nb_card) / all_var_ids_means_sum);
+        if (this.debug) {
+            ConsoleHandler.getInstance().log(
+                'UpdateEstimationVarPerfHandler.get_ratiod_mean: coef ' + perf_name +
+                ' on [' + last_x_perf.var_id + '] ' + VarsServerController.getInstance().getVarConfById(last_x_perf.var_id).name +
+                ' : coef = ((perf.realised_sum_ms / perf.realised_nb_card) / all_var_ids_means_sum) : ' + coef +
+                ' : perf.realised_sum_ms : ' + perf.realised_sum_ms + ' : perf.realised_nb_card : ' + perf.realised_nb_card);
+        }
 
         // on applique le coef au temps réel du batch, et on ramène au cardinal
+        if (this.debug) {
+            ConsoleHandler.getInstance().log(
+                'UpdateEstimationVarPerfHandler.get_ratiod_mean: end for ' + perf_name +
+                ' on [' + last_x_perf.var_id + '] ' + VarsServerController.getInstance().getVarConfById(last_x_perf.var_id).name +
+                ' : res = coef * batch_perf_sum / perf.realised_nb_card : ' + coef * batch_perf_sum / perf.realised_nb_card +
+                ' : batch_perf_sum : ' + batch_perf_sum);
+        }
+
         return coef * batch_perf_sum / perf.realised_nb_card;
     }
 
@@ -193,6 +228,12 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
 
         let means: number[] = [];
 
+        if (this.debug) {
+            ConsoleHandler.getInstance().log(
+                'UpdateEstimationVarPerfHandler.get_estimation: starting for ' + perf_name +
+                ' on ' + (last_x_var_perfs ? '[' + last_x_var_perfs[0].var_id + '] ' + VarsServerController.getInstance().getVarConfById(last_x_var_perfs[0].var_id).name : 'N/A'));
+        }
+
         for (let perf_i in last_x_var_perfs) {
             let last_x_var_perf = last_x_var_perfs[perf_i];
 
@@ -201,7 +242,26 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
                 continue;
             }
 
+            if (this.debug) {
+                ConsoleHandler.getInstance().log(
+                    'UpdateEstimationVarPerfHandler.get_estimation: using mean for ' + perf_name +
+                    ' on [' + last_x_var_perf.var_id + '] ' + VarsServerController.getInstance().getVarConfById(last_x_var_perf.var_id).name +
+                    ' : mean : ' + ratiod_mean + ' : last_x_perf[perf_name].realised_sum_ms : ' + last_x_var_perf[perf_name].realised_sum_ms + ' : realised_nb_card : ' + last_x_var_perf[perf_name].realised_nb_card);
+            }
             means.push(ratiod_mean);
+        }
+
+        if ((!means) || (!means.length)) {
+            ConsoleHandler.getInstance().warn(
+                'UpdateEstimationVarPerfHandler.get_estimation: no means for ' + perf_name +
+                ' on ' + (last_x_var_perfs ? '[' + last_x_var_perfs[0].var_id + '] ' + VarsServerController.getInstance().getVarConfById(last_x_var_perfs[0].var_id).name : 'N/A'));
+        }
+
+        if (this.debug) {
+            ConsoleHandler.getInstance().log(
+                'UpdateEstimationVarPerfHandler.get_estimation: ending for ' + perf_name +
+                ' on ' + (last_x_var_perfs ? '[' + last_x_var_perfs[0].var_id + '] ' + VarsServerController.getInstance().getVarConfById(last_x_var_perfs[0].var_id).name : 'N/A' +
+                    ' : mean : ' + ((means && means.length) ? mean(means) : 'N/A')));
         }
 
         return (means && means.length) ? mean(means) : null;
@@ -219,33 +279,43 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
                 batch_ids.push(last_x_perf.var_batch_perf_id);
             }
         }
+        let batch_ids_ranges = null;
 
-        if ((!batch_ids) || (batch_ids.length == 0)) {
-            return;
-        }
+        if (batch_ids && batch_ids.length) {
+            batch_ids_ranges = RangeHandler.getInstance().get_ids_ranges_from_list(batch_ids);
+            let batchs: VarBatchPerfVO[] = await query(VarBatchPerfVO.API_TYPE_ID)
+                .filter_by_ids(batch_ids_ranges)
+                .select_vos<VarBatchPerfVO>();
 
-        let batch_ids_ranges = RangeHandler.getInstance().get_ids_ranges_from_list(batch_ids);
-
-        let batchs: VarBatchPerfVO[] = await query(VarBatchPerfVO.API_TYPE_ID)
-            .filter_by_ids(batch_ids_ranges)
-            .select_vos<VarBatchPerfVO>();
-
-        for (let batch_i in batchs) {
-            let batch = batchs[batch_i];
-            this.batchs_cache[batch.id] = batch;
-        }
-
-        let batchs_vars: VarBatchVarPerfVO[] = await query(VarBatchVarPerfVO.API_TYPE_ID)
-            .filter_by_num_x_ranges('var_batch_perf_id', batch_ids_ranges)
-            .select_vos<VarBatchVarPerfVO>();
-
-        for (let batch_i in batchs_vars) {
-            let batch_var = batchs_vars[batch_i];
-
-            if (!this.batchs_vars_cache[batch_var.var_batch_perf_id]) {
-                this.batchs_vars_cache[batch_var.var_batch_perf_id] = [];
+            for (let batch_i in batchs) {
+                let batch = batchs[batch_i];
+                this.batchs_cache[batch.id] = batch;
             }
-            this.batchs_vars_cache[batch_var.var_batch_perf_id].push(batch_var);
+        }
+
+        batch_ids = [];
+        for (let perf_i in last_x_var_perfs) {
+            let last_x_perf = last_x_var_perfs[perf_i];
+
+            if (!this.batchs_vars_cache[last_x_perf.var_batch_perf_id]) {
+                batch_ids.push(last_x_perf.var_batch_perf_id);
+            }
+        }
+
+        if (batch_ids && batch_ids.length) {
+            batch_ids_ranges = RangeHandler.getInstance().get_ids_ranges_from_list(batch_ids);
+            let batchs_vars: VarBatchVarPerfVO[] = await query(VarBatchVarPerfVO.API_TYPE_ID)
+                .filter_by_num_x_ranges('var_batch_perf_id', batch_ids_ranges)
+                .select_vos<VarBatchVarPerfVO>();
+
+            for (let batch_i in batchs_vars) {
+                let batch_var = batchs_vars[batch_i];
+
+                if (!this.batchs_vars_cache[batch_var.var_batch_perf_id]) {
+                    this.batchs_vars_cache[batch_var.var_batch_perf_id] = [];
+                }
+                this.batchs_vars_cache[batch_var.var_batch_perf_id].push(batch_var);
+            }
         }
 
         return;

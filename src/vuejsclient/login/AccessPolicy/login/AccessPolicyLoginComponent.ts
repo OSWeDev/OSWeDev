@@ -3,6 +3,7 @@ import AccessPolicyController from "../../../../shared/modules/AccessPolicy/Acce
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleParams from "../../../../shared/modules/Params/ModuleParams";
 import ModuleSASSSkinConfigurator from '../../../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
+import { all_promises } from "../../../../shared/tools/PromiseTools";
 import NFCConnectLoginComponent from "../../../ts/components/NFCConnect/login/NFCConnectLoginComponent";
 import NFCHandler from "../../../ts/components/NFCConnect/NFCHandler";
 import SessionShareComponent from "../../../ts/components/session_share/SessionShareComponent";
@@ -37,8 +38,11 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
 
     private has_error_form: boolean = false;
 
+    private is_ok_loging: boolean = false;
+
     private async mounted() {
         let promises = [];
+        this.is_ok_loging = false;
 
         promises.push(this.load_logo_url());
 
@@ -66,7 +70,7 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
             this.pdf_cgu = await ModuleParams.getInstance().getParamValue(ModuleAccessPolicy.PARAM_NAME_LOGIN_CGU)
         )());
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
         if (!!logged_id) {
             window.location = this.redirect_to as any;
@@ -83,7 +87,11 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
 
     // On log si possible, si oui on redirige
     private async login() {
+        if (this.is_ok_loging) {
+            return;
+        }
 
+        this.is_ok_loging = true;
         this.has_error_form = false;
 
         let self = this;
@@ -106,6 +114,8 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
                     });
 
                     this.has_error_form = true;
+
+                    this.is_ok_loging = false;
                 } else {
                     resolve({
                         body: self.label('login.ok'),

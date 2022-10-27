@@ -1,7 +1,8 @@
-import { cloneDeep } from 'lodash';
+import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ModuleAjaxCache from '../../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import ContextFilterHandler from '../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
@@ -19,6 +20,7 @@ import ModuleTable from '../../../../../../shared/modules/ModuleTable';
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
 import DatatableRowController from '../../../datatable/component/DatatableRowController';
@@ -76,6 +78,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
     private data_rows_after: any[] = [];
     private last_calculation_cpt: number = 0;
+    private old_widget_options: BulkOpsWidgetOptions = null;
 
     private onchangevo(vo, field, field_value) {
         if (!this.editable_item) {
@@ -373,7 +376,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             }
             data_rows.push(resData);
         }
-        await Promise.all(promises);
+        await all_promises(promises);
 
         // Si je ne suis pas sur la dernière demande, je me casse
         if (this.last_calculation_cpt != launch_cpt) {
@@ -417,6 +420,13 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
     @Watch('widget_options', { immediate: true })
     private async onchange_widget_options() {
+        if (!!this.old_widget_options) {
+            if (isEqual(this.widget_options, this.old_widget_options)) {
+                return;
+            }
+        }
+
+        this.old_widget_options = cloneDeep(this.widget_options);
 
         await this.throttled_update_visible_options();
     }
@@ -452,8 +462,14 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
                                     await ModuleContextFilter.getInstance().update_vos(
                                         context_query,
-                                        self.field_id_selected, new_value);
+                                        self.field_id_selected,
+                                        new_value
+                                    );
+
+                                    ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([self.api_type_id]);
+
                                     await self.throttled_update_visible_options();
+
                                     resolve({
                                         body: self.label('BulkOpsWidgetComponent.bulkops.ok'),
                                         config: {

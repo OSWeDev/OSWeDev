@@ -1,4 +1,4 @@
-.col-md-12(v-for='api_type_id in valid_api_type_ids')
+.col-sm-12(v-for='api_type_id in valid_api_type_ids')
     .jumbotron(v-if="logs_path[api_type_id]")
         router-link.btn.btn-sm.btn-primary.pull-right(:to="logs_path[api_type_id]" target="_blank")
             i.fa.fa-info-circle.fa-lg.btn_icon(aria-hidden="true")

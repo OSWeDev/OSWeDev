@@ -2,6 +2,7 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
@@ -11,6 +12,7 @@ import TranslatableTextVO from '../../../shared/modules/Translation/vos/Translat
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -65,21 +67,21 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         let preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
         let postDeleteTrigger: DAOPostDeleteTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
 
-        postCreateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this.clear_flat_translations.bind(this));
-        postUpdateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this.clear_flat_translations.bind(this));
-        postDeleteTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this.clear_flat_translations.bind(this));
-        postCreateTrigger.registerHandler(TranslationVO.API_TYPE_ID, this.clear_flat_translations.bind(this));
-        postUpdateTrigger.registerHandler(TranslationVO.API_TYPE_ID, this.clear_flat_translations.bind(this));
-        postDeleteTrigger.registerHandler(TranslationVO.API_TYPE_ID, this.clear_flat_translations.bind(this));
-        postCreateTrigger.registerHandler(LangVO.API_TYPE_ID, this.clear_flat_translations.bind(this));
-        postUpdateTrigger.registerHandler(LangVO.API_TYPE_ID, this.clear_flat_translations.bind(this));
-        postDeleteTrigger.registerHandler(LangVO.API_TYPE_ID, this.clear_flat_translations.bind(this));
+        postCreateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this, this.clear_flat_translations);
+        postUpdateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this, this.clear_flat_translations);
+        postDeleteTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this, this.clear_flat_translations);
+        postCreateTrigger.registerHandler(TranslationVO.API_TYPE_ID, this, this.clear_flat_translations);
+        postUpdateTrigger.registerHandler(TranslationVO.API_TYPE_ID, this, this.clear_flat_translations);
+        postDeleteTrigger.registerHandler(TranslationVO.API_TYPE_ID, this, this.clear_flat_translations);
+        postCreateTrigger.registerHandler(LangVO.API_TYPE_ID, this, this.clear_flat_translations);
+        postUpdateTrigger.registerHandler(LangVO.API_TYPE_ID, this, this.clear_flat_translations);
+        postDeleteTrigger.registerHandler(LangVO.API_TYPE_ID, this, this.clear_flat_translations);
 
-        preCreateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this.onPreCreateTranslatableTextVO);
-        preUpdateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this.onPreUpdateTranslatableTextVO);
+        preCreateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this, this.onPreCreateTranslatableTextVO);
+        preUpdateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this, this.onPreUpdateTranslatableTextVO);
 
-        postCreateTrigger.registerHandler(LangVO.API_TYPE_ID, this.trigger_oncreate_lang);
-        preDeleteTrigger.registerHandler(LangVO.API_TYPE_ID, this.trigger_ondelete_lang);
+        postCreateTrigger.registerHandler(LangVO.API_TYPE_ID, this, this.trigger_oncreate_lang);
+        preDeleteTrigger.registerHandler(LangVO.API_TYPE_ID, this, this.trigger_ondelete_lang);
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Traductions'
@@ -574,44 +576,52 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         // admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().registered_policies[ModuleAccessPolicy.POLICY_BO_ACCESS].id;
         // await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
 
-        let bo_others_access: AccessPolicyVO = new AccessPolicyVO();
-        bo_others_access.group_id = group.id;
-        bo_others_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        bo_others_access.translatable_name = ModuleTranslation.POLICY_BO_OTHERS_ACCESS;
-        bo_others_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_others_access, new DefaultTranslation({
-            'fr-fr': 'Administration des langues et codes de traduction'
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
-        // admin_access_dependency = new PolicyDependencyVO();
-        // admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
-        // admin_access_dependency.src_pol_id = bo_others_access.id;
-        // admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().registered_policies[ModuleAccessPolicy.POLICY_BO_ACCESS].id;
-        // await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
-        let access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
-        access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
-        access_dependency.src_pol_id = bo_others_access.id;
-        access_dependency.depends_on_pol_id = bo_translations_access.id;
-        access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
+        let promises = [];
+        promises.push((async () => {
+            let bo_others_access: AccessPolicyVO = new AccessPolicyVO();
+            bo_others_access.group_id = group.id;
+            bo_others_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            bo_others_access.translatable_name = ModuleTranslation.POLICY_BO_OTHERS_ACCESS;
+            bo_others_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_others_access, new DefaultTranslation({
+                'fr-fr': 'Administration des langues et codes de traduction'
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+            // admin_access_dependency = new PolicyDependencyVO();
+            // admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+            // admin_access_dependency.src_pol_id = bo_others_access.id;
+            // admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().registered_policies[ModuleAccessPolicy.POLICY_BO_ACCESS].id;
+            // await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
+            let access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+            access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+            access_dependency.src_pol_id = bo_others_access.id;
+            access_dependency.depends_on_pol_id = bo_translations_access.id;
+            access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
+        })());
 
-        let on_page_translation_module_access: AccessPolicyVO = new AccessPolicyVO();
-        on_page_translation_module_access.group_id = group.id;
-        on_page_translation_module_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        on_page_translation_module_access.translatable_name = ModuleTranslation.POLICY_ON_PAGE_TRANSLATION_MODULE_ACCESS;
-        on_page_translation_module_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(on_page_translation_module_access, new DefaultTranslation({
-            'fr-fr': 'Module de traduction sur page'
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
-        access_dependency = new PolicyDependencyVO();
-        access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
-        access_dependency.src_pol_id = on_page_translation_module_access.id;
-        access_dependency.depends_on_pol_id = bo_translations_access.id;
-        access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
+        promises.push((async () => {
+            let on_page_translation_module_access: AccessPolicyVO = new AccessPolicyVO();
+            on_page_translation_module_access.group_id = group.id;
+            on_page_translation_module_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            on_page_translation_module_access.translatable_name = ModuleTranslation.POLICY_ON_PAGE_TRANSLATION_MODULE_ACCESS;
+            on_page_translation_module_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(on_page_translation_module_access, new DefaultTranslation({
+                'fr-fr': 'Module de traduction sur page'
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+            let access_dependency = new PolicyDependencyVO();
+            access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+            access_dependency.src_pol_id = on_page_translation_module_access.id;
+            access_dependency.depends_on_pol_id = bo_translations_access.id;
+            access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
+        })());
 
-        let LANG_SELECTOR_ACCESS: AccessPolicyVO = new AccessPolicyVO();
-        LANG_SELECTOR_ACCESS.group_id = group.id;
-        LANG_SELECTOR_ACCESS.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        LANG_SELECTOR_ACCESS.translatable_name = ModuleTranslation.POLICY_LANG_SELECTOR_ACCESS;
-        LANG_SELECTOR_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(LANG_SELECTOR_ACCESS, new DefaultTranslation({
-            'fr-fr': 'Outil - Choix de la langue'
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        promises.push((async () => {
+            let LANG_SELECTOR_ACCESS: AccessPolicyVO = new AccessPolicyVO();
+            LANG_SELECTOR_ACCESS.group_id = group.id;
+            LANG_SELECTOR_ACCESS.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            LANG_SELECTOR_ACCESS.translatable_name = ModuleTranslation.POLICY_LANG_SELECTOR_ACCESS;
+            LANG_SELECTOR_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(LANG_SELECTOR_ACCESS, new DefaultTranslation({
+                'fr-fr': 'Outil - Choix de la langue'
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        })());
+        await Promise.all(promises);
     }
 
     public registerServerApiHandlers() {
@@ -629,31 +639,33 @@ export default class ModuleTranslationServer extends ModuleServerBase {
     }
 
     public async getTranslatableTexts(): Promise<TranslatableTextVO[]> {
-        return await ModuleDAO.getInstance().getVos<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID);
+        return await query(TranslatableTextVO.API_TYPE_ID).select_vos<TranslatableTextVO>();
     }
 
     public async getTranslatableText(text: string): Promise<TranslatableTextVO> {
-        return await ModuleDAOServer.getInstance().selectOne<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID, 'where code_text = $1', [text]);
+        return await query(TranslatableTextVO.API_TYPE_ID).filter_by_text_eq('code_text', text).select_vo<TranslatableTextVO>();
     }
 
     public async getLang(text: string): Promise<LangVO> {
-        return await ModuleDAOServer.getInstance().selectOne<LangVO>(LangVO.API_TYPE_ID, 'where code_lang = $1', [text]);
+        return await query(LangVO.API_TYPE_ID).filter_by_text_eq('code_lang', text).select_vo<LangVO>();
     }
 
     public async getLangs(): Promise<LangVO[]> {
-        return await ModuleDAO.getInstance().getVos<LangVO>(LangVO.API_TYPE_ID);
+        return await query(LangVO.API_TYPE_ID).select_vos<LangVO>();
     }
 
     public async getAllTranslations(): Promise<TranslationVO[]> {
-        return await ModuleDAO.getInstance().getVos<TranslationVO>(TranslationVO.API_TYPE_ID);
+        return await query(TranslationVO.API_TYPE_ID).select_vos<TranslationVO>();
     }
 
     public async getTranslations(num: number): Promise<TranslationVO[]> {
-        return await ModuleDAOServer.getInstance().selectAll<TranslationVO>(TranslationVO.API_TYPE_ID, 'WHERE t.lang_id = $1', [num]);
+        return await query(TranslationVO.API_TYPE_ID)
+            .filter_by_num_eq('lang_id', num)
+            .select_vos<TranslationVO>();
     }
 
     public async getTranslation(lang_id: number, text_id: number): Promise<TranslationVO> {
-        return await ModuleDAOServer.getInstance().selectOne<TranslationVO>(TranslationVO.API_TYPE_ID, 'WHERE t.lang_id = $1 and t.text_id = $2', [lang_id, text_id]);
+        return await query(TranslationVO.API_TYPE_ID).filter_by_id(lang_id, LangVO.API_TYPE_ID).filter_by_id(text_id, TranslatableTextVO.API_TYPE_ID).select_vo<TranslationVO>();
     }
 
     private async trigger_oncreate_lang(lang: LangVO) {
@@ -706,7 +718,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             translatableTexts_by_id = VOsTypesManager.getInstance().vosArray_to_vosByIds(translatableTexts);
         })());
 
-        await Promise.all(promises);
+        await all_promises(promises);
 
 
         await this.add_locale_flat_translations(translatableTexts_by_id, lang_translations, res);
@@ -722,7 +734,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         if (!lang) {
             return null;
         }
-        let translations: TranslationVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<TranslationVO>(TranslationVO.API_TYPE_ID, 'lang_id', [lang.id]);
+        let translations: TranslationVO[] = await query(TranslationVO.API_TYPE_ID).filter_by_num_eq('lang_id', lang.id).select_vos<TranslationVO>();
 
         return translations;
     }
@@ -752,50 +764,54 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         let langs: LangVO[] = null;
         let translatableTexts: TranslatableTextVO[] = null;
         let translatableTexts_by_id: { [id: number]: TranslatableTextVO } = null;
+        let translations_per_lang_id: { [lang_id: number]: TranslationVO[] } = {};
 
         promises.push((async () => {
-            langs = await this.getLangs();
+            langs = await query(LangVO.API_TYPE_ID).select_vos<LangVO>();
         })());
         promises.push((async () => {
-            translatableTexts = await this.getTranslatableTexts();
+            translatableTexts = await query(TranslatableTextVO.API_TYPE_ID).select_vos<TranslatableTextVO>();
             translatableTexts_by_id = VOsTypesManager.getInstance().vosArray_to_vosByIds(translatableTexts);
         })());
+        promises.push((async () => {
+            let translations = await query(TranslationVO.API_TYPE_ID).select_vos<TranslationVO>();
+            for (let i in translations) {
+                let translation = translations[i];
+                if (!translations_per_lang_id[translation.lang_id]) {
+                    translations_per_lang_id[translation.lang_id] = [];
+                }
+                translations_per_lang_id[translation.lang_id].push(translation);
+            }
+        })());
 
-        await Promise.all(promises);
-        promises = [];
+        await all_promises(promises);
 
         let res: { [code_lang: string]: any } = {};
 
         for (let i in langs) {
             let lang: LangVO = langs[i];
 
-            promises.push((async () => {
-                let translations: TranslationVO[] = await ModuleTranslation.getInstance().getTranslations(lang.id);
+            let translations: TranslationVO[] = translations_per_lang_id[lang.id];
 
-                for (let j in translations) {
-                    let translation: TranslationVO = translations[j];
+            for (let j in translations) {
+                let translation: TranslationVO = translations[j];
 
-                    if (!translation.text_id) {
-                        continue;
-                    }
-
-                    res = TranslationsServerController.getInstance().addCodeToLocales(res, lang.code_lang.toLowerCase(), translatableTexts_by_id[translation.text_id].code_text, translation.translated);
+                if (!translation.text_id) {
+                    continue;
                 }
-            })());
+
+                res = TranslationsServerController.getInstance().addCodeToLocales(res, lang.code_lang.toLowerCase(), translatableTexts_by_id[translation.text_id].code_text, translation.translated);
+            }
         }
-        await Promise.all(promises);
 
         return res;
     }
 
     private async t(code_text: string, lang_id: number): Promise<string> {
-        let translatable = await ModuleDAOServer.getInstance().selectOne<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID, 'where code_text = $1', [code_text]);
-
-        if (!translatable) {
+        let translation = await query(TranslationVO.API_TYPE_ID).filter_by_id(lang_id, LangVO.API_TYPE_ID).filter_by_text_eq('code_text', code_text, TranslatableTextVO.API_TYPE_ID).select_vo<TranslationVO>();
+        if (!translation) {
             return null;
         }
-
-        let translation = await ModuleDAOServer.getInstance().selectOne<TranslationVO>(TranslationVO.API_TYPE_ID, 'WHERE t.lang_id = $1 and t.text_id = $2', [lang_id, translatable.id]);
 
         return translation.translated;
     }
@@ -823,9 +839,9 @@ export default class ModuleTranslationServer extends ModuleServerBase {
     private async isCodeOk(code_text: string): Promise<boolean> {
 
         // On vérifie qu'il existe pas en base un code conflictuel. Sinon on refuse l'insert
-        let something_longer: TranslatableTextVO[] = await ModuleDAOServer.getInstance().selectAll<TranslatableTextVO>(
-            TranslatableTextVO.API_TYPE_ID,
-            " WHERE t.code_text like '" + code_text + ".%'");
+        let something_longer: TranslatableTextVO[] = await query(TranslatableTextVO.API_TYPE_ID)
+            .filter_by_text_starting_with('code_text', code_text + '.')
+            .select_vos<TranslatableTextVO>();
 
         if ((!!something_longer) && (something_longer.length > 0)) {
             return false;
@@ -839,9 +855,9 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             segments.pop();
             shorter_code = segments.join('.');
 
-            let something_shorter: TranslatableTextVO[] = await ModuleDAOServer.getInstance().selectAll<TranslatableTextVO>(
-                TranslatableTextVO.API_TYPE_ID,
-                " WHERE t.code_text = $1", [shorter_code]);
+            let something_shorter: TranslatableTextVO[] = await query(TranslatableTextVO.API_TYPE_ID)
+                .filter_by_text_eq('code_text', shorter_code)
+                .select_vos<TranslatableTextVO>();
 
             if ((!!something_shorter) && (something_shorter.length > 0)) {
                 return false;

@@ -13,7 +13,7 @@
     >.row {
         height: -webkit-fill-available;
 
-        >.col-md-12 {
+        >.col-sm-12 {
             height: -webkit-fill-available;
 
             >div {
@@ -39,6 +39,14 @@
 
         i {
             font-size: xx-large;
+        }
+    }
+
+    .upper_pagination {
+        display: flex;
+
+        .table_pagination {
+            flex: 1;
         }
     }
 
@@ -172,5 +180,10 @@
             }
         }
     }
-    
+
+    @media (max-width: 767px) {
+        .upper_pagination {
+            flex-direction: column;
+        }
+    }
 }

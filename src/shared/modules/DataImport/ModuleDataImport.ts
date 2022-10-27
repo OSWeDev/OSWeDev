@@ -88,6 +88,10 @@ export default class ModuleDataImport extends Module {
     public getDataImportHistoric: (historic_id: number) => Promise<DataImportHistoricVO> = APIControllerWrapper.sah(ModuleDataImport.APINAME_getDataImportHistoric);
     public getDataImportLogs: (data_import_format_id: number) => Promise<DataImportLogVO[]> = APIControllerWrapper.sah(ModuleDataImport.APINAME_getDataImportLogs);
     public getDataImportFiles: () => Promise<DataImportFormatVO[]> = APIControllerWrapper.sah(ModuleDataImport.APINAME_getDataImportFiles);
+
+    /**
+     * N'utiliser que dans le cadre de l'init des formats de type d'import, on preload un cache et on le maintien pas à jour donc si on veut des données à jour => query
+     */
     public getDataImportFile: (import_uid: string) => Promise<DataImportFormatVO> = APIControllerWrapper.sah(ModuleDataImport.APINAME_getDataImportFile);
     public importJSON: (import_json: string, import_on_vo: IDistantVOBase) => Promise<IDistantVOBase[]> = APIControllerWrapper.sah(ModuleDataImport.APINAME_importJSON);
     public getDataImportColumnsFromFormatId: (data_import_format_id: number) => Promise<DataImportColumnVO[]> = APIControllerWrapper.sah(ModuleDataImport.APINAME_getDataImportColumnsFromFormatId);
