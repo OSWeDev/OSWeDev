@@ -2344,11 +2344,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                     if (DAOServerController.getInstance().pre_update_trigger_hook.has_trigger(vo._type) || DAOServerController.getInstance().post_update_trigger_hook.has_trigger(vo._type)) {
 
-                        let segment = null;
+                        let query_ = query(vo._type).filter_by_id(vo.id);
                         if (moduleTable.is_segmented && moduleTable.table_segmented_field && (vo[moduleTable.table_segmented_field.field_id] != null)) {
-                            segment = moduleTable.get_segmented_field_value_from_vo(vo);
+                            query_.filter_by_num_eq(moduleTable.table_segmented_field.field_id, moduleTable.get_segmented_field_value_from_vo(vo));
                         }
-                        preUpdates[i] = await ModuleDAO.getInstance().getVoById<any>(vo._type, vo.id, [RangeHandler.getInstance().create_single_elt_NumRange(segment, NumSegment.TYPE_INT)]);
+                        preUpdates[i] = await query_.select_vo();
                     }
                 }
 
@@ -2565,11 +2565,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 if (DAOServerController.getInstance().pre_update_trigger_hook.has_trigger(vo._type) || DAOServerController.getInstance().post_update_trigger_hook.has_trigger(vo._type)) {
 
-                    let segmentation_ranges: IRange[] = null;
+                    let query_ = query(vo._type).filter_by_id(vo.id);
                     if (moduleTable.is_segmented && moduleTable.table_segmented_field && (vo[moduleTable.table_segmented_field.field_id] != null)) {
-                        segmentation_ranges = [RangeHandler.getInstance().create_single_elt_NumRange(moduleTable.get_segmented_field_value_from_vo(vo), NumSegment.TYPE_INT)];
+                        query_.filter_by_num_eq(moduleTable.table_segmented_field.field_id, moduleTable.get_segmented_field_value_from_vo(vo));
                     }
-                    preUpdate = await ModuleDAO.getInstance().getVoById<any>(vo._type, vo.id, segmentation_ranges);
+                    preUpdate = await query_.select_vo();
 
                     if (!preUpdate) {
                         // Cas d'un objet en cache server ou client mais qui n'existe plus sur la BDD => on doit insérer du coup un nouveau
@@ -2699,8 +2699,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     if (!dep.is_cascade) {
                         continue;
                     }
-                    let depVO = await ModuleDAO.getInstance().getVoById(dep.linked_type, dep.linked_id);
-                    deps_to_delete.push(await ModuleDAO.getInstance().getVoById(dep.linked_type, dep.linked_id));
+                    let depVO = await query(dep.linked_type).filter_by_id(dep.linked_id).select_vo();
+                    deps_to_delete.push(await query(dep.linked_type).filter_by_id(dep.linked_id).select_vo());
                     if (!DEBUG_deps_types_to_delete) {
                         DEBUG_deps_types_to_delete = depVO._type;
                     } else {

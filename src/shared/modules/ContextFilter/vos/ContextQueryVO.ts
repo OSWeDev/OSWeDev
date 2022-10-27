@@ -527,8 +527,13 @@ export default class ContextQueryVO implements IDistantVOBase {
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
                         this_filter = filter(target_API_TYPE_ID, target_field_id).by_date_is_in_ranges(matroid[matroid_field_id]);
                         break;
-                    default:
+                    case ModuleTableField.FIELD_TYPE_numrange_array:
+                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableField.FIELD_TYPE_hourrange_array:
                         this_filter = filter(target_API_TYPE_ID, target_field_id).by_num_is_in_ranges(matroid[matroid_field_id]);
+                        break;
+                    default:
+                        break;
                 }
                 this_matroid_head_filter = this_matroid_head_filter ? this_matroid_head_filter.and(this_filter) : this_filter;
             }
