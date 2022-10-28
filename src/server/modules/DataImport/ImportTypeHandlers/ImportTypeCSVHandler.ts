@@ -21,6 +21,7 @@ import ImportLogger from '../logger/ImportLogger';
 import moment = require('moment');
 import { createReadStream, ReadStream } from 'fs';
 import FileHandler from '../../../../shared/tools/FileHandler';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 const CsvReadableStream = require('csv-reader');
 const AutoDetectDecoderStream = require('oswedev-autodetect-decoder-stream');
 
@@ -351,7 +352,7 @@ export default class ImportTypeCSVHandler {
 
         return new Promise(async (resolve, reject) => {
 
-            let fileVO: FileVO = await ModuleDAO.getInstance().getVoById<FileVO>(FileVO.API_TYPE_ID, importHistoric.file_id);
+            let fileVO: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(importHistoric.file_id).select_vo<FileVO>();
 
             if ((!fileVO) || (!fileVO.path)) {
                 if (!muted) {

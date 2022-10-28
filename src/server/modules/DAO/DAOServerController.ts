@@ -108,7 +108,7 @@ export default class DAOServerController {
 
         ranges_query += ']';
 
-        return ranges_query;
+        return first_range ? null : ranges_query;
     }
 
     /**

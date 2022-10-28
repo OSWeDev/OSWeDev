@@ -116,6 +116,7 @@ export default class ModuleVar extends Module {
         active_api_type_ids: string[]
     ) => Promise<VarDataBaseVO> = APIControllerWrapper.sah(ModuleVar.APINAME_getVarParamFromContextFilters);
 
+    public initializedasync_VarsController: boolean = false;
 
     private constructor() {
 
@@ -336,6 +337,11 @@ export default class ModuleVar extends Module {
     }
 
     public async initializeasync(var_conf_by_id: { [var_id: number]: VarConfVO } = null) {
+        if (this.initializedasync_VarsController) {
+            return;
+        }
+        this.initializedasync_VarsController = true;
+
         if (!var_conf_by_id) {
             await VarsController.getInstance().initializeasync(VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(VarConfVO.API_TYPE_ID).select_vos<VarConfVO>()));
         } else {

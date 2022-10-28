@@ -2,6 +2,7 @@ import UserVO from '../../AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../../API/APIControllerWrapper';
 import NumberParamVO, { NumberParamVOStatic } from '../../API/vos/apis/NumberParamVO';
 import GetAPIDefinition from '../../API/vos/GetAPIDefinition';
+import { query } from '../../ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../DAO/ModuleDAO';
 import Module from '../../Module';
 import ModuleTable from '../../ModuleTable';
@@ -86,10 +87,10 @@ export default class ModuleClient extends Module {
     }
 
     public async getClientById(clientId: number): Promise<ClientVO> {
-        return ModuleDAO.getInstance().getVoById<ClientVO>(ClientVO.API_TYPE_ID, clientId);
+        return query(ClientVO.API_TYPE_ID).filter_by_id(clientId).select_vo<ClientVO>();
     }
 
     public async getInformationsById(infoId: number): Promise<InformationsVO> {
-        return ModuleDAO.getInstance().getVoById<InformationsVO>(InformationsVO.API_TYPE_ID, infoId);
+        return query(InformationsVO.API_TYPE_ID).filter_by_id(infoId).select_vo<InformationsVO>();
     }
 }

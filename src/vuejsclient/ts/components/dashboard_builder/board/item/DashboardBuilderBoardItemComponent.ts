@@ -1,6 +1,7 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
+import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
@@ -51,7 +52,7 @@ export default class DashboardBuilderBoardItemComponent extends VueComponentBase
             return;
         }
 
-        this.widget = await ModuleDAO.getInstance().getVoById<DashboardWidgetVO>(DashboardWidgetVO.API_TYPE_ID, this.page_widget.widget_id);
+        this.widget = await query(DashboardWidgetVO.API_TYPE_ID).filter_by_id(this.page_widget.widget_id).select_vo<DashboardWidgetVO>();
     }
 
     private delete_widget() {

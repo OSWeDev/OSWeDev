@@ -55,14 +55,14 @@ export default class VueAnimationComponent extends VueComponentBase {
 
         if (this.animation_params && this.animation_params.image_home_id) {
             promises.push((async () => {
-                let file: FileVO = await ModuleDAO.getInstance().getVoById<FileVO>(FileVO.API_TYPE_ID, this.animation_params.image_home_id);
+                let file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(this.animation_params.image_home_id).select_vo<FileVO>();
 
                 this.image_home = file ? file.path : null;
             })());
         }
 
         if (this.animation_params && this.animation_params.document_id_ranges) {
-            promises.push((async () => this.documents = await ModuleDAO.getInstance().getVosByIdsRanges<DocumentVO>(DocumentVO.API_TYPE_ID, this.animation_params.document_id_ranges))());
+            promises.push((async () => this.documents = await query(DocumentVO.API_TYPE_ID).filter_by_ids(this.animation_params.document_id_ranges).select_vos<DocumentVO>())());
         }
 
         await all_promises(promises);

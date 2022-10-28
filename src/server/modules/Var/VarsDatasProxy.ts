@@ -216,7 +216,7 @@ export default class VarsDatasProxy {
             return;
         }
 
-        await this.filter_var_datas_by_indexes(var_datas, null, null, false, 'append_var_datas:' + reason, false, false);
+        this.filter_var_datas_by_indexes(var_datas, null, null, false, 'append_var_datas:' + reason, false, false);
     }
 
     /**
@@ -234,7 +234,7 @@ export default class VarsDatasProxy {
             return;
         }
 
-        await this.filter_var_datas_by_indexes(var_datas, client_user_id, client_tab_id, is_server_request, 'prepend_var_datas:' + reason, false, does_not_need_insert_or_update);
+        this.filter_var_datas_by_indexes(var_datas, client_user_id, client_tab_id, is_server_request, 'prepend_var_datas:' + reason, false, does_not_need_insert_or_update);
     }
 
     /**
@@ -494,7 +494,7 @@ export default class VarsDatasProxy {
         }
 
         if (!!res) {
-            let cached_res: T[] = await this.filter_var_datas_by_indexes([res], null, null, is_server_request, 'get_exact_param_from_buffer_or_bdd:' + reason, false, true) as T[];
+            let cached_res: T[] = this.filter_var_datas_by_indexes([res], null, null, is_server_request, 'get_exact_param_from_buffer_or_bdd:' + reason, false, true) as T[];
             return cached_res[0];
         }
         return null;
@@ -594,7 +594,7 @@ export default class VarsDatasProxy {
             return;
         }
 
-        await this.filter_var_datas_by_indexes(var_datas, null, null, false, 'update_existing_buffered_older_datas:' + reason, true, false);
+        this.filter_var_datas_by_indexes(var_datas, null, null, false, 'update_existing_buffered_older_datas:' + reason, true, false);
     }
 
     /**
@@ -738,7 +738,7 @@ export default class VarsDatasProxy {
      * @param var_datas
      * @returns list of var_datas, as found (or added) in the cache. if not on primary thread, might return less elements than the input list
      */
-    private async filter_var_datas_by_indexes(var_datas: VarDataBaseVO[], client_user_id: number, client_socket_id: string, is_server_request: boolean, reason: string, donot_insert_if_absent: boolean, just_been_loaded_from_db: boolean): Promise<VarDataBaseVO[]> {
+    private filter_var_datas_by_indexes(var_datas: VarDataBaseVO[], client_user_id: number, client_socket_id: string, is_server_request: boolean, reason: string, donot_insert_if_absent: boolean, just_been_loaded_from_db: boolean): VarDataBaseVO[] {
 
         let res: VarDataBaseVO[] = [];
 

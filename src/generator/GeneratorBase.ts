@@ -31,6 +31,7 @@ import VersionUpdater from './version_updater/VersionUpdater';
 import Patch20220404UpdateDBBWidgetsDefaultSize from './patchs/postmodules/Patch20220404UpdateDBBWidgetsDefaultSize';
 import Patch20220713ChangeVarCacheType1To0 from './patchs/postmodules/Patch20220713ChangeVarCacheType1To0';
 import Patch20220822ChangeTypeRecurrCron from './patchs/premodules/Patch20220822ChangeTypeRecurrCron';
+import ModuleAccessPolicyServer from '../server/modules/AccessPolicy/ModuleAccessPolicyServer';
 
 export default abstract class GeneratorBase {
 
@@ -83,12 +84,6 @@ export default abstract class GeneratorBase {
 
         ConfigurationService.getInstance().setEnvParams(this.STATIC_ENV_PARAMS);
 
-        /**
-         * Le générateur est fait pour faire les checks de format en bdd, donc on force ce paramètre
-         *  par défaut il est actif sur le lancement du server pour gagner du temps
-         */
-        ConfigurationService.getInstance().node_configuration.IGNORE_ALL_DATABASE_FORMAT_CHECKS = false;
-
         FileLoggerHandler.getInstance().prepare().then(() => {
             ConsoleHandler.getInstance().logger_handler = FileLoggerHandler.getInstance();
             ConsoleHandler.getInstance().log("Generator starting");
@@ -122,6 +117,10 @@ export default abstract class GeneratorBase {
         await ModuleSASSSkinConfiguratorServer.getInstance().generate();
         console.log("ModulesClientInitializationDatasGenerator.getInstance().generate()");
         await ModulesClientInitializationDatasGenerator.getInstance().generate();
+
+        // On préload les droits / users / groupes / deps pour accélérer le démarrage
+        console.log("ModuleAccessPolicyServer.getInstance().preload_access_rights()");
+        await ModuleAccessPolicyServer.getInstance().preload_access_rights();
 
         console.log("configure_server_modules...");
         await this.modulesService.configure_server_modules(null);

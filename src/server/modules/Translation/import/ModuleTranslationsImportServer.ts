@@ -89,9 +89,7 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
         return datas;
     }
 
-    public async hook_merge_imported_datas_in_database(datas: ImportTranslationRaw[], historic: DataImportHistoricVO): Promise<boolean> {
-
-        let format: DataImportFormatVO = await ModuleDAO.getInstance().getVoById<DataImportFormatVO>(DataImportFormatVO.API_TYPE_ID, historic.data_import_format_id);
+    public async hook_merge_imported_datas_in_database(datas: ImportTranslationRaw[], historic: DataImportHistoricVO, format: DataImportFormatVO): Promise<boolean> {
 
         let res: boolean = true;
         try {
@@ -178,7 +176,7 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
                     continue;
                 }
 
-                translatable = await ModuleDAO.getInstance().getVoById<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID, insertRes.id);
+                translatable = await query(TranslatableTextVO.API_TYPE_ID).filter_by_id(insertRes.id).select_vo<TranslatableTextVO>();
             }
 
 

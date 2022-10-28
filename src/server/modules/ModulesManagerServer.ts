@@ -18,12 +18,28 @@ export default class ModulesManagerServer {
 
     private modulesVoByName: { [module_name: string]: ModuleVO } = {};
     private modulesVoById: { [id: number]: ModuleVO } = {};
-
+    private preloaded: boolean = false;
     /**
      * ----- Local thread cache
      */
 
     private constructor() { }
+
+    public async preload_modules() {
+
+        if (this.preloaded) {
+            return;
+        }
+        this.preloaded = true;
+
+        let modules = await query(ModuleVO.API_TYPE_ID).select_vos<ModuleVO>();
+
+        for (let i in modules) {
+            let module_ = modules[i];
+            this.modulesVoByName[module_.name] = module_;
+            this.modulesVoById[module_.id] = module_;
+        }
+    }
 
     public async getModuleVOByName(module_name: string): Promise<ModuleVO> {
         if (!module_name) {

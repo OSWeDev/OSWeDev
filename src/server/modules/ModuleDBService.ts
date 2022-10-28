@@ -23,6 +23,9 @@ export default class ModuleDBService {
     public hook_after_registered_all_modules: (modules: Module[]) => {};
 
     private bdd_owner: string;
+
+    private has_preloaded_modules_is_actif: boolean = false;
+    private preloaded_modules_is_actif: { [module_name: string]: boolean } = {};
     /**
      * ----- Local thread cache
      */
@@ -32,18 +35,33 @@ export default class ModuleDBService {
         this.bdd_owner = ConfigurationService.getInstance().node_configuration.BDD_OWNER;
     }
 
+    public async preload_modules_is_actif() {
+        if (this.has_preloaded_modules_is_actif) {
+            return;
+        }
+        this.has_preloaded_modules_is_actif = true;
+
+        let rows = await this.db.query('SELECT "name", "actif" FROM admin.modules;');
+        for (let i in rows) {
+            let row = rows[i];
+
+            this.preloaded_modules_is_actif[row.name] = row.actif;
+        }
+    }
+
     public async load_or_create_module_is_actif(module: Module) {
 
-        // Et le paramètre dans la table de gestion des modules pour activer ou désactiver ce module.
-        //  Par défaut tous les modules sont désactivés, il faut relancer node pour les activer.
-        let rows = await this.db.query('SELECT "actif" FROM admin.modules WHERE name = \'' + module.name + '\';');
+        if (!this.has_preloaded_modules_is_actif) {
+            await this.preload_modules_is_actif();
+        }
 
-        if ((!rows) || (!rows[0]) || (rows[0].actif === undefined)) {
+        let is_actif = this.preloaded_modules_is_actif[module.name];
+        if (typeof is_actif === "undefined") {
             // La ligne n'existe pas, on l'ajoute
             module.actif = module.activate_on_installation;
             await this.db.query('INSERT INTO admin.modules (name, actif) VALUES (\'' + module.name + '\', \'' + module.actif + '\')');
         } else {
-            module.actif = rows[0].actif;
+            module.actif = is_actif;
         }
     }
 

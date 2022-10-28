@@ -2,6 +2,7 @@ import Component from 'vue-class-component';
 import { cloneDeep } from 'lodash';
 import { GridItem, GridLayout } from "vue-grid-layout";
 import { Prop, Vue, Watch } from 'vue-property-decorator';
+import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import IEditableDashboardPage from '../../../../../shared/modules/DashboardBuilder/interfaces/IEditableDashboardPage';
@@ -163,8 +164,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     }
 
     private async rebuild_page_layout() {
-        let widgets = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardPageWidgetVO>(
-            DashboardPageWidgetVO.API_TYPE_ID, 'page_id', [this.dashboard_page.id]);
+        let widgets = await query(DashboardPageWidgetVO.API_TYPE_ID).filter_by_num_eq('page_id', this.dashboard_page.id).select_vos<DashboardPageWidgetVO>();
 
         widgets = widgets ? widgets.filter((w) => !this.get_widgets_invisibility[w.id]) : null;
         this.widgets = widgets;
@@ -244,8 +244,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
                 }
 
                 // On reload les widgets
-                self.widgets = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardPageWidgetVO>(
-                    DashboardPageWidgetVO.API_TYPE_ID, 'page_id', [self.dashboard_page.id]);
+                self.widgets = await query(DashboardPageWidgetVO.API_TYPE_ID).filter_by_num_eq('page_id', self.dashboard_page.id).select_vos<DashboardPageWidgetVO>();
                 page_widget = self.widgets.find((w) => w.id == insertOrDeleteQueryResult.id);
 
                 self.editable_dashboard_page = Object.assign({

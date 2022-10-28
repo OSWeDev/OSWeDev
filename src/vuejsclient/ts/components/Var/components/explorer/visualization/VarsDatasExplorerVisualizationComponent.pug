@@ -4,7 +4,25 @@
             form(v-on:submit.prevent="param_from_index")
                 .form-group.has-feedback
                     input.form-control(type='text', v-model='param_index', :placeholder='label("vars_datas_explorer_visualization.param_from_index")')
-    .row
-        .col-sm-12
+                    p(id = "p1") 
+                        | Calcul d'index simultané : 
+                    textarea.form-control(type='text', v-model='multi_param_index', :placeholder='label("vars_datas_explorer_visualization.param_from_index")')
+                    button.btn-success.m-3(@click="display_all_index") Valider les index
+                    .row(v-if='display_data')
+                        p(id = "p1") 
+                            | Résultats :
+                        .col-12(v-if = '_error_data')
+                            p(id = "p2") 
+                                | Erreur d'index ligne {{_error_data}}.
+                                br 
+                                | Veuillez vérifier que celui-ci soit correctement écrit.
+                                br 
+                                | Chaque index doit être disposé sur une ligne / pas de ligne vide. 
+                                
+                        .col-12(v-else)
+                            template(v-for='filtered_data in get_filtered_datas')
+                                var-data.col-12(:var_param='filtered_data')
+    .row(v-if='!display_data')
+        .col-md-12
             template(v-for='filtered_data in get_filtered_datas')
                 var-data(:var_param='filtered_data')

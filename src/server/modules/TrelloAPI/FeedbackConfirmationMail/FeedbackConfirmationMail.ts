@@ -1,4 +1,5 @@
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import FeedbackVO from '../../../../shared/modules/Feedback/vos/FeedbackVO';
 import ModuleTranslation from '../../../../shared/modules/Translation/ModuleTranslation';
@@ -38,7 +39,7 @@ export default class FeedbackConfirmationMail {
             if (user_id == target_user_id) {
                 user = await ModuleAccessPolicyServer.getInstance().getSelfUser();
             } else {
-                user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, target_user_id);
+                user = await query(UserVO.API_TYPE_ID).filter_by_id(target_user_id).select_vo<UserVO>();
             }
 
             // Send mail

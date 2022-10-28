@@ -71,7 +71,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
     }
 
     private async force_formatted_image_path_from_file_changed(vo_update_handler: DAOUpdateVOHolder<FileVO>) {
-        let fimgs: FormattedImageVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<FormattedImageVO>(FormattedImageVO.API_TYPE_ID, 'file_id', [vo_update_handler.post_update_vo.id]);
+        let fimgs: FormattedImageVO[] = await query(FormattedImageVO.API_TYPE_ID).filter_by_num_eq('file_id', vo_update_handler.post_update_vo.id).select_vos<FormattedImageVO>();
 
         if ((!fimgs) || (!fimgs.length)) {
             return;
@@ -100,7 +100,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
             let param_height = parseInt(height.toString());
             let param_width = parseInt(width.toString());
 
-            let format: ImageFormatVO = await ModuleDAO.getInstance().getNamedVoByName<ImageFormatVO>(ImageFormatVO.API_TYPE_ID, format_name);
+            let format: ImageFormatVO = await query(ImageFormatVO.API_TYPE_ID).filter_by_text_eq('name', format_name, ImageFormatVO.API_TYPE_ID, true).select_vo<ImageFormatVO>();
 
             if (!format) {
                 ConsoleHandler.getInstance().error('Impossible de charger le format d\'image :' + format_name);

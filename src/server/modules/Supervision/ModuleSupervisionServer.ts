@@ -4,6 +4,7 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
@@ -295,7 +296,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
 
         // Si on a une catégorie sans notif, on sort
         if (supervised_item.category_id) {
-            let category: SupervisedCategoryVO = await ModuleDAO.getInstance().getVoById<SupervisedCategoryVO>(SupervisedCategoryVO.API_TYPE_ID, supervised_item.category_id);
+            let category: SupervisedCategoryVO = await query(SupervisedCategoryVO.API_TYPE_ID).filter_by_id(supervised_item.category_id).select_vo<SupervisedCategoryVO>();
 
             if (category && !category.notify) {
                 return;
@@ -340,7 +341,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
 
         // Si on a une catégorie sans notif, on sort
         if (supervised_item.category_id) {
-            let category: SupervisedCategoryVO = await ModuleDAO.getInstance().getVoById<SupervisedCategoryVO>(SupervisedCategoryVO.API_TYPE_ID, supervised_item.category_id);
+            let category: SupervisedCategoryVO = await query(SupervisedCategoryVO.API_TYPE_ID).filter_by_id(supervised_item.category_id).select_vo<SupervisedCategoryVO>();
 
             if (category && !category.notify) {
                 return;

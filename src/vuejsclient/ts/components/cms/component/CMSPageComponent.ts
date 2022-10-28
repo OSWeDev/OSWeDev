@@ -81,7 +81,7 @@ export default class CMSPageComponent extends VueComponentBase {
 
         let promises: Array<Promise<any>> = [];
         promises.push((async () => {
-            self.page_vo = await ModuleDAO.getInstance().getVoById<PageVO>(PageVO.API_TYPE_ID, self.page_id);
+            self.page_vo = await query(PageVO.API_TYPE_ID).filter_by_id(self.page_id).select_vo<PageVO>();
         })());
         promises.push((async () => {
             self.instantiated_page_components = await ModuleCMS.getInstance().getPageComponents(self.page_id);

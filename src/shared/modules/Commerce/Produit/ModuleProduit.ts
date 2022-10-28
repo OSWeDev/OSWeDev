@@ -3,6 +3,7 @@ import ModuleAPI from '../../API/ModuleAPI';
 import NumberParamVO, { NumberParamVOStatic } from '../../API/vos/apis/NumberParamVO';
 import GetAPIDefinition from '../../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../../API/vos/PostAPIDefinition';
+import { query } from '../../ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../DAO/ModuleDAO';
 import Module from '../../Module';
 import ModuleTable from '../../ModuleTable';
@@ -61,7 +62,7 @@ export default class ModuleProduit extends Module {
     }
 
     public async getProduitById(produitId: number): Promise<ProduitVO> {
-        return ModuleDAO.getInstance().getVoById<ProduitVO>(ProduitVO.API_TYPE_ID, produitId);
+        return query(ProduitVO.API_TYPE_ID).filter_by_id(produitId).select_vo<ProduitVO>();
     }
 
     // REFONTE API needs rebuild with dedicated paramvo

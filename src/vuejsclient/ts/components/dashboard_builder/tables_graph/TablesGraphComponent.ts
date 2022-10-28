@@ -495,7 +495,7 @@ export default class TablesGraphComponent extends VueComponentBase {
             editor.graph.removeCells(Object.values(this.cells));
         }
 
-        let cells = await ModuleDAO.getInstance().getVosByRefFieldIds<DashboardGraphVORefVO>(DashboardGraphVORefVO.API_TYPE_ID, 'dashboard_id', [this.dashboard.id]);
+        let cells = await query(DashboardGraphVORefVO.API_TYPE_ID).filter_by_num_eq('dashboard_id', this.dashboard.id).select_vos<DashboardGraphVORefVO>();
         let cells_visited: { [vo_type: string]: string } = {};
         //On retire les cellules doublons.
         for (let i in cells) { //Adding cells to the model

@@ -96,7 +96,7 @@ export default class ContextQueryServerController {
 
         if (query_wrapper.is_segmented_non_existing_table) {
             // Si on a une table segmentée qui n'existe pas, on ne fait rien
-            return null;
+            return [];
         }
 
         let query_res = null;
@@ -107,7 +107,7 @@ export default class ContextQueryServerController {
         }
 
         if ((!query_res) || (!query_res.length)) {
-            return null;
+            return [];
         }
 
         let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[context_query.base_api_type_id];
@@ -148,7 +148,7 @@ export default class ContextQueryServerController {
 
         if (query_wrapper.is_segmented_non_existing_table) {
             // Si on a une table segmentée qui n'existe pas, on ne fait rien
-            return null;
+            return [];
         }
 
         let query_res = null;
@@ -159,7 +159,7 @@ export default class ContextQueryServerController {
         }
 
         if ((!query_res) || (!query_res.length)) {
-            return null;
+            return [];
         }
 
         // Anonymisation
@@ -192,7 +192,7 @@ export default class ContextQueryServerController {
 
         if (query_wrapper.is_segmented_non_existing_table) {
             // Si on a une table segmentée qui n'existe pas, on ne fait rien
-            return null;
+            return [];
         }
 
         let query_res = null;
@@ -203,7 +203,7 @@ export default class ContextQueryServerController {
         }
 
         if ((!query_res) || (!query_res.length)) {
-            return null;
+            return [];
         }
 
         // Anonymisation
@@ -641,6 +641,39 @@ export default class ContextQueryServerController {
             }
 
             /**
+             * On join tous les types demandés dans la requête
+             */
+            for (let i in context_query.active_api_type_ids) {
+                let active_api_type_id = context_query.active_api_type_ids[i];
+
+                let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[active_api_type_id];
+                if (!moduletable) {
+                    return null;
+                }
+
+                /**
+                 * Checker le format des types
+                 */
+                ContextQueryInjectionCheckHandler.assert_api_type_id_format(active_api_type_id);
+
+                /**
+                 * Si on découvre, et qu'on est pas sur la première table, on passe sur un join à mettre en place
+                 */
+                if (!tables_aliases_by_type[active_api_type_id]) {
+
+                    aliases_n = await this.join_api_type_id(
+                        context_query,
+                        aliases_n,
+                        active_api_type_id,
+                        jointures,
+                        joined_tables_by_vo_type,
+                        tables_aliases_by_type,
+                        access_type
+                    );
+                }
+            }
+
+            /**
              * C'est là que le fun prend place, on doit créer la requête pour chaque context_filter et combiner tout ensemble
              */
             let where_conditions: string[] = [];
@@ -734,14 +767,28 @@ export default class ContextQueryServerController {
                     }
                     first_sort_by = false;
 
+                    let modifier_start = '';
+                    let modifier_end = '';
+                    switch (sort_by.modifier) {
+                        case SortByVO.MODIFIER_LOWER:
+                            modifier_start = 'LOWER(';
+                            modifier_end = ')';
+                            break;
+
+                        case SortByVO.MODIFIER_UPPER:
+                            modifier_start = 'UPPER(';
+                            modifier_end = ')';
+                            break;
+                    }
+
                     if (is_selected_field || !context_query.query_distinct) {
 
-                        SORT_BY += tables_aliases_by_type[sort_by.vo_type] + '.' + sort_by.field_id +
+                        SORT_BY += modifier_start + tables_aliases_by_type[sort_by.vo_type] + '.' + sort_by.field_id + modifier_end +
                             (sort_by.sort_asc ? ' ASC ' : ' DESC ');
                     } else {
 
                         let sort_alias = 'sort_alias_' + Math.ceil(Math.random() * 100);
-                        SORT_BY += sort_alias + (sort_by.sort_asc ? ' ASC ' : ' DESC ');
+                        SORT_BY += modifier_start + sort_alias + modifier_end + (sort_by.sort_asc ? ' ASC ' : ' DESC ');
 
                         if (!tables_aliases_by_type[sort_by.vo_type]) {
                             aliases_n = await this.join_api_type_id(

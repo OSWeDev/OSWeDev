@@ -212,7 +212,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         let qrs: AnimationQRVO[] = await query(AnimationQRVO.API_TYPE_ID).filter_by_num_has('module_id', all_module_ids).select_vos<AnimationQRVO>();
 
         let module_by_ids: { [id: number]: AnimationModuleVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(
-            await ModuleDAO.getInstance().getVosByIds<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID, all_module_ids)
+            await query(AnimationModuleVO.API_TYPE_ID).filter_by_ids(all_module_ids).select_vos<AnimationModuleVO>()
         );
 
         for (let i in qrs) {
@@ -266,7 +266,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         );
 
         let module_by_ids: { [id: number]: AnimationModuleVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(
-            await ModuleDAO.getInstance().getVosByIds<AnimationModuleVO>(AnimationModuleVO.API_TYPE_ID, all_module_ids)
+            await query(AnimationModuleVO.API_TYPE_ID).filter_by_ids(all_module_ids).select_vos<AnimationModuleVO>()
         );
 
         for (let i in uqrs) {

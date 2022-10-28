@@ -104,7 +104,7 @@ export default class MenuOrganizerComponent extends VueComponentBase {
             return;
         }
         await ModuleDAO.getInstance().insertOrUpdateVOs([this.selected_item]);
-        let item = await ModuleDAO.getInstance().getVoById<MenuElementVO>(MenuElementVO.API_TYPE_ID, this.selected_item.id);
+        let item = await query(MenuElementVO.API_TYPE_ID).filter_by_id(this.selected_item.id).select_vo<MenuElementVO>();
         this.db_menus_by_ids[item.id] = item;
         this.selected_item = item;
         this.has_modif_selected = false;
@@ -117,7 +117,7 @@ export default class MenuOrganizerComponent extends VueComponentBase {
             return;
         }
 
-        let item = await ModuleDAO.getInstance().getVoById<MenuElementVO>(MenuElementVO.API_TYPE_ID, this.selected_item.id);
+        let item = await query(MenuElementVO.API_TYPE_ID).filter_by_id(this.selected_item.id).select_vo<MenuElementVO>();
         this.db_menus_by_ids[item.id] = item;
         this.selected_item = item;
         this.has_modif_selected = false;
