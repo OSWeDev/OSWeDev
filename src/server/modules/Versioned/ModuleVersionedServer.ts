@@ -148,7 +148,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
         vo.trashed = true;
         await ModuleDAO.getInstance().insertOrUpdateVO(vo);
 
-        let cloned: IVersionedVO = await ModuleDAO.getInstance().getVoById<IVersionedVO>(vo._type, vo.id);
+        let cloned: IVersionedVO = await query(vo._type).filter_by_id(vo.id).select_vo();
 
         if (!cloned) {
             return false;

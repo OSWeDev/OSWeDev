@@ -37,7 +37,7 @@ export default class DataSourcesController {
     public async load_node_datas(dss: DataSourceControllerBase[], node: VarDAGNode): Promise<void> {
 
         let promises = [];
-        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 3));
+        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 2));
 
         for (let i in dss) {
             let ds = dss[i];

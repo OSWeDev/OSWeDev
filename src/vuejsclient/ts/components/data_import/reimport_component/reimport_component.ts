@@ -1,5 +1,6 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleDataImport from '../../../../../shared/modules/DataImport/ModuleDataImport';
 import DataImportHistoricVO from '../../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
@@ -39,7 +40,7 @@ export default class ReimportComponent extends Vuecomponentbase {
             return;
         }
 
-        this.bdd_vo = await ModuleDAO.getInstance().getVoById<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID, this.vo.id);
+        this.bdd_vo = await query(DataImportHistoricVO.API_TYPE_ID).filter_by_id(this.vo.id).select_vo<DataImportHistoricVO>();
     }
 
     private async reimporter(): Promise<void> {
@@ -49,7 +50,7 @@ export default class ReimportComponent extends Vuecomponentbase {
 
         let historic = this.bdd_vo;
         while (!!historic.reimport_of_dih_id) {
-            historic = await ModuleDAO.getInstance().getVoById<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID, historic.reimport_of_dih_id);
+            historic = await query(DataImportHistoricVO.API_TYPE_ID).filter_by_id(historic.reimport_of_dih_id).select_vo<DataImportHistoricVO>();
         }
 
         await ModuleDataImport.getInstance().reimportdih(historic);

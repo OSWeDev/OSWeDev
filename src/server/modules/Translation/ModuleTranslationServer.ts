@@ -550,6 +550,10 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Tranche de valeurs'
         }, 'num_range_input.is_single.off.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Liste des alertes'
+        }, 'alert.list.title.default.___LABEL___'));
     }
 
     /**
@@ -764,38 +768,45 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         let langs: LangVO[] = null;
         let translatableTexts: TranslatableTextVO[] = null;
         let translatableTexts_by_id: { [id: number]: TranslatableTextVO } = null;
+        let translations_per_lang_id: { [lang_id: number]: TranslationVO[] } = {};
 
         promises.push((async () => {
-            langs = await this.getLangs();
+            langs = await query(LangVO.API_TYPE_ID).select_vos<LangVO>();
         })());
         promises.push((async () => {
-            translatableTexts = await this.getTranslatableTexts();
+            translatableTexts = await query(TranslatableTextVO.API_TYPE_ID).select_vos<TranslatableTextVO>();
             translatableTexts_by_id = VOsTypesManager.getInstance().vosArray_to_vosByIds(translatableTexts);
+        })());
+        promises.push((async () => {
+            let translations = await query(TranslationVO.API_TYPE_ID).select_vos<TranslationVO>();
+            for (let i in translations) {
+                let translation = translations[i];
+                if (!translations_per_lang_id[translation.lang_id]) {
+                    translations_per_lang_id[translation.lang_id] = [];
+                }
+                translations_per_lang_id[translation.lang_id].push(translation);
+            }
         })());
 
         await all_promises(promises);
-        promises = [];
 
         let res: { [code_lang: string]: any } = {};
 
         for (let i in langs) {
             let lang: LangVO = langs[i];
 
-            promises.push((async () => {
-                let translations: TranslationVO[] = await ModuleTranslation.getInstance().getTranslations(lang.id);
+            let translations: TranslationVO[] = translations_per_lang_id[lang.id];
 
-                for (let j in translations) {
-                    let translation: TranslationVO = translations[j];
+            for (let j in translations) {
+                let translation: TranslationVO = translations[j];
 
-                    if (!translation.text_id) {
-                        continue;
-                    }
-
-                    res = TranslationsServerController.getInstance().addCodeToLocales(res, lang.code_lang.toLowerCase(), translatableTexts_by_id[translation.text_id].code_text, translation.translated);
+                if (!translation.text_id) {
+                    continue;
                 }
-            })());
+
+                res = TranslationsServerController.getInstance().addCodeToLocales(res, lang.code_lang.toLowerCase(), translatableTexts_by_id[translation.text_id].code_text, translation.translated);
+            }
         }
-        await all_promises(promises);
 
         return res;
     }

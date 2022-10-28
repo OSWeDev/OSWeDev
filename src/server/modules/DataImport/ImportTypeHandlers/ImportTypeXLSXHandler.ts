@@ -20,6 +20,7 @@ import ImportLogger from '../logger/ImportLogger';
 import TextHandler from '../../../../shared/tools/TextHandler';
 import moment = require('moment');
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 
 export default class ImportTypeXLSXHandler {
     public static getInstance() {
@@ -470,7 +471,7 @@ export default class ImportTypeXLSXHandler {
 
     private async loadWorkbook(importHistoric: DataImportHistoricVO, dataImportFormat: DataImportFormatVO, muted: boolean = true): Promise<WorkBook> {
         let workbook: WorkBook = null;
-        let fileVO: FileVO = await ModuleDAO.getInstance().getVoById<FileVO>(FileVO.API_TYPE_ID, importHistoric.file_id);
+        let fileVO: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(importHistoric.file_id).select_vo<FileVO>();
 
         if ((!fileVO) || (!fileVO.path)) {
             if (!muted) {

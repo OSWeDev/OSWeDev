@@ -16,7 +16,6 @@ import SupervisionItemModalComponent from './item_modal/SupervisionItemModalComp
 import './SupervisionDashboardComponent.scss';
 import { ModuleSupervisionAction, ModuleSupervisionGetter } from './SupervisionDashboardStore';
 import SupervisionDashboardWidgetComponent from './widget/SupervisionDashboardWidgetComponent';
-import './SupervisionDashboardComponent.scss';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
 
 @Component({

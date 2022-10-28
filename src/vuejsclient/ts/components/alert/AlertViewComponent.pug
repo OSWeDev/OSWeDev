@@ -1,6 +1,6 @@
 .alert_view_component.row
     .col-sm-12
-        .type_icon_wrapper
+        .type_icon_wrapper(v-if="show_alert_icon")
             template(v-if='is_error')
                 i.fa.fa-exclamation-triangle.fa-fw.alert_component_error(aria-hidden="true")
             template(v-if='is_warn')

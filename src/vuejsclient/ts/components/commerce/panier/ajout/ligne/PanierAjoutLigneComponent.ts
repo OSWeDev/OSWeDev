@@ -29,7 +29,7 @@ export default class PanierAjoutLigneComponent extends VueComponentBase {
                 facturation_produit = this.facturations_produit[0];
             }
 
-            this.facturation = await ModuleDAO.getInstance().getVoById<FacturationVO>(FacturationVO.API_TYPE_ID, facturation_produit.facturation_id);
+            this.facturation = await query(FacturationVO.API_TYPE_ID).filter_by_id(facturation_produit.facturation_id).select_vo<FacturationVO>();
         }
     }
 

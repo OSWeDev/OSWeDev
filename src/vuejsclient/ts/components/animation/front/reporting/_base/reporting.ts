@@ -198,11 +198,13 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
         }
 
         if (user_ids.length > 0) {
-            all_user_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVosByIds<UserVO>(UserVO.API_TYPE_ID, user_ids));
+            all_user_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(
+                await query(UserVO.API_TYPE_ID).filter_by_ids(user_ids).select_vos<UserVO>());
         }
 
         if (role_ids.length > 0) {
-            all_role_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVosByIds<RoleVO>(RoleVO.API_TYPE_ID, role_ids));
+            all_role_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(
+                await query(RoleVO.API_TYPE_ID).filter_by_ids(role_ids).select_vos<RoleVO>());
         }
 
         this.init({

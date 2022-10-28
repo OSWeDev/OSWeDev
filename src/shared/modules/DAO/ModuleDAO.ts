@@ -227,6 +227,7 @@ export default class ModuleDAO extends Module {
         });
 
     /**
+     * @deprecated
      * Retourne tous les matroids inclus les matroids en param
      * @param API_TYPE_ID
      * @param matroids
@@ -244,6 +245,7 @@ export default class ModuleDAO extends Module {
         });
 
     /**
+     * @deprecated
      * Retourne tous les matroids intersectant les matroids en param
      * @param API_TYPE_ID
      * @param matroids

@@ -393,7 +393,7 @@ export default class DataImportComponent extends DataImportComponentBase {
             let historic: DataImportHistoricVO = this.import_historics[segment.index][i];
 
             while (!!historic.reimport_of_dih_id) {
-                historic = await ModuleDAO.getInstance().getVoById<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID, historic.reimport_of_dih_id);
+                historic = await query(DataImportHistoricVO.API_TYPE_ID).filter_by_id(historic.reimport_of_dih_id).select_vo<DataImportHistoricVO>();
             }
 
             await ModuleDataImport.getInstance().reimportdih(historic);

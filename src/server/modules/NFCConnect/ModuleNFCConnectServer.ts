@@ -4,6 +4,7 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleNFCConnect from '../../../shared/modules/NFCConnect/ModuleNFCConnect';
 import NFCTagUserVO from '../../../shared/modules/NFCConnect/vos/NFCTagUserVO';
@@ -177,13 +178,13 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
         }
 
         try {
-            let user_tags: NFCTagUserVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<NFCTagUserVO>(NFCTagUserVO.API_TYPE_ID, 'user_id', [user_id]);
+            let user_tags: NFCTagUserVO[] = await query(NFCTagUserVO.API_TYPE_ID).filter_by_num_eq('user_id', user_id).select_vos<NFCTagUserVO>();
             if ((!user_tags) || (!user_tags.length)) {
                 return null;
             }
 
             let tags_ids: number[] = user_tags.map((tag: NFCTagUserVO) => tag.nfc_tag_id);
-            return await ModuleDAO.getInstance().getVosByIds<NFCTagVO>(NFCTagVO.API_TYPE_ID, tags_ids);
+            return await query(NFCTagVO.API_TYPE_ID).filter_by_ids(tags_ids).select_vos<NFCTagVO>();
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
         }
@@ -210,7 +211,7 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
                 return false;
             }
 
-            let tags_user: NFCTagUserVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<NFCTagUserVO>(NFCTagUserVO.API_TYPE_ID, 'nfc_tag_id', [tag.id]);
+            let tags_user: NFCTagUserVO[] = await query(NFCTagUserVO.API_TYPE_ID).filter_by_num_eq('nfc_tag_id', tag.id).select_vos<NFCTagUserVO>();
             if ((!tags_user) || (tags_user.length != 1)) {
                 ConsoleHandler.getInstance().error('TAG pas lié à un utilisateur ou pas un seul:' + serial_number);
                 return false;
@@ -241,7 +242,7 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
                 return false;
             }
 
-            let tags_user: NFCTagUserVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<NFCTagUserVO>(NFCTagUserVO.API_TYPE_ID, 'nfc_tag_id', [tag.id]);
+            let tags_user: NFCTagUserVO[] = await query(NFCTagUserVO.API_TYPE_ID).filter_by_num_eq('nfc_tag_id', tag.id).select_vos<NFCTagUserVO>();
             if ((!tags_user) || (tags_user.length != 1)) {
                 return false;
             }
@@ -282,7 +283,7 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
                 tag.id = insertOrDeleteQueryResult.id;
             }
 
-            let tags_user: NFCTagUserVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<NFCTagUserVO>(NFCTagUserVO.API_TYPE_ID, 'nfc_tag_id', [tag.id]);
+            let tags_user: NFCTagUserVO[] = await query(NFCTagUserVO.API_TYPE_ID).filter_by_num_eq('nfc_tag_id', tag.id).select_vos<NFCTagUserVO>();
             if ((tags_user) && (tags_user.length > 0)) {
 
                 if ((tags_user.length == 1) && (tags_user[0].user_id == user_id)) {

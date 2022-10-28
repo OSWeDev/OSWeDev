@@ -53,6 +53,7 @@ import VarsClientController from "./ts/components/Var/VarsClientController";
 import VarDataBaseVO from "../shared/modules/Var/vos/VarDataBaseVO";
 import ConsoleHandler from "../shared/tools/ConsoleHandler";
 import { all_promises } from "../shared/tools/PromiseTools";
+import AlertsListContainerComponent from "./ts/components/alert/AlertsListContainerComponent";
 require('moment-json-parser').overrideDefault();
 
 
@@ -396,6 +397,7 @@ export default abstract class VueAppBase {
         Vue.component('Multipleselectfiltercomponent', MultipleSelectFilterComponent);
         Vue.component('Datepicker', Datepicker);
         Vue.component('Alertcomponent', AlertComponent);
+        Vue.component('Alertslistcontainercomponent', AlertsListContainerComponent);
         Vue.component('Numrangecomponent', () => import(/* webpackChunkName: "NumRangeComponent" */ './ts/components/ranges/numrange/NumRangeComponent'));
         Vue.component('Numrangescomponent', () => import(/* webpackChunkName: "NumRangesComponent" */ './ts/components/ranges/numranges/NumRangesComponent'));
         Vue.component('Tsrangecomponent', () => import(/* webpackChunkName: "TSRangeComponent" */ './ts/components/ranges/tsrange/TSRangeComponent'));

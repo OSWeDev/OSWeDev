@@ -22,6 +22,9 @@ export default class AlertViewComponent extends VueComponentBase {
     @Prop({ default: true })
     private show_alert_content: boolean;
 
+    @Prop({ default: true })
+    private show_alert_icon: boolean;
+
     get is_error(): boolean {
         if (!this.alert) {
             return false;

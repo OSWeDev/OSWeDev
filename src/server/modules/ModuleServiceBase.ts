@@ -231,17 +231,36 @@ export default abstract class ModuleServiceBase {
             await this.install_modules();
         } else {
 
+            if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+                ConsoleHandler.getInstance().log('ModuleServiceBase:register_all_modules:load_or_create_module_is_actif:START');
+            }
             for (let i in this.registered_modules) {
                 let registered_module = this.registered_modules[i];
 
                 await ModuleDBService.getInstance(db).load_or_create_module_is_actif(registered_module);
             }
+            if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+                ConsoleHandler.getInstance().log('ModuleServiceBase:register_all_modules:load_or_create_module_is_actif:END');
+            }
         }
 
         // On lance la configuration des modules, et avant on configure les apis des modules server
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.getInstance().log('ModuleServiceBase:register_all_modules:configure_server_modules_apis:START');
+        }
         await this.configure_server_modules_apis();
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.getInstance().log('ModuleServiceBase:register_all_modules:configure_server_modules_apis:END');
+        }
+
         // On charge le cache des tables segmentées. On cherche à être exhaustifs pour le coup
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.getInstance().log('ModuleServiceBase:register_all_modules:preload_segmented_known_databases:START');
+        }
         await this.preload_segmented_known_databases();
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.getInstance().log('ModuleServiceBase:register_all_modules:preload_segmented_known_databases:END');
+        }
 
         // A mon avis c'est de la merde ça... on charge où la vérif des params, le hook install, ... ?
         // if ((!!is_generator) || (!ConfigurationService.getInstance().node_configuration.SERVER_START_BOOSTER)) {
@@ -572,7 +591,45 @@ export default abstract class ModuleServiceBase {
 
         await DAOQueryCacheController.getInstance().invalidate_cache_from_query_or_return_result(query, values);
 
-        return await this.db_.none(query, values);
+        try {
+            await this.db_.none(query, values);
+        } catch (error) {
+
+            let self = this;
+            if (error &&
+                ((error['message'] == 'Connection terminated unexpectedly') ||
+                    (error['message'].starts_with('connect ETIMEDOUT ')))) {
+                ConsoleHandler.getInstance().error(error + ' - retrying once');
+
+                try {
+                    // Retry once
+                    await this.db_.none(query, values);
+                } catch (error2) {
+                    ConsoleHandler.getInstance().error(error + ' - retry failed - ' + error2);
+                    throw error2;
+                }
+
+                return;
+            } else if (error && (error['message'] == 'sorry, too many clients already')) {
+                ConsoleHandler.getInstance().error(error + ' - retrying in 100 ms');
+
+                return new Promise((resolve, reject) => {
+
+                    setTimeout(() => {
+
+                        try {
+                            self.db_none(query, values);
+                            resolve(null);
+                        } catch (error2) {
+                            ConsoleHandler.getInstance().error(error2 + ' - retry failed - ' + error2);
+                            reject(error2);
+                        }
+                    }, 100);
+                });
+            }
+
+            ConsoleHandler.getInstance().error(error);
+        }
     }
 
     private async db_query(query: string, values?: []) {
@@ -586,7 +643,46 @@ export default abstract class ModuleServiceBase {
             return res;
         }
 
-        res = await this.db_.query(query, values);
+        try {
+            res = await this.db_.query(query, values);
+        } catch (error) {
+
+            let self = this;
+            if (error &&
+                ((error['message'] == 'Connection terminated unexpectedly') ||
+                    (error['message'].starts_with('connect ETIMEDOUT ')))) {
+                ConsoleHandler.getInstance().error(error + ' - retrying once');
+
+                try {
+                    // Retry once
+                    res = await this.db_.query(query, values);
+                    DAOQueryCacheController.getInstance().save_cache_from_query_result(query, values, res);
+                } catch (error2) {
+                    ConsoleHandler.getInstance().error(error + ' - retry failed - ' + error2);
+                    throw error2;
+                }
+
+                return res;
+            } else if (error && (error['message'] == 'sorry, too many clients already')) {
+                ConsoleHandler.getInstance().error(error + ' - retrying in 100 ms');
+
+                return new Promise((resolve, reject) => {
+
+                    setTimeout(() => {
+
+                        try {
+                            let res_ = self.db_query(query, values);
+                            resolve(res_);
+                        } catch (error2) {
+                            ConsoleHandler.getInstance().error(error2 + ' - retry failed - ' + error2);
+                            reject(error2);
+                        }
+                    }, 100);
+                });
+            }
+
+            ConsoleHandler.getInstance().error(error);
+        }
 
         DAOQueryCacheController.getInstance().save_cache_from_query_result(query, values, res);
 
@@ -604,7 +700,46 @@ export default abstract class ModuleServiceBase {
             return res;
         }
 
-        res = await this.db_.oneOrNone(query, values);
+        try {
+            res = await this.db_.oneOrNone(query, values);
+        } catch (error) {
+
+            let self = this;
+            if (error &&
+                ((error['message'] == 'Connection terminated unexpectedly') ||
+                    (error['message'].starts_with('connect ETIMEDOUT ')))) {
+                ConsoleHandler.getInstance().error(error + ' - retrying once');
+
+                try {
+                    // Retry once
+                    res = await this.db_.oneOrNone(query, values);
+                    DAOQueryCacheController.getInstance().save_cache_from_query_result(query, values, res);
+                } catch (error2) {
+                    ConsoleHandler.getInstance().error(error + ' - retry failed - ' + error2);
+                    throw error2;
+                }
+
+                return res;
+            } else if (error && (error['message'] == 'sorry, too many clients already')) {
+                ConsoleHandler.getInstance().error(error + ' - retrying in 100 ms');
+
+                return new Promise((resolve, reject) => {
+
+                    setTimeout(() => {
+
+                        try {
+                            let res_ = self.db_oneOrNone(query, values);
+                            resolve(res_);
+                        } catch (error2) {
+                            ConsoleHandler.getInstance().error(error2 + ' - retry failed - ' + error2);
+                            reject(error2);
+                        }
+                    }, 100);
+                });
+            }
+
+            ConsoleHandler.getInstance().error(error);
+        }
 
         DAOQueryCacheController.getInstance().save_cache_from_query_result(query, values, res);
 

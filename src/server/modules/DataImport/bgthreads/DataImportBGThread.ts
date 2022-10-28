@@ -39,8 +39,8 @@ export default class DataImportBGThread implements IBGThread {
     private static wait_for_empty_vars_vos_cud_param_name: string = 'DataImportBGThread.wait_for_empty_vars_vos_cud';
     private static wait_for_empty_cache_vars_waiting_for_compute_param_name: string = 'DataImportBGThread.wait_for_empty_cache_vars_waiting_for_compute';
 
-    public current_timeout: number = 2000;
-    public MAX_timeout: number = 2000;
+    public current_timeout: number = 5000;
+    public MAX_timeout: number = 5000;
     public MIN_timeout: number = 100;
 
     private waiting_for_empty_vars_vos_cud: boolean = false;
@@ -92,7 +92,7 @@ export default class DataImportBGThread implements IBGThread {
             let dih: DataImportHistoricVO = null;
             if (!!importing_dih_id_param) {
                 importing_dih_id = parseInt(importing_dih_id_param);
-                dih = await ModuleDAO.getInstance().getVoById<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID, importing_dih_id);
+                dih = await query(DataImportHistoricVO.API_TYPE_ID).filter_by_id(importing_dih_id).select_vo<DataImportHistoricVO>();
 
                 if ((!dih) || (
                     (dih.state != ModuleDataImport.IMPORTATION_STATE_UPLOADED) &&
@@ -439,6 +439,6 @@ export default class DataImportBGThread implements IBGThread {
 
         let dih = dihs[0];
         await ModuleDataImport.getInstance().reimportdih(dih);
-        return await ModuleDAO.getInstance().getVoById<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID, dih.id);
+        return await query(DataImportHistoricVO.API_TYPE_ID).filter_by_id(dih.id).select_vo<DataImportHistoricVO>();
     }
 }

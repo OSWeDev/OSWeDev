@@ -47,6 +47,7 @@ import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import ContextQueryServerController from '../ContextFilter/ContextQueryServerController';
 import ModuleContextFilterServer from '../ContextFilter/ModuleContextFilterServer';
 import ParameterizedQueryWrapper from '../ContextFilter/vos/ParameterizedQueryWrapper';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
 import DAOPostDeleteTriggerHook from '../DAO/triggers/DAOPostDeleteTriggerHook';
 import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
@@ -106,7 +107,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     private throttled_get_var_data_by_index_params: ThrottleGetVarDatasByIndex[] = [];
 
-    private throttle_get_var_data_by_index: () => void = ThrottleHelper.getInstance().declare_throttle_without_args(this.throttled_get_var_data_by_index.bind(this), 50, { leading: false, trailing: true });
+    private throttle_get_var_data_by_index: () => void = ThrottleHelper.getInstance().declare_throttle_without_args(this.throttled_get_var_data_by_index.bind(this), 1, { leading: false, trailing: true });
 
     private constructor() {
         super(ModuleVar.getInstance().name);
@@ -1622,27 +1623,18 @@ export default class ModuleVarServer extends ModuleServerBase {
                         indexes.push(var_data_index);
                     }
 
-                    let query_wrapper: ParameterizedQueryWrapper = await query(api_type_id).filter_by_text_has('_bdd_only_index', indexes).get_select_query_str();
+                    // let query_wrapper: ParameterizedQueryWrapper = await query(api_type_id).filter_by_text_has('_bdd_only_index', indexes).get_select_query_str();
 
-                    if (!query_wrapper) {
-                        ConsoleHandler.getInstance().warn('Refused (probably session lost) to get_var_data_by_index for api_type_id ' + api_type_id);
-                        return;
-                    }
+                    // if (!query_wrapper) {
+                    //     ConsoleHandler.getInstance().warn('Refused (probably session lost) to get_var_data_by_index for api_type_id ' + api_type_id);
+                    //     return;
+                    // }
 
-                    let results: VarDataBaseVO[] = await ModuleServiceBase.getInstance().db.query(query_wrapper.query, query_wrapper.params);
+                    // let results: VarDataBaseVO[] = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
+                    let results: VarDataBaseVO[] = await query(api_type_id).filter_by_text_has('_bdd_only_index', indexes).select_vos<VarDataBaseVO>();
 
                     for (let i in results) {
-                        let result = results[i];
-
-                        /**
-                         * On doit faire un appel au force_numeric du type de l'objet
-                         *  et ensuite on recherche le bon param pour cet index
-                         */
-
-                        // On a pas le type dans l'objet issu de la base à ce stade, donc on retrouve le type par la var
-                        let var_data_type = VarsServerController.getInstance().getVarConfById(result.var_id).var_data_vo_type;
-                        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[var_data_type];
-                        let vo: VarDataBaseVO = moduletable.forceNumeric(result);
+                        let vo = results[i];
 
                         let params = params_by_api_type_id[vo._type][vo.index];
                         for (let j in params) {

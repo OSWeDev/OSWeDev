@@ -4,11 +4,12 @@ export default class ContextQueryInjectionCheckHandler {
     /**
      * Le format d'un nom (colonne, table) en postgresql est une lettre, puis lettre / chiffre / _
      *  La distinction du premier caractère a peu d'impact
+     *  On accepte un point pour les alias
      * @param name
      */
     public static assert_postgresql_name_format(name: string) {
 
-        if (!/^[a-zA-Z0-9_]+$/.test(name)) {
+        if (!/^[a-zA-Z0-9_]*\.?[a-zA-Z0-9_]+$/.test(name)) {
             throw new Error('assert_postgresql_name_format failed:' + name);
         }
     }

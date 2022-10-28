@@ -1,3 +1,4 @@
+import { cloneDeep } from 'lodash';
 import { DatabaseError, Pool } from 'pg';
 import { from as copyFrom } from 'pg-copy-streams';
 import { Readable } from 'stream';
@@ -74,7 +75,6 @@ import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
 import ThrottledSelectQueryParam from './vos/ThrottledSelectQueryParam';
 import RequestResponseCacheVO from '../../../shared/modules/AjaxCache/vos/RequestResponseCacheVO';
 import pgPromise = require('pg-promise');
-import { cloneDeep } from 'lodash';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -118,7 +118,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private log_db_query_perf_start_by_uid: { [uid: number]: number } = {};
 
     private throttled_refuse = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.refuse.bind(this), 1000, { leading: false, trailing: true });
-    private throttled_select_query_ = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.throttled_select_query.bind(this), 10, { leading: false, trailing: true });
+    private throttled_select_query_ = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.throttled_select_query.bind(this), 1, { leading: false, trailing: true });
 
     private constructor() {
         super(ModuleDAO.getInstance().name);
@@ -1337,6 +1337,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 let fieldValue = vo[field.field_id];
 
+                /**
+                 * Cas des undefined
+                 */
                 if (typeof fieldValue == "undefined") {
                     if (field.has_default && typeof field.field_default == 'undefined') {
                         fieldValue = field.field_default;
@@ -1351,6 +1354,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     break;
                 }
 
+                /**
+                 * Cas des strings
+                 */
                 let stringified = (fieldValue == null) ? '' : JSON.stringify(fieldValue);
                 if ((!!stringified) && (typeof fieldValue == 'string')) {
                     if (stringified.length == 2) {
@@ -1358,6 +1364,19 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     } else {
                         stringified = "'" + stringified.substring(1, stringified.length - 1).replace(/\\"/g, '"').replace(/'/g, "''") + "'";
                     }
+                }
+
+                /**
+                 * Cas des arrays
+                 */
+                if (Array.isArray(fieldValue) &&
+                    ((field.field_type == ModuleTableField.FIELD_TYPE_int_array) ||
+                        (field.field_type == ModuleTableField.FIELD_TYPE_html_array) ||
+                        (field.field_type == ModuleTableField.FIELD_TYPE_tstz_array) ||
+                        (field.field_type == ModuleTableField.FIELD_TYPE_float_array) ||
+                        (field.field_type == ModuleTableField.FIELD_TYPE_string_array))) {
+
+                    stringified = 'ARRAY' + stringified;
                 }
                 setters.push(stringified);
 
@@ -1611,10 +1630,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     request += ' UNION ALL ';
                 }
 
-                let db_full_name = moduleTable.database + '.' + segmentation_table;
-
                 request += "SELECT " + (distinct ? 'distinct' : '') + " t.* ";
-                request += " FROM " + db_full_name + ' t ';
+                request += " FROM " + segmentation_table + ' t ';
                 request += (query_ ? query_.replace(/;/g, '') : '');
             }
 
@@ -1631,12 +1648,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             res = moduleTable.forceNumerics(vos);
         } else {
-            let query_string = "SELECT " + (distinct ? 'distinct' : '') + " t.* FROM " + moduleTable.full_name + " t ";
+            let query_string = "SELECT " + (distinct ? 'distinct' : '') + " t.* FROM " + moduleTable.full_name + " t " +
+                (query_ ? query_ : '') + (limit ? ' limit ' + limit : '') + (offset ? ' offset ' + offset : '');
             let query_uid = this.log_db_query_perf_start('selectAll', query_string, '!is_segmented');
 
             res = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query(
-                query_string +
-                (query_ ? query_ : '') + (limit ? ' limit ' + limit : '') + (offset ? ' offset ' + offset : ''), queryParams ? queryParams : []) as T[]);
+                query_string, queryParams ? queryParams : []) as T[]);
 
             this.log_db_query_perf_end(query_uid, 'selectAll', query_string, '!is_segmented');
         }
@@ -1868,11 +1885,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     promises.push((async () => {
                         let res = await this.query(throttled_select_query_param.parameterized_full_query);
 
+                        let pms = [];
                         for (let cbi in throttled_select_query_param.cbs) {
                             let cb = throttled_select_query_param.cbs[cbi];
 
-                            await cb(res);
+                            pms.push(cb(res));
                         }
+                        await all_promises(pms);
                     })());
                     continue;
                 }
@@ -1924,7 +1943,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         if (ConfigurationService.getInstance().node_configuration.DEBUG_THROTTLED_SELECT) {
                             ConsoleHandler.getInstance().log('throttled_select_query:do_throttled_select_query:START:' + i);
                         }
-                        await this.do_throttled_select_query(request, [], throttled_select_query_params);
+                        await this.do_throttled_select_query(request, null, throttled_select_query_params);
                         if (ConfigurationService.getInstance().node_configuration.DEBUG_THROTTLED_SELECT) {
                             ConsoleHandler.getInstance().log('throttled_select_query:do_throttled_select_query:END:' + i);
                         }
@@ -2327,11 +2346,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                     if (DAOServerController.getInstance().pre_update_trigger_hook.has_trigger(vo._type) || DAOServerController.getInstance().post_update_trigger_hook.has_trigger(vo._type)) {
 
-                        let segment = null;
+                        let query_ = query(vo._type).filter_by_id(vo.id);
                         if (moduleTable.is_segmented && moduleTable.table_segmented_field && (vo[moduleTable.table_segmented_field.field_id] != null)) {
-                            segment = moduleTable.get_segmented_field_value_from_vo(vo);
+                            query_.filter_by_num_eq(moduleTable.table_segmented_field.field_id, moduleTable.get_segmented_field_value_from_vo(vo));
                         }
-                        preUpdates[i] = await ModuleDAO.getInstance().getVoById<any>(vo._type, vo.id, [RangeHandler.getInstance().create_single_elt_NumRange(segment, NumSegment.TYPE_INT)]);
+                        preUpdates[i] = await query_.select_vo();
                     }
                 }
 
@@ -2548,11 +2567,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 if (DAOServerController.getInstance().pre_update_trigger_hook.has_trigger(vo._type) || DAOServerController.getInstance().post_update_trigger_hook.has_trigger(vo._type)) {
 
-                    let segmentation_ranges: IRange[] = null;
+                    let query_ = query(vo._type).filter_by_id(vo.id);
                     if (moduleTable.is_segmented && moduleTable.table_segmented_field && (vo[moduleTable.table_segmented_field.field_id] != null)) {
-                        segmentation_ranges = [RangeHandler.getInstance().create_single_elt_NumRange(moduleTable.get_segmented_field_value_from_vo(vo), NumSegment.TYPE_INT)];
+                        query_.filter_by_num_eq(moduleTable.table_segmented_field.field_id, moduleTable.get_segmented_field_value_from_vo(vo));
                     }
-                    preUpdate = await ModuleDAO.getInstance().getVoById<any>(vo._type, vo.id, segmentation_ranges);
+                    preUpdate = await query_.select_vo();
 
                     if (!preUpdate) {
                         // Cas d'un objet en cache server ou client mais qui n'existe plus sur la BDD => on doit insérer du coup un nouveau
@@ -2682,8 +2701,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     if (!dep.is_cascade) {
                         continue;
                     }
-                    let depVO = await ModuleDAO.getInstance().getVoById(dep.linked_type, dep.linked_id);
-                    deps_to_delete.push(await ModuleDAO.getInstance().getVoById(dep.linked_type, dep.linked_id));
+                    let depVO = await query(dep.linked_type).filter_by_id(dep.linked_id).select_vo();
+                    deps_to_delete.push(await query(dep.linked_type).filter_by_id(dep.linked_id).select_vo());
                     if (!DEBUG_deps_types_to_delete) {
                         DEBUG_deps_types_to_delete = depVO._type;
                     } else {
@@ -2768,7 +2787,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         // En fait avec les triggers qui prennent en param le vo, on est obligé de faire une requete sur le vo avant d'en demander la suppression...
-        let vos: IDistantVOBase[] = await this.getVosByIds(API_TYPE_ID, ids);
+        let vos: IDistantVOBase[] = await query(API_TYPE_ID).filter_by_ids(ids).select_vos();
 
         // On ajoute un filtrage via hook
         let tmp_vos = [];
@@ -3612,8 +3631,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private async getVos<T extends IDistantVOBase>(text: string, limit: number = 0, offset: number = 0): Promise<T[]> {
 
         // On filtre les res suivant les droits d'accès
-        // return await this.selectAll(apiDAOParamVOs);
-        return await this.selectAll<T>(text, null, null, null, false, null, limit, offset);
+        return await query(text).set_limit(limit, offset).select_vos<T>();
     }
 
     /**
@@ -3684,6 +3702,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return res;
     }
 
+    /**
+     * @deprecated use query instead
+     */
     private async filterVosByMatroids<T extends IDistantVOBase>(
         api_type_id: string,
         matroids: IMatroid[],
@@ -3736,6 +3757,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return res;
     }
 
+    /**
+     * @deprecated use query instead
+     */
     private async getDAOsByMatroid<T extends IDistantVOBase>(api_type_id: string, matroid: IMatroid, fields_ids_mapper: { [matroid_field_id: string]: string }, additional_condition: string): Promise<T[]> {
         if (!matroid) {
             return null;
@@ -3842,11 +3866,16 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     private async getVarImportsByMatroidParam<T extends IDistantVOBase>(api_type_id: string, matroid: IMatroid, fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<T[]> {
-        return await this.getDAOsByMatroid(api_type_id, matroid, fields_ids_mapper, ' and value_type = 0');
+        return await query(api_type_id)
+            .filter_by_matroids_inclusion([matroid], true, api_type_id, fields_ids_mapper)
+            .filter_by_num_eq('value_type', VarDataBaseVO.VALUE_TYPE_IMPORT)
+            .select_vos<T>();
     }
 
     private async filterVosByMatroid<T extends IDistantVOBase>(api_type_id: string, matroid: IMatroid, fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<T[]> {
-        return await this.getDAOsByMatroid(api_type_id, matroid, fields_ids_mapper, null);
+        return await query(api_type_id)
+            .filter_by_matroids_inclusion([matroid], true, api_type_id, fields_ids_mapper)
+            .select_vos<T>();
     }
 
     private get_matroid_fields_ranges_by_datatable_field_id(matroid: IMatroid, moduleTable: ModuleTable<any>, fields_ids_mapper: { [matroid_field_id: string]: string }): { [field_id: string]: IRange[] } {
@@ -4455,6 +4484,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         let ranges_query: string = DAOServerController.getInstance().get_ranges_translated_to_bdd_queryable_ranges(field_ranges, field, filter_field_type);
 
+        if (!ranges_query) {
+            throw new Error('Error should not filter on empty range array');
+        }
+
         switch (field.field_type) {
             case ModuleTableField.FIELD_TYPE_email:
             case ModuleTableField.FIELD_TYPE_string:
@@ -4568,7 +4601,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
          * A <@ ANY(ARRAY['[1,2)'::numrange])
          */
 
-        let ranges_query = 'ANY(' + DAOServerController.getInstance().get_ranges_translated_to_bdd_queryable_ranges(field_ranges, field, filter_field_type) + ')';
+        let range_to_db = DAOServerController.getInstance().get_ranges_translated_to_bdd_queryable_ranges(field_ranges, field, filter_field_type);
+
+        if (!range_to_db) {
+            throw new Error('Error should not filter on empty range array get_ranges_query_cardinal_supp_1');
+        }
+
+        let ranges_query = 'ANY(' + range_to_db + ')';
 
         /**
          * Dans le cas d'un champs de type range[]
@@ -4778,9 +4817,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
         if (ConfigurationService.getInstance().node_configuration.DEBUG_DB_QUERY_PERF) {
             let uid = this.log_db_query_perf_uid++;
             this.log_db_query_perf_start_by_uid[uid] = Dates.now_ms();
-            let query_s = (query_string ? query_string.substring(0, 200) : 'N/A');
+            let query_s = (query_string ? query_string.substring(0, 1000) : 'N/A');
             query_s = (query_s ? query_s.replace(/;/g, '') : 'N/A');
-            ConsoleHandler.getInstance().log('log_db_query_perf_start;ModuleDAOServer;IN;' + uid + ';' + this.log_db_query_perf_start_by_uid[uid] + ';0;' + method_name +
+            ConsoleHandler.getInstance().log('log_db_query_perf_start;;ModuleDAOServer;IN;' + uid + ';' + this.log_db_query_perf_start_by_uid[uid] + ';0;' + method_name +
                 ';' + (step_name ? step_name : 'N/A') +
                 ';' + query_s);
             return uid;
@@ -4793,11 +4832,24 @@ export default class ModuleDAOServer extends ModuleServerBase {
         if (ConfigurationService.getInstance().node_configuration.DEBUG_DB_QUERY_PERF && !!this.log_db_query_perf_start_by_uid[uid]) {
             let end_ms = Dates.now_ms();
             let duration = end_ms - this.log_db_query_perf_start_by_uid[uid];
-            let query_s = (query_string ? query_string.substring(0, 200) : 'N/A');
+            let query_s = (query_string ? query_string.substring(0, 1000) : 'N/A');
             query_s = (query_s ? query_s.replace(/;/g, '') : 'N/A');
-            ConsoleHandler.getInstance().log('log_db_query_perf_start;ModuleDAOServer;OUT;' + uid + ';' + end_ms + ';' + duration + ';' + method_name +
-                ';' + (step_name ? step_name : 'N/A') +
-                ';' + query_s);
+
+            if (ConfigurationService.getInstance().node_configuration.DEBUG_SLOW_QUERIES &&
+                (duration > (10 * ConfigurationService.getInstance().node_configuration.DEBUG_SLOW_QUERIES_MS_LIMIT))) {
+                ConsoleHandler.getInstance().error('log_db_query_perf_end;VERYSLOW;ModuleDAOServer;OUT;' + uid + ';' + end_ms + ';' + duration + ';' + method_name +
+                    ';' + (step_name ? step_name : 'N/A') +
+                    ';' + query_string);
+            } else if (ConfigurationService.getInstance().node_configuration.DEBUG_SLOW_QUERIES &&
+                (duration > ConfigurationService.getInstance().node_configuration.DEBUG_SLOW_QUERIES_MS_LIMIT)) {
+                ConsoleHandler.getInstance().warn('log_db_query_perf_end;SLOW;ModuleDAOServer;OUT;' + uid + ';' + end_ms + ';' + duration + ';' + method_name +
+                    ';' + (step_name ? step_name : 'N/A') +
+                    ';' + query_string);
+            } else {
+                ConsoleHandler.getInstance().log('log_db_query_perf_end;;ModuleDAOServer;OUT;' + uid + ';' + end_ms + ';' + duration + ';' + method_name +
+                    ';' + (step_name ? step_name : 'N/A') +
+                    ';' + query_s);
+            }
         }
     }
 
@@ -4807,7 +4859,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             let throttled_select_query_size_ms = this.throttled_select_query_size_ms;
             try {
-                throttled_select_query_size_ms = await ModuleParams.getInstance().getParamValueAsInt(ModuleDAOServer.PARAM_NAME_throttled_select_query_size_ms, 10);
+                throttled_select_query_size_ms = await ModuleParams.getInstance().getParamValueAsInt(ModuleDAOServer.PARAM_NAME_throttled_select_query_size_ms, 1);
                 this.throttled_select_query_size_ms = throttled_select_query_size_ms;
             } catch (error) {
                 // Normal pendant le démarrage
@@ -4824,7 +4876,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let results = null;
 
         try {
+            let uid = this.log_db_query_perf_start('do_throttled_select_query', request);
             results = await ModuleServiceBase.getInstance().db.query(request, values);
+            this.log_db_query_perf_end(uid, 'do_throttled_select_query', request);
         } catch (error) {
             ConsoleHandler.getInstance().error('do_throttled_select_query:' + error);
         }
@@ -4844,6 +4898,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             results_by_index[index].push(result);
         }
 
+        let promises = [];
         for (let i in throttled_select_query_params_by_index) {
             let index = parseInt(i);
             let results_of_index = results_by_index[index];
@@ -4856,8 +4911,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
             for (let cbi in param.cbs) {
                 let cb = param.cbs[cbi];
 
-                await cb(results_of_index ? cloneDeep(results_of_index) : null);
+                promises.push(cb(results_of_index ? cloneDeep(results_of_index) : null));
             }
         }
+        await all_promises(promises);
     }
 }

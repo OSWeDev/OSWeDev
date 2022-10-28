@@ -3,7 +3,7 @@ import { Prop } from 'vue-property-decorator';
 import Alert from '../../../../shared/modules/Alert/vos/Alert';
 import VueComponentBase from '../VueComponentBase';
 import './AlertComponent.scss';
-import { ModuleAlertGetter } from './AlertStore';
+import { ModuleAlertAction, ModuleAlertGetter } from './AlertStore';
 import AlertViewComponent from './AlertViewComponent';
 
 @Component({
@@ -16,6 +16,13 @@ export default class AlertComponent extends VueComponentBase {
 
     @ModuleAlertGetter
     private get_alerts: { [path: string]: Alert[] };
+
+    @ModuleAlertAction
+    private set_title: (params: { alert_path: string, translatable_code: string, translation_params: { [param_name: string]: any } }) => void;
+    @ModuleAlertAction
+    private register_path_in_alerts_list: (alert_path: string) => void;
+    @ModuleAlertAction
+    private unregister_path_in_alerts_list: (alert_path: string) => void;
 
     @Prop({ default: 16 })
     private offset: number;
@@ -40,6 +47,38 @@ export default class AlertComponent extends VueComponentBase {
 
     @Prop({ default: true })
     private show_popover: boolean;
+
+    @Prop({ default: true })
+    private is_in_list: boolean;
+
+    @Prop({ default: true })
+    private title_translatable_code: string;
+
+    @Prop({ default: true })
+    private title_translation_params: { [param_name: string]: any };
+
+    public mounted() {
+        if (!this.path) {
+            return;
+        }
+        if (this.is_in_list) {
+            if (this.title_translatable_code) {
+                this.set_title({ alert_path: this.path, translatable_code: this.title_translatable_code, translation_params: this.title_translation_params });
+            }
+            // TODO ajouter l'alerte dans le store store
+            this.register_path_in_alerts_list(this.path);
+        }
+    }
+
+    public beforeDestroy() {
+        if (!this.path) {
+            return;
+        }
+        if (this.is_in_list) {
+            // TODO supprimer l'alerte du store
+            this.unregister_path_in_alerts_list(this.path);
+        }
+    }
 
     get tooltip_visibility(): string {
         return this.toggle_visible_on_click ? 'focus' : 'hover';

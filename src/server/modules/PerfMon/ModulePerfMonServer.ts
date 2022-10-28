@@ -3,15 +3,10 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import ModulePerfMon from '../../../shared/modules/PerfMon/ModulePerfMon';
-import PerfMonLineTypeVO from '../../../shared/modules/PerfMon/vos/PerfMonLineTypeVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
-import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
-import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
-import DAOPostDeleteTriggerHook from '../DAO/triggers/DAOPostDeleteTriggerHook';
-import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 // import PerfMonConfController from './PerfMonConfController';
@@ -40,14 +35,6 @@ export default class ModulePerfMonServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Performances' },
             'menu.menuelements.admin.PerfMonAdminVueModule.___LABEL___'));
-
-
-        // let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
-        // postUpdateTrigger.registerHandler(PerfMonLineTypeVO.API_TYPE_ID, PerfMonConfController.getInstance().throttled_update_cached_perf_conf);
-        // let postDeleteTrigger: DAOPostDeleteTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
-        // postDeleteTrigger.registerHandler(PerfMonLineTypeVO.API_TYPE_ID, PerfMonConfController.getInstance().throttled_update_cached_perf_conf);
-        // let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
-        // postCreateTrigger.registerHandler(PerfMonLineTypeVO.API_TYPE_ID, PerfMonConfController.getInstance().throttled_update_cached_perf_conf);
     }
 
     /**

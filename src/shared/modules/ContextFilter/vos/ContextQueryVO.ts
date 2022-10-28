@@ -4,7 +4,11 @@ import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
 import NumRange from "../../DataRender/vos/NumRange";
 import TimeSegment from "../../DataRender/vos/TimeSegment";
 import TSRange from "../../DataRender/vos/TSRange";
+import IMatroid from "../../Matroid/interfaces/IMatroid";
+import MatroidController from "../../Matroid/MatroidController";
+import ModuleTableField from "../../ModuleTableField";
 import VarConfVO from "../../Var/vos/VarConfVO";
+import VOsTypesManager from "../../VOsTypesManager";
 import ModuleContextFilter from "../ModuleContextFilter";
 import ContextFilterVO, { filter } from "./ContextFilterVO";
 import ContextQueryFieldVO from "./ContextQueryFieldVO";
@@ -177,9 +181,11 @@ export default class ContextQueryVO implements IDistantVOBase {
      *  Si on veut un vo complet il ne faut pas demander les fields
      * @param field_id l'id du field à ajouter.
      */
-    public field(field_id: string, alias: string = field_id, api_type_id: string = null, aggregator: number = VarConfVO.NO_AGGREGATOR): ContextQueryVO {
+    public field(
+        field_id: string, alias: string = field_id, api_type_id: string = null,
+        aggregator: number = VarConfVO.NO_AGGREGATOR, modifier: number = ContextQueryFieldVO.FIELD_MODIFIER_NONE): ContextQueryVO {
 
-        let field = new ContextQueryFieldVO(api_type_id ? api_type_id : this.base_api_type_id, field_id, alias, aggregator);
+        let field = new ContextQueryFieldVO(api_type_id ? api_type_id : this.base_api_type_id, field_id, alias, aggregator, modifier);
 
         if (!this.fields) {
             this.fields = [];
@@ -281,6 +287,16 @@ export default class ContextQueryVO implements IDistantVOBase {
     }
 
     /**
+     * Sucre syntaxique pour une filtre numeric equals NONE
+     * @param field_id le field qu'on veut filtrer
+     * @param num la valeur qu'on veut filtrer
+     * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
+     */
+    public filter_by_num_not_eq(field_id: string, num: number, API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_num_not_eq(num)]);
+    }
+
+    /**
      * Sucre syntaxique pour une filtre numeric equals ALL
      * @param field_id le field qu'on veut filtrer
      * @param num la valeur qu'on veut filtrer
@@ -288,6 +304,46 @@ export default class ContextQueryVO implements IDistantVOBase {
      */
     public filter_by_num_eq(field_id: string, num: number | NumRange | NumRange[] | number[], API_TYPE_ID: string = null): ContextQueryVO {
         return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_num_eq(num)]);
+    }
+
+    /**
+     * Sucre syntaxique pour une filtre numeric >
+     * @param field_id le field qu'on veut filtrer
+     * @param num la valeur qu'on veut filtrer
+     * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
+     */
+    public filter_by_num_sup(field_id: string, num: number, API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_num_sup(num)]);
+    }
+
+    /**
+     * Sucre syntaxique pour une filtre numeric >=
+     * @param field_id le field qu'on veut filtrer
+     * @param num la valeur qu'on veut filtrer
+     * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
+     */
+    public filter_by_num_sup_eq(field_id: string, num: number, API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_num_sup_eq(num)]);
+    }
+
+    /**
+     * Sucre syntaxique pour une filtre numeric <
+     * @param field_id le field qu'on veut filtrer
+     * @param num la valeur qu'on veut filtrer
+     * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
+     */
+    public filter_by_num_inf(field_id: string, num: number, API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_num_inf(num)]);
+    }
+
+    /**
+     * Sucre syntaxique pour une filtre numeric <=
+     * @param field_id le field qu'on veut filtrer
+     * @param num la valeur qu'on veut filtrer
+     * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
+     */
+    public filter_by_num_inf_eq(field_id: string, num: number, API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_num_inf_eq(num)]);
     }
 
     /**
@@ -313,11 +369,21 @@ export default class ContextQueryVO implements IDistantVOBase {
     /**
      * Sucre syntaxique pour une filtre date == ranges
      * @param field_id le field qu'on veut filtrer
-     * @param ranges les valeurs qu'on veut filtrer
+     * @param date les valeurs qu'on veut filtrer
      * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
      */
-    public filter_by_date_eq(field_id: string, date: number | TSRange | TSRange[], API_TYPE_ID: string = null): ContextQueryVO {
+    public filter_by_date_eq(field_id: string, date: number | number[] | TSRange | TSRange[], API_TYPE_ID: string = null): ContextQueryVO {
         return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_date_eq(date)]);
+    }
+
+    /**
+     * Sucre syntaxique pour une filtre date == ranges
+     * @param field_id le field qu'on veut filtrer
+     * @param alias
+     * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
+     */
+    public filter_by_date_eq_alias(field_id: string, alias: string, API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_date_eq_alias(alias)]);
     }
 
     /**
@@ -354,7 +420,7 @@ export default class ContextQueryVO implements IDistantVOBase {
      * @param id_ranges les ids qu'on filtre
      * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
      */
-    public filter_by_ids(id_ranges: NumRange[], API_TYPE_ID: string = null): ContextQueryVO {
+    public filter_by_ids(id_ranges: number[] | NumRange[], API_TYPE_ID: string = null): ContextQueryVO {
         return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id).by_ids(id_ranges)]);
     }
 
@@ -364,8 +430,8 @@ export default class ContextQueryVO implements IDistantVOBase {
      * @param included le texte qu'on veut voir apparaître dans la valeur du champs
      * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
      */
-    public filter_by_text_including(field_id: string, included: string | string[], API_TYPE_ID: string = null): ContextQueryVO {
-        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_including(included)]);
+    public filter_by_text_including(field_id: string, included: string | string[], API_TYPE_ID: string = null, ignore_case: boolean = true): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_including(included, ignore_case)]);
     }
 
     /**
@@ -374,8 +440,18 @@ export default class ContextQueryVO implements IDistantVOBase {
      * @param text le texte que l'on doit retrouver à l'identique en base
      * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
      */
-    public filter_by_text_has(field_id: string, text: string | string[], API_TYPE_ID: string = null): ContextQueryVO {
-        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_has(text)]);
+    public filter_by_text_has(field_id: string, text: string | string[], API_TYPE_ID: string = null, ignore_case: boolean = false): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_has(text, ignore_case)]);
+    }
+
+    /**
+     * Filtrer par text non inclus
+     * @param field_id le field qu'on veut filtrer
+     * @param text le texte à filtrer
+     * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
+     */
+    public filter_by_text_has_none(field_id: string, text: string | string[], API_TYPE_ID: string = null, ignore_case: boolean = false): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_has_none(text, ignore_case)]);
     }
 
     /**
@@ -384,8 +460,8 @@ export default class ContextQueryVO implements IDistantVOBase {
      * @param text le texte que l'on doit retrouver à l'identique en base
      * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
      */
-    public filter_by_text_eq(field_id: string, text: string | string[], API_TYPE_ID: string = null): ContextQueryVO {
-        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_eq(text)]);
+    public filter_by_text_eq(field_id: string, text: string | string[], API_TYPE_ID: string = null, ignore_case: boolean = false): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_eq(text, ignore_case)]);
     }
 
     /**
@@ -394,8 +470,159 @@ export default class ContextQueryVO implements IDistantVOBase {
      * @param included le texte qu'on veut voir apparaître au début de la valeur du champs
      * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
      */
-    public filter_by_text_starting_with(field_id: string, starts_with: string | string[], API_TYPE_ID: string = null): ContextQueryVO {
-        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_starting_with(starts_with)]);
+    public filter_by_text_starting_with(field_id: string, starts_with: string | string[], API_TYPE_ID: string = null, ignore_case: boolean = true): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_starting_with(starts_with, ignore_case)]);
+    }
+
+    /**
+     * @param matroids les matroids qu'on veut utiliser pour le filtrage. ATTENTION on force un seul type de matroid dans la liste. On cherche une inclusion dans 1 des matroids
+     * @param filter_var_id_if_field_exists Ajouter un filtrage sur le var_id si il existe un fields var_id sur le type cible de la recheche et sur le matroid
+     * @param API_TYPE_ID
+     * @param fields_ids_mapper
+     */
+    public filter_by_matroids_inclusion(
+        matroids: IMatroid[],
+        filter_var_id_if_field_exists: boolean = true,
+        API_TYPE_ID: string = null,
+        fields_ids_mapper: { [matroid_field_id: string]: string } = null): ContextQueryVO {
+
+        let target_API_TYPE_ID = API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id;
+        if (!matroids || !matroids.length) {
+            // Si on a pas de matroid mais qu'on veut filtrer par inclu dans le matroid on a donc aucun résultat possible
+            return this.filter_is_null('id', target_API_TYPE_ID);
+        }
+
+        let matroid_api_type_id: string = matroids[0]._type;
+        for (let i in matroids) {
+            let matroid = matroids[i];
+            if (matroid._type != matroid_api_type_id) {
+                throw new Error('filter_by_matroids_inclusion: Tous les matroids doivent être du même type');
+            }
+        }
+
+        let matroid_head_filter: ContextFilterVO = null;
+        let target_moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[target_API_TYPE_ID];
+        let var_id_field_id = (fields_ids_mapper && fields_ids_mapper['var_id']) ? fields_ids_mapper['var_id'] : 'var_id';
+        let target_has_var_id_field = target_moduletable.get_field_by_id(var_id_field_id);
+
+        let matroid_module_table = VOsTypesManager.getInstance().moduleTables_by_voType[matroid_api_type_id];
+        let matroid_has_var_id_field = matroid_module_table.get_field_by_id('var_id');
+        let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getInstance().getMatroidFields(matroid_api_type_id);
+
+        for (let i in matroids) {
+            let matroid: IMatroid = matroids[i];
+            let this_matroid_head_filter: ContextFilterVO = null;
+
+            if (filter_var_id_if_field_exists && matroid_has_var_id_field && target_has_var_id_field) {
+                this_matroid_head_filter = filter(target_API_TYPE_ID, var_id_field_id).by_num_eq(matroid['var_id']);
+            }
+
+            for (let j in matroid_fields) {
+                let matroid_field = matroid_fields[j];
+                let matroid_field_id = matroid_field.field_id;
+                let target_field_id = (fields_ids_mapper && fields_ids_mapper[matroid_field_id]) ? fields_ids_mapper[matroid_field_id] : matroid_field_id;
+                let target_moduletable_field = target_moduletable.getFieldFromId(target_field_id);
+
+                let this_filter = null;
+                switch (target_moduletable_field.field_type) {
+                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                        this_filter = filter(target_API_TYPE_ID, target_field_id).by_date_is_in_ranges(matroid[matroid_field_id]);
+                        break;
+                    case ModuleTableField.FIELD_TYPE_numrange:
+                    case ModuleTableField.FIELD_TYPE_hourrange:
+                    case ModuleTableField.FIELD_TYPE_numrange_array:
+                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableField.FIELD_TYPE_hourrange_array:
+                        this_filter = filter(target_API_TYPE_ID, target_field_id).by_num_is_in_ranges(matroid[matroid_field_id]);
+                        break;
+                    case ModuleTableField.FIELD_TYPE_tstz:
+                        this_filter = filter(target_API_TYPE_ID, target_field_id).by_date_x_ranges(matroid[matroid_field_id]);
+                        break;
+                    default:
+                        this_filter = filter(target_API_TYPE_ID, target_field_id).by_num_x_ranges(matroid[matroid_field_id]);
+                        break;
+                }
+                this_matroid_head_filter = this_matroid_head_filter ? this_matroid_head_filter.and(this_filter) : this_filter;
+            }
+
+            matroid_head_filter = matroid_head_filter ? matroid_head_filter.or(this_matroid_head_filter) : this_matroid_head_filter;
+        }
+
+        return matroid_head_filter ? this.add_filters([matroid_head_filter]) : this;
+    }
+
+    /**
+     * @param matroids les matroids qu'on veut utiliser pour le filtrage. ATTENTION on force un seul type de matroid dans la liste. On cherche une intersection avec 1 des matroids
+     * @param filter_var_id_if_field_exists Ajouter un filtrage sur le var_id si il existe un fields var_id sur le type cible de la recheche et sur le matroid
+     * @param API_TYPE_ID
+     * @param fields_ids_mapper
+     */
+    public filter_by_matroids_intersection(
+        matroids: IMatroid[],
+        filter_var_id_if_field_exists: boolean = true,
+        API_TYPE_ID: string = null,
+        fields_ids_mapper: { [matroid_field_id: string]: string } = null): ContextQueryVO {
+
+        let target_API_TYPE_ID = API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id;
+        if (!matroids || !matroids.length) {
+            // Si on a pas de matroid mais qu'on veut filtrer par inclu dans le matroid on a donc aucun résultat possible
+            return this.filter_is_null('id', target_API_TYPE_ID);
+        }
+
+        let matroid_api_type_id: string = matroids[0]._type;
+        for (let i in matroids) {
+            let matroid = matroids[i];
+            if (matroid._type != matroid_api_type_id) {
+                throw new Error('filter_by_matroids_inclusion: Tous les matroids doivent être du même type');
+            }
+        }
+
+        let matroid_head_filter: ContextFilterVO = null;
+        let target_moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[target_API_TYPE_ID];
+        let var_id_field_id = (fields_ids_mapper && fields_ids_mapper['var_id']) ? fields_ids_mapper['var_id'] : 'var_id';
+        let target_has_var_id_field = target_moduletable.get_field_by_id(var_id_field_id);
+
+        let matroid_module_table = VOsTypesManager.getInstance().moduleTables_by_voType[matroid_api_type_id];
+        let matroid_has_var_id_field = matroid_module_table.get_field_by_id('var_id');
+        let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getInstance().getMatroidFields(matroid_api_type_id);
+
+        for (let i in matroids) {
+            let matroid: IMatroid = matroids[i];
+            let this_matroid_head_filter: ContextFilterVO = null;
+
+            if (filter_var_id_if_field_exists && matroid_has_var_id_field && target_has_var_id_field) {
+                this_matroid_head_filter = filter(target_API_TYPE_ID, var_id_field_id).by_num_eq(matroid['var_id']);
+            }
+
+            for (let j in matroid_fields) {
+                let matroid_field = matroid_fields[j];
+                let matroid_field_id = matroid_field.field_id;
+                let target_field_id = (fields_ids_mapper && fields_ids_mapper[matroid_field_id]) ? fields_ids_mapper[matroid_field_id] : matroid_field_id;
+
+                let this_filter = null;
+                switch (matroid_field.field_type) {
+                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                        this_filter = filter(target_API_TYPE_ID, target_field_id).by_date_x_ranges(matroid[matroid_field_id]);
+                        break;
+                    default:
+                        this_filter = filter(target_API_TYPE_ID, target_field_id).by_num_x_ranges(matroid[matroid_field_id]);
+                }
+                this_matroid_head_filter = this_matroid_head_filter ? this_matroid_head_filter.and(this_filter) : this_filter;
+            }
+
+            matroid_head_filter = matroid_head_filter ? matroid_head_filter.or(this_matroid_head_filter) : this_matroid_head_filter;
+        }
+
+        return matroid_head_filter ? this.add_filters([matroid_head_filter]) : this;
+    }
+
+    /**
+     * Filtrer en fonction d'un sub en exists
+     * @param query la sous requête qui doit renvoyer aucune ligne pour être valide
+     */
+    public filter_by_exists(query_: ContextQueryVO): ContextQueryVO {
+        return this.add_filters([filter().by_exists(query_)]);
     }
 
     /**
@@ -467,6 +694,16 @@ export default class ContextQueryVO implements IDistantVOBase {
     }
 
     /**
+     * Filter sur le champs par boolean suivant param
+     */
+    public filter_boolean_value(field_id: string, boolean_value: boolean, API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([
+            boolean_value ?
+                filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).is_true() :
+                filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).is_false()]);
+    }
+
+    /**
      * Filter sur le champs par boolean strictement vrai
      */
     public filter_is_true(field_id: string, API_TYPE_ID: string = null): ContextQueryVO {
@@ -533,9 +770,11 @@ export default class ContextQueryVO implements IDistantVOBase {
 
         if (!sort) {
             this.sort_by = null;
-        } else {
-            this.sort_by = [sort];
+            return this;
         }
+
+        this.sort_by = [sort];
+        this.update_active_api_type_ids_from_sorts([sort]);
 
         return this;
     }
@@ -547,6 +786,7 @@ export default class ContextQueryVO implements IDistantVOBase {
     public set_sorts(sorts: SortByVO[]): ContextQueryVO {
 
         this.sort_by = sorts;
+        this.update_active_api_type_ids_from_sorts(sorts);
 
         return this;
     }
@@ -694,6 +934,23 @@ export default class ContextQueryVO implements IDistantVOBase {
         let api_type_ids = filters.map((f) => f.vo_type);
         return this.using(api_type_ids);
     }
+
+    /**
+     * Objectif automatiser la définition des tables à utiliser pour la requête a minima sur les
+     *  éléments qui sont explicitement demandés. Reste à ajouter manuellement les tables de liaisons
+     *  qui ne sont pas des manytomany (qui sont elles ajoutées automatiquement entre les types actifs)
+     * @param sorts les sorts dont on veut vérifier les api_type_ids
+     */
+    private update_active_api_type_ids_from_sorts(sorts: SortByVO[]): ContextQueryVO {
+
+        if (!sorts) {
+            return this;
+        }
+
+        let api_type_ids = sorts.filter((f) => f && f.vo_type).map((f) => f.vo_type);
+        return this.using(api_type_ids);
+    }
+
 }
 
 /**

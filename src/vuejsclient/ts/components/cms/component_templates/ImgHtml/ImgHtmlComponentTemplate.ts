@@ -35,6 +35,6 @@ export default class ImgHtmlComponentTemplate extends VueComponentBase implement
         if (this.instantiated_page_component) {
 
         }
-        this.imgVO = await ModuleDAO.getInstance().getVoById<ImageVO>(ImageVO.API_TYPE_ID, (this.instantiated_page_component as ImgHtmlComponentVO).image_vo_id);
+        this.imgVO = await query(ImageVO.API_TYPE_ID).filter_by_id((this.instantiated_page_component as ImgHtmlComponentVO).select_vo<ImageVO>().image_vo_id);
     }
 }

@@ -6,6 +6,7 @@ import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyD
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import LightWeightSendableRequestVO from '../../../shared/modules/AjaxCache/vos/LightWeightSendableRequestVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleFeedback from '../../../shared/modules/Feedback/ModuleFeedback';
@@ -528,7 +529,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         let res: string = ModuleFeedbackServer.TRELLO_SECTION_SEPARATOR;
         res += '##ATTACHMENTS' + ModuleFeedbackServer.TRELLO_LINE_SEPARATOR;
 
-        let file: FileVO = await ModuleDAO.getInstance().getVoById<FileVO>(FileVO.API_TYPE_ID, feedback.file_attachment_1_id);
+        let file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(feedback.file_attachment_1_id).select_vo<FileVO>();
         if (!file) {
             return '';
         }
@@ -538,7 +539,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             return res;
         }
 
-        file = await ModuleDAO.getInstance().getVoById<FileVO>(FileVO.API_TYPE_ID, feedback.file_attachment_2_id);
+        file = await query(FileVO.API_TYPE_ID).filter_by_id(feedback.file_attachment_2_id).select_vo<FileVO>();
         if (!file) {
             return res;
         }
@@ -548,7 +549,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             return res;
         }
 
-        file = await ModuleDAO.getInstance().getVoById<FileVO>(FileVO.API_TYPE_ID, feedback.file_attachment_3_id);
+        file = await query(FileVO.API_TYPE_ID).filter_by_id(feedback.file_attachment_3_id).select_vo<FileVO>();
         if (!file) {
             return res;
         }
@@ -568,7 +569,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         let res: string = ModuleFeedbackServer.TRELLO_SECTION_SEPARATOR;
         res += '##SCREENSHOTS' + ModuleFeedbackServer.TRELLO_LINE_SEPARATOR;
 
-        let file: FileVO = await ModuleDAO.getInstance().getVoById<FileVO>(FileVO.API_TYPE_ID, feedback.screen_capture_1_id);
+        let file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(feedback.screen_capture_1_id).select_vo<FileVO>();
         if (!file) {
             return '';
         }
@@ -579,7 +580,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             return res;
         }
 
-        file = await ModuleDAO.getInstance().getVoById<FileVO>(FileVO.API_TYPE_ID, feedback.screen_capture_2_id);
+        file = await query(FileVO.API_TYPE_ID).filter_by_id(feedback.screen_capture_2_id).select_vo<FileVO>();
         if (!file) {
             return res;
         }
@@ -590,7 +591,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             return res;
         }
 
-        file = await ModuleDAO.getInstance().getVoById<FileVO>(FileVO.API_TYPE_ID, feedback.screen_capture_3_id);
+        file = await query(FileVO.API_TYPE_ID).filter_by_id(feedback.screen_capture_3_id).select_vo<FileVO>();
         if (!file) {
             return res;
         }

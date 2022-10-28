@@ -118,4 +118,16 @@ export default class ContextQueryFieldServerController {
         res.init_text_uid();
         return res;
     }
+
+    public apply_modifier(context_query_field: ContextQueryFieldVO, field_query_statement: string): string {
+        switch (context_query_field.modifier) {
+            case ContextQueryFieldVO.FIELD_MODIFIER_NULL_IF_NAN:
+                return "NULLIF(" + field_query_statement + ", 'NaN')";
+            case ContextQueryFieldVO.FIELD_MODIFIER_NONE:
+            default:
+                break;
+        }
+
+        return field_query_statement;
+    }
 }
