@@ -785,8 +785,8 @@ export default class ContextQueryServerController {
                 for (let i in context_query.fields) {
                     let context_field = context_query.fields[i];
 
-                    // On ne rajoute pas dans le group by si on utilise l'aggregator ARRAY_AGG
-                    if ((context_field.aggregator == VarConfVO.ARRAY_AGG_AGGREGATOR) || (context_field.aggregator == VarConfVO.ARRAY_AGG_AND_IS_NULLABLE_AGGREGATOR)) {
+                    // On ne rajoute pas dans le group by si on utilise un aggregateur
+                    if (context_field.aggregator != VarConfVO.NO_AGGREGATOR) {
                         continue;
                     }
 
