@@ -8,4 +8,22 @@
         padding: 2px 1em;
         margin: 2px;
     }
+
+    .form-group.has-feedback {
+
+        p {
+
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+        }
+
+        #p1 {
+            font-size: 18px;
+            text-decoration: underline;
+        }
+
+        #p2 {
+            font-size: 14px;
+        }
+    }
 }

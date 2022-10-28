@@ -25,6 +25,9 @@ export default class VarsDatasExplorerVisualizationComponent extends VueComponen
     private param_index: string = null;
     private multi_param_index: string = null;
     private display_data: boolean = false;
+    private error_data: string = null; //Ligne correspondant à l'index erroné.
+
+
 
     @Watch('getDescSelectedVarParam', { immediate: true })
     private onchange_getDescSelectedVarParam() {
@@ -59,17 +62,31 @@ export default class VarsDatasExplorerVisualizationComponent extends VueComponen
             array_of_datas = datas;
         });
         let res: { [index: string]: VarDataBaseVO } = {};
-        for (let i in array_of_datas) {
-            let filter_param = array_of_datas[i][0];
+        let current_index: string;
 
-            let datas: VarDataBaseVO[] = await ModuleDAO.getInstance().filterVosByMatroidsIntersections(filter_param._type, [filter_param], null);
-            for (let j in datas) {
-                let data = datas[j];
-                res[data.index] = data;
+        try {
+            for (let i in array_of_datas) {
+                current_index = i;
+                let filter_param = array_of_datas[i][0];
+                res[filter_param.index] = filter_param;
             }
+            this.error_data = null;
+
+            this.display_data = true;
+            this.set_filtered_datas(res);
+        } catch {
+            console.log("L'index numéro %i est inexistant  !", current_index);
+            this.error_data = current_index; //Il y a une erreur de saisie d'index
+            this.display_data = true;
         }
-        this.display_data = true;
-        this.set_filtered_datas(res);
+    }
+
+
+
+
+    get _error_data() {
+        /*Indique si oui ou non il y a un index erroné parmis ceux indiqués */
+        return this.error_data;
     }
 
 }
