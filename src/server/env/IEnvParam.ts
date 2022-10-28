@@ -26,8 +26,9 @@ export default interface IEnvParam {
     DEBUG_SLOW_QUERIES?: boolean;
     DEBUG_PARAM_QUERIES?: boolean;
     DEBUG_DB_QUERY_PERF?: boolean;
-    DEBUG_FORKS: boolean;
-    DEBUG_VARS: boolean;
+    DEBUG_FORKS?: boolean;
+    DEBUG_VARS?: boolean;
+    DEBUG_VARS_SERVER_SUBS_CBS?: boolean;
     DEBUG_START_SERVER?: boolean;
     DEBUG_IMPORTS?: boolean;
     DEBUG_DELETEVOS?: boolean;
