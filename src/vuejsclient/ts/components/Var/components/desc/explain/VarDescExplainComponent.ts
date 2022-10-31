@@ -108,18 +108,36 @@ export default class VarDescExplainComponent extends VueComponentBase {
         return VarsController.getInstance().var_conf_by_name[name].id;
     }
 
-    private params_from_var_dep_id(var_dep_id: string): VarDataBaseVO[] {
-        let res: VarDataBaseVO[] = [];
+    get params_from_var_dep_id(): { [var_dep_id: string]: VarDataBaseVO[] } {
+        let res: { [var_dep_id: string]: VarDataBaseVO[] } = {};
 
-        for (let param_dep_id in this.deps_params) {
-            if (!param_dep_id.startsWith(var_dep_id)) {
-                continue;
+        for (let var_dep_id in this.vars_deps) {
+            res[var_dep_id] = [];
+
+            for (let param_dep_id in this.deps_params) {
+                if (!param_dep_id.startsWith(var_dep_id)) {
+                    continue;
+                }
+
+                res[var_dep_id].push(this.deps_params[param_dep_id]);
             }
-
-            res.push(this.deps_params[param_dep_id]);
         }
+
         return res;
     }
+
+    // private params_from_var_dep_id(var_dep_id: string): VarDataBaseVO[] {
+    //     let res: VarDataBaseVO[] = [];
+
+    //     for (let param_dep_id in this.deps_params) {
+    //         if (!param_dep_id.startsWith(var_dep_id)) {
+    //             continue;
+    //         }
+
+    //         res.push(this.deps_params[param_dep_id]);
+    //     }
+    //     return res;
+    // }
 
     @Watch('var_param', { immediate: true })
     private async load_param_infos() {

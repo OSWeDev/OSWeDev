@@ -48,4 +48,4 @@
                 .row(v-if='deps_params_loaded')
                     .col-sm-12
                         template(v-for='(var_dep, dep_id) in vars_deps')
-                            Vardescexplaindepcomponent(:dep_id="dep_id" :var_id="var_id_from_name(var_dep)" :params="params_from_var_dep_id(dep_id)")
+                            Vardescexplaindepcomponent(:dep_id="dep_id" :var_id="var_id_from_name(var_dep)" :params="params_from_var_dep_id[dep_id]")
