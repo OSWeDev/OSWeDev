@@ -57,6 +57,10 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
     public import_overview_component: VueComponentBase;
     @Prop({ default: null })
     public import_param_component: VueComponentBase;
+    @Prop({ default: false })
+    public autovalidate_default_value: boolean;
+    @Prop({ default: true })
+    public show_autovalidate: boolean;
 
     @Prop()
     public api_type_ids: string[];
@@ -138,6 +142,7 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
     }
 
     protected async mounted() {
+        this.autovalidate = this.autovalidate_default_value;
         await this.on_mount();
     }
 
