@@ -87,6 +87,10 @@ export default class DataImportComponent extends DataImportComponentBase {
     public import_overview_component: VueComponentBase;
     @Prop({ default: null })
     public import_param_component: VueComponentBase;
+    @Prop({ default: false })
+    public autovalidate_default_value: boolean;
+    @Prop({ default: true })
+    public show_autovalidate: boolean;
 
     @Prop()
     public api_type_ids: string[];
@@ -266,6 +270,7 @@ export default class DataImportComponent extends DataImportComponentBase {
     }
 
     protected async mounted() {
+        this.autovalidate = this.autovalidate_default_value;
         await this.on_mount();
     }
 

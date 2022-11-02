@@ -10,6 +10,8 @@ export default class SortByVO implements IDistantVOBase {
     public id: number;
     public _type: string = SortByVO.API_TYPE_ID;
 
+    public alias: string;
+
     public vo_type: string;
     public field_id: string;
 
@@ -20,12 +22,18 @@ export default class SortByVO implements IDistantVOBase {
     public constructor(
         vo_type: string = null,
         field_id: string = null,
-        sort_asc: boolean = true
+        sort_asc: boolean = true,
     ) {
         this.vo_type = vo_type;
         this.field_id = field_id;
         this.sort_asc = sort_asc;
+        this.alias = null;
         this.modifier = SortByVO.MODIFIER_NONE;
+    }
+
+    public set_alias(alias: string): SortByVO {
+        this.alias = alias;
+        return this;
     }
 
     public set_modifier(modifier: number): SortByVO {

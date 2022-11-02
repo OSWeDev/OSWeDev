@@ -27,7 +27,11 @@ export default class EnvParam implements IEnvParam {
     public START_MAINTENANCE_ACCEPTATION_CODE: string;
     public AUTO_END_MAINTENANCE_ON_START: boolean = true;
     public CODE_GOOGLE_ANALYTICS: string = null;
-    public DEBUG_VARS: boolean = false;
+
+    public DEBUG_SLOW_QUERIES?: boolean = false;
+    public DEBUG_SLOW_QUERIES_MS_LIMIT?: number = 100;
+    public DEBUG_VARS?: boolean = false;
+    public DEBUG_VARS_SERVER_SUBS_CBS?: boolean = false;
     public DEBUG_PARAM_QUERIES?: boolean = false;
     public DEBUG_DELETEVOS?: boolean = false;
     public DEBUG_START_SERVER?: boolean = false;
@@ -35,6 +39,7 @@ export default class EnvParam implements IEnvParam {
     public DEBUG_INTERTHREADS_MESSAGES?: boolean = false;
     public DEBUG_IMPORTS?: boolean = false;
     public DEBUG_THROTTLED_SELECT?: boolean = false;
+
     public ACTIVATE_PWA: boolean = false;
     public RETRY_FAILED_FAST_TRACK_IMPORTS_WITH_NORMAL_IMPORTATION?: boolean = true;
 }

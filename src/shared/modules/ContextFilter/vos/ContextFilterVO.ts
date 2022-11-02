@@ -67,7 +67,12 @@ export default class ContextFilterVO implements IDistantVOBase {
 
         'context_filter.type.TYPE_IN',
         'context_filter.type.TYPE_NOT_IN',
-        'context_filter.type.TYPE_NOT_EXISTS'
+        'context_filter.type.TYPE_NOT_EXISTS',
+
+        'context_filter.type.TYPE_NUMERIC_NOT_EQUALS',
+        'context_filter.type.TYPE_NUMERIC_EQUALS_ANY',
+        'context_filter.type.TYPE_EXISTS'
+
     ];
 
     /**
@@ -222,9 +227,14 @@ export default class ContextFilterVO implements IDistantVOBase {
 
     /**
      * Pour faire le lien avec une sous-requête
-     *  Le lien sera fait en indiquant field_id not exists (%SUB_QUERY%)
+     *  Le lien sera fait en indiquant not exists (%SUB_QUERY%)
      */
     public static TYPE_NOT_EXISTS: number = 56;
+    /**
+     * Pour faire le lien avec une sous-requête
+     *  Le lien sera fait en indiquant exists (%SUB_QUERY%)
+     */
+    public static TYPE_EXISTS: number = 59;
 
     /**
      * (Vide) et (vide || null)
@@ -433,6 +443,16 @@ export default class ContextFilterVO implements IDistantVOBase {
      */
     public by_num_not_in(query: ContextQueryVO): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_NOT_IN;
+        this.sub_query = query;
+        return this;
+    }
+
+    /**
+     * Filtrer en fonction d'un sub en exists
+     * @param query la sous requête qui doit renvoyer aucune ligne pour être valide
+     */
+    public by_exists(query: ContextQueryVO): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_EXISTS;
         this.sub_query = query;
         return this;
     }
@@ -656,6 +676,16 @@ export default class ContextFilterVO implements IDistantVOBase {
     public by_num_inf_eq(num: number): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_NUMERIC_INFEQ_ALL;
         this.param_numeric = num;
+        return this;
+    }
+
+    /**
+     * Filtre par == de date
+     * @param alias
+     */
+    public by_date_eq_alias(alias: string): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_DATE_EQUALS;
+        this.param_alias = alias;
         return this;
     }
 

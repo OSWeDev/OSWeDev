@@ -426,18 +426,25 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_string_array:
                     case ModuleTableField.FIELD_TYPE_html_array:
 
+                        /**
+                         * TODO FIXME le ignore_case est pas pris en compte sur les tableaux par ce que c'est le merdier à faire :
+                         *  https://stackoverflow.com/questions/65488634/error-function-lowertext-does-not-exist
+                         */
                         if (active_field_filter.param_text != null) {
 
-                            let text = (active_field_filter.param_text && active_field_filter.text_ignore_case) ? active_field_filter.param_text.toLowerCase() : active_field_filter.param_text;
+                            // let text = (active_field_filter.param_text && active_field_filter.text_ignore_case) ? active_field_filter.param_text.toLowerCase() : active_field_filter.param_text;
+                            let text = active_field_filter.param_text;
                             query_result.params.push(text);
-                            where_conditions.push("$" + query_result.params.length + " = ALL(" + (active_field_filter.text_ignore_case ? 'LOWER(' : '') + field_id + (active_field_filter.text_ignore_case ? ')' : '') + ")");
+                            // where_conditions.push("$" + query_result.params.length + " = ALL(" + (active_field_filter.text_ignore_case ? 'LOWER(' : '') + field_id + (active_field_filter.text_ignore_case ? ')' : '') + ")");
+                            where_conditions.push("$" + query_result.params.length + " = ALL(" + field_id + ")");
 
                         } else if (active_field_filter.param_textarray != null) {
 
                             let like_array = [];
                             for (let i in active_field_filter.param_textarray) {
-                                let param_text = active_field_filter.param_textarray[i];
-                                let text = (param_text && active_field_filter.text_ignore_case) ? param_text.toLowerCase() : param_text;
+                                // let param_text = active_field_filter.param_textarray[i];
+                                // let text = (param_text && active_field_filter.text_ignore_case) ? param_text.toLowerCase() : param_text;
+                                let text = active_field_filter.param_textarray[i];
                                 if (!text) {
                                     continue;
                                 }
@@ -448,8 +455,10 @@ export default class ContextFilterServerController {
                             if ((!like_array) || (!like_array.length)) {
                                 return;
                             }
-                            where_conditions.push("['" + like_array.join("','") + "'] <@ " + (active_field_filter.text_ignore_case ? 'LOWER(' : '') + field_id + (active_field_filter.text_ignore_case ? ')' : '') +
-                                " AND ['" + like_array.join("','") + "'] @> " + (active_field_filter.text_ignore_case ? 'LOWER(' : '') + field_id + (active_field_filter.text_ignore_case ? ')' : ''));
+                            where_conditions.push("['" + like_array.join("','") + "'] <@ " + field_id +
+                                " AND ['" + like_array.join("','") + "'] @> " + field_id);
+                            // where_conditions.push("['" + like_array.join("','") + "'] <@ " + (active_field_filter.text_ignore_case ? 'LOWER(' : '') + field_id + (active_field_filter.text_ignore_case ? ')' : '') +
+                            //     " AND ['" + like_array.join("','") + "'] @> " + (active_field_filter.text_ignore_case ? 'LOWER(' : '') + field_id + (active_field_filter.text_ignore_case ? ')' : ''));
                         } else {
                             throw new Error('Not Implemented');
                         }
@@ -558,23 +567,34 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_string_array:
                     case ModuleTableField.FIELD_TYPE_html_array:
+                        /**
+                         * TODO FIXME le ignore_case est pas pris en compte sur les tableaux par ce que c'est le merdier à faire :
+                         *  https://stackoverflow.com/questions/65488634/error-function-lowertext-does-not-exist
+                         */
+
                         if (active_field_filter.param_text != null) {
-                            let text = (active_field_filter.param_text && active_field_filter.text_ignore_case) ? active_field_filter.param_text.toLowerCase() : active_field_filter.param_text;
+                            // let text = (active_field_filter.param_text && active_field_filter.text_ignore_case) ? active_field_filter.param_text.toLowerCase() : active_field_filter.param_text;
+                            let text = active_field_filter.param_text;
 
                             query_result.params.push(text);
-                            where_conditions.push("$" + query_result.params.length + " = ANY(" + (active_field_filter.text_ignore_case ? 'LOWER(' : '') + field_id + (active_field_filter.text_ignore_case ? ')' : '') + ")");
+                            // where_conditions.push("$" + query_result.params.length + " = ANY(" + (active_field_filter.text_ignore_case ? 'LOWER(' : '') + field_id + (active_field_filter.text_ignore_case ? ')' : '') + ")");
+                            where_conditions.push("$" + query_result.params.length + " = ANY(" + field_id + ")");
+
                         } else if (active_field_filter.param_textarray != null) {
                             let like_array = [];
                             for (let i in active_field_filter.param_textarray) {
-                                let param_text = active_field_filter.param_textarray[i];
-                                let text = (param_text && active_field_filter.text_ignore_case) ? param_text.toLowerCase() : param_text;
+                                // let param_text = active_field_filter.param_textarray[i];
+                                // let text = (param_text && active_field_filter.text_ignore_case) ? param_text.toLowerCase() : param_text;
+                                let text = active_field_filter.param_textarray[i];
 
                                 if (!text) {
                                     continue;
                                 }
 
                                 query_result.params.push(text);
-                                like_array.push("$" + query_result.params.length + " = ANY(" + (active_field_filter.text_ignore_case ? 'LOWER(' : '') + field_id + (active_field_filter.text_ignore_case ? ')' : '') + ')');
+                                // like_array.push("$" + query_result.params.length + " = ANY(" + (active_field_filter.text_ignore_case ? 'LOWER(' : '') + field_id + (active_field_filter.text_ignore_case ? ')' : '') + ')');
+                                like_array.push("$" + query_result.params.length + " = ANY(" + field_id + ')');
+
                             }
                             if ((!like_array) || (!like_array.length)) {
                                 return;
@@ -973,23 +993,32 @@ export default class ContextFilterServerController {
 
                     case ModuleTableField.FIELD_TYPE_string_array:
                     case ModuleTableField.FIELD_TYPE_html_array:
+
+                        /**
+                         * TODO FIXME le ignore_case est pas pris en compte sur les tableaux par ce que c'est le merdier à faire :
+                         *  https://stackoverflow.com/questions/65488634/error-function-lowertext-does-not-exist
+                         */
+
                         if (active_field_filter.param_text != null) {
-                            let text = (active_field_filter.param_text && active_field_filter.text_ignore_case) ? active_field_filter.param_text.toLowerCase() : active_field_filter.param_text;
+                            // let text = (active_field_filter.param_text && active_field_filter.text_ignore_case) ? active_field_filter.param_text.toLowerCase() : active_field_filter.param_text;
+                            let text = active_field_filter.param_text;
 
                             query_result.params.push(text);
-                            where_conditions.push("$" + query_result.params.length + " != ALL(" + (active_field_filter.text_ignore_case ? 'LOWER(' : '') + field_id + (active_field_filter.text_ignore_case ? ')' : '') + ")");
+                            // where_conditions.push("$" + query_result.params.length + " != ALL(" + (active_field_filter.text_ignore_case ? 'LOWER(' : '') + field_id + (active_field_filter.text_ignore_case ? ')' : '') + ")");
+                            where_conditions.push("$" + query_result.params.length + " != ALL(" + field_id + ")");
                         } else if (active_field_filter.param_textarray != null) {
                             let like_array = [];
                             for (let i in active_field_filter.param_textarray) {
-                                let param_text = active_field_filter.param_textarray[i];
-                                let text = (param_text && active_field_filter.text_ignore_case) ? param_text.toLowerCase() : param_text;
+                                // let param_text = active_field_filter.param_textarray[i];
+                                // let text = (param_text && active_field_filter.text_ignore_case) ? param_text.toLowerCase() : param_text;
+                                let text = active_field_filter.param_textarray[i];
 
                                 if (!text) {
                                     continue;
                                 }
 
                                 query_result.params.push(text);
-                                like_array.push("$" + query_result.params.length + " != ALL(" + (active_field_filter.text_ignore_case ? 'LOWER(' : '') + field_id + (active_field_filter.text_ignore_case ? ')' : '') + ')');
+                                like_array.push("$" + query_result.params.length + " != ALL(" + field_id + ')');
                             }
                             if ((!like_array) || (!like_array.length)) {
                                 return;
@@ -2483,6 +2512,30 @@ export default class ContextFilterServerController {
 
                 break;
 
+            case ContextFilterVO.TYPE_EXISTS:
+                if (!active_field_filter.sub_query) {
+                    throw new Error('Not Implemented');
+                }
+
+                let qr_TYPE_EXISTS = await ContextQueryServerController.getInstance().build_select_query(active_field_filter.sub_query);
+
+                if ((!qr_TYPE_EXISTS) || (!qr_TYPE_EXISTS.query)) {
+                    throw new Error('Invalid query');
+                }
+
+                if (qr_TYPE_EXISTS.is_segmented_non_existing_table) {
+                    // Si on a une table segmentée qui n'existe pas, on ne fait rien
+                    break;
+                }
+
+                if (qr_TYPE_EXISTS.params && qr_TYPE_EXISTS.params.length) {
+                    query_result.params = query_result.params.concat(qr_TYPE_EXISTS.params);
+                }
+
+                where_conditions.push('EXISTS (' + qr_TYPE_EXISTS.query + ')');
+
+                break;
+
             case ContextFilterVO.TYPE_EMPTY:
                 switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_amount:
@@ -2747,7 +2800,6 @@ export default class ContextFilterServerController {
             case ContextFilterVO.TYPE_HOUR_INCLUDES:
             case ContextFilterVO.TYPE_HOUR_IS_INCLUDED_IN:
             case ContextFilterVO.TYPE_DATE_INCLUDES:
-            case ContextFilterVO.TYPE_DATE_IS_INCLUDED_IN:
             case ContextFilterVO.TYPE_TEXT_INCLUDES_ALL:
             case ContextFilterVO.TYPE_TEXT_STARTSWITH_ALL:
             case ContextFilterVO.TYPE_TEXT_ENDSWITH_ALL:

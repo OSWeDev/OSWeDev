@@ -1,17 +1,11 @@
 import Component from 'vue-class-component';
 import { Prop } from 'vue-property-decorator';
-import TimeSegment from '../../../../../../shared/modules/DataRender/vos/TimeSegment';
-import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ImportTranslation from '../../../../../../shared/modules/Translation/import/vos/ImportTranslation';
-import TimeSegmentHandler from '../../../../../../shared/tools/TimeSegmentHandler';
-import DataImportAdminVueModule from '../../../data_import/DataImportAdminVueModule';
 import NoSegmentDataImportComponent from '../../../data_import/nosegment_component/NoSegmentDataImportComponent';
 import { ModuleDataImportAction } from '../../../data_import/store/DataImportStore';
 import VueComponentBase from '../../../VueComponentBase';
 import TranslationsImportOverviewComponent from './overview/TranslationsImportOverviewComponent';
 import TranslationsImportParamsComponent from './params/TranslationsImportParamsComponent';
-
-
 
 
 @Component({

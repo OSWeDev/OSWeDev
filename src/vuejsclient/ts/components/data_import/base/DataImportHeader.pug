@@ -4,13 +4,17 @@
             i.fa.fa-refresh.fa-lg.btn_icon(aria-hidden="true")
             | {{ label('crud.actions.refresh') }}
         toggle-button.pull-left(
-            v-model="autovalidate" 
+            v-if='show_autovalidate'
+            v-model="autovalidate"
             :width="100"
-            :labels="{checked: 'Auto', unchecked:'Normal'}" :disabled="false")
+            :labels="{checked: 'Auto', unchecked:'Normal'}"
+            :disabled="false")
         toggle-button.pull-left(
-            v-model="show_overview" 
+            v-if='import_overview_component'
+            v-model="show_overview"
             :width="100"
-            :labels="{checked: 'Vue complète', unchecked:'Allégé'}" :disabled="false" v-if='import_overview_component')
+            :labels="{checked: 'Vue complète', unchecked:'Allégé'}"
+            :disabled="false" )
 
         h2.imports_page_title {{ title }}
 .row(v-if='import_overview_component && show_overview')

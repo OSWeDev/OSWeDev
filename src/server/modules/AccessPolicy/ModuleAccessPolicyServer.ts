@@ -1044,7 +1044,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         let user: UserVO = await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
-            return await ModuleDAO.getInstance().getVoById(UserVO.API_TYPE_ID, user_id);
+            return await query(UserVO.API_TYPE_ID).filter_by_id(user_id).ignore_access_hooks().select_vo<UserVO>();
         }) as UserVO;
 
         return user;

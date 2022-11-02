@@ -21,12 +21,20 @@ export default interface IEnvParam {
     SERVER_START_BOOSTER: boolean;
     SERVER_ENCODING: string;
     CONSOLE_LOG_TO_FILE: boolean;
-    DEBUG_FORKS: boolean;
-    DEBUG_VARS: boolean;
+
+    DEBUG_SLOW_QUERIES_MS_LIMIT?: number;
+    DEBUG_SLOW_QUERIES?: boolean;
+    DEBUG_PARAM_QUERIES?: boolean;
+    DEBUG_DB_QUERY_PERF?: boolean;
+    DEBUG_FORKS?: boolean;
+    DEBUG_VARS?: boolean;
+    DEBUG_VARS_SERVER_SUBS_CBS?: boolean;
     DEBUG_START_SERVER?: boolean;
     DEBUG_IMPORTS?: boolean;
     DEBUG_DELETEVOS?: boolean;
     DEBUG_THROTTLED_SELECT?: boolean;
+    DEBUG_INTERTHREADS_MESSAGES?: boolean;
+
     START_MAINTENANCE_ACCEPTATION_CODE: string;
     AUTO_END_MAINTENANCE_ON_START: boolean;
     CODE_GOOGLE_ANALYTICS: string;

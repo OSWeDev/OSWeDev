@@ -859,18 +859,9 @@ export default class TableWidgetComponent extends VueComponentBase {
         if (!this.widget_options) {
             return res;
         }
-        let test = cloneDeep(this.widget_options.columns);
-        for (let i in test) {
-            let column = test[i];
-            if (column.type == TableColumnDescVO.TYPE_header) {
-                for (let j in column.children) {
-                    let children = column.children[j];
-                    test.push(children);
-                }
-            }
-        }
-        for (let i in test) {
-            let column: TableColumnDescVO = test[i];
+
+        for (let i in this.columns) {
+            let column: TableColumnDescVO = this.columns[i];
             let moduleTable: ModuleTable<any>;
 
             if (column.type != TableColumnDescVO.TYPE_header) {
@@ -1129,7 +1120,6 @@ export default class TableWidgetComponent extends VueComponentBase {
         query_.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
             ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters)
         );
-        query_.set_sort(null);
 
         let db_cells_source = await query(DashboardGraphVORefVO.API_TYPE_ID)
             .filter_by_num_eq('dashboard_id', this.dashboard.id)

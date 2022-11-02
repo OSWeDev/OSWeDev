@@ -1628,10 +1628,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     request += ' UNION ALL ';
                 }
 
-                let db_full_name = moduleTable.database + '.' + segmentation_table;
-
                 request += "SELECT " + (distinct ? 'distinct' : '') + " t.* ";
-                request += " FROM " + db_full_name + ' t ';
+                request += " FROM " + segmentation_table + ' t ';
                 request += (query_ ? query_.replace(/;/g, '') : '');
             }
 
@@ -1885,11 +1883,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     promises.push((async () => {
                         let res = await this.query(throttled_select_query_param.parameterized_full_query);
 
+                        let pms = [];
                         for (let cbi in throttled_select_query_param.cbs) {
                             let cb = throttled_select_query_param.cbs[cbi];
 
-                            await cb(res);
+                            pms.push(cb(res));
                         }
+                        await all_promises(pms);
                     })());
                     continue;
                 }
@@ -2344,11 +2344,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                     if (DAOServerController.getInstance().pre_update_trigger_hook.has_trigger(vo._type) || DAOServerController.getInstance().post_update_trigger_hook.has_trigger(vo._type)) {
 
-                        let segment = null;
+                        let query_ = query(vo._type).filter_by_id(vo.id);
                         if (moduleTable.is_segmented && moduleTable.table_segmented_field && (vo[moduleTable.table_segmented_field.field_id] != null)) {
-                            segment = moduleTable.get_segmented_field_value_from_vo(vo);
+                            query_.filter_by_num_eq(moduleTable.table_segmented_field.field_id, moduleTable.get_segmented_field_value_from_vo(vo));
                         }
-                        preUpdates[i] = await ModuleDAO.getInstance().getVoById<any>(vo._type, vo.id, [RangeHandler.getInstance().create_single_elt_NumRange(segment, NumSegment.TYPE_INT)]);
+                        preUpdates[i] = await query_.select_vo();
                     }
                 }
 
@@ -2565,11 +2565,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 if (DAOServerController.getInstance().pre_update_trigger_hook.has_trigger(vo._type) || DAOServerController.getInstance().post_update_trigger_hook.has_trigger(vo._type)) {
 
-                    let segmentation_ranges: IRange[] = null;
+                    let query_ = query(vo._type).filter_by_id(vo.id);
                     if (moduleTable.is_segmented && moduleTable.table_segmented_field && (vo[moduleTable.table_segmented_field.field_id] != null)) {
-                        segmentation_ranges = [RangeHandler.getInstance().create_single_elt_NumRange(moduleTable.get_segmented_field_value_from_vo(vo), NumSegment.TYPE_INT)];
+                        query_.filter_by_num_eq(moduleTable.table_segmented_field.field_id, moduleTable.get_segmented_field_value_from_vo(vo));
                     }
-                    preUpdate = await ModuleDAO.getInstance().getVoById<any>(vo._type, vo.id, segmentation_ranges);
+                    preUpdate = await query_.select_vo();
 
                     if (!preUpdate) {
                         // Cas d'un objet en cache server ou client mais qui n'existe plus sur la BDD => on doit insérer du coup un nouveau
@@ -2699,8 +2699,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     if (!dep.is_cascade) {
                         continue;
                     }
-                    let depVO = await ModuleDAO.getInstance().getVoById(dep.linked_type, dep.linked_id);
-                    deps_to_delete.push(await ModuleDAO.getInstance().getVoById(dep.linked_type, dep.linked_id));
+                    let depVO = await query(dep.linked_type).filter_by_id(dep.linked_id).select_vo();
+                    deps_to_delete.push(await query(dep.linked_type).filter_by_id(dep.linked_id).select_vo());
                     if (!DEBUG_deps_types_to_delete) {
                         DEBUG_deps_types_to_delete = depVO._type;
                     } else {
@@ -4817,7 +4817,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             this.log_db_query_perf_start_by_uid[uid] = Dates.now_ms();
             let query_s = (query_string ? query_string.substring(0, 1000) : 'N/A');
             query_s = (query_s ? query_s.replace(/;/g, '') : 'N/A');
-            ConsoleHandler.getInstance().log('log_db_query_perf_start;ModuleDAOServer;IN;' + uid + ';' + this.log_db_query_perf_start_by_uid[uid] + ';0;' + method_name +
+            ConsoleHandler.getInstance().log('log_db_query_perf_start;;ModuleDAOServer;IN;' + uid + ';' + this.log_db_query_perf_start_by_uid[uid] + ';0;' + method_name +
                 ';' + (step_name ? step_name : 'N/A') +
                 ';' + query_s);
             return uid;
@@ -4832,9 +4832,22 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let duration = end_ms - this.log_db_query_perf_start_by_uid[uid];
             let query_s = (query_string ? query_string.substring(0, 1000) : 'N/A');
             query_s = (query_s ? query_s.replace(/;/g, '') : 'N/A');
-            ConsoleHandler.getInstance().log('log_db_query_perf_start;ModuleDAOServer;OUT;' + uid + ';' + end_ms + ';' + duration + ';' + method_name +
-                ';' + (step_name ? step_name : 'N/A') +
-                ';' + query_s);
+
+            if (ConfigurationService.getInstance().node_configuration.DEBUG_SLOW_QUERIES &&
+                (duration > (10 * ConfigurationService.getInstance().node_configuration.DEBUG_SLOW_QUERIES_MS_LIMIT))) {
+                ConsoleHandler.getInstance().error('log_db_query_perf_end;VERYSLOW;ModuleDAOServer;OUT;' + uid + ';' + end_ms + ';' + duration + ';' + method_name +
+                    ';' + (step_name ? step_name : 'N/A') +
+                    ';' + query_string);
+            } else if (ConfigurationService.getInstance().node_configuration.DEBUG_SLOW_QUERIES &&
+                (duration > ConfigurationService.getInstance().node_configuration.DEBUG_SLOW_QUERIES_MS_LIMIT)) {
+                ConsoleHandler.getInstance().warn('log_db_query_perf_end;SLOW;ModuleDAOServer;OUT;' + uid + ';' + end_ms + ';' + duration + ';' + method_name +
+                    ';' + (step_name ? step_name : 'N/A') +
+                    ';' + query_string);
+            } else {
+                ConsoleHandler.getInstance().log('log_db_query_perf_end;;ModuleDAOServer;OUT;' + uid + ';' + end_ms + ';' + duration + ';' + method_name +
+                    ';' + (step_name ? step_name : 'N/A') +
+                    ';' + query_s);
+            }
         }
     }
 
@@ -4883,6 +4896,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             results_by_index[index].push(result);
         }
 
+        let promises = [];
         for (let i in throttled_select_query_params_by_index) {
             let index = parseInt(i);
             let results_of_index = results_by_index[index];
@@ -4895,8 +4909,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
             for (let cbi in param.cbs) {
                 let cb = param.cbs[cbi];
 
-                await cb(results_of_index ? cloneDeep(results_of_index) : null);
+                promises.push(cb(results_of_index ? cloneDeep(results_of_index) : null));
             }
         }
+        await all_promises(promises);
     }
 }

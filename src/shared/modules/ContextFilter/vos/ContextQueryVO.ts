@@ -181,9 +181,11 @@ export default class ContextQueryVO implements IDistantVOBase {
      *  Si on veut un vo complet il ne faut pas demander les fields
      * @param field_id l'id du field à ajouter.
      */
-    public field(field_id: string, alias: string = field_id, api_type_id: string = null, aggregator: number = VarConfVO.NO_AGGREGATOR): ContextQueryVO {
+    public field(
+        field_id: string, alias: string = field_id, api_type_id: string = null,
+        aggregator: number = VarConfVO.NO_AGGREGATOR, modifier: number = ContextQueryFieldVO.FIELD_MODIFIER_NONE): ContextQueryVO {
 
-        let field = new ContextQueryFieldVO(api_type_id ? api_type_id : this.base_api_type_id, field_id, alias, aggregator);
+        let field = new ContextQueryFieldVO(api_type_id ? api_type_id : this.base_api_type_id, field_id, alias, aggregator, modifier);
 
         if (!this.fields) {
             this.fields = [];
@@ -367,11 +369,21 @@ export default class ContextQueryVO implements IDistantVOBase {
     /**
      * Sucre syntaxique pour une filtre date == ranges
      * @param field_id le field qu'on veut filtrer
-     * @param ranges les valeurs qu'on veut filtrer
+     * @param date les valeurs qu'on veut filtrer
      * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
      */
     public filter_by_date_eq(field_id: string, date: number | number[] | TSRange | TSRange[], API_TYPE_ID: string = null): ContextQueryVO {
         return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_date_eq(date)]);
+    }
+
+    /**
+     * Sucre syntaxique pour une filtre date == ranges
+     * @param field_id le field qu'on veut filtrer
+     * @param alias
+     * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
+     */
+    public filter_by_date_eq_alias(field_id: string, alias: string, API_TYPE_ID: string = null): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_date_eq_alias(alias)]);
     }
 
     /**
@@ -606,6 +618,14 @@ export default class ContextQueryVO implements IDistantVOBase {
     }
 
     /**
+     * Filtrer en fonction d'un sub en exists
+     * @param query la sous requête qui doit renvoyer aucune ligne pour être valide
+     */
+    public filter_by_exists(query_: ContextQueryVO): ContextQueryVO {
+        return this.add_filters([filter().by_exists(query_)]);
+    }
+
+    /**
      * Filtrer en fonction d'un sub en not exists
      * @param query la sous requête qui doit renvoyer aucune ligne pour être valide
      */
@@ -750,9 +770,10 @@ export default class ContextQueryVO implements IDistantVOBase {
 
         if (!sort) {
             this.sort_by = null;
-        } else {
-            this.sort_by = [sort];
+            return this;
         }
+
+        this.sort_by = [sort];
         this.update_active_api_type_ids_from_sorts([sort]);
 
         return this;
@@ -926,7 +947,7 @@ export default class ContextQueryVO implements IDistantVOBase {
             return this;
         }
 
-        let api_type_ids = sorts.map((f) => f.vo_type);
+        let api_type_ids = sorts.filter((f) => f && f.vo_type).map((f) => f.vo_type);
         return this.using(api_type_ids);
     }
 

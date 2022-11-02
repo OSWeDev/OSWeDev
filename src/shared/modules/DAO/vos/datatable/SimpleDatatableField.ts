@@ -211,6 +211,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     if (min_number) {
                         res_numrange.push(min_number.toFixed(0));
                         none_number = false;
+
                     } else {
                         res_numrange.push('');
                     }

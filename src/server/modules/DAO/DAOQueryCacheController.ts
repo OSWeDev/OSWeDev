@@ -80,6 +80,13 @@ export default class DAOQueryCacheController {
             return undefined;
         }
 
+        /**
+         * Si la query est un trottledselect on ignore le cache, FIXME TODO il faudra le gérer directement dans le trottledselect
+         */
+        if (/^\(SELECT [0-9]+ as ___throttled_select_query___index, ___throttled_select_query___query\.\* from \(/.test(query)) {
+            return undefined;
+        }
+
         let trimed_lower = query.trim();
 
         // Si c'est pas un select on vide le cache
@@ -140,6 +147,13 @@ export default class DAOQueryCacheController {
         }
 
         if ((!query) || (!!values)) {
+            return;
+        }
+
+        /**
+         * Si la query est un trottledselect on ignore le cache, FIXME TODO il faudra le gérer directement dans le trottledselect
+         */
+        if (/^\(SELECT [0-9]+ as ___throttled_select_query___index, ___throttled_select_query___query\.\* from \(/.test(query)) {
             return;
         }
 

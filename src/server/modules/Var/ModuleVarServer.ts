@@ -1285,6 +1285,9 @@ export default class ModuleVarServer extends ModuleServerBase {
             // this.cpt_for_datasources[datasource_dep.name]++;
             // TEMP DEBUG JFE - end
 
+            if (!VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[datasource_dep.name]) {
+                VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[datasource_dep.name] = {};
+            }
             await datasource_dep.load_node_data(varDAGNode);
             let data = varDAGNode.datasources[datasource_dep.name];
 
