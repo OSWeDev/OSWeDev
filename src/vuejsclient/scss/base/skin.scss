@@ -16,6 +16,10 @@
     min-width: 10em;
 }
 
+.disabled .clear {
+    display: none;
+}
+
 .btn_icon {
     margin-right: 0.2em;
 }
