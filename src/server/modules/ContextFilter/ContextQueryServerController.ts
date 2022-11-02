@@ -52,36 +52,6 @@ export default class ContextQueryServerController {
     }
 
     /**
-     * Compter les résultats
-     * @param context_query description de la requête, sans fields si on compte les vos, avec fields si on veut un datatable
-     */
-    public async select_count(context_query: ContextQueryVO): Promise<number> {
-
-        let query_wrapper = await this.build_query_count(context_query);
-
-        if (!query_wrapper) {
-            throw new Error('Invalid context_query param');
-        }
-
-        if (query_wrapper.is_segmented_non_existing_table) {
-            // Si on a une table segmentée qui n'existe pas, on ne fait rien
-            return 0;
-        }
-
-        let query_res = null;
-
-        if (context_query.throttle_query_select && context_query.fields && context_query.fields.length) {
-            query_res = await ModuleDAOServer.getInstance().throttle_select_query(query_wrapper.query, query_wrapper.params, context_query);
-        } else {
-            query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
-        }
-
-        let c = (query_res && (query_res.length == 1) && (typeof query_res[0]['c'] != 'undefined') && (query_res[0]['c'] !== null)) ? query_res[0]['c'] : null;
-        c = c ? parseInt(c.toString()) : 0;
-        return c;
-    }
-
-    /**
      * Filtrer des vos avec les context filters
      * @param context_query le champs fields doit être null pour demander des vos complets
      */
@@ -137,6 +107,37 @@ export default class ContextQueryServerController {
         }
 
         return moduletable.forceNumerics(query_res);
+    }
+
+    /**
+     * Compter les résultats
+     * @param context_query description de la requête, sans fields si on compte les vos, avec fields si on veut un datatable
+     */
+    public async select_count(context_query: ContextQueryVO): Promise<number> {
+
+        context_query.do_count_results = true;
+        let query_wrapper = await this.build_select_query(context_query);
+
+        if (!query_wrapper) {
+            throw new Error('Invalid context_query param');
+        }
+
+        if (query_wrapper.is_segmented_non_existing_table) {
+            // Si on a une table segmentée qui n'existe pas, on ne fait rien
+            return 0;
+        }
+
+        let query_res = null;
+
+        if (context_query.throttle_query_select && context_query.fields && context_query.fields.length) {
+            query_res = await ModuleDAOServer.getInstance().throttle_select_query(query_wrapper.query, query_wrapper.params, context_query);
+        } else {
+            query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
+        }
+
+        let c = (query_res && (query_res.length == 1) && (typeof query_res[0]['c'] != 'undefined') && (query_res[0]['c'] !== null)) ? query_res[0]['c'] : null;
+        c = c ? parseInt(c.toString()) : 0;
+        return c;
     }
 
     public async select(context_query: ContextQueryVO): Promise<any[]> {
@@ -387,7 +388,7 @@ export default class ContextQueryServerController {
         }
 
 
-        let query_wrapper = await this.build_select_query(context_query);
+        let query_wrapper = await this.build_select_query_not_count(context_query);
         if ((!query_wrapper) || (!query_wrapper.query)) {
             throw new Error('Invalid query');
         }
@@ -496,11 +497,19 @@ export default class ContextQueryServerController {
         }
     }
 
+    public async build_select_query(context_query: ContextQueryVO): Promise<ParameterizedQueryWrapper> {
+
+        if (context_query.do_count_results) {
+            return await this.build_query_count(context_query);
+        }
+        return await this.build_select_query_not_count(context_query);
+    }
+
     /**
      * Fonction qui génère la requête select demandée, que ce soit sur les vos directement ou
      *  sur les fields passées dans le context_query
      */
-    public async build_select_query(context_query: ContextQueryVO): Promise<ParameterizedQueryWrapper> {
+    public async build_select_query_not_count(context_query: ContextQueryVO): Promise<ParameterizedQueryWrapper> {
 
         if (!context_query) {
             throw new Error('Invalid query param');
