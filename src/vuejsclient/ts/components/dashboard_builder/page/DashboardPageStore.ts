@@ -7,6 +7,7 @@ import IStoreModule from "../../../store/IStoreModule";
 import ContextFilterVO from "../../../../../shared/modules/ContextFilter/vos/ContextFilterVO";
 import CRUDUpdateModalComponent from "../widgets/table_widget/crud_modals/update/CRUDUpdateModalComponent";
 import CRUDCreateModalComponent from "../widgets/table_widget/crud_modals/create/CRUDCreateModalComponent";
+
 import DashboardPageVO from "../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO";
 import ChecklistItemModalComponent from "../widgets/checklist_widget/checklist_item_modal/ChecklistItemModalComponent";
 
@@ -20,6 +21,7 @@ export interface IDashboardPageState {
     Checklistitemmodalcomponent: ChecklistItemModalComponent;
     Crudupdatemodalcomponent: CRUDUpdateModalComponent;
     Crudcreatemodalcomponent: CRUDCreateModalComponent;
+
 
     page_history: DashboardPageVO[];
 
@@ -88,6 +90,7 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
                 return state.Crudcreatemodalcomponent;
             },
 
+
             get_page_widgets(state: IDashboardPageState): DashboardPageWidgetVO[] {
                 return state.page_widgets;
             },
@@ -138,6 +141,8 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             set_Crudcreatemodalcomponent(state: IDashboardPageState, Crudcreatemodalcomponent: CRUDCreateModalComponent) {
                 state.Crudcreatemodalcomponent = Crudcreatemodalcomponent;
             },
+
+
 
             set_active_field_filters(state: IDashboardPageState, active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }) {
                 state.active_field_filters = active_field_filters;

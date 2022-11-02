@@ -440,6 +440,26 @@ export default class ContextQueryVO implements IDistantVOBase {
     }
 
     /**
+     * Filtrer par text strictement égal
+     * @param field_id le field qu'on veut filtrer
+     * @param alias
+     * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
+     */
+    public filter_by_text_eq_alias(field_id: string, alias: string, API_TYPE_ID: string = null, ignore_case: boolean = false): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_eq_alias(alias, ignore_case)]);
+    }
+
+    /**
+     * Filtrer par text égal ANY
+     * @param field_id le field qu'on veut filtrer
+     * @param alias
+     * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
+     */
+    public filter_by_text_has_alias(field_id: string, alias: string, API_TYPE_ID: string = null, ignore_case: boolean = false): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_has_alias(alias, ignore_case)]);
+    }
+
+    /**
      * Filtrer par text égal ANY
      * @param field_id le field qu'on veut filtrer
      * @param text le texte que l'on doit retrouver à l'identique en base

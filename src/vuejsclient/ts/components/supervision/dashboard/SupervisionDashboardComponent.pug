@@ -74,13 +74,16 @@
 
         //- champs de recherche
         .row.form-group
-            .col-sm-4
+            .col-sm-6
                 input.form-control(type='text' :placeholder='label("supervision.filter_text")' v-model="filter_text")
+                button.btn.btn-secondary.btn-sm.mt-2.mr-1(@click="select_all") Tous selectionner
+                button.btn.btn-secondary.btn-sm.mt-2.mr-1(@click="add_items_to_read") Marquer comme lus
+                button.btn.btn-secondary.btn-sm.mt-2(@click="add_items_to_unread") Marquer comme non lus
 
         //- liste des sondes
         .row
             .col-sm-12
-                template(v-for='supervised_item in ordered_supervised_items')
-                    Supervisiondashboarditemcomponent(:item='supervised_item')
+                template(v-for='(supervised_item, index) in ordered_supervised_items')
+                    Supervisiondashboarditemcomponent(:item='supervised_item' :coche='valide' @item_selected='select_item')
 
         Supervisionitemmodalcomponent

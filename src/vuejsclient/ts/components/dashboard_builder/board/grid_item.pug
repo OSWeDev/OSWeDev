@@ -24,7 +24,9 @@
             :is_selected='selected_widget && (item.i == selected_widget.i)'
             :key="'Dashboardbuilderboarditemcomponent__' + item.id + '__' + item_key[item.id]"
 
+            
             @delete_widget='delete_widget'
             @select_widget='select_widget'
             @select_page='select_page'
+
         )

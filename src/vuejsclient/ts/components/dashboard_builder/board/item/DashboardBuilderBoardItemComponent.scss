@@ -26,4 +26,19 @@
         z-index: 1;
         cursor: cursor;
     }
+
+    .copy_widget {
+        position: absolute;
+        right: 1.7em;
+        width: 1.8em;
+        height: 1.8em;
+        background: #007bff;
+        padding: 0.2em;
+        margin-right: 0.5em;
+        color: white;
+        cursor: pointer;
+        text-align: center;
+        font-size: 1.2em;
+        z-index: 1;
+    }
 }

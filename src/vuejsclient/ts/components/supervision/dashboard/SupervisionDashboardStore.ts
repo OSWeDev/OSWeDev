@@ -23,6 +23,8 @@ export interface ISupervisionState {
     dashboard_key: string;
     filter_text_lower_case: string;
     api_type_ids_by_category_ids: { [id: number]: string[] };
+    selected_item_for_delete: any;
+
 }
 
 export default class SupervisionDashboardStore implements IStoreModule<ISupervisionState, SupervisionContext> {
@@ -63,6 +65,7 @@ export default class SupervisionDashboardStore implements IStoreModule<ISupervis
             dashboard_key: null,
             filter_text_lower_case: null,
             api_type_ids_by_category_ids: null,
+            selected_item_for_delete: null,
         };
 
 
@@ -75,6 +78,7 @@ export default class SupervisionDashboardStore implements IStoreModule<ISupervis
             get_show_pauseds: (state: ISupervisionState): boolean => state.show_pauseds,
             get_show_unknowns: (state: ISupervisionState): boolean => state.show_unknowns,
             get_selected_item: (state: ISupervisionState): ISupervisedItem => state.selected_item,
+            get_selected_item_for_delete: (state: ISupervisionState): ISupervisedItem => state.selected_item_for_delete,
             get_categorys: (state: ISupervisionState): SupervisedCategoryVO[] => state.categorys,
             get_selected_category: (state: ISupervisionState): SupervisedCategoryVO => state.selected_category,
             get_api_type_ids: (state: ISupervisionState): string[] => state.api_type_ids,
@@ -107,6 +111,7 @@ export default class SupervisionDashboardStore implements IStoreModule<ISupervis
                 state.show_unknowns = !state.show_unknowns;
             },
             set_selected_item: (state: ISupervisionState, selected_item: ISupervisedItem): any => state.selected_item = selected_item,
+            set_selected_item_for_delete: (state: ISupervisionState, set_selected_item_for_delete: ISupervisedItem): any => state.selected_item_for_delete = set_selected_item_for_delete,
             set_categorys: (state: ISupervisionState, categorys: SupervisedCategoryVO[]): any => state.categorys = categorys,
             set_selected_category: (state: ISupervisionState, selected_category: SupervisedCategoryVO): any => state.selected_category = selected_category,
             set_api_type_ids: (state: ISupervisionState, api_type_ids: string[]): any => state.api_type_ids = api_type_ids,
@@ -127,6 +132,7 @@ export default class SupervisionDashboardStore implements IStoreModule<ISupervis
             switch_show_pauseds: (context: SupervisionContext): any => commit_switch_show_pauseds(context, null),
             switch_show_unknowns: (context: SupervisionContext): any => commit_switch_show_unknowns(context, null),
             set_selected_item: (context: SupervisionContext, selected_item: ISupervisedItem): any => commit_set_selected_item(context, selected_item),
+            set_selected_item_for_delete: (context: SupervisionContext, selected_item: ISupervisedItem): any => commit_set_selected_item_for_delete(context, selected_item),
             set_categorys: (context: SupervisionContext, categorys: SupervisedCategoryVO[]): any => commit_set_categorys(context, categorys),
             set_selected_category: (context: SupervisionContext, selected_category: SupervisedCategoryVO): any => commit_set_selected_category(context, selected_category),
             set_api_type_ids: (context: SupervisionContext, api_type_ids: string[]): any => commit_set_api_type_ids(context, api_type_ids),
@@ -151,6 +157,7 @@ export const commit_switch_show_oks = commit(SupervisionDashboardStore.getInstan
 export const commit_switch_show_pauseds = commit(SupervisionDashboardStore.getInstance().mutations.switch_show_pauseds);
 export const commit_switch_show_unknowns = commit(SupervisionDashboardStore.getInstance().mutations.switch_show_unknowns);
 export const commit_set_selected_item = commit(SupervisionDashboardStore.getInstance().mutations.set_selected_item);
+export const commit_set_selected_item_for_delete = commit(SupervisionDashboardStore.getInstance().mutations.set_selected_item_for_delete);
 export const commit_set_categorys = commit(SupervisionDashboardStore.getInstance().mutations.set_categorys);
 export const commit_set_selected_category = commit(SupervisionDashboardStore.getInstance().mutations.set_selected_category);
 export const commit_set_api_type_ids = commit(SupervisionDashboardStore.getInstance().mutations.set_api_type_ids);
