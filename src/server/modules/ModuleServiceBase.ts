@@ -598,7 +598,7 @@ export default abstract class ModuleServiceBase {
             let self = this;
             if (error &&
                 ((error['message'] == 'Connection terminated unexpectedly') ||
-                    (error['message'].starts_with('connect ETIMEDOUT ')))) {
+                    (error['message'].startsWith('connect ETIMEDOUT ')))) {
                 ConsoleHandler.getInstance().error(error + ' - retrying once');
 
                 try {
@@ -650,7 +650,7 @@ export default abstract class ModuleServiceBase {
             let self = this;
             if (error &&
                 ((error['message'] == 'Connection terminated unexpectedly') ||
-                    (error['message'].starts_with('connect ETIMEDOUT ')))) {
+                    (error['message'].startsWith('connect ETIMEDOUT ')))) {
                 ConsoleHandler.getInstance().error(error + ' - retrying once');
 
                 try {
@@ -707,7 +707,7 @@ export default abstract class ModuleServiceBase {
             let self = this;
             if (error &&
                 ((error['message'] == 'Connection terminated unexpectedly') ||
-                    (error['message'].starts_with('connect ETIMEDOUT ')))) {
+                    (error['message'].startsWith('connect ETIMEDOUT ')))) {
                 ConsoleHandler.getInstance().error(error + ' - retrying once');
 
                 try {
