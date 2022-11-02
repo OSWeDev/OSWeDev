@@ -11,50 +11,157 @@
     //-         .unselectable_filter_option(v-if="option.select_state == filter_state_unselectable", disabled="true")
     //-             i.fa.fa-object-group(aria-hidden='true')
     //-             span {{ option.label }}
-    //- template(v-if="placeholder == 'CCS")
-    //-     p salut
+
     template(v-if="have_options")
+        //- template(v-if="placeholder == 'CCS'")
+        //-     multiselect(
+        //-         :preselect-first="false"
+        //-         :multiple="true"
+        //-         :max="max?max:null"
+        //-         :close-on-select="!multiselect",
+        //-         v-model="tmp_filter_active_options",
+        //-         :placeholder="placeholder",
+        //-         :options="filter_options",
+                
+        //-         :searchable="true",
+        //-         :internal-search="true",
+        //-         track-by="id",
+        //-         :id="'multifilter_' + api_type_id",
+        //-         :disabled="disabled",
+        //-         autocomplete="off",
+        //-         ref='multiselectRef',
+        //-         :have_options = "have_options",
+
+        //-         :function-group="function_group",
+        //-         :group-select="true",
+        //-         group-values="options",
+        //-         group-label="custom_name",
+        //-         label="custom_name",
+
+        //-         @input='on_input',
+        //-         select-label='',
+        //-         select-group-label='',
+        //-         selected-label='',
+        //-         deselect-label='',
+        //-         deselect-group-label='',
+        //-     )
+        //-         span(slot="noOptions") -
+        //-         slot(slot="maxElements")  {{ label('multiselect.maxElements', { max }) }}
+
+        //-     template(v-if="(!disabled) && (!max)")
+        //-         .text_cliquable(@click='select_all') {{ label('select_all') }}
+        //-         .inter_text -
+        //-         .text_cliquable(@click='select_none') {{ label('select_none') }}
+        //-     Crudcomponentfield(
+        //-                             @onchangevo='onchangevo'
+        //-                             :field="editable_ccs"
+        //-                             :auto_update_field_value='true'
+        //-                             :inline_input_mode='true'
+        //-                             :inline_input_hide_label='true'
+        //-                             key='editable_ccs'
+        //-                             :inline_input_show_clear='false'
+        //-                             :show_insert_or_update_target='false'
+        //-                             :auto_validate_inline_input='true'
+        //-                             :force_input_is_editing='true'
+        //-                             :inline_input_mode_input_only='true'
+        //-                             :inline_input_read_value="ccs_value"
+        //-                         )
+        //- template(v-else)
         multiselect(
-            :preselect-first="false"
-            :multiple="true"
-            :max="max?max:null"
-            :close-on-select="!multiselect",
-            v-model="tmp_filter_active_options",
-            :placeholder="placeholder",
-            :options="filter_options",
-            
-            :searchable="true",
-            :internal-search="true",
-            track-by="id",
-            :id="'multifilter_' + api_type_id",
-            :disabled="disabled",
-            autocomplete="off",
-            ref='multiselectRef',
-            :have_options = "have_options",
+        :preselect-first="false"
+        :multiple="true"
+        :max="max?max:null"
+        :close-on-select="!multiselect",
+        v-model="tmp_filter_active_options",
+        :placeholder="placeholder",
+        :options="filter_options",
+        
+        :searchable="true",
+        :internal-search="true",
+        track-by="id",
+        :id="'multifilter_' + api_type_id",
+        :disabled="disabled",
+        autocomplete="off",
+        ref='multiselectRef',
+        :have_options = "have_options",
 
-            :function-group="function_group",
-            :group-select="true",
-            group-values="options",
-            group-label="custom_name",
-            label="custom_name",
+        :function-group="function_group",
+        :group-select="true",
+        group-values="options",
+        group-label="custom_name",
+        label="custom_name",
 
-            @input='on_input',
-            select-label='',
-            select-group-label='',
-            selected-label='',
-            deselect-label='',
-            deselect-group-label='',
-        )
-            span(slot="noOptions") -
-            slot(slot="maxElements")  {{ label('multiselect.maxElements', { max }) }}
+        @input='on_input',
+        select-label='',
+        select-group-label='',
+        selected-label='',
+        deselect-label='',
+        deselect-group-label='',
+    )
+        span(slot="noOptions") -
+        slot(slot="maxElements")  {{ label('multiselect.maxElements', { max }) }}
 
-        template(v-if="(!disabled) && (!max)")
-            .text_cliquable(@click='select_all') {{ label('select_all') }}
-            .inter_text -
-            .text_cliquable(@click='select_none') {{ label('select_none') }}
+    template(v-if="(!disabled) && (!max)")
+        .text_cliquable(@click='select_all') {{ label('select_all') }}
+        .inter_text -
+        .text_cliquable(@click='select_none') {{ label('select_none') }}
 
         //@search-change="updateMultiSelectFilterOptions"
     template(v-if="!have_options")
+        //- template(v-if="placeholder == 'CCS'")
+        //-     multiselect(
+        //-         :preselect-first="false"
+        //-         :multiple="true"
+        //-         :max="max?max:null"
+        //-         :close-on-select="!multiselect",
+        //-         v-model="tmp_filter_active_options",
+        //-         :placeholder="placeholder",
+        //-         :options="filter_options",
+                
+        //-         :searchable="true",
+        //-         :internal-search="true",
+        //-         track-by="id",
+        //-         :id="'multifilter_' + api_type_id",
+        //-         :disabled="disabled",
+        //-         autocomplete="off",
+        //-         ref='multiselectRef',
+        //-         :have_options = "have_options",
+
+        //-         :function-group="function_group",
+        //-         :group-select="true",
+        //-         group-values="options",
+        //-         group-label="custom_name",
+        //-         label="custom_name",
+
+        //-         @input='on_input',
+        //-         select-label='',
+        //-         select-group-label='',
+        //-         selected-label='',
+        //-         deselect-label='',
+        //-         deselect-group-label='',
+        //-     )
+        //-         span(slot="noOptions") -
+        //-         slot(slot="maxElements")  {{ label('multiselect.maxElements', { max }) }}
+
+        //-     template(v-if="(!disabled) && (!max)")
+        //-         .text_cliquable(@click='select_all') {{ label('select_all') }}
+        //-         .inter_text -
+        //-         .text_cliquable(@click='select_none') {{ label('select_none') }}
+        //-     Crudcomponentfield(
+        //-                             @onchangevo='onchangevo'
+        //-                             :field="editable_ccs"
+        //-                             :auto_update_field_value='true'
+        //-                             :inline_input_mode='true'
+        //-                             :inline_input_hide_label='true'
+        //-                             key='editable_ccs'
+        //-                             :inline_input_show_clear='false'
+        //-                             :show_insert_or_update_target='false'
+        //-                             :auto_validate_inline_input='true'
+        //-                             :force_input_is_editing='true'
+        //-                             :inline_input_mode_input_only='true'
+        //-                             :inline_input_read_value="ccs_value"
+        //-                         )
+        //- template(v-else)
         multiselect(
             :preselect-first="false"
             :multiple="true"
