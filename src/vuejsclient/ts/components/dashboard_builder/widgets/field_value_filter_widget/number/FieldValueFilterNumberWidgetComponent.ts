@@ -51,11 +51,11 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
     @Prop({ default: null })
     private dashboard_page: DashboardPageVO;
 
-    private tmp_filter_active_options: DataFilterOption[] = [];
+    private tmp_filter_active_options: DataFilterOption[] = null;
 
     private filter_visible_options: DataFilterOption[] = [];
 
-    private advanced_filters: boolean = false;
+    private advanced_filters: boolean = true;
     private advanced_number_filters: AdvancedNumberFilter[] = [new AdvancedNumberFilter()];
 
     private warn_existing_external_filters: boolean = false;
@@ -74,7 +74,9 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         AdvancedNumberFilter.FILTER_TYPE_SUP,
         AdvancedNumberFilter.FILTER_TYPE_SUPEQ,
         AdvancedNumberFilter.FILTER_TYPE_EST_NULL,
-        AdvancedNumberFilter.FILTER_TYPE_NEST_PAS_NULL
+        AdvancedNumberFilter.FILTER_TYPE_NEST_PAS_NULL,
+        AdvancedNumberFilter.FILTER_TYPE_EQ,
+        AdvancedNumberFilter.FILTER_TYPE_NOTEQ,
     ];
 
     @Watch('get_active_field_filters', { deep: true })
@@ -126,9 +128,15 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
 
         let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id];
         let field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
+        let has_null_value: boolean = false;
 
         for (let i in locale_tmp_filter_active_options) {
             let active_option = locale_tmp_filter_active_options[i];
+
+            if (active_option.id == RangeHandler.MIN_INT) {
+                has_null_value = true;
+                continue;
+            }
 
             let new_translated_active_options = ContextFilterHandler.getInstance().get_ContextFilterVO_from_DataFilterOption(active_option, null, field, this.vo_field_ref);
 
@@ -140,6 +148,19 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                 translated_active_options = new_translated_active_options;
             } else {
                 translated_active_options = ContextFilterHandler.getInstance().merge_ContextFilterVOs(translated_active_options, new_translated_active_options);
+            }
+        }
+
+        if (has_null_value) {
+            let cf_null_value: ContextFilterVO = new ContextFilterVO();
+            cf_null_value.field_id = this.vo_field_ref.field_id;
+            cf_null_value.vo_type = this.vo_field_ref.api_type_id;
+            cf_null_value.filter_type = ContextFilterVO.TYPE_NULL_OR_EMPTY;
+
+            if (!translated_active_options) {
+                translated_active_options = cf_null_value;
+            } else {
+                translated_active_options = ContextFilterVO.or([cf_null_value, translated_active_options]);
             }
         }
 
@@ -214,6 +235,11 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
             previous_filter = advanced_filter;
         }
 
+        if (!translated_active_options) {
+            this.remove_active_field_filter({ vo_type: this.vo_field_ref.api_type_id, field_id: this.vo_field_ref.field_id });
+            return;
+        }
+
         this.set_active_field_filter({
             field_id: this.vo_field_ref.field_id,
             vo_type: this.vo_field_ref.api_type_id,
@@ -285,11 +311,11 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         if ((!this.get_active_field_filters) || (!this.get_active_field_filters[this.vo_field_ref.api_type_id]) ||
             (!this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id])) {
 
-            if (this.advanced_filters) {
-                this.advanced_filters = false;
-            }
+            // if (this.advanced_filters) {
+            //     this.advanced_filters = false;
+            // }
             if (this.advanced_number_filters) {
-                this.advanced_number_filters = null;
+                this.advanced_number_filters = [new AdvancedNumberFilter()];
             }
         }
 
@@ -342,22 +368,30 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         }
 
         if (!tmp) {
-            this.filter_visible_options = [];
-        } else {
-            this.filter_visible_options = tmp;
+            tmp = [];
         }
+
+        if (this.add_is_null_selectable) {
+            tmp.unshift(new DataFilterOption(
+                DataFilterOption.STATE_SELECTABLE,
+                this.label('datafilteroption.is_null'),
+                RangeHandler.MIN_INT,
+            ));
+        }
+
+        this.filter_visible_options = tmp;
     }
 
     private try_apply_actual_active_filters(filter: ContextFilterVO): boolean {
         if (!filter) {
-            if (this.advanced_filters) {
-                this.advanced_filters = false;
-            }
+            // if (this.advanced_filters) {
+            //     this.advanced_filters = false;
+            // }
             if (this.tmp_filter_active_options) {
                 this.tmp_filter_active_options = null;
             }
             if (this.advanced_number_filters) {
-                this.advanced_number_filters = null;
+                this.advanced_number_filters = [new AdvancedNumberFilter()];
             }
 
             return true;
@@ -380,11 +414,11 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
             this.advanced_number_filters = advanced_filters;
         } else {
 
-            if (this.advanced_filters) {
-                this.advanced_filters = false;
-            }
+            // if (this.advanced_filters) {
+            //     this.advanced_filters = false;
+            // }
             if (this.advanced_number_filters) {
-                this.advanced_number_filters = null;
+                this.advanced_number_filters = [new AdvancedNumberFilter()];
             }
 
             let tmp_filter_active_options: DataFilterOption[] = [];
@@ -425,6 +459,8 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
             field_type = field.field_type;
         }
 
+        let need_value: boolean = false;
+
         switch (field_type) {
             case ModuleTableField.FIELD_TYPE_int:
             case ModuleTableField.FIELD_TYPE_geopoint:
@@ -437,23 +473,37 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                     case AdvancedNumberFilter.FILTER_TYPE_EST_NULL:
                         translated_active_options.filter_type = ContextFilterVO.TYPE_NULL_ANY;
                         break;
+                    case AdvancedNumberFilter.FILTER_TYPE_NEST_PAS_NULL:
+                        translated_active_options.filter_type = ContextFilterVO.TYPE_NULL_NONE;
+                        break;
                     case AdvancedNumberFilter.FILTER_TYPE_INF:
+                        need_value = true;
                         translated_active_options.filter_type = ContextFilterVO.TYPE_NUMERIC_INF_ANY;
                         translated_active_options.param_numeric = advanced_filter.filter_content;
                         break;
                     case AdvancedNumberFilter.FILTER_TYPE_INFEQ:
+                        need_value = true;
                         translated_active_options.filter_type = ContextFilterVO.TYPE_NUMERIC_INFEQ_ANY;
                         translated_active_options.param_numeric = advanced_filter.filter_content;
                         break;
-                    case AdvancedNumberFilter.FILTER_TYPE_NEST_PAS_NULL:
-                        translated_active_options.filter_type = ContextFilterVO.TYPE_NULL_NONE;
-                        break;
                     case AdvancedNumberFilter.FILTER_TYPE_SUP:
+                        need_value = true;
                         translated_active_options.filter_type = ContextFilterVO.TYPE_NUMERIC_SUP_ANY;
                         translated_active_options.param_numeric = advanced_filter.filter_content;
                         break;
                     case AdvancedNumberFilter.FILTER_TYPE_SUPEQ:
+                        need_value = true;
                         translated_active_options.filter_type = ContextFilterVO.TYPE_NUMERIC_SUPEQ_ANY;
+                        translated_active_options.param_numeric = advanced_filter.filter_content;
+                        break;
+                    case AdvancedNumberFilter.FILTER_TYPE_EQ:
+                        need_value = true;
+                        translated_active_options.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
+                        translated_active_options.param_numeric = advanced_filter.filter_content;
+                        break;
+                    case AdvancedNumberFilter.FILTER_TYPE_NOTEQ:
+                        need_value = true;
+                        translated_active_options.filter_type = ContextFilterVO.TYPE_NUMERIC_NOT_EQUALS;
                         translated_active_options.param_numeric = advanced_filter.filter_content;
                         break;
                 }
@@ -461,6 +511,10 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
 
             default:
                 throw new Error('Not Implemented');
+        }
+
+        if (need_value && ((translated_active_options.param_numeric === null) || (!translated_active_options.param_numeric.toString().length))) {
+            return null;
         }
 
         return translated_active_options;
@@ -560,7 +614,9 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
             [AdvancedNumberFilter.FILTER_TYPE_SUP]: true,
             [AdvancedNumberFilter.FILTER_TYPE_SUPEQ]: true,
             [AdvancedNumberFilter.FILTER_TYPE_EST_NULL]: false,
-            [AdvancedNumberFilter.FILTER_TYPE_NEST_PAS_NULL]: false
+            [AdvancedNumberFilter.FILTER_TYPE_NEST_PAS_NULL]: false,
+            [AdvancedNumberFilter.FILTER_TYPE_EQ]: true,
+            [AdvancedNumberFilter.FILTER_TYPE_NOTEQ]: true,
         };
 
         return res;
@@ -581,6 +637,15 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         }
 
         return !!this.widget_options.can_select_multiple;
+    }
+
+    get add_is_null_selectable(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.add_is_null_selectable;
     }
 
     get no_inter_filter(): boolean {
@@ -717,6 +782,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                     options.separation_active_filter,
                     options.vo_field_sort_lvl2,
                     options.autovalidate_advanced_filter,
+                    options.add_is_null_selectable,
                 ) : null;
             }
         } catch (error) {

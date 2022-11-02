@@ -282,8 +282,15 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                 let field_multiple = moduletable_multiple.get_field_by_id(this.vo_field_ref_multiple[i].field_id);
                 let res_: ContextFilterVO = null;
 
+                let has_null_value_multiple: boolean = false;
+
                 for (let j in locale_tmp_filter_active_options) {
                     let active_option = locale_tmp_filter_active_options[j];
+
+                    if (active_option.id == RangeHandler.MIN_INT) {
+                        has_null_value_multiple = true;
+                        continue;
+                    }
 
                     let new_translated_active_options = ContextFilterHandler.getInstance().get_ContextFilterVO_from_DataFilterOption(active_option, null, field_multiple, this.vo_field_ref_multiple[i]);
 
@@ -298,6 +305,19 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                     }
                 }
 
+                if (has_null_value_multiple) {
+                    let cf_null_value: ContextFilterVO = new ContextFilterVO();
+                    cf_null_value.field_id = this.vo_field_ref_multiple[i].field_id;
+                    cf_null_value.vo_type = this.vo_field_ref_multiple[i].api_type_id;
+                    cf_null_value.filter_type = ContextFilterVO.TYPE_NULL_OR_EMPTY;
+
+                    if (!res_) {
+                        res_ = cf_null_value;
+                    } else {
+                        res_ = ContextFilterVO.or([cf_null_value, res_]);
+                    }
+                }
+
                 if (res_) {
                     res.push(res_);
                 }
@@ -305,24 +325,39 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         }
 
         let res_a: ContextFilterVO = null;
+        let has_null_value: boolean = false;
 
         for (let i in locale_tmp_filter_active_options) {
             let active_option = locale_tmp_filter_active_options[i];
 
-            let active_opts: DataFilterOption[] = [active_option];
+            if (active_option.id == RangeHandler.MIN_INT) {
+                has_null_value = true;
+                continue;
+            }
 
-            for (let j in active_opts) {
-                let new_translated_active_options = ContextFilterHandler.getInstance().get_ContextFilterVO_from_DataFilterOption(active_opts[j], null, field, vo_field_ref);
+            let new_translated_active_options = ContextFilterHandler.getInstance().get_ContextFilterVO_from_DataFilterOption(active_option, null, field, vo_field_ref);
 
-                if (!new_translated_active_options) {
-                    continue;
-                }
+            if (!new_translated_active_options) {
+                continue;
+            }
 
-                if (!res) {
-                    res_a = new_translated_active_options;
-                } else {
-                    res_a = ContextFilterHandler.getInstance().merge_ContextFilterVOs(res_a, new_translated_active_options);
-                }
+            if (!res) {
+                res_a = new_translated_active_options;
+            } else {
+                res_a = ContextFilterHandler.getInstance().merge_ContextFilterVOs(res_a, new_translated_active_options);
+            }
+        }
+
+        if (has_null_value) {
+            let cf_null_value: ContextFilterVO = new ContextFilterVO();
+            cf_null_value.field_id = this.vo_field_ref.field_id;
+            cf_null_value.vo_type = this.vo_field_ref.api_type_id;
+            cf_null_value.filter_type = ContextFilterVO.TYPE_NULL_OR_EMPTY;
+
+            if (!res_a) {
+                res_a = cf_null_value;
+            } else {
+                res_a = ContextFilterVO.or([cf_null_value, res_a]);
             }
         }
 
@@ -779,22 +814,30 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         }
 
         if (!tmp) {
-            this.filter_visible_options = [];
-            this.filter_visible_options_lvl2 = {};
-        } else {
-            if (this.separation_active_filter) {
-                for (const key in this.tmp_filter_active_options) {
-                    let tfao = this.tmp_filter_active_options[key];
-                    let index_opt = tmp.findIndex((e) => e.label == tfao.label);
-                    if (index_opt > -1) {
-                        tmp.splice(index_opt, 1);
-                    }
+            tmp = [];
+            tmp_lvl2 = {};
+        }
+
+        if (this.separation_active_filter && (tmp.length > 0)) {
+            for (const key in this.tmp_filter_active_options) {
+                let tfao = this.tmp_filter_active_options[key];
+                let index_opt = tmp.findIndex((e) => e.label == tfao.label);
+                if (index_opt > -1) {
+                    tmp.splice(index_opt, 1);
                 }
             }
-
-            this.filter_visible_options = tmp;
-            this.filter_visible_options_lvl2 = tmp_lvl2;
         }
+
+        if (this.add_is_null_selectable) {
+            tmp.unshift(new DataFilterOption(
+                DataFilterOption.STATE_SELECTABLE,
+                this.label('datafilteroption.is_null'),
+                RangeHandler.MIN_INT,
+            ));
+        }
+
+        this.filter_visible_options = tmp;
+        this.filter_visible_options_lvl2 = tmp_lvl2;
     }
 
     private try_apply_actual_active_filters(filter: ContextFilterVO): boolean {
@@ -1252,6 +1295,15 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         return !!this.widget_options.show_search_field;
     }
 
+    get add_is_null_selectable(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.add_is_null_selectable;
+    }
+
     get separation_active_filter(): boolean {
 
         if (!this.widget_options) {
@@ -1484,6 +1536,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                     options.separation_active_filter,
                     options.vo_field_sort_lvl2,
                     options.autovalidate_advanced_filter,
+                    options.add_is_null_selectable,
                 ) : null;
             }
         } catch (error) {

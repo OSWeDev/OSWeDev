@@ -22,6 +22,7 @@ import FileHandler from '../../../../shared/tools/FileHandler';
 import ImportLogger from '../logger/ImportLogger';
 import moment = require('moment');
 const XmlReader = require('xml-reader');
+const he = require('he');
 
 export default class ImportTypeXMLHandler {
     public static getInstance() {
@@ -164,17 +165,7 @@ export default class ImportTypeXMLHandler {
                 res = '' + res;
             }
 
-            res = res.replace(/&apos;/ig, "'");
-            res = res.replace(/&quot;/ig, '"');
-            res = res.replace(/&lt;/ig, '<');
-            res = res.replace(/&gt;/ig, '>');
-            res = res.replace(/&amp;/ig, '&');
-
-            // a priori "" ça veut dire escape de "
-            res = res.replace(/""/ig, '"');
-
-            res = res.replace(/&#x000d;<br\/>/ig, "\n");
-
+            res = he.decode(res);
         }
 
         return res;

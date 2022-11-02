@@ -6,7 +6,9 @@ export default class AdvancedNumberFilter {
         'adv_number_fltr.sup',
         'adv_number_fltr.supeq',
         'adv_number_fltr.est_null',
-        'adv_number_fltr.nest_pas_null'
+        'adv_number_fltr.nest_pas_null',
+        'adv_number_fltr.eq',
+        'adv_number_fltr.not_eq',
     ];
     public static FILTER_TYPE_INF: number = 0;
     public static FILTER_TYPE_INFEQ: number = 1;
@@ -14,6 +16,8 @@ export default class AdvancedNumberFilter {
     public static FILTER_TYPE_SUPEQ: number = 3;
     public static FILTER_TYPE_EST_NULL: number = 4;
     public static FILTER_TYPE_NEST_PAS_NULL: number = 5;
+    public static FILTER_TYPE_EQ: number = 6;
+    public static FILTER_TYPE_NOTEQ: number = 7;
 
     public static LINK_TYPE_LABELS: string[] = [
         'adv_number_fltr.et',
