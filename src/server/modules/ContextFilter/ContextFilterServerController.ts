@@ -397,6 +397,15 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_translatable_text:
                     case ModuleTableField.FIELD_TYPE_email:
                     case ModuleTableField.FIELD_TYPE_password:
+                        if (active_field_filter.param_alias != null) {
+                            where_conditions.push(
+                                (active_field_filter.text_ignore_case ? 'LOWER(' : '') + field_id + (active_field_filter.text_ignore_case ? ')' : '') +
+                                " = " +
+                                (active_field_filter.text_ignore_case ? 'LOWER(' : '') + active_field_filter.param_alias + (active_field_filter.text_ignore_case ? ')' : ''));
+
+                            break;
+                        }
+
                         if (active_field_filter.param_text != null) {
                             let text = (active_field_filter.param_text && active_field_filter.text_ignore_case) ? active_field_filter.param_text.toLowerCase() : active_field_filter.param_text;
                             query_result.params.push(text);
@@ -534,6 +543,15 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_translatable_text:
                     case ModuleTableField.FIELD_TYPE_email:
                     case ModuleTableField.FIELD_TYPE_password:
+                        if (active_field_filter.param_alias != null) {
+                            where_conditions.push(
+                                (active_field_filter.text_ignore_case ? 'LOWER(' : '') + field_id + (active_field_filter.text_ignore_case ? ')' : '') +
+                                " = " +
+                                (active_field_filter.text_ignore_case ? 'LOWER(' : '') + active_field_filter.param_alias + (active_field_filter.text_ignore_case ? ')' : ''));
+
+                            break;
+                        }
+
                         if (active_field_filter.param_text != null) {
                             let text = (active_field_filter.param_text && active_field_filter.text_ignore_case) ? active_field_filter.param_text.toLowerCase() : active_field_filter.param_text;
 
@@ -672,6 +690,16 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_translatable_text:
                     case ModuleTableField.FIELD_TYPE_email:
                     case ModuleTableField.FIELD_TYPE_password:
+                        if (active_field_filter.param_alias != null) {
+
+                            if (active_field_filter.text_ignore_case) {
+                                where_conditions.push(field_id + " ILIKE " + active_field_filter.param_alias + " || '%'");
+                            } else {
+                                where_conditions.push(field_id + " LIKE " + active_field_filter.param_alias + " || '%'");
+                            }
+                            break;
+                        }
+
                         if (active_field_filter.param_text != null) {
                             let text = active_field_filter.param_text;
 
@@ -819,6 +847,15 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_translatable_text:
                     case ModuleTableField.FIELD_TYPE_email:
                     case ModuleTableField.FIELD_TYPE_password:
+                        if (active_field_filter.param_alias != null) {
+
+                            if (active_field_filter.text_ignore_case) {
+                                where_conditions.push(field_id + " ILIKE '%' || " + active_field_filter.param_alias);
+                            } else {
+                                where_conditions.push(field_id + " LIKE '%' || " + active_field_filter.param_alias);
+                            }
+                            break;
+                        }
 
                         if (active_field_filter.param_text != null) {
 

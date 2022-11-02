@@ -355,9 +355,9 @@ export default class ContextFilterVO implements IDistantVOBase {
     }
 
     /**
-     * Filtrer par text strictement égal
-     * @param text le texte que l'on doit retrouver à l'identique en base
-     */
+ * Filtrer par text strictement égal
+ * @param text le texte que l'on doit retrouver à l'identique en base
+ */
     public by_text_eq(text: string | string[], text_ignore_case: boolean = false/*, text_trim: boolean = false*/): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ALL;
         if (isArray(text)) {
@@ -365,6 +365,32 @@ export default class ContextFilterVO implements IDistantVOBase {
         } else {
             this.param_text = text;
         }
+
+        this.text_ignore_case = text_ignore_case;
+        // this.text_trim = text_trim;
+
+        return this;
+    }
+
+    /**
+     * Filtrer par text égal (au moins une fois)
+     */
+    public by_text_has_alias(alias: string, text_ignore_case: boolean = false/*, text_trim: boolean = false*/): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ANY;
+        this.param_alias = alias;
+
+        this.text_ignore_case = text_ignore_case;
+        // this.text_trim = text_trim;
+
+        return this;
+    }
+
+    /**
+     * Filtrer par text strictement égal
+     */
+    public by_text_eq_alias(alias: string, text_ignore_case: boolean = false/*, text_trim: boolean = false*/): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ALL;
+        this.param_alias = alias;
 
         this.text_ignore_case = text_ignore_case;
         // this.text_trim = text_trim;

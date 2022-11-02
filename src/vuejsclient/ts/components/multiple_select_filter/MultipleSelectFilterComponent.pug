@@ -11,6 +11,8 @@
     //-         .unselectable_filter_option(v-if="option.select_state == filter_state_unselectable", disabled="true")
     //-             i.fa.fa-object-group(aria-hidden='true')
     //-             span {{ option.label }}
+    //- template(v-if="placeholder == 'CCS")
+    //-     p salut
     template(v-if="have_options")
         multiselect(
             :preselect-first="false"
