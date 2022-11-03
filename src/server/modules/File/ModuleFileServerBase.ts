@@ -13,6 +13,9 @@ import PushDataServerController from '../PushData/PushDataServerController';
 import FileServerController from './FileServerController';
 import ArchiveFilesWorkersHandler from './ArchiveFilesWorkersHandler';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import FileFormatVO from '../../../shared/modules/File/vos/FileFormatVO';
+import path = require('path');
+import * as sharp from 'sharp';
 
 export default abstract class ModuleFileServerBase<T extends FileVO> extends ModuleServerBase {
 
@@ -28,6 +31,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
 
     public registerServerApiHandlers() {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleFile.APINAME_TEST_FILE_EXISTENZ, this.testFileExistenz.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleFile.APINAME_resize_image_with_style, this.resize_image_with_style.bind(this));
     }
 
     public registerCrons(): void {
@@ -163,5 +167,55 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
             console.error(error);
         }
         return false;
+    }
+
+    private async resize_image_with_style(file_id: number, file_format_id: number): Promise<string> {
+        if (!file_id || !file_format_id) {
+            return null;
+        }
+
+        let file: FileVO = await query(FileVO.API_TYPE_ID).filter_by_id(file_id).select_vo<FileVO>();
+        let file_format: FileFormatVO = await query(FileFormatVO.API_TYPE_ID).filter_by_id(file_format_id).select_vo<FileFormatVO>();
+
+        if (!file || !file_format) {
+            return null;
+        }
+
+        let width_height: string = (file_format.width ? file_format.width.toString() : '_') + '_' + (file_format.height ? file_format.height.toString() : '_');
+
+        let dir_path: string = path.dirname(file.path) + '/resize/';
+        let new_file_path: string = dir_path + (path.basename(file.path, path.extname(file.path)) + '_' + width_height) + path.extname(file.path);
+
+        if (fs.existsSync(new_file_path)) {
+            return new_file_path;
+        }
+
+        if (!fs.existsSync(dir_path)) {
+            fs.mkdirSync(dir_path);
+        }
+
+        let sharp_file = sharp(file.path);
+
+        let metadata = await sharp_file.metadata();
+
+        let rotate = 0;
+
+        switch (metadata.orientation) {
+            case 3:
+                rotate = 180;
+                break;
+
+            case 6:
+                rotate = 90;
+                break;
+
+            case 8:
+                rotate = 270;
+                break;
+        }
+
+        await sharp_file.resize(file_format.width, file_format.height).rotate(rotate).toFile(new_file_path);
+
+        return new_file_path;
     }
 }

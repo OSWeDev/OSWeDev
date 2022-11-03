@@ -8,6 +8,9 @@ import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import FileVO from './vos/FileVO';
 import ArchiveFilesConfVO from './vos/ArchiveFilesConfVO';
+import Number2ParamVO, { Number2ParamVOStatic } from '../API/vos/apis/Number2ParamVO';
+import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
+import FileFormatVO from './vos/FileFormatVO';
 
 export default class ModuleFile extends Module {
 
@@ -21,6 +24,7 @@ export default class ModuleFile extends Module {
     // public static TEMP_FILES_ROOT: string = './temp/';
 
     public static APINAME_TEST_FILE_EXISTENZ = "test_file_existenz";
+    public static APINAME_resize_image_with_style = "resize_image_with_style";
 
     public static getInstance(): ModuleFile {
         if (!ModuleFile.instance) {
@@ -32,6 +36,7 @@ export default class ModuleFile extends Module {
     private static instance: ModuleFile = null;
 
     public testFileExistenz: (filevo_id: number) => Promise<boolean> = APIControllerWrapper.sah(ModuleFile.APINAME_TEST_FILE_EXISTENZ);
+    public resize_image_with_style: (file_id: number, file_format_id: number) => Promise<string> = APIControllerWrapper.sah<Number2ParamVO, string>(ModuleFile.APINAME_resize_image_with_style);
 
     private constructor() {
 
@@ -43,27 +48,50 @@ export default class ModuleFile extends Module {
         this.fields = [];
         this.datatables = [];
 
+        this.initializeFileVO();
+        this.initializeArchiveFilesConfVO();
+        this.initializeFileFormatVO();
+    }
+
+    public initializeFileVO() {
         let label_field = new ModuleTableField('path', ModuleTableField.FIELD_TYPE_file_field, 'Fichier', false);
+
         let datatable_fields = [
             label_field,
             new ModuleTableField('is_secured', ModuleTableField.FIELD_TYPE_boolean, 'Fichier sécurisé', true, true, false),
             new ModuleTableField('file_access_policy_name', ModuleTableField.FIELD_TYPE_string, 'Nom du droit nécessaire si sécurisé', false),
         ];
 
-        let label_field_ff = new ModuleTableField("path_to_check", ModuleTableField.FIELD_TYPE_string, 'Répertoire', true).unique();
-        let datatable_fields_ff = [
-            label_field_ff,
+        let datatable = new ModuleTable(this, FileVO.API_TYPE_ID, () => new FileVO(), datatable_fields, label_field, "Fichiers");
+        this.datatables.push(datatable);
+    }
+
+    public initializeArchiveFilesConfVO() {
+        let label_field = new ModuleTableField("path_to_check", ModuleTableField.FIELD_TYPE_string, 'Répertoire', true).unique();
+        let datatable_fields = [
+            label_field,
             new ModuleTableField('filter_type', ModuleTableField.FIELD_TYPE_enum, 'Type de filtre', true, true, ArchiveFilesConfVO.FILTER_TYPE_MONTH).setEnumValues(ArchiveFilesConfVO.FILTER_TYPE_LABELS),
             new ModuleTableField("target_achive_folder", ModuleTableField.FIELD_TYPE_file_field, 'Répertoire d\'archivage', true),
             new ModuleTableField("archive_delay_sec", ModuleTableField.FIELD_TYPE_file_field, 'Archiver au delà de ce délai', true, true, 30 * 24 * 60 * 60), // Defaults to 30 days
             new ModuleTableField("use_date_type", ModuleTableField.FIELD_TYPE_file_field, 'Répertoire d\'archivage', true, true, ArchiveFilesConfVO.USE_DATE_TYPE_CREATION),
         ];
 
-        let datatableFilterFile = new ModuleTable(this, ArchiveFilesConfVO.API_TYPE_ID, () => new ArchiveFilesConfVO(), datatable_fields_ff, label_field_ff, "Conf archivage des fichiers");
+        let datatable = new ModuleTable(this, ArchiveFilesConfVO.API_TYPE_ID, () => new ArchiveFilesConfVO(), datatable_fields, label_field, "Conf archivage des fichiers");
 
-        let datatable = new ModuleTable(this, FileVO.API_TYPE_ID, () => new FileVO(), datatable_fields, label_field);
         this.datatables.push(datatable);
-        this.datatables.push(datatableFilterFile);
+    }
+
+    public initializeFileFormatVO() {
+        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom du style');
+
+        let datatable_fields = [
+            label_field,
+            new ModuleTableField('width', ModuleTableField.FIELD_TYPE_int, "Largeur"),
+            new ModuleTableField('height', ModuleTableField.FIELD_TYPE_int, "Hauteur"),
+        ];
+
+        let datatable = new ModuleTable(this, FileFormatVO.API_TYPE_ID, () => new FileFormatVO(), datatable_fields, label_field, "Formats de fichier");
+        this.datatables.push(datatable);
     }
 
     public registerApis() {
@@ -73,6 +101,13 @@ export default class ModuleFile extends Module {
             ModuleFile.APINAME_TEST_FILE_EXISTENZ,
             [FileVO.API_TYPE_ID],
             NumberParamVOStatic
+        ));
+
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<Number2ParamVO, string>(
+            ModuleAccessPolicy.POLICY_FO_ACCESS,
+            ModuleFile.APINAME_resize_image_with_style,
+            [FileVO.API_TYPE_ID, FileFormatVO.API_TYPE_ID],
+            Number2ParamVOStatic
         ));
     }
 }
