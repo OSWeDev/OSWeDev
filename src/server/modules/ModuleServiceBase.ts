@@ -403,6 +403,7 @@ export default abstract class ModuleServiceBase {
 
     private async create_modules_base_structure_in_db() {
         // On vérifie que la table des modules est disponible, sinon on la crée
+        await this.db.none('CREATE SCHEMA IF NOT EXISTS admin;');
         await this.db.none("CREATE TABLE IF NOT EXISTS admin.modules (id bigserial NOT NULL, name varchar(255) not null, actif bool default false, CONSTRAINT modules_pkey PRIMARY KEY (id));");
         await this.db.none('GRANT ALL ON TABLE admin.modules TO ' + this.bdd_owner + ';');
     }
