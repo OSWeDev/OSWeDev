@@ -2,7 +2,9 @@
     template(v-if='widget && page_widget')
         template(v-if='is_edit_mode && is_selected')
             .delete_button
-                i.fa.fa-trash.fa-fw.btn_icon(aria-hidden="true" @click="delete_widget")       
+                i.fa.fa-trash.fa-fw.btn_icon(aria-hidden="true" @click="delete_widget")  
+            .copy_widget 
+                i.fa.fa-duotone.fa-clone(@click="copy_widget")     
         .widget_component_wrapper
             .widget_component(
                 :is='widget.widget_component' 

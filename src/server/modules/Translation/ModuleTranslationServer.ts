@@ -115,7 +115,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         }, 'field.auto_update_field_value.failed.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Echec de mise à jour de la valeur du champs, la valeur n\'est peut etre pas correctement formatter, ou vide.'
+            'fr-fr': 'Echec de mise à jour de la valeur du champs, la valeur n\'est peut etre pas correctement formattée, ou vide.'
         }, 'field.auto_update_field_value.failed.empty.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({

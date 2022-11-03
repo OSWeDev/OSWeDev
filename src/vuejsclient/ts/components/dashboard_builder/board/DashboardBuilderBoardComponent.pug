@@ -1,7 +1,9 @@
 .dashboard_builder_board
 
     Crudupdatemodalcomponent(ref='Crudupdatemodalcomponent')
-    Crudcreatemodalcomponent(ref='Crudcreatemodalcomponent')
+    Crudcreatemodalcomponent(ref='Crudcreatemodalcomponent'
+                            @delete_widget = 'delete_widget'
+                            @reload_widgets = 'reload_widgets')
     Checklistitemmodalcomponent(ref='Checklistitemmodalcomponent')
 
     //- (@click="(event) => select_widget_and_stop(event, null)")

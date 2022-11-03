@@ -126,7 +126,17 @@ export default class VarsDatasProxy {
     public async get_var_datas_or_ask_to_bgthread(params: VarDataBaseVO[], notifyable_vars: VarDataBaseVO[], needs_computation: VarDataBaseVO[], client_user_id: number, client_tab_id: string, is_server_request: boolean, reason: string): Promise<void> {
         let env = ConfigurationService.getInstance().node_configuration;
 
+        if ((!params) || (!params.length)) {
+            return;
+        }
+
+        if (env.DEBUG_VARS_SERVER_SUBS_CBS) {
+            ConsoleHandler.getInstance().log("get_var_datas_or_ask_to_bgthread:IN:" + params.length);
+        }
         let varsdata: VarDataBaseVO[] = await VarsDatasProxy.getInstance().get_exact_params_from_buffer_or_bdd(params);
+        if (env.DEBUG_VARS_SERVER_SUBS_CBS) {
+            ConsoleHandler.getInstance().log("get_var_datas_or_ask_to_bgthread:get_exact_params_from_buffer_or_bdd:OUT:" + params.length + ":" + (varsdata ? varsdata.length : 'N/A'));
+        }
 
         if (varsdata) {
 
@@ -195,6 +205,10 @@ export default class VarsDatasProxy {
 
                 to_prepend.push(param);
                 needs_computation.push(param);
+
+                if (env.DEBUG_VARS_SERVER_SUBS_CBS) {
+                    ConsoleHandler.getInstance().log("get_var_datas_or_ask_to_bgthread:needs_computation:" + params.length + ":" + param.index);
+                }
             }
 
             // On push dans le buffer de mise à jour de la BDD
@@ -230,11 +244,21 @@ export default class VarsDatasProxy {
             return;
         }
 
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
+            ConsoleHandler.getInstance().log("prepend_var_datas:IN:" + var_datas.length + ":" + client_user_id + ":" + client_tab_id + ":" + is_server_request + ":" + reason);
+        }
+
         if (!await ForkedTasksController.getInstance().exec_self_on_bgthread(VarsdatasComputerBGThread.getInstance().name, VarsDatasProxy.TASK_NAME_prepend_var_datas, var_datas, client_user_id, client_tab_id, is_server_request, reason, does_not_need_insert_or_update)) {
+            if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
+                ConsoleHandler.getInstance().log("prepend_var_datas:OUT not bgthread:" + var_datas.length + ":" + client_user_id + ":" + client_tab_id + ":" + is_server_request + ":" + reason);
+            }
             return;
         }
 
         this.filter_var_datas_by_indexes(var_datas, client_user_id, client_tab_id, is_server_request, 'prepend_var_datas:' + reason, false, does_not_need_insert_or_update);
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
+            ConsoleHandler.getInstance().log("prepend_var_datas:OUT:" + var_datas.length + ":" + client_user_id + ":" + client_tab_id + ":" + is_server_request + ":" + reason);
+        }
     }
 
     /**
@@ -620,6 +644,7 @@ export default class VarsDatasProxy {
             ConsoleHandler.getInstance().log('VarsDatasProxy:prepare_current_batch_ordered_pick_list:filter_by_subs:START:' + nb_vars_in_buffer);
         }
         let registered_var_datas_indexes: string[] = await VarsTabsSubsController.getInstance().filter_by_subs(vars_datas.map((v) => v.index));
+        registered_var_datas_indexes = registered_var_datas_indexes ? registered_var_datas_indexes : [];
         if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
             ConsoleHandler.getInstance().log('VarsDatasProxy:prepare_current_batch_ordered_pick_list:filter_by_subs:END:' + nb_vars_in_buffer);
         }
@@ -685,10 +710,6 @@ export default class VarsDatasProxy {
             }
         }
 
-        if ((!registered_var_datas_indexes) || (!registered_var_datas_indexes.length)) {
-            VarsdatasComputerBGThread.getInstance().current_batch_ordered_pick_list = [];
-            return;
-        }
         let nb_registered_vars_in_buffer = registered_var_datas_indexes.length;
 
         ConsoleHandler.getInstance().log('VarsDatasProxy.prepare_current_batch_ordered_pick_list:nb_vars_in_buffer|' + nb_vars_in_buffer + ':nb_registered_vars_in_buffer|' + nb_registered_vars_in_buffer);
@@ -742,60 +763,73 @@ export default class VarsDatasProxy {
 
         let res: VarDataBaseVO[] = [];
 
+        if (!BGThreadServerController.getInstance().valid_bgthreads_names[VarsdatasComputerBGThread.getInstance().name]) {
+            throw new Error('VarsDatasProxy.filter_var_datas_by_indexes: invalid bgthread name');
+        }
+
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
+            ConsoleHandler.getInstance().log("filter_var_datas_by_indexes:IN:" + var_datas.length + ":" + client_user_id + ":" + client_socket_id + ":" + is_server_request + ":" + reason);
+        }
+
         for (let i in var_datas) {
             let var_data = var_datas[i];
 
-            if (BGThreadServerController.getInstance().valid_bgthreads_names[VarsdatasComputerBGThread.getInstance().name]) {
-                if (this.vars_datas_buffer_wrapped_indexes[var_data.index]) {
+            if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
+                ConsoleHandler.getInstance().log("filter_var_datas_by_indexes:var_data:" + var_data.index + ":" + var_datas.length + ":" + client_user_id + ":" + client_socket_id + ":" + is_server_request + ":" + reason);
+            }
 
-                    let wrapper = this.vars_datas_buffer_wrapped_indexes[var_data.index];
-                    res.push(wrapper.var_data);
+            if (this.vars_datas_buffer_wrapped_indexes[var_data.index]) {
 
-                    /**
-                     * Si ça existe déjà dans la liste d'attente on l'ajoute pas mais on met à jour pour intégrer les calculs faits le cas échéant
-                     *  Si on vide le value_ts on prend la modif aussi ça veut dire qu'on invalide la valeur en cache
-                     */
-                    if ((!var_data.value_ts) || ((!!var_data.value_ts) && ((!wrapper.var_data.value_ts) ||
-                        (var_data.value_ts && (wrapper.var_data.value_ts < var_data.value_ts))))) {
-
-                        // Si on avait un id et que la nouvelle valeur n'en a pas, on concerve l'id précieusement
-                        if ((!var_data.id) && (wrapper.var_data.id)) {
-                            var_data.id = wrapper.var_data.id;
-                        }
-
-                        // FIXME On devrait checker les champs pour voir si il y a une différence non ?
-                        // wrapper.needs_insert_or_update = !just_been_loaded_from_db;
-
-                        // Si on dit qu'on vient de la charger de la base, on peut stocker l'info de dernière mise à jour en bdd
-                        if (just_been_loaded_from_db) {
-                            wrapper.last_insert_or_update = Dates.now();
-                            wrapper.update_timeout();
-                        }
-                        wrapper.var_data = var_data;
-                        this.add_read_stat(wrapper);
-                        // On push pas puisque c'était déjà en attente d'action
-
-                        // Si on met en cache une data à calculer on s'assure qu'on a bien un calcul qui vient rapidement
-                        if (!VarsServerController.getInstance().has_valid_value(var_data)) {
-                            VarsdatasComputerBGThread.getInstance().force_run_asap();
-                        }
-                    }
-                    continue;
+                if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
+                    ConsoleHandler.getInstance().log("filter_var_datas_by_indexes:!!wrapper:" + var_data.index + ":" + var_datas.length + ":" + client_user_id + ":" + client_socket_id + ":" + is_server_request + ":" + reason);
                 }
+
+                let wrapper = this.vars_datas_buffer_wrapped_indexes[var_data.index];
+                res.push(wrapper.var_data);
+
+                /**
+                 * Si ça existe déjà dans la liste d'attente on l'ajoute pas mais on met à jour pour intégrer les calculs faits le cas échéant
+                 *  Si on vide le value_ts on prend la modif aussi ça veut dire qu'on invalide la valeur en cache
+                 */
+                if ((!var_data.value_ts) || ((!!var_data.value_ts) && ((!wrapper.var_data.value_ts) ||
+                    (var_data.value_ts && (wrapper.var_data.value_ts < var_data.value_ts))))) {
+
+                    // Si on avait un id et que la nouvelle valeur n'en a pas, on concerve l'id précieusement
+                    if ((!var_data.id) && (wrapper.var_data.id)) {
+                        var_data.id = wrapper.var_data.id;
+                    }
+
+                    // FIXME On devrait checker les champs pour voir si il y a une différence non ?
+                    // wrapper.needs_insert_or_update = !just_been_loaded_from_db;
+
+                    // Si on dit qu'on vient de la charger de la base, on peut stocker l'info de dernière mise à jour en bdd
+                    if (just_been_loaded_from_db) {
+                        wrapper.last_insert_or_update = Dates.now();
+                        wrapper.update_timeout();
+                    }
+                    wrapper.var_data = var_data;
+                    this.add_read_stat(wrapper);
+                    // On push pas puisque c'était déjà en attente d'action
+
+                    // Si on met en cache une data à calculer on s'assure qu'on a bien un calcul qui vient rapidement
+                    if (!VarsServerController.getInstance().has_valid_value(var_data)) {
+                        VarsdatasComputerBGThread.getInstance().force_run_asap();
+                    }
+                }
+                continue;
             }
 
             if (donot_insert_if_absent) {
                 continue;
             }
 
-            // TODO FIXME le thread principal doit pouvoir mettre à jour la liste des reads sur une var en bdd de temps à autre
-            //  attention impact invalidation peut-etre sur thread des vars ...
-            // TODO FIXME pour moi ce test a pas de sens on devrait toujours être côté bgthread du computer, donc ...
-            if (BGThreadServerController.getInstance().valid_bgthreads_names[VarsdatasComputerBGThread.getInstance().name]) {
-                this.vars_datas_buffer_wrapped_indexes[var_data.index] = new VarDataProxyWrapperVO(var_data, client_user_id, client_socket_id, is_server_request, reason, !just_been_loaded_from_db, 0);
-                this.add_read_stat(this.vars_datas_buffer_wrapped_indexes[var_data.index]);
-                res.push(this.vars_datas_buffer_wrapped_indexes[var_data.index].var_data);
+            if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
+                ConsoleHandler.getInstance().log("filter_var_datas_by_indexes:!wrapper:" + var_data.index + ":" + var_datas.length + ":" + client_user_id + ":" + client_socket_id + ":" + is_server_request + ":" + reason);
             }
+
+            this.vars_datas_buffer_wrapped_indexes[var_data.index] = new VarDataProxyWrapperVO(var_data, client_user_id, client_socket_id, is_server_request, reason, !just_been_loaded_from_db, 0);
+            this.add_read_stat(this.vars_datas_buffer_wrapped_indexes[var_data.index]);
+            res.push(this.vars_datas_buffer_wrapped_indexes[var_data.index].var_data);
 
             // Si on met en cache une data à calculer on s'assure qu'on a bien un calcul qui vient rapidement
             if (!VarsServerController.getInstance().has_valid_value(var_data)) {

@@ -24,6 +24,11 @@ export default class ContextQueryVO implements IDistantVOBase {
     public _type: string = ContextQueryVO.API_TYPE_ID;
 
     /**
+     * Indicateur de select count()
+     */
+    public do_count_results: boolean = false;
+
+    /**
      * Request ID : utilisé quand on est dans un UNION ALL et qu'on veut retrouver son résultat quel que soit l'ordre dans lequel les réponses sont renvoyées par la base de données
      */
     public request_id: number;
@@ -432,6 +437,26 @@ export default class ContextQueryVO implements IDistantVOBase {
      */
     public filter_by_text_including(field_id: string, included: string | string[], API_TYPE_ID: string = null, ignore_case: boolean = true): ContextQueryVO {
         return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_including(included, ignore_case)]);
+    }
+
+    /**
+     * Filtrer par text strictement égal
+     * @param field_id le field qu'on veut filtrer
+     * @param alias
+     * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
+     */
+    public filter_by_text_eq_alias(field_id: string, alias: string, API_TYPE_ID: string = null, ignore_case: boolean = false): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_eq_alias(alias, ignore_case)]);
+    }
+
+    /**
+     * Filtrer par text égal ANY
+     * @param field_id le field qu'on veut filtrer
+     * @param alias
+     * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
+     */
+    public filter_by_text_has_alias(field_id: string, alias: string, API_TYPE_ID: string = null, ignore_case: boolean = false): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_has_alias(alias, ignore_case)]);
     }
 
     /**
@@ -851,6 +876,11 @@ export default class ContextQueryVO implements IDistantVOBase {
         return await ModuleContextFilter.getInstance().select(this);
     }
 
+    public count_results(): ContextQueryVO {
+        this.do_count_results = true;
+        return this;
+    }
+
     /**
      * Faire la requête simplement et récupérer le résultat brut
      */
@@ -972,5 +1002,6 @@ export const query = (API_TYPE_ID: string) => {
     res.sort_by = null;
     res.use_technical_field_versioning = false;
     res.query_distinct = false;
+    res.do_count_results = false;
     return res;
 };

@@ -1,6 +1,6 @@
 {
     "name": "oswedev",
-    "version": "0.26.32",
+    "version": "0.26.38",
     "description": "",
     "repository": {
         "type": "git",
@@ -106,9 +106,9 @@
         "i18next": "10.6.0",
         "i18next-express-middleware": "1.1.1",
         "jimp": "0.14.0",
-        "jquery": "3.4.1",
+        "jquery": "3.6.1",
         "jqueryui": "1.11.1",
-        "lodash": "^4.17.21",
+        "lodash": "4.17.21",
         "longjohn": "0.2.12",
         "mathjs": "10.6.4",
         "messagepack": "1.1.10",
@@ -215,7 +215,7 @@
         "fullcalendar": "3.9.0",
         "fullcalendar-scheduler": "1.9.4",
         "html2canvas": "1.0.0-rc.5",
-        "jquery": "3.4.1",
+        "jquery": "3.6.1",
         "jqueryui": "1.11.1",
         "messagepack": "1.1.10",
         "mkdirp": "0.5.1",
