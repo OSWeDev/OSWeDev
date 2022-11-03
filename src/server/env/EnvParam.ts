@@ -27,7 +27,7 @@ export default class EnvParam implements IEnvParam {
     public START_MAINTENANCE_ACCEPTATION_CODE: string;
     public AUTO_END_MAINTENANCE_ON_START: boolean = true;
     public CODE_GOOGLE_ANALYTICS: string = null;
-    public LAUNCH_INIT: boolean = false;
+    public LAUNCH_INIT?: boolean = false;
 
     public DEBUG_SLOW_QUERIES?: boolean = false;
     public DEBUG_SLOW_QUERIES_MS_LIMIT?: number = 100;
