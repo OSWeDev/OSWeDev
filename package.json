@@ -127,6 +127,7 @@
         "pg": "8.7.1",
         "pg-copy-streams": "6.0.2",
         "pg-promise": "10.11.0",
+        "popper.js": "^1.16.1",
         "qrcode": "^1.5.0",
         "rimraf": "2.6.2",
         "screenfull": "3.3.2",

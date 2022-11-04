@@ -1,7 +1,4 @@
-import 'bootstrap';
-import * as $ from 'jquery';
 import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import DataImportFormatVO from '../../../../../shared/modules/DataImport/vos/DataImportFormatVO';
 import DataImportHistoricVO from '../../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
 import FileVO from '../../../../../shared/modules/File/vos/FileVO';

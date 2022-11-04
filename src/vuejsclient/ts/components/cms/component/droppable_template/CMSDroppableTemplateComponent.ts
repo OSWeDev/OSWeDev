@@ -1,4 +1,3 @@
-import * as $ from 'jquery';
 import 'jqueryui';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';

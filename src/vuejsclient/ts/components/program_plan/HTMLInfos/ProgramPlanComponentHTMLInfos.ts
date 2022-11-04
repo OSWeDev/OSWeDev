@@ -1,5 +1,4 @@
 import { Component, Prop, Watch } from 'vue-property-decorator';
-import * as $ from 'jquery';
 import VueComponentBase from '../../VueComponentBase';
 
 @Component({
