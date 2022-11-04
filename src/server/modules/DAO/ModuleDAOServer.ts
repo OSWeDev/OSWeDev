@@ -1341,7 +1341,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                  * Cas des undefined
                  */
                 if (typeof fieldValue == "undefined") {
-                    if (field.has_default && typeof field.field_default == 'undefined') {
+                    if (field.has_default && typeof field.field_default != 'undefined') {
                         fieldValue = field.field_default;
                     } else {
                         fieldValue = null;
