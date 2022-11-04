@@ -1,4 +1,3 @@
-import * as $ from 'jquery';
 import ImageVO from '../../../../shared/modules/Image/vos/ImageVO';
 import AjaxCacheClientController from '../../modules/AjaxCache/AjaxCacheClientController';
 

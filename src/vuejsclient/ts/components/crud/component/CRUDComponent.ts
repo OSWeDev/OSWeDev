@@ -1,4 +1,3 @@
-import * as $ from 'jquery';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import Alert from '../../../../../shared/modules/Alert/vos/Alert';

@@ -1,4 +1,3 @@
-import * as $ from 'jquery';
 import Vue from 'vue';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 

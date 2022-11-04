@@ -23,7 +23,7 @@ export default class CRUDCreateModalComponent extends VueComponentBase {
     //Copy widget
     private copy_widget: boolean = null;
     private page_widget: DashboardPageWidgetVO = null;
-    private pages: DashboardPageVO[];
+    private pages: DashboardPageVO[] = null;
     private page_id: number = null;
 
     private on_hidden_initialized: boolean = false;

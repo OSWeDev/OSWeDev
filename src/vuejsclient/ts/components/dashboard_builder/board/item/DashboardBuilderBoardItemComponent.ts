@@ -1,27 +1,27 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DashboardWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
-import CRUDCreateModalComponent from '../../widgets/table_widget/crud_modals/create/CRUDCreateModalComponent';
 import VueComponentBase from '../../../VueComponentBase';
+import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
+import CRUDCreateModalComponent from '../../widgets/table_widget/crud_modals/create/CRUDCreateModalComponent';
 import './DashboardBuilderBoardItemComponent.scss';
 
 @Component({
     template: require('./DashboardBuilderBoardItemComponent.pug'),
-    components: {
-        CRUDCreateModalComponent: CRUDCreateModalComponent,
-    }
+    components: {}
 })
 
 export default class DashboardBuilderBoardItemComponent extends VueComponentBase {
 
     @ModuleDashboardPageGetter
     private get_Crudcreatemodalcomponent: CRUDCreateModalComponent;
+
+    @Prop({ default: null })
+    private all_page_widget: DashboardPageWidgetVO[];
 
     @Prop()
     private dashboard_page: DashboardPageVO;

@@ -1,8 +1,6 @@
-import * as $ from 'jquery';
-import { cloneDeep, isArray } from 'lodash';
 import debounce from 'lodash/debounce';
+import * as moment from 'moment';
 import { Moment } from 'moment';
-import * as  moment from 'moment';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import { Event } from 'vue-tables-2';
 import Datatable from '../../../../../shared/modules/DAO/vos/datatable/Datatable';
@@ -14,13 +12,12 @@ import SimpleDatatableField from '../../../../../shared/modules/DAO/vos/datatabl
 import ExportDataToXLSXParamVO from '../../../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO';
 import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
 import TSRange from '../../../../../shared/modules/DataRender/vos/TSRange';
+import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
-import TableFieldTypesManager from '../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
-import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../../shared/tools/DateHandler';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
 import TypesHandler from '../../../../../shared/tools/TypesHandler';
@@ -31,10 +28,9 @@ import DaoStoreTypeWatcherDefinition from '../../dao/vos/DaoStoreTypeWatcherDefi
 import VueComponentBase from '../../VueComponentBase';
 import CustomFilterItem from './CustomFilterItem';
 import './DatatableComponent.scss';
+import DatatableRowController from './DatatableRowController';
 import DatatableComponentField from './fields/DatatableComponentField';
 import FileDatatableFieldComponent from './fields/file/file_datatable_field';
-import DatatableRowController from './DatatableRowController';
-import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 
 @Component({
     template: require('./DatatableComponent.pug'),
