@@ -24,7 +24,6 @@ export default class ModuleFile extends Module {
     // public static TEMP_FILES_ROOT: string = './temp/';
 
     public static APINAME_TEST_FILE_EXISTENZ = "test_file_existenz";
-    public static APINAME_resize_image_with_style = "resize_image_with_style";
 
     public static getInstance(): ModuleFile {
         if (!ModuleFile.instance) {
@@ -36,7 +35,6 @@ export default class ModuleFile extends Module {
     private static instance: ModuleFile = null;
 
     public testFileExistenz: (filevo_id: number) => Promise<boolean> = APIControllerWrapper.sah(ModuleFile.APINAME_TEST_FILE_EXISTENZ);
-    public resize_image_with_style: (file_id: number, file_format_id: number) => Promise<string> = APIControllerWrapper.sah<Number2ParamVO, string>(ModuleFile.APINAME_resize_image_with_style);
 
     private constructor() {
 
@@ -101,13 +99,6 @@ export default class ModuleFile extends Module {
             ModuleFile.APINAME_TEST_FILE_EXISTENZ,
             [FileVO.API_TYPE_ID],
             NumberParamVOStatic
-        ));
-
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<Number2ParamVO, string>(
-            ModuleAccessPolicy.POLICY_FO_ACCESS,
-            ModuleFile.APINAME_resize_image_with_style,
-            [FileVO.API_TYPE_ID, FileFormatVO.API_TYPE_ID],
-            Number2ParamVOStatic
         ));
     }
 }
