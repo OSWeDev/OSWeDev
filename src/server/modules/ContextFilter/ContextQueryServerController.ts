@@ -807,6 +807,10 @@ export default class ContextQueryServerController {
                         tables_aliases_by_type[context_field.api_type_id] + '.' + context_field.field_id);
                 }
                 GROUP_BY += group_bys.join(', ');
+
+                if (GROUP_BY == ' GROUP BY ') {
+                    GROUP_BY = ' ';
+                }
             }
 
             let SORT_BY = '';
