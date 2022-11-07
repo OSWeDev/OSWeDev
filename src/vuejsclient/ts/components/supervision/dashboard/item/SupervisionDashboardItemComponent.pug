@@ -1,7 +1,7 @@
 .supervision_dashboard_item_wrapper
     //- .supervision_dashboard_item(v-if='!noclick' :class='state_classname' @click='open_item')
     .row
-        input.checkbox_supervised_item_read.mr-5(v-if='!noclick' type="checkbox" :key="item.name" @click='item_selected' :checked="coche")
+        input.checkbox_supervised_item_read(v-if='!noclick' type="checkbox" :key="item.name" @click='item_selected' :checked="coche")
 
         router-link.supervision_dashboard_item(v-if='!noclick' :to="router_to" :class='state_classname')
              .row.has_checkbox
