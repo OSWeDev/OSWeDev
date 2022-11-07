@@ -13,7 +13,6 @@ import PushDataServerController from '../PushData/PushDataServerController';
 import FileServerController from './FileServerController';
 import ArchiveFilesWorkersHandler from './ArchiveFilesWorkersHandler';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import FileFormatVO from '../../../shared/modules/File/vos/FileFormatVO';
 import path = require('path');
 import * as sharp from 'sharp';
 
