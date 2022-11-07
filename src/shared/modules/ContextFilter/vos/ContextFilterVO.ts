@@ -355,9 +355,9 @@ export default class ContextFilterVO implements IDistantVOBase {
     }
 
     /**
- * Filtrer par text strictement égal
- * @param text le texte que l'on doit retrouver à l'identique en base
- */
+     * Filtrer par text strictement égal
+     * @param text le texte que l'on doit retrouver à l'identique en base
+     */
     public by_text_eq(text: string | string[], text_ignore_case: boolean = false/*, text_trim: boolean = false*/): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ALL;
         if (isArray(text)) {

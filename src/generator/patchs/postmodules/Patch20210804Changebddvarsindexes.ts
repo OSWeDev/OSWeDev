@@ -30,7 +30,7 @@ export default class Patch20210804Changebddvarsindexes implements IGeneratorWork
         /**
          * On commence par vider le cache des vars - pas des imports
          */
-        await ModuleVarServer.getInstance().delete_all_cache();
+        // await ModuleVarServer.getInstance().delete_all_cache();
 
         /**
          * Pour tous les types de vars

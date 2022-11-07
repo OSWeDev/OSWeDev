@@ -5,6 +5,7 @@ import { IDatabase } from 'pg-promise';
 import ConfigurationService from '../server/env/ConfigurationService';
 import EnvParam from '../server/env/EnvParam';
 import FileLoggerHandler from '../server/FileLoggerHandler';
+import ModuleAccessPolicyServer from '../server/modules/AccessPolicy/ModuleAccessPolicyServer';
 import ModulesClientInitializationDatasGenerator from '../server/modules/ModulesClientInitializationDatasGenerator';
 import ModuleServiceBase from '../server/modules/ModuleServiceBase';
 import ModuleSASSSkinConfiguratorServer from '../server/modules/SASSSkinConfigurator/ModuleSASSSkinConfiguratorServer';
@@ -12,26 +13,46 @@ import DefaultTranslationsServerManager from '../server/modules/Translation/Defa
 import ModulesManager from '../shared/modules/ModulesManager';
 import ConsoleHandler from '../shared/tools/ConsoleHandler';
 import IGeneratorWorker from './IGeneratorWorker';
-import VendorBuilder from './vendor_builder/VendorBuilder';
-import Patch20210803ChangeDIHDateType from './patchs/premodules/Patch20210803ChangeDIHDateType';
+import AddMaintenanceCreationPolicy from './inits/postmodules/AddMaintenanceCreationPolicy';
+import AddPwdCryptTrigger from './inits/postmodules/AddPwdCryptTrigger';
+import ChangeResetPWDMailContent from './inits/postmodules/ChangeResetPWDMailContent';
+import CHECKEnvParamsForMDPRecovery from './inits/postmodules/CHECKEnvParamsForMDPRecovery';
+import CreateDefaultAdminAccountIfNone from './inits/postmodules/CreateDefaultAdminAccountIfNone';
+import CreateDefaultLangFRIfNone from './inits/postmodules/CreateDefaultLangFRIfNone';
+import CreateDefaultRobotUserAccount from './inits/postmodules/CreateDefaultRobotUserAccount';
+import InitBaseImageFormats from './inits/postmodules/InitBaseImageFormats';
+import InitFrontVarsPolicies from './inits/postmodules/InitFrontVarsPolicies';
+import InitFrontVarsPolicies2 from './inits/postmodules/InitFrontVarsPolicies2';
+import InitLoggedOnce from './inits/postmodules/InitLoggedOnce';
+import InitPoliciesFeedback from './inits/postmodules/InitPoliciesFeedback';
+import InitPoliciesINSERTORUPDATEUserLogs from './inits/postmodules/InitPoliciesINSERTORUPDATEUserLogs';
+import InitTeamsWebhookForDailyReports from './inits/postmodules/InitTeamsWebhookForDailyReports';
+import InitUserLogPolicies from './inits/postmodules/InitUserLogPolicies';
+import MailParamsInit from './inits/postmodules/MailParamsInit';
+import PresetExistingLangsChangeRights from './inits/postmodules/PresetExistingLangsChangeRights';
+import ActivateDataImport from './inits/premodules/ActivateDataImport';
+import ActivateDataRender from './inits/premodules/ActivateDataRender';
+import CheckBasicSchemas from './inits/premodules/CheckBasicSchemas';
+import CheckExtensions from './inits/premodules/CheckExtensions';
 import Patch20210804Changebddvarsindexes from './patchs/postmodules/Patch20210804Changebddvarsindexes';
-import Patch20210914ClearDashboardWidgets from './patchs/premodules/Patch20210914ClearDashboardWidgets';
-import Patch20211004ChangeLang from './patchs/premodules/Patch20211004ChangeLang';
-import Patch20220111LocalizeCRONDate from './patchs/premodules/Patch20220111LocalizeCRONDate';
 import Patch20210916SetParamPushData from './patchs/postmodules/Patch20210916SetParamPushData';
 import Patch20211214ChangeVarTooltipTrads from './patchs/postmodules/Patch20211214ChangeVarTooltipTrads';
 import Patch20220217ChangeLoginTrad from './patchs/postmodules/Patch20220217ChangeLoginTrad';
 import Patch20220222MigrationCodesTradsDB from './patchs/postmodules/Patch20220222MigrationCodesTradsDB';
-import Patch20220222RemoveVorfieldreffrombdd from './patchs/premodules/Patch20220222RemoveVorfieldreffrombdd';
-import Patch20220223Adduniqtranslationconstraint from './patchs/premodules/Patch20220223Adduniqtranslationconstraint';
 import Patch20220401SetParamPushData from './patchs/postmodules/Patch20220401SetParamPushData';
-import Patch20220725DashboardWidgetUpdate from './patchs/postmodules/Patch20220725DashboardWidgetUpdate';
-import Patch20220809ChangeDbbTrad from './patchs/postmodules/Patch20220809ChangeDbbTrad';
-import VersionUpdater from './version_updater/VersionUpdater';
 import Patch20220404UpdateDBBWidgetsDefaultSize from './patchs/postmodules/Patch20220404UpdateDBBWidgetsDefaultSize';
 import Patch20220713ChangeVarCacheType1To0 from './patchs/postmodules/Patch20220713ChangeVarCacheType1To0';
+import Patch20220725DashboardWidgetUpdate from './patchs/postmodules/Patch20220725DashboardWidgetUpdate';
+import Patch20220809ChangeDbbTrad from './patchs/postmodules/Patch20220809ChangeDbbTrad';
+import Patch20210803ChangeDIHDateType from './patchs/premodules/Patch20210803ChangeDIHDateType';
+import Patch20210914ClearDashboardWidgets from './patchs/premodules/Patch20210914ClearDashboardWidgets';
+import Patch20211004ChangeLang from './patchs/premodules/Patch20211004ChangeLang';
+import Patch20220111LocalizeCRONDate from './patchs/premodules/Patch20220111LocalizeCRONDate';
+import Patch20220222RemoveVorfieldreffrombdd from './patchs/premodules/Patch20220222RemoveVorfieldreffrombdd';
+import Patch20220223Adduniqtranslationconstraint from './patchs/premodules/Patch20220223Adduniqtranslationconstraint';
 import Patch20220822ChangeTypeRecurrCron from './patchs/premodules/Patch20220822ChangeTypeRecurrCron';
-import ModuleAccessPolicyServer from '../server/modules/AccessPolicy/ModuleAccessPolicyServer';
+import VendorBuilder from './vendor_builder/VendorBuilder';
+import VersionUpdater from './version_updater/VersionUpdater';
 
 export default abstract class GeneratorBase {
 
@@ -43,6 +64,8 @@ export default abstract class GeneratorBase {
 
     protected pre_modules_workers: IGeneratorWorker[];
     protected post_modules_workers: IGeneratorWorker[];
+    protected init_pre_modules_workers: IGeneratorWorker[];
+    protected init_post_modules_workers: IGeneratorWorker[];
 
     private modulesService: ModuleServiceBase;
     private STATIC_ENV_PARAMS: { [env: string]: EnvParam } = {};
@@ -53,6 +76,33 @@ export default abstract class GeneratorBase {
         this.modulesService = modulesService;
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
         ModulesManager.getInstance().isServerSide = true;
+
+        this.init_pre_modules_workers = [
+            CheckExtensions.getInstance(),
+            CheckBasicSchemas.getInstance(),
+            ActivateDataImport.getInstance(),
+            ActivateDataRender.getInstance(),
+        ];
+
+        this.init_post_modules_workers = [
+            AddPwdCryptTrigger.getInstance(),
+            CreateDefaultLangFRIfNone.getInstance(),
+            CreateDefaultAdminAccountIfNone.getInstance(),
+            CHECKEnvParamsForMDPRecovery.getInstance(),
+            CreateDefaultRobotUserAccount.getInstance(),
+            InitUserLogPolicies.getInstance(),
+            ChangeResetPWDMailContent.getInstance(),
+            PresetExistingLangsChangeRights.getInstance(),
+            MailParamsInit.getInstance(),
+            InitBaseImageFormats.getInstance(),
+            InitTeamsWebhookForDailyReports.getInstance(),
+            InitPoliciesINSERTORUPDATEUserLogs.getInstance(),
+            InitPoliciesFeedback.getInstance(),
+            InitFrontVarsPolicies.getInstance(),
+            InitFrontVarsPolicies2.getInstance(),
+            AddMaintenanceCreationPolicy.getInstance(),
+            InitLoggedOnce.getInstance(),
+        ];
 
         this.pre_modules_workers = [
             Patch20210803ChangeDIHDateType.getInstance(),
@@ -98,6 +148,17 @@ export default abstract class GeneratorBase {
         let pgp: pg_promise.IMain = pg_promise({});
         let db: IDatabase<any> = pgp(connectionString);
 
+        if (envParam.LAUNCH_INIT) {
+            console.log("INIT pre modules initialization workers...");
+            if (!!this.init_pre_modules_workers) {
+                if (!await this.execute_workers(this.init_pre_modules_workers, db)) {
+                    process.exit(0);
+                    return;
+                }
+            }
+            console.log("INIT pre modules initialization workers done.");
+        }
+
         console.log("pre modules initialization workers...");
         if (!!this.pre_modules_workers) {
             if (!await this.execute_workers(this.pre_modules_workers, db)) {
@@ -124,6 +185,17 @@ export default abstract class GeneratorBase {
 
         console.log("configure_server_modules...");
         await this.modulesService.configure_server_modules(null);
+
+        if (envParam.LAUNCH_INIT) {
+            console.log("INIT post modules initialization workers...");
+            if (!!this.init_post_modules_workers) {
+                if (!await this.execute_workers(this.init_post_modules_workers, db)) {
+                    process.exit(0);
+                    return;
+                }
+            }
+            console.log("INIT post modules initialization workers done.");
+        }
 
         console.log("post modules initialization workers...");
         if (!!this.post_modules_workers) {
