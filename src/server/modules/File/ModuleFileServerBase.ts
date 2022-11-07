@@ -2,6 +2,7 @@ import { Express, Request, Response } from 'express';
 import * as fileUpload from 'express-fileupload';
 import * as fs from 'fs';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleFile from '../../../shared/modules/File/ModuleFile';
@@ -10,12 +11,9 @@ import ServerBase from '../../ServerBase';
 import StackContext from '../../StackContext';
 import ModuleServerBase from '../ModuleServerBase';
 import PushDataServerController from '../PushData/PushDataServerController';
-import FileServerController from './FileServerController';
 import ArchiveFilesWorkersHandler from './ArchiveFilesWorkersHandler';
-import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import FileFormatVO from '../../../shared/modules/File/vos/FileFormatVO';
+import FileServerController from './FileServerController';
 import path = require('path');
-import * as sharp from 'sharp';
 
 export default abstract class ModuleFileServerBase<T extends FileVO> extends ModuleServerBase {
 
