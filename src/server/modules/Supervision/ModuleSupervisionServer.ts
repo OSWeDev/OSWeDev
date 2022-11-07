@@ -108,6 +108,15 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             'fr-fr': 'Recherche par nom de ligne'
         }, 'supervision.filter_text.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Tout sélectionner/désélectionner'
+        }, 'supervision.change_state.select_all.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Marquer comme lu(s)'
+        }, 'supervision.change_state.to_read.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Marquer comme non lu(s)'
+        }, 'supervision.change_state.to_unread.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Fermer'
         }, 'supervision.item_modal.close.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
