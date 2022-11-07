@@ -108,7 +108,7 @@ export default class ClientAPIController implements IAPIController {
                         null,
                         (!EnvHandler.getInstance().MSGPCK) ? 'application/json; charset=utf-8' : AjaxCacheController.MSGPACK_REQUEST_TYPE) as string;
 
-                    const { default: $ } = await import(/* webpackChunkName: "jquery" */ 'jquery');
+                    // const { default: $ } = await import(/* webpackChunkName: "jquery" */ 'jquery');
 
                     let iframe = $('<iframe style="display:none" src="' + filePath + '"></iframe>');
                     $('body').append(iframe);
