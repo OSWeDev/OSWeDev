@@ -490,6 +490,16 @@ export default class ContextQueryVO implements IDistantVOBase {
     }
 
     /**
+     * Filtrer par text différent
+     * @param field_id le field qu'on veut filtrer
+     * @param text le texte que l'on doit retrouver à l'identique en base
+     * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
+     */
+    public filter_by_text_not_eq(field_id: string, text: string | string[], API_TYPE_ID: string = null, ignore_case: boolean = false): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_has_none(text, ignore_case)]);
+    }
+
+    /**
      * Filtrer par text en début de la valeur du champ
      * @param field_id le field qu'on veut filtrer
      * @param included le texte qu'on veut voir apparaître au début de la valeur du champs
