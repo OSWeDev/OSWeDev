@@ -1385,6 +1385,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                                 refuse_param = true;
                                 return;
                             }
+                            break;
                         }
                         var_param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxTSRange()];
                         break;
@@ -1550,14 +1551,18 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     private get_ts_ranges_from_custom_filter_year(custom_filter: ContextFilterVO, limit_nb_range): TSRange[] {
         if (custom_filter.param_numeric != null) {
-            return [RangeHandler.getInstance().create_single_elt_NumRange(custom_filter.param_numeric, NumSegment.TYPE_INT)];
+            return [RangeHandler.getInstance().create_single_elt_TSRange(Dates.startOf(Dates.year(0, custom_filter.param_numeric), TimeSegment.TYPE_YEAR), TimeSegment.TYPE_YEAR)];
         }
 
         if (custom_filter.param_numranges && (custom_filter.param_numranges.length > limit_nb_range)) {
             return null;
         }
 
-        return custom_filter.param_numranges;
+        let res: TSRange[] = [];
+        RangeHandler.getInstance().foreach_ranges_sync(custom_filter.param_numranges, (year: number) => {
+            res.push(RangeHandler.getInstance().create_single_elt_TSRange(Dates.startOf(Dates.year(0, year), TimeSegment.TYPE_YEAR), TimeSegment.TYPE_YEAR));
+        });
+        return res;
     }
 
     private async load_slowvars() {

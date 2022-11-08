@@ -9,6 +9,7 @@ import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
@@ -30,6 +31,9 @@ export default class VarWidgetComponent extends VueComponentBase {
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
+
+    @ModuleDashboardPageGetter
+    private get_custom_filters: string[];
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
@@ -58,6 +62,23 @@ export default class VarWidgetComponent extends VueComponentBase {
         await this.throttled_update_visible_options();
     }
 
+    get var_custom_filters(): { [var_param_field_name: string]: string } {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return ObjectHandler.getInstance().hasAtLeastOneAttribute(this.widget_options.filter_custom_field_filters) ? this.widget_options.filter_custom_field_filters : null;
+    }
+
+    @Watch('get_custom_filters', { deep: true })
+    private async onchange_get_custom_filters() {
+        if (!this.var_custom_filters) {
+            return;
+        }
+
+        await this.throttled_update_visible_options();
+    }
+
     private async update_visible_options() {
 
         let launch_cpt: number = (this.last_calculation_cpt + 1);
@@ -80,6 +101,22 @@ export default class VarWidgetComponent extends VueComponentBase {
          * On crée le custom_filters
          */
         let custom_filters: { [var_param_field_name: string]: ContextFilterVO } = {};
+
+        for (let var_param_field_name in this.var_custom_filters) {
+            let custom_filter_name = this.var_custom_filters[var_param_field_name];
+
+            if (!custom_filter_name) {
+                continue;
+            }
+
+            let custom_filter = this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] ? this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][custom_filter_name] : null;
+
+            if (!custom_filter) {
+                continue;
+            }
+
+            custom_filters[var_param_field_name] = custom_filter;
+        }
 
         /**
          * Pour les dates il faut réfléchir....
