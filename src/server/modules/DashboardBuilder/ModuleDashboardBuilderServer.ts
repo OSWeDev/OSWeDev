@@ -838,6 +838,12 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'N\'est pas null' },
             'adv_number_fltr.nest_pas_null'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': '=' },
+            'adv_number_fltr.eq'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': '!=' },
+            'adv_number_fltr.not_eq'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Contient' },
@@ -1160,6 +1166,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Validation automatique du filtre avancé" },
             'field_value_filter_widget_component.autovalidate_advanced_filter.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Ajouter l'option 'Non renseigné' dans la liste déroulante" },
+            'field_value_filter_widget_component.add_is_null_selectable.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Non renseigné" },
+            'datafilteroption.is_null.___LABEL___'
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Grouper les filtres" },

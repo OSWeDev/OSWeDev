@@ -1,4 +1,3 @@
-import * as $ from 'jquery';
 import 'jqueryui';
 import { Component, Prop } from 'vue-property-decorator';
 import ModuleProgramPlanBase from '../../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';

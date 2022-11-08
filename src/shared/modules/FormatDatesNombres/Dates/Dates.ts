@@ -183,7 +183,7 @@ export default class Dates {
             case TimeSegment.TYPE_SECOND:
                 return Dates.format(Dates.startOf(date, TimeSegment.TYPE_SECOND), LocaleManager.getInstance().t('Y-MM-DD HH:mm:ss'), localized);
             case TimeSegment.TYPE_MONTH:
-                return Dates.format(Dates.startOf(date, TimeSegment.TYPE_MONTH), LocaleManager.getInstance().t('Y-MM-DD'), localized);
+                return Dates.format(Dates.startOf(date, TimeSegment.TYPE_MONTH), LocaleManager.getInstance().t('Y-MM'), localized);
             case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
                 return Dates.format(Dates.startOf(date, TimeSegment.TYPE_DAY), LocaleManager.getInstance().t('Y-MM-DD'), localized);
             case TimeSegment.TYPE_WEEK:

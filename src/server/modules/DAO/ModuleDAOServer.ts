@@ -73,6 +73,8 @@ import DAOPreDeleteTriggerHook from './triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
 import ThrottledSelectQueryParam from './vos/ThrottledSelectQueryParam';
+import RequestResponseCacheVO from '../../../shared/modules/AjaxCache/vos/RequestResponseCacheVO';
+import pgPromise = require('pg-promise');
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -1339,7 +1341,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                  * Cas des undefined
                  */
                 if (typeof fieldValue == "undefined") {
-                    if (field.has_default && typeof field.field_default == 'undefined') {
+                    if (field.has_default && typeof field.field_default != 'undefined') {
                         fieldValue = field.field_default;
                     } else {
                         fieldValue = null;
@@ -1862,21 +1864,27 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 throttled_select_query_params_by_index[throttled_select_query_param.index] = throttled_select_query_param;
 
                 let fields = throttled_select_query_param.context_query.fields;
-                let fields_labels = fields ? fields.map((field) => {
+                let fields_labels: string = null;
 
-                    // On a besoin du type du champs et de l'alias
-                    let table_field_type = 'N/A';
+                fields_labels = throttled_select_query_param.context_query.do_count_results ? 'number,c' : null;
 
-                    try {
-                        table_field_type = ((field.field_id == 'id') ? ModuleTableField.FIELD_TYPE_int :
-                            moduleTables_by_voType[field.api_type_id].getFieldFromId(field.field_id).field_type);
-                    } catch (error) {
-                        ConsoleHandler.getInstance().error('throttled_select_query : error while getting field type for field ' + field.field_id + ' of type ' + field.api_type_id);
-                    }
+                if (!fields_labels) {
+                    fields_labels = fields ? fields.map((field) => {
 
-                    return table_field_type + ',' + field.alias;
+                        // On a besoin du type du champs et de l'alias
+                        let table_field_type = 'N/A';
 
-                }).join(';') : null;
+                        try {
+                            table_field_type = ((field.field_id == 'id') ? ModuleTableField.FIELD_TYPE_int :
+                                moduleTables_by_voType[field.api_type_id].getFieldFromId(field.field_id).field_type);
+                        } catch (error) {
+                            ConsoleHandler.getInstance().error('throttled_select_query : error while getting field type for field ' + field.field_id + ' of type ' + field.api_type_id);
+                        }
+
+                        return table_field_type + ',' + field.alias;
+
+                    }).join(';') : null;
+                }
 
                 if (!fields_labels) {
                     ConsoleHandler.getInstance().warn('Throttled select query without fields, not supported yet');

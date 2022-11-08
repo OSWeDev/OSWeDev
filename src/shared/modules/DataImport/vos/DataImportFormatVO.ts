@@ -67,4 +67,9 @@ export default class DataImportFormatVO implements IDistantVOBase {
      * Par défaut on considère qu'on peut (puisque les triggers sont rarement sur cette partie)
      */
     public use_multiple_connections: boolean;
+
+    /**
+     * Indique si l'on veut enregistrer les logs d'erreurs
+     */
+    public save_error_logs: boolean;
 }

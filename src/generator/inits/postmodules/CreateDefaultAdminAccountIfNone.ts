@@ -1,0 +1,107 @@
+/* istanbul ignore file: no unit tests on patchs */
+
+import { IDatabase } from 'pg-promise';
+import ModuleAccessPolicyServer from '../../../server/modules/AccessPolicy/ModuleAccessPolicyServer';
+import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
+import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
+import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import LangVO from '../../../shared/modules/Translation/vos/LangVO';
+import IGeneratorWorker from '../../IGeneratorWorker';
+
+export default class CreateDefaultAdminAccountIfNone implements IGeneratorWorker {
+
+    public static getInstance(): CreateDefaultAdminAccountIfNone {
+        if (!CreateDefaultAdminAccountIfNone.instance) {
+            CreateDefaultAdminAccountIfNone.instance = new CreateDefaultAdminAccountIfNone();
+        }
+        return CreateDefaultAdminAccountIfNone.instance;
+    }
+
+    private static instance: CreateDefaultAdminAccountIfNone = null;
+
+    get uid(): string {
+        return 'CreateDefaultAdminAccountIfNone';
+    }
+
+    private constructor() { }
+
+    /**
+     * Objectif : on crée un compte admin par défaut si aucun n'existe
+     */
+    public async work(db: IDatabase<any>) {
+
+        await ModuleAccessPolicyServer.getInstance().preload_access_rights();
+
+        let users: UserVO[] = await query(UserVO.API_TYPE_ID).select_vos();
+        if ((users != null) && (users.length > 0)) {
+            return;
+        }
+
+        let roles: RoleVO[] = await query(RoleVO.API_TYPE_ID).select_vos();
+        if ((!roles) || (!roles.length)) {
+            throw new Error('Impossible de trouver le rôle nécessaire pour créer le compte admin');
+        }
+
+        let role: RoleVO = null;
+        for (let i in roles) {
+            if (roles[i].translatable_name == ModuleAccessPolicy.ROLE_ADMIN) {
+                role = roles[i];
+                break;
+            }
+        }
+
+        if (!role) {
+            throw new Error('Impossible de trouver le rôle nécessaire pour créer le compte admin');
+        }
+
+        let admin: UserVO = await this.createuser('admin', 'contact@wedev.fr');
+        await this.addRole(admin, role);
+    }
+
+    private async createuser(user_name: string, email: string): Promise<UserVO> {
+        let user: UserVO = await ModuleDAO.getInstance().getNamedVoByName<UserVO>(UserVO.API_TYPE_ID, user_name);
+
+        if (!!user) {
+            return user;
+        }
+
+        let lang: LangVO = await query(LangVO.API_TYPE_ID).filter_by_text_eq('code_lang', 'fr-fr').select_one();
+
+        user = new UserVO();
+
+        user.invalidated = false;
+        user.lang_id = lang.id;
+        user.name = user_name;
+        user.password = user_name + '$';
+        user.email = email;
+
+        let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(user);
+        if ((!res) || (!res.id)) {
+            throw new Error('Echec de création du compte admin par défaut');
+        }
+
+        user.id = res.id;
+
+        return user;
+    }
+
+    private async addRole(user: UserVO, role: RoleVO): Promise<void> {
+
+        let userroles: UserRoleVO[] = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('user_id', role.id).select_vos();
+
+        if ((!!userroles) && (!!userroles.length)) {
+            return;
+        }
+
+        let userrole: UserRoleVO = new UserRoleVO();
+
+        userrole.role_id = role.id;
+        userrole.user_id = user.id;
+
+        await ModuleDAO.getInstance().insertOrUpdateVO(userrole);
+    }
+}

@@ -1,46 +1,66 @@
-.supervision_dashboard_item {
-    display: block;
-    border-radius: 6px;
-    font-size: small;
-    text-align: center;
-    color: white;
-    margin: 0.1em 0.3em;
-    opacity: 0.65;
-    cursor: pointer;
-    padding: 0.5em 0em;
+.supervision_dashboard_item_wrapper {
 
-    &:hover,
-    &.noclick {
-        opacity: 1;
+    .checkbox_supervised_item_read {
+        display: inline-block;
+        vertical-align: middle;
+        margin: auto 0.2em auto 0;
+        width: 20px;
+        height: 20px;
+    }
+
+    .supervision_dashboard_item {
+
+        display: inline-block;
+        width: calc(100% - 28px);
+        vertical-align: middle;
+
+        border-radius: 6px;
+        font-size: small;
+        text-align: center;
         color: white;
-        text-decoration: none;
-    }
+        margin: 0.1em auto;
+        opacity: 0.65;
+        cursor: pointer;
+        padding: 0.5em 0em;
 
-    &.STATE_ERROR {
-        background-color: red;
-    }
+        >.row.has_checkbox {
+            margin-right: 0px;
+            margin-left: 0px;
+        }
 
-    &.STATE_ERROR_READ {
-        background-color: orangered;
-    }
+        &:hover,
+        &.noclick {
+            opacity: 1;
+            color: white;
+            text-decoration: none;
+        }
 
-    &.STATE_WARN {
-        background-color: orange;
-    }
+        &.STATE_ERROR {
+            background-color: red;
+        }
 
-    &.STATE_WARN_READ {
-        background-color: #ffd400;
-    }
+        &.STATE_ERROR_READ {
+            background-color: orangered;
+        }
 
-    &.STATE_OK {
-        background-color: green;
-    }
+        &.STATE_WARN {
+            background-color: orange;
+        }
 
-    &.STATE_PAUSED {
-        background-color: blue;
-    }
+        &.STATE_WARN_READ {
+            background-color: #ffd400;
+        }
 
-    &.STATE_UNKOWN {
-        background-color: grey;
+        &.STATE_OK {
+            background-color: green;
+        }
+
+        &.STATE_PAUSED {
+            background-color: blue;
+        }
+
+        &.STATE_UNKOWN {
+            background-color: grey;
+        }
     }
 }

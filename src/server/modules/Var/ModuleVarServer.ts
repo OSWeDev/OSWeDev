@@ -1345,6 +1345,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 // TODO FIXME les tsranges pour le moment on max_range il faut réfléchir à la meilleure solution pour gérer ces filtrages de dates
                 switch (matroid_field.field_type) {
                     case ModuleTableField.FIELD_TYPE_numrange_array:
+                    case ModuleTableField.FIELD_TYPE_refrange_array:
                         if (matroid_field.has_relation) {
 
                             let context_query: ContextQueryVO = new ContextQueryVO();
@@ -1363,7 +1364,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                             }
 
                             let ids: number[] = [];
-                            ids_db.forEach((id_db) => ids.push(parseInt(id_db.toString())));
+                            ids_db.forEach((id_db) => ids.push(id_db.id));
 
                             var_param[matroid_field.field_id] = RangeHandler.getInstance().get_ids_ranges_from_list(ids);
                         } else {

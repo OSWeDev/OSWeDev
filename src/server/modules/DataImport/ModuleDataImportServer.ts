@@ -52,6 +52,8 @@ import ImportTypeXLSXHandler from './ImportTypeHandlers/ImportTypeXLSXHandler';
 import ImportLogger from './logger/ImportLogger';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ImportTypeXMLHandler from './ImportTypeHandlers/ImportTypeXMLHandler';
+import DataImportErrorLogVO from '../../../shared/modules/DataImport/vos/DataImportErrorLogVO';
+import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 
 export default class ModuleDataImportServer extends ModuleServerBase {
 
@@ -145,7 +147,10 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         // Triggers pour faire avancer l'import
         let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
         postCreateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this, this.setImportHistoricUID);
+        postCreateTrigger.registerHandler(DataImportFormatVO.API_TYPE_ID, this, this.handleImportFormatCreate);
 
+        let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        postUpdateTrigger.registerHandler(DataImportFormatVO.API_TYPE_ID, this, this.handleImportFormatUpdate);
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Annuler les imports en cours'
@@ -621,6 +626,23 @@ export default class ModuleDataImportServer extends ModuleServerBase {
             datas = ((!importHistoric.use_fast_track) && format.batch_import) ?
                 [] : await postTraitementModule.validate_formatted_data(datas, importHistoric, format);
 
+            if (format.save_error_logs) {
+                let error_logs: DataImportErrorLogVO[] = [];
+
+                for (let ed in datas) {
+                    let data: IImportedData = datas[ed];
+
+                    if (data.importation_state != ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED) {
+                        continue;
+                    }
+
+                    let log: DataImportErrorLogVO = DataImportErrorLogVO.createNew(data.not_validated_msg, importHistoric.id);
+                    error_logs.push(log);
+                }
+
+                await ModuleDAO.getInstance().insertOrUpdateVOs(error_logs);
+            }
+
             has_datas = has_datas || ((pre_validation_formattedDatasStats.nb_row_unvalidated + pre_validation_formattedDatasStats.nb_row_validated) > 0);
             all_formats_datas[format.id] = datas;
 
@@ -1057,6 +1079,14 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     private async setImportHistoricUID(importHistoric: DataImportHistoricVO): Promise<void> {
         importHistoric.historic_uid = importHistoric.id.toString();
         await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
+    }
+
+    private async handleImportFormatCreate(format: DataImportFormatVO): Promise<void> {
+        this.preloaded_difs_by_uid[format.import_uid] = format;
+    }
+
+    private async handleImportFormatUpdate(vo_update_handler: DAOUpdateVOHolder<DataImportFormatVO>): Promise<void> {
+        this.preloaded_difs_by_uid[vo_update_handler.post_update_vo.import_uid] = vo_update_handler.post_update_vo;
     }
 
     private async handleImportHistoricDateUpdate(vo_update_handler: DAOUpdateVOHolder<DataImportHistoricVO>): Promise<boolean> {

@@ -95,6 +95,7 @@ export default class FieldValueFilterWidgetOptions {
         public separation_active_filter: boolean,
         public vo_field_sort_lvl2: VOFieldRefVO,
         public autovalidate_advanced_filter: boolean,
+        public add_is_null_selectable: boolean,
     ) { }
 
     public get_placeholder_name_code_text(page_widget_id: number): string {

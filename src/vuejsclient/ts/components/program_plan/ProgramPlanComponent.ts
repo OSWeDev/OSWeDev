@@ -1,6 +1,5 @@
 import Vue from 'vue';
 import { EventObjectInput, View } from 'fullcalendar';
-import * as $ from 'jquery';
 import debounce from 'lodash/debounce';
 import * as  moment from 'moment';
 import { Component, Prop, Watch } from 'vue-property-decorator';
@@ -47,9 +46,8 @@ import ProgramPlanControllerBase from './ProgramPlanControllerBase';
 import ProgramPlanTools from './ProgramPlanTools';
 import { ModuleProgramPlanAction, ModuleProgramPlanGetter } from './store/ProgramPlanStore';
 import ProgramPlanComponentTargetListing from './TargetListing/ProgramPlanComponentTargetListing';
-import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import { all_promises } from '../../../../shared/tools/PromiseTools';
-
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 
 
 @Component({

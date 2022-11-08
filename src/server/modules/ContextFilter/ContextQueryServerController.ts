@@ -52,36 +52,6 @@ export default class ContextQueryServerController {
     }
 
     /**
-     * Compter les résultats
-     * @param context_query description de la requête, sans fields si on compte les vos, avec fields si on veut un datatable
-     */
-    public async select_count(context_query: ContextQueryVO): Promise<number> {
-
-        let query_wrapper = await this.build_query_count(context_query);
-
-        if (!query_wrapper) {
-            throw new Error('Invalid context_query param');
-        }
-
-        if (query_wrapper.is_segmented_non_existing_table) {
-            // Si on a une table segmentée qui n'existe pas, on ne fait rien
-            return 0;
-        }
-
-        let query_res = null;
-
-        if (context_query.throttle_query_select && context_query.fields && context_query.fields.length) {
-            query_res = await ModuleDAOServer.getInstance().throttle_select_query(query_wrapper.query, query_wrapper.params, context_query);
-        } else {
-            query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
-        }
-
-        let c = (query_res && (query_res.length == 1) && (typeof query_res[0]['c'] != 'undefined') && (query_res[0]['c'] !== null)) ? query_res[0]['c'] : null;
-        c = c ? parseInt(c.toString()) : 0;
-        return c;
-    }
-
-    /**
      * Filtrer des vos avec les context filters
      * @param context_query le champs fields doit être null pour demander des vos complets
      */
@@ -139,6 +109,37 @@ export default class ContextQueryServerController {
         return moduletable.forceNumerics(query_res);
     }
 
+    /**
+     * Compter les résultats
+     * @param context_query description de la requête, sans fields si on compte les vos, avec fields si on veut un datatable
+     */
+    public async select_count(context_query: ContextQueryVO): Promise<number> {
+
+        context_query.do_count_results = true;
+        let query_wrapper = await this.build_select_query(context_query);
+
+        if (!query_wrapper) {
+            throw new Error('Invalid context_query param');
+        }
+
+        if (query_wrapper.is_segmented_non_existing_table) {
+            // Si on a une table segmentée qui n'existe pas, on ne fait rien
+            return 0;
+        }
+
+        let query_res = null;
+
+        if (context_query.throttle_query_select && context_query.fields && context_query.fields.length) {
+            query_res = await ModuleDAOServer.getInstance().throttle_select_query(query_wrapper.query, query_wrapper.params, context_query);
+        } else {
+            query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
+        }
+
+        let c = (query_res && (query_res.length == 1) && (typeof query_res[0]['c'] != 'undefined') && (query_res[0]['c'] !== null)) ? query_res[0]['c'] : null;
+        c = c ? parseInt(c.toString()) : 0;
+        return c;
+    }
+
     public async select(context_query: ContextQueryVO): Promise<any[]> {
 
         if (!context_query) {
@@ -191,24 +192,25 @@ export default class ContextQueryServerController {
         /**
          * Compatibilité avec l'alias 'label' qui est un mot réservé en bdd
          */
+        let label_replacement = '___internal___label___rplcmt____';
         for (let i in context_query.fields) {
             let field = context_query.fields[i];
             if (field.alias == 'label') {
-                field.alias = '___internal___label___rplcmt____';
+                field.alias = label_replacement;
             }
         }
 
         for (let i in context_query.sort_by) {
             let sort_by = context_query.sort_by[i];
             if (sort_by.alias == 'label') {
-                sort_by.alias = '___internal___label___rplcmt____';
+                sort_by.alias = label_replacement;
             }
         }
 
         for (let i in context_query.filters) {
             let filter = context_query.filters[i];
             if (filter.param_alias == 'label') {
-                filter.param_alias = '___internal___label___rplcmt____';
+                filter.param_alias = label_replacement;
             }
         }
 
@@ -249,9 +251,9 @@ export default class ContextQueryServerController {
         for (let i in query_res) {
             let row = query_res[i];
 
-            if (row && row['___internal___label___rplcmt____']) {
-                row['label'] = row['___internal___label___rplcmt____'];
-                delete row['___internal___label___rplcmt____'];
+            if (row && row[label_replacement]) {
+                row['label'] = row[label_replacement];
+                delete row[label_replacement];
             }
 
             for (let j in context_query.fields) {
@@ -273,6 +275,16 @@ export default class ContextQueryServerController {
                     default:
                         break;
                 }
+            }
+        }
+
+        /**
+         * Remise du field 'label'
+         */
+        for (let j in context_query.fields) {
+            let field = context_query.fields[j];
+            if (field.alias == label_replacement) {
+                field.alias = 'label';
             }
         }
 
@@ -387,7 +399,7 @@ export default class ContextQueryServerController {
         }
 
 
-        let query_wrapper = await this.build_select_query(context_query);
+        let query_wrapper = await this.build_select_query_not_count(context_query);
         if ((!query_wrapper) || (!query_wrapper.query)) {
             throw new Error('Invalid query');
         }
@@ -496,11 +508,19 @@ export default class ContextQueryServerController {
         }
     }
 
+    public async build_select_query(context_query: ContextQueryVO): Promise<ParameterizedQueryWrapper> {
+
+        if (context_query.do_count_results) {
+            return await this.build_query_count(context_query);
+        }
+        return await this.build_select_query_not_count(context_query);
+    }
+
     /**
      * Fonction qui génère la requête select demandée, que ce soit sur les vos directement ou
      *  sur les fields passées dans le context_query
      */
-    public async build_select_query(context_query: ContextQueryVO): Promise<ParameterizedQueryWrapper> {
+    public async build_select_query_not_count(context_query: ContextQueryVO): Promise<ParameterizedQueryWrapper> {
 
         if (!context_query) {
             throw new Error('Invalid query param');
@@ -798,6 +818,10 @@ export default class ContextQueryServerController {
                         tables_aliases_by_type[context_field.api_type_id] + '.' + context_field.field_id);
                 }
                 GROUP_BY += group_bys.join(', ');
+
+                if (GROUP_BY == ' GROUP BY ') {
+                    GROUP_BY = ' ';
+                }
             }
 
             let SORT_BY = '';

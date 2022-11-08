@@ -24,6 +24,11 @@ export default class ContextQueryVO implements IDistantVOBase {
     public _type: string = ContextQueryVO.API_TYPE_ID;
 
     /**
+     * Indicateur de select count()
+     */
+    public do_count_results: boolean = false;
+
+    /**
      * Request ID : utilisé quand on est dans un UNION ALL et qu'on veut retrouver son résultat quel que soit l'ordre dans lequel les réponses sont renvoyées par la base de données
      */
     public request_id: number;
@@ -485,6 +490,16 @@ export default class ContextQueryVO implements IDistantVOBase {
     }
 
     /**
+     * Filtrer par text différent
+     * @param field_id le field qu'on veut filtrer
+     * @param text le texte que l'on doit retrouver à l'identique en base
+     * @param API_TYPE_ID Optionnel. Le type sur lequel on veut filtrer. Par défaut base_api_type_id
+     */
+    public filter_by_text_not_eq(field_id: string, text: string | string[], API_TYPE_ID: string = null, ignore_case: boolean = false): ContextQueryVO {
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_text_has_none(text, ignore_case)]);
+    }
+
+    /**
      * Filtrer par text en début de la valeur du champ
      * @param field_id le field qu'on veut filtrer
      * @param included le texte qu'on veut voir apparaître au début de la valeur du champs
@@ -871,6 +886,11 @@ export default class ContextQueryVO implements IDistantVOBase {
         return await ModuleContextFilter.getInstance().select(this);
     }
 
+    public count_results(): ContextQueryVO {
+        this.do_count_results = true;
+        return this;
+    }
+
     /**
      * Faire la requête simplement et récupérer le résultat brut
      */
@@ -992,5 +1012,6 @@ export const query = (API_TYPE_ID: string) => {
     res.sort_by = null;
     res.use_technical_field_versioning = false;
     res.query_distinct = false;
+    res.do_count_results = false;
     return res;
 };

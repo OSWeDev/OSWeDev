@@ -30,6 +30,7 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
+import TimeSegmentHandler from '../../../shared/tools/TimeSegmentHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -699,18 +700,50 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
             // TODO FIXME  export des ranges dans xlsx à réfléchir...
 
+            case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                let tab_tstzrange_array = src_vo[field_id];
+                dest_vo[field_id] = '';
+
+                for (let i in tab_tstzrange_array) {
+                    let range = tab_tstzrange_array[i];
+                    if (range) {
+
+                        if (dest_vo[field_id] != '') {
+                            dest_vo[field_id] += ', ';
+                        }
+                        dest_vo[field_id] += Dates.format_segment(RangeHandler.getInstance().getSegmentedMin(src_vo[field_id], src_vo[field_id].segment_type), src_vo[field_id].segment_type) + ' - ' +
+                            Dates.format_segment(RangeHandler.getInstance().getSegmentedMax(src_vo[field_id], src_vo[field_id].segment_type), src_vo[field_id].segment_type);
+                    }
+                }
+                break;
+
             case ModuleTableField.FIELD_TYPE_numrange_array:
             case ModuleTableField.FIELD_TYPE_refrange_array:
             case ModuleTableField.FIELD_TYPE_isoweekdays:
             case ModuleTableField.FIELD_TYPE_hourrange_array:
-            case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                dest_vo[field_id] = RangeHandler.getInstance().translate_to_api(src_vo[field_id]);
+                let tab = src_vo[field_id];
+                dest_vo[field_id] = '';
+
+                for (let i in tab) {
+                    let range = tab[i];
+                    if (range) {
+
+                        if (dest_vo[field_id] != '') {
+                            dest_vo[field_id] += ', ';
+                        }
+                        dest_vo[field_id] += RangeHandler.getInstance().getSegmentedMin(src_vo[field_id], src_vo[field_id].segment_type) + ' - ' + RangeHandler.getInstance().getSegmentedMax(src_vo[field_id], src_vo[field_id].segment_type);
+                    }
+                }
+                break;
+
+            case ModuleTableField.FIELD_TYPE_tsrange:
+                dest_vo[field_id] = Dates.format_segment(RangeHandler.getInstance().getSegmentedMin(src_vo[field_id], src_vo[field_id].segment_type), src_vo[field_id].segment_type) + ' - ' +
+                    Dates.format_segment(RangeHandler.getInstance().getSegmentedMax(src_vo[field_id], src_vo[field_id].segment_type), src_vo[field_id].segment_type);
                 break;
 
             case ModuleTableField.FIELD_TYPE_numrange:
-            case ModuleTableField.FIELD_TYPE_tsrange:
             case ModuleTableField.FIELD_TYPE_hourrange:
-                dest_vo[field_id] = RangeHandler.getInstance().translate_range_to_api(src_vo[field_id]);
+                dest_vo[field_id] = RangeHandler.getInstance().getSegmentedMin(src_vo[field_id], src_vo[field_id].segment_type) + ' - ' + RangeHandler.getInstance().getSegmentedMax(src_vo[field_id], src_vo[field_id].segment_type);
                 break;
 
             case ModuleTableField.FIELD_TYPE_tstz:

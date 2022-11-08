@@ -2220,6 +2220,13 @@ export default class RangeHandler {
             return null;
         }
 
+        if (!rangeLiteral.match) {
+            /**
+             * On a peut-être déjà un range traduit on le renvoie simplement
+             */
+            return rangeLiteral as any as U;
+        }
+
         var matches = rangeLiteral.match(RangeHandler.RANGE_MATCHER_BDD);
 
         if (!matches) {

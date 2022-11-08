@@ -1,4 +1,3 @@
-import * as $ from 'jquery';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';

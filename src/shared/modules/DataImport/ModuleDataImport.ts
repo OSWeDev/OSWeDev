@@ -19,6 +19,7 @@ import ModuleVO from '../ModuleVO';
 import DefaultTranslation from '../Translation/vos/DefaultTranslation';
 import VOsTypesManager from '../VOsTypesManager';
 import DataImportColumnVO from './vos/DataImportColumnVO';
+import DataImportErrorLogVO from './vos/DataImportErrorLogVO';
 import DataImportFormatVO from './vos/DataImportFormatVO';
 import DataImportHistoricVO from './vos/DataImportHistoricVO';
 import DataImportLogVO from './vos/DataImportLogVO';
@@ -268,6 +269,7 @@ export default class ModuleDataImport extends Module {
             new ModuleTableField('batch_import', ModuleTableField.FIELD_TYPE_boolean, 'Import par segments', true, true, false),
             new ModuleTableField('batch_size', ModuleTableField.FIELD_TYPE_int, 'Taille d\'un segment (si import par segment)', true, true, 10000),
             new ModuleTableField('use_multiple_connections', ModuleTableField.FIELD_TYPE_boolean, 'Insertions en //', true, true, true),
+            new ModuleTableField('save_error_logs', ModuleTableField.FIELD_TYPE_boolean, 'Sauvegarde des logs d\'erreur'),
         ];
         let datatable_desc = new ModuleTable(this, DataImportFormatVO.API_TYPE_ID, () => new DataImportFormatVO(), datatable_fields, label_field, "Fichiers d'import");
         field_file_id.donotCascadeOnDelete();
@@ -402,5 +404,16 @@ export default class ModuleDataImport extends Module {
         field_data_import_format_id.addManyToOneRelation(datatable_desc);
         field_data_import_historic_id.addManyToOneRelation(datatable_historic);
         this.datatables.push(datatable_log);
+
+        //Création de la table dataimporterrorlogs
+        label_field = new ModuleTableField('msg_import', ModuleTableField.FIELD_TYPE_string, 'Message d\'import', true);
+        let field_dih_id = new ModuleTableField('dih_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Historique', true);
+        datatable_fields = [
+            label_field,
+            field_dih_id
+        ];
+        let data_error_log = new ModuleTable(this, DataImportErrorLogVO.API_TYPE_ID, () => new DataImportErrorLogVO(), datatable_fields, label_field, "Logs d'erreur d'importation").hideAnyToManyByDefault();
+        field_dih_id.addManyToOneRelation(datatable_historic);
+        this.datatables.push(data_error_log);
     }
 }
