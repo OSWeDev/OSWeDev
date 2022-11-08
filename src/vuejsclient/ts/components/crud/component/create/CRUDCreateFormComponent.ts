@@ -110,12 +110,12 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
 
     private copy_to_page: DashboardPageVO = null; //Page vers laquel on souhaite copier/déplacer
 
-    public update_key() {
+    public async update_key() {
         if (this.crud && (this.crud_createDatatable_key != this.crud.createDatatable.key)) {
+            await this.prepareNewVO();
             this.crud_createDatatable_key = this.crud.createDatatable.key;
         }
     }
-
 
     @Watch("api_type_id", { immediate: true })
     private async onchange_api_type_id() {
