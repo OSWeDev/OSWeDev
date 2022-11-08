@@ -260,6 +260,9 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             'fr-fr': 'Modifier'
         }, 'crud.update.modal.title.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Confirmer la modification ?'
+        }, 'crud.update.modal.title.confirmation.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Modification : En cours...'
         }, 'crud.update.starting.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
