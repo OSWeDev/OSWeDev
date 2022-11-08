@@ -114,7 +114,6 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
          * On crée le custom_filters
          */
         let custom_filters: { [var_param_field_name: string]: ContextFilterVO } = {};
-        throw new Error('Not implemented');
 
         this.var_param = await ModuleVar.getInstance().getVarParamFromContextFilters(
             VarsController.getInstance().var_conf_by_id[this.var_id].name,
@@ -133,7 +132,7 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
         let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[column.api_type_id];
         let field = moduletable.get_field_by_id(column.field_id);
 
-        if (this.row_value[column.field_id] == null) {
+        if (this.row_value[column.datatable_field_uid] == null) {
             translated_active_options.filter_type = ContextFilterVO.TYPE_NULL_ALL;
         } else {
             switch (field.field_type) {
@@ -153,12 +152,12 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
                 case ModuleTableField.FIELD_TYPE_hours_and_minutes:
                 case ModuleTableField.FIELD_TYPE_hour:
                     translated_active_options.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
-                    translated_active_options.param_numeric = this.row_value[column.field_id];
+                    translated_active_options.param_numeric = this.row_value[column.datatable_field_uid];
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstz:
                     translated_active_options.filter_type = ContextFilterVO.TYPE_DATE_EQUALS;
-                    translated_active_options.param_numeric = this.row_value[column.field_id];
+                    translated_active_options.param_numeric = this.row_value[column.datatable_field_uid];
                     break;
 
                 case ModuleTableField.FIELD_TYPE_html:
@@ -169,7 +168,7 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
                 case ModuleTableField.FIELD_TYPE_textarea:
                 case ModuleTableField.FIELD_TYPE_translatable_text:
                     translated_active_options.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ALL;
-                    translated_active_options.param_text = this.row_value[column.field_id];
+                    translated_active_options.param_text = this.row_value[column.datatable_field_uid];
                     break;
 
                 case ModuleTableField.FIELD_TYPE_plain_vo_obj:
@@ -177,7 +176,7 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
                     throw new Error('Not Implemented');
 
                 case ModuleTableField.FIELD_TYPE_boolean:
-                    if (!!this.row_value[column.field_id]) {
+                    if (!!this.row_value[column.datatable_field_uid]) {
                         translated_active_options.filter_type = ContextFilterVO.TYPE_BOOLEAN_TRUE_ALL;
                     } else {
                         translated_active_options.filter_type = ContextFilterVO.TYPE_BOOLEAN_FALSE_ALL;
@@ -218,7 +217,7 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
                 case ModuleTableField.FIELD_TYPE_day:
                 case ModuleTableField.FIELD_TYPE_month:
                     translated_active_options.filter_type = ContextFilterVO.TYPE_DATE_EQUALS;
-                    translated_active_options.param_numeric = this.row_value[column.field_id];
+                    translated_active_options.param_numeric = this.row_value[column.datatable_field_uid];
                     break;
 
                 case ModuleTableField.FIELD_TYPE_timewithouttimezone:

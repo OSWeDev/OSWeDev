@@ -3,6 +3,7 @@ import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFi
 import ContextQueryVO from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
@@ -64,7 +65,8 @@ export default class ContextFilterServerController {
          *  on ignore le filtrage tout simplement
          */
         if (field_id && !tables_aliases_by_type[active_field_filter.vo_type]) {
-            ConsoleHandler.getInstance().warn('Filtrage initié via table non liée à la requête (pas forcément une erreur dans un DB pour le moment):' + JSON.stringify(active_field_filter) + ':' + JSON.stringify(tables_aliases_by_type) + ':');
+            // Typiquement pas un souci dans les requetes sur les param de vars dans les dbs ...
+            ConsoleHandler.getInstance().log('Filtrage initié via table non liée à la requête (pas forcément une erreur dans un DB pour le moment):' + JSON.stringify(active_field_filter) + ':' + JSON.stringify(tables_aliases_by_type) + ':');
             return;
         }
 
@@ -2383,10 +2385,55 @@ export default class ContextFilterServerController {
             case ContextFilterVO.TYPE_DATE_YEAR:
                 switch (field_type) {
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                        throw new Error('Not Implemented');
+
+                        let where_clause_tstzrange_array: string = '';
+
+                        if (active_field_filter.param_numranges && active_field_filter.param_numranges.length) {
+                            let years: number[] = [];
+
+                            RangeHandler.getInstance().foreach_ranges_sync(active_field_filter.param_numranges, (year) => years.push(year));
+                            if ((!years) || (!years.length)) {
+                                break;
+                            }
+
+                            for (let i in years) {
+                                let year: number = years[i];
+                                let year_start: number = Dates.year(Dates.dayOfYear(Dates.hours(Dates.minutes(Dates.second(Dates.now(), 0), 0), 0), 1), year);
+                                let year_end_excl: number = Dates.year(Dates.dayOfYear(Dates.hours(Dates.minutes(Dates.second(Dates.now(), 0), 0), 0), 1), year + 1);
+
+                                if (where_clause_tstzrange_array !== '') {
+                                    where_clause_tstzrange_array += ' OR ';
+                                }
+                                where_clause_tstzrange_array += "('[" + year_start + "," + year_end_excl + ")'::numrange && ANY (" + field_id + "::numrange[]))";
+                            }
+                            where_conditions.push("(" + where_clause_tstzrange_array + ")");
+                        }
+                        break;
 
                     case ModuleTableField.FIELD_TYPE_tsrange:
-                        throw new Error('Not Implemented');
+                        let where_clause_tsrange: string = '';
+
+                        if (active_field_filter.param_numranges && active_field_filter.param_numranges.length) {
+                            let years: number[] = [];
+
+                            RangeHandler.getInstance().foreach_ranges_sync(active_field_filter.param_numranges, (year) => years.push(year));
+                            if ((!years) || (!years.length)) {
+                                break;
+                            }
+
+                            for (let i in years) {
+                                let year: number = years[i];
+                                let year_start: number = Dates.year(Dates.dayOfYear(Dates.hours(Dates.minutes(Dates.second(Dates.now(), 0), 0), 0), 1), year);
+                                let year_end_excl: number = Dates.year(Dates.dayOfYear(Dates.hours(Dates.minutes(Dates.second(Dates.now(), 0), 0), 0), 1), year + 1);
+
+                                if (where_clause_tsrange !== '') {
+                                    where_clause_tsrange += ' OR ';
+                                }
+                                where_clause_tsrange += '(' + field_id + " && '[" + year_start + "," + year_end_excl + ")'::numrange)";
+                            }
+                            where_conditions.push("(" + where_clause_tsrange + ")");
+                        }
+                        break;
 
                     case ModuleTableField.FIELD_TYPE_tstz:
                         let where_clause: string = '';

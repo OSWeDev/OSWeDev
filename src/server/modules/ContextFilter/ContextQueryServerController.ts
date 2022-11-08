@@ -192,24 +192,25 @@ export default class ContextQueryServerController {
         /**
          * Compatibilité avec l'alias 'label' qui est un mot réservé en bdd
          */
+        let label_replacement = '___internal___label___rplcmt____';
         for (let i in context_query.fields) {
             let field = context_query.fields[i];
             if (field.alias == 'label') {
-                field.alias = '___internal___label___rplcmt____';
+                field.alias = label_replacement;
             }
         }
 
         for (let i in context_query.sort_by) {
             let sort_by = context_query.sort_by[i];
             if (sort_by.alias == 'label') {
-                sort_by.alias = '___internal___label___rplcmt____';
+                sort_by.alias = label_replacement;
             }
         }
 
         for (let i in context_query.filters) {
             let filter = context_query.filters[i];
             if (filter.param_alias == 'label') {
-                filter.param_alias = '___internal___label___rplcmt____';
+                filter.param_alias = label_replacement;
             }
         }
 
@@ -250,9 +251,9 @@ export default class ContextQueryServerController {
         for (let i in query_res) {
             let row = query_res[i];
 
-            if (row && row['___internal___label___rplcmt____']) {
-                row['label'] = row['___internal___label___rplcmt____'];
-                delete row['___internal___label___rplcmt____'];
+            if (row && row[label_replacement]) {
+                row['label'] = row[label_replacement];
+                delete row[label_replacement];
             }
 
             for (let j in context_query.fields) {
@@ -274,6 +275,16 @@ export default class ContextQueryServerController {
                     default:
                         break;
                 }
+            }
+        }
+
+        /**
+         * Remise du field 'label'
+         */
+        for (let j in context_query.fields) {
+            let field = context_query.fields[j];
+            if (field.alias == label_replacement) {
+                field.alias = 'label';
             }
         }
 
@@ -807,6 +818,10 @@ export default class ContextQueryServerController {
                         tables_aliases_by_type[context_field.api_type_id] + '.' + context_field.field_id);
                 }
                 GROUP_BY += group_bys.join(', ');
+
+                if (GROUP_BY == ' GROUP BY ') {
+                    GROUP_BY = ' ';
+                }
             }
 
             let SORT_BY = '';
