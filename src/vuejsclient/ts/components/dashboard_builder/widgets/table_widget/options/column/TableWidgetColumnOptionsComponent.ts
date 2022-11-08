@@ -17,6 +17,8 @@ import { query } from '../../../../../../../../shared/modules/ContextFilter/vos/
 import AccessPolicyVO from '../../../../../../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import NumRange from '../../../../../../../../shared/modules/DataRender/vos/NumRange';
 import ModuleTable from '../../../../../../../../shared/modules/ModuleTable';
+import ObjectHandler from '../../../../../../../../shared/tools/ObjectHandler';
+import { ModuleDashboardPageGetter } from '../../../../page/DashboardPageStore';
 
 @Component({
     template: require('./TableWidgetColumnOptionsComponent.pug'),
@@ -26,6 +28,9 @@ import ModuleTable from '../../../../../../../../shared/modules/ModuleTable';
     }
 })
 export default class TableWidgetColumnOptionsComponent extends VueComponentBase {
+
+    @ModuleDashboardPageGetter
+    private get_custom_filters: string[];
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
@@ -47,6 +52,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     private throttled_update_default_sort_field = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_default_sort_field, 800, { leading: false, trailing: true });
 
     private throttled_update_enum_colors = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_enum_colors, 800, { leading: false, trailing: true });
+    private throttled_update_custom_filter = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_custom_filter, 800, { leading: false, trailing: true });
 
     private filter_by_access_options: string[] = [];
 
@@ -59,6 +65,57 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
 
     private show_options: boolean = false;
     private error: boolean = false;
+    private custom_filter_names: { [field_id: string]: string } = {};
+
+    private async change_custom_filter(field_id: string, custom_filter: string) {
+        if (!this.object_column) {
+            return;
+        }
+
+        this.custom_filter_names[field_id] = custom_filter;
+        await this.throttled_update_custom_filter();
+    }
+
+    get fields_that_could_get_custom_filter(): string[] {
+        let res: string[] = [];
+
+        if (!this.object_column.var_id) {
+            return null;
+        }
+
+        let var_param_type = VarsController.getInstance().var_conf_by_id[this.object_column.var_id].var_data_vo_type;
+        if (!var_param_type) {
+            return null;
+        }
+
+        let fields = VOsTypesManager.getInstance().moduleTables_by_voType[var_param_type].get_fields();
+        for (let i in fields) {
+            let field = fields[i];
+
+            if ((field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)) {
+                res.push(field.field_id);
+                if (typeof this.custom_filter_names[field.field_id] === "undefined") {
+                    this.custom_filter_names[field.field_id] = null;
+                }
+            }
+        }
+
+        return res;
+    }
+
+    private async update_custom_filter() {
+        if ((!this.object_column) || (!this.object_column.var_id)) {
+            return;
+        }
+
+        if (ObjectHandler.getInstance().are_equal(this.object_column.filter_custom_field_filters, this.custom_filter_names)) {
+            return;
+        }
+
+        this.object_column.filter_custom_field_filters = this.custom_filter_names;
+        this.$emit('update_column', this.object_column);
+    }
 
     get vo_ref_tooltip(): string {
         if (!this.field || !this.table) {
@@ -359,6 +416,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.can_filter_by = false;
         new_column.column_width = 0;
         new_column.default_sort_field = null;
+        new_column.filter_custom_field_filters = {};
 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
         this.$emit('add_column', new_column);
@@ -387,6 +445,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.can_filter_by = false;
         new_column.column_width = 0;
         new_column.default_sort_field = null;
+        new_column.filter_custom_field_filters = {};
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
         this.$emit('add_column', new_column);
 
@@ -433,6 +492,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.can_filter_by = true;
         new_column.column_width = 0;
         new_column.default_sort_field = null;
+        new_column.filter_custom_field_filters = {};
 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
         this.$emit('add_column', new_column);
@@ -474,6 +534,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.can_filter_by = false;
         new_column.column_width = 0;
         new_column.default_sort_field = null;
+        new_column.filter_custom_field_filters = {};
 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
         this.$emit('add_column', new_column);
@@ -611,9 +672,11 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
 
     get object_column() {
         if (!this.column) {
+            this.custom_filter_names = {};
             return null;
         }
 
+        this.custom_filter_names = this.column.filter_custom_field_filters;
         return Object.assign(new TableColumnDescVO(), this.column);
     }
 

@@ -1001,7 +1001,7 @@ export default class ContextQueryServerController {
         aliases_n: number): Promise<number> {
 
         if (!filter) {
-            return;
+            return aliases_n;
         }
 
         if (filter.vo_type && (filter.vo_type != context_query.base_api_type_id) && !joined_tables_by_vo_type[filter.vo_type]) {
@@ -1016,7 +1016,7 @@ export default class ContextQueryServerController {
                 filter.vo_type);
             if (!path) {
                 // pas d'impact de ce filtrage puisqu'on a pas de chemin jusqu'au type cible
-                return;
+                return aliases_n;
             }
             aliases_n = await ContextFilterServerController.getInstance().updates_jointures(
                 jointures, context_query.base_api_type_id, context_query.filters, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);

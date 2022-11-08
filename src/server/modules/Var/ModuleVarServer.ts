@@ -1318,7 +1318,8 @@ export default class ModuleVarServer extends ModuleServerBase {
         var_name: string,
         get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
         custom_filters: { [var_param_field_name: string]: ContextFilterVO },
-        active_api_type_ids: string[]
+        active_api_type_ids: string[],
+        discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }
     ): Promise<VarDataBaseVO> {
 
         if (!var_name) {
@@ -1355,6 +1356,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                             context_query.fields = [
                                 new ContextQueryFieldVO(matroid_field.manyToOne_target_moduletable.vo_type, matroid_field.target_field, 'id')
                             ];
+                            context_query.discarded_field_paths = discarded_field_paths;
 
                             let ids_db: Array<{ id: number }> = await ModuleContextFilterServer.getInstance().select_vos(context_query);
 
@@ -1539,7 +1541,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
             RangeHandler.getInstance().foreach_ranges_sync(numranges, (month_i: number) => {
 
-                res.push(RangeHandler.getInstance().create_single_elt_TSRange(Dates.add(year, month_i, TimeSegment.TYPE_MONTH), TimeSegment.TYPE_MONTH));
+                res.push(RangeHandler.getInstance().create_single_elt_TSRange(Dates.add(year, month_i - 1, TimeSegment.TYPE_MONTH), TimeSegment.TYPE_MONTH));
             });
         });
 

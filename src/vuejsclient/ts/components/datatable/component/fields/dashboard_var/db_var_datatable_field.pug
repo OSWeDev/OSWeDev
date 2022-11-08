@@ -6,3 +6,5 @@
                 :filter='var_filter'
                 :filter_additional_params='var_filter_additional_params'
             )
+        template(v-else-if='isLoading')
+            i.fa.fa-spinner.fa-spin

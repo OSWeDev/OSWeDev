@@ -194,6 +194,8 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('show_tooltip', ModuleTableField.FIELD_TYPE_boolean, "Afficher la popup"),
             new ModuleTableField('is_sticky', ModuleTableField.FIELD_TYPE_boolean, "Figer", false, true, false),
             new ModuleTableField('header_name', ModuleTableField.FIELD_TYPE_string, "Entête de colonne"),
+
+            new ModuleTableField('filter_custom_field_filters', ModuleTableField.FIELD_TYPE_plain_vo_obj, "filter_custom_field_filters").set_plain_obj_cstr(() => { }),
         ];
 
         this.datatables.push(new ModuleTable(this, TableColumnDescVO.API_TYPE_ID, () => new TableColumnDescVO(), datatable_fields, null, "Référence de champs"));

@@ -1,6 +1,4 @@
-import { prototype } from 'events';
-import { debounce, indexOf, isEqual } from 'lodash';
-import { cloneDeep } from 'lodash';
+import { cloneDeep, debounce, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
@@ -19,18 +17,15 @@ import SelectBoxDatatableField from '../../../../../../shared/modules/DAO/vos/da
 import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import VarDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/VarDatatableField';
 import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
-import DashboardGraphVORefVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
 import DashboardBuilderController from '../../../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
+import DashboardGraphVORefVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DashboardWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
-import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import ModuleDataExport from '../../../../../../shared/modules/DataExport/ModuleDataExport';
 import ExportContextQueryToXLSXParamVO from '../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
-import DataFilterOption from '../../../../../../shared/modules/DataRender/vos/DataFilterOption';
-import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../../shared/modules/ModuleTable';
@@ -75,6 +70,9 @@ import TableWidgetController from './TableWidgetController';
     }
 })
 export default class TableWidgetComponent extends VueComponentBase {
+
+    @ModuleDashboardPageAction
+    private set_discarded_field_paths: (discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }) => void;
 
     @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
@@ -1125,23 +1123,40 @@ export default class TableWidgetComponent extends VueComponentBase {
             .filter_by_num_eq('dashboard_id', this.dashboard.id)
             .select_vos<DashboardGraphVORefVO>();
 
-        let db_cell_source_by_vo_type: { [vo_type: string]: DashboardGraphVORefVO } = {};
+        // let db_cell_source_by_vo_type: { [vo_type: string]: DashboardGraphVORefVO } = {};
+        let discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = {};
 
         for (let i in db_cells_source) {
-            db_cell_source_by_vo_type[db_cells_source[i].vo_type] = db_cells_source[i];
+            // db_cell_source_by_vo_type[db_cells_source[i].vo_type] = db_cells_source[i];
+            let vo_type = db_cells_source[i].vo_type;
+            let db_cell_source = db_cells_source[i];
+
+            if (!db_cell_source.values_to_exclude) {
+                continue;
+            }
+
+            for (let index_field_id in db_cell_source.values_to_exclude) {
+                let field_id: string = db_cell_source.values_to_exclude[index_field_id];
+
+                if (!discarded_field_paths[vo_type]) {
+                    discarded_field_paths[vo_type] = {};
+                }
+                discarded_field_paths[vo_type][field_id] = true;
+            }
         }
+        this.set_discarded_field_paths(discarded_field_paths);
 
         //On évite les jointures supprimées.
         for (let index_vo_type in query_.active_api_type_ids) {
             let vo_type: string = query_.active_api_type_ids[index_vo_type];
 
-            let db_cell_source = db_cell_source_by_vo_type[vo_type];
-            try { //Il se peut que le champ n'est pas été défini si aucune flèche n'a été supprimé.
-                for (let index_field_id in db_cell_source.values_to_exclude) {
-                    let field_id: string = db_cell_source.values_to_exclude[index_field_id];
-                    query_.discard_field_path(vo_type, field_id); //On annhile le chemin possible depuis la cellule source de champs field_id
-                }
-            } finally { }
+            if (!discarded_field_paths[vo_type]) {
+                continue;
+            }
+
+            for (let field_id in discarded_field_paths[vo_type]) {
+                query_.discard_field_path(vo_type, field_id); //On annhile le chemin possible depuis la cellule source de champs field_id
+            }
         }
         // discard_field_path(vo_type: string, field_id: string)
         /**

@@ -109,6 +109,11 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
     public show_tooltip: boolean;
     public disabled_many_to_one_link: boolean;
 
+    /**
+     * Filtrage des champs ts et (hour)
+     */
+    public filter_custom_field_filters: { [field_id: string]: string };
+
     get is_enum(): boolean {
         if ((!this) || (!this.api_type_id) || (!this.field_id)) {
             return false;

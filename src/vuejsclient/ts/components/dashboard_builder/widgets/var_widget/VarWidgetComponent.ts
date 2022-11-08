@@ -27,6 +27,9 @@ import './VarWidgetComponent.scss';
 export default class VarWidgetComponent extends VueComponentBase {
 
     @ModuleDashboardPageGetter
+    private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
+
+    @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
 
     @ModuleTranslatableTextGetter
@@ -125,7 +128,8 @@ export default class VarWidgetComponent extends VueComponentBase {
             VarsController.getInstance().var_conf_by_id[this.var_id].name,
             this.get_active_field_filters,
             custom_filters,
-            this.dashboard.api_type_ids);
+            this.dashboard.api_type_ids,
+            this.get_discarded_field_paths);
 
         // Si je ne suis pas sur la dernière demande, je me casse
         if (this.last_calculation_cpt != launch_cpt) {
