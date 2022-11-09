@@ -12,5 +12,14 @@
                 font-size: 2rem;
             }
         }
+
+        & .alerts_list_content {
+            margin-bottom: 1.5rem;
+
+            & .alert_view_component {
+                padding-top: 0 !important;
+                padding-bottom: 0 !important;
+            }
+        }
     }
 }

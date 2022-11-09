@@ -11,8 +11,6 @@ import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
 import './MultipleSelectFilterComponent.scss';
-import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
-import SimpleDatatableField from "../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField";
 
 @Component({
     template: require('./MultipleSelectFilterComponent.pug'),
@@ -118,8 +116,6 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
 
     private actual_query: string = null;
 
-    //Modification de CCS
-    private name_ccs: string = 'Nom de CCS';
 
     /**
      * Utilisable pour forcer les options actives depuis le composant parent en utilisant une $refs
@@ -383,27 +379,6 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
         this.$refs.multiselectRef['$refs'].search.setAttribute("autocomplete", "off");
     }
 
-    //Edit CCS
-    private async onchangevo() {
-    }
 
-    get ccs_value() {
-        /*
-        De '004585J - 01 - TRUJAS DISTRIBUTION 94' on conserve 'TRUJAS DISTRIBUTION 94' que l'on autorise à l'utilisateur de modifier à sa guise.
-        */
-        if (this.tmp_filter_active_options.length == 1) {
-            let begin_index: number = this.tmp_filter_active_options[0]['label'].lastIndexOf('-') + 2; //On commence après le - dans le str , ne pas oublier l'espace après également.
-            this.name_ccs = this.tmp_filter_active_options[0]['label'].slice(begin_index);
-            return this.name_ccs;
-        } else { //Pas de selection de ccs donc rien à afficher dans le input.
-            this.name_ccs = 'Nom de CCS';
-            return this.name_ccs;
-        }
-    }
-
-    get editable_ccs() {
-        return new SimpleDatatableField('ccs');
-
-    }
 
 }
