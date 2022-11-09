@@ -65,7 +65,7 @@ export default class FileDatatableFieldComponent extends VueComponentBase {
         } else {
             this.path = this.file_path;
             this.file_name = this.path.substring(this.path.lastIndexOf('/') + 1);
-            this.file_name = this.file_name.substring(0, this.file_name.lastIndexOf('.'));
+            this.file_name_no_extension = this.file_name.substring(0, this.file_name.lastIndexOf('.'));
         }
 
         if (!this.loaded) {

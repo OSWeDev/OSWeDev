@@ -1070,6 +1070,7 @@ export default class TableWidgetComponent extends VueComponentBase {
             this.loaded_once = true;
             this.is_busy = false;
             this.update_cpt_live--;
+            this.pagination_count = null;
             return;
         }
 
@@ -1078,6 +1079,7 @@ export default class TableWidgetComponent extends VueComponentBase {
             this.loaded_once = true;
             this.is_busy = false;
             this.update_cpt_live--;
+            this.pagination_count = null;
             return;
         }
 
@@ -1086,6 +1088,7 @@ export default class TableWidgetComponent extends VueComponentBase {
             this.loaded_once = true;
             this.is_busy = false;
             this.update_cpt_live--;
+            this.pagination_count = null;
             return;
         }
 
@@ -1094,6 +1097,7 @@ export default class TableWidgetComponent extends VueComponentBase {
             this.loaded_once = true;
             this.is_busy = false;
             this.update_cpt_live--;
+            this.pagination_count = null;
             return;
         }
 
@@ -1190,6 +1194,7 @@ export default class TableWidgetComponent extends VueComponentBase {
                 this.loaded_once = true;
                 this.is_busy = false;
                 this.update_cpt_live--;
+                this.pagination_count = null;
                 return;
             }
 
@@ -1215,6 +1220,47 @@ export default class TableWidgetComponent extends VueComponentBase {
             }
 
             query_.fields.push(new ContextQueryFieldVO(field.moduleTable.vo_type, field.module_table_field_id, field.datatable_field_uid, aggregator));
+        }
+
+        // Si je suis sur une table segmentée, je vais voir si j'ai un filtre sur mon field qui segmente
+        // Si ce n'est pas le cas, je n'envoie pas la requête
+        let base_table: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[query_.base_api_type_id];
+
+        if (
+            base_table &&
+            base_table.is_segmented
+        ) {
+            if (
+                !base_table.table_segmented_field ||
+                !base_table.table_segmented_field.manyToOne_target_moduletable ||
+                !this.get_active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type] ||
+                !Object.keys(this.get_active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type]).length
+            ) {
+                this.update_cpt_live--;
+                this.data_rows = [];
+                this.loaded_once = true;
+                this.is_busy = false;
+                this.pagination_count = null;
+                return;
+            }
+
+            let has_filter: boolean = false;
+
+            for (let field_id in this.get_active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type]) {
+                if (this.get_active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type][field_id]) {
+                    has_filter = true;
+                    break;
+                }
+            }
+
+            if (!has_filter) {
+                this.update_cpt_live--;
+                this.data_rows = [];
+                this.loaded_once = true;
+                this.is_busy = false;
+                this.pagination_count = null;
+                return;
+            }
         }
 
         // Si on a des widgets, on va ajouter les exclude values si y'en a

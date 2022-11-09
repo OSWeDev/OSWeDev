@@ -10,6 +10,7 @@ import DashboardPageWidgetVO from '../../../../../../../shared/modules/Dashboard
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
+import ModuleTable from '../../../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
@@ -226,6 +227,37 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             query_.filters,
             false,
         );
+
+        // Si je suis sur une table segmentée, je vais voir si j'ai un filtre sur mon field qui segmente
+        // Si ce n'est pas le cas, je n'envoie pas la requête
+        let base_table: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[query_.base_api_type_id];
+
+        if (
+            base_table &&
+            base_table.is_segmented
+        ) {
+            if (
+                !base_table.table_segmented_field ||
+                !base_table.table_segmented_field.manyToOne_target_moduletable ||
+                !active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type] ||
+                !Object.keys(active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type]).length
+            ) {
+                return;
+            }
+
+            let has_filter: boolean = false;
+
+            for (let field_id in active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type]) {
+                if (active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type][field_id]) {
+                    has_filter = true;
+                    break;
+                }
+            }
+
+            if (!has_filter) {
+                return;
+            }
+        }
 
         tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(
             query_,
