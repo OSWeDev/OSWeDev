@@ -24,6 +24,9 @@ export default class FileDatatableFieldComponent extends VueComponentBase {
     @Prop({ default: null })
     public button_label: string;
 
+    @Prop({ default: false })
+    public show_file_name: boolean;
+
 
     private file: FileVO = null;
     private loaded: boolean = false;
