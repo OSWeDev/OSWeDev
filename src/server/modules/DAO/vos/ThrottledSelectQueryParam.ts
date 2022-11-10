@@ -17,7 +17,7 @@ export default class ThrottledSelectQueryParam {
         public parameterizedQueryWrapperFields: ParameterizedQueryWrapperField[],
         query_: string,
         values: any) {
-        this.parameterized_full_query = pgPromise.as.format(query_, values);
+        this.parameterized_full_query = (values && values.length) ? pgPromise.as.format(query_, values) : query_;
         this.index = ThrottledSelectQueryParam.ThrottledSelectQueryParam_index++;
     }
 }
