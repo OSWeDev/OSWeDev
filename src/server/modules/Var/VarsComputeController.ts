@@ -907,8 +907,8 @@ export default class VarsComputeController {
                 /**
                  * Si on time out sur la création de l'arbre on refuse d'ajouter de nouveaux éléments
                  */
-                if ((!batchperf_computation_wrapper_total_estimated_remaining_time) || (!current_total_elapsed_time) ||
-                    ((batchperf_computation_wrapper_total_estimated_remaining_time + current_total_elapsed_time) < estimated_tree_computation_time_target)) {
+                if (batchperf_computation_wrapper_total_estimated_remaining_time && current_total_elapsed_time &&
+                    ((batchperf_computation_wrapper_total_estimated_remaining_time + current_total_elapsed_time) > estimated_tree_computation_time_target)) {
                     break;
                 }
 
