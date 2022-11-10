@@ -19,6 +19,7 @@ import NumRange from '../../../../../../../../shared/modules/DataRender/vos/NumR
 import ModuleTable from '../../../../../../../../shared/modules/ModuleTable';
 import ObjectHandler from '../../../../../../../../shared/tools/ObjectHandler';
 import { ModuleDashboardPageGetter } from '../../../../page/DashboardPageStore';
+import { cloneDeep } from 'lodash';
 
 @Component({
     template: require('./TableWidgetColumnOptionsComponent.pug'),
@@ -676,7 +677,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             return null;
         }
 
-        this.custom_filter_names = this.column.filter_custom_field_filters;
+        this.custom_filter_names = cloneDeep(this.column.filter_custom_field_filters);
         return Object.assign(new TableColumnDescVO(), this.column);
     }
 

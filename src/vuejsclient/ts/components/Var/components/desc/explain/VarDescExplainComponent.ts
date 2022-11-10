@@ -35,6 +35,9 @@ export default class VarDescExplainComponent extends VueComponentBase {
     private deps_loading: boolean = true;
     private deps_params: { [dep_id: string]: VarDataBaseVO } = {};
     private vars_deps: { [dep_name: string]: string } = {};
+
+    private limit_10_var_deps: boolean = true;
+
     private ds_values_jsoned: { [ds_name: string]: string } = null;
 
     private opened: boolean = true;
@@ -51,6 +54,32 @@ export default class VarDescExplainComponent extends VueComponentBase {
     private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
         [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_datas_updater.bind(this), VarUpdateCallback.VALUE_TYPE_VALID)
     };
+
+    get vars_deps_has_mode_than_10_elts() {
+        return Object.keys(this.vars_deps).length > 10;
+    }
+
+    get shown_vars_deps(): { [dep_name: string]: string } {
+        if (!this.vars_deps_has_mode_than_10_elts) {
+            return this.vars_deps;
+        }
+
+        if (!this.limit_10_var_deps) {
+            return this.vars_deps;
+        }
+
+        let res: { [dep_name: string]: string } = {};
+        let i = 0;
+        for (let dep_name in this.vars_deps) {
+            res[dep_name] = this.vars_deps[dep_name];
+            i++;
+            if (i >= 10) {
+                break;
+            }
+        }
+
+        return res;
+    }
 
     private async switch_show_help_tooltip() {
 
@@ -141,6 +170,8 @@ export default class VarDescExplainComponent extends VueComponentBase {
 
     @Watch('var_param', { immediate: true })
     private async load_param_infos() {
+
+        this.limit_10_var_deps = true;
 
         if ((!this.var_param) || (!VarsController.getInstance().var_conf_by_id[this.var_param.var_id])) {
             this.var_conf = null;

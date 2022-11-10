@@ -90,6 +90,29 @@ export default class ContextAccessServerController {
         return true;
     }
 
+    public check_access_to_field_retrieve_roles(
+        api_type_id: string,
+        field_id: string,
+        access_type: string): boolean {
+
+        if (!StackContext.getInstance().get('IS_CLIENT')) {
+            return true;
+        }
+
+        let uid: number = StackContext.getInstance().get('UID');
+        let roles;
+        if (!uid) {
+            roles = AccessPolicyServerController.getInstance().getUsersRoles(false, null);
+        } else {
+            roles = AccessPolicyServerController.getInstance().getUsersRoles(true, uid);
+        }
+        if (!this.check_access_to_field(api_type_id, field_id, access_type, roles)) {
+            return false;
+        }
+
+        return true;
+    }
+
     public check_access_to_field(
         api_type_id: string,
         field_id: string,

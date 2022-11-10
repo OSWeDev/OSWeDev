@@ -14,6 +14,7 @@ import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
+import MainAggregateOperatorsHandlers from '../../../shared/modules/Var/MainAggregateOperatorsHandlers';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -34,6 +35,7 @@ import ContextQueryFieldServerController from './ContextQueryFieldServerControll
 import ContextQueryInjectionCheckHandler from './ContextQueryInjectionCheckHandler';
 import FieldPathWrapper from './vos/FieldPathWrapper';
 import ParameterizedQueryWrapper from './vos/ParameterizedQueryWrapper';
+import ParameterizedQueryWrapperField from './vos/ParameterizedQueryWrapperField';
 
 export default class ContextQueryServerController {
 
@@ -75,7 +77,7 @@ export default class ContextQueryServerController {
 
         let query_res = null;
         if (context_query.throttle_query_select && context_query.fields && context_query.fields.length) {
-            query_res = await ModuleDAOServer.getInstance().throttle_select_query(query_wrapper.query, query_wrapper.params, context_query);
+            query_res = await ModuleDAOServer.getInstance().throttle_select_query(query_wrapper.query, query_wrapper.params, query_wrapper.fields, context_query);
         } else {
             query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
         }
@@ -130,7 +132,7 @@ export default class ContextQueryServerController {
         let query_res = null;
 
         if (context_query.throttle_query_select && context_query.fields && context_query.fields.length) {
-            query_res = await ModuleDAOServer.getInstance().throttle_select_query(query_wrapper.query, query_wrapper.params, context_query);
+            query_res = await ModuleDAOServer.getInstance().throttle_select_query(query_wrapper.query, query_wrapper.params, query_wrapper.fields, context_query);
         } else {
             query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
         }
@@ -158,7 +160,7 @@ export default class ContextQueryServerController {
 
         let query_res = null;
         if (context_query.throttle_query_select && context_query.fields && context_query.fields.length) {
-            query_res = await ModuleDAOServer.getInstance().throttle_select_query(query_wrapper.query, query_wrapper.params, context_query);
+            query_res = await ModuleDAOServer.getInstance().throttle_select_query(query_wrapper.query, query_wrapper.params, query_wrapper.fields, context_query);
         } else {
             query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
         }
@@ -228,7 +230,7 @@ export default class ContextQueryServerController {
 
         let query_res = null;
         if (context_query.throttle_query_select && context_query.fields && context_query.fields.length) {
-            query_res = await ModuleDAOServer.getInstance().throttle_select_query(query_wrapper.query, query_wrapper.params, context_query);
+            query_res = await ModuleDAOServer.getInstance().throttle_select_query(query_wrapper.query, query_wrapper.params, query_wrapper.fields, context_query);
         } else {
             query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
         }
@@ -526,7 +528,8 @@ export default class ContextQueryServerController {
             throw new Error('Invalid query param');
         }
 
-        let query_result: ParameterizedQueryWrapper = new ParameterizedQueryWrapper(null, []);
+        let parameterizedQueryWrapperFields: ParameterizedQueryWrapperField[] = [];
+        let query_result: ParameterizedQueryWrapper = new ParameterizedQueryWrapper(null, [], parameterizedQueryWrapperFields);
 
         let access_type: string = ModuleDAO.DAO_ACCESS_TYPE_READ;
 
@@ -571,6 +574,7 @@ export default class ContextQueryServerController {
              * On prend arbitrairement la première table comme FROM, on join vers elle par la suite.
              */
             let jointures: string[] = [];
+            let cross_joins: string[] = [];
             let joined_tables_by_vo_type: { [vo_type: string]: ModuleTable<any> } = {};
 
             this.add_activated_many_to_many(context_query);
@@ -655,9 +659,11 @@ export default class ContextQueryServerController {
                         aliases_n,
                         context_field.api_type_id,
                         jointures,
+                        cross_joins,
                         joined_tables_by_vo_type,
                         tables_aliases_by_type,
-                        access_type
+                        access_type,
+                        context_field
                     );
                 }
 
@@ -667,7 +673,8 @@ export default class ContextQueryServerController {
                 first = false;
 
 
-
+                let parameterizedQueryWrapperField: ParameterizedQueryWrapperField = new ParameterizedQueryWrapperField(
+                    context_field.api_type_id, context_field.field_id, context_field.aggregator, context_field.alias ? context_field.alias : context_field.field_id);
                 let field_full_name = tables_aliases_by_type[context_field.api_type_id] + "." + context_field.field_id;
                 let aggregator_prefix = '';
                 let aggregator_suffix = '';
@@ -720,6 +727,7 @@ export default class ContextQueryServerController {
                  *  - field_full_name && field_alias: on a checké le format pur texte de context_field.api_type_id, context_field.alias, context_field.field_id
                  */
                 SELECT += aggregator_prefix + ContextQueryFieldServerController.getInstance().apply_modifier(context_field, field_full_name) + aggregator_suffix + field_alias + ' ';
+                parameterizedQueryWrapperFields.push(parameterizedQueryWrapperField);
             }
 
             /**
@@ -754,6 +762,7 @@ export default class ContextQueryServerController {
                     aliases_n,
                     active_api_type_id,
                     jointures,
+                    cross_joins,
                     joined_tables_by_vo_type,
                     tables_aliases_by_type,
                     access_type
@@ -903,6 +912,7 @@ export default class ContextQueryServerController {
                                 aliases_n,
                                 sort_by.vo_type,
                                 jointures,
+                                cross_joins,
                                 joined_tables_by_vo_type,
                                 tables_aliases_by_type,
                                 access_type
@@ -912,11 +922,14 @@ export default class ContextQueryServerController {
                         SELECT += ', ' + (sort_by.sort_asc ? 'MIN' : 'MAX') + '(' +
                             tables_aliases_by_type[sort_by.vo_type] + '.' + sort_by.field_id
                             + ') as ' + sort_alias;
+                        let parameterizedQueryWrapperField: ParameterizedQueryWrapperField = new ParameterizedQueryWrapperField(
+                            sort_by.vo_type, sort_by.field_id, (sort_by.sort_asc ? VarConfVO.MIN_AGGREGATOR : VarConfVO.MAX_AGGREGATOR), sort_alias);
+                        parameterizedQueryWrapperFields.push(parameterizedQueryWrapperField);
                     }
                 }
             }
 
-            let JOINTURES = this.get_ordered_jointures(context_query, jointures);
+            let JOINTURES = this.get_ordered_jointures(context_query, jointures, cross_joins);
             let LIMIT = this.get_limit(context_query);
 
             /**
@@ -946,6 +959,9 @@ export default class ContextQueryServerController {
      * @param joined_tables_by_vo_type
      * @param tables_aliases_by_type
      * @param access_type
+     * @param selected_field Cas d'une demande de jointure depuis un champs dont l'api_type_id n'a aucun lien avec les vos actuellement en requetes.
+     *  Dans ce cas, on doit faire la jointure malgré le manque de chemin, ce qu'on ne fait ps s'il s'agit d'un filtrage ou d'un sort by
+     *  (qui n'aurait aucun impact positif sur le résultat de la requête)
      * @returns
      */
     private async join_api_type_id(
@@ -953,9 +969,12 @@ export default class ContextQueryServerController {
         aliases_n: number,
         api_type_id: string,
         jointures: string[],
+        cross_joins: string[],
         joined_tables_by_vo_type: { [vo_type: string]: ModuleTable<any> },
         tables_aliases_by_type: { [vo_type: string]: string },
-        access_type: string): Promise<number> {
+        access_type: string,
+        selected_field: ContextQueryFieldVO = null
+    ): Promise<number> {
 
         /**
          * On doit identifier le chemin le plus court pour rejoindre les 2 types de données
@@ -966,8 +985,28 @@ export default class ContextQueryServerController {
             Object.keys(joined_tables_by_vo_type),
             api_type_id);
         if (!path) {
-            // pas d'impact de ce filtrage puisqu'on a pas de chemin jusqu'au type cible
-            return aliases_n;
+
+            if (selected_field) {
+
+                /**
+                 * On doit faire la jointure malgré le manque de chemin, ce qu'on ne fait ps s'il s'agit d'un filtrage ou d'un sort by
+                 */
+                if (!await ContextAccessServerController.getInstance().check_access_to_field_retrieve_roles(selected_field.api_type_id, selected_field.field_id, access_type)) {
+                    ConsoleHandler.getInstance().warn('join_api_type_id:check_access_to_field_retrieve_roles:Access denied to field ' + selected_field.field_id + ' of type ' + selected_field.api_type_id + ' for access_type ' + access_type);
+                    return aliases_n;
+                }
+
+                return await ContextFilterServerController.getInstance().updates_cross_jointures(
+                    selected_field.api_type_id,
+                    cross_joins,
+                    context_query.filters,
+                    joined_tables_by_vo_type,
+                    tables_aliases_by_type,
+                    aliases_n);
+            } else {
+                // pas d'impact de ce filtrage puisqu'on a pas de chemin jusqu'au type cible
+                return aliases_n;
+            }
         }
 
         /**
@@ -978,7 +1017,7 @@ export default class ContextQueryServerController {
         }
 
         return await ContextFilterServerController.getInstance().updates_jointures(
-            jointures, api_type_id, context_query.filters, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
+            jointures, context_query.filters, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
     }
 
     /**
@@ -1019,7 +1058,7 @@ export default class ContextQueryServerController {
                 return aliases_n;
             }
             aliases_n = await ContextFilterServerController.getInstance().updates_jointures(
-                jointures, context_query.base_api_type_id, context_query.filters, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
+                jointures, context_query.filters, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
             // joined_tables_by_vo_type[api_type_id_i] = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id_i];
         }
 
@@ -1185,8 +1224,12 @@ export default class ContextQueryServerController {
     /**
      * Ordonner les jointures, pour ne pas référencer des aliases pas encore déclarés
      */
-    private get_ordered_jointures(context_query: ContextQueryVO, jointures: string[]): string {
+    private get_ordered_jointures(context_query: ContextQueryVO, jointures: string[], cross_joins: string[]): string {
         let res = '';
+
+        if (cross_joins && cross_joins.length) {
+            res += ' CROSS JOIN ' + cross_joins.join(' CROSS JOIN ');
+        }
 
         if (jointures && jointures.length) {
 
