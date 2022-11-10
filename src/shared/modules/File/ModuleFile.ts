@@ -6,11 +6,8 @@ import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
-import FileVO from './vos/FileVO';
 import ArchiveFilesConfVO from './vos/ArchiveFilesConfVO';
-import Number2ParamVO, { Number2ParamVOStatic } from '../API/vos/apis/Number2ParamVO';
-import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
-import FileFormatVO from './vos/FileFormatVO';
+import FileVO from './vos/FileVO';
 
 export default class ModuleFile extends Module {
 
@@ -48,7 +45,6 @@ export default class ModuleFile extends Module {
 
         this.initializeFileVO();
         this.initializeArchiveFilesConfVO();
-        this.initializeFileFormatVO();
     }
 
     public initializeFileVO() {
@@ -76,19 +72,6 @@ export default class ModuleFile extends Module {
 
         let datatable = new ModuleTable(this, ArchiveFilesConfVO.API_TYPE_ID, () => new ArchiveFilesConfVO(), datatable_fields, label_field, "Conf archivage des fichiers");
 
-        this.datatables.push(datatable);
-    }
-
-    public initializeFileFormatVO() {
-        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom du style');
-
-        let datatable_fields = [
-            label_field,
-            new ModuleTableField('width', ModuleTableField.FIELD_TYPE_int, "Largeur"),
-            new ModuleTableField('height', ModuleTableField.FIELD_TYPE_int, "Hauteur"),
-        ];
-
-        let datatable = new ModuleTable(this, FileFormatVO.API_TYPE_ID, () => new FileFormatVO(), datatable_fields, label_field, "Formats de fichier");
         this.datatables.push(datatable);
     }
 

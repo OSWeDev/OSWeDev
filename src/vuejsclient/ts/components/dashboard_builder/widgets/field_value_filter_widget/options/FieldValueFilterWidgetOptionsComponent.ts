@@ -1,6 +1,7 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
+import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
@@ -11,6 +12,7 @@ import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/v
 import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
 import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import TSRange from '../../../../../../../shared/modules/DataRender/vos/TSRange';
+import ModuleTable from '../../../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
@@ -22,7 +24,7 @@ import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
 import MultipleVoFieldRefHolderComponent from '../../../options_tools/multiple_vo_field_ref_holder/MultipleVoFieldRefHolderComponent';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
-import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
+import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import BooleanFilter from '../boolean/BooleanFilter';
 import AdvancedStringFilter from '../string/AdvancedStringFilter';
@@ -45,6 +47,10 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
 
     @Prop({ default: null })
     private dashboard: DashboardVO;
+
+
+    @ModuleDashboardPageGetter
+    private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
 
     @ModuleDroppableVoFieldsAction
     private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
@@ -1184,6 +1190,37 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
             .set_limit(this.max_visible_options)
             .set_sort(new SortByVO(field_sort.api_type_id, field_sort.field_id, true))
             .using(this.dashboard.api_type_ids);
+
+        // Si je suis sur une table segmentée, je vais voir si j'ai un filtre sur mon field qui segmente
+        // Si ce n'est pas le cas, je n'envoie pas la requête
+        let base_table: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[query_.base_api_type_id];
+
+        if (
+            base_table &&
+            base_table.is_segmented
+        ) {
+            if (
+                !base_table.table_segmented_field ||
+                !base_table.table_segmented_field.manyToOne_target_moduletable ||
+                !this.get_active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type] ||
+                !Object.keys(this.get_active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type]).length
+            ) {
+                return;
+            }
+
+            let has_filter: boolean = false;
+
+            for (let field_id in this.get_active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type]) {
+                if (this.get_active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type][field_id]) {
+                    has_filter = true;
+                    break;
+                }
+            }
+
+            if (!has_filter) {
+                return;
+            }
+        }
 
         let tmp: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
             query_,

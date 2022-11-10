@@ -1,5 +1,5 @@
-import Vue from 'vue';
 import { cloneDeep, debounce, isEqual } from 'lodash';
+import Vue from 'vue';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterHandler from '../../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
@@ -10,26 +10,25 @@ import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/Sort
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
+import ModuleTable from '../../../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
+import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import TypesHandler from '../../../../../../../shared/tools/TypesHandler';
 import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
+import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
+import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
 import FieldValueFilterWidgetOptions from '../options/FieldValueFilterWidgetOptions';
 import AdvancedStringFilter from './AdvancedStringFilter';
 import './FieldValueFilterStringWidgetComponent.scss';
-import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
-import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
-import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
-import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
-import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 
 @Component({
     template: require('./FieldValueFilterStringWidgetComponent.pug'),
@@ -135,22 +134,11 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
     }
 
     @Watch('tmp_filter_active_options')
-    private async onchange_tmp_filter_active_options() {
+    private onchange_tmp_filter_active_options() {
 
         if (!this.widget_options) {
             return;
         }
-
-        //Enregistrons les modifications pour que celle-ci soient bien mises par défaut
-        this.widget_options.default_filter_opt_values = this.tmp_filter_active_options;
-
-        try {
-            this.page_widget.json_options = JSON.stringify(this.widget_options);
-        } catch (error) {
-            ConsoleHandler.getInstance().error(error);
-        }
-        //enregistrement
-        await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
 
         // Si on doit masquer le lvl2, on va désactiver tous les options lvl2 qui ne doivent plus être cochées
         if (this.hide_lvl2_if_lvl1_not_selected) {
@@ -703,6 +691,37 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             query_.filters,
             false,
         );
+
+        // Si je suis sur une table segmentée, je vais voir si j'ai un filtre sur mon field qui segmente
+        // Si ce n'est pas le cas, je n'envoie pas la requête
+        let base_table: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[query_.base_api_type_id];
+
+        if (
+            base_table &&
+            base_table.is_segmented
+        ) {
+            if (
+                !base_table.table_segmented_field ||
+                !base_table.table_segmented_field.manyToOne_target_moduletable ||
+                !active_field_filters_query[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type] ||
+                !Object.keys(active_field_filters_query[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type]).length
+            ) {
+                return;
+            }
+
+            let has_filter: boolean = false;
+
+            for (let field_id in active_field_filters_query[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type]) {
+                if (active_field_filters_query[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type][field_id]) {
+                    has_filter = true;
+                    break;
+                }
+            }
+
+            if (!has_filter) {
+                return;
+            }
+        }
 
         tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(
             query_,
