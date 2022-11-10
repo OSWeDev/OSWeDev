@@ -28,6 +28,8 @@ export interface IDashboardPageState {
     custom_filters: string[];
 
     widgets_invisibility: { [w_id: number]: boolean };
+
+    discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
 }
 
 export default class DashboardPageStore implements IStoreModule<IDashboardPageState, DashboardPageContext> {
@@ -61,11 +63,17 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             Crudcreatemodalcomponent: null,
             page_history: [],
             custom_filters: [],
-            widgets_invisibility: {}
+            widgets_invisibility: {},
+            discarded_field_paths: {}
         };
 
 
         this.getters = {
+
+            get_discarded_field_paths(state: IDashboardPageState): { [vo_type: string]: { [field_id: string]: boolean } } {
+                return state.discarded_field_paths;
+            },
+
             get_custom_filters(state: IDashboardPageState): string[] {
                 return state.custom_filters;
             },
@@ -103,6 +111,10 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
 
         this.mutations = {
+            set_discarded_field_paths(state: IDashboardPageState, discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }) {
+                state.discarded_field_paths = discarded_field_paths;
+            },
+
             set_widgets_invisibility(state: IDashboardPageState, widgets_invisibility: { [w_id: number]: boolean }) {
                 state.widgets_invisibility = widgets_invisibility;
             },
@@ -224,6 +236,9 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
 
         this.actions = {
+            set_discarded_field_paths(context: DashboardPageContext, discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }) {
+                commit_set_discarded_field_paths(context, discarded_field_paths);
+            },
             set_widget_invisibility(context: DashboardPageContext, w_id: number) {
                 commit_set_widget_invisibility(context, w_id);
             },
@@ -311,3 +326,4 @@ export const commit_clear_active_field_filters = commit(DashboardPageStoreInstan
 export const commit_set_widgets_invisibility = commit(DashboardPageStoreInstance.mutations.set_widgets_invisibility);
 export const commit_set_widget_invisibility = commit(DashboardPageStoreInstance.mutations.set_widget_invisibility);
 export const commit_set_widget_visibility = commit(DashboardPageStoreInstance.mutations.set_widget_visibility);
+export const commit_set_discarded_field_paths = commit(DashboardPageStoreInstance.mutations.set_discarded_field_paths);

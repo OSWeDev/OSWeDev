@@ -13,6 +13,7 @@ import ModuleVar from '../../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
+import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import { ModuleDashboardPageGetter } from '../../../../dashboard_builder/page/DashboardPageStore';
@@ -34,6 +35,9 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
     @Prop()
     public filter_additional_params: string;
 
+    @Prop({ default: null })
+    public filter_custom_field_filters: { [field_id: string]: string };
+
     @Prop()
     private dashboard_id: number;
 
@@ -44,6 +48,9 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
     private columns: TableColumnDescVO[];
 
     @ModuleDashboardPageGetter
+    private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
+
+    @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
 
     private throttled_init_param = ThrottleHelper.getInstance().declare_throttle_without_args(this.init_param.bind(this), 300, { leading: false, trailing: true });
@@ -51,6 +58,10 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
     private var_param: VarDataBaseVO = null;
     private dashboard: DashboardVO = null;
 
+    get var_custom_filters(): { [var_param_field_name: string]: string } {
+
+        return ObjectHandler.getInstance().hasAtLeastOneAttribute(this.filter_custom_field_filters) ? this.filter_custom_field_filters : null;
+    }
 
     @Watch('dashboard_id', { immediate: true })
     @Watch('var_id', { immediate: true })
@@ -66,9 +77,12 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
 
     private async init_param() {
 
+        this.isLoading = true;
+
         if ((!this.dashboard_id) || (!this.var_id)) {
             this.dashboard = null;
             this.var_param = null;
+            this.isLoading = false;
             return;
         }
 
@@ -115,11 +129,30 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
          */
         let custom_filters: { [var_param_field_name: string]: ContextFilterVO } = {};
 
+        for (let var_param_field_name in this.var_custom_filters) {
+            let custom_filter_name = this.var_custom_filters[var_param_field_name];
+
+            if (!custom_filter_name) {
+                continue;
+            }
+
+            let custom_filter = this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] ? this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][custom_filter_name] : null;
+
+            if (!custom_filter) {
+                continue;
+            }
+
+            custom_filters[var_param_field_name] = custom_filter;
+        }
+
         this.var_param = await ModuleVar.getInstance().getVarParamFromContextFilters(
             VarsController.getInstance().var_conf_by_id[this.var_id].name,
             context,
             custom_filters,
-            this.dashboard.api_type_ids);
+            this.dashboard.api_type_ids,
+            this.get_discarded_field_paths);
+
+        this.isLoading = false;
     }
 
 

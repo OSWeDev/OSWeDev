@@ -329,15 +329,17 @@ export default class VarsComputeController {
 
         if ((batchperf_computation_wrapper_total_estimated_remaining_time) && (current_computation_wrapper_total_elapsed_time) && ((batchperf_computation_wrapper_total_estimated_remaining_time + current_computation_wrapper_total_elapsed_time) > estimated_tree_computation_time_limit)) {
             if (DEBUG_VARS) {
-                ConsoleHandler.getInstance().error('BATCH estimated work time (' +
-                    var_dag.perfs.computation_wrapper.updated_estimated_work_time +
+                ConsoleHandler.getInstance().error('BATCH estimated work time + elapsed (' +
+                    batchperf_computation_wrapper_total_estimated_remaining_time + current_computation_wrapper_total_elapsed_time +
                     ') > limit (' + estimated_tree_computation_time_limit + ')');
 
                 var_dag.timed_out = true;
 
                 /**
                  * Tous les noeuds qui ne sont pas successfully_deployed doivent être retirés de l'arbre à ce stade et on part en calcul
+                 *  pour éviter les blocages on en garde au moins 1
                  */
+                let nodes_to_remove: VarDAGNode[] = [];
                 for (let i in var_dag.nodes) {
                     let unsuccessfully_deployed_node = var_dag.nodes[i];
 
@@ -345,7 +347,18 @@ export default class VarsComputeController {
                         continue;
                     }
 
-                    unsuccessfully_deployed_node.unlinkFromDAG();
+                    ConsoleHandler.getInstance().error('BATCH removing node ' + unsuccessfully_deployed_node.var_data.index + ' from tree');
+                    nodes_to_remove.push(unsuccessfully_deployed_node);
+                }
+
+                if (nodes_to_remove.length == var_dag.nb_nodes) {
+                    let shifted = nodes_to_remove.shift();
+                    ConsoleHandler.getInstance().error('BATCH cancel removing node ' + shifted.var_data.index + ' from tree to keep at least one');
+                }
+
+                for (let i in nodes_to_remove) {
+                    let node_to_remove = nodes_to_remove[i];
+                    node_to_remove.unlinkFromDAG();
                 }
                 return;
             }
@@ -1023,14 +1036,17 @@ export default class VarsComputeController {
         //  on les passe en slowvars et du coup ça devrait dépiler 1 à 1 au prochain passage
         ConsoleHandler.getInstance().error('Potentiel blocage - arbre vide alors qu\'on a sélectionné des params, on passe les vars sélectionnées en slowvars pour les traiter une à une, sauf si elle était déjà seule dans ce cas on classe en incalculable');
 
-        await SlowVarKiHandler.getInstance().insertSlowVarsBatchInBDD(all_selected_var_datas);
-        VarsDatasProxy.getInstance().can_load_vars_to_test = true;
+        ConsoleHandler.getInstance().error('Modif on force le calcul de la var dans tous les cas on insère jamais en slow var juste on les fera une à une au pire');
 
-        // Les slow vars rencontrées n'indiquent pas la fin du dépilage des vars en attente.
-        // On doit donc tester asap de dépiler les vars potentiellement en attente
-        VarsdatasComputerBGThread.getInstance().force_run_asap();
+        return false;
+        // await SlowVarKiHandler.getInstance().insertSlowVarsBatchInBDD(all_selected_var_datas);
+        // VarsDatasProxy.getInstance().can_load_vars_to_test = true;
 
-        return true;
+        // // Les slow vars rencontrées n'indiquent pas la fin du dépilage des vars en attente.
+        // // On doit donc tester asap de dépiler les vars potentiellement en attente
+        // VarsdatasComputerBGThread.getInstance().force_run_asap();
+
+        // return true;
     }
 
     /**

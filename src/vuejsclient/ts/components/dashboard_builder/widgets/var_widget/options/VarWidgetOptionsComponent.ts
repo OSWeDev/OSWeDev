@@ -53,6 +53,7 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
                 this.widget_options.filter_additional_params);
         }
         this.custom_filter_names[field_id] = custom_filter;
+        this.next_update_options.filter_custom_field_filters = this.custom_filter_names;
         await this.throttled_update_options();
     }
 

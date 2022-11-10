@@ -38,7 +38,6 @@ describe('ContextFilterServer', () => {
         };
         aliases_n = await ContextFilterServerController.getInstance().updates_jointures(
             jointures,
-            LangVO.API_TYPE_ID,
             null,
             joined_tables_by_vo_type,
             tables_aliases_by_type,
@@ -79,7 +78,6 @@ describe('ContextFilterServer', () => {
         };
         aliases_n = await ContextFilterServerController.getInstance().updates_jointures(
             jointures,
-            UserVO.API_TYPE_ID,
             null,
             joined_tables_by_vo_type,
             tables_aliases_by_type,
@@ -120,7 +118,6 @@ describe('ContextFilterServer', () => {
         };
         aliases_n = await ContextFilterServerController.getInstance().updates_jointures(
             jointures,
-            RoleVO.API_TYPE_ID,
             null,
             joined_tables_by_vo_type,
             tables_aliases_by_type,
@@ -165,7 +162,6 @@ describe('ContextFilterServer', () => {
         };
         aliases_n = await ContextFilterServerController.getInstance().updates_jointures(
             jointures,
-            UserVO.API_TYPE_ID,
             null,
             joined_tables_by_vo_type,
             tables_aliases_by_type,
@@ -190,7 +186,6 @@ describe('ContextFilterServer', () => {
         // étape 2
         aliases_n = await ContextFilterServerController.getInstance().updates_jointures(
             jointures,
-            RoleVO.API_TYPE_ID,
             null,
             joined_tables_by_vo_type,
             tables_aliases_by_type,
@@ -235,7 +230,6 @@ describe('ContextFilterServer', () => {
         };
         aliases_n = await ContextFilterServerController.getInstance().updates_jointures(
             jointures,
-            AnonymizationFieldConfVO.API_TYPE_ID,
             null,
             joined_tables_by_vo_type,
             tables_aliases_by_type,
@@ -285,7 +279,6 @@ describe('ContextFilterServer', () => {
         };
         aliases_n = await ContextFilterServerController.getInstance().updates_jointures(
             jointures,
-            AnonymizationFieldConfVO.API_TYPE_ID,
             null,
             joined_tables_by_vo_type,
             tables_aliases_by_type,
