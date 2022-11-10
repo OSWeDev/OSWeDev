@@ -77,6 +77,7 @@ include ../../../../../views/mixins/loading.pug
                                 tr.table_row(v-for='row in data_rows')
                                     td.table_col(v-for='column in columns')
                                         Datatablecomponentfield(
+                                            :filter_custom_field_filters="column.filter_custom_field_filters"
                                             :field="fields[column.id]"
                                             :vo="row"
                                             :columns="columns"
@@ -104,6 +105,7 @@ include ../../../../../views/mixins/loading.pug
                                 tr.table_row(v-for='row in data_rows_after')
                                     td.table_col(v-for='column in columns')
                                         Datatablecomponentfield(
+                                            :filter_custom_field_filters="column.filter_custom_field_filters"
                                             :field="fields[column.id]"
                                             :vo="row"
                                             :columns="columns"

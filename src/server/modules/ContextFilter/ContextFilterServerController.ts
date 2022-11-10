@@ -66,7 +66,7 @@ export default class ContextFilterServerController {
          */
         if (field_id && !tables_aliases_by_type[active_field_filter.vo_type]) {
             // Typiquement pas un souci dans les requetes sur les param de vars dans les dbs ...
-            ConsoleHandler.getInstance().log('Filtrage initié via table non liée à la requête (pas forcément une erreur dans un DB pour le moment):' + JSON.stringify(active_field_filter) + ':' + JSON.stringify(tables_aliases_by_type) + ':');
+            // ConsoleHandler.getInstance().log('Filtrage initié via table non liée à la requête (pas forcément une erreur dans un DB pour le moment):' + JSON.stringify(active_field_filter) + ':' + JSON.stringify(tables_aliases_by_type) + ':');
             return;
         }
 
@@ -2915,7 +2915,6 @@ export default class ContextFilterServerController {
      */
     public async updates_jointures(
         jointures: string[],
-        targeted_type: string,
         filters: ContextFilterVO[],
         joined_tables_by_vo_type: { [vo_type: string]: ModuleTable<any> },
         tables_aliases_by_type: { [vo_type: string]: string },
@@ -3010,6 +3009,40 @@ export default class ContextFilterServerController {
                     }
                 }
             }
+        }
+
+        return aliases_n;
+    }
+
+    public async updates_cross_jointures(
+        api_type_id: string,
+        cross_jointures: string[],
+        filters: ContextFilterVO[],
+        joined_tables_by_vo_type: { [vo_type: string]: ModuleTable<any> },
+        tables_aliases_by_type: { [vo_type: string]: string },
+        aliases_n: number
+    ): Promise<number> {
+
+        if (!api_type_id) {
+            return aliases_n;
+        }
+
+        if (!tables_aliases_by_type[api_type_id]) {
+
+            tables_aliases_by_type[api_type_id] = 't' + (aliases_n++);
+            joined_tables_by_vo_type[api_type_id] = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+
+            let full_name = await this.get_table_full_name(joined_tables_by_vo_type[api_type_id], filters);
+
+            /**
+             * Cas du segmented table dont la table n'existe pas, donc on select null en somme (c'est pas une erreur en soit, juste il n'y a pas de données)
+             *  normalement ça devrait pas arriver sur une jointure
+             */
+            if (!full_name) {
+                return aliases_n;
+            }
+
+            cross_jointures.push(full_name + ' ' + tables_aliases_by_type[api_type_id]);
         }
 
         return aliases_n;

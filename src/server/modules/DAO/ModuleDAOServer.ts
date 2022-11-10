@@ -75,6 +75,7 @@ import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
 import ThrottledSelectQueryParam from './vos/ThrottledSelectQueryParam';
 import RequestResponseCacheVO from '../../../shared/modules/AjaxCache/vos/RequestResponseCacheVO';
 import pgPromise = require('pg-promise');
+import ParameterizedQueryWrapperField from '../ContextFilter/vos/ParameterizedQueryWrapperField';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -1787,13 +1788,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
     /**
      * Throttle select queries group every 10ms (parametrable)
      */
-    public async throttle_select_query(query_: string = null, values: any = null, context_query: ContextQueryVO): Promise<any> {
+    public async throttle_select_query(query_: string = null, values: any = null, parameterizedQueryWrapperFields: ParameterizedQueryWrapperField[], context_query: ContextQueryVO): Promise<any> {
         await this.check_throttled_select_query_size_ms();
         let self = this;
 
         return new Promise(async (resolve, reject) => {
 
-            let param = new ThrottledSelectQueryParam([resolve], context_query, query_, values);
+            let param = new ThrottledSelectQueryParam([resolve], context_query, parameterizedQueryWrapperFields, query_, values);
 
             if (ConfigurationService.getInstance().node_configuration.DEBUG_THROTTLED_SELECT) {
                 ConsoleHandler.getInstance().log('throttle_select_query:' + param.parameterized_full_query);
@@ -1863,7 +1864,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 throttled_select_query_params_by_parameterized_full_query[throttled_select_query_param.parameterized_full_query] = throttled_select_query_param;
                 throttled_select_query_params_by_index[throttled_select_query_param.index] = throttled_select_query_param;
 
-                let fields = throttled_select_query_param.context_query.fields;
+                let fields = throttled_select_query_param.parameterizedQueryWrapperFields;
                 let fields_labels: string = null;
 
                 fields_labels = throttled_select_query_param.context_query.do_count_results ? 'number,c' : null;
@@ -1881,7 +1882,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             ConsoleHandler.getInstance().error('throttled_select_query : error while getting field type for field ' + field.field_id + ' of type ' + field.api_type_id);
                         }
 
-                        return table_field_type + ',' + field.alias;
+                        return table_field_type + ',' + field.row_col_alias;
 
                     }).join(';') : null;
                 }

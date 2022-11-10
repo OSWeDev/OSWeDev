@@ -8,9 +8,10 @@ export default class GetVarParamFromContextFiltersParamVO implements IAPIParamTr
         var_name: string,
         get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
         custom_filters: { [var_param_field_name: string]: ContextFilterVO },
-        active_api_type_ids: string[]): GetVarParamFromContextFiltersParamVO {
+        active_api_type_ids: string[],
+        discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }): GetVarParamFromContextFiltersParamVO {
 
-        return new GetVarParamFromContextFiltersParamVO(var_name, get_active_field_filters, custom_filters, active_api_type_ids);
+        return new GetVarParamFromContextFiltersParamVO(var_name, get_active_field_filters, custom_filters, active_api_type_ids, discarded_field_paths);
     }
 
     public static getAPIParams(param: GetVarParamFromContextFiltersParamVO): any[] {
@@ -18,7 +19,8 @@ export default class GetVarParamFromContextFiltersParamVO implements IAPIParamTr
             param.var_name,
             param.get_active_field_filters,
             param.custom_filters,
-            param.active_api_type_ids
+            param.active_api_type_ids,
+            param.discarded_field_paths
         ];
     }
 
@@ -26,7 +28,8 @@ export default class GetVarParamFromContextFiltersParamVO implements IAPIParamTr
         public var_name: string,
         public get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
         public custom_filters: { [var_param_field_name: string]: ContextFilterVO },
-        public active_api_type_ids: string[]
+        public active_api_type_ids: string[],
+        public discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }
     ) {
     }
 }

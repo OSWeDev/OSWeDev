@@ -1,7 +1,4 @@
 import NumRange from '../modules/DataRender/vos/NumRange';
-import TimeSegment from '../modules/DataRender/vos/TimeSegment';
-import TSRange from '../modules/DataRender/vos/TSRange';
-import Dates from '../modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../modules/IDistantVOBase';
 import ConsoleHandler from './ConsoleHandler';
 import RangeHandler from './RangeHandler';
@@ -19,6 +16,10 @@ export default class ObjectHandler {
     private static instance: ObjectHandler = null;
 
     private constructor() {
+    }
+
+    public are_equal(a: any, b: any): boolean {
+        return JSON.stringify(a) == JSON.stringify(b);
     }
 
     public sortObjectByKey(obj: {}, sort_func = null): {} {

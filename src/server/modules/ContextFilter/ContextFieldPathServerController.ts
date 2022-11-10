@@ -1,4 +1,3 @@
-import { cloneDeep } from 'lodash';
 import ContextQueryVO from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
@@ -274,7 +273,7 @@ export default class ContextFieldPathServerController {
         for (let i in manytoone_fields) {
             let manytoone_field = manytoone_fields[i];
 
-            let newpath = cloneDeep(actual_path);
+            let newpath = Array.from(actual_path);
             newpath.push(new FieldPathWrapper(manytoone_field, true));
             this_path_next_turn_paths.push(newpath);
         }
@@ -349,7 +348,7 @@ export default class ContextFieldPathServerController {
                     continue;
                 }
 
-                let newpath = cloneDeep(actual_path);
+                let newpath = Array.from(actual_path);
                 newpath.push(new FieldPathWrapper(onetomany_field, false));
                 newpath.push(new FieldPathWrapper(second_field, true));
                 this_path_next_turn_paths.push(newpath);
@@ -357,7 +356,7 @@ export default class ContextFieldPathServerController {
                 // On marque la relation N/N comme déployée aussi du coup
                 deployed_deps_from[onetomany_field.module_table.vo_type] = true;
             } else {
-                let newpath = cloneDeep(actual_path);
+                let newpath = Array.from(actual_path);
                 newpath.push(new FieldPathWrapper(onetomany_field, false));
                 this_path_next_turn_paths.push(newpath);
             }
