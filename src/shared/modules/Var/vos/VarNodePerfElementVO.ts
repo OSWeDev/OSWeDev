@@ -360,6 +360,7 @@ export default class VarNodePerfElementVO implements IDistantVOBase {
         let diff_initial_estimated_work_time_global = (initial_estimated_work_time_global ? initial_estimated_work_time_global : 0) - (old_initial_estimated_work_time_global ? old_initial_estimated_work_time_global : 0);
 
         this._initial_estimated_work_time_global = initial_estimated_work_time_global;
+        this._updated_estimated_work_time_global = initial_estimated_work_time_global;
 
         /**
          * On met à jour le parent si on en a
