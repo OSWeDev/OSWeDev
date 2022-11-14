@@ -6,6 +6,7 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
+import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
@@ -13,6 +14,7 @@ import TableWidgetCustomFieldsController from '../../../shared/modules/Dashboard
 import ModuleDataExport from '../../../shared/modules/DataExport/ModuleDataExport';
 import ExportLogVO from '../../../shared/modules/DataExport/vos/apis/ExportLogVO';
 import ExportHistoricVO from '../../../shared/modules/DataExport/vos/ExportHistoricVO';
+import ExportVarcolumnConf from '../../../shared/modules/DataExport/vos/ExportVarcolumnConf';
 import ModuleFile from '../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -25,6 +27,9 @@ import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultT
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
+import ModuleVar from '../../../shared/modules/Var/ModuleVar';
+import VarsController from '../../../shared/modules/Var/VarsController';
+import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
@@ -37,6 +42,9 @@ import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
+import ModuleVarServer from '../Var/ModuleVarServer';
+import VarsServerCallBackSubsController from '../Var/VarsServerCallBackSubsController';
+import VarsServerController from '../Var/VarsServerController';
 import DataExportBGThread from './bgthreads/DataExportBGThread';
 import IExportableSheet from './interfaces/IExportableSheet';
 
@@ -182,6 +190,13 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         ordered_column_list: string[],
         column_labels: { [field_name: string]: string },
         exportable_datatable_custom_field_columns: { [datatable_field_uid: string]: string } = null,
+
+        varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConf } = null,
+        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
+        custom_filters: { [var_param_field_name: string]: ContextFilterVO } = null,
+        active_api_type_ids: string[] = null,
+        discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
+
         is_secured: boolean = false,
         file_access_policy_name: string = null): Promise<string> {
 
@@ -189,6 +204,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         let datas = (context_query.fields && context_query.fields.length) ?
             await ModuleContextFilter.getInstance().select_datatable_rows(context_query) :
             await ModuleContextFilter.getInstance().select_vos(context_query);
+        datas = await this.addVarColumnsValues(datas, ordered_column_list, varcolumn_conf, active_field_filters, custom_filters, active_api_type_ids, discarded_field_paths);
 
         datas = await this.translate_context_query_fields_from_bdd(datas, context_query);
 
@@ -284,6 +300,13 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         ordered_column_list: string[],
         column_labels: { [field_name: string]: string },
         exportable_datatable_custom_field_columns: { [datatable_field_uid: string]: string } = null,
+
+        varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConf } = null,
+        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
+        custom_filters: { [var_param_field_name: string]: ContextFilterVO } = null,
+        active_api_type_ids: string[] = null,
+        discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
+
         is_secured: boolean = false,
         file_access_policy_name: string = null
     ): Promise<FileVO> {
@@ -292,6 +315,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         let datas = (context_query.fields && context_query.fields.length) ?
             await ModuleContextFilter.getInstance().select_datatable_rows(context_query) :
             await ModuleContextFilter.getInstance().select_vos(context_query);
+        datas = await this.addVarColumnsValues(datas, ordered_column_list, varcolumn_conf, active_field_filters, custom_filters, active_api_type_ids, discarded_field_paths);
 
         datas = await this.translate_context_query_fields_from_bdd(datas, context_query);
 
@@ -826,5 +850,62 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         }
 
         await all_promises(promises);
+    }
+
+    /**
+     * On ajoute aux datas les résolutats de calcul des vars qui remplissent les colonnes de var du tableau
+     *  Il faut donc d'abord définir les pramètres de calcul des vars, puis attendre le résultat du calcul
+     */
+    private async addVarColumnsValues(
+        datas: IDistantVOBase[],
+        ordered_column_list: string[],
+
+        varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConf } = null,
+        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
+        custom_filters: { [var_param_field_name: string]: ContextFilterVO } = null,
+        active_api_type_ids: string[] = null,
+        discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null
+
+    ): Promise<IDistantVOBase[]> {
+
+        let promises = [];
+        let limit = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 2));
+
+        for (let i in ordered_column_list) {
+            let data_field_name: string = ordered_column_list[i];
+
+            if (!varcolumn_conf[data_field_name]) {
+                continue;
+            }
+            let this_varcolumn_conf = varcolumn_conf[data_field_name];
+
+            for (let j in datas) {
+                let data = datas[j];
+
+                if ((!!limit) && (promises.length >= limit)) {
+                    await all_promises(promises);
+                    promises = [];
+                }
+
+                promises.push((async () => {
+                    /**
+                     * On doit récupérer le param en fonction de la ligne et les filtres actifs utilisés pour l'export
+                     */
+                    let var_param: VarDataBaseVO = await ModuleVar.getInstance().getVarParamFromContextFilters(
+                        VarsController.getInstance().var_conf_by_id[this_varcolumn_conf.var_id].name,
+                        active_field_filters,
+                        custom_filters,
+                        active_api_type_ids,
+                        discarded_field_paths
+                    );
+
+                    data[data_field_name] = await VarsServerCallBackSubsController.getInstance().get_var_data(var_param, 'addVarColumnsValues: exporting data');
+                })());
+            }
+        }
+
+        await all_promises(promises);
+
+        return datas;
     }
 }

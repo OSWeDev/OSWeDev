@@ -75,6 +75,8 @@ import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
 import ThrottledSelectQueryParam from './vos/ThrottledSelectQueryParam';
 import pgPromise = require('pg-promise');
+import VarsController from '../../../shared/modules/Var/VarsController';
+import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -1266,15 +1268,52 @@ export default class ModuleDAOServer extends ModuleServerBase {
          * On check aussi que l'on a pas des updates à faire et uniquement des inserts, sinon on fait un update des vos concernés avant de faire les inserts (on pourrait le faire en // mais c'est plus compliqué)
          */
         let update_vos: IDistantVOBase[] = [];
+        let check_pixel_update_vos_by_type: { [vo_type: string]: VarDataBaseVO[] } = {};
         let insert_vos: IDistantVOBase[] = [];
 
         for (let i in vos) {
             let vo = vos[i];
 
             if (!!vo.id) {
+
+                /**
+                 * Si on est sur du pixel && never_delete, on doit pas avoir un update sauf changement de valeur ou de type de valeur, le reste osef
+                 *  et comme on a un bug visiblement en amont qui essaie d'insérer ce type de valeur, on rajoute un contrôle ici qui sera toujours plus rapide que de faire un update
+                 */
+                if (VOsTypesManager.getInstance().moduleTables_by_voType[vo._type].isMatroidTable) {
+                    let conf = VarsController.getInstance().var_conf_by_id[vo['var_id']];
+                    if (conf && conf.pixel_activated && conf.pixel_never_delete) {
+
+                        if (!check_pixel_update_vos_by_type[vo._type]) {
+                            check_pixel_update_vos_by_type[vo._type] = [];
+                        }
+                        check_pixel_update_vos_by_type[vo._type].push(vo as VarDataBaseVO);
+                        continue;
+                    }
+                }
+
                 update_vos.push(vo);
             } else {
                 insert_vos.push(vo);
+            }
+        }
+
+
+        for (let api_type in check_pixel_update_vos_by_type) {
+            let check_pixel_update_vos = check_pixel_update_vos_by_type[api_type];
+            let db_check_pixel_update_vos: VarDataBaseVO[] = await query(api_type).filter_by_ids(vos.map((vo) => vo.id)).select_vos();
+
+            let db_check_pixel_update_vos_by_id: { [id: number]: VarDataBaseVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(db_check_pixel_update_vos);
+
+            for (let j in check_pixel_update_vos) {
+                let vo = check_pixel_update_vos[j];
+                let db_vo = db_check_pixel_update_vos_by_id[vo.id];
+
+                if (db_vo && (db_vo.value == vo.value) && (db_vo.value_type == vo.value_type)) {
+                    ConsoleHandler.getInstance().error('On a un insert/update de pixel alors que le pixel existe déjà en base avec la même valeur et le même type. On ne fait rien mais on ne devrait pas arriver ici.DB:' + JSON.stringify(db_vo) + ':app:' + JSON.stringify(vo));
+                    continue;
+                }
+                update_vos.push(vo);
             }
         }
 
@@ -2211,7 +2250,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let res: T[] = [];
         let promises = [];
 
-        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 10));
+        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 2));
 
         for (let i in vos) {
             let vo = vos[i];
@@ -2246,6 +2285,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         let fields = moduleTable.get_fields();
         let refuse: boolean = false;
+        let promises = [];
+
         for (let j in fields) {
             let field = fields[j];
 
@@ -2268,20 +2309,25 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         break;
                     }
 
-                    refuse = true;
-                    let nb: number = await this.countVosByIdsRanges(field.manyToOne_target_moduletable.vo_type, vo[field.field_id]);
-                    if (nb == RangeHandler.getInstance().getCardinalFromArray(vo[field.field_id])) {
-                        refuse = false;
-                    }
+                    promises.push((async () => {
+                        try {
+                            let nb: number = await this.countVosByIdsRanges(field.manyToOne_target_moduletable.vo_type, vo[field.field_id]);
+                            if (nb != RangeHandler.getInstance().getCardinalFromArray(vo[field.field_id])) {
+                                refuse = true;
+                            }
+                        } catch (error) {
+                            ConsoleHandler.getInstance().error(error);
+                            refuse = true;
+                        }
+                    })());
                     break;
                 default:
-                    refuse = true;
-            }
-
-            if (refuse) {
-                break;
+                    return true;
             }
         }
+
+        await all_promises(promises);
+
         return refuse;
     }
 

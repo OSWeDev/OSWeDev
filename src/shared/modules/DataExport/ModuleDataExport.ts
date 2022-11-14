@@ -4,6 +4,7 @@ import UserVO from '../AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import APIDefinition from '../API/vos/APIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import ContextFilterVO from '../ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO from '../ContextFilter/vos/ContextQueryVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import FileVO from '../File/vos/FileVO';
@@ -17,6 +18,7 @@ import ExportDataToMultiSheetsXLSXParamVO from './vos/apis/ExportDataToMultiShee
 import ExportDataToXLSXParamVO, { ExportDataToXLSXParamVOStatic } from './vos/apis/ExportDataToXLSXParamVO';
 import ExportLogVO from './vos/apis/ExportLogVO';
 import ExportHistoricVO from './vos/ExportHistoricVO';
+import ExportVarcolumnConf from './vos/ExportVarcolumnConf';
 
 export default class ModuleDataExport extends Module {
 
@@ -42,6 +44,8 @@ export default class ModuleDataExport extends Module {
         ordered_column_list: string[],
         column_labels: { [field_name: string]: string },
         exportable_datatable_custom_field_columns?: { [datatable_field_uid: string]: string },
+        varcolumn_conf?: { [datatable_field_uid: string]: ExportVarcolumnConf },
+        custom_filters?: { [var_param_field_name: string]: ContextFilterVO },
         is_secured?: boolean,
         file_access_policy_name?: string
     ) => Promise<string> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVO);
@@ -51,6 +55,8 @@ export default class ModuleDataExport extends Module {
         ordered_column_list: string[],
         column_labels: { [field_name: string]: string },
         exportable_datatable_custom_field_columns?: { [datatable_field_uid: string]: string },
+        varcolumn_conf?: { [datatable_field_uid: string]: ExportVarcolumnConf },
+        custom_filters?: { [var_param_field_name: string]: ContextFilterVO },
         is_secured?: boolean,
         file_access_policy_name?: string) => Promise<FileVO> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVOFile);
 

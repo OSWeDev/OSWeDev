@@ -1608,7 +1608,12 @@ export default class TableWidgetComponent extends VueComponentBase {
             context_query,
             this.exportable_datatable_columns,
             this.datatable_columns_labels,
-            this.exportable_datatable_custom_field_columns
+            this.exportable_datatable_custom_field_columns,
+            this.varcolumn_conf,
+            this.active_field_filters,
+            this.custom_filters,
+            this.active_api_type_ids,
+            this.discarded_field_paths
         );
     }
 
@@ -1778,6 +1783,8 @@ export default class TableWidgetComponent extends VueComponentBase {
                 param.ordered_column_list,
                 param.column_labels,
                 param.exportable_datatable_custom_field_columns,
+                param.varcolumn_conf,
+                param.custom_filters,
                 param.is_secured,
                 param.file_access_policy_name
             );
