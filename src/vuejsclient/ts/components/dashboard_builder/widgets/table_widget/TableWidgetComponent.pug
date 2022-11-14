@@ -145,6 +145,7 @@ include ../../../../../views/mixins/loading.pug
                                                     template(v-else)
                                                         template(v-if="column.type != 5")
                                                             Datatablecomponentfield(
+                                                                :filter_custom_field_filters="column.filter_custom_field_filters"
                                                                 :field="fields[column.id]"
                                                                 :vo="row"
                                                                 :columns="columns"
@@ -180,6 +181,7 @@ include ../../../../../views/mixins/loading.pug
                                             template(v-for='child in column.children')
                                                 td.table_col(v-if="child.type == 1")
                                                     Datatablecomponentfield(
+                                                        :filter_custom_field_filters="column.filter_custom_field_filters"
                                                         :field="fields[child.id]"
                                                         :vo="row"
                                                         :columns="columns"

@@ -1031,7 +1031,7 @@ export default class ModuleVarServer extends ModuleServerBase {
      */
     private async register_params(params: VarDataBaseVO[]): Promise<void> {
 
-        if (!params) {
+        if ((!params) || (!params.length)) {
             return;
         }
 
@@ -1039,6 +1039,25 @@ export default class ModuleVarServer extends ModuleServerBase {
          * On commence par refuser les params mal construits (champs null)
          */
         params = this.filter_null_fields_params(params);
+
+        if ((!params) || (!params.length)) {
+            return;
+        }
+
+        /**
+         * On check qu'on essaie pas d'ajoute une var avec un maxrange quelque part qui casserait tout
+         */
+        params = params.filter((param) => {
+            if (!MatroidController.getInstance().check_bases_not_max_ranges(param)) {
+                ConsoleHandler.getInstance().error('VarDAGNode.getInstance:!check_bases_not_max_ranges:' + param.index);
+                return false;
+            }
+            return true;
+        });
+
+        if ((!params) || (!params.length)) {
+            return;
+        }
 
         let uid = StackContext.getInstance().get('UID');
         let client_tab_id = StackContext.getInstance().get('CLIENT_TAB_ID');
@@ -1318,7 +1337,8 @@ export default class ModuleVarServer extends ModuleServerBase {
         var_name: string,
         get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
         custom_filters: { [var_param_field_name: string]: ContextFilterVO },
-        active_api_type_ids: string[]
+        active_api_type_ids: string[],
+        discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }
     ): Promise<VarDataBaseVO> {
 
         if (!var_name) {
@@ -1355,11 +1375,17 @@ export default class ModuleVarServer extends ModuleServerBase {
                             context_query.fields = [
                                 new ContextQueryFieldVO(matroid_field.manyToOne_target_moduletable.vo_type, matroid_field.target_field, 'id')
                             ];
+                            context_query.discarded_field_paths = discarded_field_paths;
 
-                            let ids_db: Array<{ id: number }> = await ModuleContextFilterServer.getInstance().select_vos(context_query);
+                            let ids_db: Array<{ id: number }> = refuse_param ? null : await ModuleContextFilterServer.getInstance().select_vos(context_query);
 
                             if (!ids_db) {
-                                var_param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxNumRange()];
+                                // Max range étant interdit sur les registers de var, on force un retour null
+                                if (!refuse_param) {
+                                    ConsoleHandler.getInstance().error('getVarParamFromContextFilters: max range not allowed on registers of var');
+                                    refuse_param = true;
+                                }
+                                // var_param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxNumRange()];
                                 break;
                             }
 
@@ -1368,7 +1394,12 @@ export default class ModuleVarServer extends ModuleServerBase {
 
                             var_param[matroid_field.field_id] = RangeHandler.getInstance().get_ids_ranges_from_list(ids);
                         } else {
-                            var_param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxNumRange()];
+                            // Max range étant interdit sur les registers de var, on force un retour null
+                            if (!refuse_param) {
+                                ConsoleHandler.getInstance().error('getVarParamFromContextFilters: max range not allowed on registers of var');
+                                refuse_param = true;
+                            }
+                            // var_param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxNumRange()];
                         }
                         break;
                     case ModuleTableField.FIELD_TYPE_hourrange_array:
@@ -1382,11 +1413,21 @@ export default class ModuleVarServer extends ModuleServerBase {
                             let limit_nb_range = await ModuleParams.getInstance().getParamValueAsInt(ModuleVarServer.PARAM_NAME_limit_nb_ts_ranges_on_param_by_context_filter, 100);
                             var_param[matroid_field.field_id] = this.get_ts_ranges_from_custom_filter(custom_filters[matroid_field.field_id], limit_nb_range);
                             if (!var_param[matroid_field.field_id]) {
-                                refuse_param = true;
+                                if (!refuse_param) {
+                                    ConsoleHandler.getInstance().error('getVarParamFromContextFilters: max range not allowed on registers of var');
+                                    refuse_param = true;
+                                }
                                 return;
                             }
+                            break;
                         }
-                        var_param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxTSRange()];
+
+                        // Max range étant interdit sur les registers de var, on force un retour null
+                        if (!refuse_param) {
+                            ConsoleHandler.getInstance().error('getVarParamFromContextFilters: max range not allowed on registers of var');
+                            refuse_param = true;
+                        }
+                        // var_param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxTSRange()];
                         break;
                 }
             })(matroid_field_));
@@ -1538,7 +1579,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
             RangeHandler.getInstance().foreach_ranges_sync(numranges, (month_i: number) => {
 
-                res.push(RangeHandler.getInstance().create_single_elt_TSRange(Dates.add(year, month_i, TimeSegment.TYPE_MONTH), TimeSegment.TYPE_MONTH));
+                res.push(RangeHandler.getInstance().create_single_elt_TSRange(Dates.add(year, month_i - 1, TimeSegment.TYPE_MONTH), TimeSegment.TYPE_MONTH));
             });
         });
 
@@ -1550,14 +1591,18 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     private get_ts_ranges_from_custom_filter_year(custom_filter: ContextFilterVO, limit_nb_range): TSRange[] {
         if (custom_filter.param_numeric != null) {
-            return [RangeHandler.getInstance().create_single_elt_NumRange(custom_filter.param_numeric, NumSegment.TYPE_INT)];
+            return [RangeHandler.getInstance().create_single_elt_TSRange(Dates.startOf(Dates.year(0, custom_filter.param_numeric), TimeSegment.TYPE_YEAR), TimeSegment.TYPE_YEAR)];
         }
 
         if (custom_filter.param_numranges && (custom_filter.param_numranges.length > limit_nb_range)) {
             return null;
         }
 
-        return custom_filter.param_numranges;
+        let res: TSRange[] = [];
+        RangeHandler.getInstance().foreach_ranges_sync(custom_filter.param_numranges, (year: number) => {
+            res.push(RangeHandler.getInstance().create_single_elt_TSRange(Dates.startOf(Dates.year(0, year), TimeSegment.TYPE_YEAR), TimeSegment.TYPE_YEAR));
+        });
+        return res;
     }
 
     private async load_slowvars() {

@@ -55,9 +55,9 @@ export default class VarDAGNode extends DAGNodeBase {
         /**
          * Si on time out sur la création de l'arbre on refuse d'ajouter de nouveaux éléments
          */
-        if (var_dag.timed_out) {
-            return null;
-        }
+        // if (var_dag.timed_out) {
+        //     return null;
+        // }
 
         /**
          * On check qu'on essaie pas d'ajoute une var avec un maxrange quelque part qui casserait tout

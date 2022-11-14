@@ -47,5 +47,7 @@
                             Vardescexplaindscomponent(:ds_name="ds_name" :ds_data_jsoned="ds_value_jsoned")
                 .row(v-if='deps_params_loaded')
                     .col-sm-12
-                        template(v-for='(var_dep, dep_id) in vars_deps')
+                        template(v-for='(var_dep, dep_id) in shown_vars_deps')
                             Vardescexplaindepcomponent(:dep_id="dep_id" :var_id="var_id_from_name(var_dep)" :params="params_from_var_dep_id[dep_id]")
+                        template(v-if='vars_deps_has_mode_than_10_elts && limit_10_var_deps')
+                            .var_controller_label(@click='limit_10_var_deps = false') {{ label('var_desc_explain_dep.limit_10') }}

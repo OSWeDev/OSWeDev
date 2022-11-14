@@ -48,6 +48,9 @@ export default class DatatableComponentField extends VueComponentBase {
     @Prop({ default: false })
     private disabled_many_to_one_link: boolean;
 
+    @Prop({ default: null })
+    private filter_custom_field_filters: { [field_id: string]: string };
+
     private has_access_DAO_ACCESS_TYPE_INSERT_OR_UPDATE: boolean = false;
     private is_load: boolean = false;
 
