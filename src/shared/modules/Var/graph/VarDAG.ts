@@ -7,7 +7,7 @@ import VarDAGNode from "./VarDAGNode";
 export default class VarDAG extends DAG<VarDAGNode> {
 
     public perfs: VarBatchPerfVO;
-    // public timed_out: boolean = false;
+    public timed_out: boolean = false;
 
     public has_perfs: boolean = false;
 

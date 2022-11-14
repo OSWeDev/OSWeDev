@@ -115,7 +115,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         context_query.query_limit = 1;
 
         let res = await this.select_vos<T>(context_query);
-        return res ? res[0] : null;
+        return (res && res.length) ? res[0] : null;
     }
 
     /**

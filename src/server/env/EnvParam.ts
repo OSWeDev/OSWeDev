@@ -32,6 +32,7 @@ export default class EnvParam implements IEnvParam {
     public DEBUG_SLOW_QUERIES?: boolean = false;
     public DEBUG_SLOW_QUERIES_MS_LIMIT?: number = 100;
     public DEBUG_VARS?: boolean = false;
+    public DEBUG_VARS_DB_PARAM_BUILDER?: boolean = false;
     public DEBUG_VARS_SERVER_SUBS_CBS?: boolean = false;
     public DEBUG_PARAM_QUERIES?: boolean = false;
     public DEBUG_DELETEVOS?: boolean = false;

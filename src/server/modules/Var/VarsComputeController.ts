@@ -333,7 +333,7 @@ export default class VarsComputeController {
                     batchperf_computation_wrapper_total_estimated_remaining_time + current_computation_wrapper_total_elapsed_time +
                     ') > limit (' + estimated_tree_computation_time_limit + ')');
 
-                // var_dag.timed_out = true;
+                var_dag.timed_out = true;
 
                 /**
                  * Tous les noeuds qui ne sont pas successfully_deployed doivent être retirés de l'arbre à ce stade et on part en calcul
@@ -977,7 +977,7 @@ export default class VarsComputeController {
 
             let vars_datas_to_deploy_by_controller_height = await this.get_vars_datas_by_controller_height(var_dag);
             let step = 1;
-            while (Object.keys(vars_datas_to_deploy_by_controller_height).length) {
+            while (Object.keys(vars_datas_to_deploy_by_controller_height).length && ((!var_dag.timed_out) || (!var_dag.nb_nodes))) {
 
                 // On sélectionne les vars à déployer
                 let vars_to_deploy: { [index: string]: VarDataBaseVO } = this.get_vars_to_deploy(vars_datas_to_deploy_by_controller_height);
@@ -1197,9 +1197,9 @@ export default class VarsComputeController {
 
             if (promises.length >= max) {
                 await all_promises(promises);
-                // if (var_dag.timed_out) {
-                //     return;
-                // }
+                if (var_dag.timed_out && !!var_dag.nb_nodes) {
+                    return;
+                }
 
                 promises = [];
             }
@@ -1542,7 +1542,7 @@ export default class VarsComputeController {
 
             let pixel_query = query(varconf.var_data_vo_type)
                 .filter_by_num_eq('var_id', varconf.id)
-                .field('value', 'counter', varconf.var_data_vo_type, VarConfVO.COUNT_AGGREGATOR)
+                .field('id', 'counter', varconf.var_data_vo_type, VarConfVO.COUNT_AGGREGATOR)
                 .field('value', 'aggregated_value', varconf.var_data_vo_type, varconf.aggregator);
 
             /**

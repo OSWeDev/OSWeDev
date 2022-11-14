@@ -136,9 +136,7 @@ export default class ModuleAnimation extends Module {
     }
 
     public async getParameters(): Promise<AnimationParametersVO> {
-        let res: AnimationParametersVO[] = await query(AnimationParametersVO.API_TYPE_ID).select_vos<AnimationParametersVO>();
-
-        return res ? res[0] : null;
+        return await query(AnimationParametersVO.API_TYPE_ID).select_vo<AnimationParametersVO>();
     }
 
     //- ModuleTables
