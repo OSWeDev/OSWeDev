@@ -352,9 +352,10 @@ describe('ContextQueryServer', () => {
      */
     it('test .build_select_query having auto', async () => {
 
-        let context_query: ContextQueryVO = query(UserVO.API_TYPE_ID).field('id').add_filters([
-            filter(RoleVO.API_TYPE_ID).by_id_in(query(RoleVO.API_TYPE_ID).field('id')).or(
-                filter(UserVO.API_TYPE_ID).by_id_not_in(query(UserRoleVO.API_TYPE_ID).field('user_id').ignore_access_hooks())
+        let context_query: ContextQueryVO = query(UserVO.API_TYPE_ID).field('id');
+        context_query.add_filters([
+            filter(RoleVO.API_TYPE_ID).by_id_in(query(RoleVO.API_TYPE_ID).field('id'), context_query).or(
+                filter(UserVO.API_TYPE_ID).by_id_not_in(query(UserRoleVO.API_TYPE_ID).field('user_id').ignore_access_hooks(), context_query)
             )
         ]).ignore_access_hooks();
 
@@ -386,22 +387,24 @@ describe('ContextQueryServer', () => {
      */
     it('test .build_select_query chained OR', async () => {
 
+        let context_query: ContextQueryVO = query(UserVO.API_TYPE_ID);
+
         let f1 = ContextFilterVO.or([
-            filter(RoleVO.API_TYPE_ID).by_id_in(query(RoleVO.API_TYPE_ID).field('id').ignore_access_hooks()),
-            filter(UserVO.API_TYPE_ID).by_id_not_in(query(UserRoleVO.API_TYPE_ID).field('user_id').ignore_access_hooks()),
+            filter(RoleVO.API_TYPE_ID).by_id_in(query(RoleVO.API_TYPE_ID).field('id').ignore_access_hooks(), context_query),
+            filter(UserVO.API_TYPE_ID).by_id_not_in(query(UserRoleVO.API_TYPE_ID).field('user_id').ignore_access_hooks(), context_query),
             filter(UserVO.API_TYPE_ID).by_id(15)
         ]);
 
         let filter_ = filter(UserVO.API_TYPE_ID).by_id(15);
         let compl = ContextFilterVO.or([
             filter(UserVO.API_TYPE_ID).by_id_in(
-                query(UserVO.API_TYPE_ID).field('id').ignore_access_hooks()),
+                query(UserVO.API_TYPE_ID).field('id').ignore_access_hooks(), context_query),
             filter(UserVO.API_TYPE_ID).by_id_in(
-                query(UserVO.API_TYPE_ID).field('id').ignore_access_hooks())
+                query(UserVO.API_TYPE_ID).field('id').ignore_access_hooks(), context_query)
         ]);
         filter_ = filter_.or(compl);
 
-        let context_query: ContextQueryVO = query(UserVO.API_TYPE_ID).add_filters([f1]).add_filters([filter_]).ignore_access_hooks();
+        context_query.add_filters([f1]).add_filters([filter_]).ignore_access_hooks();
 
         let request: ParameterizedQueryWrapper = await ContextQueryServerController.getInstance().build_select_query(context_query);
 
