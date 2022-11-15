@@ -191,6 +191,22 @@
                             :deselect-group-label='label("multiselect.deselectGroupLabel")'
                         )
 
+                    template(v-if='fields_that_could_get_custom_filter && fields_that_could_get_custom_filter.length')
+                        .fields_that_could_get_custom_filter
+                            template(v-for='field_that_could_get_custom_filter in fields_that_could_get_custom_filter')
+                                .field_that_could_get_custom_filter
+                                    .field_id {{ field_that_could_get_custom_filter }}
+                                    .custom_filter 
+                                        input(
+                                            type="text"
+                                            v-model="custom_filter_names[field_that_could_get_custom_filter]"
+                                            :disabled="true"
+                                        )
+                                    .existing_custom_filters_list(v-if='get_custom_filters && get_custom_filters.length')
+                                        template(v-for='custom_filter in get_custom_filters')
+                                            .custom_filter(@click='change_custom_filter(field_that_could_get_custom_filter, custom_filter)') {{ custom_filter }}
+
+
                 //- template(v-if='column.is_enum')
                 .enum_color_options 
                     .enum_color_option(v-for='(enum_option_label, enum_option_index) in enum_options')
@@ -213,3 +229,4 @@
                     color-picker.mr-2(v-model="tmp_font_color_header")
                     template(v-if="tmp_font_color_header")
                         i.fa.fa-times(@click="clear_tmp_font_color_header")
+

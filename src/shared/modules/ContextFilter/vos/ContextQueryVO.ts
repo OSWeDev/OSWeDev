@@ -876,7 +876,7 @@ export default class ContextQueryVO implements IDistantVOBase {
         if (res && (res.length > 1)) {
             throw new Error('Multiple results on select_vo is not allowed');
         }
-        return res ? res[0] : null;
+        return (res && res.length) ? res[0] : null;
     }
 
     /**
@@ -899,7 +899,7 @@ export default class ContextQueryVO implements IDistantVOBase {
         if (res && (res.length > 1)) {
             throw new Error('Multiple results on select_one is not allowed');
         }
-        return res ? res[0] : null;
+        return (res && res.length) ? res[0] : null;
     }
 
     /**
@@ -911,7 +911,7 @@ export default class ContextQueryVO implements IDistantVOBase {
         if (res && (res.length > 1)) {
             throw new Error('Multiple results on select_datatable_row is not allowed');
         }
-        return res ? res[0] : null;
+        return (res && res.length) ? res[0] : null;
     }
 
     /**

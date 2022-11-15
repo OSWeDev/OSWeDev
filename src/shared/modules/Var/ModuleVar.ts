@@ -113,7 +113,8 @@ export default class ModuleVar extends Module {
         var_name: string,
         get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
         custom_filters: { [var_param_field_name: string]: ContextFilterVO },
-        active_api_type_ids: string[]
+        active_api_type_ids: string[],
+        discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }
     ) => Promise<VarDataBaseVO> = APIControllerWrapper.sah(ModuleVar.APINAME_getVarParamFromContextFilters);
 
     public initializedasync_VarsController: boolean = false;

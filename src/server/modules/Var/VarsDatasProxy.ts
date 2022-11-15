@@ -827,7 +827,9 @@ export default class VarsDatasProxy {
                 ConsoleHandler.getInstance().log("filter_var_datas_by_indexes:!wrapper:" + var_data.index + ":" + var_datas.length + ":" + client_user_id + ":" + client_socket_id + ":" + is_server_request + ":" + reason);
             }
 
-            this.vars_datas_buffer_wrapped_indexes[var_data.index] = new VarDataProxyWrapperVO(var_data, client_user_id, client_socket_id, is_server_request, reason, !just_been_loaded_from_db, 0);
+            this.vars_datas_buffer_wrapped_indexes[var_data.index] = new VarDataProxyWrapperVO(
+                var_data, client_user_id, client_socket_id, is_server_request, reason,
+                !just_been_loaded_from_db, 0);
             this.add_read_stat(this.vars_datas_buffer_wrapped_indexes[var_data.index]);
             res.push(this.vars_datas_buffer_wrapped_indexes[var_data.index].var_data);
 

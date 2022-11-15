@@ -56,6 +56,7 @@ import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ServerAnonymizationController from '../Anonymization/ServerAnonymizationController';
 import ContextQueryInjectionCheckHandler from '../ContextFilter/ContextQueryInjectionCheckHandler';
+import ParameterizedQueryWrapperField from '../ContextFilter/vos/ParameterizedQueryWrapperField';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
@@ -73,7 +74,6 @@ import DAOPreDeleteTriggerHook from './triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
 import ThrottledSelectQueryParam from './vos/ThrottledSelectQueryParam';
-import RequestResponseCacheVO from '../../../shared/modules/AjaxCache/vos/RequestResponseCacheVO';
 import pgPromise = require('pg-promise');
 
 export default class ModuleDAOServer extends ModuleServerBase {
@@ -1370,13 +1370,28 @@ export default class ModuleDAOServer extends ModuleServerBase {
                  * Cas des arrays
                  */
                 if (Array.isArray(fieldValue) &&
-                    ((field.field_type == ModuleTableField.FIELD_TYPE_int_array) ||
-                        (field.field_type == ModuleTableField.FIELD_TYPE_html_array) ||
-                        (field.field_type == ModuleTableField.FIELD_TYPE_tstz_array) ||
-                        (field.field_type == ModuleTableField.FIELD_TYPE_float_array) ||
+                    ((field.field_type == ModuleTableField.FIELD_TYPE_html_array) ||
                         (field.field_type == ModuleTableField.FIELD_TYPE_string_array))) {
 
-                    stringified = 'ARRAY' + stringified;
+                    let string_array = (fieldValue as string[]);
+                    string_array = string_array.map((str) => {
+                        return str.replace(/'/g, "\\''");
+                    });
+
+                    stringified = (string_array.length == 0) ? '{}' :
+                        "'{''" + string_array.join("'',''") + "''}'";
+                } else if (Array.isArray(fieldValue) &&
+                    ((field.field_type == ModuleTableField.FIELD_TYPE_int_array) ||
+                        (field.field_type == ModuleTableField.FIELD_TYPE_tstz_array) ||
+                        (field.field_type == ModuleTableField.FIELD_TYPE_float_array))) {
+
+                    let num_array = (fieldValue as number[]);
+                    let string_array = num_array.map((str) => {
+                        return str.toString();
+                    });
+
+                    stringified = (string_array.length == 0) ? '{}' :
+                        "'{" + string_array.join(",") + "}'";
                 }
                 setters.push(stringified);
 
@@ -1787,13 +1802,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
     /**
      * Throttle select queries group every 10ms (parametrable)
      */
-    public async throttle_select_query(query_: string = null, values: any = null, context_query: ContextQueryVO): Promise<any> {
+    public async throttle_select_query(query_: string = null, values: any = null, parameterizedQueryWrapperFields: ParameterizedQueryWrapperField[], context_query: ContextQueryVO): Promise<any> {
         await this.check_throttled_select_query_size_ms();
         let self = this;
 
         return new Promise(async (resolve, reject) => {
 
-            let param = new ThrottledSelectQueryParam([resolve], context_query, query_, values);
+            let param = new ThrottledSelectQueryParam([resolve], context_query, parameterizedQueryWrapperFields, query_, values);
 
             if (ConfigurationService.getInstance().node_configuration.DEBUG_THROTTLED_SELECT) {
                 ConsoleHandler.getInstance().log('throttle_select_query:' + param.parameterized_full_query);
@@ -1863,7 +1878,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 throttled_select_query_params_by_parameterized_full_query[throttled_select_query_param.parameterized_full_query] = throttled_select_query_param;
                 throttled_select_query_params_by_index[throttled_select_query_param.index] = throttled_select_query_param;
 
-                let fields = throttled_select_query_param.context_query.fields;
+                let fields = throttled_select_query_param.parameterizedQueryWrapperFields;
                 let fields_labels: string = null;
 
                 fields_labels = throttled_select_query_param.context_query.do_count_results ? 'number,c' : null;
@@ -1881,7 +1896,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             ConsoleHandler.getInstance().error('throttled_select_query : error while getting field type for field ' + field.field_id + ' of type ' + field.api_type_id);
                         }
 
-                        return table_field_type + ',' + field.alias;
+                        return table_field_type + ',' + field.row_col_alias;
 
                     }).join(';') : null;
                 }
@@ -3609,26 +3624,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             throw new Error('Not Implemented');
         }
 
-        let where_clause: string = "";
-
-        for (let i in ranges) {
-            let range = ranges[i];
-
-            if ((!range) || (range.max == null) || (range.min == null)) {
-                continue;
-            }
-
-            where_clause += (where_clause == "") ? "" : " OR ";
-
-            where_clause += "id::numeric <@ '" + (range.min_inclusiv ? "[" : "(") + range.min + "," + range.max + (range.max_inclusiv ? "]" : ")") + "'::numrange";
-        }
-
-        if (where_clause == "") {
-            return 0;
-        }
-
-        let query_res = await ModuleDAOServer.getInstance().query('SELECT COUNT(1) a FROM ' + moduleTable.full_name + ' t WHERE ' + where_clause + ";");
-        return (query_res && (query_res.length == 1) && (typeof query_res[0]['a'] != 'undefined') && (query_res[0]['a'] !== null)) ? query_res[0]['a'] : 0;
+        return await query(API_TYPE_ID).filter_by_ids(ranges).select_count();
     }
 
     /**
@@ -4837,7 +4833,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private log_db_query_perf_end(uid: number, method_name: string, query_string: string = null, step_name: string = null) {
         if (ConfigurationService.getInstance().node_configuration.DEBUG_DB_QUERY_PERF && !!this.log_db_query_perf_start_by_uid[uid]) {
             let end_ms = Dates.now_ms();
-            let duration = end_ms - this.log_db_query_perf_start_by_uid[uid];
+            let duration = Math.round(end_ms - this.log_db_query_perf_start_by_uid[uid]);
             let query_s = (query_string ? query_string.substring(0, 1000) : 'N/A');
             query_s = (query_s ? query_s.replace(/;/g, '') : 'N/A');
 

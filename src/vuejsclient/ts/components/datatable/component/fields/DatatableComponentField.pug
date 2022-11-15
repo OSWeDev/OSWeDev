@@ -74,6 +74,7 @@
 
             template(v-else-if="field.type == 'VAR'")
                 Dbvardatatablefieldcomponent(
+                    :filter_custom_field_filters="filter_custom_field_filters"
                     :var_id="field.var_id"
                     :filter_type="field.filter_type"
                     :filter_additional_params="field.filter_additional_params"

@@ -1,3 +1,4 @@
+import ParameterizedQueryWrapperField from "./ParameterizedQueryWrapperField";
 
 export default class ParameterizedQueryWrapper {
 
@@ -8,7 +9,8 @@ export default class ParameterizedQueryWrapper {
 
     public constructor(
         public query: string,
-        public params: any[]
+        public params: any[],
+        public fields: ParameterizedQueryWrapperField[]
     ) { }
 
     public set_query(query: string): ParameterizedQueryWrapper {
