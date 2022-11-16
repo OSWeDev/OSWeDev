@@ -17,6 +17,7 @@ import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import { ModuleDashboardPageGetter } from '../../../../dashboard_builder/page/DashboardPageStore';
+import VarWidgetComponent from '../../../../dashboard_builder/widgets/var_widget/VarWidgetComponent';
 import VueComponentBase from '../../../../VueComponentBase';
 import './db_var_datatable_field.scss';
 
@@ -127,23 +128,7 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
         /**
          * On crée le custom_filters
          */
-        let custom_filters: { [var_param_field_name: string]: ContextFilterVO } = {};
-
-        for (let var_param_field_name in this.var_custom_filters) {
-            let custom_filter_name = this.var_custom_filters[var_param_field_name];
-
-            if (!custom_filter_name) {
-                continue;
-            }
-
-            let custom_filter = this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] ? this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][custom_filter_name] : null;
-
-            if (!custom_filter) {
-                continue;
-            }
-
-            custom_filters[var_param_field_name] = custom_filter;
-        }
+        let custom_filters: { [var_param_field_name: string]: ContextFilterVO } = VarWidgetComponent.get_var_custom_filters(this.var_custom_filters, this.get_active_field_filters);
 
         this.var_param = await ModuleVar.getInstance().getVarParamFromContextFilters(
             VarsController.getInstance().var_conf_by_id[this.var_id].name,

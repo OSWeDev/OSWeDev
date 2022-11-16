@@ -12,6 +12,7 @@ import APIDefinition from '../../../../shared/modules/API/vos/APIDefinition';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import EnvHandler from '../../../../shared/tools/EnvHandler';
+import { all_promises } from '../../../../shared/tools/PromiseTools';
 
 export default class AjaxCacheClientController implements IAjaxCacheClientController {
 
@@ -501,6 +502,75 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
         }
     }
 
+    private async wrap_request(wrappable_requests: RequestResponseCacheVO[]) {
+        if ((!wrappable_requests) || (wrappable_requests.length <= 0)) {
+            return;
+        }
+
+        let sendable_objects: LightWeightSendableRequestVO[] = [];
+        let correspondance: { [id_local: string]: string } = {};
+        for (let i in wrappable_requests) {
+            let request = wrappable_requests[i];
+
+            request.index = i.toString();
+            correspondance[i.toString()] = AjaxCacheController.getInstance().getUIDIndex(request.url, request.postdatas, request.type);
+
+            let light_weight = new LightWeightSendableRequestVO(request);
+            sendable_objects.push(light_weight);
+
+            if (this.api_logs.length >= this.api_logs_limit) {
+                this.api_logs.shift();
+            }
+            this.api_logs.push(light_weight);
+        }
+
+        // On encapsule les gets dans une requête de type post
+        try {
+            let results: RequestsWrapperResult = await this.post(
+                null,
+                "/api_handler/requests_wrapper", [],
+                (!EnvHandler.getInstance().MSGPCK) ? JSON.stringify(sendable_objects) : sendable_objects,
+                null,
+                (!EnvHandler.getInstance().MSGPCK) ? 'application/json; charset=utf-8' : AjaxCacheController.MSGPACK_REQUEST_TYPE,
+                null, null, false, true) as RequestsWrapperResult;
+
+            if ((!results) || (!results.requests_results)) {
+                throw new Error('Pas de résultat pour la requête groupée.');
+            }
+
+            for (let i in wrappable_requests) {
+                let wrapped_request = wrappable_requests[i];
+
+                if ((!wrapped_request.url) || (typeof results.requests_results[i] === 'undefined')) {
+                    throw new Error('Pas de résultat pour la requête :' + wrapped_request.url + ":");
+                }
+
+                wrapped_request.index = correspondance[i];
+
+                await this.resolve_request(wrapped_request, results.requests_results[i]);
+            }
+        } catch (error) {
+            ConsoleHandler.getInstance().error("Echec de requête groupée : " + error);
+
+            // Si ça échoue, on relance avec une logique de dichotomie, si il reste plus d'une requête à traiter. On demande minimum 2 requêtes par wrap
+            let left_wrappable_requests: RequestResponseCacheVO[] = [];
+            let right_wrappable_requests: RequestResponseCacheVO[] = [];
+
+            if (wrappable_requests.length <= 3) {
+                // on fait 1 requete puis groupe de 2 automatiquement
+                return;
+            }
+
+            left_wrappable_requests = wrappable_requests.slice(0, Math.floor(wrappable_requests.length / 2));
+            right_wrappable_requests = wrappable_requests.slice(Math.floor(wrappable_requests.length / 2));
+
+            await all_promises([this.wrap_request(left_wrappable_requests), this.wrap_request(right_wrappable_requests)]);
+            return;
+        }
+
+        this.waitingForRequest = this.waitingForRequest.filter((req: RequestResponseCacheVO) => (wrappable_requests.indexOf(req) < 0));
+    }
+
     // Le processus qui dépile les requêtes en attente
     // Pour rappel structure de la request
     //  url: url,
@@ -520,63 +590,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
 
         if (self.waitingForRequest && (self.waitingForRequest.length > 1)) {
 
-            let requests: RequestResponseCacheVO[] = Array.from(self.waitingForRequest).filter((req) => req.wrappable_request);
-            let sendable_objects: LightWeightSendableRequestVO[] = [];
-
-            if (requests && (requests.length > 1)) {
-
-                let correspondance: { [id_local: string]: string } = {};
-                for (let i in requests) {
-                    let request = requests[i];
-
-                    request.index = i.toString();
-                    correspondance[i.toString()] = AjaxCacheController.getInstance().getUIDIndex(request.url, request.postdatas, request.type);
-
-                    let light_weight = new LightWeightSendableRequestVO(request);
-                    sendable_objects.push(light_weight);
-
-                    if (this.api_logs.length >= this.api_logs_limit) {
-                        this.api_logs.shift();
-                    }
-                    this.api_logs.push(light_weight);
-                }
-
-                let everything_went_well: boolean = true;
-
-                // On encapsule les gets dans une requête de type post
-                try {
-                    let results: RequestsWrapperResult = await this.post(
-                        null,
-                        "/api_handler/requests_wrapper", [],
-                        (!EnvHandler.getInstance().MSGPCK) ? JSON.stringify(sendable_objects) : sendable_objects,
-                        null,
-                        (!EnvHandler.getInstance().MSGPCK) ? 'application/json; charset=utf-8' : AjaxCacheController.MSGPACK_REQUEST_TYPE,
-                        null, null, false, true) as RequestsWrapperResult;
-
-                    if ((!results) || (!results.requests_results)) {
-                        throw new Error('Pas de résultat pour la requête groupée.');
-                    }
-
-                    for (let i in requests) {
-                        let wrapped_request = requests[i];
-
-                        if ((!wrapped_request.url) || (typeof results.requests_results[i] === 'undefined')) {
-                            throw new Error('Pas de résultat pour la requête :' + wrapped_request.url + ":");
-                        }
-
-                        wrapped_request.index = correspondance[i];
-
-                        await self.resolve_request(wrapped_request, results.requests_results[i]);
-                    }
-                } catch (error) {
-                    // Si ça échoue, on utilise juste le système normal de requêtage individuel.
-                    ConsoleHandler.getInstance().error("Echec de requête groupée : " + error);
-                    everything_went_well = false;
-                }
-                if (everything_went_well) {
-                    self.waitingForRequest = self.waitingForRequest.filter((req: RequestResponseCacheVO) => (requests.indexOf(req) < 0));
-                }
-            }
+            await this.wrap_request(Array.from(self.waitingForRequest).filter((req) => req.wrappable_request));
         }
 
         if (self.waitingForRequest && (self.waitingForRequest.length > 0)) {

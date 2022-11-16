@@ -1,6 +1,6 @@
 import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import ContextQueryVO from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -3121,10 +3121,7 @@ export default class ContextFilterServerController {
 
                 if (simple_filters && simple_filters.length) {
 
-                    let context_query = new ContextQueryVO();
-                    context_query.base_api_type_id = linked_segment_table.vo_type;
-                    context_query.active_api_type_ids = [linked_segment_table.vo_type];
-                    context_query.filters = simple_filters;
+                    let context_query = query(linked_segment_table.vo_type).add_filters(simple_filters);
                     let query_res: any[] = await ContextQueryServerController.getInstance().select_vos(context_query);
 
                     if (query_res && query_res.length) {

@@ -424,12 +424,7 @@ export default class DataImportBGThread implements IBGThread {
         filter_last_up_date.filter_type = ContextFilterVO.TYPE_NUMERIC_INF_ALL;
         filter_last_up_date.param_numeric = Dates.add(Dates.now(), -5, TimeSegment.TYPE_MINUTE);
 
-        let query_context: ContextQueryVO = new ContextQueryVO();
-        query_context.base_api_type_id = DataImportHistoricVO.API_TYPE_ID;
-        query_context.active_api_type_ids = [DataImportHistoricVO.API_TYPE_ID];
-        query_context.filters = [filter_state, filter_reimport_of_dih_id, filter_status_of_last_reimport, filter_last_up_date, filter_status_before_reimport];
-        query_context.query_limit = 0;
-        query_context.query_offset = 0;
+        let query_context: ContextQueryVO = query(DataImportHistoricVO.API_TYPE_ID).add_filters([filter_state, filter_reimport_of_dih_id, filter_status_of_last_reimport, filter_last_up_date, filter_status_before_reimport]);
 
         let dihs: DataImportHistoricVO[] = await ModuleContextFilter.getInstance().select_vos<DataImportHistoricVO>(query_context);
 

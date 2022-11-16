@@ -1,5 +1,4 @@
 import IWeightedItem from "../../../tools/interfaces/IWeightedItem";
-import NumRange from "../../DataRender/vos/NumRange";
 import IDistantVOBase from "../../IDistantVOBase";
 import ModuleTableField from "../../ModuleTableField";
 import VOsTypesManager from "../../VOsTypesManager";
@@ -54,7 +53,20 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
     public field_id: string;
 
     get datatable_field_uid() {
-        return (this.type == TableColumnDescVO.TYPE_crud_actions) ? '__crud_actions' : this.api_type_id + '___' + this.field_id;
+        switch (this.type) {
+            case TableColumnDescVO.TYPE_crud_actions:
+                return 'crud_actions';
+            case TableColumnDescVO.TYPE_vo_field_ref:
+                return this.api_type_id + '___' + this.field_id;
+            case TableColumnDescVO.TYPE_var_ref:
+                return this.var_id + '___' + this.var_unicity_id;
+            case TableColumnDescVO.TYPE_select_box:
+                return 'select_box';
+            case TableColumnDescVO.TYPE_component:
+                return this.component_name;
+            case TableColumnDescVO.TYPE_header:
+                return this.header_name;
+        }
     }
     /**
      * Si TYPE_header
@@ -70,6 +82,10 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
      * Si TYPE_var_ref
      */
     public var_id: number;
+    /**
+     * A initialiser à Dates.now() pour que la colonne soit unique (et qu'on puisse avoir plusieurs fois le même var_id)
+     */
+    public var_unicity_id: number;
 
     /**
      * Si TYPE_vo_field_ref || TYPE_var_ref
@@ -152,7 +168,7 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
         }
 
         if (this.type == TableColumnDescVO.TYPE_var_ref) {
-            res += this.var_id;
+            res += this.var_id + '.' + this.var_unicity_id;
         }
 
         if (this.type == TableColumnDescVO.TYPE_select_box) {
