@@ -109,6 +109,9 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     private throttle_get_var_data_by_index: () => void = ThrottleHelper.getInstance().declare_throttle_without_args(this.throttled_get_var_data_by_index.bind(this), 1, { leading: false, trailing: true });
 
+    private limit_nb_ts_ranges_on_param_by_context_filter: number = null;
+    private limit_nb_ts_ranges_on_param_by_context_filter_last_update: number = null;
+
     private constructor() {
         super(ModuleVar.getInstance().name);
     }
@@ -1341,6 +1344,10 @@ export default class ModuleVarServer extends ModuleServerBase {
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }
     ): Promise<VarDataBaseVO> {
 
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
+            ConsoleHandler.getInstance().log('getVarParamFromContextFilters: ' + var_name + ':IN');
+        }
+
         if (!var_name) {
             return null;
         }
@@ -1377,7 +1384,13 @@ export default class ModuleVarServer extends ModuleServerBase {
                             ];
                             context_query.discarded_field_paths = discarded_field_paths;
 
+                            if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
+                                ConsoleHandler.getInstance().log('getVarParamFromContextFilters: ' + var_name + ':select_vos:IN');
+                            }
                             let ids_db: Array<{ id: number }> = refuse_param ? null : await ModuleContextFilterServer.getInstance().select_vos(context_query);
+                            if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
+                                ConsoleHandler.getInstance().log('getVarParamFromContextFilters: ' + var_name + ':select_vos:OUT');
+                            }
 
                             if (!ids_db) {
                                 // Max range étant interdit sur les registers de var, on force un retour null
@@ -1403,15 +1416,27 @@ export default class ModuleVarServer extends ModuleServerBase {
                         }
                         break;
                     case ModuleTableField.FIELD_TYPE_hourrange_array:
-                        var_param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxHourRange()];
+                        if (!refuse_param) {
+                            ConsoleHandler.getInstance().error('getVarParamFromContextFilters: max range not allowed on registers of var');
+                            refuse_param = true;
+                        }
+                        // var_param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxHourRange()];
                         break;
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
                         if (!!custom_filters[matroid_field.field_id]) {
                             // Sur ce système on a un problème il faut limiter à tout prix le nombre de possibilités renvoyées.
                             // on compte en nombre de range et non en cardinal
                             // et on limite à la limite configurée dans l'application
-                            let limit_nb_range = await ModuleParams.getInstance().getParamValueAsInt(ModuleVarServer.PARAM_NAME_limit_nb_ts_ranges_on_param_by_context_filter, 100);
+                            let limit_nb_range = await this.get_limit_nb_ts_ranges_on_param_by_context_filter();
+
+                            if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
+                                ConsoleHandler.getInstance().log('getVarParamFromContextFilters: ' + var_name + ':get_ts_ranges_from_custom_filter:IN');
+                            }
                             var_param[matroid_field.field_id] = this.get_ts_ranges_from_custom_filter(custom_filters[matroid_field.field_id], limit_nb_range);
+                            if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
+                                ConsoleHandler.getInstance().log('getVarParamFromContextFilters: ' + var_name + ':get_ts_ranges_from_custom_filter:OUT');
+                            }
+
                             if (!var_param[matroid_field.field_id]) {
                                 if (!refuse_param) {
                                     ConsoleHandler.getInstance().error('getVarParamFromContextFilters: max range not allowed on registers of var');
@@ -1435,7 +1460,21 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         await all_promises(field_promises);
 
+        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
+            ConsoleHandler.getInstance().log('getVarParamFromContextFilters: ' + var_name + ':OUT');
+        }
+
         return refuse_param ? null : var_param;
+    }
+
+    private async get_limit_nb_ts_ranges_on_param_by_context_filter(): Promise<number> {
+        /**
+         * On recharge toutes les 5 minutes
+         */
+        if ((this.limit_nb_ts_ranges_on_param_by_context_filter == null) || (this.limit_nb_ts_ranges_on_param_by_context_filter_last_update < (Dates.now() - 300))) {
+            this.limit_nb_ts_ranges_on_param_by_context_filter = await ModuleParams.getInstance().getParamValueAsInt(ModuleVarServer.PARAM_NAME_limit_nb_ts_ranges_on_param_by_context_filter, 100);
+        }
+        return this.limit_nb_ts_ranges_on_param_by_context_filter;
     }
 
     private get_ts_ranges_from_custom_filter(custom_filter: ContextFilterVO, limit_nb_range): TSRange[] {

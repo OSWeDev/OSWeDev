@@ -657,7 +657,7 @@ export default class ContextQueryVO implements IDistantVOBase {
      * @param query la sous requête qui doit renvoyer aucune ligne pour être valide
      */
     public filter_by_exists(query_: ContextQueryVO): ContextQueryVO {
-        return this.add_filters([filter().by_exists(query_)]);
+        return this.add_filters([filter().by_exists(query_, this)]);
     }
 
     /**
@@ -665,7 +665,7 @@ export default class ContextQueryVO implements IDistantVOBase {
      * @param query la sous requête qui doit renvoyer aucune ligne pour être valide
      */
     public filter_by_not_exists(query_: ContextQueryVO): ContextQueryVO {
-        return this.add_filters([filter().by_not_exists(query_)]);
+        return this.add_filters([filter().by_not_exists(query_, this)]);
     }
 
     /**
@@ -673,7 +673,7 @@ export default class ContextQueryVO implements IDistantVOBase {
      * @param query la sous requête qui doit renvoyer les ids comme unique field
      */
     public filter_by_id_not_in(query_: ContextQueryVO, API_TYPE_ID: string = null): ContextQueryVO {
-        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id).by_id_not_in(query_)]);
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id).by_id_not_in(query_, this)]);
     }
 
     /**
@@ -681,7 +681,7 @@ export default class ContextQueryVO implements IDistantVOBase {
      * @param query la sous requête qui doit renvoyer les nums acceptés en un unique field
      */
     public filter_by_num_not_in(field_id: string, query_: ContextQueryVO, API_TYPE_ID: string = null): ContextQueryVO {
-        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_num_not_in(query_)]);
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_num_not_in(query_, this)]);
     }
 
     /**
@@ -689,7 +689,7 @@ export default class ContextQueryVO implements IDistantVOBase {
      * @param query la sous requête qui doit renvoyer les ids comme unique field
      */
     public filter_by_id_in(query_: ContextQueryVO, API_TYPE_ID: string = null): ContextQueryVO {
-        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id).by_id_in(query_)]);
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id).by_id_in(query_, this)]);
     }
 
     /**
@@ -697,7 +697,7 @@ export default class ContextQueryVO implements IDistantVOBase {
      * @param query la sous requête qui doit renvoyer les nums acceptés en un unique field
      */
     public filter_by_num_in(field_id: string, query_: ContextQueryVO, API_TYPE_ID: string = null): ContextQueryVO {
-        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_num_in(query_)]);
+        return this.add_filters([filter(API_TYPE_ID ? API_TYPE_ID : this.base_api_type_id, field_id).by_num_in(query_, this)]);
     }
 
     /**
@@ -876,7 +876,7 @@ export default class ContextQueryVO implements IDistantVOBase {
         if (res && (res.length > 1)) {
             throw new Error('Multiple results on select_vo is not allowed');
         }
-        return res ? res[0] : null;
+        return (res && res.length) ? res[0] : null;
     }
 
     /**
@@ -899,7 +899,7 @@ export default class ContextQueryVO implements IDistantVOBase {
         if (res && (res.length > 1)) {
             throw new Error('Multiple results on select_one is not allowed');
         }
-        return res ? res[0] : null;
+        return (res && res.length) ? res[0] : null;
     }
 
     /**
@@ -911,7 +911,7 @@ export default class ContextQueryVO implements IDistantVOBase {
         if (res && (res.length > 1)) {
             throw new Error('Multiple results on select_datatable_row is not allowed');
         }
-        return res ? res[0] : null;
+        return (res && res.length) ? res[0] : null;
     }
 
     /**

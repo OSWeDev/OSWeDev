@@ -56,6 +56,7 @@ import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ServerAnonymizationController from '../Anonymization/ServerAnonymizationController';
 import ContextQueryInjectionCheckHandler from '../ContextFilter/ContextQueryInjectionCheckHandler';
+import ParameterizedQueryWrapperField from '../ContextFilter/vos/ParameterizedQueryWrapperField';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
@@ -73,9 +74,7 @@ import DAOPreDeleteTriggerHook from './triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
 import ThrottledSelectQueryParam from './vos/ThrottledSelectQueryParam';
-import RequestResponseCacheVO from '../../../shared/modules/AjaxCache/vos/RequestResponseCacheVO';
 import pgPromise = require('pg-promise');
-import ParameterizedQueryWrapperField from '../ContextFilter/vos/ParameterizedQueryWrapperField';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -3625,26 +3624,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             throw new Error('Not Implemented');
         }
 
-        let where_clause: string = "";
-
-        for (let i in ranges) {
-            let range = ranges[i];
-
-            if ((!range) || (range.max == null) || (range.min == null)) {
-                continue;
-            }
-
-            where_clause += (where_clause == "") ? "" : " OR ";
-
-            where_clause += "id::numeric <@ '" + (range.min_inclusiv ? "[" : "(") + range.min + "," + range.max + (range.max_inclusiv ? "]" : ")") + "'::numrange";
-        }
-
-        if (where_clause == "") {
-            return 0;
-        }
-
-        let query_res = await ModuleDAOServer.getInstance().query('SELECT COUNT(1) a FROM ' + moduleTable.full_name + ' t WHERE ' + where_clause + ";");
-        return (query_res && (query_res.length == 1) && (typeof query_res[0]['a'] != 'undefined') && (query_res[0]['a'] !== null)) ? query_res[0]['a'] : 0;
+        return await query(API_TYPE_ID).filter_by_ids(ranges).select_count();
     }
 
     /**
@@ -4853,7 +4833,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private log_db_query_perf_end(uid: number, method_name: string, query_string: string = null, step_name: string = null) {
         if (ConfigurationService.getInstance().node_configuration.DEBUG_DB_QUERY_PERF && !!this.log_db_query_perf_start_by_uid[uid]) {
             let end_ms = Dates.now_ms();
-            let duration = end_ms - this.log_db_query_perf_start_by_uid[uid];
+            let duration = Math.round(end_ms - this.log_db_query_perf_start_by_uid[uid]);
             let query_s = (query_string ? query_string.substring(0, 1000) : 'N/A');
             query_s = (query_s ? query_s.replace(/;/g, '') : 'N/A');
 
