@@ -14,7 +14,7 @@ export default class ExportContextQueryToXLSXParamVO implements IAPIParamTransla
         exportable_datatable_custom_field_columns: { [datatable_field_uid: string]: string } = null,
         varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConf } = null,
         active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
-        custom_filters: { [var_param_field_name: string]: ContextFilterVO } = null,
+        custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
         active_api_type_ids: string[] = null,
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
         is_secured: boolean = false,
@@ -52,7 +52,7 @@ export default class ExportContextQueryToXLSXParamVO implements IAPIParamTransla
         public exportable_datatable_custom_field_columns: { [datatable_field_uid: string]: string } = null,
         public varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConf } = null,
         public active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
-        public custom_filters: { [var_param_field_name: string]: ContextFilterVO } = null,
+        public custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
         public active_api_type_ids: string[] = null,
         public discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
 

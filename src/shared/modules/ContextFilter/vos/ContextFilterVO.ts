@@ -332,13 +332,10 @@ export default class ContextFilterVO implements IDistantVOBase {
     public param_alias: string;
 
     /**
+     * WARNING : Ne pas modifier directement toujours passer par set_sub_query pour mettre à jour le prefix de la sub_query
      * Sous-requête liée dans le cas d'un type sub_query
      */
-    private _sub_query: ContextQueryVO = null;
-
-    get sub_query(): ContextQueryVO {
-        return this._sub_query;
-    }
+    public sub_query: ContextQueryVO = null;
 
     /**
      * Filtrer par text en début de la valeur du champ
@@ -870,7 +867,7 @@ export default class ContextFilterVO implements IDistantVOBase {
     }
 
     public set_sub_query(sub_query: ContextQueryVO, this_query: ContextQueryVO): ContextFilterVO {
-        this._sub_query = sub_query;
+        this.sub_query = sub_query;
         if (!sub_query) {
             return this;
         }

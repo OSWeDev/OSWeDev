@@ -889,10 +889,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
      */
     public async delete_all_vos_triggers_ok(api_type_id: string) {
 
-        let context_query: ContextQueryVO = new ContextQueryVO();
-        context_query.base_api_type_id = api_type_id;
-        context_query.active_api_type_ids = [api_type_id];
-        await ModuleContextFilter.getInstance().delete_vos(context_query);
+        await ModuleContextFilter.getInstance().delete_vos(query(api_type_id));
     }
 
     /**
@@ -1301,7 +1298,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         for (let api_type in check_pixel_update_vos_by_type) {
             let check_pixel_update_vos = check_pixel_update_vos_by_type[api_type];
-            let db_check_pixel_update_vos: VarDataBaseVO[] = await query(api_type).filter_by_ids(vos.map((vo) => vo.id)).select_vos();
+            let db_check_pixel_update_vos: VarDataBaseVO[] = await query(api_type).filter_by_ids(update_vos.map((vo) => vo.id)).select_vos();
 
             let db_check_pixel_update_vos_by_id: { [id: number]: VarDataBaseVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(db_check_pixel_update_vos);
 
@@ -2544,12 +2541,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     continue;
                 }
 
-                let query_: ContextQueryVO = new ContextQueryVO();
-                query_.base_api_type_id = vo._type;
-                query_.active_api_type_ids = [vo._type];
-                query_.filters = filters;
-                query_.query_limit = 1;
-                query_.query_offset = 0;
+                let query_: ContextQueryVO = query(vo._type).add_filters(filters).set_limit(1, 0);
 
                 /**
                  * On doit absolument ignorer tout access hook à ce niveau sinon on risque de rater l'élément en base

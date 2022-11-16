@@ -2030,13 +2030,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         filter_module_actif.vo_type = ModuleVO.API_TYPE_ID;
         filter_module_actif.filter_type = ContextFilterVO.TYPE_BOOLEAN_TRUE_ALL;
 
-        let res: ContextQueryVO = new ContextQueryVO();
+        let res: ContextQueryVO = query(AccessPolicyVO.API_TYPE_ID);
 
-        let query_module_actif: ContextQueryVO = new ContextQueryVO();
-        query_module_actif.base_api_type_id = ModuleVO.API_TYPE_ID;
-        query_module_actif.active_api_type_ids = [ModuleVO.API_TYPE_ID];
-        query_module_actif.filters = [filter_module_actif];
-        query_module_actif.fields = [new ContextQueryFieldVO(ModuleVO.API_TYPE_ID, 'id', 'filter_module_actif_id')];
+        let query_module_actif: ContextQueryVO = query(ModuleVO.API_TYPE_ID).add_filters([filter_module_actif]).field('id', 'filter_module_actif_id');
 
         let filter_module_in: ContextFilterVO = new ContextFilterVO();
         filter_module_in.field_id = 'module_id';
@@ -2054,11 +2050,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         filter_or.left_hook = filter_no_module;
         filter_or.right_hook = filter_module_in;
 
-        res.base_api_type_id = AccessPolicyVO.API_TYPE_ID;
-        res.fields = [new ContextQueryFieldVO(AccessPolicyVO.API_TYPE_ID, 'id', 'filter_access_policy_id')];
-        res.active_api_type_ids = [AccessPolicyVO.API_TYPE_ID];
-        res.filters = [filter_or];
-        res.is_access_hook_def = true;
+        res.add_fields([new ContextQueryFieldVO(AccessPolicyVO.API_TYPE_ID, 'id', 'filter_access_policy_id')]);
+        res.add_filters([filter_or]);
+        res.ignore_access_hooks();
 
         return res;
     }

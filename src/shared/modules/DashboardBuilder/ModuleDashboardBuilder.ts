@@ -182,6 +182,8 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('field_id', ModuleTableField.FIELD_TYPE_string, 'ID Champs', false),
 
             var_id,
+            new ModuleTableField('var_unicity_id', ModuleTableField.FIELD_TYPE_int, 'Unicité pour colonnes de type var', false),
+
             new ModuleTableField('component_name', ModuleTableField.FIELD_TYPE_string, 'Composant', false),
 
             new ModuleTableField('filter_type', ModuleTableField.FIELD_TYPE_string, 'Filtre', false),

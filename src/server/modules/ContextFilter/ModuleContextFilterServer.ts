@@ -1,7 +1,7 @@
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import ContextQueryVO from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
@@ -108,11 +108,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
                 throw new Error('Not Implemented');
         }
 
-        let context_query: ContextQueryVO = new ContextQueryVO();
-        context_query.base_api_type_id = api_type_id;
-        context_query.active_api_type_ids = [api_type_id];
-        context_query.filters = [filter];
-        context_query.query_limit = 1;
+        let context_query: ContextQueryVO = query(api_type_id).add_filters([filter]).set_limit(1);
 
         let res = await this.select_vos<T>(context_query);
         return (res && res.length) ? res[0] : null;

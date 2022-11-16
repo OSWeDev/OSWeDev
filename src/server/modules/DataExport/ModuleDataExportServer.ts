@@ -193,7 +193,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConf } = null,
         active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
-        custom_filters: { [var_param_field_name: string]: ContextFilterVO } = null,
+        custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
         active_api_type_ids: string[] = null,
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
 
@@ -303,7 +303,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConf } = null,
         active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
-        custom_filters: { [var_param_field_name: string]: ContextFilterVO } = null,
+        custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
         active_api_type_ids: string[] = null,
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
 
@@ -862,7 +862,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConf } = null,
         active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
-        custom_filters: { [var_param_field_name: string]: ContextFilterVO } = null,
+        custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
         active_api_type_ids: string[] = null,
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null
 
@@ -878,6 +878,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 continue;
             }
             let this_varcolumn_conf = varcolumn_conf[data_field_name];
+            let this_custom_filters = custom_filters[data_field_name];
 
             for (let j in datas) {
                 let data = datas[j];
@@ -894,7 +895,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     let var_param: VarDataBaseVO = await ModuleVar.getInstance().getVarParamFromContextFilters(
                         VarsController.getInstance().var_conf_by_id[this_varcolumn_conf.var_id].name,
                         active_field_filters,
-                        custom_filters,
+                        this_custom_filters,
                         active_api_type_ids,
                         discarded_field_paths
                     );
