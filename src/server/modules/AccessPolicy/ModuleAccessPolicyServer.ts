@@ -2030,6 +2030,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         filter_module_actif.vo_type = ModuleVO.API_TYPE_ID;
         filter_module_actif.filter_type = ContextFilterVO.TYPE_BOOLEAN_TRUE_ALL;
 
+        let res: ContextQueryVO = new ContextQueryVO();
+
         let query_module_actif: ContextQueryVO = new ContextQueryVO();
         query_module_actif.base_api_type_id = ModuleVO.API_TYPE_ID;
         query_module_actif.active_api_type_ids = [ModuleVO.API_TYPE_ID];
@@ -2040,7 +2042,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         filter_module_in.field_id = 'module_id';
         filter_module_in.vo_type = AccessPolicyVO.API_TYPE_ID;
         filter_module_in.filter_type = ContextFilterVO.TYPE_IN;
-        filter_module_in.sub_query = query_module_actif;
+        filter_module_in.set_sub_query(query_module_actif, res);
 
         let filter_no_module: ContextFilterVO = new ContextFilterVO();
         filter_no_module.field_id = 'module_id';
@@ -2052,7 +2054,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         filter_or.left_hook = filter_no_module;
         filter_or.right_hook = filter_module_in;
 
-        let res: ContextQueryVO = new ContextQueryVO();
         res.base_api_type_id = AccessPolicyVO.API_TYPE_ID;
         res.fields = [new ContextQueryFieldVO(AccessPolicyVO.API_TYPE_ID, 'id', 'filter_access_policy_id')];
         res.active_api_type_ids = [AccessPolicyVO.API_TYPE_ID];

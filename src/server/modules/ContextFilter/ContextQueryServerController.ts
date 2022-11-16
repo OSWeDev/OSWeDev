@@ -14,7 +14,6 @@ import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
-import MainAggregateOperatorsHandlers from '../../../shared/modules/Var/MainAggregateOperatorsHandlers';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -997,6 +996,7 @@ export default class ContextQueryServerController {
                 }
 
                 return await ContextFilterServerController.getInstance().updates_cross_jointures(
+                    context_query.query_tables_prefix,
                     selected_field.api_type_id,
                     cross_joins,
                     context_query.filters,
@@ -1017,7 +1017,7 @@ export default class ContextQueryServerController {
         }
 
         return await ContextFilterServerController.getInstance().updates_jointures(
-            jointures, context_query.filters, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
+            context_query.query_tables_prefix, jointures, context_query.filters, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
     }
 
     /**
@@ -1058,7 +1058,7 @@ export default class ContextQueryServerController {
                 return aliases_n;
             }
             aliases_n = await ContextFilterServerController.getInstance().updates_jointures(
-                jointures, context_query.filters, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
+                context_query.query_tables_prefix, jointures, context_query.filters, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
             // joined_tables_by_vo_type[api_type_id_i] = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id_i];
         }
 

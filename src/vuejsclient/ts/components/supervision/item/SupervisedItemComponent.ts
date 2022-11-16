@@ -168,11 +168,9 @@ export default class SupervisedItemComponent extends VueComponentBase {
         }
 
         AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([this.supervised_item_vo_type, SupervisionController.getInstance().getSupHistVoType(this.supervised_item_vo_type)]);
+        this.supervised_item = await query(this.supervised_item_vo_type).filter_by_id(this.supervised_item_id).select_vo<ISupervisedItem>();
 
         let promises = [];
-        promises.push((async () => {
-            this.supervised_item = await query(this.supervised_item_vo_type).filter_by_id(this.supervised_item_id).select_vo<ISupervisedItem>();
-        })());
         let tmp_hist: ISupervisedItem[] = null;
         promises.push((async () => {
             tmp_hist = await query(SupervisionController.getInstance().getSupHistVoType(this.supervised_item_vo_type))

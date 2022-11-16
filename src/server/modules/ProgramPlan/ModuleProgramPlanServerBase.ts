@@ -779,13 +779,14 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         sub_query_list_rdvs.active_api_type_ids = [this.programplan_shared_module.rdv_type_id];
         sub_query_list_rdvs.fields = [new ContextQueryFieldVO(this.programplan_shared_module.rdv_type_id, 'id', 'filter_' + this.programplan_shared_module.rdv_type_id + '_id_for_filter_' + moduletable.vo_type + '_id')];
 
+        let res: ContextQueryVO = new ContextQueryVO();
+
         let filter: ContextFilterVO = new ContextFilterVO();
         filter.field_id = 'rdv_id';
         filter.vo_type = moduletable.vo_type;
         filter.filter_type = ContextFilterVO.TYPE_IN;
-        filter.sub_query = sub_query_list_rdvs;
+        filter.set_sub_query(sub_query_list_rdvs, res);
 
-        let res: ContextQueryVO = new ContextQueryVO();
         res.base_api_type_id = moduletable.vo_type;
         res.active_api_type_ids = [moduletable.vo_type];
         res.fields = [new ContextQueryFieldVO(moduletable.vo_type, 'id', 'filter_' + moduletable.vo_type + '_id')];

@@ -2914,6 +2914,7 @@ export default class ContextFilterServerController {
      * Check Injection OK : Aucun insère de données depuis la query(pas en param) ou les filtres
      */
     public async updates_jointures(
+        query_tables_prefix: string,
         jointures: string[],
         filters: ContextFilterVO[],
         joined_tables_by_vo_type: { [vo_type: string]: ModuleTable<any> },
@@ -2933,7 +2934,10 @@ export default class ContextFilterServerController {
 
                 if (!tables_aliases_by_type[path_i.field.manyToOne_target_moduletable.vo_type]) {
 
-                    tables_aliases_by_type[path_i.field.manyToOne_target_moduletable.vo_type] = 't' + (aliases_n++);
+                    tables_aliases_by_type[path_i.field.manyToOne_target_moduletable.vo_type] = (query_tables_prefix ?
+                        (query_tables_prefix + '_t' + (aliases_n++)) :
+                        ('t' + (aliases_n++))
+                    );
                     joined_tables_by_vo_type[path_i.field.manyToOne_target_moduletable.vo_type] = path_i.field.manyToOne_target_moduletable;
 
                     let full_name = await this.get_table_full_name(path_i.field.manyToOne_target_moduletable, filters);
@@ -2972,7 +2976,10 @@ export default class ContextFilterServerController {
             } else {
                 if (!tables_aliases_by_type[path_i.field.module_table.vo_type]) {
 
-                    tables_aliases_by_type[path_i.field.module_table.vo_type] = 't' + (aliases_n++);
+                    tables_aliases_by_type[path_i.field.module_table.vo_type] = (query_tables_prefix ?
+                        (query_tables_prefix + '_t' + (aliases_n++)) :
+                        ('t' + (aliases_n++))
+                    );
                     joined_tables_by_vo_type[path_i.field.module_table.vo_type] = path_i.field.module_table;
 
                     let full_name = await this.get_table_full_name(path_i.field.module_table, filters);
@@ -3015,6 +3022,7 @@ export default class ContextFilterServerController {
     }
 
     public async updates_cross_jointures(
+        query_tables_prefix: string,
         api_type_id: string,
         cross_jointures: string[],
         filters: ContextFilterVO[],
@@ -3029,7 +3037,10 @@ export default class ContextFilterServerController {
 
         if (!tables_aliases_by_type[api_type_id]) {
 
-            tables_aliases_by_type[api_type_id] = 't' + (aliases_n++);
+            tables_aliases_by_type[api_type_id] = (query_tables_prefix ?
+                (query_tables_prefix + '_t' + (aliases_n++)) :
+                ('t' + (aliases_n++))
+            );
             joined_tables_by_vo_type[api_type_id] = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
 
             let full_name = await this.get_table_full_name(joined_tables_by_vo_type[api_type_id], filters);
