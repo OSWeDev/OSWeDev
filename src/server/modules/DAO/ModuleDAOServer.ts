@@ -1371,13 +1371,28 @@ export default class ModuleDAOServer extends ModuleServerBase {
                  * Cas des arrays
                  */
                 if (Array.isArray(fieldValue) &&
-                    ((field.field_type == ModuleTableField.FIELD_TYPE_int_array) ||
-                        (field.field_type == ModuleTableField.FIELD_TYPE_html_array) ||
-                        (field.field_type == ModuleTableField.FIELD_TYPE_tstz_array) ||
-                        (field.field_type == ModuleTableField.FIELD_TYPE_float_array) ||
+                    ((field.field_type == ModuleTableField.FIELD_TYPE_html_array) ||
                         (field.field_type == ModuleTableField.FIELD_TYPE_string_array))) {
 
-                    stringified = 'ARRAY' + stringified;
+                    let string_array = (fieldValue as string[]);
+                    string_array = string_array.map((str) => {
+                        return str.replace(/'/g, "\\''");
+                    });
+
+                    stringified = (string_array.length == 0) ? '{}' :
+                        "'{''" + string_array.join("'',''") + "''}'";
+                } else if (Array.isArray(fieldValue) &&
+                    ((field.field_type == ModuleTableField.FIELD_TYPE_int_array) ||
+                        (field.field_type == ModuleTableField.FIELD_TYPE_tstz_array) ||
+                        (field.field_type == ModuleTableField.FIELD_TYPE_float_array))) {
+
+                    let num_array = (fieldValue as number[]);
+                    let string_array = num_array.map((str) => {
+                        return str.toString();
+                    });
+
+                    stringified = (string_array.length == 0) ? '{}' :
+                        "'{" + string_array.join(",") + "}'";
                 }
                 setters.push(stringified);
 

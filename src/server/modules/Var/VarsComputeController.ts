@@ -333,7 +333,7 @@ export default class VarsComputeController {
                     batchperf_computation_wrapper_total_estimated_remaining_time + current_computation_wrapper_total_elapsed_time +
                     ') > limit (' + estimated_tree_computation_time_limit + ')');
 
-                var_dag.timed_out = true;
+                // var_dag.timed_out = true;
 
                 /**
                  * Tous les noeuds qui ne sont pas successfully_deployed doivent être retirés de l'arbre à ce stade et on part en calcul
@@ -354,13 +354,20 @@ export default class VarsComputeController {
                 if (nodes_to_remove.length == var_dag.nb_nodes) {
                     let shifted = nodes_to_remove.shift();
                     ConsoleHandler.getInstance().error('BATCH cancel removing node ' + shifted.var_data.index + ' from tree to keep at least one');
+                    // Mais dans ce cas il faut forcer son déploiement
+                    node = shifted;
+                } else {
+                    node = null;
                 }
 
                 for (let i in nodes_to_remove) {
                     let node_to_remove = nodes_to_remove[i];
                     node_to_remove.unlinkFromDAG();
                 }
-                return;
+
+                if (!node) {
+                    return;
+                }
             }
         }
 
@@ -650,7 +657,7 @@ export default class VarsComputeController {
 
         for (let deps_i in deps_as_array) {
 
-            if (node.var_dag.timed_out) {
+            if ((!node.var_dag) || (!node.var_dag.nodes[node.var_data.index])) {
                 return;
             }
 
@@ -686,10 +693,6 @@ export default class VarsComputeController {
             deps_promises.push((async () => {
                 await this.load_caches_and_imports_on_var_to_deploy(dep_node.var_data, dep_node.var_dag, deployed_vars_datas, vars_datas);
             })());
-
-            if (dep_node.var_dag.timed_out) {
-                return;
-            }
         }
 
         if (deps_promises.length) {
@@ -898,7 +901,14 @@ export default class VarsComputeController {
             for (let i in selected_var_datas) {
                 let selected_var_data = selected_var_datas[i];
 
-                if (var_dag.perfs && var_dag.perfs.computation_wrapper.updated_estimated_work_time && (var_dag.perfs.computation_wrapper.updated_estimated_work_time >= estimated_tree_computation_time_target)) {
+                batchperf_computation_wrapper_total_estimated_remaining_time = var_dag.perfs ? Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.computation_wrapper)) : 0;
+                current_total_elapsed_time = var_dag.perfs ? performance.now() - var_dag.perfs.computation_wrapper.start_time : 0;
+
+                /**
+                 * Si on time out sur la création de l'arbre on refuse d'ajouter de nouveaux éléments
+                 */
+                if (batchperf_computation_wrapper_total_estimated_remaining_time && current_total_elapsed_time &&
+                    ((batchperf_computation_wrapper_total_estimated_remaining_time + current_total_elapsed_time) > estimated_tree_computation_time_target)) {
                     break;
                 }
 
@@ -1117,9 +1127,9 @@ export default class VarsComputeController {
     private async get_vars_datas_by_controller_height(var_dag: VarDAG): Promise<{ [height: number]: { [index: string]: VarDataBaseVO } }> {
         let vars_datas_by_controller_height: { [height: number]: { [index: string]: VarDataBaseVO } } = {};
 
-        if (var_dag.timed_out) {
-            return vars_datas_by_controller_height;
-        }
+        // if (var_dag.timed_out) {
+        //     return vars_datas_by_controller_height;
+        // }
 
         // Ensuite par hauteur dans l'arbre
         if (!VarsServerController.getInstance().varcontrollers_dag_depths) {
@@ -1187,9 +1197,9 @@ export default class VarsComputeController {
 
             if (promises.length >= max) {
                 await all_promises(promises);
-                if (var_dag.timed_out) {
-                    return;
-                }
+                // if (var_dag.timed_out) {
+                //     return;
+                // }
 
                 promises = [];
             }
