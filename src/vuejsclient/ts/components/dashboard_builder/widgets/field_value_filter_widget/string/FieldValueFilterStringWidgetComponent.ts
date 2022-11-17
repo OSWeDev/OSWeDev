@@ -6,6 +6,8 @@ import ContextFilterHandler from '../../../../../../../shared/modules/ContextFil
 import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
+
 import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
@@ -95,6 +97,8 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
     private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
     private debounced_query_update_visible_options_checkbox = debounce(this.query_update_visible_options_checkbox.bind(this), 300);
 
+    private actual_page_id: number = parseInt(localStorage.getItem("actual_page_id")); //Id du widget précédent
+
     private filter_type_options: number[] = [
         AdvancedStringFilter.FILTER_TYPE_COMMENCE,
         AdvancedStringFilter.FILTER_TYPE_COMMENCE_PAS,
@@ -171,6 +175,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                 this.tmp_filter_active_options_lvl2 = new_tmp_filter_active_options_lvl2;
                 return;
             }
+
         }
 
         // Si on a un lvl2, on va filtrer par leurs valeurs donc on va dans l'autre fonction
@@ -179,12 +184,28 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             return;
         }
 
+        // this.actual_page_id = this.page_widget.id;
+        // localStorage.setItem("actual_page_id", this.actual_page_id.toString());
+        this.widget_options.previous_tmp_filter_opt_values = this.tmp_filter_active_options;
+        //    this.onchange_widget_options();
+        //this.$emit('widget_option', this.widget_options);
+        // try {
+        //     this.page_widget.json_options = JSON.stringify(this.widget_options);
+        // } catch (error) {
+        //     ConsoleHandler.getInstance().error(error);
+        // }
+        // await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
         this.set_active_field_filter({
             field_id: this.vo_field_ref.field_id,
             vo_type: this.vo_field_ref.api_type_id,
             active_field_filter: this.get_active_field_filter(this.vo_field_ref, this.tmp_filter_active_options),
         });
     }
+
+    // @Watch('previous_tmp_filter_opt_values')
+    // private async onchange_previous_tmp_filter_opt_values() {
+    //     this.$emit('previous_tmp_filter_opt_values', this.previous_tmp_filter_opt_values);
+    // }
 
     @Watch('tmp_filter_active_options_lvl2')
     private onchange_tmp_filter_active_options_lvl2() {
@@ -550,7 +571,14 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                     this.page_widget,
                     true
                 );
+                if (this.actual_page_id) {
+                    if (this.actual_page_id != this.page_widget.page_id) {
+                        console.log('Changement de page');
+                        this.actual_page_id = this.page_widget.page_id;
+                        localStorage.setItem("actual_page_id", this.actual_page_id.toString());
 
+                    }
+                }
                 this.tmp_filter_active_options = this.default_values;
                 return;
             }
@@ -1568,6 +1596,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                     options.vo_field_sort_lvl2,
                     options.autovalidate_advanced_filter,
                     options.add_is_null_selectable,
+                    options.previous_tmp_filter_opt_values
                 ) : null;
             }
         } catch (error) {

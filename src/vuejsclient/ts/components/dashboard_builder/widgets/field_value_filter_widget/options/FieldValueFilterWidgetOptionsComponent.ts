@@ -48,7 +48,6 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
     @Prop({ default: null })
     private dashboard: DashboardVO;
 
-
     @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
 
@@ -218,6 +217,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
 
         await this.throttled_update_options();
     }
+
 
     @Watch('tmp_default_ts_range_values')
     private async onchange_tmp_default_ts_range_values() {

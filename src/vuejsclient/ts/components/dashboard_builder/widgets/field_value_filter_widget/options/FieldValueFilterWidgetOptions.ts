@@ -96,6 +96,8 @@ export default class FieldValueFilterWidgetOptions {
         public vo_field_sort_lvl2: VOFieldRefVO,
         public autovalidate_advanced_filter: boolean,
         public add_is_null_selectable: boolean,
+        public previous_tmp_filter_opt_values?: DataFilterOption[], //Valeurs du filtre conservée lorsqu'on change de page
+
     ) { }
 
     public get_placeholder_name_code_text(page_widget_id: number): string {

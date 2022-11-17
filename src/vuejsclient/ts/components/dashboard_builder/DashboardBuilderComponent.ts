@@ -108,6 +108,9 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     private can_use_clipboard: boolean = false;
 
+    private actual_page_id: number = null;
+
+
     private async update_layout_widget(widget: DashboardPageWidgetVO) {
         if ((!this.$refs) || (!this.$refs['Dashboardbuilderboardcomponent'])) {
             return;
@@ -501,6 +504,10 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     private select_page_clear_navigation(page: DashboardPageVO) {
         this.set_page_history([]);
+
+        this.actual_page_id = this.page.id; //changement d'id
+        localStorage.setItem("actual_page_id", this.actual_page_id.toString());
+
         this.page = page;
     }
 
