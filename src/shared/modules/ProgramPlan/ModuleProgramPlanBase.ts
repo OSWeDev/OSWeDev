@@ -123,10 +123,10 @@ export default abstract class ModuleProgramPlanBase extends Module {
         this.callInitializePlanProgramCategory();
         this.callInitializePlanProgram();
         this.callInitializePlanEnseigne();
+        this.callInitializePlanContact();
         this.callInitializePlanTarget();
         this.callInitializePlanFacilitatorRegion();
         this.callInitializePlanPartner();
-        this.callInitializePlanContact();
         this.callInitializePlanManager();
         this.callInitializePlanFacilitator();
         this.callInitializePlanTaskType();

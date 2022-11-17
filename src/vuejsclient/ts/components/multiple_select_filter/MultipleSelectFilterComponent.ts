@@ -108,6 +108,10 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
         default: null
     })
     private sort_options_func: (options: DataFilterOption[]) => void;
+    @Prop({ default: true })
+    private preselect_first_if_one_element: boolean;
+
+
     private tmp_filter_active_options: DataFilterOption[] = [];
 
     private filter_state_selected: number = DataFilterOption.STATE_SELECTED;
@@ -293,7 +297,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
         try {
 
             let res = this.$store.state[this.store_module_uid][this.internal_store_all_by_ids_state_uid];
-            if (ObjectHandler.getInstance().hasOneAndOnlyOneAttribute(res)) {
+            if (this.preselect_first_if_one_element && ObjectHandler.getInstance().hasOneAndOnlyOneAttribute(res)) {
                 let selected = res[ObjectHandler.getInstance().getFirstAttributeName(res)];
                 this.tmp_filter_active_options = [new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.get_label(selected), selected.id)];
             }
