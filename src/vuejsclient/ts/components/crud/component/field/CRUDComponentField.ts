@@ -1293,6 +1293,8 @@ export default class CRUDComponentField extends VueComponentBase
             } else {
                 await this.snotify.success(this.label('field.auto_update_field_value.succes'));
             }
+
+            this.vo.id = result.id;
         }
 
         if (this.field.onChange) {
