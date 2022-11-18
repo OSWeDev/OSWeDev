@@ -211,7 +211,6 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         if (!this.widget_options) {
             return;
         }
-
         this.next_update_options = this.widget_options;
         this.next_update_options.default_filter_opt_values = (this.tmp_default_filter_opt_values && this.tmp_default_filter_opt_values.length > 0) ? this.tmp_default_filter_opt_values : null;
 
