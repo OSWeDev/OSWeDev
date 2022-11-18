@@ -1,4 +1,8 @@
 import { RouteConfig } from 'vue-router';
+import ContextFilterVO from '../ContextFilter/vos/ContextFilterVO';
+import ModuleTableField from '../ModuleTableField';
+import VOsTypesManager from '../VOsTypesManager';
+import TableColumnDescVO from './vos/TableColumnDescVO';
 
 export default class DashboardBuilderController {
 
@@ -61,5 +65,173 @@ export default class DashboardBuilderController {
         }
 
         return routes;
+    }
+
+    public add_table_row_context(
+        context: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        columns: TableColumnDescVO[],
+        row_value: any
+    ): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
+
+        /**
+         * Si on a des colonnes qui sont des colonnes de données sur la row, on doit amender les filtres pour ajouter le "contexte" de la ligne
+         */
+        if (!context) {
+            context = {};
+        }
+
+        for (let i in columns) {
+            let column = columns[i];
+
+            if (column.type != TableColumnDescVO.TYPE_vo_field_ref) {
+                continue;
+            }
+
+            if (!context[column.api_type_id]) {
+                context[column.api_type_id] = {};
+            }
+
+            let field_filter = this.get_ContextFilterVO_add_Column_context(column, row_value);
+
+            if (!context[column.api_type_id][column.field_id]) {
+                context[column.api_type_id][column.field_id] = field_filter;
+            } else {
+
+                let existing_filter = context[column.api_type_id][column.field_id];
+                let and_filter = new ContextFilterVO();
+                and_filter.field_id = column.field_id;
+                and_filter.vo_type = column.api_type_id;
+                and_filter.filter_type = ContextFilterVO.TYPE_FILTER_AND;
+                and_filter.left_hook = existing_filter;
+                and_filter.right_hook = field_filter;
+                context[column.api_type_id][column.field_id] = and_filter;
+            }
+        }
+        return context;
+    }
+
+    public get_ContextFilterVO_add_Column_context(
+        column: TableColumnDescVO, row_value: any): ContextFilterVO {
+        let translated_active_options = new ContextFilterVO();
+
+        translated_active_options.field_id = column.field_id;
+        translated_active_options.vo_type = column.api_type_id;
+
+        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[column.api_type_id];
+        let field = moduletable.get_field_by_id(column.field_id);
+
+        if (row_value[column.datatable_field_uid] == null) {
+            translated_active_options.filter_type = ContextFilterVO.TYPE_NULL_ALL;
+        } else {
+            switch (field.field_type) {
+                case ModuleTableField.FIELD_TYPE_file_ref:
+                case ModuleTableField.FIELD_TYPE_image_field:
+                case ModuleTableField.FIELD_TYPE_image_ref:
+                case ModuleTableField.FIELD_TYPE_enum:
+                case ModuleTableField.FIELD_TYPE_int:
+                case ModuleTableField.FIELD_TYPE_geopoint:
+                case ModuleTableField.FIELD_TYPE_float:
+                case ModuleTableField.FIELD_TYPE_decimal_full_precision:
+                case ModuleTableField.FIELD_TYPE_amount:
+                case ModuleTableField.FIELD_TYPE_foreign_key:
+                case ModuleTableField.FIELD_TYPE_isoweekdays:
+                case ModuleTableField.FIELD_TYPE_prct:
+                case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
+                case ModuleTableField.FIELD_TYPE_hours_and_minutes:
+                case ModuleTableField.FIELD_TYPE_hour:
+
+                    /**
+                     * Si on a un regroupement, on peut avoir un array en raw, et dans ce cas on doit x les ranges
+                     */
+                    if (Array.isArray(row_value[column.datatable_field_uid + '__raw'])) {
+                        translated_active_options.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ANY;
+                        translated_active_options.param_numeric_array = row_value[column.datatable_field_uid + '__raw'];
+                    } else {
+                        translated_active_options.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
+                        translated_active_options.param_numeric = row_value[column.datatable_field_uid];
+                    }
+
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_tstz:
+                    translated_active_options.filter_type = ContextFilterVO.TYPE_DATE_EQUALS;
+                    translated_active_options.param_numeric = row_value[column.datatable_field_uid];
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_html:
+                case ModuleTableField.FIELD_TYPE_password:
+                case ModuleTableField.FIELD_TYPE_email:
+                case ModuleTableField.FIELD_TYPE_file_field:
+                case ModuleTableField.FIELD_TYPE_string:
+                case ModuleTableField.FIELD_TYPE_textarea:
+                case ModuleTableField.FIELD_TYPE_translatable_text:
+
+                    /**
+                     * Si on a un regroupement, on peut avoir un array en raw, et dans ce cas on doit x les ranges
+                     */
+                    if (Array.isArray(row_value[column.datatable_field_uid + '__raw'])) {
+                        translated_active_options.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ANY;
+                        translated_active_options.param_textarray = row_value[column.datatable_field_uid + '__raw'];
+                    } else {
+                        translated_active_options.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ALL;
+                        translated_active_options.param_text = row_value[column.datatable_field_uid];
+                    }
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+                case ModuleTableField.FIELD_TYPE_html_array:
+                    throw new Error('Not Implemented');
+
+                case ModuleTableField.FIELD_TYPE_boolean:
+                    if (!!row_value[column.datatable_field_uid]) {
+                        translated_active_options.filter_type = ContextFilterVO.TYPE_BOOLEAN_TRUE_ALL;
+                    } else {
+                        translated_active_options.filter_type = ContextFilterVO.TYPE_BOOLEAN_FALSE_ALL;
+                    }
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_numrange:
+                    throw new Error('Not Implemented');
+
+                case ModuleTableField.FIELD_TYPE_numrange_array:
+                case ModuleTableField.FIELD_TYPE_refrange_array:
+                    throw new Error('Not Implemented');
+
+                case ModuleTableField.FIELD_TYPE_daterange:
+                    throw new Error('Not Implemented');
+
+                case ModuleTableField.FIELD_TYPE_hourrange:
+                    throw new Error('Not Implemented');
+
+                case ModuleTableField.FIELD_TYPE_tsrange:
+                    throw new Error('Not Implemented');
+
+                case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    throw new Error('Not Implemented');
+
+                case ModuleTableField.FIELD_TYPE_hourrange_array:
+                    throw new Error('Not Implemented');
+
+                case ModuleTableField.FIELD_TYPE_int_array:
+                case ModuleTableField.FIELD_TYPE_float_array:
+                case ModuleTableField.FIELD_TYPE_tstz_array:
+                    throw new Error('Not Implemented');
+
+                case ModuleTableField.FIELD_TYPE_string_array:
+                    throw new Error('Not Implemented');
+
+                case ModuleTableField.FIELD_TYPE_date:
+                case ModuleTableField.FIELD_TYPE_day:
+                case ModuleTableField.FIELD_TYPE_month:
+                    translated_active_options.filter_type = ContextFilterVO.TYPE_DATE_EQUALS;
+                    translated_active_options.param_numeric = row_value[column.datatable_field_uid];
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_timewithouttimezone:
+                    throw new Error('Not Implemented');
+            }
+        }
+
+        return translated_active_options;
     }
 }

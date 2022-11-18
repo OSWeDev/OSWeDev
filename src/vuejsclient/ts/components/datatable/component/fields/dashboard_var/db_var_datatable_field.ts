@@ -4,6 +4,7 @@ import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
+import DashboardBuilderController from '../../../../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import TableColumnDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import NumSegment from '../../../../../../../shared/modules/DataRender/vos/NumSegment';
@@ -89,41 +90,7 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
 
         this.dashboard = await query(DashboardVO.API_TYPE_ID).filter_by_id(this.dashboard_id).select_vo<DashboardVO>();
 
-        /**
-         * Si on a des colonnes qui sont des colonnes de données sur la row, on doit amender les filtres pour ajouter le "contexte" de la ligne
-         */
-        let context = cloneDeep(this.get_active_field_filters);
-        if (!context) {
-            context = {};
-        }
-
-        for (let i in this.columns) {
-            let column = this.columns[i];
-
-            if (column.type != TableColumnDescVO.TYPE_vo_field_ref) {
-                continue;
-            }
-
-            if (!context[column.api_type_id]) {
-                context[column.api_type_id] = {};
-            }
-
-            let field_filter = this.get_ContextFilterVO_add_Column_context(column);
-
-            if (!context[column.api_type_id][column.field_id]) {
-                context[column.api_type_id][column.field_id] = field_filter;
-            } else {
-
-                let existing_filter = context[column.api_type_id][column.field_id];
-                let and_filter = new ContextFilterVO();
-                and_filter.field_id = column.field_id;
-                and_filter.vo_type = column.api_type_id;
-                and_filter.filter_type = ContextFilterVO.TYPE_FILTER_AND;
-                and_filter.left_hook = existing_filter;
-                and_filter.right_hook = field_filter;
-                context[column.api_type_id][column.field_id] = and_filter;
-            }
-        }
+        let context = DashboardBuilderController.getInstance().add_table_row_context(cloneDeep(this.get_active_field_filters), this.columns, this.row_value);
 
         /**
          * On crée le custom_filters
@@ -138,112 +105,6 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
             this.get_discarded_field_paths);
 
         this.isLoading = false;
-    }
-
-
-    private get_ContextFilterVO_add_Column_context(column: TableColumnDescVO): ContextFilterVO {
-        let translated_active_options = new ContextFilterVO();
-
-        translated_active_options.field_id = column.field_id;
-        translated_active_options.vo_type = column.api_type_id;
-
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[column.api_type_id];
-        let field = moduletable.get_field_by_id(column.field_id);
-
-        if (this.row_value[column.datatable_field_uid] == null) {
-            translated_active_options.filter_type = ContextFilterVO.TYPE_NULL_ALL;
-        } else {
-            switch (field.field_type) {
-                case ModuleTableField.FIELD_TYPE_file_ref:
-                case ModuleTableField.FIELD_TYPE_image_field:
-                case ModuleTableField.FIELD_TYPE_image_ref:
-                case ModuleTableField.FIELD_TYPE_enum:
-                case ModuleTableField.FIELD_TYPE_int:
-                case ModuleTableField.FIELD_TYPE_geopoint:
-                case ModuleTableField.FIELD_TYPE_float:
-                case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                case ModuleTableField.FIELD_TYPE_amount:
-                case ModuleTableField.FIELD_TYPE_foreign_key:
-                case ModuleTableField.FIELD_TYPE_isoweekdays:
-                case ModuleTableField.FIELD_TYPE_prct:
-                case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                case ModuleTableField.FIELD_TYPE_hour:
-                    translated_active_options.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
-                    translated_active_options.param_numeric = this.row_value[column.datatable_field_uid];
-                    break;
-
-                case ModuleTableField.FIELD_TYPE_tstz:
-                    translated_active_options.filter_type = ContextFilterVO.TYPE_DATE_EQUALS;
-                    translated_active_options.param_numeric = this.row_value[column.datatable_field_uid];
-                    break;
-
-                case ModuleTableField.FIELD_TYPE_html:
-                case ModuleTableField.FIELD_TYPE_password:
-                case ModuleTableField.FIELD_TYPE_email:
-                case ModuleTableField.FIELD_TYPE_file_field:
-                case ModuleTableField.FIELD_TYPE_string:
-                case ModuleTableField.FIELD_TYPE_textarea:
-                case ModuleTableField.FIELD_TYPE_translatable_text:
-                    translated_active_options.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ALL;
-                    translated_active_options.param_text = this.row_value[column.datatable_field_uid];
-                    break;
-
-                case ModuleTableField.FIELD_TYPE_plain_vo_obj:
-                case ModuleTableField.FIELD_TYPE_html_array:
-                    throw new Error('Not Implemented');
-
-                case ModuleTableField.FIELD_TYPE_boolean:
-                    if (!!this.row_value[column.datatable_field_uid]) {
-                        translated_active_options.filter_type = ContextFilterVO.TYPE_BOOLEAN_TRUE_ALL;
-                    } else {
-                        translated_active_options.filter_type = ContextFilterVO.TYPE_BOOLEAN_FALSE_ALL;
-                    }
-                    break;
-
-                case ModuleTableField.FIELD_TYPE_numrange:
-                    throw new Error('Not Implemented');
-
-                case ModuleTableField.FIELD_TYPE_numrange_array:
-                case ModuleTableField.FIELD_TYPE_refrange_array:
-                    throw new Error('Not Implemented');
-
-                case ModuleTableField.FIELD_TYPE_daterange:
-                    throw new Error('Not Implemented');
-
-                case ModuleTableField.FIELD_TYPE_hourrange:
-                    throw new Error('Not Implemented');
-
-                case ModuleTableField.FIELD_TYPE_tsrange:
-                    throw new Error('Not Implemented');
-
-                case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    throw new Error('Not Implemented');
-
-                case ModuleTableField.FIELD_TYPE_hourrange_array:
-                    throw new Error('Not Implemented');
-
-                case ModuleTableField.FIELD_TYPE_int_array:
-                case ModuleTableField.FIELD_TYPE_float_array:
-                case ModuleTableField.FIELD_TYPE_tstz_array:
-                    throw new Error('Not Implemented');
-
-                case ModuleTableField.FIELD_TYPE_string_array:
-                    throw new Error('Not Implemented');
-
-                case ModuleTableField.FIELD_TYPE_date:
-                case ModuleTableField.FIELD_TYPE_day:
-                case ModuleTableField.FIELD_TYPE_month:
-                    translated_active_options.filter_type = ContextFilterVO.TYPE_DATE_EQUALS;
-                    translated_active_options.param_numeric = this.row_value[column.datatable_field_uid];
-                    break;
-
-                case ModuleTableField.FIELD_TYPE_timewithouttimezone:
-                    throw new Error('Not Implemented');
-            }
-        }
-
-        return translated_active_options;
     }
 
     get var_filter(): string {

@@ -6,6 +6,7 @@ import APIDefinition from '../API/vos/APIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import ContextFilterVO from '../ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO from '../ContextFilter/vos/ContextQueryVO';
+import TableColumnDescVO from '../DashboardBuilder/vos/TableColumnDescVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import FileVO from '../File/vos/FileVO';
 import Module from '../Module';
@@ -44,8 +45,14 @@ export default class ModuleDataExport extends Module {
         ordered_column_list: string[],
         column_labels: { [field_name: string]: string },
         exportable_datatable_custom_field_columns?: { [datatable_field_uid: string]: string },
+
+        columns?: TableColumnDescVO[],
         varcolumn_conf?: { [datatable_field_uid: string]: ExportVarcolumnConf },
+        active_field_filters?: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
         custom_filters?: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } },
+        active_api_type_ids?: string[],
+        discarded_field_paths?: { [vo_type: string]: { [field_id: string]: boolean } },
+
         is_secured?: boolean,
         file_access_policy_name?: string
     ) => Promise<string> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVO);
@@ -55,8 +62,14 @@ export default class ModuleDataExport extends Module {
         ordered_column_list: string[],
         column_labels: { [field_name: string]: string },
         exportable_datatable_custom_field_columns?: { [datatable_field_uid: string]: string },
+
+        columns?: TableColumnDescVO[],
         varcolumn_conf?: { [datatable_field_uid: string]: ExportVarcolumnConf },
+        active_field_filters?: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
         custom_filters?: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } },
+        active_api_type_ids?: string[],
+        discarded_field_paths?: { [vo_type: string]: { [field_id: string]: boolean } },
+
         is_secured?: boolean,
         file_access_policy_name?: string) => Promise<FileVO> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVOFile);
 

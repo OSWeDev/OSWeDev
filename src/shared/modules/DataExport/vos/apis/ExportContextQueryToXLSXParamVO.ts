@@ -2,6 +2,7 @@ import IAPIParamTranslator from '../../../API/interfaces/IAPIParamTranslator';
 import IAPIParamTranslatorStatic from '../../../API/interfaces/IAPIParamTranslatorStatic';
 import ContextFilterVO from '../../../ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO from '../../../ContextFilter/vos/ContextQueryVO';
+import TableColumnDescVO from '../../../DashboardBuilder/vos/TableColumnDescVO';
 import ExportVarcolumnConf from '../ExportVarcolumnConf';
 
 export default class ExportContextQueryToXLSXParamVO implements IAPIParamTranslator<ExportContextQueryToXLSXParamVO> {
@@ -12,6 +13,7 @@ export default class ExportContextQueryToXLSXParamVO implements IAPIParamTransla
         ordered_column_list: string[],
         column_labels: { [field_name: string]: string },
         exportable_datatable_custom_field_columns: { [datatable_field_uid: string]: string } = null,
+        columns: TableColumnDescVO[] = null,
         varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConf } = null,
         active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
         custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
@@ -22,7 +24,7 @@ export default class ExportContextQueryToXLSXParamVO implements IAPIParamTransla
     ): ExportContextQueryToXLSXParamVO {
 
         return new ExportContextQueryToXLSXParamVO(
-            filename, context_query, ordered_column_list, column_labels, exportable_datatable_custom_field_columns, varcolumn_conf,
+            filename, context_query, ordered_column_list, column_labels, exportable_datatable_custom_field_columns, columns, varcolumn_conf,
             active_field_filters, custom_filters, active_api_type_ids, discarded_field_paths, is_secured, file_access_policy_name);
     }
 
@@ -33,6 +35,7 @@ export default class ExportContextQueryToXLSXParamVO implements IAPIParamTransla
             param.ordered_column_list,
             param.column_labels,
             param.exportable_datatable_custom_field_columns,
+            param.columns,
             param.varcolumn_conf,
             param.active_field_filters,
             param.custom_filters,
@@ -50,6 +53,7 @@ export default class ExportContextQueryToXLSXParamVO implements IAPIParamTransla
         public column_labels: { [field_name: string]: string },
 
         public exportable_datatable_custom_field_columns: { [datatable_field_uid: string]: string } = null,
+        public columns: TableColumnDescVO[] = null,
         public varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConf } = null,
         public active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
         public custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,

@@ -726,6 +726,11 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 return (e.length > 2) ? e.substr(1, e.length - 2).split(',') : e;
 
             case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+
+                if (!e || (e == '{}')) {
+                    return null;
+                }
+
                 let trans_ = e ? JSON.parse(e) : null;
                 if ((!!trans_) && !!field.plain_obj_cstr) {
 
@@ -749,6 +754,11 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 }
 
             case ModuleTableField.FIELD_TYPE_tstz_array:
+
+                if (!e || (e == '{}')) {
+                    return null;
+                }
+
                 if ((e === null) || (typeof e === 'undefined')) {
                     return e;
                 } else {

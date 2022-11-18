@@ -92,7 +92,7 @@ export default class ContextFilterTestsTools {
     }
 
     private declare_LangVO_modultable() {
-        let label_field = new ModuleTableField('code_lang', ModuleTableField.FIELD_TYPE_string, 'Code de la langue', true);
+        let label_field = new ModuleTableField('code_lang', ModuleTableField.FIELD_TYPE_string, 'Code de la langue', true).unique();
         let datatable_fields = [
             label_field,
             new ModuleTableField('code_flag', ModuleTableField.FIELD_TYPE_string, 'Code du drapeau', false),
@@ -103,7 +103,7 @@ export default class ContextFilterTestsTools {
     }
 
     private declare_TranslatableTextVO_modultable() {
-        let label_field = new ModuleTableField('code_text', ModuleTableField.FIELD_TYPE_string, 'Id du text', true);
+        let label_field = new ModuleTableField('code_text', ModuleTableField.FIELD_TYPE_string, 'Id du text', true).unique();
         let datatable_fields = [
             label_field
         ];

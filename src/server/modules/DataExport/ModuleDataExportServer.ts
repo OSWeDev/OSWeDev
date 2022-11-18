@@ -10,7 +10,9 @@ import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFi
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import DashboardBuilderController from '../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import TableWidgetCustomFieldsController from '../../../shared/modules/DashboardBuilder/TableWidgetCustomFieldsController';
+import TableColumnDescVO from '../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import ModuleDataExport from '../../../shared/modules/DataExport/ModuleDataExport';
 import ExportLogVO from '../../../shared/modules/DataExport/vos/apis/ExportLogVO';
 import ExportHistoricVO from '../../../shared/modules/DataExport/vos/ExportHistoricVO';
@@ -191,6 +193,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         column_labels: { [field_name: string]: string },
         exportable_datatable_custom_field_columns: { [datatable_field_uid: string]: string } = null,
 
+        columns: TableColumnDescVO[],
         varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConf } = null,
         active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
         custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
@@ -204,7 +207,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         let datas = (context_query.fields && context_query.fields.length) ?
             await ModuleContextFilter.getInstance().select_datatable_rows(context_query) :
             await ModuleContextFilter.getInstance().select_vos(context_query);
-        datas = await this.addVarColumnsValues(datas, ordered_column_list, varcolumn_conf, active_field_filters, custom_filters, active_api_type_ids, discarded_field_paths);
+        datas = await this.addVarColumnsValues(datas, ordered_column_list, columns, varcolumn_conf, active_field_filters, custom_filters, active_api_type_ids, discarded_field_paths);
 
         datas = await this.translate_context_query_fields_from_bdd(datas, context_query);
 
@@ -301,6 +304,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         column_labels: { [field_name: string]: string },
         exportable_datatable_custom_field_columns: { [datatable_field_uid: string]: string } = null,
 
+        columns: TableColumnDescVO[],
         varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConf } = null,
         active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
         custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
@@ -315,7 +319,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         let datas = (context_query.fields && context_query.fields.length) ?
             await ModuleContextFilter.getInstance().select_datatable_rows(context_query) :
             await ModuleContextFilter.getInstance().select_vos(context_query);
-        datas = await this.addVarColumnsValues(datas, ordered_column_list, varcolumn_conf, active_field_filters, custom_filters, active_api_type_ids, discarded_field_paths);
+        datas = await this.addVarColumnsValues(datas, ordered_column_list, columns, varcolumn_conf, active_field_filters, custom_filters, active_api_type_ids, discarded_field_paths);
 
         datas = await this.translate_context_query_fields_from_bdd(datas, context_query);
 
@@ -797,6 +801,26 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 dest_vo[field_id] = trad ? trad.translated : null;
                 break;
 
+
+            case ModuleTableField.FIELD_TYPE_html:
+            case ModuleTableField.FIELD_TYPE_textarea:
+            case ModuleTableField.FIELD_TYPE_email:
+            case ModuleTableField.FIELD_TYPE_string:
+            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+            case ModuleTableField.FIELD_TYPE_translatable_text:
+            case ModuleTableField.FIELD_TYPE_password:
+            case ModuleTableField.FIELD_TYPE_file_field:
+            case ModuleTableField.FIELD_TYPE_image_field:
+                /**
+                 * Si on a un type string, mais que la bdd renvoie un array, on join(',') pour avoir une string
+                 */
+                if (Array.isArray(src_vo[field_id])) {
+                    dest_vo[field_id] = src_vo[field_id].join(',');
+                } else {
+                    dest_vo[field_id] = src_vo[field_id];
+                }
+                break;
+
             case ModuleTableField.FIELD_TYPE_float:
             case ModuleTableField.FIELD_TYPE_decimal_full_precision:
             case ModuleTableField.FIELD_TYPE_amount:
@@ -860,6 +884,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         datas: IDistantVOBase[],
         ordered_column_list: string[],
 
+        columns: TableColumnDescVO[],
         varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConf } = null,
         active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
         custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
@@ -892,15 +917,17 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     /**
                      * On doit récupérer le param en fonction de la ligne et les filtres actifs utilisés pour l'export
                      */
+                    let context = DashboardBuilderController.getInstance().add_table_row_context(cloneDeep(active_field_filters), columns, data);
                     let var_param: VarDataBaseVO = await ModuleVar.getInstance().getVarParamFromContextFilters(
                         VarsController.getInstance().var_conf_by_id[this_varcolumn_conf.var_id].name,
-                        active_field_filters,
+                        context,
                         this_custom_filters,
                         active_api_type_ids,
                         discarded_field_paths
                     );
 
-                    data[data_field_name] = await VarsServerCallBackSubsController.getInstance().get_var_data(var_param, 'addVarColumnsValues: exporting data');
+                    let var_data = await VarsServerCallBackSubsController.getInstance().get_var_data(var_param, 'addVarColumnsValues: exporting data');
+                    data[data_field_name] = var_data ? var_data.value : null;
                 })());
             }
         }
