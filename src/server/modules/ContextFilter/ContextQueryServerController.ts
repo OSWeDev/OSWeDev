@@ -4,7 +4,7 @@ import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
-import ContextQueryVO from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
@@ -517,6 +517,36 @@ export default class ContextQueryServerController {
         return await this.build_select_query_not_count(context_query);
     }
 
+    public async get_valid_segmentations(moduletable: ModuleTable<any>, context_query: ContextQueryVO): Promise<number[]> {
+        let segmentation_field: ModuleTableField<any> = moduletable.table_segmented_field;
+        switch (segmentation_field.field_type) {
+            case ModuleTableField.FIELD_TYPE_foreign_key:
+
+                if (!segmentation_field.manyToOne_target_moduletable.vo_type) {
+                    throw new Error('Invalid segmentation_moduletable');
+                }
+
+                let ids_map: Array<{ id: number }> = await query(segmentation_field.manyToOne_target_moduletable.vo_type).field('id').add_filters(context_query.filters).select_all();
+                let ids: number[] = ids_map ? ids_map.map((id_map) => id_map.id) : null;
+
+                if (!ids || !ids.length) {
+                    throw new Error('Invalid segmentations');
+                }
+
+                /**
+                 * On est dans le cadre d'un select donc on check l'existence des ids sinon on les retire
+                 */
+                ids = ids.filter((id) => {
+                    return (!!DAOServerController.getInstance().segmented_known_databases[moduletable.database]) &&
+                        (id == DAOServerController.getInstance().segmented_known_databases[moduletable.database][moduletable.get_segmented_name(id)]);
+                });
+
+                return ids && ids.length ? ids : null;
+            default:
+                throw new Error('Invalid segmentation_moduletable');
+        }
+    }
+
     /**
      * Fonction qui génère la requête select demandée, que ce soit sur les vos directement ou
      *  sur les fields passées dans le context_query
@@ -527,12 +557,7 @@ export default class ContextQueryServerController {
             throw new Error('Invalid query param');
         }
 
-        let parameterizedQueryWrapperFields: ParameterizedQueryWrapperField[] = [];
-        let query_result: ParameterizedQueryWrapper = new ParameterizedQueryWrapper(null, [], parameterizedQueryWrapperFields);
-
         let access_type: string = ModuleDAO.DAO_ACCESS_TYPE_READ;
-
-        let FROM: string = null;
 
         try {
 
@@ -557,27 +582,6 @@ export default class ContextQueryServerController {
                 return null;
             }
 
-            let aliases_n: number = 0;
-
-            /**
-             * Check injection OK : context_query.base_api_type_id & context_query.query_tables_prefix checked
-             */
-            let tables_aliases_by_type: { [vo_type: string]: string } = {
-                [context_query.base_api_type_id]: (context_query.query_tables_prefix ?
-                    (context_query.query_tables_prefix + '_t' + (aliases_n++)) :
-                    ('t' + (aliases_n++))
-                )
-            };
-
-            /**
-             * On prend arbitrairement la première table comme FROM, on join vers elle par la suite.
-             */
-            let jointures: string[] = [];
-            let cross_joins: string[] = [];
-            let joined_tables_by_vo_type: { [vo_type: string]: ModuleTable<any> } = {};
-
-            this.add_activated_many_to_many(context_query);
-
             let base_moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[context_query.base_api_type_id];
 
             if (!base_moduletable) {
@@ -587,365 +591,461 @@ export default class ContextQueryServerController {
             /**
              * Check injection OK : get_table_full_name is OK
              */
-            let full_name = await ContextFilterServerController.getInstance().get_table_full_name(base_moduletable, context_query.filters);
 
             /**
-             * Cas du segmented table dont la table n'existe pas, donc on select null en somme (c'est pas une erreur en soit, juste il n'y a pas de données)
-             *  - mais on peut pas select null, ça génère un résultat non vide, dont le premier élément est une colonne null (dont le nom est ?column?)
+             * Si on est segmentés on charge tous les num de segmentations compatibles avec ce context_query et on union all toutes les requetes
+             *  sinon on fait la requete sur la table simplement
              */
-            if (!full_name) {
-                query_result.query = 'SELECT null';
-                return query_result.mark_as_is_segmented_non_existing_table();
-            }
+            if (base_moduletable.is_segmented) {
 
-            FROM = " FROM " + full_name + " " + tables_aliases_by_type[context_query.base_api_type_id];
-            joined_tables_by_vo_type[context_query.base_api_type_id] = base_moduletable;
-
-            if (!context_query.fields) {
-
-                if (context_query.query_distinct) {
-                    /**
-                     * Aucun sens en fait de sélectionner des vos distincts
-                     */
-                    throw new Error('Incompatible options:distinct & !fields');
+                let query_result: ParameterizedQueryWrapper = new ParameterizedQueryWrapper(null, [], null);
+                let ids: number[] = await this.get_valid_segmentations(base_moduletable, context_query);
+                if ((!ids) || (!ids.length)) {
+                    query_result.mark_as_is_segmented_non_existing_table();
+                    return query_result;
                 }
 
-                context_query.field('id');
+                let queries: string[] = [];
 
-                let fields = base_moduletable.get_fields();
-                for (let i in fields) {
-                    let field = fields[i];
+                for (let i in ids) {
+                    let id: number = ids[i];
 
-                    context_query.field(field.field_id);
-                }
-            }
-
-            let SELECT = "SELECT ";
-            let first = true;
-
-            /**
-             * Ajout du request_id dans la requête pour le cas des UNION ALL typiquement
-             */
-            if (!!context_query.request_id) {
-                SELECT += context_query.request_id + " as request_id";
-                first = false;
-            }
-
-            let force_query_distinct: boolean = false;
-
-            for (let i in context_query.fields) {
-                let context_field = context_query.fields[i];
-
-                let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[context_field.api_type_id];
-                if ((!moduletable) || ((!!context_field.field_id) && (context_field.field_id != 'id') && (!moduletable.get_field_by_id(context_field.field_id)))) {
-                    return null;
-                }
-
-                /**
-                 * Checker le format des champs qui sont bien que des lettres/chiffres sans espace
-                 */
-                ContextQueryInjectionCheckHandler.assert_api_type_id_format(context_field.api_type_id);
-                ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_field.alias);
-                ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_field.field_id);
-
-                /**
-                 * Si on découvre, et qu'on est pas sur la première table, on passe sur un join à mettre en place
-                 */
-                if (!tables_aliases_by_type[context_field.api_type_id]) {
-
-                    aliases_n = await this.join_api_type_id(
-                        context_query,
-                        aliases_n,
-                        context_field.api_type_id,
-                        jointures,
-                        cross_joins,
-                        joined_tables_by_vo_type,
-                        tables_aliases_by_type,
+                    let context_query_segmented: ContextQueryVO = cloneDeep(context_query).filter_by_id(id, base_moduletable.table_segmented_field.manyToOne_target_moduletable.vo_type);
+                    let query_segmented: ParameterizedQueryWrapper = await this.build_select_query_not_count_segment(
+                        context_query_segmented,
                         access_type,
-                        context_field
-                    );
+                        base_moduletable,
+                        base_moduletable.vo_type,
+                        true,
+                        id);
+                    if ((!!query_segmented) && query_segmented.query && !query_segmented.is_segmented_non_existing_table) {
+
+                        if (!query_result.fields) {
+                            query_result.fields = query_segmented.fields;
+                        }
+                        queries.push(query_segmented.query);
+                    }
                 }
 
-                if (!first) {
-                    SELECT += ', ';
-                }
-                first = false;
-
-
-                let parameterizedQueryWrapperField: ParameterizedQueryWrapperField = new ParameterizedQueryWrapperField(
-                    context_field.api_type_id, context_field.field_id, context_field.aggregator, context_field.alias ? context_field.alias : context_field.field_id);
-                let field_full_name = tables_aliases_by_type[context_field.api_type_id] + "." + context_field.field_id;
-                let aggregator_prefix = '';
-                let aggregator_suffix = '';
-                let field_alias = (context_field.alias ? " as " + context_field.alias : '');
-
-                switch (context_field.aggregator) {
-                    case VarConfVO.IS_NULLABLE_AGGREGATOR:
-                    case VarConfVO.NO_AGGREGATOR:
-                        break;
-
-                    case VarConfVO.ARRAY_AGG_AND_IS_NULLABLE_AGGREGATOR:
-                    case VarConfVO.ARRAY_AGG_AGGREGATOR:
-                        aggregator_prefix = 'ARRAY_AGG(';
-                        aggregator_suffix = ')';
-                        force_query_distinct = true;
-                        break;
-                    case VarConfVO.COUNT_AGGREGATOR:
-                        aggregator_prefix = 'COUNT(';
-                        aggregator_suffix = ')';
-                        force_query_distinct = true;
-                        break;
-                    case VarConfVO.MAX_AGGREGATOR:
-                        aggregator_prefix = 'MAX(';
-                        aggregator_suffix = ')';
-                        force_query_distinct = true;
-                        break;
-                    case VarConfVO.MIN_AGGREGATOR:
-                        aggregator_prefix = 'MIN(';
-                        aggregator_suffix = ')';
-                        force_query_distinct = true;
-                        break;
-                    case VarConfVO.SUM_AGGREGATOR:
-                        aggregator_prefix = 'SUM(';
-                        aggregator_suffix = ')';
-                        force_query_distinct = true;
-                        break;
-
-                    case VarConfVO.OR_AGGREGATOR:
-                    case VarConfVO.AND_AGGREGATOR:
-                    case VarConfVO.TIMES_AGGREGATOR:
-                    case VarConfVO.XOR_AGGREGATOR:
-
-                    default:
-                        throw new Error('Not Implemented');
+                if (!queries.length) {
+                    query_result.mark_as_is_segmented_non_existing_table();
+                    return query_result;
                 }
 
-                /**
-                 * Check injection OK :
-                 *  - aggregator_prefix && aggregator_suffix: rempli par le serveur et si infos étranges, throw
-                 *  - field_full_name && field_alias: on a checké le format pur texte de context_field.api_type_id, context_field.alias, context_field.field_id
-                 */
-                SELECT += aggregator_prefix + ContextQueryFieldServerController.getInstance().apply_modifier(context_field, field_full_name) + aggregator_suffix + field_alias + ' ';
-                parameterizedQueryWrapperFields.push(parameterizedQueryWrapperField);
-            }
-
-            /**
-             * On join tous les types demandés dans les sorts dans la requête
-             */
-            for (let i in context_query.sort_by) {
-                let sort_by = context_query.sort_by[i];
-                let active_api_type_id = sort_by.vo_type;
-
-                if (!active_api_type_id) {
-                    continue;
-                }
-                if (tables_aliases_by_type[active_api_type_id]) {
-                    continue;
-                }
-
-                let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[active_api_type_id];
-                if (!moduletable) {
-                    return null;
-                }
-
-                /**
-                 * Checker le format des types
-                 */
-                ContextQueryInjectionCheckHandler.assert_api_type_id_format(active_api_type_id);
-
-                /**
-                 * Si on découvre, et qu'on est pas sur la première table, on passe sur un join à mettre en place
-                 */
-                aliases_n = await this.join_api_type_id(
+                query_result.set_query('(' + queries.join(') UNION ALL (') + ')');
+                return query_result;
+            } else {
+                return await this.build_select_query_not_count_segment(
                     context_query,
-                    aliases_n,
-                    active_api_type_id,
-                    jointures,
-                    cross_joins,
-                    joined_tables_by_vo_type,
-                    tables_aliases_by_type,
-                    access_type
-                );
+                    access_type,
+                    base_moduletable,
+                    base_moduletable.vo_type);
             }
-
-            /**
-             * C'est là que le fun prend place, on doit créer la requête pour chaque context_filter et combiner tout ensemble
-             */
-            let where_conditions: string[] = [];
-
-            for (let i in context_query.filters) {
-                let filter = context_query.filters[i];
-
-                aliases_n = await this.updates_jointures_from_filter(
-                    filter,
-                    context_query,
-                    jointures,
-                    joined_tables_by_vo_type,
-                    tables_aliases_by_type,
-                    aliases_n
-                );
-
-                /**
-                 * Check injection : OK
-                 */
-                await ContextFilterServerController.getInstance().update_where_conditions(query_result, where_conditions, filter, tables_aliases_by_type);
-            }
-
-            let tables_aliases_by_type_for_access_hooks = cloneDeep(tables_aliases_by_type);
-            if (!context_query.is_access_hook_def) {
-                /**
-                 * Check injection : OK
-                 */
-                await this.add_context_access_hooks(context_query, query_result, tables_aliases_by_type_for_access_hooks, where_conditions);
-            }
-
-            let WHERE = '';
-            if (where_conditions && where_conditions.length) {
-                WHERE += ' WHERE (' + where_conditions.join(') AND (') + ')';
-            }
-
-
-            let GROUP_BY = ' ';
-            if (context_query.query_distinct || force_query_distinct) {
-
-                GROUP_BY = ' GROUP BY ';
-                let group_bys = [];
-                for (let i in context_query.fields) {
-                    let context_field = context_query.fields[i];
-
-                    // On ne rajoute pas dans le group by si on utilise un aggregateur
-                    if (context_field.aggregator != VarConfVO.NO_AGGREGATOR) {
-                        continue;
-                    }
-
-                    ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_field.field_id);
-                    ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_field.alias);
-
-                    group_bys.push(context_field.alias ?
-                        context_field.alias :
-                        tables_aliases_by_type[context_field.api_type_id] + '.' + context_field.field_id);
-                }
-                GROUP_BY += group_bys.join(', ');
-
-                if (GROUP_BY == ' GROUP BY ') {
-                    GROUP_BY = ' ';
-                }
-            }
-
-            let SORT_BY = '';
-            if (context_query.sort_by && context_query.sort_by.length) {
-
-                SORT_BY += ' ORDER BY ';
-                let first_sort_by = true;
-
-                for (let sort_byi in context_query.sort_by) {
-                    let sort_by = context_query.sort_by[sort_byi];
-
-                    /**
-                     * Check injection : context_query.sort_by ok puisqu'on ne l'insère jamais tel quel, mais
-                     *  context_query.sort_by.field_id && context_query.sort_by.vo_type doivent être testés
-                     */
-                    ContextQueryInjectionCheckHandler.assert_postgresql_name_format(sort_by.vo_type);
-                    ContextQueryInjectionCheckHandler.assert_postgresql_name_format(sort_by.field_id);
-
-                    /**
-                     * Si on utilise un alias, on considère que le field existe forcément
-                     *  et si on a un vo_type / field_id, on doit vérifier que le field est sélect et si oui, on copie l'alias si il y en a un de def
-                     */
-                    let is_selected_field = !!sort_by.alias;
-                    if (!is_selected_field) {
-
-                        for (let i in context_query.fields) {
-                            let context_field = context_query.fields[i];
-
-                            if (context_field.api_type_id != sort_by.vo_type) {
-                                continue;
-                            }
-                            if (context_field.field_id != sort_by.field_id) {
-                                continue;
-                            }
-
-                            if (!!context_field.alias) {
-                                sort_by.alias = context_field.alias;
-                            }
-                            is_selected_field = true;
-                        }
-                    }
-
-                    if (!first_sort_by) {
-                        SORT_BY += ', ';
-                    }
-                    first_sort_by = false;
-
-                    let modifier_start = '';
-                    let modifier_end = '';
-                    switch (sort_by.modifier) {
-                        case SortByVO.MODIFIER_LOWER:
-                            modifier_start = 'LOWER(';
-                            modifier_end = ')';
-                            break;
-
-                        case SortByVO.MODIFIER_UPPER:
-                            modifier_start = 'UPPER(';
-                            modifier_end = ')';
-                            break;
-                    }
-
-                    if (is_selected_field || !context_query.query_distinct) {
-
-                        if (!!sort_by.alias) {
-                            SORT_BY += modifier_start + sort_by.alias + modifier_end +
-                                (sort_by.sort_asc ? ' ASC ' : ' DESC ');
-                        } else {
-                            SORT_BY += modifier_start + tables_aliases_by_type[sort_by.vo_type] + '.' + sort_by.field_id + modifier_end +
-                                (sort_by.sort_asc ? ' ASC ' : ' DESC ');
-                        }
-                    } else {
-
-                        let sort_alias = 'sort_alias_' + Math.ceil(Math.random() * 100);
-                        SORT_BY += modifier_start + sort_alias + modifier_end + (sort_by.sort_asc ? ' ASC ' : ' DESC ');
-
-                        if (!tables_aliases_by_type[sort_by.vo_type]) {
-                            aliases_n = await this.join_api_type_id(
-                                context_query,
-                                aliases_n,
-                                sort_by.vo_type,
-                                jointures,
-                                cross_joins,
-                                joined_tables_by_vo_type,
-                                tables_aliases_by_type,
-                                access_type
-                            );
-                        }
-
-                        SELECT += ', ' + (sort_by.sort_asc ? 'MIN' : 'MAX') + '(' +
-                            tables_aliases_by_type[sort_by.vo_type] + '.' + sort_by.field_id
-                            + ') as ' + sort_alias;
-                        let parameterizedQueryWrapperField: ParameterizedQueryWrapperField = new ParameterizedQueryWrapperField(
-                            sort_by.vo_type, sort_by.field_id, (sort_by.sort_asc ? VarConfVO.MIN_AGGREGATOR : VarConfVO.MAX_AGGREGATOR), sort_alias);
-                        parameterizedQueryWrapperFields.push(parameterizedQueryWrapperField);
-                    }
-                }
-            }
-
-            let JOINTURES = this.get_ordered_jointures(context_query, jointures, cross_joins);
-            let LIMIT = this.get_limit(context_query);
-
-            /**
-             * Check injection : OK
-             *  - SELECT : Check OK
-             *  - FROM : Check OK
-             *  - JOINTURES : Check OK
-             *  - WHERE : Check OK
-             *  - GROUP_BY : Check OK
-             *  - SORT_BY : Check OK
-             *  - LIMIT : Check OK
-             */
-            return query_result.set_query(SELECT + FROM + JOINTURES + WHERE + GROUP_BY + SORT_BY + LIMIT);
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
             return null;
         }
+    }
+
+    /**
+     * Fonction qui génère la requête select demandée, que ce soit sur les vos directement ou
+     *  sur les fields passées dans le context_query
+     */
+    private async build_select_query_not_count_segment(
+        context_query: ContextQueryVO,
+        access_type: string,
+        base_moduletable: ModuleTable<any>,
+        base_api_type_id: string,
+        is_segmented: boolean = false,
+        segmented_value: number = null): Promise<ParameterizedQueryWrapper> {
+
+        if (!base_api_type_id) {
+            throw new Error('base_api_type_id is required');
+        }
+
+        let parameterizedQueryWrapperFields: ParameterizedQueryWrapperField[] = [];
+        let query_result: ParameterizedQueryWrapper = new ParameterizedQueryWrapper(null, [], parameterizedQueryWrapperFields);
+
+        let FROM: string = null;
+
+
+        let aliases_n: number = 0;
+
+        /**
+         * Check injection OK : context_query.base_api_type_id & context_query.query_tables_prefix checked
+         */
+        let tables_aliases_by_type: { [vo_type: string]: string } = {
+            [context_query.base_api_type_id]: (context_query.query_tables_prefix ?
+                (context_query.query_tables_prefix + '_t' + (aliases_n++)) :
+                ('t' + (aliases_n++))
+            )
+        };
+
+        /**
+         * On prend arbitrairement la première table comme FROM, on join vers elle par la suite.
+         */
+        let jointures: string[] = [];
+        let cross_joins: string[] = [];
+        let joined_tables_by_vo_type: { [vo_type: string]: ModuleTable<any> } = {};
+
+        this.add_activated_many_to_many(context_query);
+
+
+        /**
+         * Cas du segmented table dont la table n'existe pas, donc on select null en somme (c'est pas une erreur en soit, juste il n'y a pas de données)
+         *  - mais on peut pas select null, ça génère un résultat non vide, dont le premier élément est une colonne null (dont le nom est ?column?)
+         */
+        let full_name: string = is_segmented ? base_moduletable.get_segmented_full_name(segmented_value) : base_moduletable.full_name;
+        if (!full_name) {
+            query_result.query = 'SELECT null';
+            return query_result.mark_as_is_segmented_non_existing_table();
+        }
+
+        FROM = " FROM " + full_name + " " + tables_aliases_by_type[context_query.base_api_type_id];
+
+        joined_tables_by_vo_type[context_query.base_api_type_id] = base_moduletable;
+
+        if (!context_query.fields) {
+
+            if (context_query.query_distinct) {
+                /**
+                 * Aucun sens en fait de sélectionner des vos distincts
+                 */
+                throw new Error('Incompatible options:distinct & !fields');
+            }
+
+            context_query.field('id');
+
+            let fields = base_moduletable.get_fields();
+            for (let i in fields) {
+                let field = fields[i];
+
+                context_query.field(field.field_id);
+            }
+        }
+
+        let SELECT = "SELECT ";
+        let first = true;
+
+        /**
+         * Ajout du request_id dans la requête pour le cas des UNION ALL typiquement
+         */
+        if (!!context_query.request_id) {
+            SELECT += context_query.request_id + " as request_id";
+            first = false;
+        }
+
+        let force_query_distinct: boolean = false;
+
+        for (let i in context_query.fields) {
+            let context_field = context_query.fields[i];
+
+            let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[context_field.api_type_id];
+            if ((!moduletable) || ((!!context_field.field_id) && (context_field.field_id != 'id') && (!moduletable.get_field_by_id(context_field.field_id)))) {
+                return null;
+            }
+
+            /**
+             * Checker le format des champs qui sont bien que des lettres/chiffres sans espace
+             */
+            ContextQueryInjectionCheckHandler.assert_api_type_id_format(context_field.api_type_id);
+            ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_field.alias);
+            ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_field.field_id);
+
+            /**
+             * Si on découvre, et qu'on est pas sur la première table, on passe sur un join à mettre en place
+             */
+            if (!tables_aliases_by_type[context_field.api_type_id]) {
+
+                aliases_n = await this.join_api_type_id(
+                    context_query,
+                    aliases_n,
+                    context_field.api_type_id,
+                    jointures,
+                    cross_joins,
+                    joined_tables_by_vo_type,
+                    tables_aliases_by_type,
+                    access_type,
+                    context_field
+                );
+            }
+
+            if (!first) {
+                SELECT += ', ';
+            }
+            first = false;
+
+
+            let parameterizedQueryWrapperField: ParameterizedQueryWrapperField = new ParameterizedQueryWrapperField(
+                context_field.api_type_id, context_field.field_id, context_field.aggregator, context_field.alias ? context_field.alias : context_field.field_id);
+            let field_full_name = tables_aliases_by_type[context_field.api_type_id] + "." + context_field.field_id;
+            let aggregator_prefix = '';
+            let aggregator_suffix = '';
+            let field_alias = (context_field.alias ? " as " + context_field.alias : '');
+
+            switch (context_field.aggregator) {
+                case VarConfVO.IS_NULLABLE_AGGREGATOR:
+                case VarConfVO.NO_AGGREGATOR:
+                    break;
+
+                case VarConfVO.ARRAY_AGG_AND_IS_NULLABLE_AGGREGATOR:
+                case VarConfVO.ARRAY_AGG_AGGREGATOR:
+                    aggregator_prefix = 'ARRAY_AGG(';
+                    aggregator_suffix = ')';
+                    force_query_distinct = true;
+                    break;
+                case VarConfVO.COUNT_AGGREGATOR:
+                    aggregator_prefix = 'COUNT(';
+                    aggregator_suffix = ')';
+                    force_query_distinct = true;
+                    break;
+                case VarConfVO.MAX_AGGREGATOR:
+                    aggregator_prefix = 'MAX(';
+                    aggregator_suffix = ')';
+                    force_query_distinct = true;
+                    break;
+                case VarConfVO.MIN_AGGREGATOR:
+                    aggregator_prefix = 'MIN(';
+                    aggregator_suffix = ')';
+                    force_query_distinct = true;
+                    break;
+                case VarConfVO.SUM_AGGREGATOR:
+                    aggregator_prefix = 'SUM(';
+                    aggregator_suffix = ')';
+                    force_query_distinct = true;
+                    break;
+
+                case VarConfVO.OR_AGGREGATOR:
+                case VarConfVO.AND_AGGREGATOR:
+                case VarConfVO.TIMES_AGGREGATOR:
+                case VarConfVO.XOR_AGGREGATOR:
+
+                default:
+                    throw new Error('Not Implemented');
+            }
+
+            /**
+             * Check injection OK :
+             *  - aggregator_prefix && aggregator_suffix: rempli par le serveur et si infos étranges, throw
+             *  - field_full_name && field_alias: on a checké le format pur texte de context_field.api_type_id, context_field.alias, context_field.field_id
+             */
+            SELECT += aggregator_prefix + ContextQueryFieldServerController.getInstance().apply_modifier(context_field, field_full_name) + aggregator_suffix + field_alias + ' ';
+            parameterizedQueryWrapperFields.push(parameterizedQueryWrapperField);
+        }
+
+        /**
+         * On join tous les types demandés dans les sorts dans la requête
+         */
+        for (let i in context_query.sort_by) {
+            let sort_by = context_query.sort_by[i];
+            let active_api_type_id = sort_by.vo_type;
+
+            if (!active_api_type_id) {
+                continue;
+            }
+            if (tables_aliases_by_type[active_api_type_id]) {
+                continue;
+            }
+
+            let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[active_api_type_id];
+            if (!moduletable) {
+                return null;
+            }
+
+            /**
+             * Checker le format des types
+             */
+            ContextQueryInjectionCheckHandler.assert_api_type_id_format(active_api_type_id);
+
+            /**
+             * Si on découvre, et qu'on est pas sur la première table, on passe sur un join à mettre en place
+             */
+            aliases_n = await this.join_api_type_id(
+                context_query,
+                aliases_n,
+                active_api_type_id,
+                jointures,
+                cross_joins,
+                joined_tables_by_vo_type,
+                tables_aliases_by_type,
+                access_type
+            );
+        }
+
+        /**
+         * C'est là que le fun prend place, on doit créer la requête pour chaque context_filter et combiner tout ensemble
+         */
+        let where_conditions: string[] = [];
+
+        for (let i in context_query.filters) {
+            let filter = context_query.filters[i];
+
+            aliases_n = await this.updates_jointures_from_filter(
+                filter,
+                context_query,
+                jointures,
+                joined_tables_by_vo_type,
+                tables_aliases_by_type,
+                aliases_n
+            );
+
+            /**
+             * Check injection : OK
+             */
+            await ContextFilterServerController.getInstance().update_where_conditions(query_result, where_conditions, filter, tables_aliases_by_type);
+        }
+
+        let tables_aliases_by_type_for_access_hooks = cloneDeep(tables_aliases_by_type);
+        if (!context_query.is_access_hook_def) {
+            /**
+             * Check injection : OK
+             */
+            await this.add_context_access_hooks(context_query, query_result, tables_aliases_by_type_for_access_hooks, where_conditions);
+        }
+
+        let WHERE = '';
+        if (where_conditions && where_conditions.length) {
+            WHERE += ' WHERE (' + where_conditions.join(') AND (') + ')';
+        }
+
+
+        let GROUP_BY = ' ';
+        if (context_query.query_distinct || force_query_distinct) {
+
+            GROUP_BY = ' GROUP BY ';
+            let group_bys = [];
+            for (let i in context_query.fields) {
+                let context_field = context_query.fields[i];
+
+                // On ne rajoute pas dans le group by si on utilise un aggregateur
+                if (context_field.aggregator != VarConfVO.NO_AGGREGATOR) {
+                    continue;
+                }
+
+                ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_field.field_id);
+                ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_field.alias);
+
+                group_bys.push(context_field.alias ?
+                    context_field.alias :
+                    tables_aliases_by_type[context_field.api_type_id] + '.' + context_field.field_id);
+            }
+            GROUP_BY += group_bys.join(', ');
+
+            if (GROUP_BY == ' GROUP BY ') {
+                GROUP_BY = ' ';
+            }
+        }
+
+        let SORT_BY = '';
+        if (context_query.sort_by && context_query.sort_by.length) {
+
+            SORT_BY += ' ORDER BY ';
+            let first_sort_by = true;
+
+            for (let sort_byi in context_query.sort_by) {
+                let sort_by = context_query.sort_by[sort_byi];
+
+                /**
+                 * Check injection : context_query.sort_by ok puisqu'on ne l'insère jamais tel quel, mais
+                 *  context_query.sort_by.field_id && context_query.sort_by.vo_type doivent être testés
+                 */
+                ContextQueryInjectionCheckHandler.assert_postgresql_name_format(sort_by.vo_type);
+                ContextQueryInjectionCheckHandler.assert_postgresql_name_format(sort_by.field_id);
+
+                /**
+                 * Si on utilise un alias, on considère que le field existe forcément
+                 *  et si on a un vo_type / field_id, on doit vérifier que le field est sélect et si oui, on copie l'alias si il y en a un de def
+                 */
+                let is_selected_field = !!sort_by.alias;
+                if (!is_selected_field) {
+
+                    for (let i in context_query.fields) {
+                        let context_field = context_query.fields[i];
+
+                        if (context_field.api_type_id != sort_by.vo_type) {
+                            continue;
+                        }
+                        if (context_field.field_id != sort_by.field_id) {
+                            continue;
+                        }
+
+                        if (!!context_field.alias) {
+                            sort_by.alias = context_field.alias;
+                        }
+                        is_selected_field = true;
+                    }
+                }
+
+                if (!first_sort_by) {
+                    SORT_BY += ', ';
+                }
+                first_sort_by = false;
+
+                let modifier_start = '';
+                let modifier_end = '';
+                switch (sort_by.modifier) {
+                    case SortByVO.MODIFIER_LOWER:
+                        modifier_start = 'LOWER(';
+                        modifier_end = ')';
+                        break;
+
+                    case SortByVO.MODIFIER_UPPER:
+                        modifier_start = 'UPPER(';
+                        modifier_end = ')';
+                        break;
+                }
+
+                if (is_selected_field || !context_query.query_distinct) {
+
+                    if (!!sort_by.alias) {
+                        SORT_BY += modifier_start + sort_by.alias + modifier_end +
+                            (sort_by.sort_asc ? ' ASC ' : ' DESC ');
+                    } else {
+                        SORT_BY += modifier_start + tables_aliases_by_type[sort_by.vo_type] + '.' + sort_by.field_id + modifier_end +
+                            (sort_by.sort_asc ? ' ASC ' : ' DESC ');
+                    }
+                } else {
+
+                    let sort_alias = 'sort_alias_' + Math.ceil(Math.random() * 100);
+                    SORT_BY += modifier_start + sort_alias + modifier_end + (sort_by.sort_asc ? ' ASC ' : ' DESC ');
+
+                    if (!tables_aliases_by_type[sort_by.vo_type]) {
+                        aliases_n = await this.join_api_type_id(
+                            context_query,
+                            aliases_n,
+                            sort_by.vo_type,
+                            jointures,
+                            cross_joins,
+                            joined_tables_by_vo_type,
+                            tables_aliases_by_type,
+                            access_type
+                        );
+                    }
+
+                    SELECT += ', ' + (sort_by.sort_asc ? 'MIN' : 'MAX') + '(' +
+                        tables_aliases_by_type[sort_by.vo_type] + '.' + sort_by.field_id
+                        + ') as ' + sort_alias;
+                    let parameterizedQueryWrapperField: ParameterizedQueryWrapperField = new ParameterizedQueryWrapperField(
+                        sort_by.vo_type, sort_by.field_id, (sort_by.sort_asc ? VarConfVO.MIN_AGGREGATOR : VarConfVO.MAX_AGGREGATOR), sort_alias);
+                    parameterizedQueryWrapperFields.push(parameterizedQueryWrapperField);
+                }
+            }
+        }
+
+        let JOINTURES = this.get_ordered_jointures(context_query, jointures, cross_joins);
+        let LIMIT = this.get_limit(context_query);
+
+        /**
+         * Check injection : OK
+         *  - SELECT : Check OK
+         *  - FROM : Check OK
+         *  - JOINTURES : Check OK
+         *  - WHERE : Check OK
+         *  - GROUP_BY : Check OK
+         *  - SORT_BY : Check OK
+         *  - LIMIT : Check OK
+         */
+        return query_result.set_query(SELECT + FROM + JOINTURES + WHERE + GROUP_BY + SORT_BY + LIMIT);
     }
 
     /**
@@ -996,6 +1096,7 @@ export default class ContextQueryServerController {
                 }
 
                 return await ContextFilterServerController.getInstance().updates_cross_jointures(
+                    context_query,
                     context_query.query_tables_prefix,
                     selected_field.api_type_id,
                     cross_joins,
@@ -1017,7 +1118,7 @@ export default class ContextQueryServerController {
         }
 
         return await ContextFilterServerController.getInstance().updates_jointures(
-            context_query.query_tables_prefix, jointures, context_query.filters, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
+            context_query, context_query.query_tables_prefix, jointures, context_query.filters, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
     }
 
     /**
@@ -1058,7 +1159,7 @@ export default class ContextQueryServerController {
                 return aliases_n;
             }
             aliases_n = await ContextFilterServerController.getInstance().updates_jointures(
-                context_query.query_tables_prefix, jointures, context_query.filters, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
+                context_query, context_query.query_tables_prefix, jointures, context_query.filters, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
             // joined_tables_by_vo_type[api_type_id_i] = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id_i];
         }
 
@@ -1136,16 +1237,16 @@ export default class ContextQueryServerController {
                 let hook_cb = hook_cbs[j];
 
                 promises.push((async () => {
-                    let query = await hook_cb(module_table, uid, user, user_data, user_roles);
+                    let query_ = await hook_cb(module_table, uid, user, user_data, user_roles);
 
-                    if (!query) {
+                    if (!query_) {
                         return;
                     }
 
                     if (!context_access_hooks[alias]) {
                         context_access_hooks[alias] = [];
                     }
-                    context_access_hooks[alias].push(query);
+                    context_access_hooks[alias].push(query_);
                 })());
             }
 
@@ -1168,9 +1269,9 @@ export default class ContextQueryServerController {
             let querys = context_access_hooks[alias];
 
             for (let j in querys) {
-                let query = querys[j];
+                let query_ = querys[j];
 
-                let query_wrapper = await this.build_select_query(query);
+                let query_wrapper = await this.build_select_query(query_);
                 if ((!query_wrapper) || (!query_wrapper.query)) {
                     throw new Error('Invalid query');
                 }
@@ -1184,13 +1285,13 @@ export default class ContextQueryServerController {
 
                 let is_nullable_aggregator: boolean = false;
 
-                if (query && query.fields && (query.fields.length > 0)) {
-                    for (let k in query.fields) {
+                if (query_ && query_.fields && (query_.fields.length > 0)) {
+                    for (let k in query_.fields) {
                         let cq_fields: ContextQueryFieldVO[] = null;
 
-                        if (context_query_fields_by_api_type_id[query.fields[k].api_type_id] &&
-                            (context_query_fields_by_api_type_id[query.fields[k].api_type_id].length > 0)) {
-                            cq_fields = context_query_fields_by_api_type_id[query.fields[k].api_type_id];
+                        if (context_query_fields_by_api_type_id[query_.fields[k].api_type_id] &&
+                            (context_query_fields_by_api_type_id[query_.fields[k].api_type_id].length > 0)) {
+                            cq_fields = context_query_fields_by_api_type_id[query_.fields[k].api_type_id];
                         }
 
                         if (cq_fields && (cq_fields.length > 0)) {

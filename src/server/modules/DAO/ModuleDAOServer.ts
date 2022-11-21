@@ -1093,10 +1093,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             break;
                         }
 
-                        setters_vo.push(field.field_id + ' = $' + cpt_field_vo);
-                        cpt_field_vo++;
+                        let securized_fieldValue = pgPromise.as.format('$1', [fieldValue]);
 
-                        vo_values.push(fieldValue);
+                        setters_vo.push(field.field_id + ' = ' + securized_fieldValue);
+                        // cpt_field_vo++;
+
+                        // vo_values.push(fieldValue);
 
                         /**
                          * Cas des ranges
@@ -1110,10 +1112,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
                             (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)) {
 
-                            setters.push(field.field_id + '_ndx = $' + cpt_field_vo);
-                            vo_values.push(vo[field.field_id + '_ndx']);
+                            securized_fieldValue = pgPromise.as.format('$1', [vo[field.field_id + '_ndx']]);
+                            setters.push(field.field_id + '_ndx = ' + securized_fieldValue);
+                            // vo_values.push(vo[field.field_id + '_ndx']);
 
-                            cpt_field_vo++;
+                            // cpt_field_vo++;
                         }
                     }
 
@@ -1980,7 +1983,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         /**
                          * On ne doit avoir que des select
                          */
-                        if (!/^select /i.test(param.parameterized_full_query)) {
+                        if (!/^\(?select /i.test(param.parameterized_full_query)) {
                             ConsoleHandler.getInstance().error('Only select queries are allowed in throttled_select_query:' + param.parameterized_full_query);
                             continue;
                         }
