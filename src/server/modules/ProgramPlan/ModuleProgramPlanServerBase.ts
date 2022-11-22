@@ -264,6 +264,10 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         for (let i in rdvs) {
             ids.push(rdvs[i].id);
         }
+
+        if (!ids.length) {
+            return [];
+        }
         return await query(this.programplan_shared_module.rdv_prep_type_id).filter_by_num_has('rdv_id', ids).select_vos<IPlanRDVPrep>();
     }
 
@@ -276,6 +280,10 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         let ids: number[] = [];
         for (let i in rdvs) {
             ids.push(rdvs[i].id);
+        }
+
+        if (!ids.length) {
+            return [];
         }
         return await query(this.programplan_shared_module.rdv_cr_type_id).filter_by_num_has('rdv_id', ids).select_vos<IPlanRDVCR>();
     }

@@ -356,6 +356,24 @@ export default class ContextFilterVO implements IDistantVOBase {
     }
 
     /**
+     * Filtrer par text pas en début de la valeur du champ
+     * @param included le texte qu'on veut pas voir apparaître au début de la valeur du champs
+     */
+    public by_text_starting_with_none(starts_with: string | string[], text_ignore_case: boolean = true/*, text_trim: boolean = false*/): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_TEXT_STARTSWITH_NONE;
+        if (isArray(starts_with)) {
+            this.param_textarray = starts_with;
+        } else {
+            this.param_text = starts_with;
+        }
+
+        this.text_ignore_case = text_ignore_case;
+        // this.text_trim = text_trim;
+
+        return this;
+    }
+
+    /**
      * Filtrer par text strictement égal
      * @param text le texte que l'on doit retrouver à l'identique en base
      */
@@ -441,6 +459,24 @@ export default class ContextFilterVO implements IDistantVOBase {
      */
     public by_text_including(included: string | string[], text_ignore_case: boolean = true/*, text_trim: boolean = false*/): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_TEXT_INCLUDES_ANY;
+        if (isArray(included)) {
+            this.param_textarray = included;
+        } else {
+            this.param_text = included;
+        }
+
+        this.text_ignore_case = text_ignore_case;
+        // this.text_trim = text_trim;
+
+        return this;
+    }
+
+    /**
+     * Filtrer par text non contenu dans la valeur du champ
+     * @param included le texte qu'on ne veut pas voir apparaître dans la valeur du champs
+     */
+    public by_text_excluding(included: string | string[], text_ignore_case: boolean = true/*, text_trim: boolean = false*/): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_TEXT_INCLUDES_NONE;
         if (isArray(included)) {
             this.param_textarray = included;
         } else {
