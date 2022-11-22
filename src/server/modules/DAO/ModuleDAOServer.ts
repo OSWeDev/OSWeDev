@@ -13,7 +13,7 @@ import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
-import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextFilterVO, { filter } from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import { IContextHookFilterVos } from '../../../shared/modules/DAO/interface/IContextHookFilterVos';
 import { IHookFilterVos } from '../../../shared/modules/DAO/interface/IHookFilterVos';
@@ -1068,6 +1068,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     let length = vos_by_ids[vo_id].length;
                     vos_by_ids[vo_id].forEach((vo) => {
                         ConsoleHandler.getInstance().warn('Multiple updates (' + length + ') on the same id, we take the last one but you should check your code :' + vo._type + ':' + vo.id + ':' + JSON.stringify(vo));
+
                     });
 
                     vos_by_ids[vo_id] = [vos_by_ids[vo_id][length - 1]];
@@ -1390,7 +1391,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 /**
                  * Cas des strings
                  */
-                let stringified = (fieldValue == null) ? '' : JSON.stringify(fieldValue);
+                let stringified = (Number.isNaN(fieldValue) || (fieldValue == null)) ? '' : JSON.stringify(fieldValue);
                 if ((!!stringified) && (typeof fieldValue == 'string')) {
                     if (stringified.length == 2) {
                         stringified = "''";
@@ -2498,10 +2499,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         continue;
                     }
 
-                    let filter: ContextFilterVO = new ContextFilterVO();
-                    filter.vo_type = moduleTable.vo_type;
-                    filter.field_id = field.field_id;
-                    filters.push(filter);
+                    let filter_: ContextFilterVO = null;
 
                     switch (field.field_type) {
                         case ModuleTableField.FIELD_TYPE_string:
@@ -2509,8 +2507,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         case ModuleTableField.FIELD_TYPE_html:
                         case ModuleTableField.FIELD_TYPE_password:
                         case ModuleTableField.FIELD_TYPE_textarea:
-                            filter.param_text = vo[field.field_id];
-                            filter.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ANY;
+                            filter_ = filter(moduleTable.vo_type, field.field_id).by_text_has(vo[field.field_id]);
                             break;
                         case ModuleTableField.FIELD_TYPE_amount:
                         case ModuleTableField.FIELD_TYPE_date:
@@ -2526,12 +2523,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         case ModuleTableField.FIELD_TYPE_prct:
                         case ModuleTableField.FIELD_TYPE_tstz:
                         case ModuleTableField.FIELD_TYPE_foreign_key:
-                            filter.param_numeric = vo[field.field_id];
-                            filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
+                            filter_ = filter(moduleTable.vo_type, field.field_id).by_num_eq(vo[field.field_id]); // pas has ?
                             break;
                         default:
                             throw new Error('Not Implemented');
                     }
+
+                    filters.push(filter_);
                 }
 
                 if ((!filters) || (!filters.length)) {
