@@ -150,41 +150,44 @@ export default class ModuleVocusServer extends ModuleServerBase {
             }
         }
 
+        let promises = [];
         for (let i in refFields) {
             let refField = refFields[i];
 
-            let refvos: IDistantVOBase[] = await query(refField.module_table.vo_type)
-                .filter_by_num_x_ranges(refField.field_id, [RangeHandler.getInstance().create_single_elt_NumRange(id, NumSegment.TYPE_INT)])
-                .select_vos<IDistantVOBase>();
+            promises.push((async () => {
+                let refvos: IDistantVOBase[] = await query(refField.module_table.vo_type)
+                    .filter_by_num_x_ranges(refField.field_id, [RangeHandler.getInstance().create_single_elt_NumRange(id, NumSegment.TYPE_INT)])
+                    .select_vos<IDistantVOBase>();
 
-            for (let j in refvos) {
-                let refvo: IDistantVOBase = refvos[j];
+                for (let j in refvos) {
+                    let refvo: IDistantVOBase = refvos[j];
 
-                if (!res_map[refvo._type]) {
-                    res_map[refvo._type] = {};
-                }
+                    if (!res_map[refvo._type]) {
+                        res_map[refvo._type] = {};
+                    }
 
-                let tmp: VocusInfoVO = res_map[refvo._type][refvo.id] ? res_map[refvo._type][refvo.id] : new VocusInfoVO();
-                tmp.is_cascade = tmp.is_cascade || refField.cascade_on_delete;
-                tmp.linked_id = refvo.id;
-                tmp.linked_type = refvo._type;
+                    let tmp: VocusInfoVO = res_map[refvo._type][refvo.id] ? res_map[refvo._type][refvo.id] : new VocusInfoVO();
+                    tmp.is_cascade = tmp.is_cascade || refField.cascade_on_delete;
+                    tmp.linked_id = refvo.id;
+                    tmp.linked_type = refvo._type;
 
-                let table = refField.module_table;
-                if (table && table.default_label_field) {
-                    tmp.linked_label = refvo[table.default_label_field.field_id];
-                } else if (table && table.table_label_function) {
-                    tmp.linked_label = table.table_label_function(refvo);
-                }
+                    let table = refField.module_table;
+                    if (table && table.default_label_field) {
+                        tmp.linked_label = refvo[table.default_label_field.field_id];
+                    } else if (table && table.table_label_function) {
+                        tmp.linked_label = table.table_label_function(refvo);
+                    }
 
-                res_map[refvo._type][refvo.id] = tmp;
+                    res_map[refvo._type][refvo.id] = tmp;
 
-                if (!!limit) {
-                    limit--;
-                    if (limit <= 0) {
-                        break;
+                    if (!!limit) {
+                        limit--;
+                        if (limit <= 0) {
+                            break;
+                        }
                     }
                 }
-            }
+            })());
             if ((limit != null) && (limit <= 0)) {
                 break;
             }

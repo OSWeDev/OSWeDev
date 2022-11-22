@@ -505,7 +505,7 @@ export default class TableWidgetComponent extends VueComponentBase {
 
     private async open_update(type: string, id: number) {
         AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([type]);
-        let update_vo = await ModuleDAO.getInstance().getVoById(type, id);
+        let update_vo = await query(type).filter_by_id(id).select_vo();
 
         if (update_vo && update_vo.id) {
             await this.get_Crudupdatemodalcomponent.open_modal(update_vo, this.onclose_modal.bind(this));
@@ -816,7 +816,7 @@ export default class TableWidgetComponent extends VueComponentBase {
                     // on récupère l'id de l'objet à modifier
                     // comme on force sur le crud_api_type_id, on peut juste récupérer cet id
                     let vo_id = row['__crud_actions'];
-                    let vo = await ModuleDAO.getInstance().getVoById(field.moduleTable.vo_type, vo_id);
+                    let vo = await query(field.moduleTable.vo_type).filter_by_id(vo_id).select_vo();
 
                     switch (field.type) {
                         case DatatableField.SIMPLE_FIELD_TYPE:

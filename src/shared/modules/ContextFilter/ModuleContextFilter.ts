@@ -11,6 +11,7 @@ import VarConfVO from '../Var/vos/VarConfVO';
 import ContextFilterVO from './vos/ContextFilterVO';
 import ContextQueryFieldVO from './vos/ContextQueryFieldVO';
 import ContextQueryVO from './vos/ContextQueryVO';
+import CountValidSegmentationsParamVO, { CountValidSegmentationsParamVOStatic } from './vos/CountValidSegmentationsParamVO';
 import DeleteVosParamVO, { DeleteVosParamVOStatic } from './vos/DeleteVosParamVO';
 import SelectFilterVisibleOptionsParamVO, { SelectFilterVisibleOptionsParamVOStatic } from './vos/GetOptionsFromContextFiltersParamVO';
 import QueryVOFromUniqueFieldContextFiltersParamVO, { QueryVOFromUniqueFieldContextFiltersParamVOStatic } from './vos/QueryVOFromUniqueFieldContextFiltersParamVO';
@@ -35,6 +36,7 @@ export default class ModuleContextFilter extends Module {
     public static APINAME_delete_vos: string = "delete_vos";
     public static APINAME_update_vos: string = "update_vos";
     public static APINAME_select_vo_from_unique_field: string = "select_vo_from_unique_field";
+    public static APINAME_count_valid_segmentations: string = "count_valid_segmentations";
     public static APINAME_build_select_query: string = "build_select_query";
 
     public static getInstance(): ModuleContextFilter {
@@ -45,6 +47,12 @@ export default class ModuleContextFilter extends Module {
     }
 
     private static instance: ModuleContextFilter = null;
+
+    /**
+     * Compter les segmentations valides à partir des filtres passés en paramètres (pour un type segmenté donné)
+     * @param context_query
+     */
+    public count_valid_segmentations: (api_type_id: string, context_query: ContextQueryVO) => Promise<number> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_count_valid_segmentations);
 
     /**
      * Filtrer des infos avec les context filters, en indiquant obligatoirement les champs ciblés, qui peuvent appartenir à des tables différentes
@@ -141,6 +149,13 @@ export default class ModuleContextFilter extends Module {
     }
 
     public registerApis() {
+
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<CountValidSegmentationsParamVO, any[]>(
+            null,
+            ModuleContextFilter.APINAME_count_valid_segmentations,
+            null,
+            CountValidSegmentationsParamVOStatic
+        ));
 
         APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<SelectVosParamVO, any[]>(
             null,

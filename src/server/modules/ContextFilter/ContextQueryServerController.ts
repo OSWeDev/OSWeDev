@@ -1220,6 +1220,13 @@ export default class ContextQueryServerController {
         tables_aliases_by_type: { [vo_type: string]: string },
         where_conditions: string[]) {
 
+        /**
+         * Si on est serveur, on ignore cette étape
+         */
+        if (!StackContext.getInstance().get('IS_CLIENT')) {
+            return;
+        }
+
         let context_access_hooks: { [alias: string]: ContextQueryVO[] } = {};
         let uid: number = null;
         let user_data: IUserData = null;

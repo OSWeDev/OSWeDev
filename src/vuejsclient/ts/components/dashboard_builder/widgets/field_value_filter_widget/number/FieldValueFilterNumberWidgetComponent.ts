@@ -22,6 +22,7 @@ import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
+import FieldValueFilterWidgetController from '../FieldValueFilterWidgetController';
 import FieldValueFilterWidgetOptions from '../options/FieldValueFilterWidgetOptions';
 import AdvancedNumberFilter from './AdvancedNumberFilter';
 import './FieldValueFilterNumberWidgetComponent.scss';
@@ -386,6 +387,8 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
             if (!has_filter) {
                 return;
             }
+        } else {
+            query_ = await FieldValueFilterWidgetController.getInstance().check_segmented_dependencies(this.dashboard, query_);
         }
 
         tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(
