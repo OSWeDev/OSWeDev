@@ -514,13 +514,6 @@ export default class ContextFilterServerController {
                             break;
                         }
 
-                        if (active_field_filter.param_textarray != null) {
-                            let param_text = parseFloat(active_field_filter.param_text);
-                            ContextQueryInjectionCheckHandler.assert_numeric(param_text);
-                            where_conditions.push(field_id + " = " + param_text);
-                            break;
-                        }
-
                         throw new Error('Not Implemented');
 
                     case ModuleTableField.FIELD_TYPE_isoweekdays:

@@ -1,5 +1,6 @@
 
 
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
@@ -372,8 +373,8 @@ export default class VarsDatasProxy {
 
                 let promises = [];
                 let result = true;
-                for (let i in to_insert_by_type) {
-                    let to_insert = to_insert_by_type[i];
+                for (let api_type_id in to_insert_by_type) {
+                    let to_insert = to_insert_by_type[api_type_id];
 
                     // on filtre les vars qui ont des indexs trops gros pour postgresql
                     let filtered_insert = await this.filter_var_datas_by_index_size_limit(to_insert);
@@ -385,6 +386,22 @@ export default class VarsDatasProxy {
                     promises.push((async () => {
                         if (!await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(filtered_insert)) {
                             result = false;
+                        }
+
+                        /**
+                         * Par contre si ça marche il faut mettre à jour les ids dans le cache
+                         */
+                        let filtered_insert_by_index: { [index: string]: VarDataBaseVO } = {};
+                        for (let i in filtered_insert) {
+                            let var_data = filtered_insert[i];
+                            filtered_insert_by_index[var_data.index] = var_data;
+                        }
+                        let inserted_vars: VarDataBaseVO[] = await query(api_type_id).filter_by_text_has('_bdd_only_index', to_insert.map((var_data: VarDataBaseVO) => var_data.index)).select_vos<VarDataBaseVO>();
+
+                        for (let i in inserted_vars) {
+                            let inserted_var = inserted_vars[i];
+
+                            filtered_insert_by_index[inserted_var.index].id = inserted_var.id;
                         }
                     })());
                 }
