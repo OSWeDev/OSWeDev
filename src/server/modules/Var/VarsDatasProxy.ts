@@ -938,7 +938,7 @@ export default class VarsDatasProxy {
             return false;
         }
         if (
-            (var_data_buffer.var_data.value != handle_var.value) ||
+            ((var_data_buffer.var_data.value != handle_var.value) && ((!isNaN(var_data_buffer.var_data.value)) || (!isNaN(handle_var.value)))) ||
             (var_data_buffer.var_data.value_ts != handle_var.value_ts) ||
             (var_data_buffer.var_data.value_type != handle_var.value_type)) {
             ConsoleHandler.getInstance().error(

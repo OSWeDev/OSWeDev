@@ -1410,7 +1410,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 /**
                  * Cas des strings
                  */
-                let stringified = (fieldValue == null) ? '' : JSON.stringify(fieldValue);
+                let stringified = (Number.isNaN(fieldValue) || (fieldValue == null)) ? '' : JSON.stringify(fieldValue);
                 if ((!!stringified) && (typeof fieldValue == 'string')) {
                     if (stringified.length == 2) {
                         stringified = "''";
