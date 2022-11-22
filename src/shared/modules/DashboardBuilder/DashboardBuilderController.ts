@@ -1,5 +1,5 @@
 import { RouteConfig } from 'vue-router';
-import ContextFilterVO from '../ContextFilter/vos/ContextFilterVO';
+import ContextFilterVO, { filter } from '../ContextFilter/vos/ContextFilterVO';
 import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VOsTypesManager';
 import TableColumnDescVO from './vos/TableColumnDescVO';
@@ -112,16 +112,13 @@ export default class DashboardBuilderController {
 
     public get_ContextFilterVO_add_Column_context(
         column: TableColumnDescVO, row_value: any): ContextFilterVO {
-        let translated_active_options = new ContextFilterVO();
-
-        translated_active_options.field_id = column.field_id;
-        translated_active_options.vo_type = column.api_type_id;
+        let translated_active_options = null;
 
         let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[column.api_type_id];
         let field = moduletable.get_field_by_id(column.field_id);
 
         if (row_value[column.datatable_field_uid] == null) {
-            translated_active_options.filter_type = ContextFilterVO.TYPE_NULL_ALL;
+            translated_active_options = filter(column.api_type_id, column.field_id).is_null();
         } else {
             switch (field.field_type) {
                 case ModuleTableField.FIELD_TYPE_file_ref:
@@ -144,18 +141,15 @@ export default class DashboardBuilderController {
                      * Si on a un regroupement, on peut avoir un array en raw, et dans ce cas on doit x les ranges
                      */
                     if (Array.isArray(row_value[column.datatable_field_uid + '__raw'])) {
-                        translated_active_options.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ANY;
-                        translated_active_options.param_numeric_array = row_value[column.datatable_field_uid + '__raw'];
+                        translated_active_options = filter(column.api_type_id, column.field_id).by_num_has(row_value[column.datatable_field_uid + '__raw']);
                     } else {
-                        translated_active_options.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
-                        translated_active_options.param_numeric = row_value[column.datatable_field_uid];
+                        translated_active_options = filter(column.api_type_id, column.field_id).by_num_eq(row_value[column.datatable_field_uid]);
                     }
 
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstz:
-                    translated_active_options.filter_type = ContextFilterVO.TYPE_DATE_EQUALS;
-                    translated_active_options.param_numeric = row_value[column.datatable_field_uid];
+                    translated_active_options = filter(column.api_type_id, column.field_id).by_date_eq(row_value[column.datatable_field_uid]);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_html:
@@ -170,11 +164,9 @@ export default class DashboardBuilderController {
                      * Si on a un regroupement, on peut avoir un array en raw, et dans ce cas on doit x les ranges
                      */
                     if (Array.isArray(row_value[column.datatable_field_uid + '__raw'])) {
-                        translated_active_options.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ANY;
-                        translated_active_options.param_textarray = row_value[column.datatable_field_uid + '__raw'];
+                        translated_active_options = filter(column.api_type_id, column.field_id).by_text_has(row_value[column.datatable_field_uid + '__raw']);
                     } else {
-                        translated_active_options.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ALL;
-                        translated_active_options.param_text = row_value[column.datatable_field_uid];
+                        translated_active_options = filter(column.api_type_id, column.field_id).by_text_eq(row_value[column.datatable_field_uid]);
                     }
                     break;
 
@@ -184,9 +176,9 @@ export default class DashboardBuilderController {
 
                 case ModuleTableField.FIELD_TYPE_boolean:
                     if (!!row_value[column.datatable_field_uid]) {
-                        translated_active_options.filter_type = ContextFilterVO.TYPE_BOOLEAN_TRUE_ALL;
+                        translated_active_options = filter(column.api_type_id, column.field_id).is_true();
                     } else {
-                        translated_active_options.filter_type = ContextFilterVO.TYPE_BOOLEAN_FALSE_ALL;
+                        translated_active_options = filter(column.api_type_id, column.field_id).is_false();
                     }
                     break;
 
@@ -223,8 +215,7 @@ export default class DashboardBuilderController {
                 case ModuleTableField.FIELD_TYPE_date:
                 case ModuleTableField.FIELD_TYPE_day:
                 case ModuleTableField.FIELD_TYPE_month:
-                    translated_active_options.filter_type = ContextFilterVO.TYPE_DATE_EQUALS;
-                    translated_active_options.param_numeric = row_value[column.datatable_field_uid];
+                    translated_active_options = filter(column.api_type_id, column.field_id).by_date_eq(row_value[column.datatable_field_uid]);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_timewithouttimezone:
