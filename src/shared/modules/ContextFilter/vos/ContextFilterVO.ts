@@ -789,6 +789,14 @@ export default class ContextFilterVO implements IDistantVOBase {
      * @param id_ranges les ids qu'on filtre
      */
     public by_ids(id_ranges: NumRange[] | number[]): ContextFilterVO {
+
+        if ((!id_ranges) || (!id_ranges.length) || (!id_ranges[0])) {
+            /**
+             * On filtre par ids, mais sans ids, donc c'est pas valide comme demande
+             */
+            throw new Error('ContextFilterVO.by_ids: no ids provided');
+        }
+
         this.field_id = 'id';
 
         if (Array.isArray(id_ranges) && (id_ranges.length > 0) && (typeof id_ranges[0] === 'number')) {

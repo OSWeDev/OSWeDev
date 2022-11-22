@@ -526,7 +526,7 @@ export default class ContextQueryServerController {
                     throw new Error('Invalid segmentation_moduletable');
                 }
 
-                let ids_map: Array<{ id: number }> = await query(segmentation_field.manyToOne_target_moduletable.vo_type).field('id').add_filters(context_query.filters).select_all();
+                let ids_map: IDistantVOBase[] = await this.configure_query_for_segmented_table_segment_listing(query(segmentation_field.manyToOne_target_moduletable.vo_type).field('id'), moduletable, context_query.filters).select_vos();
                 let ids: number[] = ids_map ? ids_map.map((id_map) => id_map.id) : null;
 
                 if (!ids || !ids.length) {
@@ -542,6 +542,22 @@ export default class ContextQueryServerController {
                 });
 
                 return ids && ids.length ? ids : null;
+            default:
+                throw new Error('Invalid segmentation_moduletable');
+        }
+    }
+
+    public async count_valid_segmentations(api_type_id: string, context_query: ContextQueryVO): Promise<number> {
+        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+        let segmentation_field: ModuleTableField<any> = moduletable.table_segmented_field;
+        switch (segmentation_field.field_type) {
+            case ModuleTableField.FIELD_TYPE_foreign_key:
+
+                if (!segmentation_field.manyToOne_target_moduletable.vo_type) {
+                    throw new Error('Invalid segmentation_moduletable');
+                }
+
+                return await this.configure_query_for_segmented_table_segment_listing(query(segmentation_field.manyToOne_target_moduletable.vo_type).field('id'), moduletable, context_query.filters).select_count();
             default:
                 throw new Error('Invalid segmentation_moduletable');
         }
@@ -1416,5 +1432,35 @@ export default class ContextQueryServerController {
         }
 
         return res;
+    }
+
+    /**
+     * Le plan est de supprimer toute référence à la table segmentée, sinon on tourne en rond
+     */
+    private configure_query_for_segmented_table_segment_listing(context_query: ContextQueryVO, segmented_table: ModuleTable<any>, filters: ContextFilterVO[]): ContextQueryVO {
+
+        let forbidden_api_type_id = segmented_table.vo_type;
+        let forbidden_fields: Array<ModuleTableField<any>> = segmented_table.get_fields().filter((field) => field.field_type == ModuleTableField.FIELD_TYPE_foreign_key);
+
+        /**
+         * On peut pas référencer une table segmentée donc on s'intéresse que aux liaisons issues de la table segmentée
+         */
+        for (let i in forbidden_fields) {
+            let field = forbidden_fields[i];
+
+            context_query.discard_field_path(forbidden_api_type_id, field.field_id);
+        }
+
+        for (let i in filters) {
+            let filter = filters[i];
+
+            if (filter.vo_type == forbidden_api_type_id) {
+                continue;
+            }
+
+            context_query.add_filters([filter]);
+        }
+
+        return context_query;
     }
 }

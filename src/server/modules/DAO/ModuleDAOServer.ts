@@ -1050,29 +1050,32 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }
             }
 
+            let updated_vo_id = null;
             let vos_by_ids = vos_by_vo_tablename_and_ids[tablename].vos;
             for (let vo_id in vos_by_ids) {
+
+                if (vo_id == 'null') {
+                    vo_id = null;
+                }
+
                 let values = [];
                 let setters: any[] = [];
                 let is_update: boolean = false;
-                let cpt_field: number = 1;
+
+                if ((!!vo_id) && (!!vos_by_ids[vo_id]) && (vos_by_ids[vo_id].length > 1)) {
+
+                    // On a de multiples updates sur un même id, on prend le dernier mais on log tout
+                    let length = vos_by_ids[vo_id].length;
+                    vos_by_ids[vo_id].forEach((vo) => {
+                        ConsoleHandler.getInstance().warn('Multiple updates (' + length + ') on the same id, we take the last one but you should check your code :' + vo._type + ':' + vo.id + ':' + JSON.stringify(vo));
+                    });
+
+                    vos_by_ids[vo_id] = [vos_by_ids[vo_id][length - 1]];
+                }
 
                 for (let i in vos_by_ids[vo_id]) {
                     let vo: IDistantVOBase = moduleTable.get_bdd_version(vos_by_ids[vo_id][i]);
-
-                    /**
-                     * Il existe une limite au nombre de paramètres sur une requête (100000 100 000). du coup on
-                     *  limite nous à 50 000 paramètres par requête. et on appelle récursivement au besoin pour faire ce qu'il reste à traiter
-                     */
-                    if (cpt_field >= 50000) {
-                        reste_a_faire.push(vo);
-                        continue;
-                    }
-
-                    let vo_values = [];
-                    let setters_vo: any[] = [];
                     let is_valid: boolean = true;
-                    let cpt_field_vo: number = cpt_field;
 
                     for (const f in moduleTable.get_fields()) {
                         let field: ModuleTableField<any> = moduleTable.get_fields()[f];
@@ -1095,7 +1098,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                         let securized_fieldValue = pgPromise.as.format('$1', [fieldValue]);
 
-                        setters_vo.push(field.field_id + ' = ' + securized_fieldValue);
+                        setters.push(field.field_id + ' = ' + securized_fieldValue);
                         // cpt_field_vo++;
 
                         // vo_values.push(fieldValue);
@@ -1124,16 +1127,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         continue;
                     }
 
-                    cpt_field = cpt_field_vo;
-                    setters = setters.concat(setters_vo);
-
                     // Si on est sur un update, on va avoir que 1 vo à mettre à jour et on fait un traitement particulier
                     if (!!vo.id) {
                         is_update = true;
-                        vo_values.push(vo.id);
-                        values = vo_values;
-                    } else {
-                        values.push(vo_values);
+                        updated_vo_id = vo.id;
                     }
                 }
 
@@ -1146,13 +1143,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 let sql: string = null;
 
                 if (is_update) {
-                    sql = "UPDATE " + tablename + " SET " + setters.join(', ') + " WHERE id = $" + cpt_field + " RETURNING ID;";
+                    sql = "UPDATE " + tablename + " SET " + setters.join(', ') + " WHERE id = " + updated_vo_id + " RETURNING ID;";
                 } else {
                     sql = "INSERT INTO " + tablename + " (" + tableFields.join(', ') + ") VALUES ";
 
-                    let cpt: number = 1;
                     let sql_values: string = '';
-                    let new_values: any[] = [];
 
                     for (let i in values) {
                         if (sql_values != '') {
@@ -1167,28 +1162,22 @@ export default class ModuleDAOServer extends ModuleServerBase {
                                 sub_sql += ',';
                             }
 
-                            sub_sql += "$" + cpt;
-
-                            cpt++;
+                            sub_sql += pgPromise.as.format('$1', [values[i][j]]);
                         }
 
                         sql_values += sub_sql;
 
                         sql_values += ")";
-
-                        new_values = new_values.concat(values[i]);
                     }
 
                     sql += sql_values;
 
                     sql += " RETURNING ID;";
-
-                    values = new_values;
                 }
 
                 promises.push((async () => {
                     let uid = this.log_db_query_perf_start('insertOrUpdateVOs_without_triggers', sql);
-                    let results = await ModuleServiceBase.getInstance().db.query(sql, values);
+                    let results = await ModuleServiceBase.getInstance().db.query(sql);
                     this.log_db_query_perf_end(uid, 'insertOrUpdateVOs_without_triggers', sql);
 
                     for (let i in results) {
@@ -1301,7 +1290,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         for (let api_type in check_pixel_update_vos_by_type) {
             let check_pixel_update_vos = check_pixel_update_vos_by_type[api_type];
-            let db_check_pixel_update_vos: VarDataBaseVO[] = await query(api_type).filter_by_ids(update_vos.map((vo) => vo.id)).select_vos();
+
+            if ((!check_pixel_update_vos) || (!check_pixel_update_vos.length)) {
+                continue;
+            }
+
+            let db_check_pixel_update_vos: VarDataBaseVO[] = await query(api_type).filter_by_ids(check_pixel_update_vos.map((vo) => vo.id)).select_vos();
 
             let db_check_pixel_update_vos_by_id: { [id: number]: VarDataBaseVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(db_check_pixel_update_vos);
 
