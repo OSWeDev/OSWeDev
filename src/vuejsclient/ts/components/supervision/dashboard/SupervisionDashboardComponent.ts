@@ -18,6 +18,7 @@ import { ModuleSupervisionAction, ModuleSupervisionGetter } from './SupervisionD
 import SupervisionDashboardWidgetComponent from './widget/SupervisionDashboardWidgetComponent';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import { findIndex } from 'lodash';
+import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 
 @Component({
     template: require('./SupervisionDashboardComponent.pug'),
@@ -242,6 +243,11 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
 
             //récupération des sondes
             promises.push((async () => {
+
+                if (!await ModuleAccessPolicy.getInstance().testAccess(ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id))) {
+                    return;
+                }
+
                 // pour éviter de récuperer le cache
                 AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([api_type_id]);
                 let items = await query(api_type_id).select_vos<ISupervisedItem>();

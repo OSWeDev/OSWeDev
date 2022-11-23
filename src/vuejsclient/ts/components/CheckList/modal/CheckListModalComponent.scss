@@ -114,6 +114,13 @@
             font-weight: bold;
             position: relative;
             align-items: center;
+            border-bottom: 1rem solid white;
+            border-top: 1rem solid white;
+
+            &.active {
+                border-bottom: none;
+                border-top: none;
+            }
 
             &:first-child:before {
                 display: none;
@@ -223,6 +230,8 @@
                     border-left: 6px solid #198754;
                 }
             }
+
         }
+
     }
 }

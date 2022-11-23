@@ -109,6 +109,8 @@ export default class CheckListComponent extends VueComponentBase {
         this.stopLoading();
         this.debounced_loading();
 
+        $('.modal-backdrop').remove();
+
         this.$nextTick(async () => {
             if (!self.modalinit) {
                 self.modalinit = true;
