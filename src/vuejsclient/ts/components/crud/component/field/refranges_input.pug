@@ -22,6 +22,7 @@
             i.fa.fa-plus-circle
 
     multiselect(
+        :class="{'valign-middle': show_pencil_btn}"
         :preselect-first="false",
         :multiple="true",
         :close-on-select="false"
@@ -50,8 +51,4 @@
         .inter_text -
         .text_cliquable(@click='select_none') {{ label('select_none') }}
         
-    template(v-if='inline_input_mode && (!is_disabled) && ((!inline_input_mode_input_only) || auto_validate_inline_input)')
-        template(v-if='inline_input_is_editing || auto_validate_inline_input')
-            i.inline_input_is_editing.fa.fa-floppy-o.btn-success(@click='validate_inline_input' :class="{busy: inline_input_is_busy, auto_validate: auto_validate_inline_input, is_auto_validating: auto_validate_inline_input && (inline_input_is_busy || !!auto_validate_start)}")
-        template(v-else-if='!auto_validate_inline_input')
-            i.inline_input_is_not_editing.fa.fa-pencil.btn-primary(@click='prepare_inline_input' :class="{busy: inline_input_is_busy}")
+    include ./CRUDComponentFieldFooter
