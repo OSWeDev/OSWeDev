@@ -15,19 +15,19 @@
         include ./CRUDComponentFieldLabel
 
     template(v-if="field_type == 'password'")
-        input(:placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @change="validateEndOfInput($event.target)" @blur="on_blur_emit" @focus="on_focus" :id="input_elt_id" :maxlength="maxlength", :autocomplete="autocomplete_input ? 'on' : 'off'")
+        input(:placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode, 'valign-middle': show_pencil_btn}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target, true)" @change="validateEndOfInput($event.target, true)" @blur="on_blur_emit" @focus="on_focus" :id="input_elt_id" :maxlength="maxlength", :autocomplete="autocomplete_input ? 'on' : 'off'")
         template(v-if="maxlength")
             .maxlength.italic.f-r {{ field_value_length }} / {{ maxlength }}
     template(v-else-if="(field_type == 'text') || (field_type == 'email')")
-        input(:placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" :type="field_type" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @change="validateEndOfInput($event.target)" @blur="on_blur_emit" @focus="on_focus" :id="input_elt_id" :maxlength="maxlength", :autocomplete="autocomplete_input ? 'on' : 'off'")
+        input(:placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode, 'valign-middle': show_pencil_btn}" :type="field_type" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target, true)" @change="validateEndOfInput($event.target, true)" @blur="on_blur_emit" @focus="on_focus" :id="input_elt_id" :maxlength="maxlength", :autocomplete="autocomplete_input ? 'on' : 'off'")
         template(v-if="maxlength")
             .maxlength.italic.f-r {{ field_value_length }} / {{ maxlength }}
     template(v-else-if="field_type == 'textarea'")
-        textarea(:placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @change="validateEndOfInput($event.target)" @blur="on_blur_emit" @focus="on_focus" :id="input_elt_id" :maxlength="maxlength")
+        textarea(:placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode, 'valign-middle': show_pencil_btn}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target, true)" @change="validateEndOfInput($event.target, true)" @blur="on_blur_emit" @focus="on_focus" :id="input_elt_id" :maxlength="maxlength")
         template(v-if="maxlength")
             .maxlength.italic.f-r {{ field_value_length }} / {{ maxlength }}
     template(v-else-if="field_type == 'translatable_text'")
-        input(:placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @change="validateEndOfInput($event.target)" @blur="on_blur_emit" @focus="on_focus" :id="input_elt_id" :maxlength="maxlength", :autocomplete="autocomplete_input ? 'on' : 'off'")
+        input(:placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode, 'valign-middle': show_pencil_btn}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target, true)" @change="validateEndOfInput($event.target, true)" @blur="on_blur_emit" @focus="on_focus" :id="input_elt_id" :maxlength="maxlength", :autocomplete="autocomplete_input ? 'on' : 'off'")
         template(v-if="maxlength")
             .maxlength.italic.f-r {{ field_value_length }} / {{ maxlength }}
     template(v-else-if="field_type == 'boolean'")
@@ -42,6 +42,7 @@
         template(v-else)
             template(v-if="field.is_required ||( force_toggle_button || field.force_toggle_button)")
                 toggle-button(
+                    :class="{'valign-middle': show_pencil_btn}"
                     @keypress="onkeypress($event)"
                     @keydown.esc='onkeypress_escape'
                     ref='input_elt'
@@ -64,39 +65,40 @@
                         input.form-check-input(type="radio" v-model="field_value" :value="false" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" :id="'materialChecked_' + input_elt_id + '___FALSE_' + random_number" @change="validateInput($event.target)" @blur="$emit('blur', $event.target.value)", :autocomplete="autocomplete_input ? 'on' : 'off'")
                         label.form-check-label(:for="'materialChecked_' + input_elt_id + '___FALSE_' + random_number") {{ label('crud.field.boolean.false') }}
     template(v-else-if="field_type == 'number'")
-        input(inputmode="numeric" :placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" type="number" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @change="validateEndOfInput($event.target)" @blur="on_blur_emit" @focus="on_focus" :id="input_elt_id", :autocomplete="autocomplete_input ? 'on' : 'off'")
+        input(inputmode="numeric" :placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode, 'valign-middle': show_pencil_btn}" type="number" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target, true)" @change="validateEndOfInput($event.target, true)" @blur="on_blur_emit" @focus="on_focus" :id="input_elt_id", :autocomplete="autocomplete_input ? 'on' : 'off'")
     template(v-else-if="field_type == 'amount'")
-        input(:placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" v-on:keyup.enter="inline_input_submit" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @change="validateEndOfInput($event.target)" @blur="on_blur_emit" @focus="on_focus" :id="input_elt_id" :maxlength="maxlength", :autocomplete="autocomplete_input ? 'on' : 'off'")
+        input(:placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode, 'valign-middle': show_pencil_btn}" v-on:keyup.enter="inline_input_submit" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target, true)" @change="validateEndOfInput($event.target, true)" @blur="on_blur_emit" @focus="on_focus" :id="input_elt_id" :maxlength="maxlength", :autocomplete="autocomplete_input ? 'on' : 'off'")
         template(v-if="maxlength")
             .maxlength.italic.f-r {{ field_value_length }} / {{ maxlength }}
     template(v-else-if="(field_type == 'float') || (field_type == 'decimal')")
-        input(inputmode="decimal" :placeholder="show_placeholder ? t(placeholder_string) : null" @focus="on_focus_select" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" type="number" step="0.01" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @change="validateEndOfInput($event.target)" @blur="on_blur_emit" :id="input_elt_id", :autocomplete="autocomplete_input ? 'on' : 'off'")
+        input(inputmode="decimal" :placeholder="show_placeholder ? t(placeholder_string) : null" @focus="on_focus_select" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode, 'valign-middle': show_pencil_btn}" type="number" step="0.01" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target, true)" @change="validateEndOfInput($event.target, true)" @blur="on_blur_emit" :id="input_elt_id", :autocomplete="autocomplete_input ? 'on' : 'off'")
     template(v-else-if="(field_type == 'decimal_full_precision')")
-        input(inputmode="decimal" :placeholder="show_placeholder ? t(placeholder_string) : null" @focus="on_focus_select" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" type="number" step="any" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @change="validateEndOfInput($event.target)" @blur="on_blur_emit" :id="input_elt_id", :autocomplete="autocomplete_input ? 'on' : 'off'")
+        input(inputmode="decimal" :placeholder="show_placeholder ? t(placeholder_string) : null" @focus="on_focus_select" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode, 'valign-middle': show_pencil_btn}" type="number" step="any" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target, true)" @change="validateEndOfInput($event.target, true)" @blur="on_blur_emit" :id="input_elt_id", :autocomplete="autocomplete_input ? 'on' : 'off'")
     template(v-else-if="field_type == 'pct'")
-        input(:placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @change="validateEndOfInput($event.target)" @blur="on_blur_emit" @focus="on_focus" :id="input_elt_id" :maxlength="maxlength", :autocomplete="autocomplete_input ? 'on' : 'off'")
+        input(:placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode, 'valign-middle': show_pencil_btn}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target, true)" @change="validateEndOfInput($event.target, true)" @blur="on_blur_emit" @focus="on_focus" :id="input_elt_id" :maxlength="maxlength", :autocomplete="autocomplete_input ? 'on' : 'off'")
         template(v-if="maxlength")
             .maxlength.italic.f-r {{ field_value_length }} / {{ maxlength }}
     template(v-else-if="field_type == 'HourAndMinuteWithoutLimit'")
-        input(:placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @change="validateEndOfInput($event.target)" @blur="on_blur_emit" @focus="on_focus" :id="input_elt_id" :maxlength="maxlength", :autocomplete="autocomplete_input ? 'on' : 'off'")
+        input(:placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode, 'valign-middle': show_pencil_btn}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target, true)" @change="validateEndOfInput($event.target, true)" @blur="on_blur_emit" @focus="on_focus" :id="input_elt_id" :maxlength="maxlength", :autocomplete="autocomplete_input ? 'on' : 'off'")
         template(v-if="maxlength")
             .maxlength.italic.f-r {{ field_value_length }} / {{ maxlength }}
     template(v-else-if="field_type == 'HourAndMinute'")
-        input(:placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @change="validateEndOfInput($event.target)" @blur="on_blur_emit" @focus="on_focus" :id="input_elt_id" :maxlength="maxlength", :autocomplete="autocomplete_input ? 'on' : 'off'")
+        input(:placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode, 'valign-middle': show_pencil_btn}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target, true)" @change="validateEndOfInput($event.target, true)" @blur="on_blur_emit" @focus="on_focus" :id="input_elt_id" :maxlength="maxlength", :autocomplete="autocomplete_input ? 'on' : 'off'")
         template(v-if="maxlength")
             .maxlength.italic.f-r {{ field_value_length }} / {{ maxlength }}
     template(v-else-if="(field_type == 'date') || (field_type == 'day')")
-        input(:placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" type="date" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @change="validateEndOfInput($event.target)" @blur="on_blur_emit" @focus="on_focus" :id="input_elt_id", :autocomplete="autocomplete_input ? 'on' : 'off'")
+        input(:placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode, 'valign-middle': show_pencil_btn}" type="date" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @change="validateEndOfInput($event.target)" @blur="on_blur_emit" @focus="on_focus" :id="input_elt_id", :autocomplete="autocomplete_input ? 'on' : 'off'")
     template(v-else-if="field_type == 'month'")
-        input(:placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" type="month" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @change="validateEndOfInput($event.target)" @blur="on_blur_emit" @focus="on_focus" :id="input_elt_id", :autocomplete="autocomplete_input ? 'on' : 'off'")
+        input(:placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode, 'valign-middle': show_pencil_btn}" type="month" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @change="validateEndOfInput($event.target)" @blur="on_blur_emit" @focus="on_focus" :id="input_elt_id", :autocomplete="autocomplete_input ? 'on' : 'off'")
     template(v-else-if="field_type == 'daterange'")
-        input(:placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" type="date" v-model="field_value_range[field.datatable_field_uid + '_start']" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="updateDateRange($event.target)" @blur="on_blur_emit" @focus="on_focus" :id="input_elt_id", :autocomplete="autocomplete_input ? 'on' : 'off'")
-        input(:placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" type="date" v-model="field_value_range[field.datatable_field_uid + '_end']" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="updateDateRange($event.target)" @blur="on_blur_emit" @focus="on_focus" :id="input_elt_id", :autocomplete="autocomplete_input ? 'on' : 'off'")
+        input(:placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode, 'valign-middle': show_pencil_btn}" type="date" v-model="field_value_range[field.datatable_field_uid + '_start']" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="updateDateRange($event.target)" @blur="on_blur_emit" @focus="on_focus" :id="input_elt_id", :autocomplete="autocomplete_input ? 'on' : 'off'")
+        input(:placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode, 'valign-middle': show_pencil_btn}" type="date" v-model="field_value_range[field.datatable_field_uid + '_end']" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="updateDateRange($event.target)" @blur="on_blur_emit" @focus="on_focus" :id="input_elt_id", :autocomplete="autocomplete_input ? 'on' : 'off'")
     template(v-else-if="field_type == 'daterange[]'")
         // FIXME TODO ASAP
     // FIXME TODO ASAP field_type == 'tstzrange[]' autres segmentations
     template(v-else-if="is_segmented_day_tsrange_array")
         Tsrangesinputcomponent(
+            :class="{'valign-middle': show_pencil_btn}"
             ref="input_elt"
             v-model="field_value" :vo="vo" :field="field" :required="field.is_required"
             :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))"  @input_with_infos="validateSimpleInput" :id="input_elt_id")
@@ -105,6 +107,7 @@
         // FIXME TODO ASAP
     template(v-else-if="field_type == 'numrange'")
         Numrangeinputcomponent(
+            :class="{'valign-middle': show_pencil_btn}"
             ref="input_elt"
             :inline_input_mode='inline_input_mode'
             v-model="field_value" :vo="vo" :field="field" :required="field.is_required"
@@ -112,12 +115,14 @@
         // FIXME TODO ASAP
     template(v-else-if="field_type == 'isoweekdays'")
         Isoweekdaysinputcomponent(
+            :class="{'valign-middle': show_pencil_btn}"
             ref="input_elt"
             v-model="field_value" :vo="vo" :field="field" :required="field.is_required"
             :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))"  @input_with_infos="validateSimpleInput" :id="input_elt_id")
 
     template(v-else-if="field_type == 'hourrange[]'")
         Multiinputcomponent(
+            :class="{'valign-middle': show_pencil_btn}"
             ref="input_elt"
             :inline_input_mode='inline_input_mode'
             :custom_field_component="hourrange_input_component"
@@ -126,6 +131,7 @@
 
     template(v-else-if="field_type == 'hourrange'")
         Hourrangeinputcomponent(
+            :class="{'valign-middle': show_pencil_btn}"
             ref="input_elt"
             :inline_input_mode='inline_input_mode'
             v-model="field_value" :vo="vo" :field="field" :required="field.is_required"
@@ -136,6 +142,7 @@
 
     template(v-else-if="field_type == 'tstz'")
         Tstzinputcomponent(
+            :class="{'valign-middle': show_pencil_btn}"
             ref="input_elt"
             :inline_input_mode='inline_input_mode'
             v-model="field_value" :vo="vo" :field="field" :required="field.is_required"
@@ -143,12 +150,14 @@
 
     template(v-else-if="field_type == 'tsrange'")
         Tsrangeinputcomponent(
+            :class="{'valign-middle': show_pencil_btn}"
             ref="input_elt"
             :inline_input_mode='inline_input_mode'
             v-model="field_value" :vo="vo" :field="field" :required="field.is_required"
             :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input_with_infos="validateSimpleInput" :id="input_elt_id" :option="option_ts_range")
     template(v-else-if="field_type == 'timestamp'")
         Timestampinputcomponent(
+            :class="{'valign-middle': show_pencil_btn}"
             ref="input_elt"
             :inline_input_mode='inline_input_mode'
             v-model="field_value" :vo="vo" :field="field" :required="field.is_required"
@@ -163,13 +172,14 @@
     template(v-else-if="(field_type == 'image')&&(vo._type == 'image')")
         Imagecomponent(ref="input_elt" :filevo="vo" @uploaded="uploadedFile(...arguments)", :id="input_elt_id" :disabled="is_readonly")
     template(v-else-if="field_type == 'timewithouttimezone'")
-        input(:placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" type="time" v-model="field_value" :id="input_elt_id", :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @change="validateEndOfInput($event.target)", :autocomplete="autocomplete_input ? 'on' : 'off'")
+        input(:placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode, 'valign-middle': show_pencil_btn}" type="time" v-model="field_value" :id="input_elt_id", :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target, true)" @change="validateEndOfInput($event.target), true", :autocomplete="autocomplete_input ? 'on' : 'off'")
     template(v-else-if="field_type == 'unix_timestamp'")
-        input(:placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :id="input_elt_id", :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @change="validateEndOfInput($event.target)" :maxlength="maxlength", :autocomplete="autocomplete_input ? 'on' : 'off'")
+        input(:placeholder="show_placeholder ? t(placeholder_string) : null" @keypress="onkeypress($event)" @keydown.esc='onkeypress_escape' ref='input_elt' :class="{'form-control': !inline_input_mode, 'valign-middle': show_pencil_btn}" type="text" v-model="field_value" :id="input_elt_id", :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target, true)" @change="validateEndOfInput($event.target, true)" :maxlength="maxlength", :autocomplete="autocomplete_input ? 'on' : 'off'")
         template(v-if="maxlength")
             .maxlength.italic.f-r {{ field_value_length }} / {{ maxlength }}
     template(v-else-if="field_type == 'enum'")
         multiselect(
+            :class="{'valign-middle': show_pencil_btn}"
             ref="input_elt"
             v-model="field_value"
             :options="select_options",
@@ -203,6 +213,7 @@
     
     template(v-else-if="field_type == 'float[]'")
         Multiinputcomponent(
+            :class="{'valign-middle': show_pencil_btn}"
             ref="input_elt"
             :inline_input_mode='inline_input_mode'
             v-model="field_value", :id="input_elt_id" :vo="vo", :field="field",
@@ -210,6 +221,7 @@
             type_input="number", @input_with_infos="validateMultiInput")
     template(v-else-if="field_type == 'number[]'")
         Multiinputcomponent(
+            :class="{'valign-middle': show_pencil_btn}"
             ref="input_elt"
             :inline_input_mode='inline_input_mode'
             v-model="field_value"
@@ -222,6 +234,7 @@
             @input_with_infos="validateMultiInput")
     template(v-else-if="field_type == 'text[]'")
         Multiinputcomponent(
+            :class="{'valign-middle': show_pencil_btn}"
             ref="input_elt"
             :inline_input_mode='inline_input_mode'
             v-model="field_value", :id="input_elt_id" :vo="vo", :field="field", :required="field.is_required",
@@ -229,6 +242,7 @@
             @input_with_infos="validateMultiInput")
     template(v-else-if="field_type == 'html[]'")
         Multiinputcomponent(
+            :class="{'valign-middle': show_pencil_btn}"
             ref="input_elt"
             :inline_input_mode='inline_input_mode'
             :id="input_elt_id" :use_wysiwyg='true' v-model="field_value", :vo="vo", :field="field", :required="field.is_required",
@@ -236,6 +250,7 @@
             @input_with_infos="validateMultiInput")
     template(v-else-if="is_custom_field_type && custom_field_types[field_type].create_update_component")
         .custom_read_field_component(
+            :class="{'valign-middle': show_pencil_btn}"
             ref="input_elt"
             :id="input_elt_id",
             :is="custom_field_types[field_type].create_update_component",
@@ -251,9 +266,5 @@
     template(v-if='inverse_label')
         include ./CRUDComponentFieldLabel
 
-    template(v-if='inline_input_mode && (!is_disabled) && ((!inline_input_mode_input_only) || auto_validate_inline_input)')
-        template(v-if='inline_input_is_editing || auto_validate_inline_input')
-            i.inline_input_is_editing.fa.fa-floppy-o.btn-success(@click='validate_inline_input' :class="{busy: inline_input_is_busy, auto_validate: auto_validate_inline_input, is_auto_validating: auto_validate_inline_input && (inline_input_is_busy || !!auto_validate_start)}")
-        template(v-else-if='!auto_validate_inline_input')
-            i.inline_input_is_not_editing.fa.fa-pencil.btn-primary(@click='prepare_inline_input' :class="{busy: inline_input_is_busy}")
+    include ./CRUDComponentFieldFooter
 

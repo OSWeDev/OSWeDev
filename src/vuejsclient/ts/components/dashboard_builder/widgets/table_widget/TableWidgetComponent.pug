@@ -114,21 +114,21 @@ include ../../../../../views/mixins/loading.pug
                                             template(v-if="column.type == 3")
                                                 input.d-print-none.form-control(
                                                     type="checkbox"
-                                                    v-model="selected_rows[row.__crud_actions]"
+                                                    v-model="selected_rows[parseInt(row.__crud_actions)]"
                                                     :style="{width: (column.column_width ? column.column_width + 'rem' : null)}"
                                                 )
 
                                             //- If it's the crud actions
                                             template(v-if="(column.type == 0) && !column.hide_from_table")
-                                                .btn-group.d-print-none(v-tooltip='label("table_widget_component.id", {id : row.__crud_actions})' :style="{width: (column.column_width ? column.column_width + 'rem' : null)}")
+                                                .btn-group.d-print-none(v-tooltip='label("table_widget_component.id", {id : parseInt(row.__crud_actions)})' :style="{width: (column.column_width ? column.column_width + 'rem' : null)}")
                                                     template(v-if='update_button')
-                                                        .btn.btn-sm.btn-primary(@click="open_update(column.api_type_id, row.__crud_actions)")
+                                                        .btn.btn-sm.btn-primary(@click="open_update(column.api_type_id, parseInt(row.__crud_actions))")
                                                             i.fa.fa-pencil
                                                     template(v-if="can_open_vocus")
-                                                        .btn.btn-xs.btn-secondary(@click="open_vocus(column.api_type_id, row.__crud_actions)")
+                                                        .btn.btn-xs.btn-secondary(@click="open_vocus(column.api_type_id, parseInt(row.__crud_actions))")
                                                             i.fa.fa-search
                                                     template(v-if="delete_button")
-                                                        .btn.btn-sm.btn-danger(@click="confirm_delete(column.api_type_id, row.__crud_actions)")
+                                                        .btn.btn-sm.btn-danger(@click="confirm_delete(column.api_type_id, parseInt(row.__crud_actions))")
                                                             i.fa.fa-trash
 
                                             //- If it's a component
@@ -164,7 +164,7 @@ include ../../../../../views/mixins/loading.pug
                                                         :ask_confirmation_to_delete='true'
                                                         :inline_input_mode='true'
                                                         :inline_input_read_value="row[column.datatable_field_uid]"
-                                                        :key='"crudcomponentfield_" + column.datatable_field_uid + "___" + row.__crud_actions'
+                                                        :key='"crudcomponentfield_" + column.datatable_field_uid + "___" + parseInt(row.__crud_actions)'
                                                         :is_dashboard_builder="true"
                                                         :inline_input_show_clear='false'
                                                         :auto_validate_inline_input='true'
@@ -192,16 +192,16 @@ include ../../../../../views/mixins/loading.pug
                                                     )
                                                 template(v-if="child.type == 0 && !child.hide_from_table")
                                                     td.btn-group.d-print-none(
-                                                        v-tooltip='label("table_widget_component.id", {id : row.__crud_actions})' :style="{width: (child.column_width ? child.column_width + 'rem' : null)}" 
+                                                        v-tooltip='label("table_widget_component.id", {id : parseInt(row.__crud_actions)})' :style="{width: (child.column_width ? child.column_width + 'rem' : null)}" 
                                                         )
                                                         template(v-if='update_button')
-                                                            .btn.btn-sm.btn-primary(@click="open_update(child.api_type_id, row.__crud_actions)")
+                                                            .btn.btn-sm.btn-primary(@click="open_update(child.api_type_id, parseInt(row.__crud_actions))")
                                                                 i.fa.fa-pencil
                                                         template(v-if="can_open_vocus")
-                                                            .btn.btn-xs.btn-secondary(@click="open_vocus(child.api_type_id, row.__crud_actions)")
+                                                            .btn.btn-xs.btn-secondary(@click="open_vocus(child.api_type_id, parseInt(row.__crud_actions))")
                                                                 i.fa.fa-search
                                                         template(v-if="delete_button")
-                                                            .btn.btn-sm.btn-danger(@click="confirm_delete(child.api_type_id, row.__crud_actions)")
+                                                            .btn.btn-sm.btn-danger(@click="confirm_delete(child.api_type_id, parseInt(row.__crud_actions))")
                                                                 i.fa.fa-trash
                                                                             
                     template(v-if="has_table_total_footer && data_rows && (data_rows.length > 0)")
