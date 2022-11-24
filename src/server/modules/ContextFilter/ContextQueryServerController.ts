@@ -547,7 +547,33 @@ export default class ContextQueryServerController {
         }
     }
 
-    public async count_valid_segmentations(api_type_id: string, context_query: ContextQueryVO): Promise<number> {
+    public async count_valid_segmentations(api_type_id: string, context_query: ContextQueryVO, ignore_self_filter: boolean = true): Promise<number> {
+
+        if (ignore_self_filter) {
+            let field = context_query.fields[0];
+            let get_active_field_filters = ContextFilterHandler.getInstance().get_active_field_filters(context_query.filters);
+
+            /**
+             * on ignore le filtre sur ce champs par défaut, et par contre on considère le acutal_query comme un filtrage en text_contient
+             */
+            if (get_active_field_filters && get_active_field_filters[field.api_type_id] && get_active_field_filters[field.api_type_id][field.field_id]) {
+                // Je supprime le filtre du champ si je ne cherche pas à exclure de données
+                switch (get_active_field_filters[field.api_type_id][field.field_id].filter_type) {
+                    case ContextFilterVO.TYPE_TEXT_EQUALS_NONE:
+                    case ContextFilterVO.TYPE_TEXT_INCLUDES_NONE:
+                    case ContextFilterVO.TYPE_TEXT_STARTSWITH_NONE:
+                    case ContextFilterVO.TYPE_TEXT_ENDSWITH_NONE:
+                    case ContextFilterVO.TYPE_NUMERIC_NOT_EQUALS:
+                        break;
+
+                    default:
+                        delete get_active_field_filters[field.api_type_id][field.field_id];
+                        context_query.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(get_active_field_filters);
+                        break;
+                }
+            }
+        }
+
         let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
         let segmentation_field: ModuleTableField<any> = moduletable.table_segmented_field;
         switch (segmentation_field.field_type) {

@@ -55,10 +55,11 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
     @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
 
-    private throttled_init_param = ThrottleHelper.getInstance().declare_throttle_without_args(this.init_param.bind(this), 300, { leading: false, trailing: true });
+    private throttled_init_param = ThrottleHelper.getInstance().declare_throttle_without_args(this.init_param.bind(this), 50, { leading: false, trailing: true });
 
     private var_param: VarDataBaseVO = null;
     private dashboard: DashboardVO = null;
+    private is_loading: boolean = true;
 
     get var_custom_filters(): { [var_param_field_name: string]: string } {
 
@@ -79,12 +80,12 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
 
     private async init_param() {
 
-        this.isLoading = true;
+        this.is_loading = true;
 
         if ((!this.dashboard_id) || (!this.var_id)) {
             this.dashboard = null;
             this.var_param = null;
-            this.isLoading = false;
+            this.is_loading = false;
             return;
         }
 
@@ -104,7 +105,7 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
             this.dashboard.api_type_ids,
             this.get_discarded_field_paths);
 
-        this.isLoading = false;
+        this.is_loading = false;
     }
 
     get var_filter(): string {

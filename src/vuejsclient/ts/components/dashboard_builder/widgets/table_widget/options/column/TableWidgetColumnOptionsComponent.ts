@@ -21,12 +21,14 @@ import ObjectHandler from '../../../../../../../../shared/tools/ObjectHandler';
 import { ModuleDashboardPageGetter } from '../../../../page/DashboardPageStore';
 import { cloneDeep } from 'lodash';
 import Dates from '../../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import WidgetFilterOptionsComponent from '../../../var_widget/options/filters/WidgetFilterOptionsComponent';
 
 @Component({
     template: require('./TableWidgetColumnOptionsComponent.pug'),
     components: {
         Vofieldwidgetrefcomponent: VoFieldWidgetRefComponent,
         Inlinetranslatabletext: InlineTranslatableText,
+        Widgetfilteroptionscomponent: WidgetFilterOptionsComponent
     }
 })
 export default class TableWidgetColumnOptionsComponent extends VueComponentBase {
@@ -68,6 +70,24 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     private show_options: boolean = false;
     private error: boolean = false;
     private custom_filter_names: { [field_id: string]: string } = {};
+
+    private async update_additional_options(additional_options: string) {
+        if (!this.column) {
+            return;
+        }
+
+        this.column.filter_additional_params = additional_options;
+        this.$emit('update_column', this.column);
+    }
+
+    private async update_filter_type(filter_type: string) {
+        if (!this.column) {
+            return;
+        }
+
+        this.column.filter_type = filter_type;
+        this.$emit('update_column', this.column);
+    }
 
     private async change_custom_filter(field_id: string, custom_filter: string) {
         if (!this.object_column) {

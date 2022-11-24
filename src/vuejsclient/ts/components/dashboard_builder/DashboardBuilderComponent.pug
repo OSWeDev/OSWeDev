@@ -139,11 +139,13 @@
 
                 .collapsible_component_wrapper(:class='{"collapsed":collapsed_fields_wrapper}')
                     Dashboardbuilderwidgetscomponent(
-                        :dashboard='dashboard' :selected_widget='selected_widget'
+                        :dashboard='dashboard' 
+                        :selected_widget='selected_widget'
                         :dashboard_page='page'
                         :dashboard_pages='pages'   
 
                         @update_layout_widget='update_layout_widget'
+                        @added_widget_to_page='added_widget_to_page'
                     )
                     Droppablevofieldscomponent(:dashboard='dashboard')
             
@@ -158,6 +160,8 @@
 
                         @select_widget='select_widget'
                         @select_page='select_page'
+
+                        @removed_widget_from_page='removed_widget_from_page'
                     )
             
             .row(v-if='show_menu_conf')

@@ -232,7 +232,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         MonthFilter.default_background = '#f5f5f5';
         MonthFilter.icon_component = 'Monthfilterwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(MonthFilter, () => new MonthFilterWidgetOptions(true, null, null, true, null, null, true, true, null, null), MonthFilterWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(MonthFilter, () => new MonthFilterWidgetOptions(true, null, null, false, 1, 12, false, false, null, null, false, null, false), MonthFilterWidgetOptions.get_selected_fields);
 
         Vue.component('Monthfilterwidgetcomponent', () => import(/* webpackChunkName: "MonthFilterWidgetComponent" */ './widgets/month_filter_widget/MonthFilterWidgetComponent'));
         Vue.component('Monthfilterwidgetoptionscomponent', () => import(/* webpackChunkName: "MonthFilterWidgetOptionsComponent" */ './widgets/month_filter_widget/options/MonthFilterWidgetOptionsComponent'));
@@ -270,7 +270,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         YearFilter.default_background = '#f5f5f5';
         YearFilter.icon_component = 'Yearfilterwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(YearFilter, () => new YearFilterWidgetOptions(true, null, null, true, null, null, true, true, null, null), YearFilterWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(YearFilter, () => new YearFilterWidgetOptions(true, null, null, true, -2, 2, true, true, 0, 0, false, null, false), YearFilterWidgetOptions.get_selected_fields);
 
         Vue.component('Yearfilterwidgetcomponent', () => import(/* webpackChunkName: "YearFilterWidgetComponent" */ './widgets/year_filter_widget/YearFilterWidgetComponent'));
         Vue.component('Yearfilterwidgetoptionscomponent', () => import(/* webpackChunkName: "YearFilterWidgetOptionsComponent" */ './widgets/year_filter_widget/options/YearFilterWidgetOptionsComponent'));

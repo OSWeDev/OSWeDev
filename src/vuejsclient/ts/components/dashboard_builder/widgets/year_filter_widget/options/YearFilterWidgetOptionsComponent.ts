@@ -38,6 +38,11 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase {
     @ModuleDashboardPageAction
     private set_custom_filters: (custom_filters: string[]) => void;
 
+    @ModuleDashboardPageGetter
+    private get_page_widgets: DashboardPageWidgetVO[];
+    @ModuleDashboardPageGetter
+    private get_page_widgets_components_by_pwid: { pwid: number, page_widget_component: VueComponentBase };
+
     private is_vo_field_ref: boolean = true;
     private year_relative_mode: boolean = true;
     private auto_select_year: boolean = true;
@@ -49,6 +54,58 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase {
     private max_year: string = null;
     private auto_select_year_min: string = null;
     private auto_select_year_max: string = null;
+
+    private relative_to_other_filter_id: number = null;
+    private is_relative_to_other_filter: boolean = false;
+    private hide_filter: boolean = false;
+
+    get other_filters_by_name(): { [filter_name: string]: DashboardPageWidgetVO } {
+        if (!this.get_page_widgets) {
+            return null;
+        }
+
+        let res: { [filter_name: string]: DashboardPageWidgetVO } = {};
+
+        for (let i in this.get_page_widgets) {
+            let get_page_widget = this.get_page_widgets[i];
+
+            if (get_page_widget.id == this.page_widget.id) {
+                continue;
+            }
+
+            if (get_page_widget.widget_id !== this.page_widget.widget_id) {
+                continue;
+            }
+
+            if (!get_page_widget.json_options) {
+                continue;
+            }
+
+            let other_filter_options = JSON.parse(get_page_widget.json_options) as YearFilterWidgetOptions;
+            if (!other_filter_options) {
+                continue;
+            }
+
+            if (!other_filter_options.is_vo_field_ref) {
+                if ((!other_filter_options.vo_field_ref) || (!other_filter_options.vo_field_ref.api_type_id) || (!other_filter_options.vo_field_ref.field_id)) {
+                    continue;
+                }
+
+                let name = other_filter_options.vo_field_ref.api_type_id + '.' + other_filter_options.vo_field_ref.field_id;
+                if (!!res[name]) {
+                    continue;
+                }
+                res[name] = get_page_widget;
+            } else {
+                if (!!res[other_filter_options.custom_filter_name]) {
+                    continue;
+                }
+                res[other_filter_options.custom_filter_name] = get_page_widget;
+            }
+        }
+
+        return res;
+    }
 
     private next_update_options: YearFilterWidgetOptions = null;
     private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
@@ -102,6 +159,10 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase {
             this.max_year = null;
             this.auto_select_year_min = null;
             this.auto_select_year_max = null;
+            this.relative_to_other_filter_id = null;
+            this.is_relative_to_other_filter = false;
+            this.hide_filter = false;
+
             return;
         }
         this.is_vo_field_ref = this.widget_options.is_vo_field_ref;
@@ -113,6 +174,23 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase {
         this.max_year = (this.widget_options.max_year == null) ? null : this.widget_options.max_year.toString();
         this.auto_select_year_min = (this.widget_options.auto_select_year_min == null) ? null : this.widget_options.auto_select_year_min.toString();
         this.auto_select_year_max = (this.widget_options.auto_select_year_max == null) ? null : this.widget_options.auto_select_year_max.toString();
+        this.relative_to_other_filter_id = this.widget_options.relative_to_other_filter_id;
+        this.is_relative_to_other_filter = this.widget_options.is_relative_to_other_filter;
+        this.hide_filter = this.widget_options.hide_filter;
+    }
+
+    @Watch('relative_to_other_filter_id')
+    private async onchange_relative_to_other_filter_id() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (this.widget_options.relative_to_other_filter_id != this.relative_to_other_filter_id) {
+            this.next_update_options = this.widget_options;
+            this.next_update_options.relative_to_other_filter_id = this.relative_to_other_filter_id;
+
+            await this.throttled_update_options();
+        }
     }
 
     @Watch('min_year')
@@ -189,11 +267,37 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase {
         }
     }
 
+
+
+    private async switch_hide_filter() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = new YearFilterWidgetOptions(true, null, null, true, null, null, true, true, null, null, false, null, this.hide_filter);
+        }
+
+        this.next_update_options.hide_filter = !this.next_update_options.hide_filter;
+
+        await this.throttled_update_options();
+    }
+
+    private async switch_is_relative_to_other_filter() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = new YearFilterWidgetOptions(true, null, null, true, null, null, true, true, null, null, this.is_relative_to_other_filter, null, false);
+        }
+
+        this.next_update_options.is_relative_to_other_filter = !this.next_update_options.is_relative_to_other_filter;
+
+        await this.throttled_update_options();
+    }
+
     private async switch_year_relative_mode() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new YearFilterWidgetOptions(true, null, null, this.year_relative_mode, null, null, true, true, null, null);
+            this.next_update_options = new YearFilterWidgetOptions(true, null, null, this.year_relative_mode, null, null, true, true, null, null, false, null, false);
         }
 
         this.next_update_options.year_relative_mode = !this.next_update_options.year_relative_mode;
@@ -205,7 +309,7 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new YearFilterWidgetOptions(true, null, null, true, null, null, this.auto_select_year, true, null, null);
+            this.next_update_options = new YearFilterWidgetOptions(true, null, null, true, null, null, this.auto_select_year, true, null, null, false, null, false);
         }
 
         this.next_update_options.auto_select_year = !this.next_update_options.auto_select_year;
@@ -217,7 +321,7 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new YearFilterWidgetOptions(true, null, null, true, null, null, true, this.auto_select_year_relative_mode, null, null);
+            this.next_update_options = new YearFilterWidgetOptions(true, null, null, true, null, null, true, this.auto_select_year_relative_mode, null, null, false, null, false);
         }
 
         this.next_update_options.auto_select_year_relative_mode = !this.next_update_options.auto_select_year_relative_mode;
@@ -229,7 +333,7 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new YearFilterWidgetOptions(this.is_vo_field_ref, null, null, true, null, null, true, true, null, null);
+            this.next_update_options = new YearFilterWidgetOptions(this.is_vo_field_ref, null, null, true, null, null, true, true, null, null, false, null, false);
         }
 
         this.next_update_options.is_vo_field_ref = !this.next_update_options.is_vo_field_ref;
@@ -295,7 +399,8 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase {
                 options = options ? new YearFilterWidgetOptions(
                     options.is_vo_field_ref, options.vo_field_ref, options.custom_filter_name, options.year_relative_mode,
                     options.min_year, options.max_year, options.auto_select_year, options.auto_select_year_relative_mode,
-                    options.auto_select_year_min, options.auto_select_year_max) : null;
+                    options.auto_select_year_min, options.auto_select_year_max, options.is_relative_to_other_filter, options.relative_to_other_filter_id,
+                    options.hide_filter) : null;
             }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
@@ -308,7 +413,7 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new YearFilterWidgetOptions(this.is_vo_field_ref, null, null, true, null, null, true, true, null, null);
+            this.next_update_options = new YearFilterWidgetOptions(this.is_vo_field_ref, null, null, true, null, null, true, true, null, null, false, null, false);
         }
 
         let vo_field_ref = new VOFieldRefVO();

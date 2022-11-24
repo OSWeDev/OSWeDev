@@ -65,11 +65,18 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     @Prop({ default: null })
     private api_type_id_action: string;
 
+    @ModuleDashboardPageAction
+    private set_page_widgets_components_by_pwid: (page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase }) => void;
+
     @ModuleDashboardPageGetter
     private get_page_history: DashboardPageVO[];
 
     @ModuleDashboardPageAction
+    private set_page_widgets: (page_widgets: DashboardPageWidgetVO[]) => void;
+    @ModuleDashboardPageAction
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
+    @ModuleDashboardPageAction
+    private delete_page_widget: (page_widget: DashboardPageWidgetVO) => void;
 
     @ModuleTranslatableTextAction
     private set_flat_locale_translations: (translations: { [code_text: string]: string }) => void;
@@ -456,11 +463,14 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         this.show_select_vos = !this.show_build_page;
         this.show_menu_conf = false;
 
+        this.set_page_widgets_components_by_pwid({});
+
         this.pages = await query(DashboardPageVO.API_TYPE_ID).filter_by_num_eq('dashboard_id', this.dashboard.id).select_vos<DashboardPageVO>();
         if (!this.pages) {
             await this.create_dashboard_page();
         }
-        let page_widgets = await query(DashboardPageWidgetVO.API_TYPE_ID).filter_by_num_has('page_id', this.pages.map((p) => p.id)).select_vos<DashboardPageWidgetVO>();
+        let page_widgets: DashboardPageWidgetVO[] = await query(DashboardPageWidgetVO.API_TYPE_ID).filter_by_num_has('page_id', this.pages.map((p) => p.id)).select_vos<DashboardPageWidgetVO>();
+        this.set_page_widgets(page_widgets);
         if (page_widgets && page_widgets.length) {
             let custom_filters: { [name: string]: boolean } = {};
             for (let i in page_widgets) {
@@ -479,6 +489,10 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         }
         WeightHandler.getInstance().sortByWeight(this.pages);
         this.page = this.pages[0];
+    }
+
+    private removed_widget_from_page(page_widget: DashboardPageWidgetVO) {
+        this.delete_page_widget(page_widget);
     }
 
     private added_widget_to_page(page_widget: DashboardPageWidgetVO) {

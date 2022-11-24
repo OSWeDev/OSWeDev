@@ -723,7 +723,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                 return;
             }
         } else {
-            query_ = await FieldValueFilterWidgetController.getInstance().check_segmented_dependencies(this.dashboard, query_);
+            query_ = await FieldValueFilterWidgetController.getInstance().check_segmented_dependencies(this.dashboard, query_, true);
         }
 
         tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(

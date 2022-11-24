@@ -53,6 +53,7 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
 
         await DashboardBuilderWidgetsController.getInstance().initialize();
         this.widgets = DashboardBuilderWidgetsController.getInstance().sorted_widgets;
+
         await this.onchange_selected_widget();
 
         this.loading = false;
@@ -68,7 +69,8 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
             ConsoleHandler.getInstance().error("!add_widget_to_page_handler");
             return;
         }
-        await DashboardBuilderWidgetsController.getInstance().add_widget_to_page_handler(widget);
+        let page_widget = await DashboardBuilderWidgetsController.getInstance().add_widget_to_page_handler(widget);
+        this.$emit('added_widget_to_page', page_widget);
     }
 
     get widgets_name(): string[] {

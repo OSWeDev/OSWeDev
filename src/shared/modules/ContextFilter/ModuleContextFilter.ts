@@ -52,7 +52,7 @@ export default class ModuleContextFilter extends Module {
      * Compter les segmentations valides à partir des filtres passés en paramètres (pour un type segmenté donné)
      * @param context_query
      */
-    public count_valid_segmentations: (api_type_id: string, context_query: ContextQueryVO) => Promise<number> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_count_valid_segmentations);
+    public count_valid_segmentations: (api_type_id: string, context_query: ContextQueryVO, ignore_self_filter?: boolean) => Promise<number> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_count_valid_segmentations);
 
     /**
      * Filtrer des infos avec les context filters, en indiquant obligatoirement les champs ciblés, qui peuvent appartenir à des tables différentes

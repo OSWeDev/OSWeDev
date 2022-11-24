@@ -41,6 +41,9 @@ export default class MonthFilterWidgetOptions {
         public auto_select_month_relative_mode: boolean,
         public auto_select_month_min: number,
         public auto_select_month_max: number,
+        public is_relative_to_other_filter: boolean,
+        public relative_to_other_filter_id: number,
+        public hide_filter: boolean,
     ) { }
 
     public get_placeholder_name_code_text(page_widget_id: number): string {

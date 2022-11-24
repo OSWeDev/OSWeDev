@@ -10,11 +10,20 @@ import CRUDCreateModalComponent from "../widgets/table_widget/crud_modals/create
 
 import DashboardPageVO from "../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO";
 import ChecklistItemModalComponent from "../widgets/checklist_widget/checklist_item_modal/ChecklistItemModalComponent";
+import VueComponentBase from "../../VueComponentBase";
 
 export type DashboardPageContext = ActionContext<IDashboardPageState, any>;
 
 export interface IDashboardPageState {
+    /**
+     * Stock tous les widgets du dashboard
+     */
     page_widgets: DashboardPageWidgetVO[];
+
+    /**
+     * Stock tous les composants du dashboard
+     */
+    page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase };
 
     active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
 
@@ -57,6 +66,7 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
         this.state = {
             page_widgets: [],
+            page_widgets_components_by_pwid: {},
             active_field_filters: {},
             Checklistitemmodalcomponent: null,
             Crudupdatemodalcomponent: null,
@@ -69,6 +79,10 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
 
         this.getters = {
+
+            get_page_widgets_components_by_pwid(state: IDashboardPageState): { [pwid: number]: VueComponentBase } {
+                return state.page_widgets_components_by_pwid;
+            },
 
             get_discarded_field_paths(state: IDashboardPageState): { [vo_type: string]: { [field_id: string]: boolean } } {
                 return state.discarded_field_paths;
@@ -111,6 +125,16 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
 
         this.mutations = {
+            set_page_widgets_components_by_pwid(state: IDashboardPageState, page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase }) {
+                state.page_widgets_components_by_pwid = page_widgets_components_by_pwid;
+            },
+            remove_page_widgets_components_by_pwid(state: IDashboardPageState, pwid: number) {
+                delete state.page_widgets_components_by_pwid[pwid];
+            },
+            set_page_widget_component_by_pwid(state: IDashboardPageState, param: { pwid: number, page_widget_component: VueComponentBase }) {
+                Vue.set(state.page_widgets_components_by_pwid, param.pwid, param.page_widget_component);
+            },
+
             set_discarded_field_paths(state: IDashboardPageState, discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }) {
                 state.discarded_field_paths = discarded_field_paths;
             },
@@ -236,6 +260,10 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
 
         this.actions = {
+            set_page_widgets_components_by_pwid(context: DashboardPageContext, page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase }) {
+                commit_set_page_widgets_components_by_pwid(context, page_widgets_components_by_pwid);
+            },
+
             set_discarded_field_paths(context: DashboardPageContext, discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }) {
                 commit_set_discarded_field_paths(context, discarded_field_paths);
             },
@@ -298,6 +326,13 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             delete_page_widget(context: DashboardPageContext, page_widget: DashboardPageWidgetVO) {
                 commit_delete_page_widget(context, page_widget);
             },
+
+            remove_page_widgets_components_by_pwid(context: DashboardPageContext, pwid: number) {
+                commit_remove_page_widgets_components_by_pwid(context, pwid);
+            },
+            set_page_widget_component_by_pwid(context: DashboardPageContext, param: { pwid: number, page_widget_component: VueComponentBase }) {
+                commit_set_page_widget_component_by_pwid(context, param);
+            },
         };
     }
 }
@@ -327,3 +362,6 @@ export const commit_set_widgets_invisibility = commit(DashboardPageStoreInstance
 export const commit_set_widget_invisibility = commit(DashboardPageStoreInstance.mutations.set_widget_invisibility);
 export const commit_set_widget_visibility = commit(DashboardPageStoreInstance.mutations.set_widget_visibility);
 export const commit_set_discarded_field_paths = commit(DashboardPageStoreInstance.mutations.set_discarded_field_paths);
+export const commit_set_page_widgets_components_by_pwid = commit(DashboardPageStoreInstance.mutations.set_page_widgets_components_by_pwid);
+export const commit_remove_page_widgets_components_by_pwid = commit(DashboardPageStoreInstance.mutations.remove_page_widgets_components_by_pwid);
+export const commit_set_page_widget_component_by_pwid = commit(DashboardPageStoreInstance.mutations.set_page_widget_component_by_pwid);

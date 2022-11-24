@@ -34,6 +34,12 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
 
+    @ModuleDashboardPageAction
+    private set_page_widget_component_by_pwid: (param: { pwid: number, page_widget_component: VueComponentBase }) => void;
+
+    @ModuleDashboardPageGetter
+    private get_page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase };
+
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
 
@@ -50,6 +56,15 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
     private auto_select_month_min: number = null;
     private auto_select_month_max: number = null;
     private old_widget_options: MonthFilterWidgetOptions = null;
+    private is_relative_to_other_filter: boolean = false;
+    private relative_to_other_filter_id: number = null;
+
+    protected async mounted() {
+        this.set_page_widget_component_by_pwid({
+            pwid: this.page_widget.id,
+            page_widget_component: this
+        });
+    }
 
     private switch_selection(i: string) {
         this.selected_months[i] = !this.selected_months[i];
@@ -61,6 +76,56 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
         }
 
         return this.get_flat_locale_translations[this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id)];
+    }
+
+    get relative_to_this_filter(): MonthFilterWidgetComponent {
+        if (!this.widget_options.auto_select_month_relative_mode) {
+            return null;
+        }
+
+        if (!this.widget_options.is_relative_to_other_filter) {
+            return null;
+        }
+
+        if (!this.widget_options.relative_to_other_filter_id) {
+            return null;
+        }
+
+        return this.get_page_widgets_components_by_pwid[this.widget_options.relative_to_other_filter_id] as MonthFilterWidgetComponent;
+    }
+
+    get other_filter_selected_months(): { [year: string]: boolean } {
+        if (!this.relative_to_this_filter) {
+            return null;
+        }
+
+        let other_filter_selected_months = this.relative_to_this_filter.selected_months;
+        if (!other_filter_selected_months) {
+            return null;
+        }
+
+        return other_filter_selected_months;
+    }
+
+    @Watch('other_filter_selected_months', { immediate: true, deep: true })
+    private onchange_other_filter_selected_months() {
+        if (!this.relative_to_this_filter) {
+            return;
+        }
+
+        let selected_months = {};
+        for (let month in this.other_filter_selected_months) {
+            let month_int = parseInt(month);
+
+            if (!this.other_filter_selected_months[month]) {
+                continue;
+            }
+
+            for (let month_i = month_int + this.widget_options.auto_select_month_min; month_i <= month_int + this.widget_options.auto_select_month_max; month_i++) {
+                selected_months[month_i] = true;
+            }
+        }
+        this.selected_months = selected_months;
     }
 
     @Watch('selected_months', { deep: true })
@@ -260,7 +325,8 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
                 options = options ? new MonthFilterWidgetOptions(
                     options.is_vo_field_ref, options.vo_field_ref, options.custom_filter_name, options.month_relative_mode,
                     options.min_month, options.max_month, options.auto_select_month, options.auto_select_month_relative_mode,
-                    options.auto_select_month_min, options.auto_select_month_max) : null;
+                    options.auto_select_month_min, options.auto_select_month_max, options.is_relative_to_other_filter, options.relative_to_other_filter_id,
+                    options.hide_filter) : null;
             }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
@@ -287,7 +353,9 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
             (this.auto_select_month == this.widget_options.auto_select_month) &&
             (this.auto_select_month_relative_mode == this.widget_options.auto_select_month_relative_mode) &&
             (this.auto_select_month_min == this.widget_options.auto_select_month_min) &&
-            (this.auto_select_month_max == this.widget_options.auto_select_month_max)
+            (this.auto_select_month_max == this.widget_options.auto_select_month_max) &&
+            (this.is_relative_to_other_filter == this.widget_options.is_relative_to_other_filter) &&
+            (this.relative_to_other_filter_id == this.widget_options.relative_to_other_filter_id)
         ) {
             return;
         }
@@ -296,6 +364,8 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
         this.auto_select_month_relative_mode = this.widget_options.auto_select_month_relative_mode;
         this.auto_select_month_min = this.widget_options.auto_select_month_min;
         this.auto_select_month_max = this.widget_options.auto_select_month_max;
+        this.is_relative_to_other_filter = this.widget_options.is_relative_to_other_filter;
+        this.relative_to_other_filter_id = this.widget_options.relative_to_other_filter_id;
 
         let selected_months = {};
 

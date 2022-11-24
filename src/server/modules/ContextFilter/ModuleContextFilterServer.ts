@@ -41,8 +41,8 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_count_valid_segmentations, this.count_valid_segmentations.bind(this));
     }
 
-    public async count_valid_segmentations(api_type_id: string, context_query: ContextQueryVO): Promise<number> {
-        return await ContextQueryServerController.getInstance().count_valid_segmentations(api_type_id, context_query);
+    public async count_valid_segmentations(api_type_id: string, context_query: ContextQueryVO, ignore_self_filter: boolean = true): Promise<number> {
+        return await ContextQueryServerController.getInstance().count_valid_segmentations(api_type_id, context_query, ignore_self_filter);
     }
 
 

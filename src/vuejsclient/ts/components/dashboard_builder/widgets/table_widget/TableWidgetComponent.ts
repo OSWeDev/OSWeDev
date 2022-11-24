@@ -618,8 +618,8 @@ export default class TableWidgetComponent extends VueComponentBase {
             return;
         }
 
-        // Si colonne de type crud actions, on ne fait rien
-        if (column.type == TableColumnDescVO.TYPE_crud_actions) {
+        // Si colonne de type !vo_field_ref, on ne fait rien
+        if (column.type !== TableColumnDescVO.TYPE_vo_field_ref) {
             return;
         }
 

@@ -230,3 +230,12 @@
                     template(v-if="tmp_font_color_header")
                         i.fa.fa-times(@click="clear_tmp_font_color_header")
 
+                .widget_filter_options(v-if='(column.type == 1) || (column.type == 2)')
+                    .widget_filter_options_label {{ label('table_widget_column_conf.filter_options') }}
+                    .widget_filter_options_wrapper
+                        Widgetfilteroptionscomponent(
+                            :actual_additional_options="column.filter_additional_params"
+                            :actual_filter_type="column.filter_type"
+                            @update_additional_options="update_additional_options"
+                            @update_filter_type="update_filter_type"
+                        )

@@ -21,7 +21,7 @@ export default class FieldValueFilterWidgetController {
 
     private constructor() { }
 
-    public async check_segmented_dependencies(dashboard: DashboardVO, query_: ContextQueryVO): Promise<ContextQueryVO> {
+    public async check_segmented_dependencies(dashboard: DashboardVO, query_: ContextQueryVO, ignore_self_filter: boolean = true): Promise<ContextQueryVO> {
 
         /**
          * Si on est pas segmenté, mais qu'on a dans les active_api_type_ids un type segmenté, on check que le nombre d'option est faible pour la table segmentée,
@@ -44,7 +44,7 @@ export default class FieldValueFilterWidgetController {
 
                 has_segmented = true;
 
-                let count_segmentations = await ModuleContextFilter.getInstance().count_valid_segmentations(api_type_id, query_);
+                let count_segmentations = await ModuleContextFilter.getInstance().count_valid_segmentations(api_type_id, query_, ignore_self_filter);
 
                 if (count_segmentations > 20) {
                     ConsoleHandler.getInstance().warn('On a trop d\'options (' + count_segmentations + ') pour la table segmentée ' + has_segmented_too_much_options_api_type_id + ', on ne filtre pas sur cette table');

@@ -17,7 +17,7 @@ export default class DashboardBuilderWidgetsController {
 
     private static instance: DashboardBuilderWidgetsController;
 
-    public add_widget_to_page_handler: (widget: DashboardWidgetVO) => Promise<void> = null;
+    public add_widget_to_page_handler: (widget: DashboardWidgetVO) => Promise<DashboardPageWidgetVO> = null;
     public sorted_widgets: DashboardWidgetVO[] = [];
     public widgets_options_constructor: { [name: string]: () => any } = {};
     public widgets_get_selected_fields: { [name: string]: (page_widget: DashboardPageWidgetVO) => { [api_type_id: string]: { [field_id: string]: boolean } } } = {};

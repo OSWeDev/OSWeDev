@@ -6,7 +6,7 @@ import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBui
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DashboardWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import VueComponentBase from '../../../VueComponentBase';
-import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
+import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import CRUDCreateModalComponent from '../../widgets/table_widget/crud_modals/create/CRUDCreateModalComponent';
 import './DashboardBuilderBoardItemComponent.scss';
 
@@ -16,6 +16,9 @@ import './DashboardBuilderBoardItemComponent.scss';
 })
 
 export default class DashboardBuilderBoardItemComponent extends VueComponentBase {
+
+    @ModuleDashboardPageAction
+    private set_page_widget_component_by_pwid: (param: { pwid: number, page_widget_component: VueComponentBase }) => void;
 
     @ModuleDashboardPageGetter
     private get_Crudcreatemodalcomponent: CRUDCreateModalComponent;
@@ -46,6 +49,20 @@ export default class DashboardBuilderBoardItemComponent extends VueComponentBase
 
     private widget: DashboardWidgetVO = null;
 
+    private mounted() {
+        if ((!this.page_widget) || (!this.page_widget.id)) {
+            return;
+        }
+
+        if (this.$refs['widget_component_ref']) {
+
+            this.set_page_widget_component_by_pwid({
+                pwid: this.page_widget.id,
+                page_widget_component: this.$refs['widget_component_ref'] as VueComponentBase
+            });
+        }
+    }
+
     @Watch('page_widget', { immediate: true })
     private async onchange_widget() {
         if (!this.page_widget) {
@@ -53,6 +70,18 @@ export default class DashboardBuilderBoardItemComponent extends VueComponentBase
         }
 
         this.widget = await query(DashboardWidgetVO.API_TYPE_ID).filter_by_id(this.page_widget.widget_id).select_vo<DashboardWidgetVO>();
+
+        if (!this.page_widget.id) {
+            return;
+        }
+
+        if (this.$refs['widget_component_ref']) {
+
+            this.set_page_widget_component_by_pwid({
+                pwid: this.page_widget.id,
+                page_widget_component: this.$refs['widget_component_ref'] as VueComponentBase
+            });
+        }
     }
 
     private delete_widget() {

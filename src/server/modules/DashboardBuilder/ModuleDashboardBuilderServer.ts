@@ -149,7 +149,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Non'
         }, 'year_filter_widget_component.auto_select_year.value.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Pré-sélection relative à l\'année actuelle'
+            'fr-fr': 'Pré-sélection relative à une date'
         }, 'year_filter_widget_component.auto_select_year_relative_mode.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Oui'
@@ -157,6 +157,22 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Non'
         }, 'year_filter_widget_component.auto_select_year_relative_mode.value.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Pré-sélection relative à'
+        }, 'year_filter_widget_component.is_relative_to_other_filter.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Un autre filtre'
+        }, 'year_filter_widget_component.is_relative_to_other_filter.filter.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Aujourd\'hui'
+        }, 'year_filter_widget_component.is_relative_to_other_filter.now.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Pré-sélection relative à ce filtre'
+        }, 'year_filter_widget_component.relative_to_other_filter_id.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Masquer le filtre" },
+            'year_filter_widget_component.hide_filter.___LABEL___'
+        ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Pré-sélection min'
         }, 'year_filter_widget_component.auto_select_year_min.___LABEL___'));
@@ -205,7 +221,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Non'
         }, 'month_filter_widget_component.auto_select_month.value.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Pré-sélection relative au mois actuel'
+            'fr-fr': 'Pré-sélection relative'
         }, 'month_filter_widget_component.auto_select_month_relative_mode.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Oui'
@@ -222,6 +238,22 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Paramètres invalides (max 12 mois)'
         }, 'month_filter_widget_component.no_month.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Pré-sélection relative à'
+        }, 'month_filter_widget_component.is_relative_to_other_filter.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Un autre filtre'
+        }, 'month_filter_widget_component.is_relative_to_other_filter.filter.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Aujourd\'hui'
+        }, 'month_filter_widget_component.is_relative_to_other_filter.now.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Pré-sélection relative à ce filtre'
+        }, 'month_filter_widget_component.relative_to_other_filter_id.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Masquer le filtre" },
+            'month_filter_widget_component.hide_filter.___LABEL___'
+        ));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Copie du tableau de bord en cours...'
@@ -1056,6 +1088,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Couleur du texte de l'entête" },
             'table_widget_column_conf.editable_column.font_color_header.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Format" },
+            'table_widget_column_conf.filter_options.___LABEL___'
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Aggréger les données" },
