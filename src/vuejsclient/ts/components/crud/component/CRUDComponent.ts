@@ -457,10 +457,11 @@ export default class CRUDComponent extends VueComponentBase {
     private updateSelectedVO() {
         if (!this.selectedVO) {
             this.editableVO = null;
+            return;
         }
 
         // On passe la traduction en IHM sur les champs
-        this.editableVO = this.dataToIHM(this.getSelectedVOs[0], this.crud.updateDatatable, true);
+        this.editableVO = this.dataToIHM(this.selectedVO, this.crud.updateDatatable, true);
         this.onChangeVO(this.editableVO);
     }
 

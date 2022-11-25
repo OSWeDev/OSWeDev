@@ -1,3 +1,4 @@
+import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
@@ -67,6 +68,10 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
         let var_param_type = VarsController.getInstance().var_conf_by_id[this.widget_options.var_id].var_data_vo_type;
         if (!var_param_type) {
             return null;
+        }
+
+        if (!this.custom_filter_names) {
+            this.custom_filter_names = {};
         }
 
         let fields = VOsTypesManager.getInstance().moduleTables_by_voType[var_param_type].get_fields();
@@ -145,10 +150,14 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
     @Watch('widget_options', { immediate: true })
     private onchange_widget_options() {
         if (!this.widget_options) {
+            this.next_update_options = null;
             this.tmp_selected_var_name = null;
+            this.custom_filter_names = {};
             return;
         }
         this.tmp_selected_var_name = this.widget_options.var_id + ' | ' + this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(this.widget_options.var_id));
+        this.custom_filter_names = this.widget_options.filter_custom_field_filters ? cloneDeep(this.widget_options.filter_custom_field_filters) : {};
+        this.next_update_options = this.widget_options;
     }
 
     @Watch('tmp_selected_var_name')

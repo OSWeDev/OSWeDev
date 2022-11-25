@@ -3,12 +3,20 @@ import { Prop, Watch } from 'vue-property-decorator';
 import Filters from '../../../../../../../../shared/tools/Filters';
 import VueComponentBase from '../../../../../VueComponentBase';
 import AmountFilterOptionsComponent from './amount/AmountFilterOptionsComponent';
+import PercentFilterOptionsComponent from './percent/PercentFilterOptionsComponent';
+import ToFixedFilterOptionsComponent from './toFixed/ToFixedFilterOptionsComponent';
+import ToFixedCeilFilterOptionsComponent from './toFixedCeil/ToFixedCeilFilterOptionsComponent';
+import ToFixedFloorFilterOptionsComponent from './toFixedFloor/ToFixedFloorFilterOptionsComponent';
 import './WidgetFilterOptionsComponent.scss';
 
 @Component({
     template: require('./WidgetFilterOptionsComponent.pug'),
     components: {
-        Amountfilteroptionscomponent: AmountFilterOptionsComponent
+        Amountfilteroptionscomponent: AmountFilterOptionsComponent,
+        Tofixedfloorfilteroptionscomponent: ToFixedFloorFilterOptionsComponent,
+        Tofixedceilfilteroptionscomponent: ToFixedCeilFilterOptionsComponent,
+        Tofixedfilteroptionscomponent: ToFixedFilterOptionsComponent,
+        Percentfilteroptionscomponent: PercentFilterOptionsComponent
     }
 })
 export default class WidgetFilterOptionsComponent extends VueComponentBase {
@@ -21,7 +29,11 @@ export default class WidgetFilterOptionsComponent extends VueComponentBase {
 
     private filter_type: string = null;
     private filter_uids: string[] = [
-        Filters.FILTER_TYPE_amount
+        Filters.FILTER_TYPE_amount,
+        Filters.FILTER_TYPE_percent,
+        Filters.FILTER_TYPE_toFixed,
+        Filters.FILTER_TYPE_toFixedCeil,
+        Filters.FILTER_TYPE_toFixedFloor
     ];
 
     get filter_names(): { [filter_uid: string]: string } {

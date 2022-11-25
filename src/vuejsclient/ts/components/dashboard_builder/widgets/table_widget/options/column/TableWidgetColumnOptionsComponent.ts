@@ -110,6 +110,10 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             return null;
         }
 
+        if (!this.custom_filter_names) {
+            this.custom_filter_names = {};
+        }
+
         let fields = VOsTypesManager.getInstance().moduleTables_by_voType[var_param_type].get_fields();
         for (let i in fields) {
             let field = fields[i];
@@ -699,7 +703,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             return null;
         }
 
-        this.custom_filter_names = cloneDeep(this.column.filter_custom_field_filters);
+        this.custom_filter_names = this.column.filter_custom_field_filters ? cloneDeep(this.column.filter_custom_field_filters) : {};
         return Object.assign(new TableColumnDescVO(), this.column);
     }
 

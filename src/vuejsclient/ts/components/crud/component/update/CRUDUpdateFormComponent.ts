@@ -137,6 +137,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
     private updateSelected_vo() {
         if (!this.selected_vo) {
             this.editableVO = null;
+            return;
         }
 
         let self = this;

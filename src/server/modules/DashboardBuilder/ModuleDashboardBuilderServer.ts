@@ -1233,6 +1233,78 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         ));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Décimales' },
+            'to_fixed_filter_options.fractionalDigits.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Arrondi" },
+            'to_fixed_filter_options.arrondi.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': ". à la place de ," },
+            'to_fixed_filter_options.dot_decimal_marker.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Pas de valeur négative' },
+            'to_fixed_filter_options.onlyPositive.___LABEL___'
+        ));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Décimales' },
+            'to_fixed_ceil_filter_options.fractionalDigits.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Arrondi" },
+            'to_fixed_ceil_filter_options.arrondi.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': ". à la place de ," },
+            'to_fixed_ceil_filter_options.dot_decimal_marker.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Pas de valeur négative' },
+            'to_fixed_ceil_filter_options.onlyPositive.___LABEL___'
+        ));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Décimales' },
+            'percent_filter_options.fractionalDigits.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'pts au lieu de %' },
+            'percent_filter_options.pts.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Signe explicite' },
+            'percent_filter_options.explicit_sign.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Evolution ? (-100%)' },
+            'percent_filter_options.evol_from_prct.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': '999 == infini' },
+            'percent_filter_options.treat_999_as_infinite.___LABEL___'
+        ));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Décimales' },
+            'to_fixed_floor_filter_options.fractionalDigits.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Arrondi" },
+            'to_fixed_floor_filter_options.arrondi.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': ". à la place de ," },
+            'to_fixed_floor_filter_options.dot_decimal_marker.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Pas de valeur négative' },
+            'to_fixed_floor_filter_options.onlyPositive.___LABEL___'
+        ));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Désactiver les liens ManyToOne pour ne pas rendre la donnée cliquable dans le tableau" },
             'table_widget_column_conf.disabled_many_to_one_link.___LABEL___'
         ));
