@@ -571,7 +571,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                     this.dashboard_page,
                     this.page_widget,
                     true
-                );
+                ); //Si on a des valeurs par défaut mais qu'aucune n'ont été changée et qu'on a des champs déjà remplis auparavant
                 if (this.get_active_field_filters && this.get_active_field_filters[this.vo_field_ref.api_type_id] &&
                     this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id] && !this.changement_default) {
 
@@ -580,10 +580,14 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                      * Cela a lieu lors d'un changement de page par exemple
                      */
                     this.warn_existing_external_filters = !this.try_apply_actual_active_filters(this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id]);
-                } else {
+                } else { //Si il y a eu changement de val par défaut ou aucun champs remplit avec d'autre valeurs
                     this.tmp_filter_active_options = this.default_values;
-                    this.changement_default = true;
+                    this.changement_default = false;
                 }
+                return;
+
+            } else if (this.changement_default) {
+                this.tmp_filter_active_options = null;
                 return;
             }
         }
