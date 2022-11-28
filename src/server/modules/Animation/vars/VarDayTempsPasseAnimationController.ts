@@ -27,7 +27,7 @@ export default class VarDayTempsPasseAnimationController extends VarServerContro
 
     protected constructor() {
         super(
-            new VarConfVO(AnimationController.VarDayTempsPasseAnimationController_VAR_NAME, ThemeModuleDataRangesVO.API_TYPE_ID, TimeSegment.TYPE_DAY),
+            new VarConfVO(AnimationController.VarDayTempsPasseAnimationController_VAR_NAME, ThemeModuleDataRangesVO.API_TYPE_ID),
             { 'fr-fr': 'Tps passé animation' },
             {
                 'fr-fr': 'Temps passé - animation.'

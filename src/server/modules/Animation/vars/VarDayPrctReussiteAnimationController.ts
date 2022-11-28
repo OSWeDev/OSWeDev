@@ -32,7 +32,7 @@ export default class VarDayPrctReussiteAnimationController extends VarServerCont
 
     protected constructor() {
         super(
-            new VarConfVO(AnimationController.VarDayPrctReussiteAnimationController_VAR_NAME, ThemeModuleDataRangesVO.API_TYPE_ID, TimeSegment.TYPE_DAY),
+            new VarConfVO(AnimationController.VarDayPrctReussiteAnimationController_VAR_NAME, ThemeModuleDataRangesVO.API_TYPE_ID),
             { 'fr-fr': 'Prct réussite animation' },
             {
                 'fr-fr': 'Prctage de réussite de l\'animation.'

@@ -30,7 +30,7 @@ export default class VarDayPrctAvancementAnimationController extends VarServerCo
 
     protected constructor() {
         super(
-            new VarConfVO(AnimationController.VarDayPrctAvancementAnimationController_VAR_NAME, ThemeModuleDataRangesVO.API_TYPE_ID, TimeSegment.TYPE_DAY),
+            new VarConfVO(AnimationController.VarDayPrctAvancementAnimationController_VAR_NAME, ThemeModuleDataRangesVO.API_TYPE_ID),
             { 'fr-fr': 'Prct avancement animation' },
             {
                 'fr-fr': 'Prctage d\'avancement de l\'animation.'

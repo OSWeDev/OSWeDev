@@ -127,19 +127,6 @@ export default class VarDataBaseVO implements IMatroid {
                         RangeHandler.getInstance().get_smallest_segment_type_for_range_type(RangeHandler.getInstance().getRangeType(field));
                     res[field.field_id] = segmentation_cible;
                 }
-            } else {
-                /**
-                 * @deprecated delete this as soon as varConf.ts_ranges_segment_type is removed
-                 */
-                for (let i in fields) {
-                    let field = fields[i];
-                    let segmentation_cible =
-                        ((varConf.ts_ranges_segment_type != null) && (field.field_id == varConf.ts_ranges_field_name)) ?
-                            varConf.ts_ranges_segment_type :
-                            RangeHandler.getInstance().get_smallest_segment_type_for_range_type(RangeHandler.getInstance().getRangeType(field));
-
-                    res[field.field_id] = segmentation_cible;
-                }
             }
         }
 

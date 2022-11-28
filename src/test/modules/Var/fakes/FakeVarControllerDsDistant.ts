@@ -26,7 +26,7 @@ export default class FakeVarControllerDsDistant extends VarServerControllerBase<
     protected static instance: FakeVarControllerDsDistant = null;
 
     protected constructor() {
-        super(new VarConfVO('FakeVarControllerDsDistant', FakeDataVO.API_TYPE_ID, TimeSegment.TYPE_DAY, null, 1), {}, {}, {}, {});
+        super(new VarConfVO('FakeVarControllerDsDistant', FakeDataVO.API_TYPE_ID, null, 1), {}, {}, {}, {});
 
         this.optimization__has_no_imports = true;
     }
@@ -88,7 +88,7 @@ export default class FakeVarControllerDsDistant extends VarServerControllerBase<
 
             res += (datas && datas[date]) ? datas[date].value : 0;
 
-        }, this.varConf.ts_ranges_segment_type);
+        }, TimeSegment.TYPE_DAY);
         return res;
     }
 }
