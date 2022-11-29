@@ -414,7 +414,7 @@ export default abstract class VueAppBase {
 
         if (EnvHandler.getInstance().ACTIVATE_PWA && ((app_name == "client") || (app_name == "login"))) {
             await PWAController.getInstance().initialize_pwa(
-                '/vuejsclient/public/pwa/' + app_name + '-sw.' + EnvHandler.getInstance().VERSION + '.js'
+                '/vuejsclient/public/pwa/client-sw.' + EnvHandler.getInstance().VERSION + '.js'
             );
         }
         // this.registerPushWorker();
