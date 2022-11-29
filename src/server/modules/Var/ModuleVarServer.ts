@@ -1211,7 +1211,9 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         let predeps = var_controller.getDataSourcesPredepsDependencies();
-        await DataSourcesController.getInstance().load_node_datas(predeps, varDAGNode);
+        if (predeps && predeps.length) {
+            await DataSourcesController.getInstance().load_node_datas(predeps, varDAGNode);
+        }
 
         // TEMP DEBUG JFE :
         // ConsoleHandler.getInstance().log("cpt_for_datasources :: " + JSON.stringify(this.cpt_for_datasources));

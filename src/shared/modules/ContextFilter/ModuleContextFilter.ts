@@ -246,10 +246,10 @@ export default class ModuleContextFilter extends Module {
             new ModuleTableField('param_numranges', ModuleTableField.FIELD_TYPE_numrange_array, 'param_numranges', false),
             new ModuleTableField('param_hourranges', ModuleTableField.FIELD_TYPE_hourrange_array, 'param_hourranges', false),
 
-            new ModuleTableField('left_hook', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'left_hook', false).set_plain_obj_cstr(() => new ContextFilterVO()),
-            new ModuleTableField('right_hook', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'right_hook', false).set_plain_obj_cstr(() => new ContextFilterVO()),
+            new ModuleTableField('left_hook', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'left_hook', false),
+            new ModuleTableField('right_hook', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'right_hook', false),
 
-            new ModuleTableField('sub_query', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'sub_query', false).set_plain_obj_cstr(() => new ContextQueryVO()),
+            new ModuleTableField('sub_query', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'sub_query', false),
         ];
 
         let datatable = new ModuleTable(this, ContextFilterVO.API_TYPE_ID, () => new ContextFilterVO(), datatable_fields, null, "Filtre contextuel");
@@ -273,17 +273,17 @@ export default class ModuleContextFilter extends Module {
 
         let datatable_fields = [
             new ModuleTableField('base_api_type_id', ModuleTableField.FIELD_TYPE_string, 'base_api_type_id', true),
-            new ModuleTableField('fields', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'fields', false).set_plain_obj_cstr(() => new ContextQueryFieldVO()),
-            new ModuleTableField('filters', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'filters', false).set_plain_obj_cstr(() => new ContextFilterVO()),
+            new ModuleTableField('fields', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'fields', false),
+            new ModuleTableField('filters', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'filters', false),
             new ModuleTableField('active_api_type_ids', ModuleTableField.FIELD_TYPE_string_array, 'active_api_type_ids', false),
             new ModuleTableField('query_limit', ModuleTableField.FIELD_TYPE_int, 'query_limit', true, true, 0),
             new ModuleTableField('query_offset', ModuleTableField.FIELD_TYPE_int, 'query_offset', true, true, 0),
-            new ModuleTableField('sort_by', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'sort_by', false).set_plain_obj_cstr(() => new SortByVO()),
+            new ModuleTableField('sort_by', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'sort_by', false),
             new ModuleTableField('query_tables_prefix', ModuleTableField.FIELD_TYPE_string, 'query_tables_prefix', false),
             new ModuleTableField('is_access_hook_def', ModuleTableField.FIELD_TYPE_boolean, 'is_access_hook_def', true, true, false),
             new ModuleTableField('use_technical_field_versioning', ModuleTableField.FIELD_TYPE_boolean, 'use_technical_field_versioning', true, true, false),
             new ModuleTableField('query_distinct', ModuleTableField.FIELD_TYPE_boolean, 'query_distinct', true, true, false),
-            new ModuleTableField('discarded_field_paths', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'discarded_field_paths', false).set_plain_obj_cstr(() => new Object()),
+            new ModuleTableField('discarded_field_paths', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'discarded_field_paths', false),
         ];
 
         let datatable = new ModuleTable(this, ContextQueryVO.API_TYPE_ID, () => new ContextQueryVO(), datatable_fields, null, "Requête");

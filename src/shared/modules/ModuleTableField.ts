@@ -136,8 +136,6 @@ export default class ModuleTableField<T> {
      */
     public validate_input: (input_value: any, field: DatatableField<any, any>, vo: any) => Alert[];
 
-    public plain_obj_cstr: () => any = null;
-
     public return_min_value: boolean = true;
     public return_max_value: boolean = true;
 
@@ -210,11 +208,6 @@ export default class ModuleTableField<T> {
         if (!found) {
             this.module_table.uniq_indexes.push([this]);
         }
-    }
-
-    public set_plain_obj_cstr(plain_obj_cstr: () => any): ModuleTableField<T> {
-        this.plain_obj_cstr = plain_obj_cstr;
-        return this;
     }
 
     public setValidatInputFunc(validate_input: (input_value: any, field: DatatableField<any, any>, vo: any) => Alert[]): ModuleTableField<T> {

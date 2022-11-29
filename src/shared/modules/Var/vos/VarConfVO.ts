@@ -1,7 +1,135 @@
 import INamedVO from '../../../interfaces/INamedVO';
+import VOFieldRefVO from '../../DashboardBuilder/vos/VOFieldRefVO';
+import VarConfAutoDepVO from './VarConfAutoDepVO';
 import VarPixelFieldConfVO from './VarPixelFieldConfVO';
 
 export default class VarConfVO implements INamedVO {
+
+    /**
+     * Les différents types d'opérateurs automatiques :
+     *  - unitaires, binaires et ternaires
+     */
+    public static AUTO_OPERATEUR_UNITAIRE_VOFIELDREF: number = 0;
+    public static AUTO_OPERATEUR_UNITAIRE_MOINS: number = 1;
+    public static AUTO_OPERATEUR_UNITAIRE_NOT: number = 2;
+    public static AUTO_OPERATEUR_UNITAIRE_ABS: number = 3;
+    public static AUTO_OPERATEUR_UNITAIRE_ISNULL: number = 4;
+    public static AUTO_OPERATEUR_UNITAIRE_ISNOTNULL: number = 5;
+    public static AUTO_OPERATEUR_UNITAIRE_FACTORIELLE: number = 6;
+    public static AUTO_OPERATEUR_UNITAIRE_LN: number = 7;
+    public static AUTO_OPERATEUR_UNITAIRE_RACINE: number = 8;
+
+    public static AUTO_OPERATEUR_UNITAIRE_ANNEE: number = 9;
+    /**
+     * De 1 à 12
+     */
+    public static AUTO_OPERATEUR_UNITAIRE_MOIS: number = 10;
+    /**
+     * Du 1er du mois au 28/31
+     */
+    public static AUTO_OPERATEUR_UNITAIRE_JOUR_DU_MOIS: number = 11;
+    /**
+     * De 1 lundi à 7 dimanche (isweekdays)
+     */
+    public static AUTO_OPERATEUR_UNITAIRE_JOUR_DE_LA_SEMAINE: number = 12;
+    /**
+     * De 0 à 23
+     */
+    public static AUTO_OPERATEUR_UNITAIRE_HEURE: number = 13;
+    /**
+     * De 0 à 60
+     */
+    public static AUTO_OPERATEUR_UNITAIRE_MINUTE: number = 14;
+    /**
+     * De 0 à 60
+     */
+    public static AUTO_OPERATEUR_UNITAIRE_SECONDE: number = 15;
+
+    public static AUTO_OPERATEUR_UNITAIRE_EN_ANNEES: number = 16;
+    public static AUTO_OPERATEUR_UNITAIRE_EN_MOIS: number = 17;
+    public static AUTO_OPERATEUR_UNITAIRE_EN_SEMAINES: number = 18;
+    public static AUTO_OPERATEUR_UNITAIRE_EN_JOURS: number = 19;
+    public static AUTO_OPERATEUR_UNITAIRE_EN_HEURES: number = 20;
+    public static AUTO_OPERATEUR_UNITAIRE_EN_MINUTES: number = 21;
+    public static AUTO_OPERATEUR_UNITAIRE_EN_SECONDES: number = 22;
+
+    public static AUTO_OPERATEUR_BINAIRE_PLUS: number = 23;
+    public static AUTO_OPERATEUR_BINAIRE_MOINS: number = 24;
+    public static AUTO_OPERATEUR_BINAIRE_MULT: number = 25;
+    public static AUTO_OPERATEUR_BINAIRE_DIV: number = 26;
+    public static AUTO_OPERATEUR_BINAIRE_MODULO: number = 27;
+    public static AUTO_OPERATEUR_BINAIRE_MAX: number = 28;
+    public static AUTO_OPERATEUR_BINAIRE_MIN: number = 29;
+    public static AUTO_OPERATEUR_BINAIRE_EGAL: number = 30;
+    public static AUTO_OPERATEUR_BINAIRE_INF: number = 31;
+    public static AUTO_OPERATEUR_BINAIRE_SUP: number = 32;
+    public static AUTO_OPERATEUR_BINAIRE_INFEGAL: number = 33;
+    public static AUTO_OPERATEUR_BINAIRE_SUPEGAL: number = 34;
+    public static AUTO_OPERATEUR_BINAIRE_DIFFERENT: number = 35;
+    public static AUTO_OPERATEUR_BINAIRE_ET: number = 36;
+    public static AUTO_OPERATEUR_BINAIRE_OU: number = 37;
+    public static AUTO_OPERATEUR_BINAIRE_XOR: number = 38;
+    public static AUTO_OPERATEUR_BINAIRE_ROUND: number = 39;
+    public static AUTO_OPERATEUR_BINAIRE_CEIL: number = 40;
+    public static AUTO_OPERATEUR_BINAIRE_FLOOR: number = 41;
+    public static AUTO_OPERATEUR_BINAIRE_EXP: number = 42;
+    public static AUTO_OPERATEUR_BINAIRE_LOG: number = 43;
+
+    public static AUTO_OPERATEUR_BINAIRE_STARTOF: number = 44;
+
+    public static AUTO_OPERATEUR_TERNAIRE_SI: number = 45;
+    public static AUTO_OPERATEUR_TERNAIRE_AJOUT_DUREE: number = 46;
+
+    public static AUTO_OPERATEUR_LABELS: { [id: number]: string } = {
+        [VarConfVO.AUTO_OPERATEUR_UNITAIRE_VOFIELDREF]: 'var_conf.auto_operateur.unitaire_vofieldref',
+        [VarConfVO.AUTO_OPERATEUR_UNITAIRE_MOINS]: 'var_conf.auto_operateur.unitaire_moins',
+        [VarConfVO.AUTO_OPERATEUR_UNITAIRE_NOT]: 'var_conf.auto_operateur.unitaire_not',
+        [VarConfVO.AUTO_OPERATEUR_UNITAIRE_ABS]: 'var_conf.auto_operateur.unitaire_abs',
+        [VarConfVO.AUTO_OPERATEUR_UNITAIRE_ISNULL]: 'var_conf.auto_operateur.unitaire_isnull',
+        [VarConfVO.AUTO_OPERATEUR_UNITAIRE_ISNOTNULL]: 'var_conf.auto_operateur.unitaire_isnotnull',
+        [VarConfVO.AUTO_OPERATEUR_UNITAIRE_FACTORIELLE]: 'var_conf.auto_operateur.unitaire_factorielle',
+        [VarConfVO.AUTO_OPERATEUR_UNITAIRE_LN]: 'var_conf.auto_operateur.unitaire_ln',
+        [VarConfVO.AUTO_OPERATEUR_UNITAIRE_RACINE]: 'var_conf.auto_operateur.unitaire_racine',
+        [VarConfVO.AUTO_OPERATEUR_UNITAIRE_ANNEE]: 'var_conf.auto_operateur.unitaire_annee',
+        [VarConfVO.AUTO_OPERATEUR_UNITAIRE_MOIS]: 'var_conf.auto_operateur.unitaire_mois',
+        [VarConfVO.AUTO_OPERATEUR_UNITAIRE_JOUR_DU_MOIS]: 'var_conf.auto_operateur.unitaire_jour_du_mois',
+        [VarConfVO.AUTO_OPERATEUR_UNITAIRE_JOUR_DE_LA_SEMAINE]: 'var_conf.auto_operateur.unitaire_jour_de_la_semaine',
+        [VarConfVO.AUTO_OPERATEUR_UNITAIRE_HEURE]: 'var_conf.auto_operateur.unitaire_heure',
+        [VarConfVO.AUTO_OPERATEUR_UNITAIRE_MINUTE]: 'var_conf.auto_operateur.unitaire_minute',
+        [VarConfVO.AUTO_OPERATEUR_UNITAIRE_SECONDE]: 'var_conf.auto_operateur.unitaire_seconde',
+        [VarConfVO.AUTO_OPERATEUR_UNITAIRE_EN_ANNEES]: 'var_conf.auto_operateur.unitaire_en_annees',
+        [VarConfVO.AUTO_OPERATEUR_UNITAIRE_EN_MOIS]: 'var_conf.auto_operateur.unitaire_en_mois',
+        [VarConfVO.AUTO_OPERATEUR_UNITAIRE_EN_SEMAINES]: 'var_conf.auto_operateur.unitaire_en_semaines',
+        [VarConfVO.AUTO_OPERATEUR_UNITAIRE_EN_JOURS]: 'var_conf.auto_operateur.unitaire_en_jours',
+        [VarConfVO.AUTO_OPERATEUR_UNITAIRE_EN_HEURES]: 'var_conf.auto_operateur.unitaire_en_heures',
+        [VarConfVO.AUTO_OPERATEUR_UNITAIRE_EN_MINUTES]: 'var_conf.auto_operateur.unitaire_en_minutes',
+        [VarConfVO.AUTO_OPERATEUR_UNITAIRE_EN_SECONDES]: 'var_conf.auto_operateur.unitaire_en_secondes',
+        [VarConfVO.AUTO_OPERATEUR_BINAIRE_PLUS]: 'var_conf.auto_operateur.binaire_plus',
+        [VarConfVO.AUTO_OPERATEUR_BINAIRE_MOINS]: 'var_conf.auto_operateur.binaire_moins',
+        [VarConfVO.AUTO_OPERATEUR_BINAIRE_MULT]: 'var_conf.auto_operateur.binaire_mult',
+        [VarConfVO.AUTO_OPERATEUR_BINAIRE_DIV]: 'var_conf.auto_operateur.binaire_div',
+        [VarConfVO.AUTO_OPERATEUR_BINAIRE_MODULO]: 'var_conf.auto_operateur.binaire_modulo',
+        [VarConfVO.AUTO_OPERATEUR_BINAIRE_MAX]: 'var_conf.auto_operateur.binaire_max',
+        [VarConfVO.AUTO_OPERATEUR_BINAIRE_MIN]: 'var_conf.auto_operateur.binaire_min',
+        [VarConfVO.AUTO_OPERATEUR_BINAIRE_EGAL]: 'var_conf.auto_operateur.binaire_egal',
+        [VarConfVO.AUTO_OPERATEUR_BINAIRE_INF]: 'var_conf.auto_operateur.binaire_inf',
+        [VarConfVO.AUTO_OPERATEUR_BINAIRE_SUP]: 'var_conf.auto_operateur.binaire_sup',
+        [VarConfVO.AUTO_OPERATEUR_BINAIRE_INFEGAL]: 'var_conf.auto_operateur.binaire_infegal',
+        [VarConfVO.AUTO_OPERATEUR_BINAIRE_SUPEGAL]: 'var_conf.auto_operateur.binaire_supegal',
+        [VarConfVO.AUTO_OPERATEUR_BINAIRE_DIFFERENT]: 'var_conf.auto_operateur.binaire_different',
+        [VarConfVO.AUTO_OPERATEUR_BINAIRE_ET]: 'var_conf.auto_operateur.binaire_et',
+        [VarConfVO.AUTO_OPERATEUR_BINAIRE_OU]: 'var_conf.auto_operateur.binaire_ou',
+        [VarConfVO.AUTO_OPERATEUR_BINAIRE_XOR]: 'var_conf.auto_operateur.binaire_xor',
+        [VarConfVO.AUTO_OPERATEUR_BINAIRE_ROUND]: 'var_conf.auto_operateur.binaire_round',
+        [VarConfVO.AUTO_OPERATEUR_BINAIRE_CEIL]: 'var_conf.auto_operateur.binaire_ceil',
+        [VarConfVO.AUTO_OPERATEUR_BINAIRE_FLOOR]: 'var_conf.auto_operateur.binaire_floor',
+        [VarConfVO.AUTO_OPERATEUR_BINAIRE_EXP]: 'var_conf.auto_operateur.binaire_exp',
+        [VarConfVO.AUTO_OPERATEUR_BINAIRE_LOG]: 'var_conf.auto_operateur.binaire_log',
+        [VarConfVO.AUTO_OPERATEUR_BINAIRE_STARTOF]: 'var_conf.auto_operateur.bianire_startof',
+        [VarConfVO.AUTO_OPERATEUR_TERNAIRE_SI]: 'var_conf.auto_operateur.ternaire_si',
+        [VarConfVO.AUTO_OPERATEUR_TERNAIRE_AJOUT_DUREE]: 'var_conf.auto_operateur.ternaire_ajout_duree',
+    };
+
 
     public static NO_AGGREGATOR: number = 0;
     public static SUM_AGGREGATOR: number = 1;
@@ -35,6 +163,28 @@ export default class VarConfVO implements INamedVO {
 
     public id: number;
     public _type: string = VarConfVO.API_TYPE_ID;
+
+    /**
+     * Indique si la var utilise la factory ou une déclaration manuelle en TypeScript de la var
+     */
+    public is_auto: boolean;
+
+    /**
+     * L'opérateur auto utilisé
+     */
+    public auto_operator: number;
+
+    /**
+     * Configuration des deps automatiques, dans l'ordre des params de l'opérateur
+     */
+    public auto_deps: VarConfAutoDepVO[];
+
+    /**
+     * En cas d'opérateur de type vofieldref, contient la référence du champs ciblé
+     */
+    public auto_vofieldref_api_type_id: string;
+    public auto_vofieldref_field_id: string;
+    public auto_vofieldref_modifier: number;
 
     /**
      * Hide/Show tooltip to explain var to public users (via '?' button)

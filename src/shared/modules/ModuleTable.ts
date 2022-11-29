@@ -732,26 +732,31 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 }
 
                 let trans_ = e ? JSON.parse(e) : null;
-                if ((!!trans_) && !!field.plain_obj_cstr) {
+                if (!!trans_) {
 
                     /**
                      * Prise en compte des tableaux. dans ce cas chaque élément du tableau est instancié
                      */
                     if (isArray(trans_)) {
-                        for (let transi in trans_) {
-                            trans_[transi] = Object.assign(field.plain_obj_cstr(), trans_[transi]);
-                        }
+                        trans_ = this.default_transform_fields(trans_, true);
                     } else {
 
-                        trans_ = Object.assign(field.plain_obj_cstr(), trans_);
+                        /**
+                         * Si on est sur un object, pas tableau et pas typé, on boucle sur les champs pour les traduire aussi (puisque potentiellement des objects typés)
+                         */
+                        let elt_type = trans_ ? trans_._type : null;
+
+                        let field_table = elt_type ? VOsTypesManager.getInstance().moduleTables_by_voType[elt_type] : null;
+                        let new_obj = field_table ? field_table.voConstructor() : new Object();
+                        trans_ = Object.assign(new_obj, trans_);
+                        if (!field_table) {
+                            trans_ = this.default_transform_fields(trans_, true);
+                        } else {
+                            trans_ = field_table.default_from_api_version(trans_);
+                        }
                     }
                 }
-                if (trans_ && trans_._type) {
-                    let field_table = VOsTypesManager.getInstance().moduleTables_by_voType[trans_._type];
-                    return trans_ ? field_table.default_from_api_version(trans_) : null;
-                } else {
-                    return trans_;
-                }
+                return trans_;
 
             case ModuleTableField.FIELD_TYPE_tstz_array:
 
@@ -769,7 +774,6 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 return e;
         }
     }
-
 
     /**
      * Traduire le champs field.field_id de src_vo dans dest_vo. Possibilité de fournir un alias qui sera utilisé pour retrouver le champs dans la source et la destination
@@ -906,26 +910,31 @@ export default class ModuleTable<T extends IDistantVOBase> {
             case ModuleTableField.FIELD_TYPE_plain_vo_obj:
                 let trans_ = field_value ? JSON.parse(field_value) : null;
 
-                if ((!!trans_) && !!field.plain_obj_cstr) {
+                if (!!trans_) {
 
                     /**
                      * Prise en compte des tableaux. dans ce cas chaque élément du tableau est instancié
                      */
                     if (isArray(trans_)) {
-                        for (let transi in trans_) {
-                            trans_[transi] = Object.assign(field.plain_obj_cstr(), trans_[transi]);
-                        }
+                        trans_ = this.default_transform_fields(trans_, false);
                     } else {
 
-                        trans_ = Object.assign(field.plain_obj_cstr(), trans_);
+                        /**
+                         * Si on est sur un object, pas tableau et pas typé, on boucle sur les champs pour les traduire aussi (puisque potentiellement des objects typés)
+                         */
+                        let elt_type = trans_ ? trans_._type : null;
+
+                        let field_table = elt_type ? VOsTypesManager.getInstance().moduleTables_by_voType[elt_type] : null;
+                        let new_obj = field_table ? field_table.voConstructor() : new Object();
+                        trans_ = Object.assign(new_obj, trans_);
+                        if (!field_table) {
+                            trans_ = this.default_transform_fields(trans_, false);
+                        } else {
+                            trans_ = field_table.default_from_api_version(trans_);
+                        }
                     }
                 }
-                if (trans_ && trans_._type) {
-                    let field_table = VOsTypesManager.getInstance().moduleTables_by_voType[trans_._type];
-                    dest_vo[field_id] = trans_ ? field_table.defaultforceNumeric(trans_) : null;
-                } else {
-                    dest_vo[field_id] = trans_;
-                }
+                dest_vo[field_id] = trans_;
                 break;
 
             default:
@@ -1262,5 +1271,21 @@ export default class ModuleTable<T extends IDistantVOBase> {
             }
             return 0;
         });
+    }
+
+    private default_transform_fields(trans_, is_from_api_instead_od_defaultforceNumeric: boolean = true) {
+        for (let transi in trans_) {
+
+            let elt = trans_[transi];
+            let elt_type = elt ? elt._type : null;
+
+            let field_table = elt_type ? VOsTypesManager.getInstance().moduleTables_by_voType[elt_type] : null;
+            let new_obj = field_table ? field_table.voConstructor() : new Object();
+            trans_[transi] = Object.assign(new_obj, trans_[transi]);
+            if (field_table) {
+                trans_[transi] = is_from_api_instead_od_defaultforceNumeric ? field_table.default_from_api_version(trans_[transi]) : field_table.defaultforceNumeric(trans_[transi]);
+            }
+        }
+        return trans_;
     }
 }
