@@ -320,7 +320,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
 
 
             } else if (this.changement_default) {
-                this.tmp_filter_active_options = null;
+                return;
             }
         }
 
