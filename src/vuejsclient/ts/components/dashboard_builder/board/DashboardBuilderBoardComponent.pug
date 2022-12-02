@@ -29,7 +29,7 @@
                         .row.header-filters-bloc.clickable(@click="change_is_filtres_deplie")
                             .col.text-center
                                 Inlinetranslatabletext(:code_text="dashboard_page.translatable_group_filters_code_text" :is_editable="editable" default_translation="Filtres")
-                            .col.text-right.chevron
+                            .text-right.chevron
                                 template(v-if="is_filtres_deplie")
                                     i.fa.fa-chevron-up
                                 template(v-else)

@@ -19,7 +19,7 @@ export default class DashboardPageVO implements IDashboardPageVO, IDistantVOBase
         if (!this.id) {
             return null;
         }
-        return DashboardBuilderController.PAGE_NAME_CODE_PREFIX + this.id + ".group_filters";
+        return DashboardBuilderController.PAGE_NAME_CODE_PREFIX + this.id + "_group_filters";
     }
 
     get translatable_name_code_text(): string {

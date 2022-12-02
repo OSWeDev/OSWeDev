@@ -211,6 +211,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
                 return;
             } else if (this.changement_default) {
                 this.tmp_filter_active_options = null;
+                return;
             }
 
         }
@@ -335,7 +336,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
             let datafilter = new DataFilterOption(
                 DataFilterOption.STATE_SELECTED,
-                this.field.enum_values[num],
+                this.t(this.field.enum_values[num]),
                 num
             );
             datafilter.string_value = this.field.enum_values[num];
