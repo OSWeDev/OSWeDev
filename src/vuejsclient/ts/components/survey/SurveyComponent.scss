@@ -1,0 +1,91 @@
+.survey {
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0 5px;
+
+    .survey_switcher {
+        background: white;
+        padding: 4px 8px 3px;
+        cursor: pointer;
+        border-radius: 5px;
+        font-weight: bold;
+        font-size: 18px;
+        border: solid 1px #DDD;
+
+        &:hover {
+            background: #333;
+            color: white;
+            transition: all 0.3s;
+        }
+    }
+
+    .survey_modal {
+
+        position: fixed;
+        right: 10px;
+        width: 46em;
+        background: white;
+        bottom: 70px;
+        padding: 1em;
+        border-radius: 10px;
+        box-shadow: 1px 1px 6px -2px;
+        max-height: 80%;
+        overflow-y: scroll;
+        overflow-x: hidden;
+        z-index: 99999;
+        max-width: 95%;
+
+        .survey_modal_header {
+
+            padding-bottom: 1em;
+            border-bottom: solid 2px #DDD;
+            margin-bottom: 1em;
+        }
+
+        textarea,
+        input[type~="text"] {
+            padding: 0.5em;
+            width: 100%;
+            margin-left: 0;
+        }
+
+        input[type~="radio"] {
+            height: 1.5em;
+            width: 1.5em;
+            vertical-align: middle;
+            cursor: pointer;
+
+            &+label {
+                max-width: 80%;
+            }
+        }
+
+        label i.fa.fa-asterisk.mandatory {
+            color: red;
+            font-size: 0.4rem;
+            vertical-align: top;
+            margin-left: 1px;
+        }
+
+        label.feedback_type {
+
+            vertical-align: text-top;
+            margin-left: 0.5em;
+            cursor: pointer;
+        }
+
+        .dz-preview.dz-file-preview.dz-processing {
+            display: none;
+        }
+
+        .spacer {
+            display: block;
+            height: 1em;
+        }
+
+    }
+
+    .survey_modal.hidden {
+        display: none;
+    }
+}
