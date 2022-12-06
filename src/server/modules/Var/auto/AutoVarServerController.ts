@@ -1,9 +1,10 @@
-import { values } from "lodash";
+import ContextFilterVO, { filter } from "../../../../shared/modules/ContextFilter/vos/ContextFilterVO";
 import TimeSegment from "../../../../shared/modules/DataRender/vos/TimeSegment";
 import Dates from "../../../../shared/modules/FormatDatesNombres/Dates/Dates";
 import Durations from "../../../../shared/modules/FormatDatesNombres/Dates/Durations";
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
 import VarDAGNode from "../../../../shared/modules/Var/graph/VarDAGNode";
+import ModuleVar from "../../../../shared/modules/Var/ModuleVar";
 import VarConfAutoDepVO from "../../../../shared/modules/Var/vos/VarConfAutoDepVO";
 import VarConfVO from "../../../../shared/modules/Var/vos/VarConfVO";
 import VarDataBaseVO from "../../../../shared/modules/Var/vos/VarDataBaseVO";
@@ -189,24 +190,25 @@ export default class AutoVarServerController extends VarServerControllerBase<Var
         return res;
     }
 
-    public async get_invalid_params_intersectors_on_POST_C_POST_D(c_or_d_vo: IDistantVOBase): Promise<VarDataBaseVO[]> {
-        return [VarControllerHelpers.getInstance().get_invalid_CCS_params_intersectors_from_vo_famille_crescendo(this.varConf.name, c_or_d_vo)];
-    }
+    // TODO
+    // public async get_invalid_params_intersectors_on_POST_C_POST_D(c_or_d_vo: IDistantVOBase): Promise<VarDataBaseVO[]> {
+    //     return [VarControllerHelpers.getInstance().get_invalid_CCS_params_intersectors_from_vo_famille_crescendo(this.varConf.name, c_or_d_vo)];
+    // }
 
-    public async get_invalid_params_intersectors_on_POST_U<T extends IDistantVOBase>(u_vo_holder: DAOUpdateVOHolder<T>): Promise<VarDataBaseVO[]> {
+    // public async get_invalid_params_intersectors_on_POST_U<T extends IDistantVOBase>(u_vo_holder: DAOUpdateVOHolder<T>): Promise<VarDataBaseVO[]> {
 
-        /**
-         * Si on a pas touché aux champs utiles, on esquive la mise à jour
-         */
-        if (!this.has_changed_important_field(u_vo_holder)) {
-            return null;
-        }
+    //     /**
+    //      * Si on a pas touché aux champs utiles, on esquive la mise à jour
+    //      */
+    //     if (!this.has_changed_important_field(u_vo_holder)) {
+    //         return null;
+    //     }
 
-        return [
-            VarControllerHelpers.getInstance().get_invalid_CCS_params_intersectors_from_vo_famille_crescendo(this.varConf.name, u_vo_holder.pre_update_vo as any),
-            VarControllerHelpers.getInstance().get_invalid_CCS_params_intersectors_from_vo_famille_crescendo(this.varConf.name, u_vo_holder.post_update_vo as any)
-        ];
-    }
+    //     return [
+    //         VarControllerHelpers.getInstance().get_invalid_CCS_params_intersectors_from_vo_famille_crescendo(this.varConf.name, u_vo_holder.pre_update_vo as any),
+    //         VarControllerHelpers.getInstance().get_invalid_CCS_params_intersectors_from_vo_famille_crescendo(this.varConf.name, u_vo_holder.post_update_vo as any)
+    //     ];
+    // }
 
     public async get_invalid_params_intersectors_from_dep<T extends VarDataBaseVO>(dep_id: string, intersectors: T[]): Promise<VarDataBaseVO[]> {
 
@@ -436,5 +438,22 @@ export default class AutoVarServerController extends VarServerControllerBase<Var
         }
 
         return u_vo_holder.post_update_vo[this.varConf.auto_vofieldref_field_id] != u_vo_holder.pre_update_vo[this.varConf.auto_vofieldref_field_id];
+    }
+
+    private async get_invalid_params_intersectors_from_vo(vo: IDistantVOBase): Promise<VarDataBaseVO> {
+
+        let active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = {
+            [vo._type]: { id: filter(vo._type).by_id(vo.id) }
+        };
+
+        let var_param = await ModuleVar.getInstance().getVarParamFromContextFilters(
+            this.varConf.name,
+            active_field_filters,
+            null,
+            this.varConf.auto_param_context_api_type_ids,
+            this.varConf.auto_param_context_discarded_field_paths,
+            true);
+
+        return var_param;
     }
 }

@@ -1,6 +1,7 @@
 import INamedVO from '../../../interfaces/INamedVO';
 import VOFieldRefVO from '../../DashboardBuilder/vos/VOFieldRefVO';
 import VarConfAutoDepVO from './VarConfAutoDepVO';
+import VarConfAutoParamFieldVO from './VarConfAutoParamFieldVO';
 import VarPixelFieldConfVO from './VarPixelFieldConfVO';
 
 export default class VarConfVO implements INamedVO {
@@ -185,6 +186,20 @@ export default class VarConfVO implements INamedVO {
     public auto_vofieldref_api_type_id: string;
     public auto_vofieldref_field_id: string;
     public auto_vofieldref_modifier: number;
+
+    /**
+     * Les champs de paramétrage de la var
+     *  Si le type est un num => numranges
+     *  Si le type est une date => tsranges
+     */
+    public auto_param_fields: VarConfAutoParamFieldVO[];
+
+    /**
+     * La description des types pris en compte pour la génération des requêtes et des liens à ignorer
+     */
+    public auto_param_context_api_type_ids: string[];
+    public auto_param_context_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
+    public auto_param_context_use_technical_field_versioning: boolean;
 
     /**
      * Hide/Show tooltip to explain var to public users (via '?' button)

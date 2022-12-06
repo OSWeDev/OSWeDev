@@ -1343,7 +1343,8 @@ export default class ModuleVarServer extends ModuleServerBase {
         get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
         custom_filters: { [var_param_field_name: string]: ContextFilterVO },
         active_api_type_ids: string[],
-        discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }
+        discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
+        accept_max_ranges: boolean = false
     ): Promise<VarDataBaseVO> {
 
         if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
@@ -1394,12 +1395,17 @@ export default class ModuleVarServer extends ModuleServerBase {
                             }
 
                             if (!ids_db) {
+
                                 // Max range étant interdit sur les registers de var, on force un retour null
-                                if (!refuse_param) {
-                                    ConsoleHandler.getInstance().error('getVarParamFromContextFilters: max range not allowed on registers of var');
-                                    refuse_param = true;
+                                if (!accept_max_ranges) {
+
+                                    if (!refuse_param) {
+                                        ConsoleHandler.getInstance().error('getVarParamFromContextFilters: max range not allowed on registers of var');
+                                        refuse_param = true;
+                                    }
+                                } else {
+                                    var_param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxNumRange()];
                                 }
-                                // var_param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxNumRange()];
                                 break;
                             }
 
@@ -1409,19 +1415,27 @@ export default class ModuleVarServer extends ModuleServerBase {
                             var_param[matroid_field.field_id] = RangeHandler.getInstance().get_ids_ranges_from_list(ids);
                         } else {
                             // Max range étant interdit sur les registers de var, on force un retour null
+                            if (!accept_max_ranges) {
+
+                                if (!refuse_param) {
+                                    ConsoleHandler.getInstance().error('getVarParamFromContextFilters: max range not allowed on registers of var');
+                                    refuse_param = true;
+                                }
+                            } else {
+                                var_param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxNumRange()];
+                            }
+                        }
+                        break;
+                    case ModuleTableField.FIELD_TYPE_hourrange_array:
+                        if (!accept_max_ranges) {
+
                             if (!refuse_param) {
                                 ConsoleHandler.getInstance().error('getVarParamFromContextFilters: max range not allowed on registers of var');
                                 refuse_param = true;
                             }
-                            // var_param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxNumRange()];
+                        } else {
+                            var_param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxHourRange()];
                         }
-                        break;
-                    case ModuleTableField.FIELD_TYPE_hourrange_array:
-                        if (!refuse_param) {
-                            ConsoleHandler.getInstance().error('getVarParamFromContextFilters: max range not allowed on registers of var');
-                            refuse_param = true;
-                        }
-                        // var_param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxHourRange()];
                         break;
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
                         if (!!custom_filters[matroid_field.field_id]) {
@@ -1439,9 +1453,15 @@ export default class ModuleVarServer extends ModuleServerBase {
                             }
 
                             if (!var_param[matroid_field.field_id]) {
-                                if (!refuse_param) {
-                                    ConsoleHandler.getInstance().error('getVarParamFromContextFilters: max range not allowed on registers of var');
-                                    refuse_param = true;
+                                if (!accept_max_ranges) {
+
+                                    if (!refuse_param) {
+                                        ConsoleHandler.getInstance().error('getVarParamFromContextFilters: max range not allowed on registers of var');
+                                        refuse_param = true;
+                                    }
+
+                                } else {
+                                    var_param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxNumRange()];
                                 }
                                 return;
                             }
@@ -1449,11 +1469,16 @@ export default class ModuleVarServer extends ModuleServerBase {
                         }
 
                         // Max range étant interdit sur les registers de var, on force un retour null
-                        if (!refuse_param) {
-                            ConsoleHandler.getInstance().error('getVarParamFromContextFilters: max range not allowed on registers of var');
-                            refuse_param = true;
+                        if (!accept_max_ranges) {
+
+                            if (!refuse_param) {
+                                ConsoleHandler.getInstance().error('getVarParamFromContextFilters: max range not allowed on registers of var');
+                                refuse_param = true;
+                            }
+
+                        } else {
+                            var_param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxTSRange()];
                         }
-                        // var_param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxTSRange()];
                         break;
                 }
             })(matroid_field_));

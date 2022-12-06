@@ -1121,7 +1121,8 @@ export default class ContextQueryServerController {
          * On doit identifier le chemin le plus court pour rejoindre les 2 types de données
          */
         let path: FieldPathWrapper[] = ContextFieldPathServerController.getInstance().get_path_between_types(
-            context_query,
+            context_query.discarded_field_paths,
+            context_query.use_technical_field_versioning,
             context_query.active_api_type_ids,
             Object.keys(joined_tables_by_vo_type),
             api_type_id);
@@ -1192,7 +1193,8 @@ export default class ContextQueryServerController {
              * On doit identifier le chemin le plus court pour rejoindre les 2 types de données
              */
             let path: FieldPathWrapper[] = ContextFieldPathServerController.getInstance().get_path_between_types(
-                context_query,
+                context_query.discarded_field_paths,
+                context_query.use_technical_field_versioning,
                 context_query.active_api_type_ids,
                 Object.keys(tables_aliases_by_type),
                 filter.vo_type);

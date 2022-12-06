@@ -179,6 +179,7 @@ describe('ContextFieldPathServerController', () => {
         let deployed_deps_from: { [api_type_id: string]: boolean } = {};
         let path: FieldPathWrapper[] = ContextFieldPathServerController.getInstance()['get_paths_from_moduletable'](
             null,
+            null,
             [],
             this_path_next_turn_paths,
             LangVO.API_TYPE_ID,
@@ -208,6 +209,7 @@ describe('ContextFieldPathServerController', () => {
         let this_path_next_turn_paths: FieldPathWrapper[][] = [];
         let deployed_deps_from: { [api_type_id: string]: boolean } = {};
         let path: FieldPathWrapper[] = ContextFieldPathServerController.getInstance()['get_paths_from_moduletable'](
+            null,
             null,
             [],
             this_path_next_turn_paths,
@@ -239,6 +241,7 @@ describe('ContextFieldPathServerController', () => {
         let deployed_deps_from: { [api_type_id: string]: boolean } = {};
         let path: FieldPathWrapper[] = ContextFieldPathServerController.getInstance()['get_paths_from_moduletable'](
             null,
+            null,
             [],
             this_path_next_turn_paths,
             UserVO.API_TYPE_ID,
@@ -262,6 +265,7 @@ describe('ContextFieldPathServerController', () => {
         this_path_next_turn_paths = [];
         deployed_deps_from = {};
         path = ContextFieldPathServerController.getInstance()['get_paths_from_moduletable'](
+            null,
             null,
             [],
             this_path_next_turn_paths,
@@ -293,6 +297,7 @@ describe('ContextFieldPathServerController', () => {
         let deployed_deps_from: { [api_type_id: string]: boolean } = {};
         let path: FieldPathWrapper[] = ContextFieldPathServerController.getInstance()['get_paths_from_moduletable'](
             null,
+            null,
             [],
             this_path_next_turn_paths,
             AnonymizationUserConfVO.API_TYPE_ID,
@@ -322,6 +327,7 @@ describe('ContextFieldPathServerController', () => {
 
         let this_path_next_turn_paths_2: FieldPathWrapper[][] = [];
         path = ContextFieldPathServerController.getInstance()['get_paths_from_moduletable'](
+            null,
             null,
             this_path_next_turn_paths[0],
             this_path_next_turn_paths_2,
@@ -359,6 +365,7 @@ describe('ContextFieldPathServerController', () => {
         let deployed_deps_from: { [api_type_id: string]: boolean } = {};
         let path: FieldPathWrapper[] = ContextFieldPathServerController.getInstance()['get_paths_from_moduletable'](
             null,
+            null,
             [],
             this_path_next_turn_paths,
             AnonymizationFieldConfVO.API_TYPE_ID,
@@ -388,6 +395,7 @@ describe('ContextFieldPathServerController', () => {
 
         let this_path_next_turn_paths_2: FieldPathWrapper[][] = [];
         path = ContextFieldPathServerController.getInstance()['get_paths_from_moduletable'](
+            null,
             null,
             this_path_next_turn_paths[0],
             this_path_next_turn_paths_2,
@@ -427,6 +435,7 @@ describe('ContextFieldPathServerController', () => {
         let deployed_deps_from: { [api_type_id: string]: boolean } = {};
         let path: FieldPathWrapper[] = ContextFieldPathServerController.getInstance()['get_paths_from_moduletable'](
             null,
+            null,
             [],
             this_path_next_turn_paths,
             AnonymizationFieldConfVO.API_TYPE_ID,
@@ -456,6 +465,7 @@ describe('ContextFieldPathServerController', () => {
 
         let this_path_next_turn_paths_2: FieldPathWrapper[][] = [];
         path = ContextFieldPathServerController.getInstance()['get_paths_from_moduletable'](
+            null,
             null,
             this_path_next_turn_paths[0],
             this_path_next_turn_paths_2,
@@ -497,6 +507,7 @@ describe('ContextFieldPathServerController', () => {
 
         let path: FieldPathWrapper[] = ContextFieldPathServerController.getInstance().get_path_between_types(
             null,
+            null,
             [UserVO.API_TYPE_ID, LangVO.API_TYPE_ID],
             [UserVO.API_TYPE_ID],
             LangVO.API_TYPE_ID
@@ -515,6 +526,7 @@ describe('ContextFieldPathServerController', () => {
     it('test get_path_between_types - Lang => User', () => {
 
         let path: FieldPathWrapper[] = ContextFieldPathServerController.getInstance().get_path_between_types(
+            null,
             null,
             [UserVO.API_TYPE_ID, LangVO.API_TYPE_ID],
             [LangVO.API_TYPE_ID],
@@ -535,6 +547,7 @@ describe('ContextFieldPathServerController', () => {
 
         let path: FieldPathWrapper[] = ContextFieldPathServerController.getInstance().get_path_between_types(
             null,
+            null,
             [UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, RoleVO.API_TYPE_ID],
             [UserRoleVO.API_TYPE_ID],
             UserVO.API_TYPE_ID
@@ -546,6 +559,7 @@ describe('ContextFieldPathServerController', () => {
         ]);
 
         path = ContextFieldPathServerController.getInstance().get_path_between_types(
+            null,
             null,
             [UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, RoleVO.API_TYPE_ID],
             [UserRoleVO.API_TYPE_ID, UserVO.API_TYPE_ID],
@@ -563,6 +577,7 @@ describe('ContextFieldPathServerController', () => {
     it('test get_path_between_types - UserRoleVO => AnonymizationUserConfVO', () => {
 
         let path: FieldPathWrapper[] = ContextFieldPathServerController.getInstance().get_path_between_types(
+            null,
             null,
             [UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, RoleVO.API_TYPE_ID, AnonymizationUserConfVO.API_TYPE_ID, AnonymizationFieldConfVO.API_TYPE_ID],
             [UserRoleVO.API_TYPE_ID],
@@ -585,6 +600,7 @@ describe('ContextFieldPathServerController', () => {
 
         let path: FieldPathWrapper[] = ContextFieldPathServerController.getInstance().get_path_between_types(
             null,
+            null,
             [UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, RoleVO.API_TYPE_ID, AnonymizationUserConfVO.API_TYPE_ID, AnonymizationFieldConfVO.API_TYPE_ID],
             [UserRoleVO.API_TYPE_ID],
             AnonymizationFieldConfVO.API_TYPE_ID
@@ -606,6 +622,7 @@ describe('ContextFieldPathServerController', () => {
     it('test get_path_between_types - RoleVO => AnonymizationFieldConfVO', () => {
 
         let path: FieldPathWrapper[] = ContextFieldPathServerController.getInstance().get_path_between_types(
+            null,
             null,
             [UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, RoleVO.API_TYPE_ID, AnonymizationUserConfVO.API_TYPE_ID, AnonymizationFieldConfVO.API_TYPE_ID],
             [RoleVO.API_TYPE_ID],
