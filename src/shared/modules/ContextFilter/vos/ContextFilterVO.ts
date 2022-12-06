@@ -148,6 +148,7 @@ export default class ContextFilterVO implements IDistantVOBase {
     public static TYPE_NUMERIC_EQUALS_ANY: number = 58;
     public static TYPE_NUMERIC_INCLUDES: number = 13;
     public static TYPE_NUMERIC_IS_INCLUDED_IN: number = 14;
+    public static TYPE_NUMERIC_CONTAINS: number = 61;
     public static TYPE_NUMERIC_NOT_EQUALS: number = 57;
 
     /**
@@ -191,6 +192,8 @@ export default class ContextFilterVO implements IDistantVOBase {
     public static TYPE_TEXT_INCLUDES_NONE: number = 36;
     public static TYPE_TEXT_STARTSWITH_NONE: number = 37;
     public static TYPE_TEXT_ENDSWITH_NONE: number = 38;
+
+    public static TYPE_TEXT_CONTAINS_ALL_EXACT: number = 60;
 
     /**
      * Dates special filters
@@ -795,6 +798,16 @@ export default class ContextFilterVO implements IDistantVOBase {
      */
     public by_num_is_in_ranges(ranges: NumRange[]): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_NUMERIC_IS_INCLUDED_IN;
+        this.param_numranges = ranges;
+        return this;
+    }
+
+    /**
+     * Filtre par inclusion de num_ranges et vérifie que le nombre de valeurs est supérieur ou égal au nombre de ranges
+     * @param ranges
+     */
+    public by_num_contains_ranges(ranges: NumRange[]): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_NUMERIC_CONTAINS;
         this.param_numranges = ranges;
         return this;
     }
