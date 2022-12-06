@@ -106,6 +106,10 @@ export default class DatatableComponent extends VueComponentBase {
 
     private debounced_update_datatable_data: () => Promise<void> = debounce(this.update_datatable_data, 500) as any as () => Promise<void>;
 
+    get v_client_table_key() {
+        return this.datatable ? this.datatable.API_TYPE_ID : null;
+    }
+
     get isModuleParamTable() {
         return VOsTypesManager.getInstance().moduleTables_by_voType[this.datatable.API_TYPE_ID] ?
             VOsTypesManager.getInstance().moduleTables_by_voType[this.datatable.API_TYPE_ID].isModuleParamTable : false;
@@ -697,9 +701,9 @@ export default class DatatableComponent extends VueComponentBase {
 
     @Watch('embed_filter', { immediate: true, deep: true })
     private async onFilterChange() {
-        if (!!this.embed_filter) {
-            await this.debounced_update_datatable_data();
-        }
+        // if (!!this.embed_filter) {
+        await this.debounced_update_datatable_data();
+        // }
     }
 
     @Watch('custom_filters_values', { deep: true })
