@@ -2,7 +2,7 @@
 
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import ModuleFeedback from '../../../../shared/modules/Feedback/ModuleFeedback';
+import ModuleSurvey from '../../../../shared/modules/Survey/ModuleSurvey';
 import SurveyVO from '../../../../shared/modules/Survey/vos/SurveyVO';
 import FileVO from '../../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -38,23 +38,15 @@ export default class SurveyComponent extends VueComponentBase {
     private tmp_email: string = null;
     private tmp_phone: string = null;
     private tmp_type: string = null;
-    private tmp_title: string = null;
     private tmp_message: string = null;
     private tmp_preferred_times_called: string = null;
     private tmp_wish_be_called: boolean = false;
 
-    private tmp_capture_1_vo: FileVO = null;
-    private tmp_capture_2_vo: FileVO = null;
-    private tmp_capture_3_vo: FileVO = null;
-
-    private tmp_attachment_1_vo: FileVO = null;
-    private tmp_attachment_2_vo: FileVO = null;
-    private tmp_attachment_3_vo: FileVO = null;
 
     private tmp_start_date: number = null;
     private tmp_start_url: string = null;
 
-    private is_already_sending_feedback: boolean = false;
+    private is_already_sending_survey: boolean = false;
 
     private mounted() {
         this.reload();
@@ -68,21 +60,14 @@ export default class SurveyComponent extends VueComponentBase {
 
         this.tmp_message = null;
         this.tmp_preferred_times_called = null;
-        this.tmp_title = null;
         this.tmp_wish_be_called = false;
 
         this.tmp_start_date = Dates.now();
         this.tmp_start_url = this.$route.fullPath;
 
-        this.tmp_attachment_1_vo = null;
-        this.tmp_attachment_2_vo = null;
-        this.tmp_attachment_3_vo = null;
 
-        this.tmp_capture_1_vo = null;
-        this.tmp_capture_2_vo = null;
-        this.tmp_capture_3_vo = null;
 
-        this.is_already_sending_feedback = false;
+        this.is_already_sending_survey = false;
     }
 
     @Watch('get_hidden', { immediate: true })
@@ -98,16 +83,16 @@ export default class SurveyComponent extends VueComponentBase {
         this.set_hidden(!this.get_hidden);
     }
 
-    private async send_feedback() {
+    private async send_survey() {
 
         /**
          * On empêche d'appeler à nouveau la fonction tant que l'envoi n'a pas été effectué
          * Cela permet d'éviter l'envoi multiple du ticket en spammant le btn d'envoi
          */
-        if (this.is_already_sending_feedback) {
+        if (this.is_already_sending_survey) {
             return;
         }
-        this.is_already_sending_feedback = true;
+        this.is_already_sending_survey = true;
 
         /**
          * On vérifie :
@@ -116,69 +101,32 @@ export default class SurveyComponent extends VueComponentBase {
          */
         if ((!this.tmp_type)) {
             this.snotify.error(this.label('FeedbackHandlerComponent.needs_message_and_title'));
-            this.is_already_sending_feedback = false;
+            this.is_already_sending_survey = false;
             return;
         }
 
 
-        let feedback: SurveyVO = new SurveyVO();
+        let survey: SurveyVO = new SurveyVO();
 
-        feedback.apis_log_json = stringify(AjaxCacheClientController.getInstance().api_logs);
-        feedback.console_logs = this.console_logs_tostring_array();
-        feedback.email = this.tmp_email;
-        feedback.feedback_end_date = Dates.now();
-        feedback.feedback_end_url = this.$route.fullPath;
-        feedback.feedback_start_date = this.tmp_start_date;
-        feedback.feedback_start_url = this.tmp_start_url;
-        feedback.feedback_type = parseInt(this.tmp_type);
-        feedback.file_attachment_1_id = this.tmp_attachment_1_vo ? this.tmp_attachment_1_vo.id : null;
-        feedback.file_attachment_2_id = this.tmp_attachment_2_vo ? this.tmp_attachment_2_vo.id : null;
-        feedback.file_attachment_3_id = this.tmp_attachment_3_vo ? this.tmp_attachment_3_vo.id : null;
-        feedback.message = this.tmp_message;
-        feedback.preferred_times_called = this.tmp_preferred_times_called;
-        feedback.name = this.tmp_user;
-        feedback.phone = this.tmp_phone;
-        feedback.routes_fullpaths = this.routes_log_tostring_array();
-        feedback.screen_capture_1_id = this.tmp_capture_1_vo ? this.tmp_capture_1_vo.id : null;
-        feedback.screen_capture_2_id = this.tmp_capture_2_vo ? this.tmp_capture_2_vo.id : null;
-        feedback.screen_capture_3_id = this.tmp_capture_3_vo ? this.tmp_capture_3_vo.id : null;
-        feedback.title = this.tmp_title;
-        feedback.wish_be_called = this.tmp_wish_be_called;
 
-        if (!await ModuleFeedback.getInstance().feedback(feedback)) {
+        survey.survey_end_url = this.$route.fullPath;
+        survey.survey_start_url = this.tmp_start_url;
+        survey.survey_type = parseInt(this.tmp_type);
+        survey.message = this.tmp_message;
+
+
+        if (!await ModuleSurvey.getInstance().survey(survey)) {
             this.snotify.error(this.label('FeedbackHandlerComponent.error_sending_feedback'));
-            this.is_already_sending_feedback = false;
+            this.is_already_sending_survey = false;
             return;
         }
 
         this.set_hidden(true);
-        this.is_already_sending_feedback = false;
+        this.is_already_sending_survey = false;
         this.reload();
     }
 
-    private async uploadedFile1(fileVo: FileVO) {
-        this.tmp_attachment_1_vo = fileVo;
-    }
 
-    private async uploadedFile2(fileVo: FileVO) {
-        this.tmp_attachment_2_vo = fileVo;
-    }
-
-    private async uploadedFile3(fileVo: FileVO) {
-        this.tmp_attachment_3_vo = fileVo;
-    }
-
-    private async uploadedCapture1(fileVo: FileVO) {
-        this.tmp_capture_1_vo = fileVo;
-    }
-
-    private async uploadedCapture2(fileVo: FileVO) {
-        this.tmp_capture_2_vo = fileVo;
-    }
-
-    private async uploadedCapture3(fileVo: FileVO) {
-        this.tmp_capture_3_vo = fileVo;
-    }
 
     private console_logs_tostring_array() {
         let res: string[] = [];
@@ -205,6 +153,8 @@ export default class SurveyComponent extends VueComponentBase {
     }
 
     get isActive(): boolean {
-        return ModuleFeedback.getInstance().actif && VueAppController.getInstance().has_access_to_feedback;
+        let f = ModuleSurvey.getInstance().actif;
+        let g = VueAppController.getInstance().has_access_to_survey;
+        return ModuleSurvey.getInstance().actif && VueAppController.getInstance().has_access_to_survey;
     }
 }

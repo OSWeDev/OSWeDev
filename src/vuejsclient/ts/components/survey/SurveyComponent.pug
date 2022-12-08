@@ -8,55 +8,56 @@
 
     .survey_modal(:class='{"hidden": !!get_hidden}')
         .mx-0.mx-sm-auto
-            .card
-                .card-header.bg-primary
-                    h5#exampleModalLabel.card-title.text-white.mt-2 Feedback request
-                .modal-body
-                    .text-center
-                        i.far.fa-file-alt.fa-4x.mb-3.text-primary
-                        p
-                            strong Your opinion matters
-                        p
-                            | Have some ideas how to improve our product?
-                            strong Give us your feedback.
-                    hr
-                    form.px-4(action='')
-                        p.text-center
-                            strong Your rating:
-                        .form-check.mb-2
-                            input#radio3Example1.form-check-input(type='radio' name='exampleForm')
-                            label.form-check-label(for='radio3Example1')
-                                | Very good
-                        .form-check.mb-2
-                            input#radio3Example2.form-check-input(type='radio' name='exampleForm')
-                            label.form-check-label(for='radio3Example2')
-                                | Good
-                        .form-check.mb-2
-                            input#radio3Example3.form-check-input(type='radio' name='exampleForm')
-                            label.form-check-label(for='radio3Example3')
-                                | Medicore
-                        .form-check.mb-2
-                            input#radio3Example4.form-check-input(type='radio' name='exampleForm')
-                            label.form-check-label(for='radio3Example4')
-                                | Bad
-                        .form-check.mb-2
-                            input#radio3Example5.form-check-input(type='radio' name='exampleForm')
-                            label.form-check-label(for='radio3Example5')
-                                | Very bad
-                        p.text-center
-                            strong What could we improve?
-                        // Message input
-                        .row
-                            .col-sm-12
-                                label(for='feedback_message') {{ label('feedback_handler.message.label') }}
-                        .row
-                            .col-sm-12
-                                textarea.form-control(name="feedback_message" cols="80" rows="10" v-model="tmp_message")
+            form(v-on:submit.prevent="send_survey")
+                .card
+                    .card-header.bg-primary
+                        h5#exampleModalLabel.card-title.text-white.mt-2 Feedback request
+                    .modal-body
+                        .text-center
+                            i.far.fa-file-alt.fa-4x.mb-3.text-primary
+                            p
+                                strong Your opinion matters
+                            p
+                                | Have some ideas how to improve our product?
+                                strong Give us your feedback.
+                        hr
+                        form.px-4(action='')
+                            p.text-center
+                                strong Your rating:
+                            .form-check.mb-2
+                                input.form-check-input(type='radio' id="survey_type_2" value='2' v-model="tmp_type")
+                                label.form-check-label(for='survey_type_2')
+                                    | Very good
+                            .form-check.mb-2
+                                input.form-check-input(type='radio' id="survey_type_1" value='1' v-model="tmp_type")
+                                label.form-check-label(for='survey_type_1')
+                                    | Good
+                            .form-check.mb-2
+                                input.form-check-input(type='radio' id="survey_type_0" value='0' v-model="tmp_type")
+                                label.form-check-label(for='survey_type_0')
+                                    | Medicore
+                            .form-check.mb-2
+                                input.form-check-input(type='radio' id="survey_type_3" value='3' v-model="tmp_type")
+                                label.form-check-label(for='survey_type_3')
+                                    | Bad
+                            .form-check.mb-2
+                                input.form-check-input(type='radio' id="survey_type_4" value='4' v-model="tmp_type")
+                                label.form-check-label(for='survey_type_4')
+                                    | Very bad
+                            p.text-center
+                                strong What could we improve?
+                            // Message input
+                            .row
+                                .col-sm-12
+                                    label(for='survey_message') {{ label('feedback_handler.message.label') }}
+                            .row
+                                .col-sm-12
+                                    textarea.form-control(name="survey_message" cols="80" rows="10" v-model="tmp_message")
 
-                .spacer
-                
+                    .spacer
+                    
 
-                .btn.btn-secondary.btn-block.btn-flat(@click='switch_hidden') {{ label('feedback_handler.hide') }}
-                .btn.btn-default.btn-block.btn-flat(@click='reload') {{ label('feedback_handler.clear') }}
-                button.btn.btn-primary.btn-block.btn-flat(type="submit") {{ label('feedback_handler.submit') }}
+                    .btn.btn-secondary.btn-block.btn-flat(@click='switch_hidden') {{ label('feedback_handler.hide') }}
+                    .btn.btn-default.btn-block.btn-flat(@click='reload') {{ label('feedback_handler.clear') }}
+                    button.btn.btn-primary.btn-block.btn-flat(type="submit") {{ label('feedback_handler.submit') }}
 
