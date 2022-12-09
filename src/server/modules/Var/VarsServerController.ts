@@ -428,6 +428,40 @@ export default class VarsServerController {
         return res;
     }
 
+    /**
+     * On fait un && des deps dont le nopm débute par le filtre en param.
+     * @param varDAGNode Noeud dont on somme les deps
+     * @param dep_name_starts_with Le filtre sur le nom des deps (dep_name.startsWith(dep_name_starts_with) ? and : ignore)
+     * @param start_value 0 par défaut, mais peut être null aussi dans certains cas ?
+     */
+    public get_outgoing_deps_and(varDAGNode: VarDAGNode, dep_name_starts_with: string, start_value: number = 1) {
+        let res: number = start_value;
+
+        if (!res) {
+            return 0;
+        }
+
+        for (let i in varDAGNode.outgoing_deps) {
+            let outgoing = varDAGNode.outgoing_deps[i];
+
+            if (dep_name_starts_with && !outgoing.dep_name.startsWith(dep_name_starts_with)) {
+                continue;
+            }
+
+            let var_data = (outgoing.outgoing_node as VarDAGNode).var_data;
+            let value = var_data ? var_data.value : null;
+            if ((!var_data) || (isNaN(value))) {
+                return 0;
+            }
+
+            if (!value) {
+                return 0;
+            }
+        }
+
+        return 1;
+    }
+
     private setVar(varConf: VarConfVO, controller: VarServerControllerBase<any>) {
         VarsController.getInstance().var_conf_by_name[varConf.name] = varConf;
         this._registered_vars_controller[varConf.name] = controller;
