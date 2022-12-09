@@ -5,7 +5,6 @@ import AnonymizationUserConfVO from "../../../shared/modules/Anonymization/vos/A
 import ContextQueryFieldVO from "../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO";
 import ContextQueryVO, { query } from "../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import IUserData from "../../../shared/modules/DAO/interface/IUserData";
-import ModuleDAO from "../../../shared/modules/DAO/ModuleDAO";
 import IDistantVOBase from "../../../shared/modules/IDistantVOBase";
 import ModuleTable from "../../../shared/modules/ModuleTable";
 import DefaultTranslation from "../../../shared/modules/Translation/vos/DefaultTranslation";
@@ -14,6 +13,9 @@ import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
 import PushDataServerController from "../PushData/PushDataServerController";
 
 export default class ServerAnonymizationController {
+
+    public static registered_anonymization_field_conf_by_vo_type_and_field_id: { [vo_type: string]: { [field_id: string]: AnonymizationFieldConfVO } } = {};
+    public static registered_anonymization_field_conf_by_id: { [id: number]: AnonymizationFieldConfVO } = {};
 
     public static getInstance(): ServerAnonymizationController {
         if (!ServerAnonymizationController.instance) {
@@ -42,9 +44,6 @@ export default class ServerAnonymizationController {
      */
     private registered_anonymization_values: { [vo_type: string]: { [field_id: string]: { [before_anonymization: string]: string } } } = {};
 
-    private registered_anonymization_field_conf_by_vo_type_and_field_id: { [vo_type: string]: { [field_id: string]: AnonymizationFieldConfVO } } = {};
-    private registered_anonymization_field_conf_by_id: { [id: number]: AnonymizationFieldConfVO } = {};
-
     private registered_anonymization_user_conf_by_field_conf_id: { [anon_field_id: number]: { [user_id: number]: AnonymizationUserConfVO } } = {};
     private registered_anonymization_user_conf_by_vo_type: { [vo_type: string]: { [user_id: number]: AnonymizationUserConfVO[] } } = {};
 
@@ -54,14 +53,14 @@ export default class ServerAnonymizationController {
      * On doit broadcaster la conf, on init les values partout mais elles seront utilisées que sur le main
      */
     public register_anonymization_field_conf(anonymization_field_conf: AnonymizationFieldConfVO) {
-        if (!ServerAnonymizationController.getInstance().registered_anonymization_field_conf_by_vo_type_and_field_id[anonymization_field_conf.vo_type]) {
-            ServerAnonymizationController.getInstance().registered_anonymization_field_conf_by_vo_type_and_field_id[anonymization_field_conf.vo_type] = {};
+        if (!ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[anonymization_field_conf.vo_type]) {
+            ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[anonymization_field_conf.vo_type] = {};
             ServerAnonymizationController.getInstance().registered_anonymization_values[anonymization_field_conf.vo_type] = {};
         }
 
-        ServerAnonymizationController.getInstance().registered_anonymization_field_conf_by_id[anonymization_field_conf.id] = anonymization_field_conf;
+        ServerAnonymizationController.registered_anonymization_field_conf_by_id[anonymization_field_conf.id] = anonymization_field_conf;
         ServerAnonymizationController.getInstance().registered_anonymization_values[anonymization_field_conf.vo_type][anonymization_field_conf.field_id] = {};
-        ServerAnonymizationController.getInstance().registered_anonymization_field_conf_by_vo_type_and_field_id[anonymization_field_conf.vo_type][anonymization_field_conf.field_id] = anonymization_field_conf;
+        ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[anonymization_field_conf.vo_type][anonymization_field_conf.field_id] = anonymization_field_conf;
     }
 
     /**
@@ -72,7 +71,7 @@ export default class ServerAnonymizationController {
             ServerAnonymizationController.getInstance().registered_anonymization_user_conf_by_field_conf_id[anonymization_user_conf.anon_field_id] = {};
         }
 
-        let conf = ServerAnonymizationController.getInstance().registered_anonymization_field_conf_by_id[anonymization_user_conf.anon_field_id];
+        let conf = ServerAnonymizationController.registered_anonymization_field_conf_by_id[anonymization_user_conf.anon_field_id];
         if (!ServerAnonymizationController.getInstance().registered_anonymization_user_conf_by_vo_type[conf.vo_type]) {
             ServerAnonymizationController.getInstance().registered_anonymization_user_conf_by_vo_type[conf.vo_type] = {};
         }
@@ -113,7 +112,7 @@ export default class ServerAnonymizationController {
      */
     public async anonymiseContextAccessHook(moduletable: ModuleTable<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
 
-        if (ServerAnonymizationController.getInstance().registered_anonymization_field_conf_by_vo_type_and_field_id[moduletable.vo_type]) {
+        if (ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[moduletable.vo_type]) {
             // FIXME TODO très chaud ça... comment on peut faire ça sous forme de context filter ... ?
             //  surtout que là on est sensé renvoyer l'id pour dire qu'on valide le champ. c'est pas du tout ce qui est en train d'être fait.
             //  est-ce qu'on doit pas gérer ça dans un defaultNumerics ? => en même temps ça répond pas à la question des datatable rows qui renvoient
@@ -128,7 +127,7 @@ export default class ServerAnonymizationController {
         return null;
     }
 
-    public async anonymise<T extends IDistantVOBase>(datatable: ModuleTable<T>, vos: T[], uid: number, user_data: IUserData): Promise<T[]> {
+    public anonymise<T extends IDistantVOBase>(datatable: ModuleTable<T>, vos: T[], uid: number, user_data: IUserData): T[] {
         let res: T[] = [];
 
         for (let i in vos) {
@@ -138,10 +137,10 @@ export default class ServerAnonymizationController {
                 continue;
             }
 
-            if (ServerAnonymizationController.getInstance().registered_anonymization_field_conf_by_vo_type_and_field_id[vo._type]) {
-                for (let field_id in ServerAnonymizationController.getInstance().registered_anonymization_field_conf_by_vo_type_and_field_id[vo._type]) {
+            if (ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[vo._type]) {
+                for (let field_id in ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[vo._type]) {
 
-                    await this.anonymise_row_field(vo, vo._type, field_id, field_id, uid);
+                    this.anonymise_row_field(vo, vo._type, field_id, field_id, uid);
                 }
             }
             res.push(vo);
@@ -150,18 +149,18 @@ export default class ServerAnonymizationController {
         return res;
     }
 
-    public async anonymise_context_filtered_rows<T>(rows: T[], fields: ContextQueryFieldVO[], uid: number): Promise<T[]> {
+    public anonymise_context_filtered_rows<T>(rows: T[], fields: ContextQueryFieldVO[], uid: number): T[] {
 
         for (let i in rows) {
             let row = rows[i];
 
-            await this.anonymise_context_filtered_row(row, fields, uid);
+            this.anonymise_context_filtered_row(row, fields, uid);
         }
 
         return rows;
     }
 
-    public async anonymise_context_filtered_row<T>(row: T, fields: ContextQueryFieldVO[], uid: number): Promise<T> {
+    public anonymise_context_filtered_row<T>(row: T, fields: ContextQueryFieldVO[], uid: number): T {
 
         for (let i in fields) {
             let field = fields[i];
@@ -177,9 +176,9 @@ export default class ServerAnonymizationController {
             let api_type_id = field.api_type_id;
             let field_id = field.field_id;
 
-            if (ServerAnonymizationController.getInstance().registered_anonymization_field_conf_by_vo_type_and_field_id[api_type_id] &&
-                ServerAnonymizationController.getInstance().registered_anonymization_field_conf_by_vo_type_and_field_id[api_type_id][field_id]) {
-                await this.anonymise_row_field(row, api_type_id, field_id, field.alias, uid);
+            if (ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[api_type_id] &&
+                ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[api_type_id][field_id]) {
+                this.anonymise_row_field(row, api_type_id, field_id, field.alias, uid);
             }
         }
 
@@ -192,10 +191,10 @@ export default class ServerAnonymizationController {
             return row_field_value;
         }
 
-        if (ServerAnonymizationController.getInstance().registered_anonymization_field_conf_by_vo_type_and_field_id[row_field_api_type_id] &&
-            ServerAnonymizationController.getInstance().registered_anonymization_field_conf_by_vo_type_and_field_id[row_field_api_type_id][row_field_field_id]) {
+        if (ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[row_field_api_type_id] &&
+            ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[row_field_api_type_id][row_field_field_id]) {
 
-            let anonymization_field_conf = ServerAnonymizationController.getInstance().registered_anonymization_field_conf_by_vo_type_and_field_id[row_field_api_type_id][row_field_field_id];
+            let anonymization_field_conf = ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[row_field_api_type_id][row_field_field_id];
 
             if (!anonymization_field_conf) {
                 return row_field_value;
@@ -229,11 +228,11 @@ export default class ServerAnonymizationController {
         return row_field_value;
     }
 
-    public async anonymise_row_field<T>(row: T, row_field_api_type_id: string, row_field_field_id: string, alias: string, uid: number): Promise<T> {
-        if (ServerAnonymizationController.getInstance().registered_anonymization_field_conf_by_vo_type_and_field_id[row_field_api_type_id] &&
-            ServerAnonymizationController.getInstance().registered_anonymization_field_conf_by_vo_type_and_field_id[row_field_api_type_id][row_field_field_id]) {
+    public anonymise_row_field<T>(row: T, row_field_api_type_id: string, row_field_field_id: string, alias: string, uid: number): T {
+        if (ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[row_field_api_type_id] &&
+            ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[row_field_api_type_id][row_field_field_id]) {
 
-            let anonymization_field_conf = ServerAnonymizationController.getInstance().registered_anonymization_field_conf_by_vo_type_and_field_id[row_field_api_type_id][row_field_field_id];
+            let anonymization_field_conf = ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id[row_field_api_type_id][row_field_field_id];
 
             if ((!row[alias]) || (!anonymization_field_conf)) {
                 return row;
@@ -270,7 +269,7 @@ export default class ServerAnonymizationController {
      */
     public async reload_conf() {
 
-        ServerAnonymizationController.getInstance().registered_anonymization_field_conf_by_vo_type_and_field_id = {};
+        ServerAnonymizationController.registered_anonymization_field_conf_by_vo_type_and_field_id = {};
         ServerAnonymizationController.getInstance().registered_anonymization_user_conf_by_field_conf_id = {};
         ServerAnonymizationController.getInstance().registered_anonymization_values = {};
 

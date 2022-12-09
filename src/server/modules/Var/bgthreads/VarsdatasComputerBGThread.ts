@@ -257,19 +257,20 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                     this.run_asap = true;
                 } else {
 
-                    // Si on fait rien c'est qu'on a le temps de nettoyer un peu la BDD
-                    if (performance.now() > this.partial_clean_next_ms) {
-                        // On limite à un appel toutes les secondes
-                        this.partial_clean_next_ms = performance.now() + 1000;
+                    // // Si on fait rien c'est qu'on a le temps de nettoyer un peu la BDD
+                    // Marche pas si on a plus de last_read or sur les pixels on en veut pas... donc à creuser si on supprimerai pas tout ce foutoir de last_read
+                    // if (performance.now() > this.partial_clean_next_ms) {
+                    //     // On limite à un appel toutes les secondes
+                    //     this.partial_clean_next_ms = performance.now() + 1000;
 
-                        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
-                            ConsoleHandler.getInstance().log('VarsdatasComputerBGThread.do_calculation_run:partially_clean_bdd_cache:IN');
-                        }
-                        await VarsCacheController.getInstance().partially_clean_bdd_cache(); // PERF OK
-                        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
-                            ConsoleHandler.getInstance().log('VarsdatasComputerBGThread.do_calculation_run:partially_clean_bdd_cache:OUT');
-                        }
-                    }
+                    //     if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+                    //         ConsoleHandler.getInstance().log('VarsdatasComputerBGThread.do_calculation_run:partially_clean_bdd_cache:IN');
+                    //     }
+                    //     await VarsCacheController.getInstance().partially_clean_bdd_cache(); // PERF OK
+                    //     if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+                    //         ConsoleHandler.getInstance().log('VarsdatasComputerBGThread.do_calculation_run:partially_clean_bdd_cache:OUT');
+                    //     }
+                    // }
                 }
             } else {
                 this.run_asap = true;
