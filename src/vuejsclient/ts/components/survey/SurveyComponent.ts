@@ -16,7 +16,13 @@ import VueComponentBase from '../VueComponentBase';
 import './SurveyComponent.scss';
 import { ModuleSurveyAction, ModuleSurveyGetter } from './store/SurveyStore';
 const { parse, stringify } = require('flatted/cjs');
+/*
+TODO survey ouvert ou pas en fonction du route_name
+    combien de temps,
+    detection de sortie
+    smiley
 
+*/
 @Component({
     template: require('./SurveyComponent.pug'),
     components: {
@@ -31,20 +37,10 @@ export default class SurveyComponent extends VueComponentBase {
     @ModuleSurveyAction
     public set_hidden: (hidden: boolean) => void;
 
-    @Prop({ default: false })
-    private show_wish_be_called;
 
-    private tmp_user: string = null;
-    private tmp_email: string = null;
-    private tmp_phone: string = null;
     private tmp_type: string = null;
     private tmp_message: string = null;
-    private tmp_preferred_times_called: string = null;
-    private tmp_wish_be_called: boolean = false;
 
-
-    private tmp_start_date: number = null;
-    private tmp_start_url: string = null;
 
     private is_already_sending_survey: boolean = false;
 
@@ -53,30 +49,13 @@ export default class SurveyComponent extends VueComponentBase {
     }
 
     private reload() {
-        this.tmp_user = VueAppController.getInstance().data_user ? VueAppController.getInstance().data_user.name : null;
-        this.tmp_email = VueAppController.getInstance().data_user ? VueAppController.getInstance().data_user.email : null;
-        this.tmp_phone = VueAppController.getInstance().data_user ? VueAppController.getInstance().data_user.phone : null;
+
         this.tmp_type = '' + SurveyVO.SURVEY_TYPE_NOT_SET;
 
         this.tmp_message = null;
-        this.tmp_preferred_times_called = null;
-        this.tmp_wish_be_called = false;
-
-        this.tmp_start_date = Dates.now();
-        this.tmp_start_url = this.$route.fullPath;
-
 
 
         this.is_already_sending_survey = false;
-    }
-
-    @Watch('get_hidden', { immediate: true })
-    private onchange_get_hidden() {
-        // If first time, store date + url
-        if (!this.tmp_start_date) {
-            this.tmp_start_date = Dates.now();
-            this.tmp_start_url = this.$route.fullPath;
-        }
     }
 
     private switch_hidden() {
@@ -109,13 +88,13 @@ export default class SurveyComponent extends VueComponentBase {
         let survey: SurveyVO = new SurveyVO();
 
 
-        survey.survey_end_url = this.$route.fullPath;
-        survey.survey_start_url = this.tmp_start_url;
+        survey.survey_route_name = this.$route.name;
         survey.survey_type = parseInt(this.tmp_type);
         survey.message = this.tmp_message;
 
 
         if (!await ModuleSurvey.getInstance().survey(survey)) {
+            this.set_hidden(true);
             this.snotify.error(this.label('FeedbackHandlerComponent.error_sending_feedback'));
             this.is_already_sending_survey = false;
             return;
@@ -127,34 +106,7 @@ export default class SurveyComponent extends VueComponentBase {
     }
 
 
-
-    private console_logs_tostring_array() {
-        let res: string[] = [];
-
-        for (let i in ConsoleLogLogger.getInstance().console_logs) {
-            let console_log = ConsoleLogLogger.getInstance().console_logs[i];
-
-            res.push(Dates.format(console_log.datetime, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss) + ':' + console_log.type + ':' + (console_log.value ? console_log.value.toString() : ''));
-        }
-
-        return res;
-    }
-
-    private routes_log_tostring_array() {
-        let res: string[] = [];
-
-        for (let i in VueAppController.getInstance().routes_log) {
-            let route_log = VueAppController.getInstance().routes_log[i];
-
-            res.push(route_log.fullPath);
-        }
-
-        return res;
-    }
-
     get isActive(): boolean {
-        let f = ModuleSurvey.getInstance().actif;
-        let g = VueAppController.getInstance().has_access_to_survey;
         return ModuleSurvey.getInstance().actif && VueAppController.getInstance().has_access_to_survey;
     }
 }

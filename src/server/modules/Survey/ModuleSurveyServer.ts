@@ -36,7 +36,6 @@ const { parse } = require('flatted/cjs');
 export default class ModuleSurveyServer extends ModuleServerBase {
 
 
-    public static FEEDBACK_TRELLO_ROUTE_LIMIT_PARAM_NAME: string = 'FEEDBACK_TRELLO_ROUTE_LIMIT';
 
     public static getInstance() {
         if (!ModuleSurveyServer.instance) {
@@ -201,34 +200,7 @@ export default class ModuleSurveyServer extends ModuleServerBase {
     }
 
 
-    private async routes_to_string(survey: SurveyVO): Promise<string> {
-        let FEEDBACK_TRELLO_ROUTE_LIMIT: string = await ModuleParams.getInstance().getParamValue(ModuleSurveyServer.FEEDBACK_TRELLO_ROUTE_LIMIT_PARAM_NAME);
-        let ROUTE_LIMIT: number = FEEDBACK_TRELLO_ROUTE_LIMIT ? parseInt(FEEDBACK_TRELLO_ROUTE_LIMIT.toString()) : 100;
-        let envParam: EnvParam = ConfigurationService.getInstance().node_configuration;
 
-        let routes_message: string = '';
-        ROUTE_LIMIT = ROUTE_LIMIT - survey.routes_fullpaths.length;
-        let limited: boolean = ROUTE_LIMIT < 0;
-
-        for (let i in survey.routes_fullpaths) {
-            let route: string = survey.routes_fullpaths[i];
-
-            ROUTE_LIMIT++;
-            if (ROUTE_LIMIT <= 0) {
-                continue;
-            }
-
-            // On commence par un retour à la ligne aussi puisque sinon la liste fonctionne pas
-            routes_message += ModuleSurveyServer.TRELLO_LINE_SEPARATOR;
-            routes_message += '1. [' + route + '](' + envParam.BASE_URL + '#' + route + ')';
-        }
-
-        let res: string = ModuleSurveyServer.TRELLO_SECTION_SEPARATOR;
-        res += '##ROUTES' + ModuleSurveyServer.TRELLO_LINE_SEPARATOR;
-        res += (limited ? ModuleSurveyServer.TRELLO_LINE_SEPARATOR + '1. ...' : '');
-        res += routes_message;
-        return res;
-    }
 
 
 

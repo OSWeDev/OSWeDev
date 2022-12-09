@@ -13,28 +13,16 @@ export default class SurveyVO implements IVersionedVO {
     public id: number;
     public _type: string = SurveyVO.API_TYPE_ID;
 
-    public name: string;
-    public email: string;
-    public phone: string;
-    public title: string;
     public message: string;
 
     public user_id: number;
-    public is_impersonated: boolean;
-    public impersonated_from_user_id: number;
-
-    public trello_ref: string;
 
 
     public survey_type: number;
 
-    // URL (with Query) when the user opened the survey tool
-    public survey_start_url: string;
     // URL (with Query) when the user sent the survey
-    public survey_end_url: string;
+    public survey_route_name: string;
 
-    // Routes fullpaths
-    public routes_fullpaths: string[];
 
     public parent_id: number;
     public trashed: boolean;

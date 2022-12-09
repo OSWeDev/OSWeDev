@@ -11,6 +11,8 @@ import ModuleTableField from '../ModuleTableField';
 import VersionedVOController from '../Versioned/VersionedVOController';
 import VOsTypesManager from '../VOsTypesManager';
 import SurveyVO from './vos/SurveyVO';
+import SurveyParamVO from './vos/SurveyParamVO';
+
 
 export default class ModuleSurvey extends Module {
 
@@ -54,6 +56,7 @@ export default class ModuleSurvey extends Module {
         this.datatables = [];
 
         this.initializeSurveyVO();
+        this.initializeParamSurveyVO();
     }
 
     private initializeSurveyVO() {
@@ -62,16 +65,13 @@ export default class ModuleSurvey extends Module {
         let fields = [
             user_id,
 
-            new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true).hide_from_datatable(),
             new ModuleTableField('message', ModuleTableField.FIELD_TYPE_string, 'Message', true).hide_from_datatable(),
 
 
-            new ModuleTableField('survey_type', ModuleTableField.FIELD_TYPE_enum, 'Type de survey', true, true, SurveyVO.SURVEY_TYPE_NOT_SET).setEnumValues(SurveyVO.SURVEY_TYPE_LABELS),
+            new ModuleTableField('survey_type', ModuleTableField.FIELD_TYPE_enum, 'Avis', true, true, SurveyVO.SURVEY_TYPE_NOT_SET).setEnumValues(SurveyVO.SURVEY_TYPE_LABELS),
 
-            new ModuleTableField('survey_start_url', ModuleTableField.FIELD_TYPE_string, 'URL début Survey', true),
-            new ModuleTableField('survey_end_url', ModuleTableField.FIELD_TYPE_string, 'URL fin Survey', true).hide_from_datatable(),
+            new ModuleTableField('survey_route_name', ModuleTableField.FIELD_TYPE_string, 'URL fin Survey', true).hide_from_datatable(),
 
-            new ModuleTableField('routes_fullpaths', ModuleTableField.FIELD_TYPE_string, 'Routes - Fullpath', true).hide_from_datatable(),
 
         ];
 
@@ -79,6 +79,27 @@ export default class ModuleSurvey extends Module {
         this.datatables.push(table);
 
         user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+
+        VersionedVOController.getInstance().registerModuleTable(table);
+    }
+
+    private initializeParamSurveyVO() {
+
+        let fields = [
+
+
+            new ModuleTableField('route_name', ModuleTableField.FIELD_TYPE_string, 'Route pour laquelle le survey existe ', true).hide_from_datatable(),
+
+            new ModuleTableField('pop_up', ModuleTableField.FIELD_TYPE_boolean, 'Affichage automatique ou manuel ?', true, true, SurveyVO.SURVEY_TYPE_NOT_SET).setEnumValues(SurveyVO.SURVEY_TYPE_LABELS),
+
+            new ModuleTableField('time_before_pop_up', ModuleTableField.FIELD_TYPE_float, 'Temps avant affichage', true).hide_from_datatable(),
+
+
+        ];
+
+        let table = new ModuleTable(this, SurveyParamVO.API_TYPE_ID, () => new SurveyParamVO(), fields, null, 'SurveysParam');
+        this.datatables.push(table);
+
 
         VersionedVOController.getInstance().registerModuleTable(table);
     }
