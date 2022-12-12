@@ -278,11 +278,11 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
     }
 
     get name_theme_editable_field() {
-        return new SimpleDatatableField('name').setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[AnimationThemeVO.API_TYPE_ID]);
+        return new SimpleDatatableField('name').setModuleTable(VOsTypesManager.moduleTables_by_voType[AnimationThemeVO.API_TYPE_ID]);
     }
 
     get name_module_editable_field() {
-        return new SimpleDatatableField('name').setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[AnimationModuleVO.API_TYPE_ID]);
+        return new SimpleDatatableField('name').setModuleTable(VOsTypesManager.moduleTables_by_voType[AnimationModuleVO.API_TYPE_ID]);
     }
 
     get ordered_qrs(): AnimationQRVO[] {

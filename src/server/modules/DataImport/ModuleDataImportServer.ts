@@ -395,7 +395,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
             for (let i in vos) {
                 let vo = vos[i];
-                let table = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
+                let table = VOsTypesManager.moduleTables_by_voType[vo._type];
                 if (!table) {
                     throw new Error('unknown table:' + vo._type);
                 }
@@ -543,7 +543,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         let all_formats_datas: { [format_id: number]: IImportedData[] } = {};
 
         let max_formattedDatasStats: FormattedDatasStats = new FormattedDatasStats();
-        let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[raw_api_type_id];
+        let moduleTable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[raw_api_type_id];
 
         let has_datas: boolean = false;
 
@@ -1267,7 +1267,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                 /**
                  * On cherche les deps vers d'autres objets
                  */
-                let vo_fields = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type].get_fields();
+                let vo_fields = VOsTypesManager.moduleTables_by_voType[vo._type].get_fields();
                 let need_ref = false;
                 for (let j in vo_fields) {
 
@@ -1416,7 +1416,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         }
 
         let reg_exp = /(.*)\{\{IMPORT:([^:]+):([0-9]+)\}\}(.*)/g;
-        let table = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
+        let table = VOsTypesManager.moduleTables_by_voType[vo._type];
         let fields = table.get_fields();
         for (let i in fields) {
             let field = fields[i];

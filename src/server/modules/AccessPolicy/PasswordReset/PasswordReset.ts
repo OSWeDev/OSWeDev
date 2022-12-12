@@ -126,7 +126,7 @@ export default class PasswordReset {
 
         try {
 
-            let msg = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID].getFieldFromId('password').validate(new_pwd1);
+            let msg = VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID].getFieldFromId('password').validate(new_pwd1);
             if (!((!msg) || (msg == ""))) {
 
                 return false;

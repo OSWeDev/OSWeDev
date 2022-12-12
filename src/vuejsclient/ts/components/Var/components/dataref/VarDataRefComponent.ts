@@ -226,7 +226,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         if (!this.var_param) {
             return null;
         }
-        return new SimpleDatatableField("value").setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[this.var_param._type]);
+        return new SimpleDatatableField("value").setModuleTable(VOsTypesManager.moduleTables_by_voType[this.var_param._type]);
     }
 
     private var_data_updater() {

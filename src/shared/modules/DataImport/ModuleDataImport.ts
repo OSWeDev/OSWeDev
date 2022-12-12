@@ -219,7 +219,7 @@ export default class ModuleDataImport extends Module {
             ModuleDataImport.IMPORT_TABLE_PREFIX + targetModuleTable.vo_type,
             () => ({} as any), fields, null, "Import " + targetModuleTable.name);
         importTable.set_bdd_ref(ModuleDataImport.IMPORT_SCHEMA, ModuleDataImport.IMPORT_TABLE_PREFIX + targetModuleTable.vo_type);
-        field_historic_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[DataImportHistoricVO.API_TYPE_ID]);
+        field_historic_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[DataImportHistoricVO.API_TYPE_ID]);
         targetModuleTable.module.datatables.push(importTable);
         targetModuleTable.importable = true;
     }
@@ -273,8 +273,8 @@ export default class ModuleDataImport extends Module {
         ];
         let datatable_desc = new ModuleTable(this, DataImportFormatVO.API_TYPE_ID, () => new DataImportFormatVO(), datatable_fields, label_field, "Fichiers d'import");
         field_file_id.donotCascadeOnDelete();
-        field_file_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);
-        field_post_exec_module_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[ModuleVO.API_TYPE_ID]);
+        field_file_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
+        field_post_exec_module_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ModuleVO.API_TYPE_ID]);
         this.datatables.push(datatable_desc);
 
         // Création de la table dataimportcolumn
@@ -290,7 +290,7 @@ export default class ModuleDataImport extends Module {
             new ModuleTableField('other_column_labels', ModuleTableField.FIELD_TYPE_string_array, 'Autres noms possibles (Fichier)', false)
         ];
         let dt2 = new ModuleTable(this, DataImportColumnVO.API_TYPE_ID, () => new DataImportColumnVO(), datatable_fields, label_field, "Colonnes importées");
-        field_data_import_format_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[DataImportFormatVO.API_TYPE_ID]);
+        field_data_import_format_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[DataImportFormatVO.API_TYPE_ID]);
         this.datatables.push(dt2);
 
         label_field = new ModuleTableField('historic_uid', ModuleTableField.FIELD_TYPE_string, 'ID unique', false);
@@ -375,9 +375,9 @@ export default class ModuleDataImport extends Module {
         let datatable_historic = new ModuleTable(this, DataImportHistoricVO.API_TYPE_ID, () => new DataImportHistoricVO(), datatable_fields, label_field, "Historiques d'importation").hideAnyToManyByDefault();
         field_data_import_format_id.addManyToOneRelation(datatable_desc);
         field_user_id.donotCascadeOnDelete();
-        field_user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        field_user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
         reimport_of_dih_id.addManyToOneRelation(datatable_historic);
-        field_file_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);
+        field_file_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
         this.datatables.push(datatable_historic);
 
 

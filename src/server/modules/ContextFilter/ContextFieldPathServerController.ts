@@ -218,7 +218,7 @@ export default class ContextFieldPathServerController {
          * Sinon on part du dernier type du chemin
          */
         if ((!actual_path) || (!actual_path.length)) {
-            moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[to_type];
+            moduletable = VOsTypesManager.moduleTables_by_voType[to_type];
         } else {
             /**
              * Si on a pris un manytoone => on est parti de field.moduletable vers field.target_moduletable qui est donc le dernier api_type_id du path

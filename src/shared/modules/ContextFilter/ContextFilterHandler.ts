@@ -268,7 +268,7 @@ export default class ContextFilterHandler {
             return query_filters;
         }
 
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[vo_field_ref.api_type_id];
+        let moduletable = VOsTypesManager.moduleTables_by_voType[vo_field_ref.api_type_id];
         let field = moduletable.get_field_by_id(vo_field_ref.field_id);
 
         let exclude_values_context_filter: ContextFilterVO = null;

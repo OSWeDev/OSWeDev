@@ -101,7 +101,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
     private last_calculation_cpt: number = 0;
 
     private crud_api_type_id_select_label(api_type_id: string): string {
-        return this.t(VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id].label.code_text);
+        return this.t(VOsTypesManager.moduleTables_by_voType[api_type_id].label.code_text);
     }
 
     @Watch('placeholder_advanced_string_filter')
@@ -1193,7 +1193,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
 
         // Si je suis sur une table segmentée, je vais voir si j'ai un filtre sur mon field qui segmente
         // Si ce n'est pas le cas, je n'envoie pas la requête
-        let base_table: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[query_.base_api_type_id];
+        let base_table: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[query_.base_api_type_id];
 
         if (
             base_table &&
@@ -1454,7 +1454,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
             return null;
         }
 
-        return VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
+        return VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
     }
 
     get segmentation_type_options(): DataFilterOption[] {

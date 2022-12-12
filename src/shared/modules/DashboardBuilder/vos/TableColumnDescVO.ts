@@ -139,7 +139,7 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
             return false;
         }
 
-        let field = VOsTypesManager.getInstance().moduleTables_by_voType[this.api_type_id].getFieldFromId(this.field_id);
+        let field = VOsTypesManager.moduleTables_by_voType[this.api_type_id].getFieldFromId(this.field_id);
         if (!field) {
             return false;
         }

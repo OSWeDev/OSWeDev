@@ -297,7 +297,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
     }
 
     get field_date(): SimpleDatatableField<any, any> {
-        return new SimpleDatatableField(this.vo_field_ref.field_id).setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id]);
+        return new SimpleDatatableField(this.vo_field_ref.field_id).setModuleTable(VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id]);
     }
 
     get base_filter(): string {

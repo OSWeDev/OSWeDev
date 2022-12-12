@@ -121,7 +121,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.api_type_id];
+        let moduletable = VOsTypesManager.moduleTables_by_voType[this.api_type_id];
         return moduletable;
     }
 

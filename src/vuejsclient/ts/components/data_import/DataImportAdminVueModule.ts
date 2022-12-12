@@ -146,8 +146,8 @@ export default class DataImportAdminVueModule extends VueModuleBase {
         //  - les logs détaillés => lien vers le crud global de ce type mais pré-filtré
         //  - la table intermédiaire d'importation
         //  - les formats d'import => liens vers le crud global pré-filtré
-        for (let i in VOsTypesManager.getInstance().moduleTables_by_voType) {
-            let moduleTable = VOsTypesManager.getInstance().moduleTables_by_voType[i];
+        for (let i in VOsTypesManager.moduleTables_by_voType) {
+            let moduleTable = VOsTypesManager.moduleTables_by_voType[i];
 
             if (!moduleTable.importable) {
                 continue;

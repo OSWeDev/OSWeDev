@@ -114,7 +114,7 @@ export default class DashboardBuilderController {
         column: TableColumnDescVO, row_value: any): ContextFilterVO {
         let translated_active_options = null;
 
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[column.api_type_id];
+        let moduletable = VOsTypesManager.moduleTables_by_voType[column.api_type_id];
         let field = moduletable.get_field_by_id(column.field_id);
 
         if (row_value[column.datatable_field_uid] == null) {

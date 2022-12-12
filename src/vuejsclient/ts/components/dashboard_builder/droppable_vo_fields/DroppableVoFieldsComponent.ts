@@ -76,7 +76,7 @@ export default class DroppableVoFieldsComponent extends VueComponentBase {
                 continue;
             }
 
-            let fields = VOsTypesManager.getInstance().moduleTables_by_voType[vo_type].get_fields();
+            let fields = VOsTypesManager.moduleTables_by_voType[vo_type].get_fields();
             res[vo_type].push('id');
 
             for (let j in fields) {
@@ -103,7 +103,7 @@ export default class DroppableVoFieldsComponent extends VueComponentBase {
 
         for (let i in this.api_type_ids) {
             let vo_type = this.api_type_ids[i];
-            res[vo_type] = this.t(VOsTypesManager.getInstance().moduleTables_by_voType[vo_type].label.code_text);
+            res[vo_type] = this.t(VOsTypesManager.moduleTables_by_voType[vo_type].label.code_text);
         }
 
         return res;
@@ -120,7 +120,7 @@ export default class DroppableVoFieldsComponent extends VueComponentBase {
             for (let i in fields) {
                 let field_id = fields[i];
 
-                let field = VOsTypesManager.getInstance().moduleTables_by_voType[vo_type].get_field_by_id(field_id);
+                let field = VOsTypesManager.moduleTables_by_voType[vo_type].get_field_by_id(field_id);
                 res[vo_type][field_id] = field ? this.t(field.field_label.code_text) : field_id;
             }
         }
@@ -133,7 +133,7 @@ export default class DroppableVoFieldsComponent extends VueComponentBase {
 
         for (let i in this.api_type_ids) {
             let vo_type = this.api_type_ids[i];
-            let fields = VOsTypesManager.getInstance().moduleTables_by_voType[vo_type].get_fields();
+            let fields = VOsTypesManager.moduleTables_by_voType[vo_type].get_fields();
 
             res[vo_type] = false;
             for (let j in fields) {

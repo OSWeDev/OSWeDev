@@ -105,7 +105,7 @@ export default class ModuleVocusServer extends ModuleServerBase {
         let res_map: { [type: string]: { [id: number]: VocusInfoVO } } = {};
 
         // On va aller chercher tous les module table fields qui sont des refs de cette table
-        let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID];
+        let moduleTable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[API_TYPE_ID];
 
         if (!moduleTable) {
             return null;
@@ -113,8 +113,8 @@ export default class ModuleVocusServer extends ModuleServerBase {
 
         let refFields: Array<ModuleTableField<any>> = [];
 
-        for (let i in VOsTypesManager.getInstance().moduleTables_by_voType) {
-            let table = VOsTypesManager.getInstance().moduleTables_by_voType[i];
+        for (let i in VOsTypesManager.moduleTables_by_voType) {
+            let table = VOsTypesManager.moduleTables_by_voType[i];
 
             if (table.vo_type == moduleTable.vo_type) {
                 continue;

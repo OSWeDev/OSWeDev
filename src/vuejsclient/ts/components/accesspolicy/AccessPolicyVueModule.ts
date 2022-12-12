@@ -36,21 +36,21 @@ export default class AccessPolicyVueModule extends VueModuleBase {
                 'impersonate',
                 ImpersonateComponent,
                 'id'
-            ).setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID])
+            ).setModuleTable(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID])
         );
         TableWidgetController.getInstance().register_component(
             new ComponentDatatableField(
                 'sendinitpwd',
                 SendInitPwdComponent,
                 'id'
-            ).setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID])
+            ).setModuleTable(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID])
         );
         TableWidgetController.getInstance().register_component(
             new ComponentDatatableField(
                 'sendrecapture',
                 SendRecaptureComponent,
                 'id'
-            ).setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID])
+            ).setModuleTable(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID])
         );
     }
 

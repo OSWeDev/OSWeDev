@@ -18,7 +18,7 @@ import SimpleDatatableField from './datatable/SimpleDatatableField';
 export default class CRUD<T extends IDistantVOBase> {
 
     public static getDefaultCRUDDatatable<V extends IVersionedVO>(api_type_id: string): CRUD<V> {
-        let moduleTable: ModuleTable<V> = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+        let moduleTable: ModuleTable<V> = VOsTypesManager.moduleTables_by_voType[api_type_id];
         let crud: CRUD<V> = CRUD.getNewCRUD(moduleTable.vo_type);
 
         crud.readDatatable.removeFields(['version_num', 'trashed', 'parent_id']);
@@ -45,7 +45,7 @@ export default class CRUD<T extends IDistantVOBase> {
 
         let readDatatable: Datatable<T> = new Datatable(API_TYPE_ID);
         let crud: CRUD<T> = new CRUD(readDatatable);
-        let moduleTable = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID];
+        let moduleTable = VOsTypesManager.moduleTables_by_voType[API_TYPE_ID];
         let fields = moduleTable.get_fields();
 
         for (let i in fields) {
@@ -106,7 +106,7 @@ export default class CRUD<T extends IDistantVOBase> {
             if (field.field_type == ModuleTableField.FIELD_TYPE_refrange_array) {
                 dt_field = new RefRangesReferenceDatatableField<any>(
                     field.field_id,
-                    VOsTypesManager.getInstance().moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type],
+                    VOsTypesManager.moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type],
                     dt_fields).setValidatInputFunc(field.validate_input);
             } else {
                 if (VOsTypesManager.getInstance().isManyToManyModuleTable(field.module_table)) {
@@ -135,7 +135,7 @@ export default class CRUD<T extends IDistantVOBase> {
                 } else {
                     dt_field = new ManyToOneReferenceDatatableField<any>(
                         field.field_id,
-                        VOsTypesManager.getInstance().moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type],
+                        VOsTypesManager.moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type],
                         dt_fields).setValidatInputFunc(field.validate_input);
                 }
             }
@@ -235,8 +235,8 @@ export default class CRUD<T extends IDistantVOBase> {
         except_table_names: string[] = null) {
 
         //  On fait le tour des autres tables existantes pour identifier les manyToOne qui font référence à cette table (hors manytomany)
-        for (let i in VOsTypesManager.getInstance().moduleTables_by_voType) {
-            let otherModuleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[i];
+        for (let i in VOsTypesManager.moduleTables_by_voType) {
+            let otherModuleTable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[i];
 
             if ((!otherModuleTable.module) || (!otherModuleTable.module.actif)) {
                 continue;

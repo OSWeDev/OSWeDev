@@ -96,7 +96,7 @@ export default class MatroidController {
             return null;
         }
 
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[matroids[0]._type];
+        let moduletable = VOsTypesManager.moduleTables_by_voType[matroids[0]._type];
 
         if (!moduletable) {
             return null;
@@ -163,7 +163,7 @@ export default class MatroidController {
      * FIXME TODO ASAP WITH TU
      */
     public getMatroidFields(api_type_id: string): Array<ModuleTableField<any>> {
-        let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+        let moduleTable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[api_type_id];
 
         if (!moduleTable) {
             return null;
@@ -238,8 +238,8 @@ export default class MatroidController {
             return null;
         }
 
-        let moduletablea = VOsTypesManager.getInstance().moduleTables_by_voType[a._type];
-        let moduletableb = VOsTypesManager.getInstance().moduleTables_by_voType[b._type];
+        let moduletablea = VOsTypesManager.moduleTables_by_voType[a._type];
+        let moduletableb = VOsTypesManager.moduleTables_by_voType[b._type];
 
         if (moduletablea != moduletableb) {
             return null;
@@ -286,8 +286,8 @@ export default class MatroidController {
             return false;
         }
 
-        let moduletablea = VOsTypesManager.getInstance().moduleTables_by_voType[a._type];
-        let moduletableb = VOsTypesManager.getInstance().moduleTables_by_voType[b._type];
+        let moduletablea = VOsTypesManager.moduleTables_by_voType[a._type];
+        let moduletableb = VOsTypesManager.moduleTables_by_voType[b._type];
 
         if (moduletablea != moduletableb) {
 
@@ -550,8 +550,8 @@ export default class MatroidController {
         }
 
         let _type: string = to_type ? to_type : from._type;
-        let moduletable_from = VOsTypesManager.getInstance().moduleTables_by_voType[from._type];
-        let moduletable_to = VOsTypesManager.getInstance().moduleTables_by_voType[_type];
+        let moduletable_from = VOsTypesManager.moduleTables_by_voType[from._type];
+        let moduletable_to = VOsTypesManager.moduleTables_by_voType[_type];
 
         let res: U = moduletable_to.voConstructor();
         res._type = _type;

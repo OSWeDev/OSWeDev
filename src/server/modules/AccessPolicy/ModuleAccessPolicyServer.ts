@@ -1087,7 +1087,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        await ModuleDAOServer.getInstance().query('update ' + VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID].full_name + ' set ' +
+        await ModuleDAOServer.getInstance().query('update ' + VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID].full_name + ' set ' +
             "lang_id=$1 where id=$2",
             [num, user_id]);
     }
@@ -1136,7 +1136,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 return true;
             }
 
-            let res = await ModuleDAOServer.getInstance().query('select invalidated or blocked as invalidated from ' + VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID].full_name + ' where id=$1', [uid]);
+            let res = await ModuleDAOServer.getInstance().query('select invalidated or blocked as invalidated from ' + VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID].full_name + ' where id=$1', [uid]);
             let invalidated = (res && (res.length == 1) && (typeof res[0]['invalidated'] != 'undefined') && (res[0]['invalidated'] !== null)) ? res[0]['invalidated'] : false;
             return !invalidated;
         } catch (error) {

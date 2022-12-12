@@ -321,11 +321,11 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
                 rdv_crud.readDatatable.pushField(
                     new ManyToOneReferenceDatatableField(
                         'target_id',
-                        VOsTypesManager.getInstance().moduleTables_by_voType[this.programplan_shared_module.target_type_id],
+                        VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.target_type_id],
                         [
                             new ManyToOneReferenceDatatableField(
                                 'enseigne_id',
-                                VOsTypesManager.getInstance().moduleTables_by_voType[this.programplan_shared_module.enseigne_type_id],
+                                VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.enseigne_type_id],
                                 [
                                     new SimpleDatatableField('name')
                                 ])
@@ -360,7 +360,7 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
             prep_crud.readDatatable.pushField(
                 new ManyToOneReferenceDatatableField(
                     'rdv_id',
-                    VOsTypesManager.getInstance().moduleTables_by_voType[this.programplan_shared_module.rdv_type_id],
+                    VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.rdv_type_id],
                     [
                         new ComputedDatatableField(
                             'rdv_date',
@@ -372,11 +372,11 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
             prep_crud.readDatatable.pushField(
                 new ManyToOneReferenceDatatableField(
                     'rdv_id',
-                    VOsTypesManager.getInstance().moduleTables_by_voType[this.programplan_shared_module.rdv_type_id],
+                    VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.rdv_type_id],
                     [
                         new ManyToOneReferenceDatatableField(
                             'target_id',
-                            VOsTypesManager.getInstance().moduleTables_by_voType[this.programplan_shared_module.target_type_id],
+                            VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.target_type_id],
                             [
                                 new SimpleDatatableField('name')
                             ])
@@ -387,11 +387,11 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
             prep_crud.readDatatable.pushField(
                 new ManyToOneReferenceDatatableField(
                     'rdv_id',
-                    VOsTypesManager.getInstance().moduleTables_by_voType[this.programplan_shared_module.rdv_type_id],
+                    VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.rdv_type_id],
                     [
                         new ManyToOneReferenceDatatableField(
                             'facilitator_id',
-                            VOsTypesManager.getInstance().moduleTables_by_voType[this.programplan_shared_module.facilitator_type_id],
+                            VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.facilitator_type_id],
                             [
                                 new ComputedDatatableField(
                                     'facilitator_name',
@@ -424,7 +424,7 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
             cr_crud.readDatatable.pushField(
                 new ManyToOneReferenceDatatableField(
                     'rdv_id',
-                    VOsTypesManager.getInstance().moduleTables_by_voType[this.programplan_shared_module.rdv_type_id],
+                    VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.rdv_type_id],
                     [
                         new ComputedDatatableField(
                             'rdv_date',
@@ -436,11 +436,11 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
             cr_crud.readDatatable.pushField(
                 new ManyToOneReferenceDatatableField(
                     'rdv_id',
-                    VOsTypesManager.getInstance().moduleTables_by_voType[this.programplan_shared_module.rdv_type_id],
+                    VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.rdv_type_id],
                     [
                         new ManyToOneReferenceDatatableField(
                             'target_id',
-                            VOsTypesManager.getInstance().moduleTables_by_voType[this.programplan_shared_module.target_type_id],
+                            VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.target_type_id],
                             [
                                 new SimpleDatatableField('name')
                             ])
@@ -451,11 +451,11 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
             cr_crud.readDatatable.pushField(
                 new ManyToOneReferenceDatatableField(
                     'rdv_id',
-                    VOsTypesManager.getInstance().moduleTables_by_voType[this.programplan_shared_module.rdv_type_id],
+                    VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.rdv_type_id],
                     [
                         new ManyToOneReferenceDatatableField(
                             'facilitator_id',
-                            VOsTypesManager.getInstance().moduleTables_by_voType[this.programplan_shared_module.facilitator_type_id],
+                            VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.facilitator_type_id],
                             [
                                 new ComputedDatatableField(
                                     'facilitator_name',

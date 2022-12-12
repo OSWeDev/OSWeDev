@@ -51,7 +51,7 @@ export default class VarsInitController {
 
         let datatable = new ModuleTable(module, api_type_id, constructor, var_fields, null).defineAsMatroid();
         if (!is_test) {
-            var_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
+            var_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
         }
         if (!!module) {
             module.datatables.push(datatable);

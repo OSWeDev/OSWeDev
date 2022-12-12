@@ -53,7 +53,7 @@ export default class VarDataBaseVO implements IMatroid {
     public static createNew<T extends VarDataBaseVO>(var_name: string, clone_fields: boolean = true, ...fields_ordered_as_in_moduletable_definition: IRange[][]): T {
 
         let varConf = VarsController.getInstance().var_conf_by_name[var_name];
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[varConf.var_data_vo_type];
+        let moduletable = VOsTypesManager.moduleTables_by_voType[varConf.var_data_vo_type];
 
         let res: T = moduletable.voConstructor();
         res._type = varConf.var_data_vo_type;

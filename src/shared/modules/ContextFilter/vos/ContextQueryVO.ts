@@ -536,11 +536,11 @@ export default class ContextQueryVO implements IDistantVOBase {
         }
 
         let matroid_head_filter: ContextFilterVO = null;
-        let target_moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[target_API_TYPE_ID];
+        let target_moduletable = VOsTypesManager.moduleTables_by_voType[target_API_TYPE_ID];
         let var_id_field_id = (fields_ids_mapper && fields_ids_mapper['var_id']) ? fields_ids_mapper['var_id'] : 'var_id';
         let target_has_var_id_field = target_moduletable.get_field_by_id(var_id_field_id);
 
-        let matroid_module_table = VOsTypesManager.getInstance().moduleTables_by_voType[matroid_api_type_id];
+        let matroid_module_table = VOsTypesManager.moduleTables_by_voType[matroid_api_type_id];
         let matroid_has_var_id_field = matroid_module_table.get_field_by_id('var_id');
         let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getInstance().getMatroidFields(matroid_api_type_id);
 
@@ -614,11 +614,11 @@ export default class ContextQueryVO implements IDistantVOBase {
         }
 
         let matroid_head_filter: ContextFilterVO = null;
-        let target_moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[target_API_TYPE_ID];
+        let target_moduletable = VOsTypesManager.moduleTables_by_voType[target_API_TYPE_ID];
         let var_id_field_id = (fields_ids_mapper && fields_ids_mapper['var_id']) ? fields_ids_mapper['var_id'] : 'var_id';
         let target_has_var_id_field = target_moduletable.get_field_by_id(var_id_field_id);
 
-        let matroid_module_table = VOsTypesManager.getInstance().moduleTables_by_voType[matroid_api_type_id];
+        let matroid_module_table = VOsTypesManager.moduleTables_by_voType[matroid_api_type_id];
         let matroid_has_var_id_field = matroid_module_table.get_field_by_id('var_id');
         let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getInstance().getMatroidFields(matroid_api_type_id);
 

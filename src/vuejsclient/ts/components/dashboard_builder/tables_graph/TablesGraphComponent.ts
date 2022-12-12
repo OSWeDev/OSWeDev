@@ -436,7 +436,7 @@ export default class TablesGraphComponent extends VueComponentBase {
                     // label += '<div id="tables_graph_vo_type__' + cell.value.tables_graph_vo_type + '">' +
                     //     '</div>';
                     label += '<div class="tables_graph_item table_name">' +
-                        VueAppBase.getInstance().vueInstance.t(VOsTypesManager.getInstance().moduleTables_by_voType[cell.value.tables_graph_vo_type].label.code_text) +
+                        VueAppBase.getInstance().vueInstance.t(VOsTypesManager.moduleTables_by_voType[cell.value.tables_graph_vo_type].label.code_text) +
                         '</div>';
 
                     return label;
@@ -558,7 +558,7 @@ export default class TablesGraphComponent extends VueComponentBase {
             //Table associée, on souhaite désactiver par défau certains chemins.
             switch (red_by_default) {
                 case true:
-                    let table = VOsTypesManager.getInstance().moduleTables_by_voType[cellule];
+                    let table = VOsTypesManager.moduleTables_by_voType[cellule];
                     let is_versioned: boolean = table.is_versioned;
                     this.initcell(cells[compteur], v1, is_versioned);
                     break;

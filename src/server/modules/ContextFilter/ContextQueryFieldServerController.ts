@@ -33,7 +33,7 @@ export default class ContextQueryFieldServerController {
             return null;
         }
 
-        let field = VOsTypesManager.getInstance().moduleTables_by_voType[query_field.api_type_id].get_field_by_id(query_field.field_id);
+        let field = VOsTypesManager.moduleTables_by_voType[query_field.api_type_id].get_field_by_id(query_field.field_id);
         let field_type = field ? field.field_type : ((query_field.field_id == 'id') ? ModuleTableField.FIELD_TYPE_int : null);
         let res: DataFilterOption = new DataFilterOption(
             DataFilterOption.STATE_SELECTABLE,

@@ -100,7 +100,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
             return null;
         }
 
-        let field = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id].getFieldFromId(unique_field_id);
+        let field = VOsTypesManager.moduleTables_by_voType[api_type_id].getFieldFromId(unique_field_id);
         let filter_: ContextFilterVO = null;
 
         switch (field.field_type) {

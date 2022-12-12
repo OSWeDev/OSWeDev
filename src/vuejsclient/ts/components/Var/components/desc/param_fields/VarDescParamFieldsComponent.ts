@@ -42,7 +42,7 @@ export default class VarDescParamFieldsComponent extends VueComponentBase {
         if (!this.var_param) {
             return null;
         }
-        return VOsTypesManager.getInstance().moduleTables_by_voType[this.var_param._type].name;
+        return VOsTypesManager.moduleTables_by_voType[this.var_param._type].name;
     }
 
     /**

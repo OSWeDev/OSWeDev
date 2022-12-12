@@ -47,7 +47,7 @@ export default class BulkOpsWidgetOptionsComponent extends VueComponentBase {
     }
 
     private api_type_id_select_label(api_type_id: string): string {
-        return this.t(VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id].label.code_text);
+        return this.t(VOsTypesManager.moduleTables_by_voType[api_type_id].label.code_text);
     }
 
     @Watch('page_widget', { immediate: true })

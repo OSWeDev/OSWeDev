@@ -195,7 +195,7 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
 
         return this.label('crud.read.title', {
             datatable_title:
-                this.t(VOsTypesManager.getInstance().moduleTables_by_voType[this.crud.readDatatable.API_TYPE_ID].label.code_text)
+                this.t(VOsTypesManager.moduleTables_by_voType[this.crud.readDatatable.API_TYPE_ID].label.code_text)
         });
     }
 
@@ -395,8 +395,8 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
     }
 
     get isModuleParamTable() {
-        return VOsTypesManager.getInstance().moduleTables_by_voType[this.crud.readDatatable.API_TYPE_ID] ?
-            VOsTypesManager.getInstance().moduleTables_by_voType[this.crud.readDatatable.API_TYPE_ID].isModuleParamTable : false;
+        return VOsTypesManager.moduleTables_by_voType[this.crud.readDatatable.API_TYPE_ID] ?
+            VOsTypesManager.moduleTables_by_voType[this.crud.readDatatable.API_TYPE_ID].isModuleParamTable : false;
     }
 
     get has_createDatatable(): boolean {

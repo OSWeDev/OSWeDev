@@ -85,7 +85,7 @@ export default class ContextQueryServerController {
             return [];
         }
 
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[context_query.base_api_type_id];
+        let moduletable = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
 
         // On devrait plus avoir besoin de faire ça ici, on doit le faire dans la requête directement et sur tous les types rencontrés
         // return await ModuleDAOServer.getInstance().filterVOsAccess(moduletable, ModuleDAO.DAO_ACCESS_TYPE_READ, moduletable.forceNumerics(query_res));
@@ -265,7 +265,7 @@ export default class ContextQueryServerController {
                 }
                 let field_id = field.alias ? field.alias : field.field_id;
 
-                let module_table = VOsTypesManager.getInstance().moduleTables_by_voType[field.api_type_id];
+                let module_table = VOsTypesManager.moduleTables_by_voType[field.api_type_id];
                 let module_field = module_table.getFieldFromId(field.field_id);
 
                 switch (module_field.field_type) {
@@ -440,7 +440,7 @@ export default class ContextQueryServerController {
         context_query.query_limit = 100;
         let might_have_more: boolean = true;
         context_query.set_sort(new SortByVO(context_query.base_api_type_id, 'id', false));
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[context_query.base_api_type_id];
+        let moduletable = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
         let field = moduletable.get_field_by_id(update_field_id);
         let get_active_field_filters = ContextFilterHandler.getInstance().get_active_field_filters(context_query.filters);
 
@@ -574,7 +574,7 @@ export default class ContextQueryServerController {
             }
         }
 
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+        let moduletable = VOsTypesManager.moduleTables_by_voType[api_type_id];
         let segmentation_field: ModuleTableField<any> = moduletable.table_segmented_field;
         switch (segmentation_field.field_type) {
             case ModuleTableField.FIELD_TYPE_foreign_key:
@@ -624,7 +624,7 @@ export default class ContextQueryServerController {
                 return null;
             }
 
-            let base_moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[context_query.base_api_type_id];
+            let base_moduletable = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
 
             if (!base_moduletable) {
                 return null;
@@ -782,7 +782,7 @@ export default class ContextQueryServerController {
         for (let i in context_query.fields) {
             let context_field = context_query.fields[i];
 
-            let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[context_field.api_type_id];
+            let moduletable = VOsTypesManager.moduleTables_by_voType[context_field.api_type_id];
             if ((!moduletable) || ((!!context_field.field_id) && (context_field.field_id != 'id') && (!moduletable.get_field_by_id(context_field.field_id)))) {
                 return null;
             }
@@ -889,7 +889,7 @@ export default class ContextQueryServerController {
                 continue;
             }
 
-            let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[active_api_type_id];
+            let moduletable = VOsTypesManager.moduleTables_by_voType[active_api_type_id];
             if (!moduletable) {
                 return null;
             }
@@ -1204,7 +1204,7 @@ export default class ContextQueryServerController {
             }
             aliases_n = await ContextFilterServerController.getInstance().updates_jointures(
                 context_query, context_query.query_tables_prefix, jointures, context_query.filters, joined_tables_by_vo_type, tables_aliases_by_type, path, aliases_n);
-            // joined_tables_by_vo_type[api_type_id_i] = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id_i];
+            // joined_tables_by_vo_type[api_type_id_i] = VOsTypesManager.moduleTables_by_voType[api_type_id_i];
         }
 
         if (!!filter.left_hook) {
@@ -1271,7 +1271,7 @@ export default class ContextQueryServerController {
             }
 
             let alias = tables_aliases_by_type[vo_type];
-            let module_table = VOsTypesManager.getInstance().moduleTables_by_voType[vo_type];
+            let module_table = VOsTypesManager.moduleTables_by_voType[vo_type];
 
             if (!loaded) {
                 loaded = true;

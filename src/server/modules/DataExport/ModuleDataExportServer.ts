@@ -245,7 +245,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         if ((!context_query.fields) || !context_query.fields.length) {
 
-            let table = VOsTypesManager.getInstance().moduleTables_by_voType[context_query.base_api_type_id];
+            let table = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
             res = table.forceNumerics(res);
             for (let i in res) {
                 let e = res[i];
@@ -268,7 +268,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 }
 
                 promises.push((async () => {
-                    let table = VOsTypesManager.getInstance().moduleTables_by_voType[field.api_type_id];
+                    let table = VOsTypesManager.moduleTables_by_voType[field.api_type_id];
 
                     // cas spécifique de l'id
                     if (field.field_id == 'id') {
@@ -367,7 +367,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         let datas: any[] = [];
         let ordered_column_list: string[] = [];
         let column_labels: { [field_name: string]: string } = {};
-        let modultable = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+        let modultable = VOsTypesManager.moduleTables_by_voType[api_type_id];
         filename = filename ? filename : api_type_id + '.xlsx';
 
         if (!lang_id) {

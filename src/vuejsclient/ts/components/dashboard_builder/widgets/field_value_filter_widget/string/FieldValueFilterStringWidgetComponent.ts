@@ -196,7 +196,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
         let active_field_filter_lvl2: ContextFilterVO[] = [];
 
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id];
+        let moduletable = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id];
         let field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
 
         let filter_visible_options_by_values: { [value: string]: DataFilterOption } = {};
@@ -274,12 +274,12 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             return null;
         }
 
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[vo_field_ref.api_type_id];
+        let moduletable = VOsTypesManager.moduleTables_by_voType[vo_field_ref.api_type_id];
         let field = moduletable.get_field_by_id(vo_field_ref.field_id);
 
         if (this.vo_field_ref_multiple) {
             for (let i in this.vo_field_ref_multiple) {
-                let moduletable_multiple = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref_multiple[i].api_type_id];
+                let moduletable_multiple = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref_multiple[i].api_type_id];
                 let field_multiple = moduletable_multiple.get_field_by_id(this.vo_field_ref_multiple[i].field_id);
                 let res_: ContextFilterVO = null;
 
@@ -394,7 +394,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
         let translated_active_options_arr: ContextFilterVO[] = [];
 
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id];
+        let moduletable = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id];
         let field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
 
         let previous_filter: AdvancedStringFilter = null;
@@ -407,7 +407,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
         if (this.vo_field_ref_multiple) {
             for (let j in this.vo_field_ref_multiple) {
-                let moduletable_multiple = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref_multiple[j].api_type_id];
+                let moduletable_multiple = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref_multiple[j].api_type_id];
                 let field_multiple = moduletable_multiple.get_field_by_id(this.vo_field_ref_multiple[j].field_id);
                 previous_filter = null;
                 translated_active_options = null;
@@ -695,7 +695,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
         // Si je suis sur une table segmentée, je vais voir si j'ai un filtre sur mon field qui segmente
         // Si ce n'est pas le cas, je n'envoie pas la requête
-        let base_table: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[query_.base_api_type_id];
+        let base_table: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[query_.base_api_type_id];
 
         if (
             base_table &&
@@ -793,7 +793,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         let tmp_lvl2: { [filter_opt_value: string]: DataFilterOption[] } = {};
 
         if (this.vo_field_ref_lvl2) {
-            let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id];
+            let moduletable = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id];
             let field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
 
             let promises = [];
@@ -1574,7 +1574,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             return false;
         }
 
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id];
+        let moduletable = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id];
         if (!moduletable) {
             return false;
         }

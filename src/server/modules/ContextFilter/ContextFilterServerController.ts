@@ -72,7 +72,7 @@ export default class ContextFilterServerController {
         }
 
         let field = active_field_filter.vo_type ?
-            VOsTypesManager.getInstance().moduleTables_by_voType[active_field_filter.vo_type].get_field_by_id(active_field_filter.field_id) :
+            VOsTypesManager.moduleTables_by_voType[active_field_filter.vo_type].get_field_by_id(active_field_filter.field_id) :
             null;
 
         /**
@@ -2651,7 +2651,7 @@ export default class ContextFilterServerController {
                                 throw new Error('Error should not filter on empty range array TYPE_NUMERIC_IS_INCLUDED_IN');
                             }
 
-                            let table = VOsTypesManager.getInstance().moduleTables_by_voType[active_field_filter.vo_type];
+                            let table = VOsTypesManager.moduleTables_by_voType[active_field_filter.vo_type];
                             let table_name = table.full_name.split('.')[1];
                             let ranges_query = 'ANY(' + range_to_db + ')';
 
@@ -2677,7 +2677,7 @@ export default class ContextFilterServerController {
                                 throw new Error('Error should not filter on empty range array TYPE_NUMERIC_IS_INCLUDED_IN');
                             }
 
-                            let table = VOsTypesManager.getInstance().moduleTables_by_voType[active_field_filter.vo_type];
+                            let table = VOsTypesManager.moduleTables_by_voType[active_field_filter.vo_type];
                             let table_name = table.full_name.split('.')[1];
                             let ranges_query = 'ANY(' + range_to_db + ')';
 
@@ -2734,7 +2734,7 @@ export default class ContextFilterServerController {
                                 throw new Error('Error should not filter on empty range array TYPE_DATE_IS_INCLUDED_IN');
                             }
 
-                            let table = VOsTypesManager.getInstance().moduleTables_by_voType[active_field_filter.vo_type];
+                            let table = VOsTypesManager.moduleTables_by_voType[active_field_filter.vo_type];
                             let table_name = table.full_name.split('.')[1];
                             let ranges_query = 'ANY(' + range_to_db + ')';
 
@@ -2760,7 +2760,7 @@ export default class ContextFilterServerController {
                                 throw new Error('Error should not filter on empty range array TYPE_DATE_IS_INCLUDED_IN');
                             }
 
-                            let table = VOsTypesManager.getInstance().moduleTables_by_voType[active_field_filter.vo_type];
+                            let table = VOsTypesManager.moduleTables_by_voType[active_field_filter.vo_type];
                             let table_name = table.full_name.split('.')[1];
                             let ranges_query = 'ANY(' + range_to_db + ')';
 
@@ -3043,7 +3043,7 @@ export default class ContextFilterServerController {
                 (query_tables_prefix + '_t' + (aliases_n++)) :
                 ('t' + (aliases_n++))
             );
-            joined_tables_by_vo_type[api_type_id] = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+            joined_tables_by_vo_type[api_type_id] = VOsTypesManager.moduleTables_by_voType[api_type_id];
 
             let cross_jointure_table_ref: string = null;
             let table = joined_tables_by_vo_type[api_type_id];

@@ -290,7 +290,7 @@ export default class VarsDatasVoUpdateHandler {
             }
 
             promises.push((async () => {
-                let moduleTable = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+                let moduleTable = VOsTypesManager.moduleTables_by_voType[api_type_id];
                 let request = "DELETE FROM " + moduleTable.full_name + " WHERE _bdd_only_index in ('" + indexes.join("','") + "');";
                 await ModuleDAOServer.getInstance().query(request);
             })());
@@ -652,7 +652,7 @@ export default class VarsDatasVoUpdateHandler {
 
     //     let res: VarDataBaseVO[] = [];
 
-    //     let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+    //     let moduleTable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[api_type_id];
     //     let matroid_fields = MatroidController.getInstance().getMatroidFields(matroid._type);
 
     //     if (!moduleTable) {
@@ -1302,7 +1302,7 @@ export default class VarsDatasVoUpdateHandler {
                         let vo = vos[vo_i];
 
                         ConsoleHandler.getInstance().error(
-                            JSON.stringify(VOsTypesManager.getInstance().moduleTables_by_voType[vo._type].get_bdd_version(vo)));
+                            JSON.stringify(VOsTypesManager.moduleTables_by_voType[vo._type].get_bdd_version(vo)));
                     }
                 }
                 ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: vos_create_or_delete_buffer ---');
@@ -1315,7 +1315,7 @@ export default class VarsDatasVoUpdateHandler {
                         let vo: DAOUpdateVOHolder<IDistantVOBase> = vos[vo_i];
 
                         ConsoleHandler.getInstance().error(
-                            JSON.stringify(VOsTypesManager.getInstance().moduleTables_by_voType[vo.post_update_vo._type].get_bdd_version(vo.post_update_vo)));
+                            JSON.stringify(VOsTypesManager.moduleTables_by_voType[vo.post_update_vo._type].get_bdd_version(vo.post_update_vo)));
                     }
                 }
                 ConsoleHandler.getInstance().error('DEAD DEP LOOP : compute_intersectors: vos_update_buffer ---');

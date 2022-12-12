@@ -125,8 +125,8 @@ export default class ModuleAnonymizationServer extends ModuleServerBase {
     }
 
     public async late_configuration(): Promise<void> {
-        for (let i in VOsTypesManager.getInstance().moduleTables_by_voType) {
-            let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[i];
+        for (let i in VOsTypesManager.moduleTables_by_voType) {
+            let moduletable = VOsTypesManager.moduleTables_by_voType[i];
 
             // ModuleDAOServer.getInstance().registerAccessHook(moduletable.vo_type, ModuleDAO.DAO_ACCESS_TYPE_READ, ServerAnonymizationController.getInstance().anonymise.bind(ServerAnonymizationController.getInstance()));
             //TODO FIXME à faire en fait aujourd'hui ce n'est pas fait

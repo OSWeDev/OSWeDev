@@ -213,7 +213,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             }
 
             if (has_new_value) {
-                let moduletablefields = VOsTypesManager.getInstance().moduleTables_by_voType[vo_update_handler.post_update_vo._type].get_fields();
+                let moduletablefields = VOsTypesManager.moduleTables_by_voType[vo_update_handler.post_update_vo._type].get_fields();
                 for (let i in moduletablefields) {
                     let moduletablefield = moduletablefields[i];
 
@@ -258,9 +258,9 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             /**
              * On historise
              */
-            let historique: ISupervisedItem = VOsTypesManager.getInstance().moduleTables_by_voType[vo_update_handler.post_update_vo._type].getNewVO() as ISupervisedItem;
+            let historique: ISupervisedItem = VOsTypesManager.moduleTables_by_voType[vo_update_handler.post_update_vo._type].getNewVO() as ISupervisedItem;
 
-            let moduletablefields = VOsTypesManager.getInstance().moduleTables_by_voType[vo_update_handler.post_update_vo._type].get_fields();
+            let moduletablefields = VOsTypesManager.moduleTables_by_voType[vo_update_handler.post_update_vo._type].get_fields();
             for (let i in moduletablefields) {
                 let moduletablefield = moduletablefields[i];
 

@@ -64,7 +64,7 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
             return;
         }
 
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id];
+        let moduletable = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id];
         let field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
 
         this.set_active_field_filter({
@@ -171,6 +171,6 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
     }
 
     get field_date(): SimpleDatatableField<any, any> {
-        return new SimpleDatatableField(this.vo_field_ref.field_id).setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id]);
+        return new SimpleDatatableField(this.vo_field_ref.field_id).setModuleTable(VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id]);
     }
 }

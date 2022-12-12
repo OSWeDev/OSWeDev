@@ -597,7 +597,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         throw new Error('Not implemented');
         // // On peut pas supprimer comme ça directement ça enfreint les règles de thread, de cache des vars, ....
         // for (let api_type_id in VarsServerController.getInstance().varcacheconf_by_api_type_ids) {
-        //     let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+        //     let moduletable = VOsTypesManager.moduleTables_by_voType[api_type_id];
 
         //     await ModuleDAOServer.getInstance().query('DELETE from ' + moduletable.full_name + ' where value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';');
         // }
@@ -637,7 +637,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         //         continue;
         //     }
 
-        //     let moduletable_vardata = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
+        //     let moduletable_vardata = VOsTypesManager.moduleTables_by_voType[vo._type];
         //     let query_: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroidIntersection(vo._type, vo, null);
 
         //     if (moduletable_vardata.is_segmented) {
@@ -692,7 +692,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         //         continue;
         //     }
 
-        //     let moduletable_vardata = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
+        //     let moduletable_vardata = VOsTypesManager.moduleTables_by_voType[vo._type];
         //     let query_: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroidIntersection(vo._type, vo, null);
 
         //     if (moduletable_vardata.is_segmented) {

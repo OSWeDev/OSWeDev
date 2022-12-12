@@ -46,7 +46,7 @@ export default class VarsDatasExplorerActionsComponent extends VueComponentBase 
 
         // Pour des raisons de sécurité pour le moment on empeche de faire les demandes avec des maxranges
         let matroid_bases = MatroidController.getInstance().getMatroidBases(filter_param);
-        let moduleTable = VOsTypesManager.getInstance().moduleTables_by_voType[filter_param._type];
+        let moduleTable = VOsTypesManager.moduleTables_by_voType[filter_param._type];
         for (let i in matroid_bases) {
             let matroid_base = matroid_bases[i];
 

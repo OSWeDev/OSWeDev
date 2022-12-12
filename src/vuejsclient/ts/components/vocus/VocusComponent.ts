@@ -33,7 +33,7 @@ export default class VocusComponent extends VueComponentBase {
     private debounced_load_vocus = debounce(this.load_vocus, 2000);
 
     get vo_types(): string[] {
-        return Object.keys(VOsTypesManager.getInstance().moduleTables_by_voType);
+        return Object.keys(VOsTypesManager.moduleTables_by_voType);
     }
 
     get vo_label() {
@@ -41,7 +41,7 @@ export default class VocusComponent extends VueComponentBase {
             return null;
         }
 
-        let table = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo._type];
+        let table = VOsTypesManager.moduleTables_by_voType[this.vo._type];
         if (table && table.default_label_field) {
             return this.vo[table.default_label_field.field_id];
         } else if (table && table.table_label_function) {

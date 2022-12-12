@@ -28,7 +28,7 @@ describe('ContextFilterServer', () => {
 
         ContextFilterTestsTools.getInstance().declare_modultables();
 
-        let user_modultable = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID];
+        let user_modultable = VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID];
         let jointures: string[] = [];
         let joined_tables_by_vo_type: { [vo_type: string]: ModuleTable<any> } = {};
 
@@ -53,7 +53,7 @@ describe('ContextFilterServer', () => {
             'ref.lang t1 on t1.id = t0.lang_id'
         ]);
         expect(joined_tables_by_vo_type).to.deep.equal({
-            [LangVO.API_TYPE_ID]: VOsTypesManager.getInstance().moduleTables_by_voType[LangVO.API_TYPE_ID]
+            [LangVO.API_TYPE_ID]: VOsTypesManager.moduleTables_by_voType[LangVO.API_TYPE_ID]
         });
         expect(tables_aliases_by_type).to.deep.equal({
             [LangVO.API_TYPE_ID]: 't1',
@@ -70,7 +70,7 @@ describe('ContextFilterServer', () => {
 
         ContextFilterTestsTools.getInstance().declare_modultables();
 
-        let user_modultable = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID];
+        let user_modultable = VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID];
         let jointures: string[] = [];
         let joined_tables_by_vo_type: { [vo_type: string]: ModuleTable<any> } = {};
 
@@ -95,7 +95,7 @@ describe('ContextFilterServer', () => {
             'ref.user t1 on t1.lang_id = t0.id'
         ]);
         expect(joined_tables_by_vo_type).to.deep.equal({
-            [UserVO.API_TYPE_ID]: VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]
+            [UserVO.API_TYPE_ID]: VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]
         });
         expect(tables_aliases_by_type).to.deep.equal({
             [UserVO.API_TYPE_ID]: 't1',
@@ -112,7 +112,7 @@ describe('ContextFilterServer', () => {
 
         ContextFilterTestsTools.getInstance().declare_modultables();
 
-        let userrole_modultable = VOsTypesManager.getInstance().moduleTables_by_voType[UserRoleVO.API_TYPE_ID];
+        let userrole_modultable = VOsTypesManager.moduleTables_by_voType[UserRoleVO.API_TYPE_ID];
         let jointures: string[] = [];
         let joined_tables_by_vo_type: { [vo_type: string]: ModuleTable<any> } = {};
 
@@ -139,8 +139,8 @@ describe('ContextFilterServer', () => {
             'ref.role t2 on t2.id = t1.role_id'
         ]);
         expect(joined_tables_by_vo_type).to.deep.equal({
-            [UserRoleVO.API_TYPE_ID]: VOsTypesManager.getInstance().moduleTables_by_voType[UserRoleVO.API_TYPE_ID],
-            [RoleVO.API_TYPE_ID]: VOsTypesManager.getInstance().moduleTables_by_voType[RoleVO.API_TYPE_ID],
+            [UserRoleVO.API_TYPE_ID]: VOsTypesManager.moduleTables_by_voType[UserRoleVO.API_TYPE_ID],
+            [RoleVO.API_TYPE_ID]: VOsTypesManager.moduleTables_by_voType[RoleVO.API_TYPE_ID],
         });
         expect(tables_aliases_by_type).to.deep.equal({
             [RoleVO.API_TYPE_ID]: 't2',
@@ -158,7 +158,7 @@ describe('ContextFilterServer', () => {
 
         ContextFilterTestsTools.getInstance().declare_modultables();
 
-        let userrole_modultable = VOsTypesManager.getInstance().moduleTables_by_voType[UserRoleVO.API_TYPE_ID];
+        let userrole_modultable = VOsTypesManager.moduleTables_by_voType[UserRoleVO.API_TYPE_ID];
         let jointures: string[] = [];
         let joined_tables_by_vo_type: { [vo_type: string]: ModuleTable<any> } = {};
 
@@ -183,7 +183,7 @@ describe('ContextFilterServer', () => {
             'ref.user t1 on t1.id = t0.user_id'
         ]);
         expect(joined_tables_by_vo_type).to.deep.equal({
-            [UserVO.API_TYPE_ID]: VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID],
+            [UserVO.API_TYPE_ID]: VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID],
         });
         expect(tables_aliases_by_type).to.deep.equal({
             [UserVO.API_TYPE_ID]: 't1',
@@ -210,8 +210,8 @@ describe('ContextFilterServer', () => {
             'ref.role t2 on t2.id = t0.role_id'
         ]);
         expect(joined_tables_by_vo_type).to.deep.equal({
-            [UserVO.API_TYPE_ID]: VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID],
-            [RoleVO.API_TYPE_ID]: VOsTypesManager.getInstance().moduleTables_by_voType[RoleVO.API_TYPE_ID],
+            [UserVO.API_TYPE_ID]: VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID],
+            [RoleVO.API_TYPE_ID]: VOsTypesManager.moduleTables_by_voType[RoleVO.API_TYPE_ID],
         });
         expect(tables_aliases_by_type).to.deep.equal({
             [RoleVO.API_TYPE_ID]: 't2',
@@ -229,8 +229,8 @@ describe('ContextFilterServer', () => {
 
         ContextFilterTestsTools.getInstance().declare_modultables();
 
-        let UserRoleVO_modultable = VOsTypesManager.getInstance().moduleTables_by_voType[UserRoleVO.API_TYPE_ID];
-        let AnonymizationUserConfVO_modultable = VOsTypesManager.getInstance().moduleTables_by_voType[AnonymizationUserConfVO.API_TYPE_ID];
+        let UserRoleVO_modultable = VOsTypesManager.moduleTables_by_voType[UserRoleVO.API_TYPE_ID];
+        let AnonymizationUserConfVO_modultable = VOsTypesManager.moduleTables_by_voType[AnonymizationUserConfVO.API_TYPE_ID];
         let jointures: string[] = [];
         let joined_tables_by_vo_type: { [vo_type: string]: ModuleTable<any> } = {};
 
@@ -259,9 +259,9 @@ describe('ContextFilterServer', () => {
             'ref.anonym_field_conf t3 on t3.id = t2.anon_field_id'
         ]);
         expect(joined_tables_by_vo_type).to.deep.equal({
-            [UserVO.API_TYPE_ID]: VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID],
-            [AnonymizationUserConfVO.API_TYPE_ID]: VOsTypesManager.getInstance().moduleTables_by_voType[AnonymizationUserConfVO.API_TYPE_ID],
-            [AnonymizationFieldConfVO.API_TYPE_ID]: VOsTypesManager.getInstance().moduleTables_by_voType[AnonymizationFieldConfVO.API_TYPE_ID],
+            [UserVO.API_TYPE_ID]: VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID],
+            [AnonymizationUserConfVO.API_TYPE_ID]: VOsTypesManager.moduleTables_by_voType[AnonymizationUserConfVO.API_TYPE_ID],
+            [AnonymizationFieldConfVO.API_TYPE_ID]: VOsTypesManager.moduleTables_by_voType[AnonymizationFieldConfVO.API_TYPE_ID],
         });
         expect(tables_aliases_by_type).to.deep.equal({
             [AnonymizationFieldConfVO.API_TYPE_ID]: 't3',
@@ -280,8 +280,8 @@ describe('ContextFilterServer', () => {
 
         ContextFilterTestsTools.getInstance().declare_modultables();
 
-        let UserRoleVO_modultable = VOsTypesManager.getInstance().moduleTables_by_voType[UserRoleVO.API_TYPE_ID];
-        let AnonymizationUserConfVO_modultable = VOsTypesManager.getInstance().moduleTables_by_voType[AnonymizationUserConfVO.API_TYPE_ID];
+        let UserRoleVO_modultable = VOsTypesManager.moduleTables_by_voType[UserRoleVO.API_TYPE_ID];
+        let AnonymizationUserConfVO_modultable = VOsTypesManager.moduleTables_by_voType[AnonymizationUserConfVO.API_TYPE_ID];
         let jointures: string[] = [];
         let joined_tables_by_vo_type: { [vo_type: string]: ModuleTable<any> } = {};
 
@@ -312,10 +312,10 @@ describe('ContextFilterServer', () => {
             'ref.anonym_field_conf t4 on t4.id = t3.anon_field_id'
         ]);
         expect(joined_tables_by_vo_type).to.deep.equal({
-            [UserRoleVO.API_TYPE_ID]: VOsTypesManager.getInstance().moduleTables_by_voType[UserRoleVO.API_TYPE_ID],
-            [UserVO.API_TYPE_ID]: VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID],
-            [AnonymizationUserConfVO.API_TYPE_ID]: VOsTypesManager.getInstance().moduleTables_by_voType[AnonymizationUserConfVO.API_TYPE_ID],
-            [AnonymizationFieldConfVO.API_TYPE_ID]: VOsTypesManager.getInstance().moduleTables_by_voType[AnonymizationFieldConfVO.API_TYPE_ID],
+            [UserRoleVO.API_TYPE_ID]: VOsTypesManager.moduleTables_by_voType[UserRoleVO.API_TYPE_ID],
+            [UserVO.API_TYPE_ID]: VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID],
+            [AnonymizationUserConfVO.API_TYPE_ID]: VOsTypesManager.moduleTables_by_voType[AnonymizationUserConfVO.API_TYPE_ID],
+            [AnonymizationFieldConfVO.API_TYPE_ID]: VOsTypesManager.moduleTables_by_voType[AnonymizationFieldConfVO.API_TYPE_ID],
         });
         expect(tables_aliases_by_type).to.deep.equal({
             [AnonymizationFieldConfVO.API_TYPE_ID]: 't4',

@@ -73,8 +73,8 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
 
                 let apiDefinition: APIDefinition<any, any> = null;
 
-                for (let j in APIControllerWrapper.getInstance().registered_apis) {
-                    let registered_api = APIControllerWrapper.getInstance().registered_apis[j];
+                for (let j in APIControllerWrapper.registered_apis) {
+                    let registered_api = APIControllerWrapper.registered_apis[j];
                     if (APIControllerWrapper.getInstance().requestUrlMatchesApiUrl(wrapped_request.url, APIControllerWrapper.getInstance().getAPI_URL(registered_api))) {
                         apiDefinition = registered_api;
                         break;

@@ -33,7 +33,7 @@ export default class FieldValueFilterWidgetController {
 
         for (let i in dashboard.api_type_ids) {
             let api_type_id: string = dashboard.api_type_ids[i];
-            let module_table: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+            let module_table: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[api_type_id];
 
             if (module_table && module_table.is_segmented) {
 
@@ -69,7 +69,7 @@ export default class FieldValueFilterWidgetController {
             query_.active_api_type_ids = query_.active_api_type_ids.filter((api_type_id: string) => {
                 return api_type_id != has_segmented_too_much_options_api_type_id;
             });
-            let segmented_moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[has_segmented_too_much_options_api_type_id];
+            let segmented_moduletable = VOsTypesManager.moduleTables_by_voType[has_segmented_too_much_options_api_type_id];
             let fields = segmented_moduletable.get_fields();
             for (let i in fields) {
                 let field: ModuleTableField<any> = fields[i];

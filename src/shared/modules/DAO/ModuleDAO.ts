@@ -513,7 +513,7 @@ export default class ModuleDAO extends Module {
         if ((!access_type) || (!vo_type)) {
             return null;
         }
-        let isModulesParams: boolean = VOsTypesManager.getInstance().moduleTables_by_voType[vo_type].isModuleParamTable;
+        let isModulesParams: boolean = VOsTypesManager.moduleTables_by_voType[vo_type].isModuleParamTable;
         return (isModulesParams ? ModuleDAO.POLICY_GROUP_MODULES_CONF : ModuleDAO.POLICY_GROUP_DATAS) + '.' + access_type + "." + vo_type;
     }
 }

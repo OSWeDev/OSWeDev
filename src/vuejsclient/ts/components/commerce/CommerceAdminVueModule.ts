@@ -272,16 +272,16 @@
 
 //         crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
 //             "client_id",
-//             VOsTypesManager.getInstance().moduleTables_by_voType[ClientVO.API_TYPE_ID], [
+//             VOsTypesManager.moduleTables_by_voType[ClientVO.API_TYPE_ID], [
 //             new ManyToOneReferenceDatatableField<any>(
 //                 "user_id",
-//                 VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID], [
+//                 VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID], [
 //                 new SimpleDatatableField("name")
 //             ])
 //         ]));
 
-//         CRUD.addManyToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[CommandeVO.API_TYPE_ID]);
-//         CRUD.addOneToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[CommandeVO.API_TYPE_ID]);
+//         CRUD.addManyToManyFields(crud, VOsTypesManager.moduleTables_by_voType[CommandeVO.API_TYPE_ID]);
+//         CRUD.addOneToManyFields(crud, VOsTypesManager.moduleTables_by_voType[CommandeVO.API_TYPE_ID]);
 
 //         return crud;
 //     }
@@ -291,24 +291,24 @@
 
 //         crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
 //             "commande_id",
-//             VOsTypesManager.getInstance().moduleTables_by_voType[CommandeVO.API_TYPE_ID], [
+//             VOsTypesManager.moduleTables_by_voType[CommandeVO.API_TYPE_ID], [
 //             new SimpleDatatableField("identifiant")
 //         ]));
 //         crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
 //             "produit_id",
-//             VOsTypesManager.getInstance().moduleTables_by_voType[ProduitVO.API_TYPE_ID], [
+//             VOsTypesManager.moduleTables_by_voType[ProduitVO.API_TYPE_ID], [
 //             new SimpleDatatableField("titre")
 //         ]));
 //         crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
 //             "informations_id",
-//             VOsTypesManager.getInstance().moduleTables_by_voType[InformationsVO.API_TYPE_ID], [
+//             VOsTypesManager.moduleTables_by_voType[InformationsVO.API_TYPE_ID], [
 //             new SimpleDatatableField("email")
 //         ]));
 //         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("prix_unitaire"));
 //         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("quantite"));
 
-//         CRUD.addManyToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[LigneCommandeVO.API_TYPE_ID]);
-//         CRUD.addOneToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[LigneCommandeVO.API_TYPE_ID]);
+//         CRUD.addManyToManyFields(crud, VOsTypesManager.moduleTables_by_voType[LigneCommandeVO.API_TYPE_ID]);
+//         CRUD.addOneToManyFields(crud, VOsTypesManager.moduleTables_by_voType[LigneCommandeVO.API_TYPE_ID]);
 
 //         return crud;
 //     }
@@ -318,18 +318,18 @@
 
 //         crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
 //             "abonnement_id",
-//             VOsTypesManager.getInstance().moduleTables_by_voType[AbonnementVO.API_TYPE_ID], [
+//             VOsTypesManager.moduleTables_by_voType[AbonnementVO.API_TYPE_ID], [
 //             new SimpleDatatableField("echeance")
 //         ]));
 //         crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
 //             "mode_paiement_id",
-//             VOsTypesManager.getInstance().moduleTables_by_voType[ModePaiementVO.API_TYPE_ID], [
+//             VOsTypesManager.moduleTables_by_voType[ModePaiementVO.API_TYPE_ID], [
 //             new SimpleDatatableField("mode")
 //         ]));
 //         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("statut"));
 
-//         CRUD.addManyToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[PaiementVO.API_TYPE_ID]);
-//         CRUD.addOneToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[PaiementVO.API_TYPE_ID]);
+//         CRUD.addManyToManyFields(crud, VOsTypesManager.moduleTables_by_voType[PaiementVO.API_TYPE_ID]);
+//         CRUD.addOneToManyFields(crud, VOsTypesManager.moduleTables_by_voType[PaiementVO.API_TYPE_ID]);
 
 //         return crud;
 //     }
@@ -339,18 +339,18 @@
 
 //         crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
 //             "facturation_id",
-//             VOsTypesManager.getInstance().moduleTables_by_voType[FacturationVO.API_TYPE_ID], [
+//             VOsTypesManager.moduleTables_by_voType[FacturationVO.API_TYPE_ID], [
 //             new SimpleDatatableField("titre")
 //         ]));
 //         crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
 //             "produit_id",
-//             VOsTypesManager.getInstance().moduleTables_by_voType[ProduitVO.API_TYPE_ID], [
+//             VOsTypesManager.moduleTables_by_voType[ProduitVO.API_TYPE_ID], [
 //             new SimpleDatatableField("titre")
 //         ]));
 //         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("par_defaut"));
 
-//         CRUD.addManyToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[FacturationProduitVO.API_TYPE_ID]);
-//         CRUD.addOneToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[FacturationProduitVO.API_TYPE_ID]);
+//         CRUD.addManyToManyFields(crud, VOsTypesManager.moduleTables_by_voType[FacturationProduitVO.API_TYPE_ID]);
+//         CRUD.addOneToManyFields(crud, VOsTypesManager.moduleTables_by_voType[FacturationProduitVO.API_TYPE_ID]);
 
 //         return crud;
 //     }

@@ -266,7 +266,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
         let datatable = new ModuleTable(this, this.target_group_type_id, constructor, additional_fields, label_field, "Groupe d'établissements");
 
-        user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 
@@ -288,7 +288,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
         let datatable = new ModuleTable(this, this.target_region_type_id, constructor, additional_fields, label_field, "Régions d'établissements");
 
 
-        region_director_uid.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        region_director_uid.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 
@@ -315,9 +315,9 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
         let datatable = new ModuleTable(this, this.target_zone_type_id, constructor, additional_fields, label_field, "Zones d'établissements");
         if (!!this.target_region_type_id) {
-            region_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.target_region_type_id]);
+            region_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.target_region_type_id]);
         }
-        zone_manager_uid.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        zone_manager_uid.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 
@@ -347,10 +347,10 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTable(this, this.contact_type_id, constructor, additional_fields, label_field, "Contacts");
-        user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
 
         if (!!this.contact_type_type_id) {
-            contact_type_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.contact_type_type_id]);
+            contact_type_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.contact_type_type_id]);
         }
 
         this.datatables.push(datatable);
@@ -371,8 +371,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTable(this, this.target_contact_type_id, constructor, additional_fields, null, "Contacts par cible");
-        target_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.target_type_id]);
-        contact_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.contact_type_id]);
+        target_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.target_type_id]);
+        contact_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.contact_type_id]);
 
         this.datatables.push(datatable);
     }
@@ -403,7 +403,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTable(this, this.program_type_id, constructor, additional_fields, label_field, "Programmes");
-        category_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.program_category_type_id]);
+        category_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.program_category_type_id]);
         this.datatables.push(datatable);
     }
 
@@ -444,18 +444,18 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTable(this, this.facilitator_type_id, constructor, additional_fields, label_field, "Animateurs");
-        user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
 
         if (!!this.manager_type_id) {
-            manager_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.manager_type_id]);
+            manager_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.manager_type_id]);
         }
 
         if (!!this.partner_type_id) {
-            partner_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.partner_type_id]);
+            partner_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.partner_type_id]);
         }
 
         if (!!this.facilitator_region_type_id) {
-            region_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.facilitator_region_type_id]);
+            region_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.facilitator_region_type_id]);
         }
 
         this.datatables.push(datatable);
@@ -486,10 +486,10 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTable(this, this.manager_type_id, constructor, additional_fields, label_field, "Managers");
-        user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
 
         if (!!this.partner_type_id) {
-            partner_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.partner_type_id]);
+            partner_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.partner_type_id]);
         }
 
         this.datatables.push(datatable);
@@ -557,7 +557,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
         let datatable = new ModuleTable(this, this.task_type_id, constructor, additional_fields, label_field, "Tâche");
         if (!!this.task_type_type_id) {
-            task_type_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.task_type_type_id]);
+            task_type_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.task_type_type_id]);
         }
         this.datatables.push(datatable);
     }
@@ -600,13 +600,13 @@ export default abstract class ModuleProgramPlanBase extends Module {
         let datatable = new ModuleTable(this, this.target_type_id, constructor, additional_fields, label_field, "Etablissements");
 
         if (!!this.enseigne_type_id) {
-            enseigne_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.enseigne_type_id]);
+            enseigne_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.enseigne_type_id]);
         }
         if (!!this.target_group_type_id) {
-            group_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.target_group_type_id]);
+            group_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.target_group_type_id]);
         }
         if (!!this.target_zone_type_id) {
-            zone_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.target_zone_type_id]);
+            zone_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.target_zone_type_id]);
         }
 
         this.datatables.push(datatable);
@@ -635,11 +635,11 @@ export default abstract class ModuleProgramPlanBase extends Module {
         let datatable = new ModuleTable(this, this.rdv_prep_type_id, constructor, additional_fields, null, "Préparations");
 
         if (!!this.rdv_type_id) {
-            rdv_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.rdv_type_id]);
+            rdv_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.rdv_type_id]);
         }
 
-        author_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
-        prep_file_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);
+        author_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        prep_file_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 
@@ -666,11 +666,11 @@ export default abstract class ModuleProgramPlanBase extends Module {
         let datatable = new ModuleTable(this, this.rdv_cr_type_id, constructor, additional_fields, null, "Compte-rendus");
 
         if (!!this.rdv_type_id) {
-            rdv_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.rdv_type_id]);
+            rdv_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.rdv_type_id]);
         }
 
-        author_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
-        cr_file_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);
+        author_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        cr_file_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 
@@ -733,19 +733,19 @@ export default abstract class ModuleProgramPlanBase extends Module {
         let datatable = new ModuleTable(this, this.rdv_type_id, constructor, additional_fields, null, "RDVs");
 
         if (!!this.task_type_id) {
-            task_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.task_type_id]);
+            task_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.task_type_id]);
         }
 
         if (!!this.program_type_id) {
-            program_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.program_type_id]);
+            program_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.program_type_id]);
         }
 
         if (!!this.target_type_id) {
-            target_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.target_type_id]);
+            target_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.target_type_id]);
         }
 
         if (!!this.facilitator_type_id) {
-            facilitator_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.facilitator_type_id]);
+            facilitator_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.facilitator_type_id]);
         }
 
         this.datatables.push(datatable);
@@ -766,8 +766,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTable(this, this.program_facilitator_type_id, constructor, additional_fields, null, "Animateurs par programme");
-        facilitator_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.facilitator_type_id]);
-        program_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.program_type_id]);
+        facilitator_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.facilitator_type_id]);
+        program_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.program_type_id]);
         this.datatables.push(datatable);
     }
 
@@ -786,8 +786,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTable(this, this.program_manager_type_id, constructor, additional_fields, null, "Animateurs par programme");
-        manager_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.manager_type_id]);
-        program_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.program_type_id]);
+        manager_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.manager_type_id]);
+        program_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.program_type_id]);
         this.datatables.push(datatable);
     }
 
@@ -806,8 +806,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTable(this, this.program_target_type_id, constructor, additional_fields, null, "Etablissements par programme");
-        target_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.target_type_id]);
-        program_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.program_type_id]);
+        target_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.target_type_id]);
+        program_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.program_type_id]);
         this.datatables.push(datatable);
     }
 
@@ -844,8 +844,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTable(this, this.target_facilitator_type_id, constructor, additional_fields, null, "Animateurs par établissements");
-        target_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.target_type_id]);
-        facilitator_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.facilitator_type_id]);
+        target_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.target_type_id]);
+        facilitator_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.facilitator_type_id]);
         this.datatables.push(datatable);
     }
 
@@ -864,8 +864,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTable(this, this.target_group_contact_type_id, constructor, additional_fields, null, "Contacts par groupe d'établissements");
-        target_group_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.target_group_type_id]);
-        contact_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.contact_type_id]);
+        target_group_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.target_group_type_id]);
+        contact_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.contact_type_id]);
         this.datatables.push(datatable);
     }
 }

@@ -197,7 +197,7 @@ export default class TableWidgetComponent extends VueComponentBase {
                 filtering_by_active_field_filter.by_id(filtered_value);
             }
         } else {
-            let field = VOsTypesManager.getInstance().moduleTables_by_voType[column.api_type_id].getFieldFromId(column.field_id);
+            let field = VOsTypesManager.moduleTables_by_voType[column.api_type_id].getFieldFromId(column.field_id);
             switch (field.field_type) {
                 case ModuleTableField.FIELD_TYPE_html:
                 case ModuleTableField.FIELD_TYPE_password:
@@ -305,7 +305,7 @@ export default class TableWidgetComponent extends VueComponentBase {
             }
             return row['__crud_actions'] == this.filtering_by_active_field_filter.param_numeric;
         } else {
-            let field = VOsTypesManager.getInstance().moduleTables_by_voType[column.api_type_id].getFieldFromId(column.field_id);
+            let field = VOsTypesManager.moduleTables_by_voType[column.api_type_id].getFieldFromId(column.field_id);
             switch (field.field_type) {
                 case ModuleTableField.FIELD_TYPE_html:
                 case ModuleTableField.FIELD_TYPE_password:
@@ -870,7 +870,7 @@ export default class TableWidgetComponent extends VueComponentBase {
             let moduleTable: ModuleTable<any>;
 
             if (column.type != TableColumnDescVO.TYPE_header) {
-                moduleTable = VOsTypesManager.getInstance().moduleTables_by_voType[column.api_type_id];
+                moduleTable = VOsTypesManager.moduleTables_by_voType[column.api_type_id];
             }
 
             switch (column.type) {
@@ -924,7 +924,7 @@ export default class TableWidgetComponent extends VueComponentBase {
         //     let moduleTable: ModuleTable<any>;
 
         //     if (column.type != TableColumnDescVO.TYPE_header) {
-        //         moduleTable = VOsTypesManager.getInstance().moduleTables_by_voType[column.api_type_id];
+        //         moduleTable = VOsTypesManager.moduleTables_by_voType[column.api_type_id];
         //     }
 
         //     switch (column.type) {
@@ -943,7 +943,7 @@ export default class TableWidgetComponent extends VueComponentBase {
         //             for (let f = 0; f < column.children.length; f++) {
         //                 let children = column.children[f];
         //                 if (!semaphore || children.field_id != semaphore) {
-        //                     moduleTable = VOsTypesManager.getInstance().moduleTables_by_voType[children.api_type_id];
+        //                     moduleTable = VOsTypesManager.moduleTables_by_voType[children.api_type_id];
         //                     let result = this.switch_for_type_header(children, moduleTable);
         //                     result.is_required = true;
         //                     res[children.id] = result;
@@ -1261,7 +1261,7 @@ export default class TableWidgetComponent extends VueComponentBase {
 
         // Si je suis sur une table segmentée, je vais voir si j'ai un filtre sur mon field qui segmente
         // Si ce n'est pas le cas, je n'envoie pas la requête
-        let base_table: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[query_.base_api_type_id];
+        let base_table: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[query_.base_api_type_id];
 
         if (
             base_table &&
@@ -1924,7 +1924,7 @@ export default class TableWidgetComponent extends VueComponentBase {
             return res;
         }
 
-        let field = VOsTypesManager.getInstance().moduleTables_by_voType[column.api_type_id].getFieldFromId(column.field_id);
+        let field = VOsTypesManager.moduleTables_by_voType[column.api_type_id].getFieldFromId(column.field_id);
         if (!field) {
             return res;
         }
@@ -1960,7 +1960,7 @@ export default class TableWidgetComponent extends VueComponentBase {
                 continue;
             }
 
-            let field = VOsTypesManager.getInstance().moduleTables_by_voType[column.api_type_id].getFieldFromId(column.field_id);
+            let field = VOsTypesManager.moduleTables_by_voType[column.api_type_id].getFieldFromId(column.field_id);
             if (!field) {
                 continue;
             }

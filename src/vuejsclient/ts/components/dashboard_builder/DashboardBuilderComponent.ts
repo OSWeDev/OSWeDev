@@ -232,23 +232,23 @@ export default class DashboardBuilderComponent extends VueComponentBase {
          *  attention sur les trads on colle des codes de remplacement pour les ids qui auront été insérés après import
          */
         let export_vos: IDistantVOBase[] = [];
-        let db_table = VOsTypesManager.getInstance().moduleTables_by_voType[DashboardVO.API_TYPE_ID];
+        let db_table = VOsTypesManager.moduleTables_by_voType[DashboardVO.API_TYPE_ID];
         let db = this.dashboard;
         export_vos.push(db_table.get_api_version(db));
 
         let pages = await query(DashboardPageVO.API_TYPE_ID).filter_by_num_eq('dashboard_id', this.dashboard.id).select_vos<DashboardPageVO>();
-        let page_table = VOsTypesManager.getInstance().moduleTables_by_voType[DashboardPageVO.API_TYPE_ID];
+        let page_table = VOsTypesManager.moduleTables_by_voType[DashboardPageVO.API_TYPE_ID];
         if (pages && pages.length) {
             export_vos = export_vos.concat(pages.map((p) => page_table.get_api_version(p)));
         }
 
         let graphvorefs = await query(DashboardGraphVORefVO.API_TYPE_ID).filter_by_num_eq('dashboard_id', this.dashboard.id).select_vos<DashboardGraphVORefVO>();
-        let graphvoref_table = VOsTypesManager.getInstance().moduleTables_by_voType[DashboardGraphVORefVO.API_TYPE_ID];
+        let graphvoref_table = VOsTypesManager.moduleTables_by_voType[DashboardGraphVORefVO.API_TYPE_ID];
         if (graphvorefs && graphvorefs.length) {
             export_vos = export_vos.concat(graphvorefs.map((p) => graphvoref_table.get_api_version(p)));
         }
 
-        let pagewidget_table = VOsTypesManager.getInstance().moduleTables_by_voType[DashboardPageWidgetVO.API_TYPE_ID];
+        let pagewidget_table = VOsTypesManager.moduleTables_by_voType[DashboardPageWidgetVO.API_TYPE_ID];
         let page_widgets = null;
         for (let i in pages) {
             let page = pages[i];
@@ -262,8 +262,8 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
         let translation_codes: TranslatableTextVO[] = [];
         let translations: TranslationVO[] = [];
-        let translation_code_table: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID];
-        let translation_table: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[TranslationVO.API_TYPE_ID];
+        let translation_code_table: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID];
+        let translation_table: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[TranslationVO.API_TYPE_ID];
         await this.get_exportable_translations(
             translation_codes,
             translations,

@@ -184,14 +184,14 @@ export default class VueAnimationQrComponent extends VueComponentBase {
     }
 
     get name_editable_field() {
-        return new SimpleDatatableField('name').setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[AnimationQRVO.API_TYPE_ID]);
+        return new SimpleDatatableField('name').setModuleTable(VOsTypesManager.moduleTables_by_voType[AnimationQRVO.API_TYPE_ID]);
     }
 
     get description_editable_field() {
-        return new SimpleDatatableField('description').setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[AnimationQRVO.API_TYPE_ID]);
+        return new SimpleDatatableField('description').setModuleTable(VOsTypesManager.moduleTables_by_voType[AnimationQRVO.API_TYPE_ID]);
     }
 
     get explicatif_editable_field() {
-        return new SimpleDatatableField('explicatif').setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[AnimationQRVO.API_TYPE_ID]);
+        return new SimpleDatatableField('explicatif').setModuleTable(VOsTypesManager.moduleTables_by_voType[AnimationQRVO.API_TYPE_ID]);
     }
 }

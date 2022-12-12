@@ -89,22 +89,22 @@ export default class AdvancedDateFilterWidgetOptionsOptComponent extends VueComp
     }
 
     get opt_name_editable_field() {
-        return new SimpleDatatableField('name').setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[AdvancedDateFilterOptDescVO.API_TYPE_ID]);
+        return new SimpleDatatableField('name').setModuleTable(VOsTypesManager.moduleTables_by_voType[AdvancedDateFilterOptDescVO.API_TYPE_ID]);
     }
 
     get opt_value_editable_field() {
-        return new SimpleDatatableField('value').setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[AdvancedDateFilterOptDescVO.API_TYPE_ID]);
+        return new SimpleDatatableField('value').setModuleTable(VOsTypesManager.moduleTables_by_voType[AdvancedDateFilterOptDescVO.API_TYPE_ID]);
     }
 
     get opt_ts_range_editable_field() {
-        return new SimpleDatatableField('ts_range').setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[AdvancedDateFilterOptDescVO.API_TYPE_ID]);
+        return new SimpleDatatableField('ts_range').setModuleTable(VOsTypesManager.moduleTables_by_voType[AdvancedDateFilterOptDescVO.API_TYPE_ID]);
     }
 
     get opt_search_type_editable_field() {
-        return new SimpleDatatableField('search_type').setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[AdvancedDateFilterOptDescVO.API_TYPE_ID]);
+        return new SimpleDatatableField('search_type').setModuleTable(VOsTypesManager.moduleTables_by_voType[AdvancedDateFilterOptDescVO.API_TYPE_ID]);
     }
 
     get opt_segmentation_type_editable_field() {
-        return new SimpleDatatableField('segmentation_type').setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[AdvancedDateFilterOptDescVO.API_TYPE_ID]);
+        return new SimpleDatatableField('segmentation_type').setModuleTable(VOsTypesManager.moduleTables_by_voType[AdvancedDateFilterOptDescVO.API_TYPE_ID]);
     }
 }

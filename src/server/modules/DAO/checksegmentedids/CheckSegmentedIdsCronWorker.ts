@@ -30,8 +30,8 @@ export default class CheckSegmentedIdsCronWorker implements ICronWorker {
 
     public async work() {
 
-        for (let i in VOsTypesManager.getInstance().moduleTables_by_voType) {
-            let table = VOsTypesManager.getInstance().moduleTables_by_voType[i];
+        for (let i in VOsTypesManager.moduleTables_by_voType) {
+            let table = VOsTypesManager.moduleTables_by_voType[i];
 
             if (!table.is_segmented) {
                 continue;

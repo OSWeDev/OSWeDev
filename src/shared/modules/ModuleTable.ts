@@ -639,7 +639,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
             case ModuleTableField.FIELD_TYPE_plain_vo_obj:
                 if (e && e._type) {
-                    let field_table = VOsTypesManager.getInstance().moduleTables_by_voType[e._type];
+                    let field_table = VOsTypesManager.moduleTables_by_voType[e._type];
                     let trans_ = (field_table && e) ? field_table.default_get_api_version(e) : null;
                     return trans_ ? JSON.stringify(trans_) : null;
                 } else if (e) {
@@ -746,7 +746,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                          */
                         let elt_type = trans_ ? trans_._type : null;
 
-                        let field_table = elt_type ? VOsTypesManager.getInstance().moduleTables_by_voType[elt_type] : null;
+                        let field_table = elt_type ? VOsTypesManager.moduleTables_by_voType[elt_type] : null;
                         let new_obj = field_table ? field_table.voConstructor() : new Object();
                         trans_ = Object.assign(new_obj, trans_);
                         if (!field_table) {
@@ -924,7 +924,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                          */
                         let elt_type = trans_ ? trans_._type : null;
 
-                        let field_table = elt_type ? VOsTypesManager.getInstance().moduleTables_by_voType[elt_type] : null;
+                        let field_table = elt_type ? VOsTypesManager.moduleTables_by_voType[elt_type] : null;
                         let new_obj = field_table ? field_table.voConstructor() : new Object();
                         trans_ = Object.assign(new_obj, trans_);
                         if (!field_table) {
@@ -1175,7 +1175,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
                 case ModuleTableField.FIELD_TYPE_plain_vo_obj:
                     if (e[field.field_id] && e[field.field_id]._type) {
-                        let field_table = VOsTypesManager.getInstance().moduleTables_by_voType[e[field.field_id]._type];
+                        let field_table = VOsTypesManager.moduleTables_by_voType[e[field.field_id]._type];
 
                         let trans_ = e[field.field_id] ? field_table.default_get_bdd_version(e[field.field_id]) : null;
                         res[field.field_id] = trans_ ? JSON.stringify(trans_) : null;
@@ -1279,7 +1279,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
             let elt = trans_[transi];
             let elt_type = elt ? elt._type : null;
 
-            let field_table = elt_type ? VOsTypesManager.getInstance().moduleTables_by_voType[elt_type] : null;
+            let field_table = elt_type ? VOsTypesManager.moduleTables_by_voType[elt_type] : null;
             let new_obj = field_table ? field_table.voConstructor() : new Object();
             trans_[transi] = Object.assign(new_obj, trans_[transi]);
             if (field_table) {

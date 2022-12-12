@@ -17,6 +17,14 @@ export default class APIControllerWrapper {
     public static BASE_API_URL: string = "/api_handler/";
     public static API_CONTROLLER: IAPIController = null;
 
+    /**
+     * Local thread cache -----
+     */
+    public static registered_apis: { [api_name: string]: APIDefinition<any, any> } = {};
+    /**
+     * ----- Local thread cache
+     */
+
     public static getInstance(): APIControllerWrapper {
         if (!APIControllerWrapper.instance) {
             APIControllerWrapper.instance = new APIControllerWrapper();
@@ -38,30 +46,22 @@ export default class APIControllerWrapper {
         precondition_default_value: any = null,
         sanitize_result: (res: any, ...params) => any = null,
     ): (...params) => Promise<U> {
-        return APIControllerWrapper.API_CONTROLLER.get_shared_api_handler(api_name, sanitize_params, precondition, precondition_default_value, APIControllerWrapper.getInstance().registered_apis, sanitize_result);
+        return APIControllerWrapper.API_CONTROLLER.get_shared_api_handler(api_name, sanitize_params, precondition, precondition_default_value, APIControllerWrapper.registered_apis, sanitize_result);
     }
 
     private static instance: APIControllerWrapper = null;
 
-    /**
-     * Local thread cache -----
-     */
-    public registered_apis: { [api_name: string]: APIDefinition<any, any> } = {};
-    /**
-     * ----- Local thread cache
-     */
-
     private constructor() { }
 
     public registerApi<T, U>(apiDefinition: APIDefinition<T, U>) {
-        APIControllerWrapper.getInstance().registered_apis[apiDefinition.api_name] = apiDefinition;
+        APIControllerWrapper.registered_apis[apiDefinition.api_name] = apiDefinition;
     }
 
     public registerServerApiHandler<T, U>(api_name: string, SERVER_HANDLER: (translated_param: T) => Promise<U>) {
-        if (!APIControllerWrapper.getInstance().registered_apis[api_name]) {
+        if (!APIControllerWrapper.registered_apis[api_name]) {
             throw new Error("Registering server API Handler on unknown API:" + api_name);
         }
-        APIControllerWrapper.getInstance().registered_apis[api_name].SERVER_HANDLER = SERVER_HANDLER;
+        APIControllerWrapper.registered_apis[api_name].SERVER_HANDLER = SERVER_HANDLER;
     }
 
     public translate_param<T, U>(apiDefinition: APIDefinition<T, U>, ...api_params): IAPIParamTranslator<T> {
@@ -191,7 +191,7 @@ export default class APIControllerWrapper {
             return e;
         }
 
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[elt._type];
+        let moduletable = VOsTypesManager.moduleTables_by_voType[elt._type];
         if (!moduletable) {
             return elt;
         }
@@ -240,7 +240,7 @@ export default class APIControllerWrapper {
             return e;
         }
 
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[elt._type];
+        let moduletable = VOsTypesManager.moduleTables_by_voType[elt._type];
         if (!moduletable) {
             return elt;
         }

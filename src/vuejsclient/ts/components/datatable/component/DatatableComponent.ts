@@ -107,8 +107,8 @@ export default class DatatableComponent extends VueComponentBase {
     private debounced_update_datatable_data: () => Promise<void> = debounce(this.update_datatable_data, 500) as any as () => Promise<void>;
 
     get isModuleParamTable() {
-        return VOsTypesManager.getInstance().moduleTables_by_voType[this.datatable.API_TYPE_ID] ?
-            VOsTypesManager.getInstance().moduleTables_by_voType[this.datatable.API_TYPE_ID].isModuleParamTable : false;
+        return VOsTypesManager.moduleTables_by_voType[this.datatable.API_TYPE_ID] ?
+            VOsTypesManager.moduleTables_by_voType[this.datatable.API_TYPE_ID].isModuleParamTable : false;
     }
 
     public async mounted() {

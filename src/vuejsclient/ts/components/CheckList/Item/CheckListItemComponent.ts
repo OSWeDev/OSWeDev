@@ -110,7 +110,7 @@ export default class CheckListItemComponent extends VueComponentBase {
             return null;
         }
 
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.checklist_item._type];
+        let moduletable = VOsTypesManager.moduleTables_by_voType[this.checklist_item._type];
 
         let checkpoint_description: string = '<ul>';
         for (let j in this.all_editable_fields) {
@@ -218,7 +218,7 @@ export default class CheckListItemComponent extends VueComponentBase {
         }
 
         let res: { [step_id: number]: string } = {};
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.checklist_item._type];
+        let moduletable = VOsTypesManager.moduleTables_by_voType[this.checklist_item._type];
 
         for (let i in this.ordered_checkpoints) {
             let checkpoint = this.ordered_checkpoints[i];

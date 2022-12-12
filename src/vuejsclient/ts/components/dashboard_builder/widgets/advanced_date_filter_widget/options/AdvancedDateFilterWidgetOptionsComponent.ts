@@ -124,7 +124,7 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
             return false;
         }
 
-        let field = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id].get_field_by_id(field_id);
+        let field = VOsTypesManager.moduleTables_by_voType[api_type_id].get_field_by_id(field_id);
 
         if (!field) {
             return false;

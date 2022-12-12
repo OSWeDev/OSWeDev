@@ -108,7 +108,7 @@ export default abstract class VueAppBase {
         /**
          * On ajoute tous les types aux DBB
          */
-        let types = Object.keys(VOsTypesManager.getInstance().moduleTables_by_voType);
+        let types = Object.keys(VOsTypesManager.moduleTables_by_voType);
         DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids = {};
         types.forEach((type) =>
             DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids[type] = null

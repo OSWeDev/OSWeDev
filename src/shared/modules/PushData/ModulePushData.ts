@@ -77,7 +77,7 @@ export default class ModulePushData extends Module {
             new ModuleTableField('notif_route_params_values', ModuleTableField.FIELD_TYPE_string_array, 'Valeurs des paramètres d\'URL', false),
         ];
         let datatable = new ModuleTable(this, NotificationVO.API_TYPE_ID, () => new NotificationVO(), datatable_fields, null, "Notifications");
-        user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 }

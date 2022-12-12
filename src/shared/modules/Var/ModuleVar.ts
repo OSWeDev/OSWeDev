@@ -390,7 +390,7 @@ export default class ModuleVar extends Module {
         ];
 
         let datatable = new ModuleTable(this, SlowVarVO.API_TYPE_ID, () => new SlowVarVO(), datatable_fields, labelField);
-        var_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
+        var_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 
@@ -427,8 +427,8 @@ export default class ModuleVar extends Module {
 
         let datatable = new ModuleTable(this, VarBatchVarPerfVO.API_TYPE_ID, () => new VarBatchVarPerfVO(), datatable_fields, null);
         this.datatables.push(datatable);
-        var_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
-        var_batch_perf_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[VarBatchPerfVO.API_TYPE_ID]);
+        var_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
+        var_batch_perf_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[VarBatchPerfVO.API_TYPE_ID]);
     }
 
     private initVarBatchNodePerfVO() {
@@ -601,7 +601,7 @@ export default class ModuleVar extends Module {
 
         let datatable = new ModuleTable(this, VarCacheConfVO.API_TYPE_ID, () => new VarCacheConfVO(), datatable_fields, null);
         this.datatables.push(datatable);
-        var_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
+        var_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
     }
 
     private initializeVarDataValueResVO() {
@@ -635,6 +635,6 @@ export default class ModuleVar extends Module {
 
         let datatable = new ModuleTable(this, VarPerfVO.API_TYPE_ID, () => new VarPerfVO(), datatable_fields, name);
         this.datatables.push(datatable);
-        var_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
+        var_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
     }
 }

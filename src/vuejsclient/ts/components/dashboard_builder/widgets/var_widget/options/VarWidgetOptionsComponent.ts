@@ -74,7 +74,7 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
             this.custom_filter_names = {};
         }
 
-        let fields = VOsTypesManager.getInstance().moduleTables_by_voType[var_param_type].get_fields();
+        let fields = VOsTypesManager.moduleTables_by_voType[var_param_type].get_fields();
         for (let i in fields) {
             let field = fields[i];
 

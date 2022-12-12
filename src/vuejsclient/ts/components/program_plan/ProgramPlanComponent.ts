@@ -710,7 +710,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                     let partner: IPlanPartner = this.getPartnersByIds[facilitator.partner_id];
 
                     let target_name: string = (!!target) ? target.name : "";
-                    let target_table: ModuleTable<IPlanTarget> = VOsTypesManager.getInstance().moduleTables_by_voType[this.program_plan_shared_module.target_type_id];
+                    let target_table: ModuleTable<IPlanTarget> = VOsTypesManager.moduleTables_by_voType[this.program_plan_shared_module.target_type_id];
                     if (target_table && target_table.default_label_field) {
                         target_name = (!!target) ? target[target_table.default_label_field.field_id] : "";
                     } else if (target_table && target_table.table_label_function) {

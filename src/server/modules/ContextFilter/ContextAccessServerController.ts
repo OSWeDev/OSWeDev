@@ -48,7 +48,7 @@ export default class ContextAccessServerController {
                 }
             }
         } else {
-            let table = VOsTypesManager.getInstance().moduleTables_by_voType[base_api_type_id];
+            let table = VOsTypesManager.moduleTables_by_voType[base_api_type_id];
             let table_fields = table.get_fields();
             for (let i in table_fields) {
                 let table_field = table_fields[i];
@@ -122,7 +122,7 @@ export default class ContextAccessServerController {
         /**
          * Si le field_id est le label du type ou id, on peut transformer un droit de type READ en LIST
          */
-        let table = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+        let table = VOsTypesManager.moduleTables_by_voType[api_type_id];
         let tmp_access_type = access_type;
         if ((access_type == ModuleDAO.DAO_ACCESS_TYPE_READ) && ((field_id == 'id') || (table.default_label_field && table.default_label_field.field_id && (field_id == table.default_label_field.field_id)))) {
             tmp_access_type = ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS;

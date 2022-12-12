@@ -114,7 +114,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             this.custom_filter_names = {};
         }
 
-        let fields = VOsTypesManager.getInstance().moduleTables_by_voType[var_param_type].get_fields();
+        let fields = VOsTypesManager.moduleTables_by_voType[var_param_type].get_fields();
         for (let i in fields) {
             let field = fields[i];
 
@@ -158,7 +158,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
             return null;
         }
 
-        return VOsTypesManager.getInstance().moduleTables_by_voType[this.column.api_type_id];
+        return VOsTypesManager.moduleTables_by_voType[this.column.api_type_id];
     }
 
     get field(): ModuleTableField<any> {
@@ -290,7 +290,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         this.default_sort_field = this.object_column ? this.object_column.default_sort_field : null;
 
         if (this.object_column && this.object_column.is_enum) {
-            let field = VOsTypesManager.getInstance().moduleTables_by_voType[this.object_column.api_type_id].getFieldFromId(this.object_column.field_id);
+            let field = VOsTypesManager.moduleTables_by_voType[this.object_column.api_type_id].getFieldFromId(this.object_column.field_id);
             this.enum_options = field.enum_values;
             this.enum_bg_colors = Object.assign({}, this.object_column.enum_bg_colors);
             this.enum_fg_colors = Object.assign({}, this.object_column.enum_fg_colors);
@@ -740,7 +740,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
                     return null;
                 }
 
-                let field = VOsTypesManager.getInstance().moduleTables_by_voType[this.object_column.api_type_id].get_field_by_id(this.object_column.field_id);
+                let field = VOsTypesManager.moduleTables_by_voType[this.object_column.api_type_id].get_field_by_id(this.object_column.field_id);
 
                 if (!field) {
                     return this.object_column.field_id;

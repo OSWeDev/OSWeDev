@@ -59,21 +59,21 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
                 'impersonate',
                 ImpersonateComponent,
                 'id'
-            ).setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID])
+            ).setModuleTable(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID])
         );
         TableWidgetController.getInstance().register_component(
             new ComponentDatatableField(
                 'sendinitpwd',
                 SendInitPwdComponent,
                 'id'
-            ).setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID])
+            ).setModuleTable(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID])
         );
         TableWidgetController.getInstance().register_component(
             new ComponentDatatableField(
                 'sendrecapture',
                 SendRecaptureComponent,
                 'id'
-            ).setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID])
+            ).setModuleTable(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID])
         );
     }
 
@@ -253,7 +253,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
 
         crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
             "lang_id",
-            VOsTypesManager.getInstance().moduleTables_by_voType[LangVO.API_TYPE_ID], [
+            VOsTypesManager.moduleTables_by_voType[LangVO.API_TYPE_ID], [
             new SimpleDatatableField("code_lang")
         ]));
 
@@ -269,8 +269,8 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
             crud.readDatatable.pushField(new SimpleDatatableField<any, any>("creation_date"));
         }
 
-        CRUD.addManyToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID], [UserLogVO.API_TYPE_ID, ExportLogVO.API_TYPE_ID]);
-        CRUD.addOneToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID], [UserLogVO.API_TYPE_ID, ExportLogVO.API_TYPE_ID]);
+        CRUD.addManyToManyFields(crud, VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID], [UserLogVO.API_TYPE_ID, ExportLogVO.API_TYPE_ID]);
+        CRUD.addOneToManyFields(crud, VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID], [UserLogVO.API_TYPE_ID, ExportLogVO.API_TYPE_ID]);
 
         crud.readDatatable.removeFields(["ref.module_mailer_mail_sent_by_id"]);
         crud.readDatatable.removeFields(["ref.module_mailer_mail_sent_to_id"]);

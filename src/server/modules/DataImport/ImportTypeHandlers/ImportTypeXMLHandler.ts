@@ -195,7 +195,7 @@ export default class ImportTypeXMLHandler {
         let datas: IImportedData[] = [];
         let row_index: number = 1;
 
-        let moduletable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[dataImportFormat.api_type_id];
+        let moduletable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[dataImportFormat.api_type_id];
 
         if (!xml_datas || !xml_datas.children || !xml_datas.children.length) {
             return null;

@@ -128,7 +128,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
             return;
         }
 
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id];
+        let moduletable = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id];
         let field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
         let has_null_value: boolean = false;
 
@@ -203,7 +203,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
 
         let translated_active_options: ContextFilterVO = null;
 
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id];
+        let moduletable = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id];
         let field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
         let previous_filter: AdvancedNumberFilter = null;
 
@@ -360,7 +360,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
 
         // Si je suis sur une table segmentée, je vais voir si j'ai un filtre sur mon field qui segmente
         // Si ce n'est pas le cas, je n'envoie pas la requête
-        let base_table: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[query_.base_api_type_id];
+        let base_table: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[query_.base_api_type_id];
 
         if (
             base_table &&

@@ -108,22 +108,22 @@ export default class TranslationAdminVueModule extends VueModuleBase {
 
         crud.readDatatable.pushField(new ManyToOneReferenceDatatableField(
             "lang_id",
-            VOsTypesManager.getInstance().moduleTables_by_voType[LangVO.API_TYPE_ID],
+            VOsTypesManager.moduleTables_by_voType[LangVO.API_TYPE_ID],
             [
                 new SimpleDatatableField("code_lang")
             ]
         ));
         crud.readDatatable.pushField(new ManyToOneReferenceDatatableField(
             "text_id",
-            VOsTypesManager.getInstance().moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID],
+            VOsTypesManager.moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID],
             [
                 new SimpleDatatableField("code_text")
             ]
         ));
         crud.readDatatable.pushField(new SimpleDatatableField("translated"));
 
-        CRUD.addManyToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[TranslationVO.API_TYPE_ID]);
-        CRUD.addOneToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[TranslationVO.API_TYPE_ID]);
+        CRUD.addManyToManyFields(crud, VOsTypesManager.moduleTables_by_voType[TranslationVO.API_TYPE_ID]);
+        CRUD.addOneToManyFields(crud, VOsTypesManager.moduleTables_by_voType[TranslationVO.API_TYPE_ID]);
 
         return crud;
     }
