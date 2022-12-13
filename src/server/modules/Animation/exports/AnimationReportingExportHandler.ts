@@ -73,8 +73,8 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
             });
         let import_params: AnimationReportingParamVO = APIControllerWrapper.getInstance().try_translate_vo_from_api(JSON.parse(exhi.export_params_stringified));
 
-        let all_anim_theme_by_ids: { [id: number]: AnimationThemeVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>());
-        let all_anim_module_by_ids: { [id: number]: AnimationModuleVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>());
+        let all_anim_theme_by_ids: { [id: number]: AnimationThemeVO } = VOsTypesManager.vosArray_to_vosByIds(await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>());
+        let all_anim_module_by_ids: { [id: number]: AnimationModuleVO } = VOsTypesManager.vosArray_to_vosByIds(await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>());
         let all_role_by_ids: { [id: number]: RoleVO } = {};
         let all_user_by_ids: { [id: number]: UserVO } = {};
         let all_aum_by_theme_module_user: { [anim_theme_id: number]: { [anim_module_id: number]: { [user_id: number]: AnimationUserModuleVO } } } = {};
@@ -151,12 +151,12 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
         percent_module_finished = nb_module_total ? nb_module_finished / nb_module_total : 0;
 
         if (user_ids.length > 0) {
-            all_user_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(
+            all_user_by_ids = VOsTypesManager.vosArray_to_vosByIds(
                 await query(UserVO.API_TYPE_ID).filter_by_ids(user_ids).select_vos<UserVO>());
         }
 
         if (role_ids.length > 0) {
-            all_role_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(
+            all_role_by_ids = VOsTypesManager.vosArray_to_vosByIds(
                 await query(RoleVO.API_TYPE_ID).filter_by_ids(role_ids).select_vos<RoleVO>());
         }
 

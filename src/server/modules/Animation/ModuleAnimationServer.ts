@@ -179,7 +179,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         vo.computed_name = vo.name;
 
         if (vo.role_id_ranges && vo.role_id_ranges.length) {
-            let role_by_ids: { [id: number]: RoleVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(RoleVO.API_TYPE_ID).select_vos<RoleVO>());
+            let role_by_ids: { [id: number]: RoleVO } = VOsTypesManager.vosArray_to_vosByIds(await query(RoleVO.API_TYPE_ID).select_vos<RoleVO>());
             let role_names: string[] = [];
 
             RangeHandler.foreach_ranges_sync(vo.role_id_ranges, (role_id: number) => {
@@ -211,7 +211,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         let all_module_ids: number[] = await this.getAllModuleIds(theme_ids, module_ids);
         let qrs: AnimationQRVO[] = await query(AnimationQRVO.API_TYPE_ID).filter_by_num_has('module_id', all_module_ids).select_vos<AnimationQRVO>();
 
-        let module_by_ids: { [id: number]: AnimationModuleVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(
+        let module_by_ids: { [id: number]: AnimationModuleVO } = VOsTypesManager.vosArray_to_vosByIds(
             await query(AnimationModuleVO.API_TYPE_ID).filter_by_ids(all_module_ids).select_vos<AnimationModuleVO>()
         );
 
@@ -265,7 +265,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             user_ids
         );
 
-        let module_by_ids: { [id: number]: AnimationModuleVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(
+        let module_by_ids: { [id: number]: AnimationModuleVO } = VOsTypesManager.vosArray_to_vosByIds(
             await query(AnimationModuleVO.API_TYPE_ID).filter_by_ids(all_module_ids).select_vos<AnimationModuleVO>()
         );
 
@@ -435,10 +435,10 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             return res;
         }
 
-        let anim_theme_by_ids: { [id: number]: AnimationThemeVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(
+        let anim_theme_by_ids: { [id: number]: AnimationThemeVO } = VOsTypesManager.vosArray_to_vosByIds(
             await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>()
         );
-        let anim_module_by_ids: { [id: number]: AnimationModuleVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(
+        let anim_module_by_ids: { [id: number]: AnimationModuleVO } = VOsTypesManager.vosArray_to_vosByIds(
             await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>()
         );
         let anim_param: AnimationParametersVO = await ModuleAnimation.getInstance().getParameters();

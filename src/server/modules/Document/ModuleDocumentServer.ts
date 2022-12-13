@@ -241,7 +241,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
 
         let res: DocumentVO[] = [];
         let d_ids: number[] = ObjectHandler.getInstance().getIdsList(vos);
-        let d_by_ids: { [id: number]: DocumentVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(vos);
+        let d_by_ids: { [id: number]: DocumentVO } = VOsTypesManager.vosArray_to_vosByIds(vos);
         let doc_langs: DocumentLangVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIds(DocumentLangVO.API_TYPE_ID, 'lang_id', [user_lang.id], 'd_id', d_ids);
         let doc_roles: DocumentRoleVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIds(DocumentRoleVO.API_TYPE_ID, 'd_id', d_ids);
         let doc_role_ids_by_docid: { [docid: number]: number[] } = {};
@@ -285,7 +285,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
 
         let res: DocumentTagVO[] = [];
         let dt_ids: number[] = ObjectHandler.getInstance().getIdsList(vos);
-        let dt_by_ids: { [id: number]: DocumentTagVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(vos);
+        let dt_by_ids: { [id: number]: DocumentTagVO } = VOsTypesManager.vosArray_to_vosByIds(vos);
         let doc_langs: DocumentTagLangVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIds(DocumentTagLangVO.API_TYPE_ID, 'lang_id', [user_lang.id], 'dt_id', dt_ids);
 
         for (let i in doc_langs) {
@@ -309,7 +309,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
 
         let res: DocumentTagGroupVO[] = [];
         let dtg_ids: number[] = ObjectHandler.getInstance().getIdsList(vos);
-        let dtg_by_ids: { [id: number]: DocumentTagGroupVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(vos);
+        let dtg_by_ids: { [id: number]: DocumentTagGroupVO } = VOsTypesManager.vosArray_to_vosByIds(vos);
         let doc_langs: DocumentTagGroupLangVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIds(DocumentTagGroupLangVO.API_TYPE_ID, 'lang_id', [user_lang.id], 'dtg_id', dtg_ids);
 
         for (let i in doc_langs) {

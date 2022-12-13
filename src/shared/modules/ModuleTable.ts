@@ -208,7 +208,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
         }
 
         if (this.vo_type) {
-            VOsTypesManager.getInstance().registerModuleTable(this);
+            VOsTypesManager.registerModuleTable(this);
         }
     }
 
@@ -486,7 +486,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
     }
 
     public addAlias(api_type_id_alias: string): ModuleTable<any> {
-        VOsTypesManager.getInstance().addAlias(api_type_id_alias, this.vo_type);
+        VOsTypesManager.addAlias(api_type_id_alias, this.vo_type);
         return this;
     }
 

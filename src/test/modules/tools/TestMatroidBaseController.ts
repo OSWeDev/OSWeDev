@@ -21,7 +21,7 @@
 //     let employee_id_ranges = new ModuleTableField('employee_id_ranges', ModuleTableField.FIELD_TYPE_numrange_array, 'Employees').set_segmentation_type(NumSegment.TYPE_INT);
 //     let ts_ranges = new ModuleTableField('ts_ranges', ModuleTableField.FIELD_TYPE_tstzrange_array, 'Dates').set_segmentation_type(TimeSegment.TYPE_DAY);
 
-//     VOsTypesManager.getInstance().registerModuleTable(new ModuleTable(
+//     VOsTypesManager.registerModuleTable(new ModuleTable(
 //         null,
 //         matroid_type,
 //         () => ({} as any),

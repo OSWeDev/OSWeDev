@@ -264,7 +264,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
 
         if ((!this.checklists) || (!this.checklists.length)) {
             this.checklists = await query(CheckListVO.API_TYPE_ID).select_vos<CheckListVO>();
-            this.checklists_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(this.checklists);
+            this.checklists_by_ids = VOsTypesManager.vosArray_to_vosByIds(this.checklists);
         }
 
         await this.update_visible_options();
@@ -454,12 +454,12 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
                 return;
             }
 
-            checklistitems = (items && items.length) ? VOsTypesManager.getInstance().vosArray_to_vosByIds(items) : [];
+            checklistitems = (items && items.length) ? VOsTypesManager.vosArray_to_vosByIds(items) : [];
         })());
 
         let checkpoints: { [id: number]: ICheckPoint } = {};
         promises.push((async () => {
-            checkpoints = VOsTypesManager.getInstance().vosArray_to_vosByIds(
+            checkpoints = VOsTypesManager.vosArray_to_vosByIds(
                 await query(self.checklist_shared_module.checkpoint_type_id).filter_by_num_eq('checklist_id', self.checklist.id).select_vos<ICheckPoint>());
         })());
 

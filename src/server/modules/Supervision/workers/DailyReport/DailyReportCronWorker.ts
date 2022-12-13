@@ -47,7 +47,7 @@ export default class DailyReportCronWorker implements ICronWorker {
          *  suivant les paramètres de l'application
          */
         // On commence par récupérer toutes les sondes et catégories
-        let category_by_ids: { [id: number]: SupervisedCategoryVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(
+        let category_by_ids: { [id: number]: SupervisedCategoryVO } = VOsTypesManager.vosArray_to_vosByIds(
             await query(SupervisedCategoryVO.API_TYPE_ID).select_vos<SupervisedCategoryVO>()
         );
         let supervised_items_by_names: { [name: string]: ISupervisedItem } = await this.load_supervised_items(category_by_ids);

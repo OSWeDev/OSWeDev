@@ -722,7 +722,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         let translatableTexts_by_id: { [id: number]: TranslatableTextVO } = null;
         promises.push((async () => {
             translatableTexts = await this.getTranslatableTexts();
-            translatableTexts_by_id = VOsTypesManager.getInstance().vosArray_to_vosByIds(translatableTexts);
+            translatableTexts_by_id = VOsTypesManager.vosArray_to_vosByIds(translatableTexts);
         })());
 
         await all_promises(promises);
@@ -778,7 +778,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         })());
         promises.push((async () => {
             translatableTexts = await query(TranslatableTextVO.API_TYPE_ID).select_vos<TranslatableTextVO>();
-            translatableTexts_by_id = VOsTypesManager.getInstance().vosArray_to_vosByIds(translatableTexts);
+            translatableTexts_by_id = VOsTypesManager.vosArray_to_vosByIds(translatableTexts);
         })());
         promises.push((async () => {
             let translations = await query(TranslationVO.API_TYPE_ID).select_vos<TranslationVO>();

@@ -538,7 +538,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
             }
         }
 
-        let formats_by_ids: { [id: number]: DataImportFormatVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(formats);
+        let formats_by_ids: { [id: number]: DataImportFormatVO } = VOsTypesManager.vosArray_to_vosByIds(formats);
 
         let all_formats_datas: { [format_id: number]: IImportedData[] } = {};
 

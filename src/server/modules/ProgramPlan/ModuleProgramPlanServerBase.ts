@@ -729,7 +729,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
     private async filterRDVsByFacilitatorIdByAccess_ownTeam(datatable: ModuleTable<IPlanRDV>, vos: IPlanRDV[], uid: number): Promise<IPlanRDV[]> {
         let res: IPlanRDV[] = [];
 
-        let facilitators_by_ids: { [id: number]: IPlanFacilitator } = VOsTypesManager.getInstance().vosArray_to_vosByIds(
+        let facilitators_by_ids: { [id: number]: IPlanFacilitator } = VOsTypesManager.vosArray_to_vosByIds(
             await query(this.programplan_shared_module.facilitator_type_id).select_vos<IPlanFacilitator>()
         );
         for (let i in vos) {
@@ -790,7 +790,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
     private async filterRDVCRPrepsByFacilitatorIdByAccess_ownTeam(datatable: ModuleTable<IPlanRDVCR | IPlanRDVPrep>, vos: IPlanRDVCR[] | IPlanRDVPrep[], uid: number): Promise<IPlanRDVCR[] | IPlanRDVPrep[]> {
         let res = [];
 
-        let rdvs_by_ids: { [id: number]: IPlanRDV } = VOsTypesManager.getInstance().vosArray_to_vosByIds(
+        let rdvs_by_ids: { [id: number]: IPlanRDV } = VOsTypesManager.vosArray_to_vosByIds(
             await query(this.programplan_shared_module.rdv_type_id).select_vos<IPlanRDV>()
         );
         for (let i in vos) {

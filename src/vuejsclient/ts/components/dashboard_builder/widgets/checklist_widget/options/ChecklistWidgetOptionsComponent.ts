@@ -61,7 +61,7 @@ export default class ChecklistWidgetOptionsComponent extends VueComponentBase {
 
         if ((!this.checklists) || (!this.checklists.length)) {
             this.checklists = await query(CheckListVO.API_TYPE_ID).select_vos<CheckListVO>();
-            this.checklists_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(this.checklists);
+            this.checklists_by_ids = VOsTypesManager.vosArray_to_vosByIds(this.checklists);
         }
 
         if ((!this.page_widget) || (!this.widget_options)) {
@@ -131,7 +131,7 @@ export default class ChecklistWidgetOptionsComponent extends VueComponentBase {
         this.set_page_widget(this.page_widget);
         this.$emit('update_layout_widget', this.page_widget);
 
-        let name = VOsTypesManager.getInstance().vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
+        let name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
         let get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
         this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
     }

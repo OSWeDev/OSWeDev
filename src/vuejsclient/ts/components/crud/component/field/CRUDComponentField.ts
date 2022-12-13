@@ -779,7 +779,7 @@ export default class CRUDComponentField extends VueComponentBase
             let options = this.getStoredDatas[manyToOne.targetModuleTable.vo_type];
 
             if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(options)) {
-                options = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(manyToOne.targetModuleTable.vo_type));
+                options = VOsTypesManager.vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(manyToOne.targetModuleTable.vo_type));
                 this.storeDatasByIds({ API_TYPE_ID: manyToOne.targetModuleTable.vo_type, vos_by_ids: options });
             }
 
@@ -900,7 +900,7 @@ export default class CRUDComponentField extends VueComponentBase
 
         let options = this.getStoredDatas[manyToOne.targetModuleTable.vo_type];
         if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(options)) {
-            options = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(manyToOne.targetModuleTable.vo_type));
+            options = VOsTypesManager.vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(manyToOne.targetModuleTable.vo_type));
             this.storeDatasByIds({ API_TYPE_ID: manyToOne.targetModuleTable.vo_type, vos_by_ids: options });
         }
         if (!!OneToMany.filterOptionsForUpdateOrCreateOnOneToMany) {
@@ -993,7 +993,7 @@ export default class CRUDComponentField extends VueComponentBase
             // à voir si c'est un souci mais pour avoir une version toujours propre et complète des options....
             let options = this.getStoredDatas[refrangesField.targetModuleTable.vo_type];
             if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(options)) {
-                options = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(refrangesField.targetModuleTable.vo_type));
+                options = VOsTypesManager.vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(refrangesField.targetModuleTable.vo_type));
                 this.storeDatasByIds({ API_TYPE_ID: refrangesField.targetModuleTable.vo_type, vos_by_ids: options });
             }
 
@@ -1022,7 +1022,7 @@ export default class CRUDComponentField extends VueComponentBase
             // à voir si c'est un souci mais pour avoir une version toujours propre et complète des options....
             let options = this.getStoredDatas[OneToManyField.targetModuleTable.vo_type];
             if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(options)) {
-                options = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(OneToManyField.targetModuleTable.vo_type));
+                options = VOsTypesManager.vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(OneToManyField.targetModuleTable.vo_type));
                 this.storeDatasByIds({ API_TYPE_ID: OneToManyField.targetModuleTable.vo_type, vos_by_ids: options });
             }
 
@@ -1050,7 +1050,7 @@ export default class CRUDComponentField extends VueComponentBase
             // à voir si c'est un souci mais pour avoir une version toujours propre et complète des options....
             let options = this.getStoredDatas[manyToManyField.targetModuleTable.vo_type];
             if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(options)) {
-                options = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(manyToManyField.targetModuleTable.vo_type));
+                options = VOsTypesManager.vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(manyToManyField.targetModuleTable.vo_type));
                 this.storeDatasByIds({ API_TYPE_ID: manyToManyField.targetModuleTable.vo_type, vos_by_ids: options });
             }
 
@@ -1078,7 +1078,7 @@ export default class CRUDComponentField extends VueComponentBase
             // à voir si c'est un souci mais pour avoir une version toujours propre et complète des options....
             let options = this.getStoredDatas[manyToOneField.targetModuleTable.vo_type];
             if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(options)) {
-                options = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(manyToOneField.targetModuleTable.vo_type));
+                options = VOsTypesManager.vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(manyToOneField.targetModuleTable.vo_type));
                 this.storeDatasByIds({ API_TYPE_ID: manyToOneField.targetModuleTable.vo_type, vos_by_ids: options });
             }
 

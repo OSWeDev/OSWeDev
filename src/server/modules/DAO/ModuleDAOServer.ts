@@ -1298,7 +1298,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             let db_check_pixel_update_vos: VarDataBaseVO[] = await query(api_type).filter_by_ids(check_pixel_update_vos.map((vo) => vo.id)).select_vos();
 
-            let db_check_pixel_update_vos_by_id: { [id: number]: VarDataBaseVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(db_check_pixel_update_vos);
+            let db_check_pixel_update_vos_by_id: { [id: number]: VarDataBaseVO } = VOsTypesManager.vosArray_to_vosByIds(db_check_pixel_update_vos);
 
             for (let j in check_pixel_update_vos) {
                 let vo = check_pixel_update_vos[j];

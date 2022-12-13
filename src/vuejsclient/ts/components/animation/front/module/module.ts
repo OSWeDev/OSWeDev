@@ -158,7 +158,7 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
 
         let promises = [];
 
-        promises.push((async () => this.file_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(
+        promises.push((async () => this.file_by_ids = VOsTypesManager.vosArray_to_vosByIds(
             await query(FileVO.API_TYPE_ID).filter_by_ids(file_ids).select_vos<FileVO>()
         ))());
 

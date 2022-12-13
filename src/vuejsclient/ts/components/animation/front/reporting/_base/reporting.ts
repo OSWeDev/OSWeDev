@@ -152,11 +152,11 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
         let promises = [];
 
         promises.push((async () =>
-            all_anim_theme_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>())
+            all_anim_theme_by_ids = VOsTypesManager.vosArray_to_vosByIds(await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>())
         )());
 
         promises.push((async () =>
-            all_anim_module_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>())
+            all_anim_module_by_ids = VOsTypesManager.vosArray_to_vosByIds(await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>())
         )());
 
         await all_promises(promises);
@@ -198,12 +198,12 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
         }
 
         if (user_ids.length > 0) {
-            all_user_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(
+            all_user_by_ids = VOsTypesManager.vosArray_to_vosByIds(
                 await query(UserVO.API_TYPE_ID).filter_by_ids(user_ids).select_vos<UserVO>());
         }
 
         if (role_ids.length > 0) {
-            all_role_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(
+            all_role_by_ids = VOsTypesManager.vosArray_to_vosByIds(
                 await query(RoleVO.API_TYPE_ID).filter_by_ids(role_ids).select_vos<RoleVO>());
         }
 

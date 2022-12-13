@@ -109,7 +109,7 @@ export default class CRUD<T extends IDistantVOBase> {
                     VOsTypesManager.moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type],
                     dt_fields).setValidatInputFunc(field.validate_input);
             } else {
-                if (VOsTypesManager.getInstance().isManyToManyModuleTable(field.module_table)) {
+                if (VOsTypesManager.isManyToManyModuleTable(field.module_table)) {
                     if (field.manyToOne_target_moduletable.default_label_field) {
                         dt_field = new ManyToManyReferenceDatatableField<any, any>(
                             field.field_id,
@@ -152,7 +152,7 @@ export default class CRUD<T extends IDistantVOBase> {
         except_table_names: string[] = null) {
 
         //  On fait le tour des tables manyToMany pour identifier les fields qui font référence à cette table
-        let manyToManyModuleTables: Array<ModuleTable<any>> = VOsTypesManager.getInstance().get_manyToManyModuleTables();
+        let manyToManyModuleTables: Array<ModuleTable<any>> = VOsTypesManager.get_manyToManyModuleTables();
         for (let i in manyToManyModuleTables) {
             let otherModuleTable: ModuleTable<any> = manyToManyModuleTables[i];
 
@@ -195,7 +195,7 @@ export default class CRUD<T extends IDistantVOBase> {
                     continue;
                 }
 
-                let otherField: ModuleTableField<any> = VOsTypesManager.getInstance().getManyToManyOtherField(field.module_table, field);
+                let otherField: ModuleTableField<any> = VOsTypesManager.getManyToManyOtherField(field.module_table, field);
 
                 if ((!otherField) || (!otherField.manyToOne_target_moduletable)) {
                     continue;
@@ -246,7 +246,7 @@ export default class CRUD<T extends IDistantVOBase> {
                 continue;
             }
 
-            if (VOsTypesManager.getInstance().isManyToManyModuleTable(otherModuleTable)) {
+            if (VOsTypesManager.isManyToManyModuleTable(otherModuleTable)) {
                 continue;
             }
 

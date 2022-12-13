@@ -1418,7 +1418,7 @@ export default class ContextQueryServerController {
      */
     private add_activated_many_to_many(context_query: ContextQueryVO) {
 
-        let nn_tables = VOsTypesManager.getInstance().get_manyToManyModuleTables();
+        let nn_tables = VOsTypesManager.get_manyToManyModuleTables();
         for (let i in nn_tables) {
             let nn_table = nn_tables[i];
 

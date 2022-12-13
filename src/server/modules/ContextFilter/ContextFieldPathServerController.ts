@@ -237,7 +237,7 @@ export default class ContextFieldPathServerController {
         /**
          * On charge les manytoone et on filtre sur les types actifs et les recursifs
          */
-        let manytoone_fields = VOsTypesManager.getInstance().getManyToOneFields(moduletable.vo_type, Object.keys(deployed_deps_from));
+        let manytoone_fields = VOsTypesManager.getManyToOneFields(moduletable.vo_type, Object.keys(deployed_deps_from));
         manytoone_fields = manytoone_fields.filter((field) =>
             (!(discarded_field_paths && discarded_field_paths[field.module_table.vo_type] && discarded_field_paths[field.module_table.vo_type][field.field_id])) &&
             active_api_type_ids_by_name[field.manyToOne_target_moduletable.vo_type] &&
@@ -289,7 +289,7 @@ export default class ContextFieldPathServerController {
         /**
          * On passe aux onetomany. idem on charge toutes les refs et on filtres les types déjà connus (exclus) et les types actifs (inclus)
          */
-        let onetomany_fields: Array<ModuleTableField<any>> = VOsTypesManager.getInstance().get_type_references(moduletable.vo_type);
+        let onetomany_fields: Array<ModuleTableField<any>> = VOsTypesManager.get_type_references(moduletable.vo_type);
         onetomany_fields = onetomany_fields.filter((ref) =>
             (!(discarded_field_paths && discarded_field_paths[ref.module_table.vo_type] && discarded_field_paths[ref.module_table.vo_type][ref.field_id])) &&
             active_api_type_ids_by_name[ref.module_table.vo_type] && !deployed_deps_from[ref.module_table.vo_type]);
@@ -335,8 +335,8 @@ export default class ContextFieldPathServerController {
         for (let i in onetomany_fields) {
             let onetomany_field = onetomany_fields[i];
 
-            if (VOsTypesManager.getInstance().isManyToManyModuleTable(onetomany_field.module_table)) {
-                let second_field = VOsTypesManager.getInstance().getManyToManyOtherField(onetomany_field.module_table, onetomany_field);
+            if (VOsTypesManager.isManyToManyModuleTable(onetomany_field.module_table)) {
+                let second_field = VOsTypesManager.getManyToManyOtherField(onetomany_field.module_table, onetomany_field);
 
                 if (discarded_field_paths && discarded_field_paths[second_field.module_table.vo_type] && discarded_field_paths[second_field.module_table.vo_type][second_field.field_id]) {
                     continue;

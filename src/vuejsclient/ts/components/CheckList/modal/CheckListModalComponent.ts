@@ -247,7 +247,7 @@ export default class CheckListModalComponent extends VueComponentBase {
             this.getStoredDatas,
             this.storeDatas,
             this.checklist,
-            (items && items.length) ? VOsTypesManager.getInstance().vosArray_to_vosByIds(items) : {},
+            (items && items.length) ? VOsTypesManager.vosArray_to_vosByIds(items) : {},
             this.ordered_checkpoints
         );
     }

@@ -606,7 +606,7 @@ export default class TablesGraphComponent extends VueComponentBase {
             graph.setCellStyles('strokeColor', '#555', [v1]);
             graph.setCellStyles('fillColor', '#444', [v1]);
             // On rajoute les liaisons depuis les autres vos
-            let references: Array<ModuleTableField<any>> = VOsTypesManager.getInstance().get_type_references(cell.vo_type);
+            let references: Array<ModuleTableField<any>> = VOsTypesManager.get_type_references(cell.vo_type);
             for (let i in references) {
                 let reference = references[i];
                 let reference_cell = this.graphic_cells[reference.module_table.vo_type]; //Cellule reliée à v1 partageant la colonne "reference"
@@ -633,8 +633,8 @@ export default class TablesGraphComponent extends VueComponentBase {
                     //chemin n/n , intervient si la cellule reliée n'est pas sur le dashboard. Ce chemin indique qu'il existe une cellule intermédiaire reliant v1 et une autre cellule.
                 } else if (!reference_cell) { //Si la cellule intermédiaire n'est pas là ,le chemin n/n  sera affiché.
                     //TODO-Rajouter dans la matrice d'adjacence les liaisons n/n
-                    if (VOsTypesManager.getInstance().isManyToManyModuleTable(reference.module_table)) {
-                        let nn_fields = VOsTypesManager.getInstance().getManyToOneFields(reference.module_table.vo_type, []);
+                    if (VOsTypesManager.isManyToManyModuleTable(reference.module_table)) {
+                        let nn_fields = VOsTypesManager.getManyToOneFields(reference.module_table.vo_type, []);
                         for (let j in nn_fields) {
                             let nn_field = nn_fields[j];
 
@@ -683,7 +683,7 @@ export default class TablesGraphComponent extends VueComponentBase {
 
         try {
             // On rajoute les liaisons vers les autres vos
-            let fields = VOsTypesManager.getInstance().getManyToOneFields(cell.vo_type, []);
+            let fields = VOsTypesManager.getManyToOneFields(cell.vo_type, []);
             for (let i in fields) {
                 let field = fields[i];
                 let reference_cell = this.graphic_cells[field.manyToOne_target_moduletable.vo_type];
