@@ -82,7 +82,7 @@ export default class DataSourcesController {
 
     private register_ds_default_translations(ds: DataSourceControllerBase) {
         if (!!ds.ds_name_default_translations) {
-            DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
                 ds.ds_name_default_translations,
                 VarsController.getInstance().get_translatable_ds_name(ds.name)));
         }

@@ -407,7 +407,7 @@ export default class ModuleTableField<T> {
             this.field_label.code_text = "fields.labels." + module_name + "." + this.field_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
         }
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(this.field_label);
+        DefaultTranslationManager.registerDefaultTranslation(this.field_label);
 
         return this;
     }

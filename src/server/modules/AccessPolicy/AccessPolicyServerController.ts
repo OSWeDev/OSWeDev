@@ -670,7 +670,7 @@ export default class AccessPolicyServerController {
 
         if (default_translation) {
             default_translation.code_text = role.translatable_name + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
-            DefaultTranslationManager.getInstance().registerDefaultTranslation(default_translation);
+            DefaultTranslationManager.registerDefaultTranslation(default_translation);
         }
 
         // Un nouveau rôle a forcément un parent :
@@ -746,7 +746,7 @@ export default class AccessPolicyServerController {
 
         if (default_translation) {
             default_translation.code_text = group.translatable_name + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
-            DefaultTranslationManager.getInstance().registerDefaultTranslation(default_translation);
+            DefaultTranslationManager.registerDefaultTranslation(default_translation);
         }
 
         let groupFromBDD: AccessPolicyGroupVO = null;
@@ -807,7 +807,7 @@ export default class AccessPolicyServerController {
 
         if (default_translation) {
             default_translation.code_text = policy.translatable_name + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
-            DefaultTranslationManager.getInstance().registerDefaultTranslation(default_translation);
+            DefaultTranslationManager.registerDefaultTranslation(default_translation);
         }
 
         let policyFromBDD: AccessPolicyVO = null;

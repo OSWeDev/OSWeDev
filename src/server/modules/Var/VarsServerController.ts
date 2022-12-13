@@ -500,19 +500,19 @@ export default class VarsServerController {
 
     private register_var_default_translations(varConf_name: string, controller: VarServerControllerBase<any>) {
         if (!!controller.var_name_default_translations) {
-            DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
                 controller.var_name_default_translations,
                 VarsController.getInstance().get_translatable_name_code(varConf_name)));
         }
 
         if (!!controller.var_description_default_translations) {
-            DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
                 controller.var_description_default_translations,
                 VarsController.getInstance().get_translatable_description_code(varConf_name)));
         }
 
         if (!!controller.var_explaination_default_translations) {
-            DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
                 controller.var_explaination_default_translations,
                 VarsController.getInstance().get_translatable_explaination(varConf_name)));
         }
@@ -526,7 +526,7 @@ export default class VarsServerController {
                 if (!controller.var_deps_names_default_translations[i]) {
                     continue;
                 }
-                DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+                DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
                     controller.var_deps_names_default_translations[i],
                     VarsController.getInstance().get_translatable_dep_name(i)));
             }

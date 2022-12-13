@@ -984,7 +984,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
         }
 
         this.label.code_text = "fields.labels." + this.full_name + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(this.label);
+        DefaultTranslationManager.registerDefaultTranslation(this.label);
     }
 
     /**

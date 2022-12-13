@@ -187,8 +187,8 @@ export default class DefaultTranslationsServerManager {
     private clean_registered_default_translations(): { [code_text: string]: DefaultTranslation } {
         let res: { [code_text: string]: DefaultTranslation } = {};
 
-        for (let i in DefaultTranslationManager.getInstance().registered_default_translations) {
-            let registered_default_translation = DefaultTranslationManager.getInstance().registered_default_translations[i];
+        for (let i in DefaultTranslationManager.registered_default_translations) {
+            let registered_default_translation = DefaultTranslationManager.registered_default_translations[i];
 
             res[registered_default_translation.code_text] = registered_default_translation;
         }

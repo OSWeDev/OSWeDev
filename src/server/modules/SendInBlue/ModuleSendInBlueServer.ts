@@ -41,19 +41,19 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
     }
 
     public async configure() {
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'SendInBlue'
         }, 'menu.menuelements.admin.SendInBlueAdminVueModule.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Paramètres'
         }, 'menu.menuelements.admin.SendInBlueVO.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'API'
         }, 'sendinblue.account.api'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'PARTNER'
         }, 'sendinblue.account.partner'));
 

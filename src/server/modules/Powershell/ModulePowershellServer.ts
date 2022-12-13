@@ -66,10 +66,10 @@ export default class ModulePowershellServer extends ModuleServerBase {
             noProfile: true
         });
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Identifiant AD'
         }, 'ActiveDirectory.prompt.login.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Mot de passe AD'
         }, 'ActiveDirectory.prompt.pwd.___LABEL___'));
     }
