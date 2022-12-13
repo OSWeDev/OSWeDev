@@ -393,9 +393,9 @@ describe('HourSegmentHandler', () => {
         let hourRange2: HourRange = HourRange.createNew(22 * 60 * 60, 23 * 60 * 60, true, false, HourSegment.TYPE_HOUR);
         let hourRanges = [hourRange1, hourRange2];
 
-        expect(HourSegmentHandler.getInstance()["get_hour_ranges_"](segments)).to.deep.equal(hourRanges);
-        expect(HourSegmentHandler.getInstance()["get_hour_ranges_"]([])).to.deep.equal([]);
-        expect(HourSegmentHandler.getInstance()["get_hour_ranges_"](null)).to.deep.equal([]);
+        expect(HourSegmentHandler["get_hour_ranges_"](segments)).to.deep.equal(hourRanges);
+        expect(HourSegmentHandler["get_hour_ranges_"]([])).to.deep.equal([]);
+        expect(HourSegmentHandler["get_hour_ranges_"](null)).to.deep.equal([]);
     });
 
 });
