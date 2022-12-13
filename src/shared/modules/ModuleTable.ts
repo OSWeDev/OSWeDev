@@ -638,11 +638,26 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 return RangeHandler.getInstance().translate_range_to_api(e);
 
             case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+
                 if (e && e._type) {
-                    let field_table = VOsTypesManager.moduleTables_by_voType[e._type];
-                    let trans_ = (field_table && e) ? field_table.default_get_api_version(e) : null;
-                    return trans_ ? JSON.stringify(trans_) : null;
-                } else if (e) {
+
+                    let field_table_plain_vo_obj: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[e._type];
+                    let trans_plain_vo_obj = (field_table_plain_vo_obj && e) ? field_table_plain_vo_obj.get_api_version(e) : null;
+                    return trans_plain_vo_obj ? JSON.stringify(trans_plain_vo_obj) : null;
+
+                } else if ((!!e) && isArray(e)) {
+
+                    /**
+                     * Gestion des tableaux de plain_vo_obj
+                     */
+                    let trans_array = [];
+                    for (let i in e) {
+                        let e_ = e[i];
+                        trans_array.push(this.default_get_field_api_version(e_, field));
+                    }
+                    return JSON.stringify(trans_array);
+
+                } else if (!!e) {
                     return JSON.stringify(e);
                 } else {
                     return null;

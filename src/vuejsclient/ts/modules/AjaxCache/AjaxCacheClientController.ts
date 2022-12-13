@@ -157,7 +157,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             let light_weight = new LightWeightSendableRequestVO(null);
             light_weight.url = url;
             light_weight.contentType = contentType;
-            light_weight.postdatas = (!EnvHandler.getInstance().MSGPCK) ? postdatas : Object.assign({}, postdatas);
+            light_weight.postdatas = (!EnvHandler.MSGPCK) ? postdatas : Object.assign({}, postdatas);
             light_weight.dataType = dataType;
             light_weight.processData = processData;
             light_weight.type = post_for_get ? LightWeightSendableRequestVO.API_TYPE_POST_FOR_GET : LightWeightSendableRequestVO.API_TYPE_POST;
@@ -529,9 +529,9 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             let results: RequestsWrapperResult = await this.post(
                 null,
                 "/api_handler/requests_wrapper", [],
-                (!EnvHandler.getInstance().MSGPCK) ? JSON.stringify(sendable_objects) : sendable_objects,
+                (!EnvHandler.MSGPCK) ? JSON.stringify(sendable_objects) : sendable_objects,
                 null,
-                (!EnvHandler.getInstance().MSGPCK) ? 'application/json; charset=utf-8' : AjaxCacheController.MSGPACK_REQUEST_TYPE,
+                (!EnvHandler.MSGPCK) ? 'application/json; charset=utf-8' : AjaxCacheController.MSGPACK_REQUEST_TYPE,
                 null, null, false, true) as RequestsWrapperResult;
 
             if ((!results) || (!results.requests_results)) {

@@ -127,7 +127,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     public get_all_ranges_from_segmented_table(moduleTable: ModuleTable<any>): NumRange[] {
-        let segmentations: { [table_name: string]: number } = DAOServerController.getInstance().segmented_known_databases[moduleTable.database];
+        let segmentations: { [table_name: string]: number } = DAOServerController.segmented_known_databases[moduleTable.database];
         if (!segmentations) {
             return null;
         }
@@ -517,7 +517,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     public has_segmented_known_database(t: ModuleTable<any>, segment_value: number): boolean {
-        if ((!DAOServerController.getInstance().segmented_known_databases[t.database]) || (!DAOServerController.getInstance().segmented_known_databases[t.database][t.get_segmented_name(segment_value)])) {
+        if ((!DAOServerController.segmented_known_databases[t.database]) || (!DAOServerController.segmented_known_databases[t.database][t.get_segmented_name(segment_value)])) {
             return false;
         }
         return true;
@@ -2978,7 +2978,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 full_name = moduleTable.get_segmented_full_name_from_vo(vo);
 
                 // Si on est sur du segmented en insert on doit vérifier l'existence de la table, sinon il faut la créer avant d'insérer la première donnée
-                if ((!DAOServerController.getInstance().segmented_known_databases[moduleTable.database]) || (!DAOServerController.getInstance().segmented_known_databases[moduleTable.database][name])) {
+                if ((!DAOServerController.segmented_known_databases[moduleTable.database]) || (!DAOServerController.segmented_known_databases[moduleTable.database][name])) {
 
                     await ModuleTableDBService.getInstance(null).create_or_update_datatable(
                         moduleTable,
@@ -3080,7 +3080,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     segmentations[table_name] = segmented_value;
                 });
             } else {
-                segmentations = DAOServerController.getInstance().segmented_known_databases[moduleTable.database];
+                segmentations = DAOServerController.segmented_known_databases[moduleTable.database];
             }
 
             for (let segmentation_table in segmentations) {
@@ -3256,7 +3256,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }
             } else {
                 // si on cherche sur un autre champs, ça revient à faire la requete sur chaque segment
-                let segments: { [table_name: string]: number } = DAOServerController.getInstance().segmented_known_databases[moduleTable.database];
+                let segments: { [table_name: string]: number } = DAOServerController.segmented_known_databases[moduleTable.database];
                 for (let i in segments) {
                     let segment: number = segments[i];
 
@@ -3537,7 +3537,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             // TODO FIXME comme pour le by id on doit pouvoir passer un ranges en param
 
-            let segmentations: { [table_name: string]: number } = DAOServerController.getInstance().segmented_known_databases[moduleTable.database];
+            let segmentations: { [table_name: string]: number } = DAOServerController.segmented_known_databases[moduleTable.database];
             let request = null;
 
             for (let segmentation_table in segmentations) {
@@ -3833,7 +3833,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let segmentations: IRange[] = [];
             if ((!segmented_matroid_filed_id) || (!matroid[segmented_matroid_filed_id]) || (!matroid[segmented_matroid_filed_id].length)) {
                 ConsoleHandler.getInstance().log('filterVosByMatroid sur table segmentée - ' + moduleTable.full_name + ' - sans info de segment sur le matroid');
-                segmentations_tables = DAOServerController.getInstance().segmented_known_databases[moduleTable.database];
+                segmentations_tables = DAOServerController.segmented_known_databases[moduleTable.database];
             } else {
                 segmentations = matroid[segmented_matroid_filed_id];
 
@@ -4014,7 +4014,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         segmentations_tables[table_name] = segmented_value;
                     });
                 } else {
-                    segmentations_tables = DAOServerController.getInstance().segmented_known_databases[moduleTable.database];
+                    segmentations_tables = DAOServerController.segmented_known_databases[moduleTable.database];
                 }
 
                 for (let segmentation_table in segmentations_tables) {

@@ -20,6 +20,17 @@ import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
 
 export default class DAOServerController {
 
+    /**
+     * Global application cache - Brocasted CUD - Local R -----
+     */
+    /**
+     * Le nombre est la valeur du segment de la table. L'existence de la table est liée à sa présence dans l'objet simplement.
+     */
+    public static segmented_known_databases: { [database_name: string]: { [table_name: string]: number } } = {};
+    /**
+     * ----- Global application cache - Brocasted CUD - Local R
+     */
+
     public static TASK_NAME_add_segmented_known_databases: string = ModuleDAO.getInstance().name + ".add_segmented_known_databases";
 
     public static getInstance() {
@@ -30,17 +41,6 @@ export default class DAOServerController {
     }
 
     private static instance: DAOServerController = null;
-
-    /**
-     * Global application cache - Brocasted CUD - Local R -----
-     */
-    /**
-     * Le nombre est la valeur du segment de la table. L'existence de la table est liée à sa présence dans l'objet simplement.
-     */
-    public segmented_known_databases: { [database_name: string]: { [table_name: string]: number } } = {};
-    /**
-     * ----- Global application cache - Brocasted CUD - Local R
-     */
 
     /**
      * Local thread cache -----
@@ -195,14 +195,14 @@ export default class DAOServerController {
      * @param segmented_value
      */
     public add_segmented_known_databases(database_name: string, table_name: string, segmented_value: number) {
-        if (!this.segmented_known_databases) {
-            this.segmented_known_databases = {};
+        if (!DAOServerController.segmented_known_databases) {
+            DAOServerController.segmented_known_databases = {};
         }
 
-        if (!this.segmented_known_databases[database_name]) {
-            this.segmented_known_databases[database_name] = {};
+        if (!DAOServerController.segmented_known_databases[database_name]) {
+            DAOServerController.segmented_known_databases[database_name] = {};
         }
-        this.segmented_known_databases[database_name][table_name] = segmented_value;
+        DAOServerController.segmented_known_databases[database_name][table_name] = segmented_value;
     }
 
     public get_dao_policy(translatable_name: string, group: AccessPolicyGroupVO, isAccessConfVoType: boolean, accessConfVoType_DEFAULT_BEHAVIOUR: number): AccessPolicyVO {

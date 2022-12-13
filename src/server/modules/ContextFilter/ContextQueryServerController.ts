@@ -537,8 +537,8 @@ export default class ContextQueryServerController {
                  * On est dans le cadre d'un select donc on check l'existence des ids sinon on les retire
                  */
                 ids = ids.filter((id) => {
-                    return (!!DAOServerController.getInstance().segmented_known_databases[moduletable.database]) &&
-                        (id == DAOServerController.getInstance().segmented_known_databases[moduletable.database][moduletable.get_segmented_name(id)]);
+                    return (!!DAOServerController.segmented_known_databases[moduletable.database]) &&
+                        (id == DAOServerController.segmented_known_databases[moduletable.database][moduletable.get_segmented_name(id)]);
                 });
 
                 return ids && ids.length ? ids : null;

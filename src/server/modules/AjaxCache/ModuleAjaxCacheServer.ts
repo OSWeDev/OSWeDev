@@ -110,9 +110,9 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
 
                     case RequestResponseCacheVO.API_TYPE_POST_FOR_GET:
                         try {
-                            param = ((!EnvHandler.getInstance().MSGPCK) && wrapped_request.postdatas) ? JSON.parse(wrapped_request.postdatas) : wrapped_request.postdatas;
-                            // On doit traduire ici si (!EnvHandler.getInstance().MSGPCK) ce qui ne l'a pas été puisque encodé en JSON
-                            param = (!EnvHandler.getInstance().MSGPCK) ? APIControllerWrapper.getInstance().try_translate_vo_from_api(param) : param;
+                            param = ((!EnvHandler.MSGPCK) && wrapped_request.postdatas) ? JSON.parse(wrapped_request.postdatas) : wrapped_request.postdatas;
+                            // On doit traduire ici si (!EnvHandler.MSGPCK) ce qui ne l'a pas été puisque encodé en JSON
+                            param = (!EnvHandler.MSGPCK) ? APIControllerWrapper.getInstance().try_translate_vo_from_api(param) : param;
                         } catch (error) {
                             ConsoleHandler.getInstance().error('Erreur récupération params post_for_get wrapped:' + error + ':');
                         }

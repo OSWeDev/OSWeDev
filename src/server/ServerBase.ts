@@ -132,14 +132,14 @@ export default abstract class ServerBase {
 
         this.envParam = ConfigurationService.getInstance().node_configuration;
 
-        EnvHandler.getInstance().BASE_URL = this.envParam.BASE_URL;
-        EnvHandler.getInstance().NODE_VERBOSE = !!this.envParam.NODE_VERBOSE;
-        EnvHandler.getInstance().IS_DEV = !!this.envParam.ISDEV;
-        EnvHandler.getInstance().MSGPCK = !!this.envParam.MSGPCK;
-        EnvHandler.getInstance().COMPRESS = !!this.envParam.COMPRESS;
-        EnvHandler.getInstance().CODE_GOOGLE_ANALYTICS = this.envParam.CODE_GOOGLE_ANALYTICS;
-        EnvHandler.getInstance().VERSION = this.version;
-        EnvHandler.getInstance().ACTIVATE_PWA = !!this.envParam.ACTIVATE_PWA;
+        EnvHandler.BASE_URL = this.envParam.BASE_URL;
+        EnvHandler.NODE_VERBOSE = !!this.envParam.NODE_VERBOSE;
+        EnvHandler.IS_DEV = !!this.envParam.ISDEV;
+        EnvHandler.MSGPCK = !!this.envParam.MSGPCK;
+        EnvHandler.COMPRESS = !!this.envParam.COMPRESS;
+        EnvHandler.CODE_GOOGLE_ANALYTICS = this.envParam.CODE_GOOGLE_ANALYTICS;
+        EnvHandler.VERSION = this.version;
+        EnvHandler.ACTIVATE_PWA = !!this.envParam.ACTIVATE_PWA;
 
         this.connectionString = this.envParam.CONNECTION_STRING;
         this.uiDebug = null; // JNE MODIF FLK process.env.UI_DEBUG;
@@ -418,7 +418,7 @@ export default abstract class ServerBase {
             next();
         });
 
-        if (!!EnvHandler.getInstance().MSGPCK) {
+        if (!!EnvHandler.MSGPCK) {
             this.app.use(bodyParser.msgpack({
                 limit: '100mb'
             }));
@@ -658,7 +658,7 @@ export default abstract class ServerBase {
                         async () => await MaintenanceServerController.getInstance().inform_user_on_request(session.uid));
                 }
 
-                if (!!EnvHandler.getInstance().NODE_VERBOSE) {
+                if (!!EnvHandler.NODE_VERBOSE) {
                     ConsoleHandler.getInstance().log('REQUETE: ' + req.url + ' | USER ID: ' + session.uid + ' | BODY: ' + JSON.stringify(req.body));
                 }
             }
