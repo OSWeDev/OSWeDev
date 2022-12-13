@@ -453,7 +453,7 @@ export default class ImportTypeXLSXHandler {
                         }
                     }
                 } catch (error) {
-                    ConsoleHandler.getInstance().error(error);
+                    ConsoleHandler.error(error);
                     rowData.importation_state = ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED;
                     rowData.not_validated_msg = (rowData.not_validated_msg ? rowData.not_validated_msg + ', ' : '') + "Column error:" + dataImportColumn.title;
                 }
@@ -489,7 +489,7 @@ export default class ImportTypeXLSXHandler {
             }
         } catch (error) {
             if (!muted) {
-                ConsoleHandler.getInstance().error(error);
+                ConsoleHandler.error(error);
                 await ImportLogger.getInstance().log(importHistoric, dataImportFormat, error, DataImportLogVO.LOG_LEVEL_ERROR);
             }
             return null;
@@ -506,7 +506,7 @@ export default class ImportTypeXLSXHandler {
             let sheet_name: string = workbook.SheetNames[index];
             worksheet = workbook.Sheets[sheet_name];
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
             await ImportLogger.getInstance().log(historic, dataImportFormat, error, DataImportLogVO.LOG_LEVEL_ERROR);
         }
 
@@ -521,7 +521,7 @@ export default class ImportTypeXLSXHandler {
             let sheet_name: string = dataImportFormat.sheet_name;
             worksheet = workbook.Sheets[sheet_name];
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
             await ImportLogger.getInstance().log(historic, dataImportFormat, error, DataImportLogVO.LOG_LEVEL_ERROR);
         }
 

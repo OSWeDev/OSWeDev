@@ -46,7 +46,7 @@ export default class SendInBlueSmsCampaignServerController {
         // On check que l'env permet d'envoyer des mails
         if (ConfigurationService.getInstance().node_configuration.BLOCK_MAIL_DELIVERY) {
 
-            ConsoleHandler.getInstance().warn('Envoi de mails interdit sur cet env:templateId: ' + content);
+            ConsoleHandler.warn('Envoi de mails interdit sur cet env:templateId: ' + content);
             return null;
         }
 

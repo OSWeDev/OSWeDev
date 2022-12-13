@@ -319,7 +319,7 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
 
                     self.storeData(createdVO);
                 } catch (error) {
-                    ConsoleHandler.getInstance().error(error);
+                    ConsoleHandler.error(error);
                     self.creating_vo = false;
                     reject({
                         body: self.label('crud.create.errors.create_failure') + ": " + error,

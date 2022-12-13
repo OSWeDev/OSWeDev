@@ -337,7 +337,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             }
 
             if (this.dashboard.api_type_ids.indexOf(field.moduleTable.vo_type) < 0) {
-                ConsoleHandler.getInstance().warn('select_datatable_rows: asking for datas from types not included in request:' +
+                ConsoleHandler.warn('select_datatable_rows: asking for datas from types not included in request:' +
                     field.datatable_field_uid + ':' + field.moduleTable.vo_type);
                 this.data_rows = [];
                 this.loaded_once = true;
@@ -479,7 +479,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
                                     return;
                                 } catch (error) {
-                                    ConsoleHandler.getInstance().error(error);
+                                    ConsoleHandler.error(error);
                                     reject({
                                         body: self.label('BulkOpsWidgetComponent.bulkops.failed'),
                                         config: {
@@ -524,7 +524,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
                 options = options ? new BulkOpsWidgetOptions(options.api_type_id, options.limit) : null;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return options;

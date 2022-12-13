@@ -212,7 +212,7 @@ export default class PushDataServerController {
             delete this.registeredSockets_by_id[socket.id];
             delete this.registereduid_by_socketid[socket.id];
             delete this.registeredclient_tab_id_by_socketid[socket.id];
-            let client_tab_id_ = StackContext.getInstance().get('client_tab_id') ? StackContext.getInstance().get('client_tab_id') : null;
+            let client_tab_id_ = StackContext.get('client_tab_id') ? StackContext.get('client_tab_id') : null;
 
             // No user or session, need to search for the socket by id
             if ((!session) || (!session.id) || (!client_tab_id_)) {
@@ -241,7 +241,7 @@ export default class PushDataServerController {
 
             delete this.registeredSockets[session_uid][client_tab_id_][session.id][socket.id];
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
     }
 
@@ -401,7 +401,7 @@ export default class PushDataServerController {
 
         let notification: NotificationVO = null;
         try {
-            session = session ? session : StackContext.getInstance().get('SESSION');
+            session = session ? session : StackContext.get('SESSION');
             if (!session) {
                 return;
             }
@@ -412,7 +412,7 @@ export default class PushDataServerController {
                     Object.values(this.registeredSockets_by_sessionid[session.id]).map((w) => w.socketId), NotificationVO.TECH_DISCONNECT_AND_REDIRECT_HOME);
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         if (!notification) {
@@ -435,7 +435,7 @@ export default class PushDataServerController {
 
         let notification: NotificationVO = null;
         try {
-            let session: IServerUserSession = StackContext.getInstance().get('SESSION');
+            let session: IServerUserSession = StackContext.get('SESSION');
 
             if (this.registeredSockets_by_sessionid && this.registeredSockets_by_sessionid[session.id]) {
                 notification = this.getTechNotif(
@@ -443,7 +443,7 @@ export default class PushDataServerController {
                     Object.values(this.registeredSockets_by_sessionid[session.id]).map((w) => w.socketId), NotificationVO.TECH_LOGGED_AND_REDIRECT_HOME);
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         if (!notification) {
@@ -470,7 +470,7 @@ export default class PushDataServerController {
                 UID, CLIENT_TAB_ID,
                 null, NotificationVO.TECH_RELOAD);
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         if (!notification) {
@@ -519,12 +519,12 @@ export default class PushDataServerController {
 
     //     let notification: NotificationVO = null;
     //     try {
-    //         let session: IServerUserSession = StackContext.getInstance().get('SESSION');
+    //         let session: IServerUserSession = StackContext.get('SESSION');
     //         notification = this.getTechNotif(
     //             null, null,
     //             Object.values(this.registeredSockets_by_sessionid[session.id]).map((w) => w.socketId), NotificationVO.TECH_RELOAD);
     //     } catch (error) {
-    //         ConsoleHandler.getInstance().error(error);
+    //         ConsoleHandler.error(error);
     //     }
 
     //     if (!notification) {
@@ -702,14 +702,14 @@ export default class PushDataServerController {
         try {
             let role: RoleVO = await query(RoleVO.API_TYPE_ID).filter_by_text_eq('translatable_name', role_name).select_vo<RoleVO>();
             if (!role) {
-                ConsoleHandler.getInstance().error('broadcastRoleSimple:Role introuvable:' + role_name + ':');
+                ConsoleHandler.error('broadcastRoleSimple:Role introuvable:' + role_name + ':');
                 return;
             }
 
             let usersRoles: UserRoleVO[] = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('role_id', role.id).select_vos<UserRoleVO>();
 
             if (!usersRoles) {
-                ConsoleHandler.getInstance().error('broadcastRoleSimple:usersRoles introuvables:' + role_name + ':' + role.id);
+                ConsoleHandler.error('broadcastRoleSimple:usersRoles introuvables:' + role_name + ':' + role.id);
                 return;
             }
 
@@ -720,7 +720,7 @@ export default class PushDataServerController {
 
             let users: UserVO[] = await query(UserVO.API_TYPE_ID).filter_by_ids(user_ids).select_vos<UserVO>();
             if (!users) {
-                ConsoleHandler.getInstance().error('broadcastRoleSimple:users introuvables:' + role_name + ':' + role.id);
+                ConsoleHandler.error('broadcastRoleSimple:users introuvables:' + role_name + ':' + role.id);
                 return;
             }
 
@@ -732,7 +732,7 @@ export default class PushDataServerController {
                 })());
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
         await all_promises(promises);
     }
@@ -757,13 +757,13 @@ export default class PushDataServerController {
         try {
             let role: RoleVO = await query(RoleVO.API_TYPE_ID).filter_by_text_eq('translatable_name', role_name).select_vo<RoleVO>();
             if (!role) {
-                ConsoleHandler.getInstance().error('broadcastRoleRedirect:Role introuvable:' + role_name + ':');
+                ConsoleHandler.error('broadcastRoleRedirect:Role introuvable:' + role_name + ':');
                 return;
             }
 
             let usersRoles: UserRoleVO[] = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('role_id', role.id).select_vos<UserRoleVO>();
             if (!usersRoles) {
-                ConsoleHandler.getInstance().error('broadcastRoleRedirect:usersRoles introuvables:' + role_name + ':' + role.id);
+                ConsoleHandler.error('broadcastRoleRedirect:usersRoles introuvables:' + role_name + ':' + role.id);
                 return;
             }
 
@@ -775,7 +775,7 @@ export default class PushDataServerController {
             let users: UserVO[] = await query(UserVO.API_TYPE_ID).filter_by_ids(user_ids).select_vos<UserVO>();
 
             if (!users) {
-                ConsoleHandler.getInstance().error('broadcastRoleRedirect:users introuvables:' + role_name + ':' + role.id);
+                ConsoleHandler.error('broadcastRoleRedirect:users introuvables:' + role_name + ':' + role.id);
                 return;
             }
 
@@ -787,7 +787,7 @@ export default class PushDataServerController {
                 })());
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
         await all_promises(promises);
     }
@@ -800,13 +800,13 @@ export default class PushDataServerController {
         }
 
         try {
-            let session: IServerUserSession = StackContext.getInstance().get('SESSION');
+            let session: IServerUserSession = StackContext.get('SESSION');
             if (this.registeredSockets_by_sessionid && this.registeredSockets_by_sessionid[session.id]) {
                 await this.notifySimple(Object.values(this.registeredSockets_by_sessionid[session.id]).map((w) => w.socketId),
                     null, null, notif_type, code_text, true, simple_notif_json_params);
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
     }
 
@@ -1021,7 +1021,7 @@ export default class PushDataServerController {
             }
         } catch (error) {
 
-            ConsoleHandler.getInstance().error('notify:' + notification.user_id + ':' + error);
+            ConsoleHandler.error('notify:' + notification.user_id + ':' + error);
         }
     }
 

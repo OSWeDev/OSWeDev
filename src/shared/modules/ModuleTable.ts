@@ -372,7 +372,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
             case ModuleTableField.FIELD_TYPE_tsrange:
             case ModuleTableField.FIELD_TYPE_numrange:
                 // TODO
-                ConsoleHandler.getInstance().error('Not Implemented');
+                ConsoleHandler.error('Not Implemented');
                 break;
 
             case ModuleTableField.FIELD_TYPE_foreign_key:
@@ -381,7 +381,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 if (this.table_segmented_field_segment_type == NumSegment.TYPE_INT) {
                     return field_value;
                 } else {
-                    ConsoleHandler.getInstance().error('Not Implemented');
+                    ConsoleHandler.error('Not Implemented');
                 }
                 break;
 
@@ -391,7 +391,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 if (this.table_segmented_field_segment_type == NumSegment.TYPE_INT) {
                     return Math.floor(field_value);
                 } else {
-                    ConsoleHandler.getInstance().error('Not Implemented');
+                    ConsoleHandler.error('Not Implemented');
                 }
                 break;
 

@@ -69,7 +69,7 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
         try {
             this.page_widget.json_options = JSON.stringify(this.next_update_options);
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
         await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
 
@@ -217,7 +217,7 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
         });
 
         if (i < 0) {
-            ConsoleHandler.getInstance().error('update_opt failed');
+            ConsoleHandler.error('update_opt failed');
             return null;
         }
 
@@ -242,7 +242,7 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
         });
 
         if (i < 0) {
-            ConsoleHandler.getInstance().error('remove_opt failed');
+            ConsoleHandler.error('remove_opt failed');
             return null;
         }
 
@@ -253,7 +253,7 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
 
     private get_new_opt_id() {
         if (!this.widget_options) {
-            ConsoleHandler.getInstance().error('get_new_opt_id:failed');
+            ConsoleHandler.error('get_new_opt_id:failed');
             return null;
         }
 
@@ -307,7 +307,7 @@ export default class AdvancedDateFilterWidgetOptionsComponent extends VueCompone
                 ) : null;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return options;

@@ -180,8 +180,8 @@ export default class ModuleCronServer extends ModuleServerBase {
 
     public async run_manual_task(text: string) {
 
-        let uid: number = StackContext.getInstance().get('UID');
-        let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
+        let uid: number = StackContext.get('UID');
+        let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
         if (!ManualTasksController.getInstance().registered_manual_tasks_by_name[text]) {
             return null;
@@ -192,8 +192,8 @@ export default class ModuleCronServer extends ModuleServerBase {
 
     public async executeWorkersManually() {
 
-        let uid: number = StackContext.getInstance().get('UID');
-        let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
+        let uid: number = StackContext.get('UID');
+        let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
         await PushDataServerController.getInstance().notifySimpleINFO(uid, CLIENT_TAB_ID, 'cron.execute_manually.start');
         try {
@@ -213,8 +213,8 @@ export default class ModuleCronServer extends ModuleServerBase {
             return;
         }
 
-        let uid: number = StackContext.getInstance().get('UID');
-        let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
+        let uid: number = StackContext.get('UID');
+        let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
         await PushDataServerController.getInstance().notifySimpleINFO(uid, CLIENT_TAB_ID, 'cron.execute_manually_indiv.start');
         try {

@@ -121,7 +121,7 @@ export default class CronServerController {
                 }
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
         CronServerController.getInstance().semaphore = false;
         return true;
@@ -131,7 +131,7 @@ export default class CronServerController {
         try {
             await this.run_cron(msg.message_content);
         } catch (error) {
-            ConsoleHandler.getInstance().error('handle_runcron_message:' + error);
+            ConsoleHandler.error('handle_runcron_message:' + error);
         }
         return true;
     }
@@ -164,15 +164,15 @@ export default class CronServerController {
         CronServerController.getInstance().cronWorkers_semaphores_reload[worker_uid] = false;
         CronServerController.getInstance().cronWorkers_semaphores[worker_uid] = false;
 
-        ConsoleHandler.getInstance().log('CRON:LANCEMENT:' + worker_uid);
+        ConsoleHandler.log('CRON:LANCEMENT:' + worker_uid);
 
         try {
             await CronServerController.getInstance().registered_cronWorkers[worker_uid].work();
         } catch (error) {
-            ConsoleHandler.getInstance().error('run_cron:' + error);
+            ConsoleHandler.error('run_cron:' + error);
         }
 
-        ConsoleHandler.getInstance().log('CRON:FIN:' + worker_uid);
+        ConsoleHandler.log('CRON:FIN:' + worker_uid);
 
         CronServerController.getInstance().cronWorkers_semaphores[worker_uid] = true;
     }

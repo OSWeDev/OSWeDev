@@ -120,7 +120,7 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
 
             return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return ModuleBGThreadServer.TIMEOUT_COEF_SLEEP;

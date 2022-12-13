@@ -134,11 +134,12 @@ export default abstract class GeneratorBase {
 
         ConfigurationService.getInstance().setEnvParams(this.STATIC_ENV_PARAMS);
 
+        ConsoleHandler.init();
         FileLoggerHandler.getInstance().prepare().then(() => {
-            ConsoleHandler.getInstance().logger_handler = FileLoggerHandler.getInstance();
-            ConsoleHandler.getInstance().log("Generator starting");
+            ConsoleHandler.logger_handler = FileLoggerHandler.getInstance();
+            ConsoleHandler.log("Generator starting");
         }).catch((reason) => {
-            ConsoleHandler.getInstance().error("Generator prepare : " + reason);
+            ConsoleHandler.error("Generator prepare : " + reason);
         });
 
         const envParam: EnvParam = ConfigurationService.getInstance().node_configuration;

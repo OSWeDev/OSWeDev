@@ -544,7 +544,7 @@ export default class ModuleVar extends Module {
     private initializeVarConfVO() {
 
         let var_id = this.initializeVarConfAutoDepVO();
-        let labelField = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom du compteur');
+        let labelField = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom du compteur').unique();
         let datatable_fields = [
             labelField,
 
@@ -580,7 +580,7 @@ export default class ModuleVar extends Module {
 
     private initializeVarCacheConfVO() {
 
-        let var_id = new ModuleTableField('var_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Var conf', true);
+        let var_id = new ModuleTableField('var_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Var conf', true).unique();
         let datatable_fields = [
             var_id,
 

@@ -66,7 +66,7 @@ export default class ValidationFiltersWidgetComponent extends VueComponentBase {
                 options = options ? new ValidationFiltersWidgetOptions() : null;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return options;

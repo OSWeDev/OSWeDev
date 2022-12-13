@@ -67,7 +67,7 @@ export default class ContextFilterServerController {
          */
         if (field_id && !tables_aliases_by_type[active_field_filter.vo_type]) {
             // Typiquement pas un souci dans les requetes sur les param de vars dans les dbs ...
-            // ConsoleHandler.getInstance().log('Filtrage initié via table non liée à la requête (pas forcément une erreur dans un DB pour le moment):' + JSON.stringify(active_field_filter) + ':' + JSON.stringify(tables_aliases_by_type) + ':');
+            // ConsoleHandler.log('Filtrage initié via table non liée à la requête (pas forcément une erreur dans un DB pour le moment):' + JSON.stringify(active_field_filter) + ':' + JSON.stringify(tables_aliases_by_type) + ':');
             return;
         }
 
@@ -82,7 +82,7 @@ export default class ContextFilterServerController {
         let field_type = field_id ? (field ? field.field_type : ModuleTableField.FIELD_TYPE_int) : null;
 
         // On tente de déanonymiser avant de construire la requête
-        let uid = await StackContext.getInstance().get('UID');
+        let uid = await StackContext.get('UID');
         if (active_field_filter.param_text) {
             active_field_filter.param_text = await ServerAnonymizationController.getInstance().get_unanonymised_row_field_value(active_field_filter.param_text, active_field_filter.vo_type, active_field_filter.field_id, uid);
         }

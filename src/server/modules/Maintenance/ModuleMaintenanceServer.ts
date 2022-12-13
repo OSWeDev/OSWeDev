@@ -138,7 +138,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
             return;
         }
 
-        let session = StackContext.getInstance().get('SESSION');
+        let session = StackContext.get('SESSION');
 
         if (session && !session.uid) {
             return;
@@ -168,7 +168,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
             return;
         }
 
-        let session = StackContext.getInstance().get('SESSION');
+        let session = StackContext.get('SESSION');
 
         planned_maintenance.maintenance_over = true;
         planned_maintenance.end_ts = Dates.now();
@@ -186,17 +186,17 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
             return;
         }
 
-        ConsoleHandler.getInstance().log('Maintenance demandée:' + validation_code);
+        ConsoleHandler.log('Maintenance demandée:' + validation_code);
 
         if (ConfigurationService.getInstance().node_configuration.START_MAINTENANCE_ACCEPTATION_CODE != validation_code) {
-            ConsoleHandler.getInstance().error('Maintenance refusée');
+            ConsoleHandler.error('Maintenance refusée');
 
             return;
         }
 
         let maintenance: MaintenanceVO = new MaintenanceVO();
 
-        let session = StackContext.getInstance().get('SESSION');
+        let session = StackContext.get('SESSION');
 
         if (session && !!session.uid) {
             maintenance.author_id = session.uid;
@@ -212,7 +212,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
          * On en profite pour bloquer les updates en bases
          *  - Par défaut on laisse 1 minute entre la réception de la notification et le passage en readonly de l'application
          */
-        ConsoleHandler.getInstance().error('Maintenance programmée dans 10 minutes');
+        ConsoleHandler.error('Maintenance programmée dans 10 minutes');
         await ModuleDAO.getInstance().insertOrUpdateVO(maintenance);
 
         let readonly_maintenance_deadline = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_start_maintenance_force_readonly_after_x_ms, 60000);
@@ -238,7 +238,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
             return false;
         }
 
-        let session = StackContext.getInstance().get('SESSION');
+        let session = StackContext.get('SESSION');
 
         maintenance.creation_date = Dates.now();
         maintenance.author_id = maintenance.author_id ? maintenance.author_id : (session ? session.uid : null);

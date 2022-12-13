@@ -43,7 +43,7 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
 
     public async prepare_datas(exhi: ExportHistoricVO): Promise<IExportableDatas> {
 
-        ConsoleHandler.getInstance().log('AnimationReportingExportHandler:en_cours');
+        ConsoleHandler.log('AnimationReportingExportHandler:en_cours');
 
         let datas: IExportableDatas = {
             api_type_id: ModuleAnimation.EXPORT_API_TYPE_ID,
@@ -53,7 +53,7 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
             ordered_column_list: this.ordered_column_list
         };
 
-        ConsoleHandler.getInstance().log('AnimationReportingExportHandler:terminé');
+        ConsoleHandler.log('AnimationReportingExportHandler:terminé');
 
         return datas;
     }
@@ -66,7 +66,7 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
         }
 
         let user: UserVO = null;
-        await StackContext.getInstance().runPromise(
+        await StackContext.runPromise(
             { IS_CLIENT: false },
             async () => {
                 user = await query(UserVO.API_TYPE_ID).filter_by_id(exhi.export_to_uid).select_vo<UserVO>();
@@ -162,7 +162,7 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
 
         // Si on a plus de 1 aums, on calcul le total
         if (aums.length > 1) {
-            ConsoleHandler.getInstance().log('AnimationReportingExportHandler:export_total');
+            ConsoleHandler.log('AnimationReportingExportHandler:export_total');
             res.push(await this.get_new_elem_total(
                 user,
                 theme_id_ranges,
@@ -172,7 +172,7 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
             ));
         }
 
-        ConsoleHandler.getInstance().log('AnimationReportingExportHandler:export_all_aum');
+        ConsoleHandler.log('AnimationReportingExportHandler:export_all_aum');
 
         for (let anim_theme_id in all_aum_by_theme_module_user) {
             for (let anim_module_id in all_aum_by_theme_module_user[anim_theme_id]) {
@@ -213,7 +213,7 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
         try {
             data = await VarsServerCallBackSubsController.getInstance().get_var_data(this.get_DayTempsPasseAnimation_param(theme_id_ranges, module_id_ranges, user_id_ranges), 'AnimationReportingExportHandler.get_new_elem_total');
         } catch (error) {
-            ConsoleHandler.getInstance().error('endModule:get_var_data:' + error + ':FIXME do we need to handle this ?');
+            ConsoleHandler.error('endModule:get_var_data:' + error + ':FIXME do we need to handle this ?');
         }
 
         res.temps_passe = this.filterValue('temps_passe', data ? data.value : null);
@@ -224,7 +224,7 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
         try {
             data = await VarsServerCallBackSubsController.getInstance().get_var_data(this.get_DayPrctReussiteAnimation_param(theme_id_ranges, module_id_ranges, user_id_ranges), 'AnimationReportingExportHandler.get_new_elem_total');
         } catch (error) {
-            ConsoleHandler.getInstance().error('endModule:get_var_data2:' + error + ':FIXME do we need to handle this ?');
+            ConsoleHandler.error('endModule:get_var_data2:' + error + ':FIXME do we need to handle this ?');
         }
 
         res.prct_reussite = this.filterValue('prct_reussite', data ? data.value : null);
@@ -271,7 +271,7 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
         try {
             data = await VarsServerCallBackSubsController.getInstance().get_var_data(this.get_DayTempsPasseAnimation_param(null, module_id_ranges, user_id_ranges), 'AnimationReportingExportHandler.get_new_elem');
         } catch (error) {
-            ConsoleHandler.getInstance().error('endModule:get_new_elem:' + error + ':FIXME do we need to handle this ?');
+            ConsoleHandler.error('endModule:get_new_elem:' + error + ':FIXME do we need to handle this ?');
         }
 
         res.temps_passe = this.filterValue('temps_passe', data ? data.value : null);
@@ -282,7 +282,7 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
         try {
             data = await VarsServerCallBackSubsController.getInstance().get_var_data(this.get_DayPrctReussiteAnimation_param(null, module_id_ranges, user_id_ranges), 'AnimationReportingExportHandler.get_new_elem');
         } catch (error) {
-            ConsoleHandler.getInstance().error('endModule:get_new_elem2:' + error + ':FIXME do we need to handle this ?');
+            ConsoleHandler.error('endModule:get_new_elem2:' + error + ':FIXME do we need to handle this ?');
         }
 
         res.prct_reussite = this.filterValue('prct_reussite', data ? data.value : null);
@@ -322,7 +322,7 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
 
     private async get_column_labels(exhi: ExportHistoricVO): Promise<{ [field_name: string]: string }> {
         let user: UserVO = null;
-        await StackContext.getInstance().runPromise(
+        await StackContext.runPromise(
             { IS_CLIENT: false },
             async () => {
                 user = await query(UserVO.API_TYPE_ID).filter_by_id(exhi.export_to_uid).select_vo<UserVO>();

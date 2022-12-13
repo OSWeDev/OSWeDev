@@ -51,7 +51,7 @@ export default class CheckSegmentedIdsCronWorker implements ICronWorker {
                         continue;
                     }
 
-                    ConsoleHandler.getInstance().error('CheckSegmentedIdsCronWorker:' + vo.id + ':[seen originally in :' + ids[vo.id] + ':] duplicated in :' + full_name + ':');
+                    ConsoleHandler.error('CheckSegmentedIdsCronWorker:' + vo.id + ':[seen originally in :' + ids[vo.id] + ':] duplicated in :' + full_name + ':');
 
                     // A cette étape on peut directement modifier l'id du nouveau, en utilisant l'auto incrément pour supprimer la duplication.
                     //  Dans l'outil à date impossible d'avoir des références vers des datas segmentées donc ça devrait pas poser de problèmes.

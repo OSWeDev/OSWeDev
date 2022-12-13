@@ -271,7 +271,7 @@ export default class DOWFilterWidgetComponent extends VueComponentBase {
                     options.custom_filter_name) : null;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return options;

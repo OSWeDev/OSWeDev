@@ -87,7 +87,7 @@ export default class ForkServerController {
         /**
          * On met en place un thread sur le master qui check le status régulièrement des forked (en tentant d'envoyer un alive)
          */
-        this.checkForksAvailability().then().catch((error) => ConsoleHandler.getInstance().error(error));
+        this.checkForksAvailability().then().catch((error) => ConsoleHandler.error(error));
     }
 
     public async reload_unavailable_threads() {
@@ -137,15 +137,15 @@ export default class ForkServerController {
                 await ThreadHandler.getInstance().sleep(1000);
                 max_timeout--;
                 if (!(max_timeout % 10)) {
-                    ConsoleHandler.getInstance().log('Waiting for ALIVE SIGNAL from fork ' + forked.uid);
+                    ConsoleHandler.log('Waiting for ALIVE SIGNAL from fork ' + forked.uid);
                 }
 
                 if (max_timeout == 60) {
-                    ConsoleHandler.getInstance().warn('60 secs until timeout while waiting for ALIVE SIGNAL from fork ' + forked.uid);
+                    ConsoleHandler.warn('60 secs until timeout while waiting for ALIVE SIGNAL from fork ' + forked.uid);
                 }
 
                 if (max_timeout <= 0) {
-                    ConsoleHandler.getInstance().error('Timeout while waiting for ALIVE SIGNAL from fork ' + forked.uid);
+                    ConsoleHandler.error('Timeout while waiting for ALIVE SIGNAL from fork ' + forked.uid);
                     break;
                 }
             }

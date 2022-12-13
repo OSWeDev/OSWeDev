@@ -164,7 +164,7 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
                 ) : null;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return options;

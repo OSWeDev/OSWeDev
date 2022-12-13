@@ -1563,7 +1563,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                 ) : null;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return options;

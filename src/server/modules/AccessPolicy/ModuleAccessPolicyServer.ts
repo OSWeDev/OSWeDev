@@ -827,21 +827,21 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     public checkAccessSync(policy_name: string, can_fail: boolean = false): boolean {
 
         if ((!ModuleAccessPolicy.getInstance().actif) || (!policy_name)) {
-            ConsoleHandler.getInstance().error('checkAccessSync:!policy_name');
+            ConsoleHandler.error('checkAccessSync:!policy_name');
             return false;
         }
 
-        if (!StackContext.getInstance().get('IS_CLIENT')) {
+        if (!StackContext.get('IS_CLIENT')) {
             return true;
         }
 
         let target_policy: AccessPolicyVO = AccessPolicyServerController.getInstance().get_registered_policy(policy_name);
         if (!target_policy) {
-            ConsoleHandler.getInstance().error('checkAccessSync:!target_policy:' + policy_name + ':');
+            ConsoleHandler.error('checkAccessSync:!target_policy:' + policy_name + ':');
             return false;
         }
 
-        let uid: number = StackContext.getInstance().get('UID');
+        let uid: number = StackContext.get('UID');
         if (!uid) {
             // profil anonyme
             return AccessPolicyServerController.getInstance().checkAccessTo(
@@ -851,7 +851,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         if (!AccessPolicyServerController.getInstance().get_registered_user_roles_by_uid(uid)) {
-            ConsoleHandler.getInstance().warn('checkAccessSync:!get_registered_user_roles_by_uid:uid:' + uid + ':policy_name:' + policy_name + ':');
+            ConsoleHandler.warn('checkAccessSync:!get_registered_user_roles_by_uid:uid:' + uid + ':policy_name:' + policy_name + ':');
             return false;
         }
 
@@ -866,7 +866,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return new Promise(async (accept, reject) => {
 
             let user_log = null;
-            let session = StackContext.getInstance().get('SESSION');
+            let session = StackContext.get('SESSION');
 
             if (session && session.uid) {
                 let uid: number = session.uid;
@@ -884,7 +884,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 user_log.handle_impersonation(session);
 
 
-                await StackContext.getInstance().runPromise(
+                await StackContext.runPromise(
                     { IS_CLIENT: false },
                     async () => {
                         await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
@@ -896,7 +896,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
              */
             if (session && !!session.impersonated_from) {
 
-                await ConsoleHandler.getInstance().log('unregisterSession:logout:impersonated_from');
+                await ConsoleHandler.log('unregisterSession:logout:impersonated_from');
                 await PushDataServerController.getInstance().unregisterSession(session);
 
                 session = Object.assign(session, session.impersonated_from);
@@ -904,19 +904,19 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
                 session.save((err) => {
                     if (err) {
-                        ConsoleHandler.getInstance().log(err);
+                        ConsoleHandler.log(err);
                     }
                     accept(err);
                 });
             } else {
 
-                await ConsoleHandler.getInstance().log('unregisterSession:logout:uid:' + session.uid);
+                await ConsoleHandler.log('unregisterSession:logout:uid:' + session.uid);
                 await PushDataServerController.getInstance().unregisterSession(session);
 
                 session.uid = null;
                 session.save((err) => {
                     if (err) {
-                        ConsoleHandler.getInstance().log(err);
+                        ConsoleHandler.log(err);
                     }
                     accept(err);
                 });
@@ -1043,7 +1043,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return null;
         }
 
-        let user: UserVO = await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
+        let user: UserVO = await StackContext.runPromise({ IS_CLIENT: false }, async () => {
             return await query(UserVO.API_TYPE_ID).filter_by_id(user_id).ignore_access_hooks().select_vo<UserVO>();
         }) as UserVO;
 
@@ -1140,7 +1140,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             let invalidated = (res && (res.length == 1) && (typeof res[0]['invalidated'] != 'undefined') && (res[0]['invalidated'] !== null)) ? res[0]['invalidated'] : false;
             return !invalidated;
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
         return false;
     }
@@ -1168,17 +1168,17 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 }
 
                 try {
-                    await ConsoleHandler.getInstance().log('unregisterSession:onBlockOrInvalidateUserDeleteSessions:uid:' + session.uid);
+                    await ConsoleHandler.log('unregisterSession:onBlockOrInvalidateUserDeleteSessions:uid:' + session.uid);
                     await PushDataServerController.getInstance().unregisterSession(session);
                     session.destroy(() => {
                     });
                 } catch (error) {
-                    ConsoleHandler.getInstance().error(error);
+                    ConsoleHandler.error(error);
                 }
                 break;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
         return;
     }
@@ -1191,7 +1191,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     public async login(uid: number): Promise<boolean> {
 
         try {
-            let session = StackContext.getInstance().get('SESSION');
+            let session = StackContext.get('SESSION');
 
             if (ModuleDAOServer.getInstance().global_update_blocker) {
                 // On est en readonly partout, donc on informe sur impossibilité de se connecter
@@ -1208,7 +1208,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             let user: UserVO = null;
 
-            await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
+            await StackContext.runPromise({ IS_CLIENT: false }, async () => {
                 user = await query(UserVO.API_TYPE_ID).filter_by_id(uid).select_vo<UserVO>();
             });
 
@@ -1222,7 +1222,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             if (!user.logged_once) {
                 user.logged_once = true;
-                await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
+                await StackContext.runPromise({ IS_CLIENT: false }, async () => {
                     await ModuleDAO.getInstance().insertOrUpdateVO(user);
                 });
             }
@@ -1236,10 +1236,10 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.user_id = user.id;
             user_log.log_time = Dates.now();
             user_log.impersonated = false;
-            user_log.referer = StackContext.getInstance().get('REFERER');
+            user_log.referer = StackContext.get('REFERER');
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
-            await StackContext.getInstance().runPromise(
+            await StackContext.runPromise(
                 { IS_CLIENT: false },
                 async () => {
                     await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
@@ -1249,7 +1249,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             return true;
         } catch (error) {
-            ConsoleHandler.getInstance().error("login uid:" + uid + ":" + error);
+            ConsoleHandler.error("login uid:" + uid + ":" + error);
         }
 
         return false;
@@ -1259,14 +1259,14 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         try {
 
-            let session = StackContext.getInstance().get('SESSION');
+            let session = StackContext.get('SESSION');
 
             if (session && session.uid) {
                 return session.uid;
             }
             return null;
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
             return null;
         }
     }
@@ -1281,14 +1281,14 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         try {
 
-            let session = StackContext.getInstance().get('SESSION');
+            let session = StackContext.get('SESSION');
 
             if (session && !!session.impersonated_from) {
                 return true;
             }
             return false;
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
             return false;
         }
     }
@@ -1301,7 +1301,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         try {
 
-            let session = StackContext.getInstance().get('SESSION');
+            let session = StackContext.get('SESSION');
 
             let impersonated_from_session = (session && session.impersonated_from) ? session.impersonated_from : null;
 
@@ -1314,7 +1314,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }
             return null;
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
             return null;
         }
     }
@@ -1326,7 +1326,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         try {
 
-            let res = StackContext.getInstance().get('SESSION');
+            let res = StackContext.get('SESSION');
 
             if (!res.impersonated_from) {
                 return null;
@@ -1337,7 +1337,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }
             return res;
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
             return null;
         }
     }
@@ -1346,9 +1346,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         try {
 
-            return StackContext.getInstance().get('SESSION') as IServerUserSession;
+            return StackContext.get('SESSION') as IServerUserSession;
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
             return null;
         }
     }
@@ -1359,11 +1359,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        if (!StackContext.getInstance().get('IS_CLIENT')) {
+        if (!StackContext.get('IS_CLIENT')) {
             return true;
         }
 
-        let uid: number = StackContext.getInstance().get('UID');
+        let uid: number = StackContext.get('UID');
         if (!uid) {
             return role_ids.indexOf(AccessPolicyServerController.getInstance().role_anonymous.id) >= 0;
         }
@@ -1384,7 +1384,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         for (let sid in session_to_delete_by_sids) {
-            await StackContext.getInstance().runPromise(
+            await StackContext.runPromise(
                 { SESSION: session_to_delete_by_sids[sid] },
                 async () => {
                     await this.delete_session();
@@ -1456,11 +1456,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     private async getMyRoles(): Promise<RoleVO[]> {
 
-        if (!StackContext.getInstance().get('IS_CLIENT')) {
+        if (!StackContext.get('IS_CLIENT')) {
             return null;
         }
 
-        let uid: number = StackContext.getInstance().get('UID');
+        let uid: number = StackContext.get('UID');
 
         if (!uid) {
             return null;
@@ -1484,11 +1484,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * @deprecated Why use this function, seems like a bad idea, just checkAccess directly there shall be no need for this one. Delete ASAP
      */
     private async isRole(text: string): Promise<boolean> {
-        if (!StackContext.getInstance().get('IS_CLIENT')) {
+        if (!StackContext.get('IS_CLIENT')) {
             return false;
         }
 
-        let uid: number = StackContext.getInstance().get('UID');
+        let uid: number = StackContext.get('UID');
 
         if (!uid) {
             return false;
@@ -1504,11 +1504,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     private async isAdmin(): Promise<boolean> {
-        if (!StackContext.getInstance().get('IS_CLIENT')) {
+        if (!StackContext.get('IS_CLIENT')) {
             return false;
         }
 
-        let uid: number = StackContext.getInstance().get('UID');
+        let uid: number = StackContext.get('UID');
 
         if (!uid) {
             return false;
@@ -1525,7 +1525,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     private consoledebug(msg: string) {
         if (this.debug_check_access) {
-            ConsoleHandler.getInstance().log(msg);
+            ConsoleHandler.log(msg);
         }
     }
 
@@ -1755,7 +1755,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     private async signinAndRedirect(nom: string, email: string, password: string, redirect_to: string): Promise<number> {
 
         try {
-            let session = StackContext.getInstance().get('SESSION');
+            let session = StackContext.get('SESSION');
 
             if (ModuleDAOServer.getInstance().global_update_blocker) {
                 // On est en readonly partout, donc on informe sur impossibilité de se connecter
@@ -1777,7 +1777,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 return null;
             }
 
-            return await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
+            return await StackContext.runPromise({ IS_CLIENT: false }, async () => {
                 let user: UserVO = await ModuleDAOServer.getInstance().selectOneUser(email, password);
 
                 if (!!user) {
@@ -1811,7 +1811,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 // Pour la création d'un User, on utilise la première Lang qui est en BDD et si ca doit changer ca se fera dans un trigger dans le projet
                 let langs: LangVO[] = await ModuleDAO.getInstance().getVos(LangVO.API_TYPE_ID);
                 user.lang_id = langs[0].id;
-                // let res: InsertOrDeleteQueryResult = await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () =>
+                // let res: InsertOrDeleteQueryResult = await StackContext.runPromise({ IS_CLIENT: false }, async () =>
                 //     await ModuleDAO.getInstance().insertOrUpdateVO(user)) as InsertOrDeleteQueryResult;
 
 
@@ -1830,11 +1830,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 user_log.user_id = res.id;
                 user_log.log_time = Dates.now();
                 user_log.impersonated = false;
-                user_log.referer = StackContext.getInstance().get('REFERER');
+                user_log.referer = StackContext.get('REFERER');
                 user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
                 // On await pas ici on se fiche du résultat
-                await StackContext.getInstance().runPromise(
+                await StackContext.runPromise(
                     { IS_CLIENT: false },
                     async () => {
                         await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
@@ -1846,7 +1846,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             });
         } catch (error) {
-            ConsoleHandler.getInstance().error("login:" + email + ":" + error);
+            ConsoleHandler.error("login:" + email + ":" + error);
         }
 
         return null;
@@ -1855,7 +1855,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     private async loginAndRedirect(email: string, password: string, redirect_to: string): Promise<number> {
 
         try {
-            let session = StackContext.getInstance().get('SESSION');
+            let session = StackContext.get('SESSION');
 
             if (ModuleDAOServer.getInstance().global_update_blocker) {
                 // On est en readonly partout, donc on informe sur impossibilité de se connecter
@@ -1916,11 +1916,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.user_id = user.id;
             user_log.log_time = Dates.now();
             user_log.impersonated = false;
-            user_log.referer = StackContext.getInstance().get('REFERER');
+            user_log.referer = StackContext.get('REFERER');
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
             // On await pas ici on se fiche du résultat
-            await StackContext.getInstance().runPromise(
+            await StackContext.runPromise(
                 { IS_CLIENT: false },
                 async () => {
                     await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
@@ -1930,7 +1930,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             return user.id;
         } catch (error) {
-            ConsoleHandler.getInstance().error("login:" + email + ":" + error);
+            ConsoleHandler.error("login:" + email + ":" + error);
         }
 
         return null;
@@ -1939,14 +1939,14 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     private async impersonateLogin(email: string, password: string, redirect_to: string): Promise<number> {
 
         try {
-            let session = StackContext.getInstance().get('SESSION');
-            let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
+            let session = StackContext.get('SESSION');
+            let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
             if (ModuleDAOServer.getInstance().global_update_blocker) {
                 // On est en readonly partout, donc on informe sur impossibilité de se connecter
                 await PushDataServerController.getInstance().notifySimpleERROR(
-                    StackContext.getInstance().get('UID'),
-                    StackContext.getInstance().get('CLIENT_TAB_ID'),
+                    StackContext.get('UID'),
+                    StackContext.get('CLIENT_TAB_ID'),
                     'error.global_update_blocker.activated.___LABEL___'
                 );
                 return null;
@@ -1971,7 +1971,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }
 
             if (user.blocked || user.invalidated) {
-                ConsoleHandler.getInstance().error("impersonate login:" + email + ":blocked or invalidated");
+                ConsoleHandler.error("impersonate login:" + email + ":blocked or invalidated");
                 await PushDataServerController.getInstance().notifySimpleERROR(session.uid, CLIENT_TAB_ID, 'Impossible de se connecter avec un compte bloqué ou invalidé', true);
                 return null;
             }
@@ -1985,11 +1985,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             let user_log = new UserLogVO();
             user_log.user_id = user.id;
             user_log.log_time = Dates.now();
-            user_log.referer = StackContext.getInstance().get('REFERER');
+            user_log.referer = StackContext.get('REFERER');
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
             user_log.handle_impersonation(session);
 
-            await StackContext.getInstance().runPromise(
+            await StackContext.runPromise(
                 { IS_CLIENT: false },
                 async () => {
                     await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
@@ -1999,7 +1999,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             return user.id;
         } catch (error) {
-            ConsoleHandler.getInstance().error("impersonate login:" + email + ":" + error);
+            ConsoleHandler.error("impersonate login:" + email + ":" + error);
         }
 
         return null;
@@ -2076,8 +2076,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     private async sendErrorMsg(msg_translatable_code: string) {
-        let uid: number = StackContext.getInstance().get('UID');
-        let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
+        let uid: number = StackContext.get('UID');
+        let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
         await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, msg_translatable_code);
     }
@@ -2135,7 +2135,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             return await ModuleDAOServer.getInstance().selectUsersForCheckUnicity(user.name, user.email, user.phone, user.id);
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
         return false;
     }
@@ -2149,7 +2149,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     private async checkBlockingOrInvalidatingUser(user: UserVO) {
         let old_user: UserVO = null;
         if (!!user.id) {
-            await StackContext.getInstance().runPromise(
+            await StackContext.runPromise(
                 { IS_CLIENT: false },
                 async () => {
                     old_user = await query(UserVO.API_TYPE_ID).filter_by_id(user.id).select_vo<UserVO>();
@@ -2199,7 +2199,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     private get_my_sid(res: Response) {
-        // let session = StackContext.getInstance().get('SESSION');
+        // let session = StackContext.get('SESSION');
         // if (!session) {
         //     return null;
         // }
@@ -2213,7 +2213,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
          * On veut supprimer la session et déconnecter tout le monde
          */
         let user_log = null;
-        let session = StackContext.getInstance().get('SESSION');
+        let session = StackContext.get('SESSION');
 
         if (session && session.uid) {
             let uid: number = session.uid;
@@ -2226,7 +2226,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
             user_log.handle_impersonation(session);
 
-            await StackContext.getInstance().runPromise(
+            await StackContext.runPromise(
                 { IS_CLIENT: false },
                 async () => {
                     await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
@@ -2238,7 +2238,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
          */
         while (session && !!session.impersonated_from) {
 
-            await ConsoleHandler.getInstance().log('unregisterSession:delete_session:impersonated_from:uid:' + session.uid);
+            await ConsoleHandler.log('unregisterSession:delete_session:impersonated_from:uid:' + session.uid);
             await PushDataServerController.getInstance().unregisterSession(session, false);
 
             session = Object.assign(session, session.impersonated_from);
@@ -2254,20 +2254,20 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
             user_log.handle_impersonation(session);
 
-            await StackContext.getInstance().runPromise(
+            await StackContext.runPromise(
                 { IS_CLIENT: false },
                 async () => {
                     await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
                 });
         }
 
-        await ConsoleHandler.getInstance().log('unregisterSession:delete_session:uid:' + session.uid);
+        await ConsoleHandler.log('unregisterSession:delete_session:uid:' + session.uid);
         await PushDataServerController.getInstance().unregisterSession(session, true);
 
         session.uid = null;
         session.destroy((err) => {
             if (err) {
-                ConsoleHandler.getInstance().log(err);
+                ConsoleHandler.log(err);
             }
         });
     }

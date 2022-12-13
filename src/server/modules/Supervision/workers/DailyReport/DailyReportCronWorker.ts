@@ -108,7 +108,7 @@ export default class DailyReportCronWorker implements ICronWorker {
 
             await ModuleTeamsAPIServer.getInstance().send_to_teams_webhook(TEAMS_WEBHOOK_PARAM_NAME, message);
         } else {
-            ConsoleHandler.getInstance().log('Envoi du Daily Report de Supervision ignoré pour Teams, le paramètre requis n\'est pas initialisé :' + DailyReportCronWorker.TEAMS_WEBHOOK_PARAM_NAME + ':');
+            ConsoleHandler.log('Envoi du Daily Report de Supervision ignoré pour Teams, le paramètre requis n\'est pas initialisé :' + DailyReportCronWorker.TEAMS_WEBHOOK_PARAM_NAME + ':');
         }
     }
 
@@ -160,12 +160,12 @@ export default class DailyReportCronWorker implements ICronWorker {
                     UNKOWN: ordered_supervised_items_by_state[SupervisionController.STATE_UNKOWN],
                 });
         } else {
-            ConsoleHandler.getInstance().log('Envoi du Daily Report de Supervision ignoré pour SendInBlue, les 3 paramètres requis ne sont pas initialisés :' + DailyReportCronWorker.SENDINBLUE_TEMPLATEID_PARAM_NAME + ':' + DailyReportCronWorker.SENDINBLUE_TONAME_PARAM_NAME + ':' + DailyReportCronWorker.SENDINBLUE_TOMAIL_PARAM_NAME + ':');
+            ConsoleHandler.log('Envoi du Daily Report de Supervision ignoré pour SendInBlue, les 3 paramètres requis ne sont pas initialisés :' + DailyReportCronWorker.SENDINBLUE_TEMPLATEID_PARAM_NAME + ':' + DailyReportCronWorker.SENDINBLUE_TONAME_PARAM_NAME + ':' + DailyReportCronWorker.SENDINBLUE_TOMAIL_PARAM_NAME + ':');
         }
     }
 
     private log(ordered_supervised_items_by_state: { [state: number]: ISupervisedItem[] }) {
-        ConsoleHandler.getInstance().log(
+        ConsoleHandler.log(
             'Supervision ' +
             ': Erreur non lue (' + (ordered_supervised_items_by_state[SupervisionController.STATE_ERROR] ? ordered_supervised_items_by_state[SupervisionController.STATE_ERROR].length : 0) + '): ' +
             ': Erreur lue (' + (ordered_supervised_items_by_state[SupervisionController.STATE_ERROR_READ] ? ordered_supervised_items_by_state[SupervisionController.STATE_ERROR_READ].length : 0) + '): ' +

@@ -122,7 +122,7 @@ export default class DOWFilterWidgetOptionsComponent extends VueComponentBase {
         try {
             this.page_widget.json_options = JSON.stringify(this.next_update_options);
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
         await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
 
@@ -178,7 +178,7 @@ export default class DOWFilterWidgetOptionsComponent extends VueComponentBase {
                     options.custom_filter_name) : null;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return options;

@@ -238,7 +238,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         }
 
         let uid = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
-        let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
+        let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
         try {
 
@@ -354,7 +354,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
 
             return true;
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
             await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'feedback.feedback.error', true);
             return false;
         }

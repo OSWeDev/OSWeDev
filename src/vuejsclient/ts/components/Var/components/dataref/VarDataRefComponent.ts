@@ -190,14 +190,14 @@ export default class VarDataRefComponent extends VueComponentBase {
 
         let res = await ModuleDAO.getInstance().insertOrUpdateVO(clone);
         if ((!res) || (!res.id)) {
-            ConsoleHandler.getInstance().warn('Echec onchangevo insertOrUpdateVO : On tente de récupérer la data en base, si elle existe on met à jour...');
+            ConsoleHandler.warn('Echec onchangevo insertOrUpdateVO : On tente de récupérer la data en base, si elle existe on met à jour...');
             let bdddatas: VarDataBaseVO[] = await ModuleDAO.getInstance().getVosByExactMatroids<VarDataBaseVO, VarDataBaseVO>(clone._type, [clone]);
             if (bdddatas && bdddatas.length) {
-                ConsoleHandler.getInstance().log('...trouvé on met à jour');
+                ConsoleHandler.log('...trouvé on met à jour');
                 let bdddata: VarDataBaseVO = bdddatas[0];
 
                 if ((bdddata.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) && (bdddata.value_ts && clone.value_ts && (bdddata.value_ts > clone.value_ts))) {
-                    ConsoleHandler.getInstance().error('...valeur en BDD plus récente que celle saisie, on refuse la maj');
+                    ConsoleHandler.error('...valeur en BDD plus récente que celle saisie, on refuse la maj');
                     return;
                 }
                 bdddata.value_type = clone.value_type;
@@ -205,11 +205,11 @@ export default class VarDataRefComponent extends VueComponentBase {
                 bdddata.value_ts = clone.value_ts;
                 res = await ModuleDAO.getInstance().insertOrUpdateVO(bdddata);
                 if ((!res) || (!res.id)) {
-                    ConsoleHandler.getInstance().error('...la mise à jour a échouée');
+                    ConsoleHandler.error('...la mise à jour a échouée');
                     return;
                 }
             } else {
-                ConsoleHandler.getInstance().error('...pas trouvé, il y a eu une erreur et la valeur est perdue');
+                ConsoleHandler.error('...pas trouvé, il y a eu une erreur et la valeur est perdue');
                 return;
             }
         }

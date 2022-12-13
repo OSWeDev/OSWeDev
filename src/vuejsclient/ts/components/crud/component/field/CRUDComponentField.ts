@@ -736,7 +736,7 @@ export default class CRUDComponentField extends VueComponentBase
             try {
                 res += ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(start);
             } catch (error) {
-                ConsoleHandler.getInstance().error(error);
+                ConsoleHandler.error(error);
             }
         }
 
@@ -746,7 +746,7 @@ export default class CRUDComponentField extends VueComponentBase
             try {
                 res += ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(end);
             } catch (error) {
-                ConsoleHandler.getInstance().error(error);
+                ConsoleHandler.error(error);
             }
         }
 

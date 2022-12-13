@@ -35,7 +35,7 @@ export default class ArchiveFilesCronWorker implements ICronWorker {
             // on parcourt le dossier
             fs.readdir(filterFileVO.path_to_check, async (err, files) => {
                 if (err) {
-                    ConsoleHandler.getInstance().log(err);
+                    ConsoleHandler.log(err);
                     return;
                 }
                 //on boucle sur le resultat du readdir
@@ -49,7 +49,7 @@ export default class ArchiveFilesCronWorker implements ICronWorker {
                     // on recuper les stat du fichier
                     fs.stat(filterFileVO.path_to_check + "/" + file, async (err2, stats) => {
                         if (err2) {
-                            ConsoleHandler.getInstance().log(err2);
+                            ConsoleHandler.log(err2);
                             return;
                         }
                         //on verifie si c'est un fichier

@@ -226,7 +226,7 @@ export default class ModuleDBService {
 
         // On lance le thread de reload de la conf toutes les X seconds, si il y a des paramètres
         if (module.fields && (module.fields.length > 0)) {
-            this.reloadParamsThread(module).then().catch((error) => ConsoleHandler.getInstance().error(error));
+            this.reloadParamsThread(module).then().catch((error) => ConsoleHandler.error(error));
         }
 
         // On appelle le hook de fin d'installation

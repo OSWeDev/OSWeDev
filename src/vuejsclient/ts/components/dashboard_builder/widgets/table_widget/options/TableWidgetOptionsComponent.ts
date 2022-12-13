@@ -252,7 +252,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
     private get_new_column_id() {
         if (!this.widget_options) {
-            ConsoleHandler.getInstance().error('get_new_column_id:failed');
+            ConsoleHandler.error('get_new_column_id:failed');
             return null;
         }
 
@@ -375,7 +375,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         });
 
         if (i < 0) {
-            ConsoleHandler.getInstance().error('update_column failed');
+            ConsoleHandler.error('update_column failed');
             return null;
         }
 
@@ -429,7 +429,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         });
 
         if (i < 0) {
-            ConsoleHandler.getInstance().error('remove_column failed');
+            ConsoleHandler.error('remove_column failed');
             return null;
         }
 
@@ -540,7 +540,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         try {
             this.page_widget.json_options = JSON.stringify(this.next_update_options);
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
         await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
 
@@ -605,7 +605,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                 ) : null;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return options;

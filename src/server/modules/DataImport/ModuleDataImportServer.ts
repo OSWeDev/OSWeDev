@@ -453,10 +453,10 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                 updated_item
             );
         } catch (error) {
-            ConsoleHandler.getInstance().error('importJSON:' + error);
+            ConsoleHandler.error('importJSON:' + error);
             await PushDataServerController.getInstance().notifySimpleERROR(
-                StackContext.getInstance().get('UID'),
-                StackContext.getInstance().get('CLIENT_TAB_ID'),
+                StackContext.get('UID'),
+                StackContext.get('CLIENT_TAB_ID'),
                 'importJSON.failed.___LABEL___'
             );
         }
@@ -1001,7 +1001,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                 return false;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
             await this.logAndUpdateHistoric(importHistoric, format, ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT, "Le post-traitement a échoué :" + error, "import.errors.failed_post_treatement_see_logs", DataImportLogVO.LOG_LEVEL_FATAL);
             return false;
         }

@@ -151,7 +151,7 @@ export default class ModuleMenuServer extends ModuleServerBase {
         new_menu.weight = 0;
         let res = await ModuleDAO.getInstance().insertOrUpdateVO(new_menu);
         if ((!res) || (!res.id)) {
-            ConsoleHandler.getInstance().error('add_menu:Failed insert new menu:' + JSON.stringify(new_menu));
+            ConsoleHandler.error('add_menu:Failed insert new menu:' + JSON.stringify(new_menu));
             return;
         }
         new_menu.id = res.id;
@@ -160,7 +160,7 @@ export default class ModuleMenuServer extends ModuleServerBase {
         code.code_text = new_menu.translatable_title;
         res = await ModuleDAO.getInstance().insertOrUpdateVO(code);
         if ((!res) || (!res.id)) {
-            ConsoleHandler.getInstance().error('add_menu:Failed insert new code:' + JSON.stringify(code));
+            ConsoleHandler.error('add_menu:Failed insert new code:' + JSON.stringify(code));
             return;
         }
         code.id = res.id;
@@ -170,7 +170,7 @@ export default class ModuleMenuServer extends ModuleServerBase {
             await query(LangVO.API_TYPE_ID).filter_by_id(user.lang_id).select_vo<LangVO>() :
             await ModuleTranslation.getInstance().getLang(ConfigurationService.getInstance().node_configuration.DEFAULT_LOCALE);
         if (!lang) {
-            ConsoleHandler.getInstance().error('add_menu:Failed get lang');
+            ConsoleHandler.error('add_menu:Failed get lang');
             return;
         }
 
@@ -179,12 +179,12 @@ export default class ModuleMenuServer extends ModuleServerBase {
         translation.text_id = code.id;
         let default_translatable = await ModuleTranslation.getInstance().getTranslatableText('menu_organizer.new' + DefaultTranslation.DEFAULT_LABEL_EXTENSION);
         if (!default_translatable) {
-            ConsoleHandler.getInstance().error('add_menu:Failed get default_translatable');
+            ConsoleHandler.error('add_menu:Failed get default_translatable');
             return;
         }
         let default_translation = await ModuleTranslation.getInstance().getTranslation(lang.id, default_translatable.id);
         if (!default_translation) {
-            ConsoleHandler.getInstance().error('add_menu:Failed get default_translation');
+            ConsoleHandler.error('add_menu:Failed get default_translation');
             return;
         }
         translation.translated = default_translation ? default_translation.translated : null;

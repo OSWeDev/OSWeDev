@@ -200,7 +200,7 @@ export default class VarWidgetComponent extends VueComponentBase {
                     options.filter_additional_params) : null;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return options;

@@ -42,7 +42,7 @@ export default class ToFixedFloorFilterOptionsComponent extends VueComponentBase
             this.onlyPositive = additional_options[2];
             this.dot_decimal_marker = additional_options[3];
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
     }
 

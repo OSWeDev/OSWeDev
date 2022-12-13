@@ -267,7 +267,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     return field_value.toString();
             }
         } catch (error) {
-            // ConsoleHandler.getInstance().error(error);
+            // ConsoleHandler.error(error);
             return field_value;
         }
     }
@@ -313,7 +313,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     return SimpleDatatableField.defaultDataToReadIHM(field_value, moduleTableField, vo, datatable_field_uid);
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
             return field_value;
         }
     }
@@ -461,7 +461,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     return value;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
             return value;
         }
     }
@@ -482,7 +482,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     return SimpleDatatableField.defaultReadIHMToData(value, moduleTableField, vo);
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
             return value;
         }
     }

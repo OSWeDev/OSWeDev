@@ -46,7 +46,7 @@ export default class PercentFilterOptionsComponent extends VueComponentBase {
             this.evol_from_prct = additional_options[3];
             this.treat_999_as_infinite = additional_options[4];
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
     }
 

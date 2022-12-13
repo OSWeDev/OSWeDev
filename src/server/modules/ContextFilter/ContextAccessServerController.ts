@@ -27,11 +27,11 @@ export default class ContextAccessServerController {
         fields: ContextQueryFieldVO[],
         access_type: string): boolean {
 
-        if (!StackContext.getInstance().get('IS_CLIENT')) {
+        if (!StackContext.get('IS_CLIENT')) {
             return true;
         }
 
-        let uid: number = StackContext.getInstance().get('UID');
+        let uid: number = StackContext.get('UID');
         let roles;
         if (!uid) {
             roles = AccessPolicyServerController.getInstance().getUsersRoles(false, null);
@@ -66,11 +66,11 @@ export default class ContextAccessServerController {
         fields: FieldPathWrapper[],
         access_type: string): boolean {
 
-        if (!StackContext.getInstance().get('IS_CLIENT')) {
+        if (!StackContext.get('IS_CLIENT')) {
             return true;
         }
 
-        let uid: number = StackContext.getInstance().get('UID');
+        let uid: number = StackContext.get('UID');
         let roles;
         if (!uid) {
             roles = AccessPolicyServerController.getInstance().getUsersRoles(false, null);
@@ -95,11 +95,11 @@ export default class ContextAccessServerController {
         field_id: string,
         access_type: string): boolean {
 
-        if (!StackContext.getInstance().get('IS_CLIENT')) {
+        if (!StackContext.get('IS_CLIENT')) {
             return true;
         }
 
-        let uid: number = StackContext.getInstance().get('UID');
+        let uid: number = StackContext.get('UID');
         let roles;
         if (!uid) {
             roles = AccessPolicyServerController.getInstance().getUsersRoles(false, null);

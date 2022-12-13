@@ -413,7 +413,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         try {
             VarsDatasVoUpdateHandler.getInstance().register_vo_cud([vo]);
         } catch (error) {
-            ConsoleHandler.getInstance().error('invalidate_var_cache_from_vo:type:' + vo._type + ':id:' + vo.id + ':' + vo + ':' + error);
+            ConsoleHandler.error('invalidate_var_cache_from_vo:type:' + vo._type + ':id:' + vo.id + ':' + vo + ':' + error);
         }
     }
 
@@ -428,7 +428,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         try {
             VarsDatasVoUpdateHandler.getInstance().register_vo_cud([vo_update_handler]);
         } catch (error) {
-            ConsoleHandler.getInstance().error('invalidate_var_cache_from_vo:type:' + vo_update_handler.post_update_vo._type + ':id:' + vo_update_handler.post_update_vo.id + ':' + vo_update_handler.post_update_vo + ':' + error);
+            ConsoleHandler.error('invalidate_var_cache_from_vo:type:' + vo_update_handler.post_update_vo._type + ':id:' + vo_update_handler.post_update_vo.id + ':' + vo_update_handler.post_update_vo + ':' + error);
         }
     }
 
@@ -532,7 +532,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             let vo = vos[i];
 
             if (!vo.check_param_is_valid(vo._type)) {
-                ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+                ConsoleHandler.error('Les champs du matroid ne correspondent pas à son typage');
                 continue;
             }
 
@@ -556,7 +556,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             let vo = vos[i];
 
             if (!vo.check_param_is_valid(vo._type)) {
-                ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+                ConsoleHandler.error('Les champs du matroid ne correspondent pas à son typage');
                 continue;
             }
 
@@ -578,7 +578,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             let vo = vos[i];
 
             if (!vo.check_param_is_valid(vo._type)) {
-                ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+                ConsoleHandler.error('Les champs du matroid ne correspondent pas à son typage');
                 continue;
             }
 
@@ -614,7 +614,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             let vo = vos[i];
 
             if (!vo.check_param_is_valid(vo._type)) {
-                ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+                ConsoleHandler.error('Les champs du matroid ne correspondent pas à son typage');
                 continue;
             }
 
@@ -633,7 +633,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         //     let vo = vos[i];
 
         //     if (!vo.check_param_is_valid(vo._type)) {
-        //         ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+        //         ConsoleHandler.error('Les champs du matroid ne correspondent pas à son typage');
         //         continue;
         //     }
 
@@ -669,7 +669,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             let vo = vos[i];
 
             if (!vo.check_param_is_valid(vo._type)) {
-                ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+                ConsoleHandler.error('Les champs du matroid ne correspondent pas à son typage');
                 continue;
             }
 
@@ -688,7 +688,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         //     let vo = vos[i];
 
         //     if (!vo.check_param_is_valid(vo._type)) {
-        //         ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+        //         ConsoleHandler.error('Les champs du matroid ne correspondent pas à son typage');
         //         continue;
         //     }
 
@@ -848,7 +848,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
                 if (actual_time > (start_time + 60)) {
                     start_time = actual_time;
-                    ConsoleHandler.getInstance().warn('ModuleVarServer:wait_for_computation_hole:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
+                    ConsoleHandler.warn('ModuleVarServer:wait_for_computation_hole:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
                 }
             }
             resolve(true);
@@ -893,7 +893,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
                 if (actual_time > (start_time + (timeout_ms / 1000))) {
                     start_time = actual_time;
-                    ConsoleHandler.getInstance().warn('ModuleVarServer:exec_in_computation_hole:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
+                    ConsoleHandler.warn('ModuleVarServer:exec_in_computation_hole:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
                 }
             }
 
@@ -902,7 +902,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             try {
                 await cb();
             } catch (err) {
-                ConsoleHandler.getInstance().error("ModuleVarServer:exec_in_computation_hole:cb:" + err);
+                ConsoleHandler.error("ModuleVarServer:exec_in_computation_hole:cb:" + err);
             }
 
             VarsdatasComputerBGThread.getInstance().semaphore = false;
@@ -1013,8 +1013,8 @@ export default class ModuleVarServer extends ModuleServerBase {
          */
         params = this.filter_null_fields_params(params);
 
-        let uid = StackContext.getInstance().get('UID');
-        let client_tab_id = StackContext.getInstance().get('CLIENT_TAB_ID');
+        let uid = StackContext.get('UID');
+        let client_tab_id = StackContext.get('CLIENT_TAB_ID');
 
         VarsTabsSubsController.getInstance().register_sub(uid, client_tab_id, params ? params.map((param) => param.index) : []);
 
@@ -1022,7 +1022,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             for (let i in params) {
                 let param = params[i];
 
-                ConsoleHandler.getInstance().log('update_params_registration:' + param.index + ':UID:' + uid + ':CLIENT_TAB_ID:' + client_tab_id);
+                ConsoleHandler.log('update_params_registration:' + param.index + ':UID:' + uid + ':CLIENT_TAB_ID:' + client_tab_id);
             }
         }
     }
@@ -1052,7 +1052,7 @@ export default class ModuleVarServer extends ModuleServerBase {
          */
         params = params.filter((param) => {
             if (!MatroidController.getInstance().check_bases_not_max_ranges(param)) {
-                ConsoleHandler.getInstance().error('VarDAGNode.getInstance:!check_bases_not_max_ranges:' + param.index);
+                ConsoleHandler.error('VarDAGNode.getInstance:!check_bases_not_max_ranges:' + param.index);
                 return false;
             }
             return true;
@@ -1062,8 +1062,8 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
-        let uid = StackContext.getInstance().get('UID');
-        let client_tab_id = StackContext.getInstance().get('CLIENT_TAB_ID');
+        let uid = StackContext.get('UID');
+        let client_tab_id = StackContext.get('CLIENT_TAB_ID');
 
         VarsTabsSubsController.getInstance().register_sub(uid, client_tab_id, params ? params.map((param) => param.index) : []);
 
@@ -1071,7 +1071,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             for (let i in params) {
                 let param = params[i];
 
-                ConsoleHandler.getInstance().log('register_params:' + param.index + ':UID:' + uid + ':CLIENT_TAB_ID:' + client_tab_id);
+                ConsoleHandler.log('register_params:' + param.index + ':UID:' + uid + ':CLIENT_TAB_ID:' + client_tab_id);
             }
         }
 
@@ -1093,7 +1093,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 for (let i in notifyable_vars) {
                     let param = notifyable_vars[i];
 
-                    ConsoleHandler.getInstance().log('register_param:NOTIFIED:' + param.index + ':UID:' + uid + ':CLIENT_TAB_ID:' + client_tab_id);
+                    ConsoleHandler.log('register_param:NOTIFIED:' + param.index + ':UID:' + uid + ':CLIENT_TAB_ID:' + client_tab_id);
                 }
             }
         }
@@ -1121,7 +1121,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 if ((!param[matroid_field.field_id]) || (!(param[matroid_field.field_id] as IRange[]).length) ||
                     ((param[matroid_field.field_id] as IRange[]).indexOf(null) >= 0)) {
                     filter_ = true;
-                    ConsoleHandler.getInstance().error("Registered wrong Matroid:" + JSON.stringify(param) + ':refused');
+                    ConsoleHandler.error("Registered wrong Matroid:" + JSON.stringify(param) + ':refused');
                     break;
                 }
             }
@@ -1147,15 +1147,15 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
-        let uid = StackContext.getInstance().get('UID');
-        let client_tab_id = StackContext.getInstance().get('CLIENT_TAB_ID');
+        let uid = StackContext.get('UID');
+        let client_tab_id = StackContext.get('CLIENT_TAB_ID');
         VarsTabsSubsController.getInstance().unregister_sub(uid, client_tab_id, params.map((param) => param.check_param_is_valid(param._type) ? param.index : null));
 
         if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
             for (let i in params) {
                 let param = params[i];
 
-                ConsoleHandler.getInstance().log('unregister_param:' + param.index + ':UID:' + uid + ':CLIENT_TAB_ID:' + client_tab_id);
+                ConsoleHandler.log('unregister_param:' + param.index + ':UID:' + uid + ':CLIENT_TAB_ID:' + client_tab_id);
             }
         }
     }
@@ -1193,7 +1193,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         if (!param.check_param_is_valid(param._type)) {
-            ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+            ConsoleHandler.error('Les champs du matroid ne correspondent pas à son typage');
             return null;
         }
 
@@ -1216,7 +1216,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         // TEMP DEBUG JFE :
-        // ConsoleHandler.getInstance().log("cpt_for_datasources :: " + JSON.stringify(this.cpt_for_datasources));
+        // ConsoleHandler.log("cpt_for_datasources :: " + JSON.stringify(this.cpt_for_datasources));
 
         return var_controller.getParamDependencies(varDAGNode);
     }
@@ -1266,7 +1266,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             }
 
             if (!is_pixel) {
-                ConsoleHandler.getInstance().warn('refused getVarParamDatas on pixellised varconf but param is not a pixel');
+                ConsoleHandler.warn('refused getVarParamDatas on pixellised varconf but param is not a pixel');
                 return null;
             }
         }
@@ -1278,7 +1278,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         let value_size_limit: number = 10000;
 
         if (!param.check_param_is_valid(param._type)) {
-            ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+            ConsoleHandler.error('Les champs du matroid ne correspondent pas à son typage');
             return null;
         }
 
@@ -1319,7 +1319,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             try {
                 data_jsoned = JSON.stringify(data);
             } catch (error) {
-                ConsoleHandler.getInstance().error('getVarParamDatas:failed JSON:' + error);
+                ConsoleHandler.error('getVarParamDatas:failed JSON:' + error);
             }
 
             if ((!data_jsoned) || (!data_jsoned.length)) {
@@ -1333,7 +1333,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         // TEMP DEBUG JFE :
-        // ConsoleHandler.getInstance().log("cpt_for_datasources :: " + JSON.stringify(this.cpt_for_datasources));
+        // ConsoleHandler.log("cpt_for_datasources :: " + JSON.stringify(this.cpt_for_datasources));
 
         return datasources_values;
     }
@@ -1348,7 +1348,7 @@ export default class ModuleVarServer extends ModuleServerBase {
     ): Promise<VarDataBaseVO> {
 
         if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
-            ConsoleHandler.getInstance().log('getVarParamFromContextFilters: ' + var_name + ':IN');
+            ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':IN');
         }
 
         if (!var_name) {
@@ -1387,11 +1387,11 @@ export default class ModuleVarServer extends ModuleServerBase {
                             context_query.discarded_field_paths = discarded_field_paths;
 
                             if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
-                                ConsoleHandler.getInstance().log('getVarParamFromContextFilters: ' + var_name + ':select_vos:IN');
+                                ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':select_vos:IN');
                             }
                             let ids_db: Array<{ id: number }> = refuse_param ? null : await ModuleContextFilterServer.getInstance().select_vos(context_query);
                             if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
-                                ConsoleHandler.getInstance().log('getVarParamFromContextFilters: ' + var_name + ':select_vos:OUT');
+                                ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':select_vos:OUT');
                             }
 
                             if (!ids_db) {
@@ -1400,7 +1400,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                                 if (!accept_max_ranges) {
 
                                     if (!refuse_param) {
-                                        ConsoleHandler.getInstance().error('getVarParamFromContextFilters: max range not allowed on registers of var');
+                                        ConsoleHandler.error('getVarParamFromContextFilters: max range not allowed on registers of var');
                                         refuse_param = true;
                                     }
                                 } else {
@@ -1418,7 +1418,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                             if (!accept_max_ranges) {
 
                                 if (!refuse_param) {
-                                    ConsoleHandler.getInstance().error('getVarParamFromContextFilters: max range not allowed on registers of var');
+                                    ConsoleHandler.error('getVarParamFromContextFilters: max range not allowed on registers of var');
                                     refuse_param = true;
                                 }
                             } else {
@@ -1430,7 +1430,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                         if (!accept_max_ranges) {
 
                             if (!refuse_param) {
-                                ConsoleHandler.getInstance().error('getVarParamFromContextFilters: max range not allowed on registers of var');
+                                ConsoleHandler.error('getVarParamFromContextFilters: max range not allowed on registers of var');
                                 refuse_param = true;
                             }
                         } else {
@@ -1445,18 +1445,18 @@ export default class ModuleVarServer extends ModuleServerBase {
                             let limit_nb_range = await this.get_limit_nb_ts_ranges_on_param_by_context_filter();
 
                             if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
-                                ConsoleHandler.getInstance().log('getVarParamFromContextFilters: ' + var_name + ':get_ts_ranges_from_custom_filter:IN');
+                                ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':get_ts_ranges_from_custom_filter:IN');
                             }
                             var_param[matroid_field.field_id] = this.get_ts_ranges_from_custom_filter(custom_filters[matroid_field.field_id], limit_nb_range);
                             if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
-                                ConsoleHandler.getInstance().log('getVarParamFromContextFilters: ' + var_name + ':get_ts_ranges_from_custom_filter:OUT');
+                                ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':get_ts_ranges_from_custom_filter:OUT');
                             }
 
                             if (!var_param[matroid_field.field_id]) {
                                 if (!accept_max_ranges) {
 
                                     if (!refuse_param) {
-                                        ConsoleHandler.getInstance().error('getVarParamFromContextFilters: max range not allowed on registers of var');
+                                        ConsoleHandler.error('getVarParamFromContextFilters: max range not allowed on registers of var');
                                         refuse_param = true;
                                     }
 
@@ -1472,7 +1472,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                         if (!accept_max_ranges) {
 
                             if (!refuse_param) {
-                                ConsoleHandler.getInstance().error('getVarParamFromContextFilters: max range not allowed on registers of var');
+                                ConsoleHandler.error('getVarParamFromContextFilters: max range not allowed on registers of var');
                                 refuse_param = true;
                             }
 
@@ -1487,7 +1487,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         await all_promises(field_promises);
 
         if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
-            ConsoleHandler.getInstance().log('getVarParamFromContextFilters: ' + var_name + ':OUT');
+            ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':OUT');
         }
 
         return refuse_param ? null : var_param;
@@ -1728,7 +1728,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                     // let query_wrapper: ParameterizedQueryWrapper = await query(api_type_id).filter_by_text_has('_bdd_only_index', indexes).get_select_query_str();
 
                     // if (!query_wrapper) {
-                    //     ConsoleHandler.getInstance().warn('Refused (probably session lost) to get_var_data_by_index for api_type_id ' + api_type_id);
+                    //     ConsoleHandler.warn('Refused (probably session lost) to get_var_data_by_index for api_type_id ' + api_type_id);
                     //     return;
                     // }
 

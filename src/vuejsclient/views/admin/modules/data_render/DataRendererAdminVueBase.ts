@@ -62,7 +62,7 @@ export default class DataRendererAdminVueBase extends VueComponentBase {
             return true;
         } catch (error) {
             this.snotify.error(error);
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
         return false;
     }

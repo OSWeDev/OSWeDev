@@ -79,6 +79,7 @@ export default abstract class VueAppBase {
 
     public async runApp() {
 
+        ConsoleHandler.init();
         ModuleAjaxCache.getInstance().setClientController(AjaxCacheClientController.getInstance());
 
         // Chargement des données des modules.
@@ -433,7 +434,7 @@ export default abstract class VueAppBase {
         window.onbeforeunload = (e) => {
             var e = e || window.event;
 
-            // ConsoleHandler.getInstance().log('onbeforeunload');
+            // ConsoleHandler.log('onbeforeunload');
 
             var needsSaving = false;
 
@@ -456,7 +457,7 @@ export default abstract class VueAppBase {
                 return message;
             }
 
-            self.unregisterVarsBeforeUnload().then().catch((err) => ConsoleHandler.getInstance().error(err));
+            self.unregisterVarsBeforeUnload().then().catch((err) => ConsoleHandler.error(err));
 
             return null;
         };

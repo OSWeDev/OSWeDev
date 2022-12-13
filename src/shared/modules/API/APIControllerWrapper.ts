@@ -73,7 +73,7 @@ export default class APIControllerWrapper {
             if (apiDefinition.param_translator && apiDefinition.param_translator.fromParams) {
                 translated_param = apiDefinition.param_translator.fromParams(...api_params);
             } else {
-                ConsoleHandler.getInstance().error("PARAMTRANSLATOR manquant pour l'API " + apiDefinition.api_name);
+                ConsoleHandler.error("PARAMTRANSLATOR manquant pour l'API " + apiDefinition.api_name);
                 return null;
             }
         } else {
@@ -138,7 +138,7 @@ export default class APIControllerWrapper {
         while (apiMember) {
 
             if ((!urlMembers[i]) || (!apiMember[1])) {
-                // ConsoleHandler.getInstance().error('Incohérence getFakeRequestParamsFromUrl :' + urlMembers[i] + ":" + apiMember[1] + ":");
+                // ConsoleHandler.error('Incohérence getFakeRequestParamsFromUrl :' + urlMembers[i] + ":" + apiMember[1] + ":");
                 return res;
             }
 

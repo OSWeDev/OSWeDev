@@ -106,7 +106,7 @@ export default class ObjectHandler {
             try {
                 res.push(parseInt(i.toString()));
             } catch (error) {
-                ConsoleHandler.getInstance().error(error);
+                ConsoleHandler.error(error);
             }
         }
         return res;

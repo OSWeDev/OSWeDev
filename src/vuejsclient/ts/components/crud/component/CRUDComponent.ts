@@ -721,7 +721,7 @@ export default class CRUDComponent extends VueComponentBase {
                         await self.crud.postCreate(createdVO);
                     }
                 } catch (error) {
-                    ConsoleHandler.getInstance().error(error);
+                    ConsoleHandler.error(error);
                     self.creating_vo = false;
                     reject({
                         body: self.label('crud.create.errors.create_failure') + ": " + error,
@@ -822,7 +822,7 @@ export default class CRUDComponent extends VueComponentBase {
                 }
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
     }
 
@@ -902,7 +902,7 @@ export default class CRUDComponent extends VueComponentBase {
                 }
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
     }
 
@@ -1041,7 +1041,7 @@ export default class CRUDComponent extends VueComponentBase {
                         await self.crud.postUpdate(updatedVO);
                     }
                 } catch (error) {
-                    ConsoleHandler.getInstance().error(error);
+                    ConsoleHandler.error(error);
                     self.updating_vo = false;
                     reject({
                         body: self.label('crud.update.errors.update_failure') + ": " + error,
@@ -1132,7 +1132,7 @@ export default class CRUDComponent extends VueComponentBase {
                         await this.crud.postDelete(this.selectedVO);
                     }
                 } catch (error) {
-                    ConsoleHandler.getInstance().error(error);
+                    ConsoleHandler.error(error);
                     this.deleting_vo = false;
                     reject({
                         body: self.label('crud.delete.errors.delete_failure') + ": " + error,

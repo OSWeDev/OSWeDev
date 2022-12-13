@@ -221,7 +221,7 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
                 ) : null;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return options;

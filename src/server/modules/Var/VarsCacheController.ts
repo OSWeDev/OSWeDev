@@ -73,7 +73,7 @@ export default class VarsCacheController {
                  *  tout le reste est géré en amont, donc à ce niveau on doit refuser les cache C et C element
                  */
                 if (!controller.varConf.pixel_activated) {
-                    ConsoleHandler.getInstance().error('Une var ne peut pas être en stratégie VALUE_CACHE_STRATEGY_PIXEL et ne pas avoir de pixellisation déclarée');
+                    ConsoleHandler.error('Une var ne peut pas être en stratégie VALUE_CACHE_STRATEGY_PIXEL et ne pas avoir de pixellisation déclarée');
                     throw new Error('Not Implemented');
                 }
 
@@ -156,7 +156,7 @@ export default class VarsCacheController {
             // anomalie constatée qui ne devrait pas arriver, je ne sais pas ce qui doit etre fait donc pour commencer je log
             //   => probablement revérifier en base la varconf et si elle a été supprimée, vider le cache qui lui fait ref
             if (!var_cache_conf) {
-                ConsoleHandler.getInstance().error('partially_clean_bdd_cache:no var_cache_conf for var_id:' + var_id);
+                ConsoleHandler.error('partially_clean_bdd_cache:no var_cache_conf for var_id:' + var_id);
             }
 
             if (var_cache_conf && !var_cache_conf.use_cache_read_ms_to_partial_clean) {
@@ -168,7 +168,7 @@ export default class VarsCacheController {
             // anomalie constatée qui ne devrait pas arriver, je ne sais pas ce qui doit etre fait donc pour commencer je log
             //   => probablement revérifier en base la varconf et si elle a été supprimée, vider le cache qui lui fait ref
             if (!controller) {
-                ConsoleHandler.getInstance().error('partially_clean_bdd_cache:no controller for var_id:' + var_id);
+                ConsoleHandler.error('partially_clean_bdd_cache:no controller for var_id:' + var_id);
             }
 
             /**
@@ -202,7 +202,7 @@ export default class VarsCacheController {
 
                 if ((!var_data.last_reads_ts) || (!var_data.last_reads_ts.length)) {
                     if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
-                        ConsoleHandler.getInstance().log('Invalidation:!last_reads_ts:' + var_data._type + ':' + var_data.id + ':' + var_data.index + ':');
+                        ConsoleHandler.log('Invalidation:!last_reads_ts:' + var_data._type + ':' + var_data.id + ':' + var_data.index + ':');
                     }
                     invalidateds.push(var_data);
                     continue;
@@ -210,7 +210,7 @@ export default class VarsCacheController {
 
                 if (var_data.last_reads_ts[var_data.last_reads_ts.length - 1] < Dates.add(Dates.now(), -max_earliest_read_days, TimeSegment.TYPE_DAY)) {
                     if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
-                        ConsoleHandler.getInstance().log('Invalidation:<max_earliest_read_days:' + var_data._type + ':' + var_data.id + ':' + var_data.index + ':');
+                        ConsoleHandler.log('Invalidation:<max_earliest_read_days:' + var_data._type + ':' + var_data.id + ':' + var_data.index + ':');
                     }
                     invalidateds.push(var_data);
                     continue;
@@ -222,7 +222,7 @@ export default class VarsCacheController {
 
                 if ((var_data.last_reads_ts.length > 1) && (var_data.last_reads_ts[var_data.last_reads_ts.length - 2] < Dates.add(Dates.now(), -max_second_earliest_read_days, TimeSegment.TYPE_DAY))) {
                     if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
-                        ConsoleHandler.getInstance().log('Invalidation:<max_second_earliest_read_days:' + var_data._type + ':' + var_data.id + ':' + var_data.index + ':');
+                        ConsoleHandler.log('Invalidation:<max_second_earliest_read_days:' + var_data._type + ':' + var_data.id + ':' + var_data.index + ':');
                     }
                     invalidateds.push(var_data);
                     continue;
@@ -234,7 +234,7 @@ export default class VarsCacheController {
 
                 if ((var_data.last_reads_ts.length > 2) && (var_data.last_reads_ts[var_data.last_reads_ts.length - 3] < Dates.add(Dates.now(), -max_third_earliest_read_days, TimeSegment.TYPE_DAY))) {
                     if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
-                        ConsoleHandler.getInstance().log('Invalidation:<max_third_earliest_read_days:' + var_data._type + ':' + var_data.id + ':' + var_data.index + ':');
+                        ConsoleHandler.log('Invalidation:<max_third_earliest_read_days:' + var_data._type + ':' + var_data.id + ':' + var_data.index + ':');
                     }
                     invalidateds.push(var_data);
                     continue;
@@ -246,7 +246,7 @@ export default class VarsCacheController {
 
                 if ((var_data.last_reads_ts.length > 3) && (var_data.last_reads_ts[var_data.last_reads_ts.length - 4] < Dates.add(Dates.now(), -max_thourth_earliest_read_days, TimeSegment.TYPE_DAY))) {
                     if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
-                        ConsoleHandler.getInstance().log('Invalidation:<max_thourth_earliest_read_days:' + var_data._type + ':' + var_data.id + ':' + var_data.index + ':');
+                        ConsoleHandler.log('Invalidation:<max_thourth_earliest_read_days:' + var_data._type + ':' + var_data.id + ':' + var_data.index + ':');
                     }
                     invalidateds.push(var_data);
                     continue;

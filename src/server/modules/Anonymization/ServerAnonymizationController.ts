@@ -92,7 +92,7 @@ export default class ServerAnonymizationController {
                 ServerAnonymizationController.getInstance().registered_anonymization_user_conf_by_vo_type[vo._type][uid]) {
 
                 await PushDataServerController.getInstance().notifySimpleWARN(uid, null, "check_is_anonymise.failed" + DefaultTranslation.DEFAULT_LABEL_EXTENSION, true);
-                ConsoleHandler.getInstance().warn("Refused CUD on anonymized VO:" + vo._type + ":id:" + vo.id + ":uid:" + uid + ":");
+                ConsoleHandler.warn("Refused CUD on anonymized VO:" + vo._type + ":id:" + vo.id + ":uid:" + uid + ":");
                 continue;
             }
             res.push(vo);

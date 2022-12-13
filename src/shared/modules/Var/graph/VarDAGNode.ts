@@ -30,7 +30,7 @@ export default class VarDAGNode extends DAGNodeBase {
             if (is_batch_var && !res.is_batch_var) {
 
                 if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
-                    ConsoleHandler.getInstance().warn('Pour ma culture G: on demande un noeud dans l\'arbre qui existe déjà :' +
+                    ConsoleHandler.warn('Pour ma culture G: on demande un noeud dans l\'arbre qui existe déjà :' +
                         var_data.index + ': et qui n\'était pas un batch var, mais qui le devient');
                 }
 
@@ -63,7 +63,7 @@ export default class VarDAGNode extends DAGNodeBase {
          * On check qu'on essaie pas d'ajoute une var avec un maxrange quelque part qui casserait tout
          */
         if (!MatroidController.getInstance().check_bases_not_max_ranges(var_data)) {
-            ConsoleHandler.getInstance().error('VarDAGNode.getInstance:!check_bases_not_max_ranges:' + var_data.index);
+            ConsoleHandler.error('VarDAGNode.getInstance:!check_bases_not_max_ranges:' + var_data.index);
             return null;
         }
 

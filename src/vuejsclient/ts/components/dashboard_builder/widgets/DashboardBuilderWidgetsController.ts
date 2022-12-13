@@ -59,7 +59,7 @@ export default class DashboardBuilderWidgetsController {
 
         let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(widget);
         if ((!insertOrDeleteQueryResult) || !insertOrDeleteQueryResult.id) {
-            ConsoleHandler.getInstance().error("Impossible de créer le widget");
+            ConsoleHandler.error("Impossible de créer le widget");
             return;
         }
         widget.id = insertOrDeleteQueryResult.id;

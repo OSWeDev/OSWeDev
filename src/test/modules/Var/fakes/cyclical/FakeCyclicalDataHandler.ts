@@ -382,8 +382,8 @@ export default class FakeCyclicalDataHandler {
         let f = new MatroidCutResult<FakeEmpDayDataVO>(
             [FakeCyclicalDataHandler.matroid_1_zero_()],
             [a, b]);
-        f.chopped_items.forEach((e) => ConsoleHandler.getInstance().log(e.index));
-        f.remaining_items.forEach((e) => ConsoleHandler.getInstance().log(e.index));
+        f.chopped_items.forEach((e) => ConsoleHandler.log(e.index));
+        f.remaining_items.forEach((e) => ConsoleHandler.log(e.index));
         return f;
     }
 
@@ -414,8 +414,8 @@ export default class FakeCyclicalDataHandler {
         let f = new MatroidCutResult<FakeEmpDayDataVO>(
             [FakeCyclicalDataHandler.matroid_1_moins1_()],
             [a, b]);
-        f.chopped_items.forEach((e) => ConsoleHandler.getInstance().log(e.index));
-        f.remaining_items.forEach((e) => ConsoleHandler.getInstance().log(e.index));
+        f.chopped_items.forEach((e) => ConsoleHandler.log(e.index));
+        f.remaining_items.forEach((e) => ConsoleHandler.log(e.index));
         return f;
     }
 
@@ -446,8 +446,8 @@ export default class FakeCyclicalDataHandler {
         let f = new MatroidCutResult<FakeEmpDayDataVO>(
             [FakeCyclicalDataHandler.matroid_2_moins1_()],
             [a, b]);
-        f.chopped_items.forEach((e) => ConsoleHandler.getInstance().log(e.index));
-        f.remaining_items.forEach((e) => ConsoleHandler.getInstance().log(e.index));
+        f.chopped_items.forEach((e) => ConsoleHandler.log(e.index));
+        f.remaining_items.forEach((e) => ConsoleHandler.log(e.index));
         return f;
     }
 
@@ -478,8 +478,8 @@ export default class FakeCyclicalDataHandler {
         let f = new MatroidCutResult<FakeEmpDayDataVO>(
             [FakeCyclicalDataHandler.matroid_2_zero_()],
             [a, b]);
-        f.chopped_items.forEach((e) => ConsoleHandler.getInstance().log(e.index));
-        f.remaining_items.forEach((e) => ConsoleHandler.getInstance().log(e.index));
+        f.chopped_items.forEach((e) => ConsoleHandler.log(e.index));
+        f.remaining_items.forEach((e) => ConsoleHandler.log(e.index));
         return f;
     }
 }

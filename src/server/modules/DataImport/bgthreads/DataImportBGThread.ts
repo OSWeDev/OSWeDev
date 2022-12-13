@@ -64,18 +64,18 @@ export default class DataImportBGThread implements IBGThread {
             try {
                 if (wait_for_empty_vars_vos_cud) {
                     if (await VarsDatasVoUpdateHandler.getInstance().has_vos_cud()) {
-                        ConsoleHandler.getInstance().log('DataImportBGThread:wait_for_empty_vars_vos_cud KO ... next try in ' + this.current_timeout + ' ms');
+                        ConsoleHandler.log('DataImportBGThread:wait_for_empty_vars_vos_cud KO ... next try in ' + this.current_timeout + ' ms');
                         this.waiting_for_empty_vars_vos_cud = true;
                         return ModuleBGThreadServer.TIMEOUT_COEF_LITTLE_BIT_SLOWER;
                     }
 
                     if (this.waiting_for_empty_vars_vos_cud) {
                         this.waiting_for_empty_vars_vos_cud = false;
-                        ConsoleHandler.getInstance().log('DataImportBGThread:wait_for_empty_vars_vos_cud OK');
+                        ConsoleHandler.log('DataImportBGThread:wait_for_empty_vars_vos_cud OK');
                     }
                 }
             } catch (error) {
-                ConsoleHandler.getInstance().error('DataImportBGThread:wait_for_empty_vars_vos_cud varbgthread did not answer. waiting for it to get back up');
+                ConsoleHandler.error('DataImportBGThread:wait_for_empty_vars_vos_cud varbgthread did not answer. waiting for it to get back up');
                 this.waiting_for_empty_vars_vos_cud = true;
                 return ModuleBGThreadServer.TIMEOUT_COEF_LITTLE_BIT_SLOWER;
             }
@@ -164,7 +164,7 @@ export default class DataImportBGThread implements IBGThread {
             await ModuleParams.getInstance().setParamValue(DataImportBGThread.importing_dih_id_param_name, dih.id.toString());
 
             await this.handleImportHistoricProgression(dih);
-            ConsoleHandler.getInstance().log('DataImportBGThread DIH[' + dih.id + '] state:' + dih.state + ':');
+            ConsoleHandler.log('DataImportBGThread DIH[' + dih.id + '] state:' + dih.state + ':');
 
             if ([
                 ModuleDataImport.IMPORTATION_STATE_UPLOADED,
@@ -180,7 +180,7 @@ export default class DataImportBGThread implements IBGThread {
             await ModuleParams.getInstance().setParamValue(DataImportBGThread.importing_dih_id_param_name, null);
             return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return ModuleBGThreadServer.TIMEOUT_COEF_LITTLE_BIT_SLOWER;
@@ -198,7 +198,7 @@ export default class DataImportBGThread implements IBGThread {
             let dih = dihs[i];
 
             await this.handleImportHistoricProgression(dih);
-            ConsoleHandler.getInstance().log('DataImportBGThread REIMPORT DIH[' + dih.id + '] state:' + dih.state + ':');
+            ConsoleHandler.log('DataImportBGThread REIMPORT DIH[' + dih.id + '] state:' + dih.state + ':');
         }
     }
 
@@ -219,7 +219,7 @@ export default class DataImportBGThread implements IBGThread {
     private async handlefasttrackerror(importHistoric: DataImportHistoricVO) {
 
         if (!!ConfigurationService.getInstance().node_configuration.RETRY_FAILED_FAST_TRACK_IMPORTS_WITH_NORMAL_IMPORTATION) {
-            ConsoleHandler.getInstance().log('DataImportBGThread Using Fast Track DIH[' + importHistoric.id + '] failed, trying normal importation');
+            ConsoleHandler.log('DataImportBGThread Using Fast Track DIH[' + importHistoric.id + '] failed, trying normal importation');
             importHistoric.use_fast_track = false;
             importHistoric.state = ModuleDataImport.IMPORTATION_STATE_UPLOADED;
         }
@@ -231,7 +231,7 @@ export default class DataImportBGThread implements IBGThread {
      */
     private async handleImportHistoricProgressionFastTrack(importHistoric: DataImportHistoricVO): Promise<boolean> {
 
-        ConsoleHandler.getInstance().log('DataImportBGThread Using Fast Track DIH[' + importHistoric.id + '] state:' + importHistoric.state + ':IN');
+        ConsoleHandler.log('DataImportBGThread Using Fast Track DIH[' + importHistoric.id + '] state:' + importHistoric.state + ':IN');
 
         if (importHistoric.state != ModuleDataImport.IMPORTATION_STATE_UPLOADED) {
             return false;
@@ -243,7 +243,7 @@ export default class DataImportBGThread implements IBGThread {
         let fasttrack_datas: IImportedData[] = await ModuleDataImportServer.getInstance().formatDatas(importHistoric);
 
         if (!!ConfigurationService.getInstance().node_configuration.DEBUG_IMPORTS) {
-            ConsoleHandler.getInstance().log('DataImportBGThread Using Fast Track DIH[' + importHistoric.id + '] :post formatDatas' +
+            ConsoleHandler.log('DataImportBGThread Using Fast Track DIH[' + importHistoric.id + '] :post formatDatas' +
                 ':IMPORTATION_STATE_FORMATTED:' + (importHistoric.state == ModuleDataImport.IMPORTATION_STATE_FORMATTED) +
                 ':fasttrack_datas:' + ((fasttrack_datas && fasttrack_datas.length) ? fasttrack_datas.length : 0));
         }
@@ -266,7 +266,7 @@ export default class DataImportBGThread implements IBGThread {
         await ModuleDataImportServer.getInstance().importDatas(importHistoric, fasttrack_datas);
 
         if (!!ConfigurationService.getInstance().node_configuration.DEBUG_IMPORTS) {
-            ConsoleHandler.getInstance().log('DataImportBGThread Using Fast Track DIH[' + importHistoric.id + '] :post importDatas' +
+            ConsoleHandler.log('DataImportBGThread Using Fast Track DIH[' + importHistoric.id + '] :post importDatas' +
                 ':IMPORTATION_STATE_IMPORTED:' + (importHistoric.state == ModuleDataImport.IMPORTATION_STATE_IMPORTED));
         }
 
@@ -281,7 +281,7 @@ export default class DataImportBGThread implements IBGThread {
         await ModuleDataImportServer.getInstance().posttreatDatas(importHistoric, fasttrack_datas);
 
         if (!!ConfigurationService.getInstance().node_configuration.DEBUG_IMPORTS) {
-            ConsoleHandler.getInstance().log('DataImportBGThread Using Fast Track DIH[' + importHistoric.id + '] :post posttreatDatas' +
+            ConsoleHandler.log('DataImportBGThread Using Fast Track DIH[' + importHistoric.id + '] :post posttreatDatas' +
                 ':IMPORTATION_STATE_POSTTREATED:' + (importHistoric.state == ModuleDataImport.IMPORTATION_STATE_POSTTREATED));
         }
 
@@ -330,18 +330,18 @@ export default class DataImportBGThread implements IBGThread {
                 try {
                     if (wait_for_empty_cache_vars_waiting_for_compute) {
                         if (await VarsDatasProxy.getInstance().has_cached_vars_waiting_for_compute()) {
-                            ConsoleHandler.getInstance().log('DataImportBGThread:wait_for_empty_cache_vars_waiting_for_compute KO ... next try in ' + this.current_timeout + ' ms');
+                            ConsoleHandler.log('DataImportBGThread:wait_for_empty_cache_vars_waiting_for_compute KO ... next try in ' + this.current_timeout + ' ms');
                             this.waiting_for_empty_cache_vars_waiting_for_compute = true;
                             return false;
                         }
 
                         if (this.waiting_for_empty_cache_vars_waiting_for_compute) {
                             this.waiting_for_empty_cache_vars_waiting_for_compute = false;
-                            ConsoleHandler.getInstance().log('DataImportBGThread:wait_for_empty_cache_vars_waiting_for_compute OK');
+                            ConsoleHandler.log('DataImportBGThread:wait_for_empty_cache_vars_waiting_for_compute OK');
                         }
                     }
                 } catch (error) {
-                    ConsoleHandler.getInstance().error('DataImportBGThread:wait_for_empty_cache_vars_waiting_for_compute varbgthread did not answer. waiting for it to get back up');
+                    ConsoleHandler.error('DataImportBGThread:wait_for_empty_cache_vars_waiting_for_compute varbgthread did not answer. waiting for it to get back up');
                     this.waiting_for_empty_cache_vars_waiting_for_compute = true;
                     return false;
                 }
@@ -372,12 +372,12 @@ export default class DataImportBGThread implements IBGThread {
                 let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(new_importHistoric);
 
                 if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
-                    ConsoleHandler.getInstance().error('!insertOrDeleteQueryResult dans handleImportHistoricProgression');
+                    ConsoleHandler.error('!insertOrDeleteQueryResult dans handleImportHistoricProgression');
                     return false;
                 }
                 let id = insertOrDeleteQueryResult.id;
                 if ((!id) || (!TypesHandler.getInstance().isNumber(id))) {
-                    ConsoleHandler.getInstance().error('!id dans handleImportHistoricProgression');
+                    ConsoleHandler.error('!id dans handleImportHistoricProgression');
                     return false;
                 }
 

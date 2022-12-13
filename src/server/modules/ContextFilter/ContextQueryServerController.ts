@@ -91,7 +91,7 @@ export default class ContextQueryServerController {
         // return await ModuleDAOServer.getInstance().filterVOsAccess(moduletable, ModuleDAO.DAO_ACCESS_TYPE_READ, moduletable.forceNumerics(query_res));
 
         // Anonymisation
-        let uid = await StackContext.getInstance().get('UID');
+        let uid = await StackContext.get('UID');
         if (context_query.fields) {
             await ServerAnonymizationController.getInstance().anonymise_context_filtered_rows(query_res, context_query.fields, uid);
         } else {
@@ -169,7 +169,7 @@ export default class ContextQueryServerController {
         }
 
         // Anonymisation
-        let uid = await StackContext.getInstance().get('UID');
+        let uid = await StackContext.get('UID');
         if (context_query.fields) {
             await ServerAnonymizationController.getInstance().anonymise_context_filtered_rows(query_res, context_query.fields, uid);
         } else {
@@ -239,7 +239,7 @@ export default class ContextQueryServerController {
         }
 
         // Anonymisation
-        let uid = await StackContext.getInstance().get('UID');
+        let uid = await StackContext.get('UID');
         if (context_query.fields) {
             await ServerAnonymizationController.getInstance().anonymise_context_filtered_rows(query_res, context_query.fields, uid);
         } else {
@@ -684,7 +684,7 @@ export default class ContextQueryServerController {
                     base_moduletable.vo_type);
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
             return null;
         }
     }
@@ -1134,7 +1134,7 @@ export default class ContextQueryServerController {
                  * On doit faire la jointure malgré le manque de chemin, ce qu'on ne fait ps s'il s'agit d'un filtrage ou d'un sort by
                  */
                 if (!await ContextAccessServerController.getInstance().check_access_to_field_retrieve_roles(selected_field.api_type_id, selected_field.field_id, access_type)) {
-                    ConsoleHandler.getInstance().warn('join_api_type_id:check_access_to_field_retrieve_roles:Access denied to field ' + selected_field.field_id + ' of type ' + selected_field.api_type_id + ' for access_type ' + access_type);
+                    ConsoleHandler.warn('join_api_type_id:check_access_to_field_retrieve_roles:Access denied to field ' + selected_field.field_id + ' of type ' + selected_field.api_type_id + ' for access_type ' + access_type);
                     return aliases_n;
                 }
 
@@ -1251,7 +1251,7 @@ export default class ContextQueryServerController {
         /**
          * Si on est serveur, on ignore cette étape
          */
-        if (!StackContext.getInstance().get('IS_CLIENT')) {
+        if (!StackContext.get('IS_CLIENT')) {
             return;
         }
 
@@ -1275,7 +1275,7 @@ export default class ContextQueryServerController {
 
             if (!loaded) {
                 loaded = true;
-                uid = StackContext.getInstance().get('UID');
+                uid = StackContext.get('UID');
                 user_data = uid ? await ServerBase.getInstance().getUserData(uid) : null;
                 user = await ModuleAccessPolicyServer.getInstance().getSelfUser();
                 user_roles_by_role_id = AccessPolicyServerController.getInstance().getUsersRoles(true, uid);

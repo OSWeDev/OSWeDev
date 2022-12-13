@@ -101,7 +101,7 @@ export default class DAOQueryCacheController {
         }
 
         // if (!!this.simple_query_cache[trimed_lower]) {
-        //     ConsoleHandler.getInstance().log("LOAD QUERY FROM CACHE:" + query);
+        //     ConsoleHandler.log("LOAD QUERY FROM CACHE:" + query);
         // }
 
         if (!this.simple_query_cache[trimed_lower]) {
@@ -129,7 +129,7 @@ export default class DAOQueryCacheController {
             return;
         }
 
-        // ConsoleHandler.getInstance().log("CLEAR QUERY CACHE:");
+        // ConsoleHandler.log("CLEAR QUERY CACHE:");
         DAOQueryCacheController.getInstance().simple_query_cache = {};
     }
 
@@ -164,7 +164,7 @@ export default class DAOQueryCacheController {
             return;
         }
 
-        // ConsoleHandler.getInstance().log("SAVE QUERY TO CACHE:" + query);
+        // ConsoleHandler.log("SAVE QUERY TO CACHE:" + query);
 
         this.simple_query_cache[trimed_lower] = cloneDeep(res);
     }

@@ -99,7 +99,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
 
     private async set_prompt_result(notification: NotificationVO) {
         if (!PushDataServerController.getInstance().registered_prompts_cbs_by_uid[notification.prompt_uid]) {
-            ConsoleHandler.getInstance().error('set_prompt_result:prompt unknown:' + notification.prompt_uid + ':' + notification.prompt_result + ':');
+            ConsoleHandler.error('set_prompt_result:prompt unknown:' + notification.prompt_uid + ':' + notification.prompt_result + ':');
             return;
         }
 
@@ -107,7 +107,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
         try {
             await callback(notification.prompt_result);
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
     }
 }

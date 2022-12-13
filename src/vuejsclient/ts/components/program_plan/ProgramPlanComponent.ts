@@ -796,7 +796,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         if (!!this.program_plan_shared_module.target_facilitator_type_id) {
 
             if (!this.get_tasks_by_ids[rdv.task_id]) {
-                ConsoleHandler.getInstance().error('TASK id introuvable:' + rdv.task_id);
+                ConsoleHandler.error('TASK id introuvable:' + rdv.task_id);
                 return null;
             }
 
@@ -1053,7 +1053,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                     rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.program_plan_shared_module.rdv_type_id, rdv.id);
 
                 } catch (error) {
-                    ConsoleHandler.getInstance().error(error);
+                    ConsoleHandler.error(error);
 
                     // On tente d'annuler le déplacement initial
                     try {
@@ -1263,7 +1263,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                         let target_facilitator = self.get_targets_facilitators_by_ids[parseInt(event.resourceId)];
 
                         if (!target_facilitator) {
-                            ConsoleHandler.getInstance().error("!task_type.order_tasks_on_same_target:event._type:" + event._type);
+                            ConsoleHandler.error("!task_type.order_tasks_on_same_target:event._type:" + event._type);
                             // self.setRdvById({ id: 0 } as any);
                             self.reset_rdvs();
                             reject({
@@ -1290,7 +1290,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
                             if (!task_type.order_tasks_on_same_target) {
                                 // Pas normal...
-                                ConsoleHandler.getInstance().error("!task_type.order_tasks_on_same_target:event._type:" + event._type);
+                                ConsoleHandler.error("!task_type.order_tasks_on_same_target:event._type:" + event._type);
                                 // self.setRdvById({ id: 0 } as any);
                                 self.reset_rdvs();
                                 reject({
@@ -1353,7 +1353,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
                             if ((!task_type_tasks) || (!task_type_tasks.length)) {
                                 errormsg = 'programplan.fc.create.error';
-                                ConsoleHandler.getInstance().error("!task_type_tasks.length");
+                                ConsoleHandler.error("!task_type_tasks.length");
                                 // self.setRdvById({ id: 0 } as any);
                                 self.reset_rdvs();
                                 return;
@@ -1371,7 +1371,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
                             if (!task) {
                                 errormsg = 'programplan.fc.create.no_task_left';
-                                ConsoleHandler.getInstance().error("!task");
+                                ConsoleHandler.error("!task");
                                 // self.setRdvById({ id: 0 } as any);
                                 self.reset_rdvs();
                                 return;
@@ -1384,7 +1384,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                         rdv.target_id = event.target_id;
                     }
                 } catch (error) {
-                    ConsoleHandler.getInstance().error(error);
+                    ConsoleHandler.error(error);
                     // self.setRdvById({ id: 0 } as any);
                     self.reset_rdvs();
                     return;
@@ -1418,7 +1418,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                     rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(self.program_plan_shared_module.rdv_type_id, rdv.id);
 
                 } catch (error) {
-                    ConsoleHandler.getInstance().error(error);
+                    ConsoleHandler.error(error);
                     reject({
                         body: self.label(errormsg),
                         config: {
@@ -1526,7 +1526,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         if (!!this.program_plan_shared_module.task_type_id) {
             let task = this.get_tasks_by_ids[this.selected_rdv.task_id];
             if (!task) {
-                ConsoleHandler.getInstance().error('Impossible de retrouver le type de tache');
+                ConsoleHandler.error('Impossible de retrouver le type de tache');
                 return;
             }
 
@@ -1537,7 +1537,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
             let task_type = this.get_task_types_by_ids[task.task_type_id];
             if (!task_type) {
-                ConsoleHandler.getInstance().error('Impossible de retrouver le type de tache');
+                ConsoleHandler.error('Impossible de retrouver le type de tache');
                 return;
             }
 
@@ -1612,7 +1612,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                             throw new Error('Erreur serveur');
                         }
                     } catch (error) {
-                        ConsoleHandler.getInstance().error(error);
+                        ConsoleHandler.error(error);
                         reject({
                             body: self.label('programplan.delete.error'),
                             config: {

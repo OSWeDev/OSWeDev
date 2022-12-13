@@ -55,21 +55,21 @@ export default class VarsServerCallBackSubsController {
         return new Promise(async (resolve, reject) => {
 
             if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
-                ConsoleHandler.getInstance().log("get_vars_datas:IN:" + params.length);
+                ConsoleHandler.log("get_vars_datas:IN:" + params.length);
             }
 
             if (!await ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(
                 reject, VarsServerCallBackSubsController.TASK_NAME_get_vars_datas, resolve, params, reason)) {
 
                 if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
-                    ConsoleHandler.getInstance().log("get_vars_datas:OUT not main:" + params.length);
+                    ConsoleHandler.log("get_vars_datas:OUT not main:" + params.length);
                 }
                 return null;
             }
 
             let waiting_nb = params.length;
             if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
-                ConsoleHandler.getInstance().log("get_vars_datas:waiting_nb:IN:" + waiting_nb);
+                ConsoleHandler.log("get_vars_datas:waiting_nb:IN:" + waiting_nb);
             }
 
             let cb = (data: VarDataBaseVO) => {
@@ -77,11 +77,11 @@ export default class VarsServerCallBackSubsController {
                 waiting_nb--;
 
                 if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
-                    ConsoleHandler.getInstance().log("get_vars_datas:cb:" + params.length + ":" + data.index);
+                    ConsoleHandler.log("get_vars_datas:cb:" + params.length + ":" + data.index);
                 }
 
                 if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
-                    ConsoleHandler.getInstance().log("get_vars_datas:waiting_nb:OUT:" + waiting_nb);
+                    ConsoleHandler.log("get_vars_datas:waiting_nb:OUT:" + waiting_nb);
                 }
 
                 if (waiting_nb <= 0) {
@@ -98,25 +98,25 @@ export default class VarsServerCallBackSubsController {
                 self._cb_subs[param.index].push(cb);
 
                 if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
-                    ConsoleHandler.getInstance().log("get_vars_datas:push cb:" + params.length + ":" + param.index);
+                    ConsoleHandler.log("get_vars_datas:push cb:" + params.length + ":" + param.index);
                 }
             }
 
             if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
-                ConsoleHandler.getInstance().log("get_vars_datas:get_var_datas_or_ask_to_bgthread:IN:" + params.length);
+                ConsoleHandler.log("get_vars_datas:get_var_datas_or_ask_to_bgthread:IN:" + params.length);
             }
             await VarsDatasProxy.getInstance().get_var_datas_or_ask_to_bgthread(params, notifyable_vars, needs_computation, null, null, true, 'get_vars_datas:' + reason);
             if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
-                ConsoleHandler.getInstance().log("get_vars_datas:get_var_datas_or_ask_to_bgthread:OUT:" + params.length);
+                ConsoleHandler.log("get_vars_datas:get_var_datas_or_ask_to_bgthread:OUT:" + params.length);
             }
 
             if (notifyable_vars && notifyable_vars.length) {
                 if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
-                    ConsoleHandler.getInstance().log("get_vars_datas:notify_vardatas:IN:" + params.length);
+                    ConsoleHandler.log("get_vars_datas:notify_vardatas:IN:" + params.length);
                 }
                 await this.notify_vardatas(notifyable_vars);
                 if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
-                    ConsoleHandler.getInstance().log("get_vars_datas:notify_vardatas:OUT:" + params.length);
+                    ConsoleHandler.log("get_vars_datas:notify_vardatas:OUT:" + params.length);
                 }
             }
         });
@@ -135,14 +135,14 @@ export default class VarsServerCallBackSubsController {
         return new Promise(async (resolve, reject) => {
 
             if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
-                ConsoleHandler.getInstance().log("get_var_data:IN:" + param.index);
+                ConsoleHandler.log("get_var_data:IN:" + param.index);
             }
 
             if (!await ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(
                 reject, VarsServerCallBackSubsController.TASK_NAME_get_var_data, resolve, param, reason)) {
 
                 if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
-                    ConsoleHandler.getInstance().log("get_var_data:OUT not main:" + param.index);
+                    ConsoleHandler.log("get_var_data:OUT not main:" + param.index);
                 }
                 return null;
             }
@@ -153,20 +153,20 @@ export default class VarsServerCallBackSubsController {
             self._cb_subs[param.index].push(resolve as (var_data: VarDataBaseVO) => any);
 
             if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
-                ConsoleHandler.getInstance().log("get_var_data:get_var_datas_or_ask_to_bgthread:IN:" + param.index);
+                ConsoleHandler.log("get_var_data:get_var_datas_or_ask_to_bgthread:IN:" + param.index);
             }
             await VarsDatasProxy.getInstance().get_var_datas_or_ask_to_bgthread([param], notifyable_vars, needs_computation, null, null, true, 'getvardata:' + reason);
             if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
-                ConsoleHandler.getInstance().log("get_var_data:get_var_datas_or_ask_to_bgthread:OUT:" + param.index);
+                ConsoleHandler.log("get_var_data:get_var_datas_or_ask_to_bgthread:OUT:" + param.index);
             }
 
             if (notifyable_vars && notifyable_vars.length) {
                 if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
-                    ConsoleHandler.getInstance().log("get_var_data:notify_vardatas:IN:" + param.index);
+                    ConsoleHandler.log("get_var_data:notify_vardatas:IN:" + param.index);
                 }
                 await this.notify_vardatas(notifyable_vars);
                 if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
-                    ConsoleHandler.getInstance().log("get_var_data:notify_vardatas:OUT:" + param.index);
+                    ConsoleHandler.log("get_var_data:notify_vardatas:OUT:" + param.index);
                 }
             }
         });
@@ -186,18 +186,18 @@ export default class VarsServerCallBackSubsController {
         }
 
         if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
-            ConsoleHandler.getInstance().log("notify_vardatas_throttled:IN:" + var_datas.length);
+            ConsoleHandler.log("notify_vardatas_throttled:IN:" + var_datas.length);
         }
 
         if (!await ForkedTasksController.getInstance().exec_self_on_main_process(VarsServerCallBackSubsController.TASK_NAME_notify_vardatas, var_datas)) {
             if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
-                ConsoleHandler.getInstance().log("notify_vardatas_throttled:OUT not main process:" + var_datas.length);
+                ConsoleHandler.log("notify_vardatas_throttled:OUT not main process:" + var_datas.length);
             }
             return false;
         }
 
         if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
-            ConsoleHandler.getInstance().log("notify_vardatas_throttled:main process:" + var_datas.length);
+            ConsoleHandler.log("notify_vardatas_throttled:main process:" + var_datas.length);
         }
 
         let promises = [];
@@ -209,14 +209,14 @@ export default class VarsServerCallBackSubsController {
 
             if ((!save_array_cbs) || (!save_array_cbs.length)) {
                 if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
-                    ConsoleHandler.getInstance().log("notify_vardatas_throttled:!save_array_cbs:" + var_datas.length + ":" + var_data.index);
+                    ConsoleHandler.log("notify_vardatas_throttled:!save_array_cbs:" + var_datas.length + ":" + var_data.index);
                 }
 
                 continue;
             }
 
             if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
-                ConsoleHandler.getInstance().log("notify_vardatas_throttled:save_array_cbs length " + save_array_cbs.length + ":" + var_datas.length + ":" + var_data.index);
+                ConsoleHandler.log("notify_vardatas_throttled:save_array_cbs length " + save_array_cbs.length + ":" + var_datas.length + ":" + var_data.index);
             }
 
             for (let j in save_array_cbs) {
@@ -228,7 +228,7 @@ export default class VarsServerCallBackSubsController {
         await all_promises(promises);
 
         if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
-            ConsoleHandler.getInstance().log("notify_vardatas_throttled:OUT:" + var_datas.length);
+            ConsoleHandler.log("notify_vardatas_throttled:OUT:" + var_datas.length);
         }
 
         return true;

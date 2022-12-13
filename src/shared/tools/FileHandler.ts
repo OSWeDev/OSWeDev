@@ -39,7 +39,7 @@ export default class FileHandler {
 
             let stats: Stats = statSync(filename);
 
-            ConsoleHandler.getInstance().log(JSON.stringify(stats));
+            ConsoleHandler.log(JSON.stringify(stats));
 
             if ((!old_mtimeMs) || (stats.mtimeMs != old_mtimeMs)) {
                 old_mtimeMs = stats.mtimeMs;

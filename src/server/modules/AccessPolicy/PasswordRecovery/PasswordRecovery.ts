@@ -65,7 +65,7 @@ export default class PasswordRecovery {
         }
 
         // On doit se comporter comme un server à ce stade
-        await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
+        await StackContext.runPromise({ IS_CLIENT: false }, async () => {
 
             await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
 
@@ -147,11 +147,11 @@ export default class PasswordRecovery {
         let translatable_text = await ModuleTranslation.getInstance().getTranslatableText(PasswordRecovery.CODE_TEXT_SMS_RECOVERY);
         let translation = await ModuleTranslation.getInstance().getTranslation(lang.id, translatable_text.id);
 
-        let session = StackContext.getInstance().get('SESSION');
+        let session = StackContext.get('SESSION');
         let sid = session.sid;
 
         // On doit se comporter comme un server à ce stade
-        await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
+        await StackContext.runPromise({ IS_CLIENT: false }, async () => {
 
             await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
 

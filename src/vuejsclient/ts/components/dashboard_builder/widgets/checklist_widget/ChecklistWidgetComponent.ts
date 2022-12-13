@@ -282,7 +282,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
         let e = await this.checklist_controller.getCheckListItemNewInstance();
         let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(e);
         if ((!res) || !res.id) {
-            ConsoleHandler.getInstance().error('CheckListComponent:createNew:failed');
+            ConsoleHandler.error('CheckListComponent:createNew:failed');
             this.throttled_update_visible_options();
             return;
         }
@@ -537,7 +537,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
                     options.delete_all_button, options.create_button, options.refresh_button, options.export_button) : null;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return options;

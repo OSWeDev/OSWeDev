@@ -80,7 +80,7 @@ export default class ModuleAnimationImportThemeServer extends DataImportModuleBa
             res = res && await this.merge_imported_datas(themeDatas, historic);
 
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
             await ImportLogger.getInstance().log(historic, format, "Erreur de posttraitement : " + error, DataImportLogVO.LOG_LEVEL_FATAL);
             res = false;
         }

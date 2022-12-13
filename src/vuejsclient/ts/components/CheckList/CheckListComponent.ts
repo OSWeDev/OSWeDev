@@ -253,7 +253,7 @@ export default class CheckListComponent extends VueComponentBase {
             await this.checklist_controller.getCheckListItemNewInstance()
         );
         if ((!res) || !res.id) {
-            ConsoleHandler.getInstance().error('CheckListComponent:createNew:failed');
+            ConsoleHandler.error('CheckListComponent:createNew:failed');
             this.debounced_loading();
             return;
         }

@@ -45,9 +45,9 @@ export default abstract class ForkedProcessWrapperBase {
         ConfigurationService.getInstance().setEnvParams(this.STATIC_ENV_PARAMS);
 
         FileLoggerHandler.getInstance().prepare().then(() => {
-            ConsoleHandler.getInstance().logger_handler = FileLoggerHandler.getInstance();
-            ConsoleHandler.getInstance().log("Forked Process starting");
-        }).catch((error) => ConsoleHandler.getInstance().error(error));
+            ConsoleHandler.logger_handler = FileLoggerHandler.getInstance();
+            ConsoleHandler.log("Forked Process starting");
+        }).catch((error) => ConsoleHandler.error(error));
 
         ModulesManager.getInstance().isServerSide = true;
 
@@ -78,7 +78,7 @@ export default abstract class ForkedProcessWrapperBase {
                 }
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error("Failed loading argv on forked process+" + error);
+            ConsoleHandler.error("Failed loading argv on forked process+" + error);
             process.exit(1);
         }
     }
@@ -97,28 +97,28 @@ export default abstract class ForkedProcessWrapperBase {
         let db: IDatabase<any> = pgp(connectionString);
 
         if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
-            ConsoleHandler.getInstance().log('ForkedProcessWrapperBase:register_all_modules:START');
+            ConsoleHandler.log('ForkedProcessWrapperBase:register_all_modules:START');
         }
         await this.modulesService.register_all_modules(db);
         if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
-            ConsoleHandler.getInstance().log('ForkedProcessWrapperBase:register_all_modules:END');
+            ConsoleHandler.log('ForkedProcessWrapperBase:register_all_modules:END');
         }
 
         // On préload les droits / users / groupes / deps pour accélérer le démarrage
         if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
-            ConsoleHandler.getInstance().log('ForkedProcessWrapperBase:preload_access_rights:START');
+            ConsoleHandler.log('ForkedProcessWrapperBase:preload_access_rights:START');
         }
         await ModuleAccessPolicyServer.getInstance().preload_access_rights();
         if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
-            ConsoleHandler.getInstance().log('ForkedProcessWrapperBase:preload_access_rights:END');
+            ConsoleHandler.log('ForkedProcessWrapperBase:preload_access_rights:END');
         }
 
         if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
-            ConsoleHandler.getInstance().log('ForkedProcessWrapperBase:configure_server_modules:START');
+            ConsoleHandler.log('ForkedProcessWrapperBase:configure_server_modules:START');
         }
         await this.modulesService.configure_server_modules(null);
         if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
-            ConsoleHandler.getInstance().log('ForkedProcessWrapperBase:configure_server_modules:END');
+            ConsoleHandler.log('ForkedProcessWrapperBase:configure_server_modules:END');
         }
 
         BGThreadServerController.getInstance().server_ready = true;

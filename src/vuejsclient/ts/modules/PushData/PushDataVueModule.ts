@@ -361,7 +361,7 @@ export default class PushDataVueModule extends VueModuleBase {
                         // On log les notifications sur l'index sélectionné en description actuellement
                         let selectedVarParam: VarDataBaseVO = VueAppBase.instance_.vueInstance.$store.getters['VarStore/getDescSelectedVarParam'];
                         if (selectedVarParam && selectedVarParam.index && (selectedVarParam.index == e.index)) {
-                            ConsoleHandler.getInstance().log('Notification pour var sélectionnée :' +
+                            ConsoleHandler.log('Notification pour var sélectionnée :' +
                                 'id:' + e.id + ':' +
                                 'value:' + e.value + ':' +
                                 'value_type:' + e.value_type + ':' +
@@ -409,7 +409,7 @@ export default class PushDataVueModule extends VueModuleBase {
             for (let i in vos) {
                 let vo = vos[i];
 
-                // ConsoleHandler.getInstance().log('notif_var:' + vo.index + ':' + vo.value + ':' + vo.value_ts + ':' + vo.value_type + ':' + vo.is_computing);
+                // ConsoleHandler.log('notif_var:' + vo.index + ':' + vo.value + ':' + vo.value_ts + ':' + vo.value_type + ':' + vo.is_computing);
 
                 // if varData is_computing, on veut écraser un seul champs
                 if (vo.is_computing) {

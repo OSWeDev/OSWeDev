@@ -39,7 +39,7 @@ export default class PerfMonDBUpdater {
 
             if (!perf_line.end_time) {
                 // On devrait jamais arriver là, on essaie de nettoyer...
-                ConsoleHandler.getInstance().error("end_time NULL");
+                ConsoleHandler.error("end_time NULL");
 
                 PerfMonServerController.getInstance().childrens_per_parent_uid = {};
                 PerfMonServerController.getInstance().lines_infos_to_update_in_db_by_uid = {};
@@ -75,7 +75,7 @@ export default class PerfMonDBUpdater {
                     child.parent_id = perf_line.id;
                 }
             } catch (error) {
-                ConsoleHandler.getInstance().error(error);
+                ConsoleHandler.error(error);
             }
         }
     }

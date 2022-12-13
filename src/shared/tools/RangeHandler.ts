@@ -1833,7 +1833,7 @@ export default class RangeHandler {
          * Ajout contrôle range ouvert
          */
         if (this.is_one_max_range(range)) {
-            ConsoleHandler.getInstance().error('foreach_sync on open range:' + this.getIndex(range));
+            ConsoleHandler.error('foreach_sync on open range:' + this.getIndex(range));
             return;
         }
 
@@ -1899,7 +1899,7 @@ export default class RangeHandler {
          * Ajout contrôle range ouvert
          */
         if (this.is_one_max_range(range)) {
-            ConsoleHandler.getInstance().error('foreach on open range:' + this.getIndex(range));
+            ConsoleHandler.error('foreach on open range:' + this.getIndex(range));
             return;
         }
 
@@ -1969,7 +1969,7 @@ export default class RangeHandler {
          * Ajout contrôle range ouvert
          */
         if (this.is_one_max_range(range)) {
-            ConsoleHandler.getInstance().error('foreach_batch_await on open range:' + this.getIndex(range));
+            ConsoleHandler.error('foreach_batch_await on open range:' + this.getIndex(range));
             return;
         }
 
@@ -2200,7 +2200,7 @@ export default class RangeHandler {
                 }
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         if ((!res) || (!res.length)) {
@@ -2281,7 +2281,7 @@ export default class RangeHandler {
                         segment_type) as any as U;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
         return null;
     }

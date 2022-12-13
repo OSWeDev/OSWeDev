@@ -114,10 +114,10 @@ export default class ModuleMailerServer extends ModuleServerBase {
         if (ConfigurationService.getInstance().node_configuration.BLOCK_MAIL_DELIVERY) {
 
             if (this.check_mail_whitelist(mailOptions.to, mailOptions.cc, mailOptions.bcc)) {
-                ConsoleHandler.getInstance().warn('Envoi de mails interdit sur cet env mais adresses whitelistées:' + mailOptions.to + ':' + mailOptions.cc + ':' + mailOptions.bcc);
+                ConsoleHandler.warn('Envoi de mails interdit sur cet env mais adresses whitelistées:' + mailOptions.to + ':' + mailOptions.cc + ':' + mailOptions.bcc);
 
             } else {
-                ConsoleHandler.getInstance().warn('Envoi de mails interdit sur cet env: ' + mailOptions.subject);
+                ConsoleHandler.warn('Envoi de mails interdit sur cet env: ' + mailOptions.subject);
                 return;
             }
         }
@@ -133,20 +133,20 @@ export default class ModuleMailerServer extends ModuleServerBase {
             try {
                 let mailtransport = nodemailer.createTransport(this.get_transporter());
 
-                ConsoleHandler.getInstance().log('Try send mail :to:' + mailOptions.to + ':from:' + mailOptions.from + ':subject:' + mailOptions.subject);
+                ConsoleHandler.log('Try send mail :to:' + mailOptions.to + ':from:' + mailOptions.from + ':subject:' + mailOptions.subject);
 
                 mailtransport.sendMail(mailOptions, (error, info) => {
                     if (error) {
-                        ConsoleHandler.getInstance().error(error);
+                        ConsoleHandler.error(error);
                         resolve(error);
                     } else {
                         var log: string = 'Message sent: ' + info.messageId;
-                        ConsoleHandler.getInstance().log(log);
+                        ConsoleHandler.log(log);
                         resolve(log);
                     }
                 });
             } catch (error) {
-                ConsoleHandler.getInstance().error(error);
+                ConsoleHandler.error(error);
             }
         });
     }

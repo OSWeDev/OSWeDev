@@ -41,7 +41,7 @@ export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
                 await ModuleFileServer.getInstance().makeSureThisFolderExists('./src/vuejsclient/scss/generated/');
                 await ModuleFileServer.getInstance().writeFile('./src/vuejsclient/scss/generated/skin-variables.scss', fileContent);
             } catch (error) {
-                ConsoleHandler.getInstance().error(error);
+                ConsoleHandler.error(error);
                 reject(error);
                 return;
             }

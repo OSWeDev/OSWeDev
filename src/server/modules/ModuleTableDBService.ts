@@ -353,7 +353,7 @@ export default class ModuleTableDBService {
 
                         try {
                             await this.db.none('ALTER TABLE ' + full_name + ' DROP CONSTRAINT ' + actual_constraint_name + ';');
-                            ConsoleHandler.getInstance().warn('SUPRRESION d\'une contrainte incohérente en base VS code :' + full_name + ':' + actual_constraint_name + ':');
+                            ConsoleHandler.warn('SUPRRESION d\'une contrainte incohérente en base VS code :' + full_name + ':' + actual_constraint_name + ':');
                             res = true;
                         } catch (error) {
                         }
@@ -614,7 +614,7 @@ export default class ModuleTableDBService {
                 continue;
             }
 
-            ConsoleHandler.getInstance().log('ADDING INDEX:' + database_name + '.' + table_name + '.' + field.get_index_name(table_name) + ':');
+            ConsoleHandler.log('ADDING INDEX:' + database_name + '.' + table_name + '.' + field.get_index_name(table_name) + ':');
             await this.db.query(index_str);
             res_ = true;
         }

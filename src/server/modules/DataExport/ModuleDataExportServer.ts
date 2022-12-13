@@ -136,7 +136,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         );
 
         if (!filepath) {
-            ConsoleHandler.getInstance().error('Erreur lors de l\'export:' + filename);
+            ConsoleHandler.error('Erreur lors de l\'export:' + filename);
             return null;
         }
 
@@ -165,7 +165,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         );
 
         if (!filepath) {
-            ConsoleHandler.getInstance().error('Erreur lors de l\'export:' + filename);
+            ConsoleHandler.error('Erreur lors de l\'export:' + filename);
             return null;
         }
 
@@ -175,7 +175,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         file.is_secured = is_secured;
         let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(file);
         if ((!res) || (!res.id)) {
-            ConsoleHandler.getInstance().error('Erreur lors de l\'enregistrement du fichier en base:' + filepath);
+            ConsoleHandler.error('Erreur lors de l\'enregistrement du fichier en base:' + filepath);
             return null;
         }
         file.id = res.id;
@@ -224,7 +224,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         );
 
         if (!filepath) {
-            ConsoleHandler.getInstance().error('Erreur lors de l\'export:' + filename);
+            ConsoleHandler.error('Erreur lors de l\'export:' + filename);
             return null;
         }
 
@@ -279,7 +279,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     let table_field = table.get_field_by_id(field.field_id);
 
                     if (!table_field) {
-                        ConsoleHandler.getInstance().error('translate_context_query_fields_from_bdd:Unknown field:' + field.field_id + ':type:' + field.api_type_id + ':');
+                        ConsoleHandler.error('translate_context_query_fields_from_bdd:Unknown field:' + field.field_id + ':type:' + field.api_type_id + ':');
                         throw new Error('Unknown field');
                     }
 
@@ -336,7 +336,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         );
 
         if (!filepath) {
-            ConsoleHandler.getInstance().error('Erreur lors de l\'export:' + filename);
+            ConsoleHandler.error('Erreur lors de l\'export:' + filename);
             return null;
         }
 
@@ -346,7 +346,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         file.is_secured = is_secured;
         let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(file);
         if ((!res) || (!res.id)) {
-            ConsoleHandler.getInstance().error('Erreur lors de l\'enregistrement du fichier en base:' + filepath);
+            ConsoleHandler.error('Erreur lors de l\'enregistrement du fichier en base:' + filepath);
             return null;
         }
         file.id = res.id;
@@ -373,7 +373,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         if (!lang_id) {
             let user = await ModuleAccessPolicyServer.getInstance().getSelfUser();
             if (!user) {
-                ConsoleHandler.getInstance().error('Une langue doit être définie pour l\'export XLSX');
+                ConsoleHandler.error('Une langue doit être définie pour l\'export XLSX');
                 return null;
             }
             lang_id = user.lang_id;
@@ -393,12 +393,12 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
             let text = await ModuleTranslation.getInstance().getTranslatableText(field.field_label.code_text);
             if (!text) {
-                ConsoleHandler.getInstance().error('Code texte de colonne introuvable:' + field.field_label.code_text);
+                ConsoleHandler.error('Code texte de colonne introuvable:' + field.field_label.code_text);
                 continue;
             }
             let translation = await ModuleTranslation.getInstance().getTranslation(lang_id, text.id);
             if (!translation) {
-                ConsoleHandler.getInstance().error('Traduction de colonne introuvable:' + field.field_label.code_text);
+                ConsoleHandler.error('Traduction de colonne introuvable:' + field.field_label.code_text);
                 continue;
             }
             column_labels[field.field_id] = translation.translated;
@@ -420,7 +420,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         );
 
         if (!filepath) {
-            ConsoleHandler.getInstance().error('Erreur lors de l\'export:' + filename);
+            ConsoleHandler.error('Erreur lors de l\'export:' + filename);
             return null;
         }
 
@@ -430,7 +430,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         file.is_secured = true;
         let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(file);
         if ((!res) || (!res.id)) {
-            ConsoleHandler.getInstance().error('Erreur lors de l\'enregistrement du fichier en base:' + filepath);
+            ConsoleHandler.error('Erreur lors de l\'enregistrement du fichier en base:' + filepath);
             return null;
         }
         file.id = res.id;
@@ -452,7 +452,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             return null;
         }
 
-        ConsoleHandler.getInstance().log('EXPORT : ' + filename);
+        ConsoleHandler.log('EXPORT : ' + filename);
 
         let worksheetColumns = [];
         for (let i in ordered_column_list) {
@@ -495,7 +495,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         // On log l'export
         if (!!user_log_id) {
 
-            await StackContext.getInstance().runPromise(
+            await StackContext.runPromise(
                 { IS_CLIENT: false },
                 async () => {
                     await ModuleDAO.getInstance().insertOrUpdateVO(ExportLogVO.createNew(
@@ -527,7 +527,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         );
 
         if (!filepath) {
-            ConsoleHandler.getInstance().error('Erreur lors de l\'export:' + filename);
+            ConsoleHandler.error('Erreur lors de l\'export:' + filename);
             return null;
         }
 
@@ -552,7 +552,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         );
 
         if (!filepath) {
-            ConsoleHandler.getInstance().error('Erreur lors de l\'export:' + filename);
+            ConsoleHandler.error('Erreur lors de l\'export:' + filename);
             return null;
         }
 
@@ -566,7 +566,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         file.is_secured = is_secured;
         let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(file);
         if ((!res) || (!res.id)) {
-            ConsoleHandler.getInstance().error('Erreur lors de l\'enregistrement du fichier en base:' + filepath);
+            ConsoleHandler.error('Erreur lors de l\'enregistrement du fichier en base:' + filepath);
             return null;
         }
         file.id = res.id;
@@ -586,7 +586,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             return null;
         }
 
-        ConsoleHandler.getInstance().log('EXPORT : ' + filename);
+        ConsoleHandler.log('EXPORT : ' + filename);
         let workbook: WorkBook = XLSX.utils.book_new();
 
         for (let sheeti in sheets) {
@@ -631,7 +631,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         // On log l'export
         if (!!user_log_id) {
-            await StackContext.getInstance().runPromise(
+            await StackContext.runPromise(
                 { IS_CLIENT: false },
                 async () => {
                     await ModuleDAO.getInstance().insertOrUpdateVO(ExportLogVO.createNew(

@@ -30,7 +30,7 @@ export default class Patch20211004ChangeLang implements IGeneratorWorker {
             await db.query("UPDATE ref.module_translation_lang set code_lang='fr-fr' where code_lang='fr';");
             await db.query("UPDATE ref.module_translation_lang set code_lang='en-us' where code_lang='en';");
         } catch (error) {
-            ConsoleHandler.getInstance().log('Ignore this error if new project: ' + error);
+            ConsoleHandler.log('Ignore this error if new project: ' + error);
         }
     }
 }

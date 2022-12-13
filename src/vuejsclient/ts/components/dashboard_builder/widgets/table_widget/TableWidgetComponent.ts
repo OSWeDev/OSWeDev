@@ -842,7 +842,7 @@ export default class TableWidgetComponent extends VueComponentBase {
                     });
 
                 } catch (error) {
-                    ConsoleHandler.getInstance().error(error);
+                    ConsoleHandler.error(error);
                     await self.do_update_visible_options();
                     reject({
                         body: self.label('TableWidgetComponent.onchange_column.failed'),
@@ -1138,7 +1138,7 @@ export default class TableWidgetComponent extends VueComponentBase {
         }
 
         if (!crud_api_type_id) {
-            ConsoleHandler.getInstance().error('Pas de crud_api_type_id pour le table widget impossible de générer la requête');
+            ConsoleHandler.error('Pas de crud_api_type_id pour le table widget impossible de générer la requête');
             return;
         }
 
@@ -1229,7 +1229,7 @@ export default class TableWidgetComponent extends VueComponentBase {
             }
 
             if (this.dashboard.api_type_ids.indexOf(field.moduleTable.vo_type) < 0) {
-                ConsoleHandler.getInstance().warn('select_datatable_rows: asking for datas from types not included in request:' +
+                ConsoleHandler.warn('select_datatable_rows: asking for datas from types not included in request:' +
                     field.datatable_field_uid + ':' + field.moduleTable.vo_type);
                 this.data_rows = [];
                 this.loaded_once = true;
@@ -1319,7 +1319,7 @@ export default class TableWidgetComponent extends VueComponentBase {
                     options = JSON.parse(page_widget.json_options);
                 }
             } catch (error) {
-                ConsoleHandler.getInstance().error(error);
+                ConsoleHandler.error(error);
                 continue;
             }
 
@@ -1451,7 +1451,7 @@ export default class TableWidgetComponent extends VueComponentBase {
             if (!!column.filter_by_access) {
                 promises.push((async () => {
                     VueAppBase.getInstance().vueInstance.$set(self.filter_by_access_cache, column.filter_by_access, await ModuleAccessPolicy.getInstance().checkAccess(column.filter_by_access));
-                    ConsoleHandler.getInstance().log(column.filter_by_access + ':' + self.filter_by_access_cache[column.filter_by_access]);
+                    ConsoleHandler.log(column.filter_by_access + ':' + self.filter_by_access_cache[column.filter_by_access]);
                 })());
             }
         }
@@ -1509,7 +1509,7 @@ export default class TableWidgetComponent extends VueComponentBase {
                 ) : null;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return options;

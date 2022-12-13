@@ -66,7 +66,7 @@ export default class DashboardBuilderWidgetsComponent extends VueComponentBase {
     private async add_widget_to_page(widget: DashboardWidgetVO) {
 
         if (!DashboardBuilderWidgetsController.getInstance().add_widget_to_page_handler) {
-            ConsoleHandler.getInstance().error("!add_widget_to_page_handler");
+            ConsoleHandler.error("!add_widget_to_page_handler");
             return;
         }
         let page_widget = await DashboardBuilderWidgetsController.getInstance().add_widget_to_page_handler(widget);

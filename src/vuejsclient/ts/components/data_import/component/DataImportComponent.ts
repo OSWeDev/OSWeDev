@@ -295,7 +295,7 @@ export default class DataImportComponent extends DataImportComponentBase {
             return;
         }
 
-        ConsoleHandler.getInstance().log('loadRawImportedDatas:' + timeSegment.index);
+        ConsoleHandler.log('loadRawImportedDatas:' + timeSegment.index);
 
         for (let i in this.import_historics[timeSegment.index]) {
 

@@ -173,6 +173,6 @@ export default class VarDescComponent extends VueComponentBase {
         if (!this.var_param) {
             return;
         }
-        ConsoleHandler.getInstance().log('Index du paramètre de var sélectionné : ' + this.var_param.index);
+        ConsoleHandler.log('Index du paramètre de var sélectionné : ' + this.var_param.index);
     }
 }

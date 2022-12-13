@@ -172,7 +172,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
                         },
                     });
                 } catch (error) {
-                    ConsoleHandler.getInstance().error(error);
+                    ConsoleHandler.error(error);
                     reject({
                         body: self.label('paste_dashboard.failed'),
                         config: {
@@ -206,7 +206,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
                         },
                     });
                 } catch (error) {
-                    ConsoleHandler.getInstance().error(error);
+                    ConsoleHandler.error(error);
                     reject({
                         body: self.label('copy_dashboard.failed'),
                         config: {

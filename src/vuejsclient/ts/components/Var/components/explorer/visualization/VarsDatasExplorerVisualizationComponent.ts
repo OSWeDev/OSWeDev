@@ -43,7 +43,7 @@ export default class VarsDatasExplorerVisualizationComponent extends VueComponen
         let var_param = VarDataBaseVO.from_index(this.param_index);
 
         if (!var_param) {
-            ConsoleHandler.getInstance().error('param_from_index:failed param reconstruction:' + this.param_index + ':');
+            ConsoleHandler.error('param_from_index:failed param reconstruction:' + this.param_index + ':');
             return;
         }
 

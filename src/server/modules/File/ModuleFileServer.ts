@@ -120,7 +120,7 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
 
     private async check_secured_files_conf(f: FileVO): Promise<boolean> {
         let uid = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
-        let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
+        let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
         if (f.is_secured && !f.file_access_policy_name) {
 

@@ -124,7 +124,7 @@ export default class ChecklistWidgetOptionsComponent extends VueComponentBase {
         try {
             this.page_widget.json_options = JSON.stringify(this.next_update_options);
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
         await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
 
@@ -162,7 +162,7 @@ export default class ChecklistWidgetOptionsComponent extends VueComponentBase {
                     options.delete_all_button, options.create_button, options.refresh_button, options.export_button) : null;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return options;

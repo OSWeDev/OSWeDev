@@ -299,7 +299,7 @@ export default class DatatableRowController {
                     break;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
             resData[field.datatable_field_uid] = null;
         }
     }
@@ -509,7 +509,7 @@ export default class DatatableRowController {
                     break;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
             resData[field.datatable_field_uid] = null;
         }
     }

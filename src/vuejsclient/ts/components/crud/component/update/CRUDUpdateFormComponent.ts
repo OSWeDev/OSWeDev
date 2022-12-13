@@ -256,7 +256,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
 
                     self.updateData(updatedVO);
                 } catch (error) {
-                    ConsoleHandler.getInstance().error(error);
+                    ConsoleHandler.error(error);
                     self.updating_vo = false;
                     reject({
                         body: self.label('crud.update.errors.update_failure') + ": " + error,

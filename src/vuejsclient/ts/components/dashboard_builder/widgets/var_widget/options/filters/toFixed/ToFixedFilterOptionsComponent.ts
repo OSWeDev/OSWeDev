@@ -47,7 +47,7 @@ export default class ToFixedFilterOptionsComponent extends VueComponentBase {
             this.onlyPositive = additional_options[3];
             this.dot_decimal_marker = additional_options[4];
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
     }
 

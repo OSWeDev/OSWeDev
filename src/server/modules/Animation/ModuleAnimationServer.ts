@@ -378,7 +378,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
                     [RangeHandler.getInstance().create_single_elt_NumRange(res.user_id, NumSegment.TYPE_INT)]
                 ), 'ModuleAnimationServer.endModule');
             } catch (error) {
-                ConsoleHandler.getInstance().error('endModule:get_var_data:' + error + ':FIXME do we need to handle this ?');
+                ConsoleHandler.error('endModule:get_var_data:' + error + ':FIXME do we need to handle this ?');
             }
             res.prct_reussite = (data && data.value) ? data.value : 0;
         }
@@ -623,11 +623,11 @@ export default class ModuleAnimationServer extends ModuleServerBase {
     }
 
     private isAdmin(): boolean {
-        if (!StackContext.getInstance().get('IS_CLIENT')) {
+        if (!StackContext.get('IS_CLIENT')) {
             return false;
         }
 
-        let uid: number = StackContext.getInstance().get('UID');
+        let uid: number = StackContext.get('UID');
 
         if (!uid) {
             return false;

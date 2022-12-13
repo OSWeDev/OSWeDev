@@ -85,7 +85,7 @@ export default class VarsServerController {
         VarsController.getInstance().var_conf_by_name[conf.name] = conf;
 
         if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
-            ConsoleHandler.getInstance().log('update_registered_varconf:UPDATED VARCConf VAR_ID:' + conf.id + ':' + JSON.stringify(conf));
+            ConsoleHandler.log('update_registered_varconf:UPDATED VARCConf VAR_ID:' + conf.id + ':' + JSON.stringify(conf));
         }
     }
 
@@ -95,7 +95,7 @@ export default class VarsServerController {
         delete VarsController.getInstance().var_conf_by_name[name];
 
         if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
-            ConsoleHandler.getInstance().log('delete_registered_varconf:DELETED VARCConf VAR_ID:' + id + ':' + name);
+            ConsoleHandler.log('delete_registered_varconf:DELETED VARCConf VAR_ID:' + id + ':' + name);
         }
     }
 
@@ -113,7 +113,7 @@ export default class VarsServerController {
         this.varcacheconf_by_api_type_ids[conf.var_data_vo_type][cacheconf.var_id] = cacheconf;
 
         if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
-            ConsoleHandler.getInstance().log('update_registered_varcacheconf:UPDATED VARCacheConf VAR_ID:' + cacheconf.var_id + ':' + JSON.stringify(cacheconf));
+            ConsoleHandler.log('update_registered_varcacheconf:UPDATED VARCacheConf VAR_ID:' + cacheconf.var_id + ':' + JSON.stringify(cacheconf));
         }
     }
 
@@ -132,7 +132,7 @@ export default class VarsServerController {
         delete this.varcacheconf_by_api_type_ids[conf.var_data_vo_type][cacheconf.var_id];
 
         if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
-            ConsoleHandler.getInstance().log('delete_registered_varcacheconf:DELETED VARCacheConf VAR_ID:' + cacheconf.var_id + ':' + JSON.stringify(cacheconf));
+            ConsoleHandler.log('delete_registered_varcacheconf:DELETED VARCacheConf VAR_ID:' + cacheconf.var_id + ':' + JSON.stringify(cacheconf));
         }
     }
 
@@ -167,13 +167,13 @@ export default class VarsServerController {
 
                 if ((!did_something) && needs_again) {
                     if (!last_not_full) {
-                        ConsoleHandler.getInstance().error('!last_not_full on !did_something in init_varcontrollers_dag_depths');
+                        ConsoleHandler.error('!last_not_full on !did_something in init_varcontrollers_dag_depths');
                         throw new Error('!last_not_full on !did_something in init_varcontrollers_dag_depths');
                     }
 
                     let depth = this.get_max_depth(last_not_full, true);
                     if (depth === null) {
-                        ConsoleHandler.getInstance().error('depth===null on !did_something in init_varcontrollers_dag_depths');
+                        ConsoleHandler.error('depth===null on !did_something in init_varcontrollers_dag_depths');
                         throw new Error('depth===null on !did_something in init_varcontrollers_dag_depths');
                     }
 
@@ -376,7 +376,7 @@ export default class VarsServerController {
         let insert_or_update_result: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(var_cache_conf);
 
         if ((!insert_or_update_result) || (!insert_or_update_result.id)) {
-            ConsoleHandler.getInstance().error('Impossible de configurer le cache de la var :' + var_conf.id + ':');
+            ConsoleHandler.error('Impossible de configurer le cache de la var :' + var_conf.id + ':');
             return null;
         }
 

@@ -227,7 +227,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
                             page_widget.json_options = JSON.stringify(options);
                         }
                     } catch (error) {
-                        ConsoleHandler.getInstance().error(error);
+                        ConsoleHandler.error(error);
                     }
 
                     let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(page_widget);
@@ -279,7 +279,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         let widget = this.widgets.find((w) => w.i == i);
 
         if (!widget) {
-            ConsoleHandler.getInstance().error("resizedEvent:on ne retrouve pas le widget");
+            ConsoleHandler.error("resizedEvent:on ne retrouve pas le widget");
             return;
         }
 
@@ -303,7 +303,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         let widget = this.widgets.find((w) => w.i == i);
 
         if (!widget) {
-            ConsoleHandler.getInstance().error("movedEvent:on ne retrouve pas le widget");
+            ConsoleHandler.error("movedEvent:on ne retrouve pas le widget");
             return;
         }
 

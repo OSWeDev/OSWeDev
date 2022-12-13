@@ -821,7 +821,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                 ) : null;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return options;

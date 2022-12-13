@@ -262,7 +262,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                         .fail(async (err) => {
                             await self.traitementFailRequest(err, cache);
 
-                            ConsoleHandler.getInstance().log("post failed :" + url + ":" + postdatas + ":" + err);
+                            ConsoleHandler.log("post failed :" + url + ":" + postdatas + ":" + err);
                         });
                 } else {
                     await self.resolve_request(cache, null);
@@ -434,7 +434,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 self.addToWaitingRequestsStack(request);
             }, 2000);
         } else {
-            ConsoleHandler.getInstance().log("request failed :" + request + ":" + err);
+            ConsoleHandler.log("request failed :" + request + ":" + err);
             if ((503 == err.status) || (502 == err.status) || ('timeout' == err.statusText)) {
                 (window as any).alert('Loading failure - Please reload your page');
             }
@@ -480,7 +480,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
         try {
             await this.processRequests();
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         this.processRequestsSemaphore = false;
@@ -550,7 +550,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 await this.resolve_request(wrapped_request, results.requests_results[i]);
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error("Echec de requête groupée : " + error);
+            ConsoleHandler.error("Echec de requête groupée : " + error);
 
             // Si ça échoue, on relance avec une logique de dichotomie, si il reste plus d'une requête à traiter. On demande minimum 2 requêtes par wrap
             let left_wrappable_requests: RequestResponseCacheVO[] = [];
@@ -658,7 +658,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                     break;
 
                 case RequestResponseCacheVO.API_TYPE_POST:
-                    ConsoleHandler.getInstance().error('Should never happen :processRequests:TYPE == POST:');
+                    ConsoleHandler.error('Should never happen :processRequests:TYPE == POST:');
                     break;
 
                 case RequestResponseCacheVO.API_TYPE_POST_FOR_GET:

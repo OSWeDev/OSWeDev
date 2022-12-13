@@ -37,7 +37,7 @@ export default class PerfMonAdminTasksController {
                 let bdd_perf_type = await ModuleDAO.getInstance().getNamedVoByName<PerfMonLineTypeVO>(PerfMonLineTypeVO.API_TYPE_ID, perf_type.name);
 
                 if (!bdd_perf_type) {
-                    ConsoleHandler.getInstance().error("Type introuvable:" + perf_type.name);
+                    ConsoleHandler.error("Type introuvable:" + perf_type.name);
                     continue;
                 }
 
@@ -55,7 +55,7 @@ export default class PerfMonAdminTasksController {
                 let bdd_perf_type = await ModuleDAO.getInstance().getNamedVoByName<PerfMonLineTypeVO>(PerfMonLineTypeVO.API_TYPE_ID, perf_type.name);
 
                 if (!bdd_perf_type) {
-                    ConsoleHandler.getInstance().error("Type introuvable:" + perf_type.name);
+                    ConsoleHandler.error("Type introuvable:" + perf_type.name);
                     continue;
                 }
 
@@ -76,7 +76,7 @@ export default class PerfMonAdminTasksController {
                 let bdd_perf_type = await ModuleDAO.getInstance().getNamedVoByName<PerfMonLineTypeVO>(PerfMonLineTypeVO.API_TYPE_ID, perf_type.name);
 
                 if (!bdd_perf_type) {
-                    ConsoleHandler.getInstance().error("Type introuvable:" + perf_type.name);
+                    ConsoleHandler.error("Type introuvable:" + perf_type.name);
                     continue;
                 }
 

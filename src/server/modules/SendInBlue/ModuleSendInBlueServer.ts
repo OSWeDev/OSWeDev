@@ -81,14 +81,14 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
 
     private async sendinblue_refresh_mail_events(mail_id: number) {
         if (!mail_id) {
-            ConsoleHandler.getInstance().error('sendinblue_refresh_mail_events:!mail_id');
+            ConsoleHandler.error('sendinblue_refresh_mail_events:!mail_id');
             return;
         }
 
         let mail: MailVO = await query(MailVO.API_TYPE_ID).filter_by_id(mail_id).select_vo<MailVO>();
 
         if ((!mail) || (!mail.message_id)) {
-            ConsoleHandler.getInstance().error('sendinblue_refresh_mail_events:mail not found or !message_id:' + mail_id);
+            ConsoleHandler.error('sendinblue_refresh_mail_events:mail not found or !message_id:' + mail_id);
             return;
         }
 
@@ -114,18 +114,18 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
     }
 
     private async sendinblue_event_webhook(event: SendInBlueMailEventVO) {
-        ConsoleHandler.getInstance().log('sendinblue_event_webhook:log param:' + JSON.stringify(event));
+        ConsoleHandler.log('sendinblue_event_webhook:log param:' + JSON.stringify(event));
 
         event.date = event['ts_event'];
         event.messageId = event.messageId ? event.messageId : event["message-id"];
 
         if ((!event) || (!event.messageId)) {
-            ConsoleHandler.getInstance().error('sendinblue_event_webhook:bad param:' + JSON.stringify(event));
+            ConsoleHandler.error('sendinblue_event_webhook:bad param:' + JSON.stringify(event));
             return;
         }
 
         // Contexte serveur pour la suite
-        await StackContext.getInstance().runPromise(
+        await StackContext.runPromise(
             { IS_CLIENT: false },
             async () => {
 
@@ -137,14 +137,14 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
                 if ((!mails) || (!mails.length)) {
                     // il s'avère que SendInBlue envoie en masse tous les projets on peut pas scinder au sein d'un compte, donc
                     //  on log pas systématiquement quand on trouve pas le mail, c'est souvent normal
-                    // ConsoleHandler.getInstance().error('sendinblue_event_webhook:mail not found:' + JSON.stringify(event));
+                    // ConsoleHandler.error('sendinblue_event_webhook:mail not found:' + JSON.stringify(event));
                     return;
                 }
 
                 let mail = mails[0];
 
                 if (!mail) {
-                    ConsoleHandler.getInstance().error('sendinblue_event_webhook:mail not found:' + JSON.stringify(event));
+                    ConsoleHandler.error('sendinblue_event_webhook:mail not found:' + JSON.stringify(event));
                     return;
                 }
 
@@ -229,7 +229,7 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
         }
 
         if (!found) {
-            ConsoleHandler.getInstance().log('sendinblue:new event:' + JSON.stringify(event));
+            ConsoleHandler.log('sendinblue:new event:' + JSON.stringify(event));
             await ModuleDAO.getInstance().insertOrUpdateVO(new_event);
         }
     }

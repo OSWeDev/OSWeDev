@@ -40,10 +40,10 @@ export default class SendInBlueMailServerController {
         if (ConfigurationService.getInstance().node_configuration.BLOCK_MAIL_DELIVERY) {
 
             if (ModuleMailerServer.getInstance().check_mail_whitelist(to.email, this.convert_mails_vo_to_string_list(cc), this.convert_mails_vo_to_string_list(bcc))) {
-                ConsoleHandler.getInstance().warn('Envoi de mails interdit sur cet env mais adresses whitelistées:' + to.email + ':' + this.convert_mails_vo_to_string_list(cc) + ':' + this.convert_mails_vo_to_string_list(bcc));
+                ConsoleHandler.warn('Envoi de mails interdit sur cet env mais adresses whitelistées:' + to.email + ':' + this.convert_mails_vo_to_string_list(cc) + ':' + this.convert_mails_vo_to_string_list(bcc));
 
             } else {
-                ConsoleHandler.getInstance().warn('Envoi de mails interdit sur cet env: ' + subject);
+                ConsoleHandler.warn('Envoi de mails interdit sur cet env: ' + subject);
                 return;
             }
         }
@@ -84,7 +84,7 @@ export default class SendInBlueMailServerController {
         );
 
         if (!res || !res.messageId) {
-            ConsoleHandler.getInstance().error('SendInBlueMailServerController.send:Failed:res vide ou pas de messageId:' + JSON.stringify(postParams) + ':');
+            ConsoleHandler.error('SendInBlueMailServerController.send:Failed:res vide ou pas de messageId:' + JSON.stringify(postParams) + ':');
             return false;
         }
 
@@ -103,10 +103,10 @@ export default class SendInBlueMailServerController {
         if (ConfigurationService.getInstance().node_configuration.BLOCK_MAIL_DELIVERY) {
 
             if (ModuleMailerServer.getInstance().check_mail_whitelist(to.email, this.convert_mails_vo_to_string_list(cc), this.convert_mails_vo_to_string_list(bcc))) {
-                ConsoleHandler.getInstance().warn('Envoi de mails interdit sur cet env mais adresses whitelistées:' + to.email + ':' + this.convert_mails_vo_to_string_list(cc) + ':' + this.convert_mails_vo_to_string_list(bcc));
+                ConsoleHandler.warn('Envoi de mails interdit sur cet env mais adresses whitelistées:' + to.email + ':' + this.convert_mails_vo_to_string_list(cc) + ':' + this.convert_mails_vo_to_string_list(bcc));
 
             } else {
-                ConsoleHandler.getInstance().warn('Envoi de mails interdit sur cet env:templateId: ' + templateId);
+                ConsoleHandler.warn('Envoi de mails interdit sur cet env:templateId: ' + templateId);
                 return;
             }
         }
@@ -177,7 +177,7 @@ export default class SendInBlueMailServerController {
         );
 
         if (!res || !res.messageId) {
-            ConsoleHandler.getInstance().error('SendInBlueMailServerController.send:Failed:res vide ou pas de messageId:' + JSON.stringify(postParams) + ':');
+            ConsoleHandler.error('SendInBlueMailServerController.send:Failed:res vide ou pas de messageId:' + JSON.stringify(postParams) + ':');
             return false;
         }
 
@@ -192,7 +192,7 @@ export default class SendInBlueMailServerController {
     private async insert_new_mail(to_mail: string, message_id: string, mail_category: string) {
 
         if ((!mail_category) || (!message_id) || (!to_mail)) {
-            ConsoleHandler.getInstance().error('SendInBlueMailServerController.insert_new_mail:Failed:paramètres invalides:' + mail_category + ':' + message_id + ':' + to_mail + ':');
+            ConsoleHandler.error('SendInBlueMailServerController.insert_new_mail:Failed:paramètres invalides:' + mail_category + ':' + message_id + ':' + to_mail + ':');
             return;
         }
 
@@ -203,7 +203,7 @@ export default class SendInBlueMailServerController {
             category.name = mail_category;
             let res_cat = await ModuleDAO.getInstance().insertOrUpdateVO(category);
             if (!res_cat || !res_cat.id) {
-                ConsoleHandler.getInstance().error('SendInBlueMailServerController.insert_new_mail:Failed:Impossible de créer la nouvelle catégorie de mail:' + mail_category + ':');
+                ConsoleHandler.error('SendInBlueMailServerController.insert_new_mail:Failed:Impossible de créer la nouvelle catégorie de mail:' + mail_category + ':');
                 return;
             }
             category.id = res_cat.id;
@@ -216,11 +216,11 @@ export default class SendInBlueMailServerController {
         mail.last_up_date = Dates.now();
         mail.message_id = message_id;
         mail.send_date = mail.last_up_date;
-        mail.sent_by_id = StackContext.getInstance().get('UID');
+        mail.sent_by_id = StackContext.get('UID');
         mail.sent_to_id = await this.get_uid_if_exists(to_mail);
         let res = await ModuleDAO.getInstance().insertOrUpdateVO(mail);
         if ((!res) || (!res.id)) {
-            ConsoleHandler.getInstance().error('SendInBlueMailServerController.insert_new_mail:failed inserting new mail:' + JSON.stringify(mail) + ':');
+            ConsoleHandler.error('SendInBlueMailServerController.insert_new_mail:failed inserting new mail:' + JSON.stringify(mail) + ':');
             return;
         }
 
@@ -233,7 +233,7 @@ export default class SendInBlueMailServerController {
     }
 
     private async get_uid_if_exists(email: string) {
-        return await StackContext.getInstance().runPromise(
+        return await StackContext.runPromise(
             { IS_CLIENT: false },
             async () => {
                 let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_text_eq('email', email).select_vo<UserVO>();
@@ -258,7 +258,7 @@ export default class SendInBlueMailServerController {
             }
         }
 
-        let session = StackContext.getInstance().get('SESSION');
+        let session = StackContext.get('SESSION');
         let sid = session ? session.sid : null;
         params['SESSION_SHARE_SID'] = sid ? encodeURIComponent(sid) : null;
     }

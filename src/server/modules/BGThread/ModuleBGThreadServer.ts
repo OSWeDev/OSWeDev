@@ -115,7 +115,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
             return;
         }
 
-        this.execute_bgthread(bgthread).then().catch((error) => ConsoleHandler.getInstance().error(error));
+        this.execute_bgthread(bgthread).then().catch((error) => ConsoleHandler.error(error));
     }
 
     /**
@@ -143,14 +143,14 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
                     let new_param = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleBGThreadServer.PARAM_BLOCK_BGTHREAD_prefix + bgthread.name);
 
                     if (new_param != this.block_param_by_name[bgthread.name]) {
-                        ConsoleHandler.getInstance().log('BGTHREAD:' + bgthread.name + ':' + (new_param ? 'DISABLED' : 'ACTIVATED'));
+                        ConsoleHandler.log('BGTHREAD:' + bgthread.name + ':' + (new_param ? 'DISABLED' : 'ACTIVATED'));
                     }
 
                     this.block_param_by_name[bgthread.name] = new_param;
                     this.block_param_reload_timeout_by_name[bgthread.name] = Dates.now() + 60;
                 }
             } catch (error) {
-                ConsoleHandler.getInstance().error('OK at start, NOK if all nodes already started :execute_bgthread:block_param_by_name:' + error);
+                ConsoleHandler.error('OK at start, NOK if all nodes already started :execute_bgthread:block_param_by_name:' + error);
             }
 
             if (!!this.block_param_by_name[bgthread.name]) {
@@ -180,7 +180,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
                     bgthread.current_timeout = bgthread.MIN_timeout;
                 }
             } catch (error) {
-                ConsoleHandler.getInstance().error(error);
+                ConsoleHandler.error(error);
             }
         }
     }

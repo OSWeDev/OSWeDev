@@ -102,7 +102,7 @@ export default class TablesGraphComponent extends VueComponentBase {
                             .select_vos<DashboardGraphVORefVO>();
 
                         if ((!db_cells_source) || (!db_cells_source.length)) {
-                            ConsoleHandler.getInstance().error('mxEvent.MOVE_END:no db cell');
+                            ConsoleHandler.error('mxEvent.MOVE_END:no db cell');
                             return;
                         }
 
@@ -169,7 +169,7 @@ export default class TablesGraphComponent extends VueComponentBase {
             .select_vos<DashboardGraphVORefVO>();
 
         if ((!db_cells_source) || (!db_cells_source.length)) {
-            ConsoleHandler.getInstance().error('mxEvent.MOVE_END:no db cell');
+            ConsoleHandler.error('mxEvent.MOVE_END:no db cell');
             return;
         }
 
@@ -243,7 +243,7 @@ export default class TablesGraphComponent extends VueComponentBase {
                 .select_vos<DashboardGraphVORefVO>();
 
             if ((!db_cells) || (!db_cells.length)) {
-                ConsoleHandler.getInstance().error('mxEvent.MOVE_END:no db cell');
+                ConsoleHandler.error('mxEvent.MOVE_END:no db cell');
                 return;
             }
             let db_cell = db_cells[0];
@@ -371,9 +371,9 @@ export default class TablesGraphComponent extends VueComponentBase {
             editor.graph.setAllowDanglingEdges(false);
 
             editor.graph.getSelectionModel().addListener(mxEvent.CHANGE, () => {
-                this.selectionChanged().then().catch((error) => { ConsoleHandler.getInstance().error(error); });
+                this.selectionChanged().then().catch((error) => { ConsoleHandler.error(error); });
             });
-            this.selectionChanged().then().catch((error) => { ConsoleHandler.getInstance().error(error); });
+            this.selectionChanged().then().catch((error) => { ConsoleHandler.error(error); });
             editor.graph.addListener('moveCells', async () => {
                 let cell = editor.graph.getSelectionCell();
                 let db_cells = await query(DashboardGraphVORefVO.API_TYPE_ID)
@@ -382,7 +382,7 @@ export default class TablesGraphComponent extends VueComponentBase {
                     .select_vos<DashboardGraphVORefVO>();
 
                 if ((!db_cells) || (!db_cells.length)) {
-                    ConsoleHandler.getInstance().error('mxEvent.MOVE_END:no db cell');
+                    ConsoleHandler.error('mxEvent.MOVE_END:no db cell');
                     return;
                 }
                 let db_cell = db_cells[0];
@@ -696,7 +696,7 @@ export default class TablesGraphComponent extends VueComponentBase {
                                 values_to_exclude.push(field.field_id);
                                 cell.values_to_exclude = values_to_exclude;
                                 is_link_unccepted = true;
-                                ModuleDAO.getInstance().insertOrUpdateVO(cell).then().catch((error) => { ConsoleHandler.getInstance().error(error); });
+                                ModuleDAO.getInstance().insertOrUpdateVO(cell).then().catch((error) => { ConsoleHandler.error(error); });
 
                             }
                         } catch {
