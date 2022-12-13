@@ -1,6 +1,7 @@
 
 
 import Component from 'vue-class-component';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleSurvey from '../../../../shared/modules/Survey/ModuleSurvey';
 import SurveyVO from '../../../../shared/modules/Survey/vos/SurveyVO';
@@ -15,6 +16,10 @@ import ScreenshotComponent from '../screenshot/ScreenshotComponent';
 import VueComponentBase from '../VueComponentBase';
 import './SurveyComponent.scss';
 import { ModuleSurveyAction, ModuleSurveyGetter } from './store/SurveyStore';
+import VersionedVOController from '../../../../shared/modules/Versioned/VersionedVOController';
+import IServerUserSession from '../../../../server/IServerUserSession';
+import ModuleAccessPolicyServer from '../../../../server/modules/AccessPolicy/ModuleAccessPolicyServer';
+
 const { parse, stringify } = require('flatted/cjs');
 /*
 TODO survey ouvert ou pas en fonction du route_name
@@ -40,12 +45,23 @@ export default class SurveyComponent extends VueComponentBase {
 
     private tmp_type: string = null;
     private tmp_message: string = null;
-
+    private pop_up: boolean = false; //Si la page pop up ou non
+    private time_before_pop_up: number = 0;
+    private route_name_ok: boolean = false; //la route est acceptée ?
+    private already_submitted: boolean = false;
 
     private is_already_sending_survey: boolean = false;
 
     private mounted() {
+        //Ici on récupère pop_up - time_before_pop_up - route_name et si le user_id est dans l'autre table
         this.reload();
+        let user_session: IServerUserSession = ModuleAccessPolicyServer.getInstance().getUserSession();
+        let user_id = user_session.uid;
+
+        let tables = VersionedVOController.getInstance().registeredModuleTables;
+        let table_survey_param = VersionedVOController.getInstance().get_registeredModuleTables_by_vo_type("surveyParam");
+        //let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[context_query.base_api_type_id];
+
     }
 
     private reload() {
@@ -91,6 +107,9 @@ export default class SurveyComponent extends VueComponentBase {
         survey.survey_route_name = this.$route.name;
         survey.survey_type = parseInt(this.tmp_type);
         survey.message = this.tmp_message;
+
+        // let result: SurveyVO = await query(SurveyVO.API_TYPE_ID).filter_by_num_eq('user_id', 1448).select_vo<SurveyVO>();
+        let roles = await query(SurveyVO.API_TYPE_ID).select_vos();
 
 
         if (!await ModuleSurvey.getInstance().survey(survey)) {

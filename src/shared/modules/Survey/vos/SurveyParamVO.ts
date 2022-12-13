@@ -2,7 +2,7 @@
 import IVersionedVO from '../../Versioned/interfaces/IVersionedVO';
 
 export default class SurveyParamVO implements IVersionedVO {
-    public static API_TYPE_ID: string = "surveyParam";
+    public static API_TYPE_ID: string = "survey_param";
 
     public id: number;
     public _type: string = SurveyParamVO.API_TYPE_ID;

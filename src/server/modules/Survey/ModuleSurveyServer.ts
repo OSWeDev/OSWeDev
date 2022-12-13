@@ -3,34 +3,21 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
-import LightWeightSendableRequestVO from '../../../shared/modules/AjaxCache/vos/LightWeightSendableRequestVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
-import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleSurvey from '../../../shared/modules/Survey/ModuleSurvey';
 import SurveyVO from '../../../shared/modules/Survey/vos/SurveyVO';
-import FileVO from '../../../shared/modules/File/vos/FileVO';
-import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import ModuleFormatDatesNombres from '../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
-import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import CRUDHandler from '../../../shared/tools/CRUDHandler';
-import FileHandler from '../../../shared/tools/FileHandler';
-import ConfigurationService from '../../env/ConfigurationService';
-import EnvParam from '../../env/EnvParam';
 import IServerUserSession from '../../IServerUserSession';
 import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
-import ModuleFileServer from '../File/ModuleFileServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
-import ModuleTrelloAPIServer from '../TrelloAPI/ModuleTrelloAPIServer';
 const { parse } = require('flatted/cjs');
 
 export default class ModuleSurveyServer extends ModuleServerBase {
@@ -43,9 +30,6 @@ export default class ModuleSurveyServer extends ModuleServerBase {
         }
         return ModuleSurveyServer.instance;
     }
-
-    private static TRELLO_LINE_SEPARATOR: string = '\x0A';
-    private static TRELLO_SECTION_SEPARATOR: string = ModuleSurveyServer.TRELLO_LINE_SEPARATOR + ModuleSurveyServer.TRELLO_LINE_SEPARATOR + '---' + ModuleSurveyServer.TRELLO_LINE_SEPARATOR + ModuleSurveyServer.TRELLO_LINE_SEPARATOR;
 
     private static instance: ModuleSurveyServer = null;
 
@@ -172,7 +156,7 @@ export default class ModuleSurveyServer extends ModuleServerBase {
             }
 
 
-            // Remplir le survey avec toutes les infos qui sont connues côté serveur,
+            // Remplir le survey avec toutes les infos qui sont connues côté serveur, le user_id est ici !
             survey.user_id = user_session.uid;
 
             if (ModuleAccessPolicyServer.getInstance().isLogedAs()) {
