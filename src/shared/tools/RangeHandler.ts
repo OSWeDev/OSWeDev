@@ -196,7 +196,7 @@ export default class RangeHandler {
                     comparison = TimeSegmentHandler.compareSegmentTypes(range.segment_type, target_segment_type);
                     break;
                 case NumRange.RANGE_TYPE:
-                    comparison = NumSegmentHandler.getInstance().compareSegmentTypes(range.segment_type, target_segment_type);
+                    comparison = NumSegmentHandler.compareSegmentTypes(range.segment_type, target_segment_type);
                     break;
                 case HourRange.RANGE_TYPE:
                     comparison = HourSegmentHandler.compareSegmentTypes(range.segment_type, target_segment_type);
@@ -1523,7 +1523,7 @@ export default class RangeHandler {
         switch (range.range_type) {
 
             case NumRange.RANGE_TYPE:
-                let range_min_num: NumSegment = NumSegmentHandler.getInstance().getCorrespondingNumSegment(range.min, segment_type);
+                let range_min_num: NumSegment = NumSegmentHandler.getCorrespondingNumSegment(range.min, segment_type);
 
                 if (RangeHandler.is_elt_sup_elt(range.range_type, range_min_num.index, range.max)) {
                     return null;
@@ -1534,7 +1534,7 @@ export default class RangeHandler {
                 }
 
                 if (!!offset) {
-                    NumSegmentHandler.getInstance().incNumSegment(range_min_num, segment_type, offset);
+                    NumSegmentHandler.incNumSegment(range_min_num, segment_type, offset);
                 }
 
                 if (!return_min_value && RangeHandler.is_left_open(range)) {
@@ -1606,13 +1606,13 @@ export default class RangeHandler {
         switch (range.range_type) {
 
             case NumRange.RANGE_TYPE:
-                let range_max_num: NumSegment = NumSegmentHandler.getInstance().getCorrespondingNumSegment(range.max, segment_type);
+                let range_max_num: NumSegment = NumSegmentHandler.getCorrespondingNumSegment(range.max, segment_type);
 
                 if ((!range.max_inclusiv) && RangeHandler.is_elt_equals_elt(range.range_type, range_max_num.index, range.max)) {
-                    range_max_num = NumSegmentHandler.getInstance().getPreviousNumSegment(range_max_num, segment_type);
+                    range_max_num = NumSegmentHandler.getPreviousNumSegment(range_max_num, segment_type);
                 }
 
-                let range_max_end: number = NumSegmentHandler.getInstance().getEndNumSegment(range_max_num);
+                let range_max_end: number = NumSegmentHandler.getEndNumSegment(range_max_num);
 
                 if (RangeHandler.is_elt_inf_elt(range.range_type, range_max_end, range.min)) {
                     return null;
@@ -1623,7 +1623,7 @@ export default class RangeHandler {
                 }
 
                 if (!!offset) {
-                    NumSegmentHandler.getInstance().incNumSegment(range_max_num, segment_type, offset);
+                    NumSegmentHandler.incNumSegment(range_max_num, segment_type, offset);
                 }
 
                 // Si on est sur un max range et qu'on veut pas retourner la valeur, on retourne null
@@ -2109,7 +2109,7 @@ export default class RangeHandler {
 
             switch (ranges[i].range_type) {
                 case NumRange.RANGE_TYPE:
-                    min = NumSegmentHandler.getInstance().getSmallestNumSegmentationType(min, range.segment_type);
+                    min = NumSegmentHandler.getSmallestNumSegmentationType(min, range.segment_type);
                     break;
 
                 case HourRange.RANGE_TYPE:
@@ -2330,7 +2330,7 @@ export default class RangeHandler {
         switch (range_type) {
 
             case NumRange.RANGE_TYPE:
-                return NumSegmentHandler.getInstance().getCorrespondingNumSegment(elt, segment_type) as any as ISegment;
+                return NumSegmentHandler.getCorrespondingNumSegment(elt, segment_type) as any as ISegment;
 
             case HourRange.RANGE_TYPE:
                 return HourSegmentHandler.getCorrespondingHourSegment(elt, segment_type) as any as ISegment;
@@ -2344,7 +2344,7 @@ export default class RangeHandler {
         switch (range_type) {
 
             case NumRange.RANGE_TYPE:
-                NumSegmentHandler.getInstance().incNumSegment(segment as any as NumSegment, segment_type, offset);
+                NumSegmentHandler.incNumSegment(segment as any as NumSegment, segment_type, offset);
                 break;
 
             case HourRange.RANGE_TYPE:
@@ -2368,7 +2368,7 @@ export default class RangeHandler {
         switch (range_type) {
 
             case NumRange.RANGE_TYPE:
-                return NumSegmentHandler.getInstance().incNum(elt, segment_type, offset);
+                return NumSegmentHandler.incNum(elt, segment_type, offset);
 
             case HourRange.RANGE_TYPE:
                 elt = Dates.add(elt, offset, segment_type);
