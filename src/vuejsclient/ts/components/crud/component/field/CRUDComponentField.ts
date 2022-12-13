@@ -392,11 +392,11 @@ export default class CRUDComponentField extends VueComponentBase
         if (this.field.type == DatatableField.REF_RANGES_FIELD_TYPE) {
             this.field_value_refranges_selected_ids = [];
 
-            if ((!this.select_options) || (RangeHandler.getInstance().getCardinalFromArray(this.field_value) > this.select_options.length)) {
+            if ((!this.select_options) || (RangeHandler.getCardinalFromArray(this.field_value) > this.select_options.length)) {
                 // Si on a plus d'option dans le range que dans les options du champ, on filtre par les options du champs
                 for (let i in this.select_options) {
                     let id = parseInt(this.select_options[i].toString());
-                    if (RangeHandler.getInstance().elt_intersects_any_range(id, this.field_value)) {
+                    if (RangeHandler.elt_intersects_any_range(id, this.field_value)) {
                         this.field_value_refranges_selected_ids.push(id);
                     }
                 }
@@ -404,7 +404,7 @@ export default class CRUDComponentField extends VueComponentBase
 
                 let options_by_id: { [id: number]: boolean } = ObjectHandler.getInstance().mapFromIdsArray(this.select_options);
                 // sinon on commence par le range
-                RangeHandler.getInstance().foreach_ranges_sync(this.field_value, (id: number) => {
+                RangeHandler.foreach_ranges_sync(this.field_value, (id: number) => {
                     if (options_by_id[id]) {
                         this.field_value_refranges_selected_ids.push(id);
                     }
@@ -975,9 +975,9 @@ export default class CRUDComponentField extends VueComponentBase
             for (let i in this.field_value_refranges_selected_ids) {
                 let id = parseInt(this.field_value_refranges_selected_ids[i].toString());
 
-                ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(id, NumSegment.TYPE_INT));
+                ranges.push(RangeHandler.create_single_elt_NumRange(id, NumSegment.TYPE_INT));
             }
-            ranges = RangeHandler.getInstance().getRangesUnion(ranges);
+            ranges = RangeHandler.getRangesUnion(ranges);
             this.field_value = ranges;
         }
 

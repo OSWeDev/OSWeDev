@@ -470,7 +470,7 @@ export default class DataImportComponent extends DataImportComponentBase {
         for (let i in this.getsegments) {
             let segment: TimeSegment = this.getsegments[i];
 
-            num_ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(segment.index, NumRange.RANGE_TYPE));
+            num_ranges.push(RangeHandler.create_single_elt_NumRange(segment.index, NumRange.RANGE_TYPE));
         }
 
         let dihs: DataImportHistoricVO[] = await query(DataImportHistoricVO.API_TYPE_ID)

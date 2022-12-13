@@ -680,7 +680,7 @@ export default class VarsDatasVoUpdateHandler {
     //             let ranges: IRange[] = matroid[matroid_field.field_id];
     //             let field = moduleTable.getFieldFromId((fields_ids_mapper && fields_ids_mapper[matroid_field.field_id]) ? fields_ids_mapper[matroid_field.field_id] : matroid_field.field_id);
 
-    //             if (!RangeHandler.getInstance().any_range_intersects_any_range(
+    //             if (!RangeHandler.any_range_intersects_any_range(
     //                 wrapper.var_data[field.field_id],
     //                 ranges)) {
     //                 isok = false;
@@ -1113,12 +1113,12 @@ export default class VarsDatasVoUpdateHandler {
                     break;
             }
 
-            let valid_types = [RangeHandler.getInstance().create_single_elt_NumRange(VarDataBaseVO.VALUE_TYPE_COMPUTED, NumSegment.TYPE_INT)];
+            let valid_types = [RangeHandler.create_single_elt_NumRange(VarDataBaseVO.VALUE_TYPE_COMPUTED, NumSegment.TYPE_INT)];
             if (invalidator.invalidate_denied) {
-                valid_types.push(RangeHandler.getInstance().create_single_elt_NumRange(VarDataBaseVO.VALUE_TYPE_DENIED, NumSegment.TYPE_INT));
+                valid_types.push(RangeHandler.create_single_elt_NumRange(VarDataBaseVO.VALUE_TYPE_DENIED, NumSegment.TYPE_INT));
             }
             if (invalidator.invalidate_imports) {
-                valid_types.push(RangeHandler.getInstance().create_single_elt_NumRange(VarDataBaseVO.VALUE_TYPE_IMPORT, NumSegment.TYPE_INT));
+                valid_types.push(RangeHandler.create_single_elt_NumRange(VarDataBaseVO.VALUE_TYPE_IMPORT, NumSegment.TYPE_INT));
             }
 
             invalidator_filters.push(filter(var_data._type, 'value_type').by_num_x_ranges(valid_types));

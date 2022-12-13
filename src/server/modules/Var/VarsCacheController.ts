@@ -80,7 +80,7 @@ export default class VarsCacheController {
                 for (let i in controller.varConf.pixel_fields) {
                     let pixel_field = controller.varConf.pixel_fields[i];
 
-                    if (RangeHandler.getInstance().getCardinalFromArray(var_data[pixel_field.pixel_param_field_id]) != 1) {
+                    if (RangeHandler.getCardinalFromArray(var_data[pixel_field.pixel_param_field_id]) != 1) {
                         return false;
                     }
                 }

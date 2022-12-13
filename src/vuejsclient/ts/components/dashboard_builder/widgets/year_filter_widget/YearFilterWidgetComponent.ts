@@ -92,9 +92,9 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
             if (!this.selected_years[i]) {
                 continue;
             }
-            years_ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(parseInt(i.toString()), NumSegment.TYPE_INT));
+            years_ranges.push(RangeHandler.create_single_elt_NumRange(parseInt(i.toString()), NumSegment.TYPE_INT));
         }
-        years_ranges = RangeHandler.getInstance().getRangesUnion(years_ranges);
+        years_ranges = RangeHandler.getRangesUnion(years_ranges);
 
         /**
          * Si on a un root_context_filter, on cherche celui qui est du type concerné
@@ -171,7 +171,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
          * Si on a un contextfilter, on check si on doit faire un update et si c'est nécessaire on le fait
          */
         if (!!context_filter) {
-            if (!RangeHandler.getInstance().are_same(context_filter.param_numranges, years_ranges)) {
+            if (!RangeHandler.are_same(context_filter.param_numranges, years_ranges)) {
                 context_filter.param_numranges = years_ranges;
             }
             return;
@@ -218,7 +218,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
         for (let i in this.years) {
             new_value[this.years[i]] = false;
         }
-        RangeHandler.getInstance().foreach_ranges_sync(context_filter.param_numranges, (year: number) => {
+        RangeHandler.foreach_ranges_sync(context_filter.param_numranges, (year: number) => {
             new_value[year] = true;
         });
 

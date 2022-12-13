@@ -79,9 +79,9 @@ export default class VarDayTempsPasseAnimationController extends VarServerContro
                 return ThemeModuleDataRangesVO.createNew(
                     var_name,
                     false,
-                    [RangeHandler.getInstance().getMaxNumRange()],
-                    [RangeHandler.getInstance().getMaxNumRange()],
-                    [RangeHandler.getInstance().getMaxNumRange()]
+                    [RangeHandler.getMaxNumRange()],
+                    [RangeHandler.getMaxNumRange()],
+                    [RangeHandler.getMaxNumRange()]
                     // TODO FIXME Améliorer ce matroid point de vue métier
                 );
         }

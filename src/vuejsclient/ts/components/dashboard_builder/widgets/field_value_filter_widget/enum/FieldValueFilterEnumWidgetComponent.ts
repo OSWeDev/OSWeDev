@@ -311,7 +311,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             return true;
         }
 
-        RangeHandler.getInstance().foreach_ranges_sync(filter.param_numranges, (num: number) => {
+        RangeHandler.foreach_ranges_sync(filter.param_numranges, (num: number) => {
 
             let datafilter = new DataFilterOption(
                 DataFilterOption.STATE_SELECTED,

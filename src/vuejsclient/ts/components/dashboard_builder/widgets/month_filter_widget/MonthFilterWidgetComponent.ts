@@ -149,9 +149,9 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
             if (!this.selected_months[i]) {
                 continue;
             }
-            months_ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(parseInt(i.toString()), NumSegment.TYPE_INT));
+            months_ranges.push(RangeHandler.create_single_elt_NumRange(parseInt(i.toString()), NumSegment.TYPE_INT));
         }
-        months_ranges = RangeHandler.getInstance().getRangesUnion(months_ranges);
+        months_ranges = RangeHandler.getRangesUnion(months_ranges);
 
         /**
          * Si on a un root_context_filter, on cherche celui qui est du type concerné
@@ -228,7 +228,7 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
          * Si on a un contextfilter, on check si on doit faire un update et si c'est nécessaire on le fait
          */
         if (!!context_filter) {
-            if (!RangeHandler.getInstance().are_same(context_filter.param_numranges, months_ranges)) {
+            if (!RangeHandler.are_same(context_filter.param_numranges, months_ranges)) {
                 context_filter.param_numranges = months_ranges;
             }
             return;
@@ -275,7 +275,7 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
         for (let i in this.months) {
             new_value[this.months[i]] = false;
         }
-        RangeHandler.getInstance().foreach_ranges_sync(context_filter.param_numranges, (month: number) => {
+        RangeHandler.foreach_ranges_sync(context_filter.param_numranges, (month: number) => {
             new_value[month] = true;
         });
 

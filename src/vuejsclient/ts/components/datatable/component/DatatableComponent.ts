@@ -630,7 +630,7 @@ export default class DatatableComponent extends VueComponentBase {
                         break;
                     }
 
-                    RangeHandler.getInstance().foreach_ranges_sync(field_value, (id: number) => {
+                    RangeHandler.foreach_ranges_sync(field_value, (id: number) => {
                         if (!field_values[id]) {
                             field_values[id] = id.toString();
                         }
@@ -832,7 +832,7 @@ export default class DatatableComponent extends VueComponentBase {
                 // case DatatableField.REF_RANGES_FIELD_TYPE:
                 //     let refField: RefRangesReferenceDatatableField<any> = (field) as RefRangesReferenceDatatableField<any>;
 
-                //     RangeHandler.getInstance().foreach_ranges_sync()
+                //     RangeHandler.foreach_ranges_sync()
                 //     let dest_ids: number[] = [];
                 //     let interTargetRefField = refField.interModuleTable.getRefFieldFromTargetVoType(refField.targetModuleTable.vo_type);
                 //     let interSrcRefField = refField.interModuleTable.getRefFieldFromTargetVoType(refField.moduleTable.vo_type);
@@ -1142,13 +1142,13 @@ export default class DatatableComponent extends VueComponentBase {
                                     let is_ok: boolean = false;
 
                                     if (query.start && query.start.length > 0) {
-                                        if (RangeHandler.getInstance().elt_intersects_range(moment(query.start).utc(true).unix(), tsrange)) {
+                                        if (RangeHandler.elt_intersects_range(moment(query.start).utc(true).unix(), tsrange)) {
                                             is_ok = true;
                                         }
                                     }
 
                                     if (query.end && query.end.length > 0) {
-                                        if (RangeHandler.getInstance().elt_intersects_range(moment(query.end).utc(true).unix(), tsrange)) {
+                                        if (RangeHandler.elt_intersects_range(moment(query.end).utc(true).unix(), tsrange)) {
                                             is_ok = true;
                                         }
                                     }
@@ -1409,7 +1409,7 @@ export default class DatatableComponent extends VueComponentBase {
             } else {
                 // si le premier item a un min de type number c'est que c'est un tableau de range alors on get le min du range
                 if (typeof raw_data[0].min === 'number') {
-                    return RangeHandler.getInstance().getSegmentedMin_from_ranges(raw_data as TSRange[]);
+                    return RangeHandler.getSegmentedMin_from_ranges(raw_data as TSRange[]);
                 }
             }
             // cas non identifié

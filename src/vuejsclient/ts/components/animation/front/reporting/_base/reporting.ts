@@ -193,7 +193,7 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
             }
 
             if (module.role_id_ranges && module.role_id_ranges.length > 0) {
-                role_ids = role_ids.concat(RangeHandler.getInstance().get_all_segmented_elements_from_ranges(module.role_id_ranges));
+                role_ids = role_ids.concat(RangeHandler.get_all_segmented_elements_from_ranges(module.role_id_ranges));
             }
         }
 
@@ -290,8 +290,8 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
             AnimationController.VarDayPrctReussiteAnimationController_VAR_NAME,
             true,
             this.get_anim_theme_id_ranges,
-            [RangeHandler.getInstance().create_single_elt_NumRange(aum.module_id, NumSegment.TYPE_INT)],
-            [RangeHandler.getInstance().create_single_elt_NumRange(aum.user_id, NumSegment.TYPE_INT)],
+            [RangeHandler.create_single_elt_NumRange(aum.module_id, NumSegment.TYPE_INT)],
+            [RangeHandler.create_single_elt_NumRange(aum.user_id, NumSegment.TYPE_INT)],
         );
     }
 
@@ -300,8 +300,8 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
             AnimationController.VarDayTempsPasseAnimationController_VAR_NAME,
             true,
             this.get_anim_theme_id_ranges,
-            [RangeHandler.getInstance().create_single_elt_NumRange(aum.module_id, NumSegment.TYPE_INT)],
-            [RangeHandler.getInstance().create_single_elt_NumRange(aum.user_id, NumSegment.TYPE_INT)],
+            [RangeHandler.create_single_elt_NumRange(aum.module_id, NumSegment.TYPE_INT)],
+            [RangeHandler.create_single_elt_NumRange(aum.user_id, NumSegment.TYPE_INT)],
         );
     }
 
@@ -309,7 +309,7 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
         let res: string[] = [];
 
         if (anim_module && anim_module.role_id_ranges && anim_module.role_id_ranges.length > 0) {
-            RangeHandler.getInstance().foreach_ranges_sync(anim_module.role_id_ranges, (role_id: number) => {
+            RangeHandler.foreach_ranges_sync(anim_module.role_id_ranges, (role_id: number) => {
                 let role: RoleVO = this.get_all_role_by_ids[role_id];
 
                 if (!role) {

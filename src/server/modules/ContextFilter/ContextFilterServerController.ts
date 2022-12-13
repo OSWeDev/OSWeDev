@@ -261,7 +261,7 @@ export default class ContextFilterServerController {
                             /**
                              * On devrait renommer en equals_all, et donc si on a un cardinal de tsranges > 1, on a forcément aucun résultat
                              */
-                            if (RangeHandler.getInstance().getCardinalFromArray(active_field_filter.param_tsranges) != 1) {
+                            if (RangeHandler.getCardinalFromArray(active_field_filter.param_tsranges) != 1) {
                                 where_conditions.push("false");
                                 break;
                             }
@@ -1898,7 +1898,7 @@ export default class ContextFilterServerController {
                         }
 
                         if (active_field_filter.param_numranges) {
-                            RangeHandler.getInstance().foreach_ranges_sync(active_field_filter.param_numranges, (num: number) => {
+                            RangeHandler.foreach_ranges_sync(active_field_filter.param_numranges, (num: number) => {
                                 ContextQueryInjectionCheckHandler.assert_numeric(num);
                                 where_conditions.push(field_id + " != " + num);
                             });
@@ -2295,7 +2295,7 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numranges && active_field_filter.param_numranges.length) {
                             let dows: number[] = [];
 
-                            RangeHandler.getInstance().foreach_ranges_sync(active_field_filter.param_numranges, (dow) => dows.push(dow));
+                            RangeHandler.foreach_ranges_sync(active_field_filter.param_numranges, (dow) => dows.push(dow));
                             if ((!dows) || (!dows.length)) {
                                 break;
                             }
@@ -2319,7 +2319,7 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numranges && active_field_filter.param_numranges.length) {
                             let years: number[] = [];
 
-                            RangeHandler.getInstance().foreach_ranges_sync(active_field_filter.param_numranges, (year) => years.push(year));
+                            RangeHandler.foreach_ranges_sync(active_field_filter.param_numranges, (year) => years.push(year));
                             if ((!years) || (!years.length)) {
                                 break;
                             }
@@ -2344,7 +2344,7 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numranges && active_field_filter.param_numranges.length) {
                             let years: number[] = [];
 
-                            RangeHandler.getInstance().foreach_ranges_sync(active_field_filter.param_numranges, (year) => years.push(year));
+                            RangeHandler.foreach_ranges_sync(active_field_filter.param_numranges, (year) => years.push(year));
                             if ((!years) || (!years.length)) {
                                 break;
                             }
@@ -2369,7 +2369,7 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numranges && active_field_filter.param_numranges.length) {
                             let years: number[] = [];
 
-                            RangeHandler.getInstance().foreach_ranges_sync(active_field_filter.param_numranges, (year) => years.push(year));
+                            RangeHandler.foreach_ranges_sync(active_field_filter.param_numranges, (year) => years.push(year));
                             if ((!years) || (!years.length)) {
                                 break;
                             }
@@ -2398,7 +2398,7 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numranges && active_field_filter.param_numranges.length) {
                             let months: number[] = [];
 
-                            RangeHandler.getInstance().foreach_ranges_sync(active_field_filter.param_numranges, (month) => months.push(month));
+                            RangeHandler.foreach_ranges_sync(active_field_filter.param_numranges, (month) => months.push(month));
                             if ((!months) || (!months.length)) {
                                 break;
                             }

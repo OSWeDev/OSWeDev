@@ -156,7 +156,7 @@ export default class ModuleVocusServer extends ModuleServerBase {
 
             promises.push((async () => {
                 let refvos: IDistantVOBase[] = await query(refField.module_table.vo_type)
-                    .filter_by_num_x_ranges(refField.field_id, [RangeHandler.getInstance().create_single_elt_NumRange(id, NumSegment.TYPE_INT)])
+                    .filter_by_num_x_ranges(refField.field_id, [RangeHandler.create_single_elt_NumRange(id, NumSegment.TYPE_INT)])
                     .select_vos<IDistantVOBase>();
 
                 for (let j in refvos) {

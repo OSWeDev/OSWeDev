@@ -372,11 +372,11 @@ export default class HourSegmentHandler {
     }
 
     public get_ts_ranges(segments: HourSegment[]): HourRange[] {
-        return RangeHandler.getInstance().getRangesUnion(this.get_hour_ranges_(segments));
+        return RangeHandler.getRangesUnion(this.get_hour_ranges_(segments));
     }
 
     public get_surrounding_ts_range(segments: HourSegment[]): HourRange {
-        return RangeHandler.getInstance().getMinSurroundingRange(this.get_hour_ranges_(segments));
+        return RangeHandler.getMinSurroundingRange(this.get_hour_ranges_(segments));
     }
 
     public get_segment_from_range_start(ts_range: HourRange, segment_type: number): HourSegment {
@@ -388,7 +388,7 @@ export default class HourSegmentHandler {
             segment_type = HourSegment.TYPE_MINUTE;
         }
 
-        let min = RangeHandler.getInstance().getSegmentedMin(ts_range, segment_type);
+        let min = RangeHandler.getSegmentedMin(ts_range, segment_type);
         return this.getCorrespondingHourSegment(min, segment_type);
     }
 
@@ -401,7 +401,7 @@ export default class HourSegmentHandler {
             segment_type = HourSegment.TYPE_MINUTE;
         }
 
-        let max = RangeHandler.getInstance().getSegmentedMax(ts_range, segment_type);
+        let max = RangeHandler.getSegmentedMax(ts_range, segment_type);
         return this.getCorrespondingHourSegment(max, segment_type);
     }
 

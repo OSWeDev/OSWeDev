@@ -102,7 +102,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
                         end_date = Dates.add(now, this.tmp_filter_active_opt.value, this.tmp_filter_active_opt.segmentation_type);
                     }
 
-                    ts_range = RangeHandler.getInstance().createNew(
+                    ts_range = RangeHandler.createNew(
                         TSRange.RANGE_TYPE,
                         start_date,
                         end_date,
@@ -181,7 +181,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
          * Si on a un contextfilter, on check si on doit faire un update et si c'est nécessaire on le fait
          */
         if (!!context_filter) {
-            if (!RangeHandler.getInstance().are_same(context_filter.param_tsranges, [ts_range])) {
+            if (!RangeHandler.are_same(context_filter.param_tsranges, [ts_range])) {
                 context_filter.param_tsranges = [ts_range];
             }
             return;

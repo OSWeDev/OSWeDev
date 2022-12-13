@@ -34,7 +34,7 @@ export default class MatroidController {
 
             for (let j in matroid_base.ranges) {
                 let range = matroid_base.ranges[j];
-                if (RangeHandler.getInstance().is_one_max_range(range)) {
+                if (RangeHandler.is_one_max_range(range)) {
                     return false;
                 }
             }
@@ -79,7 +79,7 @@ export default class MatroidController {
         for (let i in fields) {
             let field = fields[i];
 
-            res += '_' + RangeHandler.getInstance().getIndexRanges(matroid[field.field_type]);
+            res += '_' + RangeHandler.getIndexRanges(matroid[field.field_type]);
         }
 
         return res;
@@ -124,7 +124,7 @@ export default class MatroidController {
 
                 if (different_field_ids.length == 1) {
 
-                    // matroid[different_field_ids[0]] = RangeHandler.getInstance().getRangesUnion(tested_matroid[different_field_ids[0]].concat(matroid[different_field_ids[0]]));
+                    // matroid[different_field_ids[0]] = RangeHandler.getRangesUnion(tested_matroid[different_field_ids[0]].concat(matroid[different_field_ids[0]]));
                     // Au lieu de faire l'union à chaque rapprochement on tag ce champ comme nécessitant une union en fin de calcul avant de tout renvoyer
                     matroid[different_field_ids[0]] = tested_matroid[different_field_ids[0]].concat(matroid[different_field_ids[0]]);
                     if (!ranges_need_union[j]) {
@@ -148,7 +148,7 @@ export default class MatroidController {
             let matroid: T = res[i];
 
             for (let field_id in ranges_need_union[i]) {
-                matroid[field_id] = RangeHandler.getInstance().getRangesUnion(matroid[field_id]);
+                matroid[field_id] = RangeHandler.getRangesUnion(matroid[field_id]);
             }
 
             if (matroid['_index']) {
@@ -257,7 +257,7 @@ export default class MatroidController {
                 return null;
             }
 
-            if (RangeHandler.getInstance().are_same(a_ranges, b_ranges)) {
+            if (RangeHandler.are_same(a_ranges, b_ranges)) {
                 continue;
             }
 
@@ -327,7 +327,7 @@ export default class MatroidController {
                 case ModuleTableField.FIELD_TYPE_isoweekdays:
                     for (let j in a_ranges) {
 
-                        if (RangeHandler.getInstance().range_intersects_any_range(a_ranges[j], b_ranges)) {
+                        if (RangeHandler.range_intersects_any_range(a_ranges[j], b_ranges)) {
                             intersects = true;
                             break;
                         }
@@ -603,20 +603,20 @@ export default class MatroidController {
             }
 
             if (!!from_field_id) {
-                res[to_field.field_id] = clone_fields ? RangeHandler.getInstance().cloneArrayFrom(from[from_field_id]) : from[from_field_id];
+                res[to_field.field_id] = clone_fields ? RangeHandler.cloneArrayFrom(from[from_field_id]) : from[from_field_id];
             } else {
                 switch (to_field.field_type) {
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
                     case ModuleTableField.FIELD_TYPE_refrange_array:
                     case ModuleTableField.FIELD_TYPE_numrange_array:
                     case ModuleTableField.FIELD_TYPE_hourrange_array:
-                        res[to_field.field_id] = [RangeHandler.getInstance().getMaxRange(to_field)];
+                        res[to_field.field_id] = [RangeHandler.getMaxRange(to_field)];
                         break;
                     case ModuleTableField.FIELD_TYPE_tsrange:
                     case ModuleTableField.FIELD_TYPE_numrange:
                     case ModuleTableField.FIELD_TYPE_hourrange:
                     case ModuleTableField.FIELD_TYPE_daterange:
-                        res[to_field.field_id] = [RangeHandler.getInstance().getMaxRange(to_field)];
+                        res[to_field.field_id] = [RangeHandler.getMaxRange(to_field)];
                         break;
                     default:
                 }

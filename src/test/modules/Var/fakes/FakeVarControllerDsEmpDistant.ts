@@ -50,8 +50,8 @@ export default class FakeVarControllerDsEmpDistant extends VarServerControllerBa
             VarDataBaseVO.createNew(
                 this.varConf.name,
                 false,
-                [RangeHandler.getInstance().create_single_elt_NumRange((c_or_d_vo as FakeEmpDistantVO).employee_id, NumSegment.TYPE_INT)],
-                [RangeHandler.getInstance().create_single_elt_TSRange((c_or_d_vo as FakeEmpDistantVO).date, TimeSegment.TYPE_MONTH)]
+                [RangeHandler.create_single_elt_NumRange((c_or_d_vo as FakeEmpDistantVO).employee_id, NumSegment.TYPE_INT)],
+                [RangeHandler.create_single_elt_TSRange((c_or_d_vo as FakeEmpDistantVO).date, TimeSegment.TYPE_MONTH)]
             )
         ];
     }
@@ -70,14 +70,14 @@ export default class FakeVarControllerDsEmpDistant extends VarServerControllerBa
             VarDataBaseVO.createNew(
                 this.varConf.name,
                 false,
-                [RangeHandler.getInstance().create_single_elt_NumRange((typed.pre_update_vo as FakeEmpDistantVO).employee_id, NumSegment.TYPE_INT)],
-                [RangeHandler.getInstance().create_single_elt_TSRange((typed.pre_update_vo as FakeEmpDistantVO).date, TimeSegment.TYPE_MONTH)]
+                [RangeHandler.create_single_elt_NumRange((typed.pre_update_vo as FakeEmpDistantVO).employee_id, NumSegment.TYPE_INT)],
+                [RangeHandler.create_single_elt_TSRange((typed.pre_update_vo as FakeEmpDistantVO).date, TimeSegment.TYPE_MONTH)]
             ),
             VarDataBaseVO.createNew(
                 this.varConf.name,
                 false,
-                [RangeHandler.getInstance().create_single_elt_NumRange((typed.post_update_vo as FakeEmpDistantVO).employee_id, NumSegment.TYPE_INT)],
-                [RangeHandler.getInstance().create_single_elt_TSRange((typed.post_update_vo as FakeEmpDistantVO).date, TimeSegment.TYPE_MONTH)]
+                [RangeHandler.create_single_elt_NumRange((typed.post_update_vo as FakeEmpDistantVO).employee_id, NumSegment.TYPE_INT)],
+                [RangeHandler.create_single_elt_TSRange((typed.post_update_vo as FakeEmpDistantVO).date, TimeSegment.TYPE_MONTH)]
             )
         ];
     }

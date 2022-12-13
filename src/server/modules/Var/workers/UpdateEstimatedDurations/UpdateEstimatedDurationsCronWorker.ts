@@ -282,7 +282,7 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
         let batch_ids_ranges = null;
 
         if (batch_ids && batch_ids.length) {
-            batch_ids_ranges = RangeHandler.getInstance().get_ids_ranges_from_list(batch_ids);
+            batch_ids_ranges = RangeHandler.get_ids_ranges_from_list(batch_ids);
             let batchs: VarBatchPerfVO[] = await query(VarBatchPerfVO.API_TYPE_ID)
                 .filter_by_ids(batch_ids_ranges)
                 .select_vos<VarBatchPerfVO>();
@@ -303,7 +303,7 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
         }
 
         if (batch_ids && batch_ids.length) {
-            batch_ids_ranges = RangeHandler.getInstance().get_ids_ranges_from_list(batch_ids);
+            batch_ids_ranges = RangeHandler.get_ids_ranges_from_list(batch_ids);
             let batchs_vars: VarBatchVarPerfVO[] = await query(VarBatchVarPerfVO.API_TYPE_ID)
                 .filter_by_num_x_ranges('var_batch_perf_id', batch_ids_ranges)
                 .select_vos<VarBatchVarPerfVO>();

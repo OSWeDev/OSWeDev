@@ -112,8 +112,8 @@ export default class DataImportBGThread implements IBGThread {
                     .add_filters([
                         filter(DataImportHistoricVO.API_TYPE_ID, 'state').by_num_eq(
                             [
-                                RangeHandler.getInstance().create_single_elt_NumRange(ModuleDataImport.IMPORTATION_STATE_IMPORTED, NumSegment.TYPE_INT),
-                                RangeHandler.getInstance().create_single_elt_NumRange(ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT, NumSegment.TYPE_INT)
+                                RangeHandler.create_single_elt_NumRange(ModuleDataImport.IMPORTATION_STATE_IMPORTED, NumSegment.TYPE_INT),
+                                RangeHandler.create_single_elt_NumRange(ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT, NumSegment.TYPE_INT)
                             ]
                         ).or(
                             filter(DataImportHistoricVO.API_TYPE_ID, 'state').by_num_eq(

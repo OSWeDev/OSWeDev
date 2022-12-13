@@ -594,7 +594,7 @@ export default class ContextFilterVO implements IDistantVOBase {
      */
     public by_date_before(date: number, segmentation_type: number = TimeSegment.TYPE_SECOND): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_DATE_INTERSECTS;
-        this.param_tsranges = [RangeHandler.getInstance().createNew(TSRange.RANGE_TYPE, RangeHandler.MIN_TS, date, true, false, segmentation_type)];
+        this.param_tsranges = [RangeHandler.createNew(TSRange.RANGE_TYPE, RangeHandler.MIN_TS, date, true, false, segmentation_type)];
         return this;
     }
 
@@ -605,7 +605,7 @@ export default class ContextFilterVO implements IDistantVOBase {
      */
     public by_date_same_or_before(date: number, segmentation_type: number = TimeSegment.TYPE_SECOND): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_DATE_INTERSECTS;
-        this.param_tsranges = [RangeHandler.getInstance().createNew(TSRange.RANGE_TYPE, RangeHandler.MIN_TS, date, true, true, segmentation_type)];
+        this.param_tsranges = [RangeHandler.createNew(TSRange.RANGE_TYPE, RangeHandler.MIN_TS, date, true, true, segmentation_type)];
         return this;
     }
 
@@ -616,7 +616,7 @@ export default class ContextFilterVO implements IDistantVOBase {
      */
     public by_date_after(date: number, segmentation_type: number = TimeSegment.TYPE_SECOND): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_DATE_INTERSECTS;
-        this.param_tsranges = [RangeHandler.getInstance().createNew(TSRange.RANGE_TYPE, date, RangeHandler.MAX_TS, false, false, segmentation_type)];
+        this.param_tsranges = [RangeHandler.createNew(TSRange.RANGE_TYPE, date, RangeHandler.MAX_TS, false, false, segmentation_type)];
         return this;
     }
 
@@ -627,7 +627,7 @@ export default class ContextFilterVO implements IDistantVOBase {
      */
     public by_date_same_or_after(date: number, segmentation_type: number = TimeSegment.TYPE_SECOND): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_DATE_INTERSECTS;
-        this.param_tsranges = [RangeHandler.getInstance().createNew(TSRange.RANGE_TYPE, date, RangeHandler.MAX_TS, true, false, segmentation_type)];
+        this.param_tsranges = [RangeHandler.createNew(TSRange.RANGE_TYPE, date, RangeHandler.MAX_TS, true, false, segmentation_type)];
         return this;
     }
 

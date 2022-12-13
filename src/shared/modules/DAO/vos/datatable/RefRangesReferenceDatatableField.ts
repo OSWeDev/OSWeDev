@@ -53,7 +53,7 @@ export default class RefRangesReferenceDatatableField<Target extends IDistantVOB
         if (!destvos) {
             return res;
         }
-        RangeHandler.getInstance().foreach_ranges_sync(e[this.datatable_field_uid], (id: number) => {
+        RangeHandler.foreach_ranges_sync(e[this.datatable_field_uid], (id: number) => {
             let thisvalue: string = this.dataToHumanReadable(destvos[id]);
             res += (res != "") ? " " + thisvalue : thisvalue;
         });
@@ -68,7 +68,7 @@ export default class RefRangesReferenceDatatableField<Target extends IDistantVOB
         if (!destvos) {
             return dest_ids;
         }
-        RangeHandler.getInstance().foreach_ranges_sync(vo[this.datatable_field_uid], (id: number) => {
+        RangeHandler.foreach_ranges_sync(vo[this.datatable_field_uid], (id: number) => {
             dest_ids.push(id);
         });
         return dest_ids;

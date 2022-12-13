@@ -644,7 +644,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         //         let ranges: NumRange[] = ModuleDAOServer.getInstance().get_all_ranges_from_segmented_table(moduletable_vardata);
 
-        //         await RangeHandler.getInstance().foreach_ranges(ranges, async (segment: number) => {
+        //         await RangeHandler.foreach_ranges(ranges, async (segment: number) => {
         //             let request: string = 'delete from ' + moduletable_vardata.get_segmented_full_name(segment) + ' t where ' +
         //                 query_ + ' and value_type=' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';';
         //             await ModuleServiceBase.getInstance().db.query(request);
@@ -699,7 +699,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         //         let ranges: NumRange[] = ModuleDAOServer.getInstance().get_all_ranges_from_segmented_table(moduletable_vardata);
 
-        //         await RangeHandler.getInstance().foreach_ranges(ranges, async (segment: number) => {
+        //         await RangeHandler.foreach_ranges(ranges, async (segment: number) => {
         //             let request: string = 'delete from ' + moduletable_vardata.get_segmented_full_name(segment) + ' t where ' +
         //                 query_ + ';';
         //             await ModuleServiceBase.getInstance().db.query(request);
@@ -1259,7 +1259,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             for (let i in varconf.pixel_fields) {
                 let pixel_field = varconf.pixel_fields[i];
 
-                if (RangeHandler.getInstance().getCardinalFromArray(param[pixel_field.pixel_param_field_id]) != 1) {
+                if (RangeHandler.getCardinalFromArray(param[pixel_field.pixel_param_field_id]) != 1) {
                     is_pixel = false;
                     break;
                 }
@@ -1404,7 +1404,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                                         refuse_param = true;
                                     }
                                 } else {
-                                    var_param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxNumRange()];
+                                    var_param[matroid_field.field_id] = [RangeHandler.getMaxNumRange()];
                                 }
                                 break;
                             }
@@ -1412,7 +1412,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                             let ids: number[] = [];
                             ids_db.forEach((id_db) => ids.push(id_db.id));
 
-                            var_param[matroid_field.field_id] = RangeHandler.getInstance().get_ids_ranges_from_list(ids);
+                            var_param[matroid_field.field_id] = RangeHandler.get_ids_ranges_from_list(ids);
                         } else {
                             // Max range étant interdit sur les registers de var, on force un retour null
                             if (!accept_max_ranges) {
@@ -1422,7 +1422,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                                     refuse_param = true;
                                 }
                             } else {
-                                var_param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxNumRange()];
+                                var_param[matroid_field.field_id] = [RangeHandler.getMaxNumRange()];
                             }
                         }
                         break;
@@ -1434,7 +1434,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                                 refuse_param = true;
                             }
                         } else {
-                            var_param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxHourRange()];
+                            var_param[matroid_field.field_id] = [RangeHandler.getMaxHourRange()];
                         }
                         break;
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
@@ -1461,7 +1461,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                                     }
 
                                 } else {
-                                    var_param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxNumRange()];
+                                    var_param[matroid_field.field_id] = [RangeHandler.getMaxNumRange()];
                                 }
                                 return;
                             }
@@ -1477,7 +1477,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                             }
 
                         } else {
-                            var_param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxTSRange()];
+                            var_param[matroid_field.field_id] = [RangeHandler.getMaxTSRange()];
                         }
                         break;
                 }
@@ -1513,7 +1513,7 @@ export default class ModuleVarServer extends ModuleServerBase {
          *      par contre si on commence par limiter à 2019 et 2020 on a 1 range, puis 2 avec le découpage mois, puis ~60 avec les découpages lundi et jeudi donc là ça passe
          */
         if (!custom_filter) {
-            return [RangeHandler.getInstance().getMaxTSRange()];
+            return [RangeHandler.getMaxTSRange()];
         }
 
         /**
@@ -1521,7 +1521,7 @@ export default class ModuleVarServer extends ModuleServerBase {
          */
         let year = ContextFilterHandler.getInstance().find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_YEAR);
         if (!year) {
-            return [RangeHandler.getInstance().getMaxTSRange()];
+            return [RangeHandler.getMaxTSRange()];
         }
 
         let tsranges = this.get_ts_ranges_from_custom_filter_year(year, limit_nb_range);
@@ -1558,7 +1558,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         let numranges: NumRange[] = null;
 
         if (custom_filter.param_numeric != null) {
-            numranges = [RangeHandler.getInstance().create_single_elt_NumRange(custom_filter.param_numeric, NumSegment.TYPE_INT)];
+            numranges = [RangeHandler.create_single_elt_NumRange(custom_filter.param_numeric, NumSegment.TYPE_INT)];
         }
 
         numranges = numranges ? numranges : custom_filter.param_numranges;
@@ -1567,23 +1567,23 @@ export default class ModuleVarServer extends ModuleServerBase {
             return tsranges;
         }
 
-        if ((RangeHandler.getInstance().getCardinalFromArray(tsranges) * numranges.length) > limit_nb_range) {
+        if ((RangeHandler.getCardinalFromArray(tsranges) * numranges.length) > limit_nb_range) {
             return null;
         }
 
         let res: TSRange[] = [];
-        RangeHandler.getInstance().foreach_ranges_sync(tsranges, (day: number) => {
+        RangeHandler.foreach_ranges_sync(tsranges, (day: number) => {
 
-            RangeHandler.getInstance().foreach_ranges_sync(numranges, (dom: number) => {
+            RangeHandler.foreach_ranges_sync(numranges, (dom: number) => {
 
                 if (dom == Dates.date(day)) {
-                    res.push(RangeHandler.getInstance().create_single_elt_TSRange(day, TimeSegment.TYPE_DAY));
+                    res.push(RangeHandler.create_single_elt_TSRange(day, TimeSegment.TYPE_DAY));
                 }
             });
         }, TimeSegment.TYPE_DAY);
 
         if (res && res.length) {
-            res = RangeHandler.getInstance().getRangesUnion(res);
+            res = RangeHandler.getRangesUnion(res);
         }
         return res;
     }
@@ -1592,7 +1592,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         let numranges: NumRange[] = null;
 
         if (custom_filter.param_numeric != null) {
-            numranges = [RangeHandler.getInstance().create_single_elt_NumRange(custom_filter.param_numeric, NumSegment.TYPE_INT)];
+            numranges = [RangeHandler.create_single_elt_NumRange(custom_filter.param_numeric, NumSegment.TYPE_INT)];
         }
 
         numranges = numranges ? numranges : custom_filter.param_numranges;
@@ -1601,23 +1601,23 @@ export default class ModuleVarServer extends ModuleServerBase {
             return tsranges;
         }
 
-        if ((RangeHandler.getInstance().getCardinalFromArray(tsranges) * numranges.length) > limit_nb_range) {
+        if ((RangeHandler.getCardinalFromArray(tsranges) * numranges.length) > limit_nb_range) {
             return null;
         }
 
         let res: TSRange[] = [];
-        RangeHandler.getInstance().foreach_ranges_sync(tsranges, (day: number) => {
+        RangeHandler.foreach_ranges_sync(tsranges, (day: number) => {
 
-            RangeHandler.getInstance().foreach_ranges_sync(numranges, (dow: number) => {
+            RangeHandler.foreach_ranges_sync(numranges, (dow: number) => {
 
                 if (dow == Dates.isoWeekday(day)) {
-                    res.push(RangeHandler.getInstance().create_single_elt_TSRange(day, TimeSegment.TYPE_DAY));
+                    res.push(RangeHandler.create_single_elt_TSRange(day, TimeSegment.TYPE_DAY));
                 }
             });
         }, TimeSegment.TYPE_DAY);
 
         if (res && res.length) {
-            res = RangeHandler.getInstance().getRangesUnion(res);
+            res = RangeHandler.getRangesUnion(res);
         }
         return res;
     }
@@ -1626,7 +1626,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         let numranges: NumRange[] = null;
 
         if (custom_filter.param_numeric != null) {
-            numranges = [RangeHandler.getInstance().create_single_elt_NumRange(custom_filter.param_numeric, NumSegment.TYPE_INT)];
+            numranges = [RangeHandler.create_single_elt_NumRange(custom_filter.param_numeric, NumSegment.TYPE_INT)];
         }
 
         numranges = numranges ? numranges : custom_filter.param_numranges;
@@ -1635,28 +1635,28 @@ export default class ModuleVarServer extends ModuleServerBase {
             return tsranges;
         }
 
-        if ((RangeHandler.getInstance().getCardinalFromArray(tsranges) * numranges.length) > limit_nb_range) {
+        if ((RangeHandler.getCardinalFromArray(tsranges) * numranges.length) > limit_nb_range) {
             return null;
         }
 
         let res: TSRange[] = [];
-        RangeHandler.getInstance().foreach_ranges_sync(tsranges, (year: number) => {
+        RangeHandler.foreach_ranges_sync(tsranges, (year: number) => {
 
-            RangeHandler.getInstance().foreach_ranges_sync(numranges, (month_i: number) => {
+            RangeHandler.foreach_ranges_sync(numranges, (month_i: number) => {
 
-                res.push(RangeHandler.getInstance().create_single_elt_TSRange(Dates.add(year, month_i - 1, TimeSegment.TYPE_MONTH), TimeSegment.TYPE_MONTH));
+                res.push(RangeHandler.create_single_elt_TSRange(Dates.add(year, month_i - 1, TimeSegment.TYPE_MONTH), TimeSegment.TYPE_MONTH));
             });
         });
 
         if (res && res.length) {
-            res = RangeHandler.getInstance().getRangesUnion(res);
+            res = RangeHandler.getRangesUnion(res);
         }
         return res;
     }
 
     private get_ts_ranges_from_custom_filter_year(custom_filter: ContextFilterVO, limit_nb_range): TSRange[] {
         if (custom_filter.param_numeric != null) {
-            return [RangeHandler.getInstance().create_single_elt_TSRange(Dates.startOf(Dates.year(0, custom_filter.param_numeric), TimeSegment.TYPE_YEAR), TimeSegment.TYPE_YEAR)];
+            return [RangeHandler.create_single_elt_TSRange(Dates.startOf(Dates.year(0, custom_filter.param_numeric), TimeSegment.TYPE_YEAR), TimeSegment.TYPE_YEAR)];
         }
 
         if (custom_filter.param_numranges && (custom_filter.param_numranges.length > limit_nb_range)) {
@@ -1664,8 +1664,8 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         let res: TSRange[] = [];
-        RangeHandler.getInstance().foreach_ranges_sync(custom_filter.param_numranges, (year: number) => {
-            res.push(RangeHandler.getInstance().create_single_elt_TSRange(Dates.startOf(Dates.year(0, year), TimeSegment.TYPE_YEAR), TimeSegment.TYPE_YEAR));
+        RangeHandler.foreach_ranges_sync(custom_filter.param_numranges, (year: number) => {
+            res.push(RangeHandler.create_single_elt_TSRange(Dates.startOf(Dates.year(0, year), TimeSegment.TYPE_YEAR), TimeSegment.TYPE_YEAR));
         });
         return res;
     }

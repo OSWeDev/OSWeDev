@@ -50,10 +50,10 @@ export default class VarsDatasExplorerActionsComponent extends VueComponentBase 
         for (let i in matroid_bases) {
             let matroid_base = matroid_bases[i];
 
-            let max_range = RangeHandler.getInstance().getMaxRange(moduleTable.get_field_by_id(matroid_base.field_id));
+            let max_range = RangeHandler.getMaxRange(moduleTable.get_field_by_id(matroid_base.field_id));
 
-            if ((RangeHandler.getInstance().getSegmentedMax_from_ranges(matroid_base.ranges) == RangeHandler.getInstance().getSegmentedMax(max_range)) ||
-                (RangeHandler.getInstance().getSegmentedMin_from_ranges(matroid_base.ranges) == RangeHandler.getInstance().getSegmentedMin(max_range))) {
+            if ((RangeHandler.getSegmentedMax_from_ranges(matroid_base.ranges) == RangeHandler.getSegmentedMax(max_range)) ||
+                (RangeHandler.getSegmentedMin_from_ranges(matroid_base.ranges) == RangeHandler.getSegmentedMin(max_range))) {
                 return false;
             }
         }

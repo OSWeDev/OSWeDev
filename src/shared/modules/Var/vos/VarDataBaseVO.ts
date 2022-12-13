@@ -72,19 +72,19 @@ export default class VarDataBaseVO implements IMatroid {
                 // ConsoleHandler.warn('createNew:field null:' + var_name + ':' + field.field_id + ':');
                 switch (field.field_type) {
                     case ModuleTableField.FIELD_TYPE_numrange_array:
-                        res[field.field_id] = [RangeHandler.getInstance().getMaxNumRange()];
+                        res[field.field_id] = [RangeHandler.getMaxNumRange()];
                         break;
                     case ModuleTableField.FIELD_TYPE_hourrange_array:
-                        res[field.field_id] = [RangeHandler.getInstance().getMaxHourRange()];
+                        res[field.field_id] = [RangeHandler.getMaxHourRange()];
                         break;
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                        res[field.field_id] = [RangeHandler.getInstance().getMaxTSRange()];
+                        res[field.field_id] = [RangeHandler.getMaxTSRange()];
                         break;
                     default:
                         break;
                 }
             } else {
-                res[field.field_id] = clone_fields ? RangeHandler.getInstance().cloneArrayFrom(fields_ordered_as_in_moduletable_definition[param_i]) : fields_ordered_as_in_moduletable_definition[param_i];
+                res[field.field_id] = clone_fields ? RangeHandler.cloneArrayFrom(fields_ordered_as_in_moduletable_definition[param_i]) : fields_ordered_as_in_moduletable_definition[param_i];
             }
             param_i++;
         }
@@ -107,7 +107,7 @@ export default class VarDataBaseVO implements IMatroid {
             let ranges = vardata[field_id];
 
             if (ranges && (segmentation_cible != null)) {
-                vardata[field_id] = RangeHandler.getInstance().get_ranges_according_to_segment_type(
+                vardata[field_id] = RangeHandler.get_ranges_according_to_segment_type(
                     ranges, field_segmentations[field_id], true);
             }
         }
@@ -124,7 +124,7 @@ export default class VarDataBaseVO implements IMatroid {
                     let segmentation_cible = varConf.segment_types[field.field_id];
                     segmentation_cible = (segmentation_cible != null) ?
                         segmentation_cible :
-                        RangeHandler.getInstance().get_smallest_segment_type_for_range_type(RangeHandler.getInstance().getRangeType(field));
+                        RangeHandler.get_smallest_segment_type_for_range_type(RangeHandler.getRangeType(field));
                     res[field.field_id] = segmentation_cible;
                 }
             }

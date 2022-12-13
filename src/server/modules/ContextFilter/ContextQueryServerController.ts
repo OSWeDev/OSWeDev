@@ -270,7 +270,7 @@ export default class ContextQueryServerController {
 
                 switch (module_field.field_type) {
                     case ModuleTableField.FIELD_TYPE_tsrange:
-                        row[field_id] = RangeHandler.getInstance().parseRangeBDD(
+                        row[field_id] = RangeHandler.parseRangeBDD(
                             TSRange.RANGE_TYPE, row[field_id], (module_field.segmentation_type ? module_field.segmentation_type : TimeSegment.TYPE_SECOND));
                         break;
                     default:

@@ -146,14 +146,14 @@ export default class VarDescComponent extends VueComponentBase {
                 for (let j in VarsDatasExplorerFiltersComponent.instance.enum_initial_options[matroid_field.field_id]) {
                     let initial_option = VarsDatasExplorerFiltersComponent.instance.enum_initial_options[matroid_field.field_id][j];
 
-                    if (RangeHandler.getInstance().elt_intersects_any_range(initial_option.id, field_value)) {
+                    if (RangeHandler.elt_intersects_any_range(initial_option.id, field_value)) {
                         field_options.push(initial_option);
                     }
                 }
                 VarsDatasExplorerFiltersComponent.instance.fields_filters_list[matroid_field.field_id] = field_options;
             } else {
                 VarsDatasExplorerFiltersComponent.instance.fields_filters_range[matroid_field.field_id] =
-                    RangeHandler.getInstance().getMinSurroundingRange(field_value);
+                    RangeHandler.getMinSurroundingRange(field_value);
             }
         }
     }

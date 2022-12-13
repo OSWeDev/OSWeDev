@@ -382,7 +382,7 @@ export default class ContextFilterHandler {
             case ModuleTableField.FIELD_TYPE_amount:
             case ModuleTableField.FIELD_TYPE_prct:
                 translated_active_options.filter_type = ContextFilterVO.TYPE_NUMERIC_INTERSECTS;
-                translated_active_options.param_numranges = RangeHandler.getInstance().get_ids_ranges_from_list([active_option.numeric_value]);
+                translated_active_options.param_numranges = RangeHandler.get_ids_ranges_from_list([active_option.numeric_value]);
                 break;
 
             case ModuleTableField.FIELD_TYPE_html:
@@ -398,7 +398,7 @@ export default class ContextFilterHandler {
 
             case ModuleTableField.FIELD_TYPE_enum:
                 translated_active_options.filter_type = ContextFilterVO.TYPE_NUMERIC_INTERSECTS;
-                translated_active_options.param_numranges = [RangeHandler.getInstance().create_single_elt_NumRange(active_option.numeric_value, NumSegment.TYPE_INT)];
+                translated_active_options.param_numranges = [RangeHandler.create_single_elt_NumRange(active_option.numeric_value, NumSegment.TYPE_INT)];
                 break;
 
             case ModuleTableField.FIELD_TYPE_tstz:
@@ -431,7 +431,7 @@ export default class ContextFilterHandler {
             if (a.param_numranges && b.param_numranges) {
                 a.param_numranges = a.param_numranges.concat(b.param_numranges);
                 if (try_union) {
-                    a.param_numranges = RangeHandler.getInstance().getRangesUnion(a.param_numranges);
+                    a.param_numranges = RangeHandler.getRangesUnion(a.param_numranges);
                 }
                 return a;
             }
@@ -439,7 +439,7 @@ export default class ContextFilterHandler {
             if (a.param_tsranges && b.param_tsranges) {
                 a.param_tsranges = a.param_tsranges.concat(b.param_tsranges);
                 if (try_union) {
-                    a.param_tsranges = RangeHandler.getInstance().getRangesUnion(a.param_tsranges);
+                    a.param_tsranges = RangeHandler.getRangesUnion(a.param_tsranges);
                 }
                 return a;
             }

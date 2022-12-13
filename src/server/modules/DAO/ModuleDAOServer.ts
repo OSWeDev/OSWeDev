@@ -137,7 +137,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         for (let i in segmentations) {
             let segment = segmentations[i];
 
-            ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(segment, moduleTable.table_segmented_field_segment_type));
+            ranges.push(RangeHandler.create_single_elt_NumRange(segment, moduleTable.table_segmented_field_segment_type));
         }
 
         return ranges;
@@ -647,7 +647,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 continue;
             }
 
-            matroid_fields_ranges_by_datatable_field_id[field_id] = RangeHandler.getInstance().getRangesUnion(matroid_fields_ranges_by_datatable_field_id[field_id]) as IRange[];
+            matroid_fields_ranges_by_datatable_field_id[field_id] = RangeHandler.getRangesUnion(matroid_fields_ranges_by_datatable_field_id[field_id]) as IRange[];
         }
 
         // On stock l'info du type (cardinal 1 ou n pour chaque field du param)
@@ -817,7 +817,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         for (let j in ranges) {
             let field_range: IRange = ranges[j];
 
-            if (!RangeHandler.getInstance().isValid(field_range)) {
+            if (!RangeHandler.isValid(field_range)) {
                 ConsoleHandler.error('field_range invalid:' + api_type_id + ':' + JSON.stringify(field_range) + ':');
                 return null;
             }
@@ -902,12 +902,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             let ranges = this.get_all_ranges_from_segmented_table(datatable);
 
-            if ((!ranges) || (RangeHandler.getInstance().getCardinalFromArray(ranges) < 1)) {
+            if ((!ranges) || (RangeHandler.getCardinalFromArray(ranges) < 1)) {
                 return null;
             }
 
             let self = this;
-            await RangeHandler.getInstance().foreach_ranges(ranges, async (segment_value) => {
+            await RangeHandler.foreach_ranges(ranges, async (segment_value) => {
 
                 if (!self.has_segmented_known_database(datatable, segment_value)) {
                     return;
@@ -1595,12 +1595,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     ranges = this.get_all_ranges_from_segmented_table(datatable);
                 }
 
-                if ((!ranges) || (RangeHandler.getInstance().getCardinalFromArray(ranges) < 1)) {
+                if ((!ranges) || (RangeHandler.getCardinalFromArray(ranges) < 1)) {
                     return null;
                 }
 
                 let self = this;
-                await RangeHandler.getInstance().foreach_ranges(ranges, async (segment_value) => {
+                await RangeHandler.foreach_ranges(ranges, async (segment_value) => {
 
                     if (!self.has_segmented_known_database(datatable, segment_value)) {
                         return;
@@ -1650,7 +1650,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 ranges = this.get_all_ranges_from_segmented_table(moduleTable);
             }
 
-            if ((!ranges) || (RangeHandler.getInstance().getCardinalFromArray(ranges) < 1)) {
+            if ((!ranges) || (RangeHandler.getCardinalFromArray(ranges) < 1)) {
                 return null;
             }
 
@@ -1659,7 +1659,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             // TODO MDE - UNION ALL et vérifier si plus rapide sur PSA
             let segmentations_tables: { [table_name: string]: number } = {};
 
-            RangeHandler.getInstance().foreach_ranges_sync(ranges, (segment_value) => {
+            RangeHandler.foreach_ranges_sync(ranges, (segment_value) => {
 
                 if (!this.has_segmented_known_database(moduleTable, segment_value)) {
                     return;
@@ -1741,14 +1741,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 ranges = this.get_all_ranges_from_segmented_table(moduleTable);
             }
 
-            if ((!ranges) || (RangeHandler.getInstance().getCardinalFromArray(ranges) < 1)) {
+            if ((!ranges) || (RangeHandler.getCardinalFromArray(ranges) < 1)) {
                 return null;
             }
 
             let segmented_vo: T = null;
             let error: boolean = false;
             let self = this;
-            await RangeHandler.getInstance().foreach_ranges(ranges, async (segment_value) => {
+            await RangeHandler.foreach_ranges(ranges, async (segment_value) => {
 
                 if (!self.has_segmented_known_database(moduleTable, segment_value)) {
                     return;
@@ -2307,7 +2307,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     promises.push((async () => {
                         try {
                             let nb: number = await this.countVosByIdsRanges(field.manyToOne_target_moduletable.vo_type, vo[field.field_id]);
-                            if (nb != RangeHandler.getInstance().getCardinalFromArray(vo[field.field_id])) {
+                            if (nb != RangeHandler.getCardinalFromArray(vo[field.field_id])) {
                                 refuse = true;
                             }
                         } catch (error) {
@@ -2982,7 +2982,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                     await ModuleTableDBService.getInstance(null).create_or_update_datatable(
                         moduleTable,
-                        [RangeHandler.getInstance().create_single_elt_range(moduleTable.table_segmented_field_range_type, moduleTable.get_segmented_field_value_from_vo(vo), moduleTable.table_segmented_field_segment_type)]);
+                        [RangeHandler.create_single_elt_range(moduleTable.table_segmented_field_range_type, moduleTable.get_segmented_field_value_from_vo(vo), moduleTable.table_segmented_field_segment_type)]);
                 }
             } else {
                 full_name = moduleTable.full_name;
@@ -3070,7 +3070,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             if (segmentation_ranges && segmentation_ranges.length) {
 
                 let self = this;
-                RangeHandler.getInstance().foreach_ranges_sync(segmentation_ranges, (segmented_value) => {
+                RangeHandler.foreach_ranges_sync(segmentation_ranges, (segmented_value) => {
 
                     if (!self.has_segmented_known_database(moduleTable, segmented_value)) {
                         return;
@@ -3187,7 +3187,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 for (let i in ids) {
                     let id: number = ids[i];
 
-                    numrange_ids.push(RangeHandler.getInstance().create_single_elt_NumRange(id, NumSegment.TYPE_INT));
+                    numrange_ids.push(RangeHandler.create_single_elt_NumRange(id, NumSegment.TYPE_INT));
                 }
 
                 let where_clause: string = '';
@@ -3408,7 +3408,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             // ATTENTION ne pas utiliser le MAX range en param
             let vos: T[] = [];
-            await RangeHandler.getInstance().foreach_ranges(segmentation_ranges, async (segmentation: number) => {
+            await RangeHandler.foreach_ranges(segmentation_ranges, async (segmentation: number) => {
                 let temp = await this.get_request_for_getVosByRefFieldsIdsAndFieldsString(
                     field_name1,
                     ids1,
@@ -3845,7 +3845,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 // }
 
                 let self = this;
-                RangeHandler.getInstance().foreach_ranges_sync(segmentations, (segmented_value) => {
+                RangeHandler.foreach_ranges_sync(segmentations, (segmented_value) => {
 
                     if (!self.has_segmented_known_database(moduleTable, segmented_value)) {
                         return;
@@ -3939,7 +3939,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
 
             // FIXME TODO : est-ce qu'on est obligé de faire une copie à chaque fois ???
-            matroid_fields_ranges_by_datatable_field_id[field.field_id] = RangeHandler.getInstance().cloneArrayFrom(ranges);
+            matroid_fields_ranges_by_datatable_field_id[field.field_id] = RangeHandler.cloneArrayFrom(ranges);
         }
 
         return matroid_fields_ranges_by_datatable_field_id;
@@ -4005,7 +4005,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 if (segmentations && segmentations.length) {
 
                     let self = this;
-                    RangeHandler.getInstance().foreach_ranges_sync(segmentations, (segmented_value) => {
+                    RangeHandler.foreach_ranges_sync(segmentations, (segmented_value) => {
 
                         if (!self.has_segmented_known_database(moduleTable, segmented_value)) {
                             return;
@@ -4257,7 +4257,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 if (segmentations && segmentations.length) {
 
                     let self = this;
-                    RangeHandler.getInstance().foreach_ranges_sync(segmentations, (segmented_value) => {
+                    RangeHandler.foreach_ranges_sync(segmentations, (segmented_value) => {
 
                         if (!self.has_segmented_known_database(moduleTable, segmented_value)) {
                             return;
@@ -4581,11 +4581,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     private get_range_check_simple_field_type_valeur(field: ModuleTableField<any>, filter_field_type: string, range: IRange, table_name: string): string {
-        if ((field.segmentation_type == range.segment_type) && (RangeHandler.getInstance().getCardinal(range) == 1)) {
-            return table_name + '.' + field.field_id + ' = ' + this.get_range_segment_value_to_bdd(field, filter_field_type, RangeHandler.getInstance().getSegmentedMin(range)) + ' ';
+        if ((field.segmentation_type == range.segment_type) && (RangeHandler.getCardinal(range) == 1)) {
+            return table_name + '.' + field.field_id + ' = ' + this.get_range_segment_value_to_bdd(field, filter_field_type, RangeHandler.getSegmentedMin(range)) + ' ';
         } else {
-            let segmented_min = RangeHandler.getInstance().getSegmentedMin(range);
-            let segmented_max = RangeHandler.getInstance().getSegmentedMax(range, range.segment_type, 1);
+            let segmented_min = RangeHandler.getSegmentedMin(range);
+            let segmented_max = RangeHandler.getSegmentedMax(range, range.segment_type, 1);
 
             return table_name + '.' + field.field_id + ' >= ' + this.get_range_segment_value_to_bdd(field, filter_field_type, segmented_min) + ' and ' +
                 table_name + '.' + field.field_id + ' < ' + this.get_range_segment_value_to_bdd(field, filter_field_type, segmented_max) + ' ';

@@ -93,23 +93,23 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
         await all_promises(promises);
 
         for (let i in this.themes) {
-            this.theme_id_ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(this.themes[i].id, NumSegment.TYPE_INT));
+            this.theme_id_ranges.push(RangeHandler.create_single_elt_NumRange(this.themes[i].id, NumSegment.TYPE_INT));
         }
 
         this.prct_atteinte_seuil_module_param = ThemeModuleDataRangesVO.createNew(
             AnimationController.VarDayPrctAtteinteSeuilAnimationController_VAR_NAME,
             true,
             this.theme_id_ranges,
-            [RangeHandler.getInstance().create_single_elt_NumRange(this.anim_module.id, NumSegment.TYPE_INT)],
-            [RangeHandler.getInstance().create_single_elt_NumRange(this.logged_user_id, NumSegment.TYPE_INT)],
+            [RangeHandler.create_single_elt_NumRange(this.anim_module.id, NumSegment.TYPE_INT)],
+            [RangeHandler.create_single_elt_NumRange(this.logged_user_id, NumSegment.TYPE_INT)],
         );
 
         this.prct_reussite_module_param = ThemeModuleDataRangesVO.createNew(
             AnimationController.VarDayPrctReussiteAnimationController_VAR_NAME,
             true,
             this.theme_id_ranges,
-            [RangeHandler.getInstance().create_single_elt_NumRange(this.anim_module.id, NumSegment.TYPE_INT)],
-            [RangeHandler.getInstance().create_single_elt_NumRange(this.logged_user_id, NumSegment.TYPE_INT)],
+            [RangeHandler.create_single_elt_NumRange(this.anim_module.id, NumSegment.TYPE_INT)],
+            [RangeHandler.create_single_elt_NumRange(this.logged_user_id, NumSegment.TYPE_INT)],
         );
 
         promises = [];

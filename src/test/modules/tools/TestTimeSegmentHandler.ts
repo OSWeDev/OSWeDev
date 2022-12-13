@@ -97,9 +97,9 @@ describe('TimeSegmentHandler', () => {
     });
 
     it('test get_surrounding_ts_range', () => {
-        expect(RangeHandler.getInstance().getIndex(TimeSegmentHandler.getInstance().get_surrounding_ts_range([
+        expect(RangeHandler.getIndex(TimeSegmentHandler.getInstance().get_surrounding_ts_range([
             TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2019-01-01').utc(true).unix(), TimeSegment.TYPE_YEAR)]))).to.equal('0KqDrc');
-        expect(RangeHandler.getInstance().getIndex(TimeSegmentHandler.getInstance().get_surrounding_ts_range([
+        expect(RangeHandler.getIndex(TimeSegmentHandler.getInstance().get_surrounding_ts_range([
             TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2015-02-01').utc(true).unix(), TimeSegment.TYPE_MONTH)]))).to.equal('1GN4W/');
     });
 

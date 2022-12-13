@@ -117,13 +117,13 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
             if (!all_aum_by_theme_module_user[theme.id]) {
                 all_aum_by_theme_module_user[theme.id] = {};
 
-                theme_id_ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(theme.id, NumSegment.TYPE_INT));
+                theme_id_ranges.push(RangeHandler.create_single_elt_NumRange(theme.id, NumSegment.TYPE_INT));
             }
 
             if (!all_aum_by_theme_module_user[theme.id][aum.module_id]) {
                 all_aum_by_theme_module_user[theme.id][aum.module_id] = {};
 
-                module_id_ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(aum.module_id, NumSegment.TYPE_INT));
+                module_id_ranges.push(RangeHandler.create_single_elt_NumRange(aum.module_id, NumSegment.TYPE_INT));
             }
 
             if (!all_aum_by_theme_module_user[theme.id][aum.module_id][aum.user_id]) {
@@ -137,14 +137,14 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
 
                 if (!user_id_add[aum.user_id]) {
                     user_id_add[aum.user_id] = true;
-                    user_id_ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(aum.user_id, NumSegment.TYPE_INT));
+                    user_id_ranges.push(RangeHandler.create_single_elt_NumRange(aum.user_id, NumSegment.TYPE_INT));
                 }
 
                 user_ids.push(aum.user_id);
             }
 
             if (module.role_id_ranges && module.role_id_ranges.length > 0) {
-                role_ids = role_ids.concat(RangeHandler.getInstance().get_all_segmented_elements_from_ranges(module.role_id_ranges));
+                role_ids = role_ids.concat(RangeHandler.get_all_segmented_elements_from_ranges(module.role_id_ranges));
             }
         }
 
@@ -248,7 +248,7 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
         let roles: string[] = [];
 
         if (module && module.role_id_ranges && module.role_id_ranges.length > 0) {
-            await RangeHandler.getInstance().foreach_ranges(module.role_id_ranges, async (role_id: number) => {
+            await RangeHandler.foreach_ranges(module.role_id_ranges, async (role_id: number) => {
                 let role: RoleVO = all_role_by_ids[role_id];
 
                 if (!role) {
@@ -259,8 +259,8 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
             });
         }
 
-        let module_id_ranges: NumRange[] = [RangeHandler.getInstance().create_single_elt_NumRange(aum.module_id, NumSegment.TYPE_INT)];
-        let user_id_ranges: NumRange[] = [RangeHandler.getInstance().create_single_elt_NumRange(aum.user_id, NumSegment.TYPE_INT)];
+        let module_id_ranges: NumRange[] = [RangeHandler.create_single_elt_NumRange(aum.module_id, NumSegment.TYPE_INT)];
+        let user_id_ranges: NumRange[] = [RangeHandler.create_single_elt_NumRange(aum.user_id, NumSegment.TYPE_INT)];
 
         res.roles = (roles.length > 0) ? roles.join(' - ') : null;
         res.utilisateur = all_user_by_ids[aum.user_id] ? all_user_by_ids[aum.user_id].name : null;

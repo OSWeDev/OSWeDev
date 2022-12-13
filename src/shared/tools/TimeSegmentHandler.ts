@@ -605,11 +605,11 @@ export default class TimeSegmentHandler {
     }
 
     public get_ts_ranges(segments: TimeSegment[]): TSRange[] {
-        return RangeHandler.getInstance().getRangesUnion(this.get_ts_ranges_(segments));
+        return RangeHandler.getRangesUnion(this.get_ts_ranges_(segments));
     }
 
     public get_surrounding_ts_range(segments: TimeSegment[]): TSRange {
-        return RangeHandler.getInstance().getMinSurroundingRange(this.get_ts_ranges_(segments));
+        return RangeHandler.getMinSurroundingRange(this.get_ts_ranges_(segments));
     }
 
     public get_segment_from_range_start(ts_range: TSRange, segment_type: number): TimeSegment {
@@ -617,7 +617,7 @@ export default class TimeSegmentHandler {
             return null;
         }
 
-        let min = RangeHandler.getInstance().getSegmentedMin(ts_range, segment_type);
+        let min = RangeHandler.getSegmentedMin(ts_range, segment_type);
         return this.getCorrespondingTimeSegment(min, segment_type);
     }
 
@@ -626,7 +626,7 @@ export default class TimeSegmentHandler {
             return null;
         }
 
-        let max = RangeHandler.getInstance().getSegmentedMax(ts_range, segment_type);
+        let max = RangeHandler.getSegmentedMax(ts_range, segment_type);
         return this.getCorrespondingTimeSegment(max, segment_type);
     }
 

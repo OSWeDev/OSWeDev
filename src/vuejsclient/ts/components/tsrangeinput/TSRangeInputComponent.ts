@@ -114,8 +114,8 @@ export default class TSRangeInputComponent extends VueComponentBase {
             return;
         }
 
-        let min: number = RangeHandler.getInstance().is_left_open(this.value) ? null : RangeHandler.getInstance().getSegmentedMin(this.value, this.segmentation_type_);
-        let max: number = RangeHandler.getInstance().is_right_open(this.value) ? null : RangeHandler.getInstance().getSegmentedMax(this.value, this.segmentation_type_);
+        let min: number = RangeHandler.is_left_open(this.value) ? null : RangeHandler.getSegmentedMin(this.value, this.segmentation_type_);
+        let max: number = RangeHandler.is_right_open(this.value) ? null : RangeHandler.getSegmentedMax(this.value, this.segmentation_type_);
 
         if (min) {
             this.tsrange_start = new Date(min * 1000);
@@ -143,7 +143,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
     @Watch('tsrange_start')
     @Watch('tsrange_end')
     private emitInput(): void {
-        let new_value = RangeHandler.getInstance().createNew(
+        let new_value = RangeHandler.createNew(
             TSRange.RANGE_TYPE,
             this.ts_start ? this.ts_start : RangeHandler.MIN_TS,
             this.ts_end ? this.ts_end : RangeHandler.MAX_TS,
@@ -154,7 +154,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
          */
         let old_value = this.vo ? this.vo[this.field.datatable_field_uid] : null;
         if ((old_value == new_value) ||
-            (RangeHandler.getInstance().is_same(old_value, new_value))) {
+            (RangeHandler.is_same(old_value, new_value))) {
             return;
         }
         this.new_value = new_value;

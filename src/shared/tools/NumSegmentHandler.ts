@@ -236,11 +236,11 @@ export default class NumSegmentHandler {
     }
 
     public get_num_ranges(segments: NumSegment[]): NumRange[] {
-        return RangeHandler.getInstance().getRangesUnion(this.get_num_ranges_(segments));
+        return RangeHandler.getRangesUnion(this.get_num_ranges_(segments));
     }
 
     public get_surrounding_ts_range(segments: NumSegment[]): NumRange {
-        return RangeHandler.getInstance().getMinSurroundingRange(this.get_num_ranges_(segments));
+        return RangeHandler.getMinSurroundingRange(this.get_num_ranges_(segments));
     }
 
     public get_segment_from_range_start(num_range: NumRange, segment_type: number): NumSegment {
@@ -248,7 +248,7 @@ export default class NumSegmentHandler {
             return null;
         }
 
-        let min = RangeHandler.getInstance().getSegmentedMin(num_range, segment_type);
+        let min = RangeHandler.getSegmentedMin(num_range, segment_type);
         return this.getCorrespondingNumSegment(min, segment_type);
     }
 
@@ -257,7 +257,7 @@ export default class NumSegmentHandler {
             return null;
         }
 
-        let max = RangeHandler.getInstance().getSegmentedMax(num_range, segment_type);
+        let max = RangeHandler.getSegmentedMax(num_range, segment_type);
         return this.getCorrespondingNumSegment(max, segment_type);
     }
 

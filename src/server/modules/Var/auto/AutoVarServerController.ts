@@ -352,7 +352,7 @@ export default class AutoVarServerController extends VarServerControllerBase<Var
                             // On commence toujours par une copie, elle est déjà faite
                             break;
                         case VarParamFieldTransformStrategyVO.TYPE_SEGMENT_SHIFT:
-                            field_value = RangeHandler.getInstance().get_ranges_shifted_by_x_segments(field_value, -transform_strategy.shift_size, transform_strategy.segmentation_type);
+                            field_value = RangeHandler.get_ranges_shifted_by_x_segments(field_value, -transform_strategy.shift_size, transform_strategy.segmentation_type);
                             break;
                         case VarParamFieldTransformStrategyVO.TYPE_SEGMENT_SPLIT:
                             /**
@@ -394,7 +394,7 @@ export default class AutoVarServerController extends VarServerControllerBase<Var
                         // On commence toujours par une copie, elle est déjà faite
                         break;
                     case VarParamFieldTransformStrategyVO.TYPE_SEGMENT_SHIFT:
-                        field_value = RangeHandler.getInstance().get_ranges_shifted_by_x_segments(field_value, transform_strategy.shift_size, transform_strategy.segmentation_type);
+                        field_value = RangeHandler.get_ranges_shifted_by_x_segments(field_value, transform_strategy.shift_size, transform_strategy.segmentation_type);
                         break;
                     case VarParamFieldTransformStrategyVO.TYPE_SEGMENT_SPLIT:
                         /**

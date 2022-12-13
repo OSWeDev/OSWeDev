@@ -359,10 +359,10 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
         switch (this.table_segmented_field.field_type) {
             case ModuleTableField.FIELD_TYPE_hourrange:
-                return RangeHandler.getInstance().getSegmentedMin(field_value as HourRange, this.table_segmented_field_segment_type);
+                return RangeHandler.getSegmentedMin(field_value as HourRange, this.table_segmented_field_segment_type);
 
             case ModuleTableField.FIELD_TYPE_hourrange_array:
-                return RangeHandler.getInstance().getSegmentedMin_from_ranges(field_value as HourRange[], this.table_segmented_field_segment_type);
+                return RangeHandler.getSegmentedMin_from_ranges(field_value as HourRange[], this.table_segmented_field_segment_type);
 
             case ModuleTableField.FIELD_TYPE_prct:
             case ModuleTableField.FIELD_TYPE_int_array:
@@ -398,7 +398,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
             case ModuleTableField.FIELD_TYPE_numrange_array:
             case ModuleTableField.FIELD_TYPE_isoweekdays:
             case ModuleTableField.FIELD_TYPE_refrange_array:
-                return RangeHandler.getInstance().getSegmentedMin_from_ranges(field_value as NumRange[], this.table_segmented_field_segment_type);
+                return RangeHandler.getSegmentedMin_from_ranges(field_value as NumRange[], this.table_segmented_field_segment_type);
         }
 
         return null;
@@ -630,12 +630,12 @@ export default class ModuleTable<T extends IDistantVOBase> {
             case ModuleTableField.FIELD_TYPE_isoweekdays:
             case ModuleTableField.FIELD_TYPE_hourrange_array:
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                return RangeHandler.getInstance().translate_to_api(e);
+                return RangeHandler.translate_to_api(e);
 
             case ModuleTableField.FIELD_TYPE_numrange:
             case ModuleTableField.FIELD_TYPE_tsrange:
             case ModuleTableField.FIELD_TYPE_hourrange:
-                return RangeHandler.getInstance().translate_range_to_api(e);
+                return RangeHandler.translate_range_to_api(e);
 
             case ModuleTableField.FIELD_TYPE_plain_vo_obj:
 
@@ -687,13 +687,13 @@ export default class ModuleTable<T extends IDistantVOBase> {
             case ModuleTableField.FIELD_TYPE_numrange_array:
             case ModuleTableField.FIELD_TYPE_refrange_array:
             case ModuleTableField.FIELD_TYPE_isoweekdays:
-                return RangeHandler.getInstance().translate_from_api(NumRange.RANGE_TYPE, e);
+                return RangeHandler.translate_from_api(NumRange.RANGE_TYPE, e);
 
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                return RangeHandler.getInstance().translate_from_api(TSRange.RANGE_TYPE, e);
+                return RangeHandler.translate_from_api(TSRange.RANGE_TYPE, e);
 
             case ModuleTableField.FIELD_TYPE_hourrange_array:
-                return RangeHandler.getInstance().translate_from_api(HourRange.RANGE_TYPE, e);
+                return RangeHandler.translate_from_api(HourRange.RANGE_TYPE, e);
 
             case ModuleTableField.FIELD_TYPE_numrange:
                 return MatroidIndexHandler.getInstance().from_normalized_range(e, NumRange.RANGE_TYPE);
@@ -840,7 +840,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 if (field_index_n != null) {
                     dest_vo[field_id] = MatroidIndexHandler.getInstance().from_normalized_range(field_index_n, NumRange.RANGE_TYPE);
                 } else {
-                    dest_vo[field_id] = RangeHandler.getInstance().parseRangeBDD(NumRange.RANGE_TYPE, field_value, NumSegment.TYPE_INT);
+                    dest_vo[field_id] = RangeHandler.parseRangeBDD(NumRange.RANGE_TYPE, field_value, NumSegment.TYPE_INT);
                 }
                 break;
             case ModuleTableField.FIELD_TYPE_tsrange:
@@ -850,7 +850,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 if (field_index_t != null) {
                     dest_vo[field_id] = MatroidIndexHandler.getInstance().from_normalized_range(field_index_t, TSRange.RANGE_TYPE);
                 } else {
-                    dest_vo[field_id] = RangeHandler.getInstance().parseRangeBDD(TSRange.RANGE_TYPE, field_value, (field.segmentation_type ? field.segmentation_type : TimeSegment.TYPE_SECOND));
+                    dest_vo[field_id] = RangeHandler.parseRangeBDD(TSRange.RANGE_TYPE, field_value, (field.segmentation_type ? field.segmentation_type : TimeSegment.TYPE_SECOND));
                 }
                 break;
             case ModuleTableField.FIELD_TYPE_hourrange:
@@ -860,7 +860,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 if (field_index_h != null) {
                     dest_vo[field_id] = MatroidIndexHandler.getInstance().from_normalized_range(field_index_h, HourRange.RANGE_TYPE);
                 } else {
-                    dest_vo[field_id] = RangeHandler.getInstance().parseRangeBDD(HourRange.RANGE_TYPE, field_value, HourSegment.TYPE_SECOND);
+                    dest_vo[field_id] = RangeHandler.parseRangeBDD(HourRange.RANGE_TYPE, field_value, HourSegment.TYPE_SECOND);
                 }
                 break;
 
@@ -874,7 +874,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 if (field_index_ns != null) {
                     dest_vo[field_id] = MatroidIndexHandler.getInstance().from_normalized_ranges(field_index_ns, NumRange.RANGE_TYPE);
                 } else {
-                    dest_vo[field_id] = RangeHandler.getInstance().translate_from_bdd(NumRange.RANGE_TYPE, field_value, NumSegment.TYPE_INT);
+                    dest_vo[field_id] = RangeHandler.translate_from_bdd(NumRange.RANGE_TYPE, field_value, NumSegment.TYPE_INT);
                 }
                 break;
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
@@ -884,7 +884,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 if (field_index_ts != null) {
                     dest_vo[field_id] = MatroidIndexHandler.getInstance().from_normalized_ranges(field_index_ts, TSRange.RANGE_TYPE);
                 } else {
-                    dest_vo[field_id] = RangeHandler.getInstance().translate_from_bdd(TSRange.RANGE_TYPE, field_value, field.segmentation_type);
+                    dest_vo[field_id] = RangeHandler.translate_from_bdd(TSRange.RANGE_TYPE, field_value, field.segmentation_type);
                 }
                 break;
             case ModuleTableField.FIELD_TYPE_hourrange_array:
@@ -894,7 +894,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 if (field_index_hs != null) {
                     dest_vo[field_id] = MatroidIndexHandler.getInstance().from_normalized_ranges(field_index_hs, HourRange.RANGE_TYPE);
                 } else {
-                    dest_vo[field_id] = RangeHandler.getInstance().translate_from_bdd(HourRange.RANGE_TYPE, field_value, field.segmentation_type);
+                    dest_vo[field_id] = RangeHandler.translate_from_bdd(HourRange.RANGE_TYPE, field_value, field.segmentation_type);
                 }
                 break;
 
@@ -1172,14 +1172,14 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 case ModuleTableField.FIELD_TYPE_hourrange_array:
                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
                     res[field.field_id + '_ndx'] = MatroidIndexHandler.getInstance().get_normalized_ranges(res[field.field_id] as IRange[]);
-                    res[field.field_id] = RangeHandler.getInstance().translate_to_bdd(res[field.field_id]);
+                    res[field.field_id] = RangeHandler.translate_to_bdd(res[field.field_id]);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_numrange:
                 case ModuleTableField.FIELD_TYPE_tsrange:
                 case ModuleTableField.FIELD_TYPE_hourrange:
                     res[field.field_id + '_ndx'] = MatroidIndexHandler.getInstance().get_normalized_range(res[field.field_id] as IRange);
-                    res[field.field_id] = RangeHandler.getInstance().translate_range_to_bdd(res[field.field_id]);
+                    res[field.field_id] = RangeHandler.translate_range_to_bdd(res[field.field_id]);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_geopoint:

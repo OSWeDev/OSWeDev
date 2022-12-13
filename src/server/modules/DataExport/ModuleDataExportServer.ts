@@ -739,8 +739,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                         if (dest_vo[field_id] != '') {
                             dest_vo[field_id] += ', ';
                         }
-                        dest_vo[field_id] += Dates.format_segment(RangeHandler.getInstance().getSegmentedMin(src_vo[field_id], src_vo[field_id].segment_type), src_vo[field_id].segment_type) + ' - ' +
-                            Dates.format_segment(RangeHandler.getInstance().getSegmentedMax(src_vo[field_id], src_vo[field_id].segment_type), src_vo[field_id].segment_type);
+                        dest_vo[field_id] += Dates.format_segment(RangeHandler.getSegmentedMin(src_vo[field_id], src_vo[field_id].segment_type), src_vo[field_id].segment_type) + ' - ' +
+                            Dates.format_segment(RangeHandler.getSegmentedMax(src_vo[field_id], src_vo[field_id].segment_type), src_vo[field_id].segment_type);
                     }
                 }
                 break;
@@ -759,19 +759,19 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                         if (dest_vo[field_id] != '') {
                             dest_vo[field_id] += ', ';
                         }
-                        dest_vo[field_id] += RangeHandler.getInstance().getSegmentedMin(src_vo[field_id], src_vo[field_id].segment_type) + ' - ' + RangeHandler.getInstance().getSegmentedMax(src_vo[field_id], src_vo[field_id].segment_type);
+                        dest_vo[field_id] += RangeHandler.getSegmentedMin(src_vo[field_id], src_vo[field_id].segment_type) + ' - ' + RangeHandler.getSegmentedMax(src_vo[field_id], src_vo[field_id].segment_type);
                     }
                 }
                 break;
 
             case ModuleTableField.FIELD_TYPE_tsrange:
-                dest_vo[field_id] = Dates.format_segment(RangeHandler.getInstance().getSegmentedMin(src_vo[field_id], src_vo[field_id].segment_type), src_vo[field_id].segment_type) + ' - ' +
-                    Dates.format_segment(RangeHandler.getInstance().getSegmentedMax(src_vo[field_id], src_vo[field_id].segment_type), src_vo[field_id].segment_type);
+                dest_vo[field_id] = Dates.format_segment(RangeHandler.getSegmentedMin(src_vo[field_id], src_vo[field_id].segment_type), src_vo[field_id].segment_type) + ' - ' +
+                    Dates.format_segment(RangeHandler.getSegmentedMax(src_vo[field_id], src_vo[field_id].segment_type), src_vo[field_id].segment_type);
                 break;
 
             case ModuleTableField.FIELD_TYPE_numrange:
             case ModuleTableField.FIELD_TYPE_hourrange:
-                dest_vo[field_id] = RangeHandler.getInstance().getSegmentedMin(src_vo[field_id], src_vo[field_id].segment_type) + ' - ' + RangeHandler.getInstance().getSegmentedMax(src_vo[field_id], src_vo[field_id].segment_type);
+                dest_vo[field_id] = RangeHandler.getSegmentedMin(src_vo[field_id], src_vo[field_id].segment_type) + ' - ' + RangeHandler.getSegmentedMax(src_vo[field_id], src_vo[field_id].segment_type);
                 break;
 
             case ModuleTableField.FIELD_TYPE_tstz:

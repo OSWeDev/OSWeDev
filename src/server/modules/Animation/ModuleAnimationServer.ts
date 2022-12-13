@@ -182,7 +182,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             let role_by_ids: { [id: number]: RoleVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(RoleVO.API_TYPE_ID).select_vos<RoleVO>());
             let role_names: string[] = [];
 
-            RangeHandler.getInstance().foreach_ranges_sync(vo.role_id_ranges, (role_id: number) => {
+            RangeHandler.foreach_ranges_sync(vo.role_id_ranges, (role_id: number) => {
                 if (!role_by_ids[role_id]) {
                     return;
                 }
@@ -360,7 +360,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             let theme_id_ranges: NumRange[] = [];
 
             for (let i in themes) {
-                theme_id_ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(themes[i].id, NumSegment.TYPE_INT));
+                theme_id_ranges.push(RangeHandler.create_single_elt_NumRange(themes[i].id, NumSegment.TYPE_INT));
             }
 
             res.end_date = Dates.now();
@@ -374,8 +374,8 @@ export default class ModuleAnimationServer extends ModuleServerBase {
                     VarDayPrctReussiteAnimationController.getInstance().varConf.name,
                     true,
                     theme_id_ranges,
-                    [RangeHandler.getInstance().create_single_elt_NumRange(res.module_id, NumSegment.TYPE_INT)],
-                    [RangeHandler.getInstance().create_single_elt_NumRange(res.user_id, NumSegment.TYPE_INT)]
+                    [RangeHandler.create_single_elt_NumRange(res.module_id, NumSegment.TYPE_INT)],
+                    [RangeHandler.create_single_elt_NumRange(res.user_id, NumSegment.TYPE_INT)]
                 ), 'ModuleAnimationServer.endModule');
             } catch (error) {
                 ConsoleHandler.error('endModule:get_var_data:' + error + ':FIXME do we need to handle this ?');
@@ -561,7 +561,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         filter_roles.filter_type = ContextFilterVO.TYPE_NUMERIC_INTERSECTS;
         filter_roles.field_id = 'role_id_ranges';
         filter_roles.vo_type = AnimationModuleVO.API_TYPE_ID;
-        filter_roles.param_numranges = RangeHandler.getInstance().get_ids_ranges_from_vos(user_roles);
+        filter_roles.param_numranges = RangeHandler.get_ids_ranges_from_vos(user_roles);
 
         let filter_no_roles: ContextFilterVO = new ContextFilterVO();
         filter_no_roles.filter_type = ContextFilterVO.TYPE_NULL_OR_EMPTY;
@@ -590,12 +590,12 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         let user_role_id_ranges: NumRange[] = [];
 
         for (let i in user_roles) {
-            user_role_id_ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(user_roles[i].id, NumSegment.TYPE_INT));
+            user_role_id_ranges.push(RangeHandler.create_single_elt_NumRange(user_roles[i].id, NumSegment.TYPE_INT));
 
             let parent_role_id: number = user_roles[i].parent_role_id;
 
             while (parent_role_id) {
-                user_role_id_ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(parent_role_id, NumSegment.TYPE_INT));
+                user_role_id_ranges.push(RangeHandler.create_single_elt_NumRange(parent_role_id, NumSegment.TYPE_INT));
 
                 let parent_role: RoleVO = AccessPolicyServerController.getInstance().get_registered_role_by_id(parent_role_id);
 
@@ -613,7 +613,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
                 continue;
             }
 
-            if (RangeHandler.getInstance().any_range_intersects_any_range(user_role_id_ranges, vo.role_id_ranges)) {
+            if (RangeHandler.any_range_intersects_any_range(user_role_id_ranges, vo.role_id_ranges)) {
                 res.push(vo);
                 continue;
             }

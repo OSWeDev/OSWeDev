@@ -1351,13 +1351,13 @@ export default class VarsComputeController {
             }
 
             let field = VOsTypesManager.moduleTables_by_voType[var_data._type].get_field_by_id(pixellised_field.pixel_param_field_id);
-            let segment_type = (var_conf.segment_types && var_conf.segment_types[field.field_id]) ? var_conf.segment_types[field.field_id] : RangeHandler.getInstance().get_smallest_segment_type_for_range_type(RangeHandler.getInstance().getRangeType(field));
+            let segment_type = (var_conf.segment_types && var_conf.segment_types[field.field_id]) ? var_conf.segment_types[field.field_id] : RangeHandler.get_smallest_segment_type_for_range_type(RangeHandler.getRangeType(field));
 
-            RangeHandler.getInstance().foreach_ranges_sync(var_data[pixellised_field.pixel_param_field_id], (pixel_value: number) => {
+            RangeHandler.foreach_ranges_sync(var_data[pixellised_field.pixel_param_field_id], (pixel_value: number) => {
 
                 let new_var_data = VarDataBaseVO.cloneFromVarId(cloned_var_data, cloned_var_data.var_id, true);
-                new_var_data[pixellised_field.pixel_param_field_id] = [RangeHandler.getInstance().createNew(
-                    RangeHandler.getInstance().getRangeType(field),
+                new_var_data[pixellised_field.pixel_param_field_id] = [RangeHandler.createNew(
+                    RangeHandler.getRangeType(field),
                     pixel_value,
                     pixel_value,
                     true,

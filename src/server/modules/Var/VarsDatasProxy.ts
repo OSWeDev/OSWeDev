@@ -495,7 +495,7 @@ export default class VarsDatasProxy {
                     let matroid_field = matroid_fields[j];
 
                     let matroid_field_value = vardata[matroid_field.field_id];
-                    let matroid_field_value_index = RangeHandler.getInstance().translate_to_bdd(matroid_field_value);
+                    let matroid_field_value_index = RangeHandler.translate_to_bdd(matroid_field_value);
                     if (matroid_field_value_index && (matroid_field_value_index.length > limit)) {
                         ConsoleHandler.warn('VarsDatasProxy:filter_var_datas_by_index_size_limit:Le champ ' + matroid_field.field_id + ' de la matrice ' + _type + ' est trop long pour être indexé par postgresql, on le supprime de la requête:index:' + vardata.index);
                         refuse_var = true;

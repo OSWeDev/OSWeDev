@@ -56,8 +56,8 @@ export default class FakeVarControllerCyclA extends VarServerControllerBase<Fake
             FakeEmpDayDataVO.createNew(
                 this.varConf.name,
                 false,
-                [RangeHandler.getInstance().create_single_elt_NumRange((c_or_d_vo as FakeEmpDistantVO).employee_id, NumSegment.TYPE_INT)],
-                [RangeHandler.getInstance().create_single_elt_TSRange((c_or_d_vo as FakeEmpDistantVO).date, TimeSegment.TYPE_MONTH)]
+                [RangeHandler.create_single_elt_NumRange((c_or_d_vo as FakeEmpDistantVO).employee_id, NumSegment.TYPE_INT)],
+                [RangeHandler.create_single_elt_TSRange((c_or_d_vo as FakeEmpDistantVO).date, TimeSegment.TYPE_MONTH)]
             )
         ];
     }

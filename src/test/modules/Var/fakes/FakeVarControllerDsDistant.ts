@@ -50,7 +50,7 @@ export default class FakeVarControllerDsDistant extends VarServerControllerBase<
             VarDataBaseVO.createNew(
                 this.varConf.name,
                 false,
-                [RangeHandler.getInstance().create_single_elt_TSRange((c_or_d_vo as FakeDistantVO).date, TimeSegment.TYPE_DAY)]
+                [RangeHandler.create_single_elt_TSRange((c_or_d_vo as FakeDistantVO).date, TimeSegment.TYPE_DAY)]
             )
         ];
     }
@@ -68,12 +68,12 @@ export default class FakeVarControllerDsDistant extends VarServerControllerBase<
             VarDataBaseVO.createNew(
                 this.varConf.name,
                 false,
-                [RangeHandler.getInstance().create_single_elt_TSRange((typed.pre_update_vo as FakeDistantVO).date, TimeSegment.TYPE_DAY)]
+                [RangeHandler.create_single_elt_TSRange((typed.pre_update_vo as FakeDistantVO).date, TimeSegment.TYPE_DAY)]
             ),
             VarDataBaseVO.createNew(
                 this.varConf.name,
                 false,
-                [RangeHandler.getInstance().create_single_elt_TSRange((typed.post_update_vo as FakeDistantVO).date, TimeSegment.TYPE_DAY)]
+                [RangeHandler.create_single_elt_TSRange((typed.post_update_vo as FakeDistantVO).date, TimeSegment.TYPE_DAY)]
             )
         ];
     }
@@ -84,7 +84,7 @@ export default class FakeVarControllerDsDistant extends VarServerControllerBase<
 
         let datas: { [date_value: number]: FakeDistantVO } = varDAGNode.datasources[FakeDistantDatasourceController.getInstance().name];
 
-        RangeHandler.getInstance().foreach_ranges_sync((varDAGNode.var_data as FakeDataVO).ts_ranges, (date: number) => {
+        RangeHandler.foreach_ranges_sync((varDAGNode.var_data as FakeDataVO).ts_ranges, (date: number) => {
 
             res += (datas && datas[date]) ? datas[date].value : 0;
 

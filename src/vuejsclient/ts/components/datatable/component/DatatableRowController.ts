@@ -285,7 +285,7 @@ export default class DatatableRowController {
 
                     if (getStoredDatas && getStoredDatas[refField.targetModuleTable.vo_type]) {
 
-                        RangeHandler.getInstance().foreach_ranges_sync(raw_data[refField.srcField.field_id], (id: number) => {
+                        RangeHandler.foreach_ranges_sync(raw_data[refField.srcField.field_id], (id: number) => {
                             let ref_data: IDistantVOBase = getStoredDatas[refField.targetModuleTable.vo_type][id];
                             resData[field.datatable_field_uid].push({
                                 id: id,
@@ -496,7 +496,7 @@ export default class DatatableRowController {
                         refField.srcField.module_table.vo_type + '___' + refField.srcField.field_id :
                         refField.srcField.field_id;
 
-                    await RangeHandler.getInstance().foreach_ranges_batch_await(raw_data[refField_src_module_table_field_id], async (id: number) => {
+                    await RangeHandler.foreach_ranges_batch_await(raw_data[refField_src_module_table_field_id], async (id: number) => {
                         let ref_data: IDistantVOBase = await query(refField.targetModuleTable.vo_type).filter_by_id(id).select_vo();
                         resData[field.datatable_field_uid].push({
                             id: id,

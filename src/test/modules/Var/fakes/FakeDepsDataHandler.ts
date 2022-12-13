@@ -12,9 +12,9 @@ export default class FakeDepsDataHandler {
         let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 3;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY)
+            RangeHandler.create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY)
         ];
-        var_data.employee_id_ranges = [RangeHandler.getInstance().getMaxNumRange()];
+        var_data.employee_id_ranges = [RangeHandler.getMaxNumRange()];
         let a = var_data.index;
         return var_data;
     }
@@ -23,9 +23,9 @@ export default class FakeDepsDataHandler {
         let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 3;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_MONTH)
+            RangeHandler.create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_MONTH)
         ];
-        var_data.employee_id_ranges = [RangeHandler.getInstance().getMaxNumRange()];
+        var_data.employee_id_ranges = [RangeHandler.getMaxNumRange()];
         let a = var_data.index;
         return var_data;
     }
@@ -34,9 +34,9 @@ export default class FakeDepsDataHandler {
         let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 3;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY)
+            RangeHandler.create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY)
         ];
-        var_data.employee_id_ranges = [RangeHandler.getInstance().getMaxNumRange()];
+        var_data.employee_id_ranges = [RangeHandler.getMaxNumRange()];
         let a = var_data.index;
         return var_data;
     }
@@ -45,9 +45,9 @@ export default class FakeDepsDataHandler {
         let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 3;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_MONTH)
+            RangeHandler.create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_MONTH)
         ];
-        var_data.employee_id_ranges = [RangeHandler.getInstance().getMaxNumRange()];
+        var_data.employee_id_ranges = [RangeHandler.getMaxNumRange()];
         let a = var_data.index;
         return var_data;
     }
@@ -56,10 +56,10 @@ export default class FakeDepsDataHandler {
         let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 3;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY),
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY)
+            RangeHandler.create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY),
+            RangeHandler.create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY)
         ];
-        var_data.employee_id_ranges = [RangeHandler.getInstance().getMaxNumRange()];
+        var_data.employee_id_ranges = [RangeHandler.getMaxNumRange()];
         let a = var_data.index;
         return var_data;
     }
@@ -68,10 +68,10 @@ export default class FakeDepsDataHandler {
         let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 3;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_MONTH),
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_MONTH)
+            RangeHandler.create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_MONTH),
+            RangeHandler.create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_MONTH)
         ];
-        var_data.employee_id_ranges = [RangeHandler.getInstance().getMaxNumRange()];
+        var_data.employee_id_ranges = [RangeHandler.getMaxNumRange()];
         let a = var_data.index;
         return var_data;
     }
@@ -80,7 +80,7 @@ export default class FakeDepsDataHandler {
         let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 3;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_MONTH)
+            RangeHandler.create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_MONTH)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT)];
         let a = var_data.index;

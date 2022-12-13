@@ -106,12 +106,12 @@ export default class MatroidIndexHandler {
                 ((range.range_type == TSRange.RANGE_TYPE) ? TimeSegment.TYPE_SECOND : HourSegment.TYPE_SECOND)) : segment_type;
         }
 
-        if (RangeHandler.getInstance().getCardinal(range) == 1) {
+        if (RangeHandler.getCardinal(range) == 1) {
             res += this.base_10_num_to_base_76_txt(range.min);
         } else {
-            res += RangeHandler.getInstance().is_left_open(range) ? '' : this.base_10_num_to_base_76_txt(range.min);
+            res += RangeHandler.is_left_open(range) ? '' : this.base_10_num_to_base_76_txt(range.min);
             res += '&';
-            res += RangeHandler.getInstance().is_right_open(range) ? '' : this.base_10_num_to_base_76_txt(range.max);
+            res += RangeHandler.is_right_open(range) ? '' : this.base_10_num_to_base_76_txt(range.max);
         }
 
         return res;
@@ -131,12 +131,12 @@ export default class MatroidIndexHandler {
 
         if (separator_position >= 0) {
             let splitted_min_max = min_max.split('&');
-            return RangeHandler.getInstance().createNew(
+            return RangeHandler.createNew(
                 range_type,
-                (splitted_min_max[0] == '') ? RangeHandler.getInstance().get_left_open_min_value(range_type) : this.base_76_txt_to_base_10_num(splitted_min_max[0]),
-                (splitted_min_max[1] == '') ? RangeHandler.getInstance().get_right_open_max_value(range_type) : this.base_76_txt_to_base_10_num(splitted_min_max[1]), true, false, segment_type);
+                (splitted_min_max[0] == '') ? RangeHandler.get_left_open_min_value(range_type) : this.base_76_txt_to_base_10_num(splitted_min_max[0]),
+                (splitted_min_max[1] == '') ? RangeHandler.get_right_open_max_value(range_type) : this.base_76_txt_to_base_10_num(splitted_min_max[1]), true, false, segment_type);
         } else {
-            return RangeHandler.getInstance().create_single_elt_range(range_type, this.base_76_txt_to_base_10_num(min_max), segment_type);
+            return RangeHandler.create_single_elt_range(range_type, this.base_76_txt_to_base_10_num(min_max), segment_type);
         }
     }
 
@@ -154,7 +154,7 @@ export default class MatroidIndexHandler {
 
         // On fait une union sur la dimension
         // Si on est sur un matroid index on a déjà fait l'union
-        ranges = is_matroid_index ? ranges : RangeHandler.getInstance().getRangesUnion(ranges);
+        ranges = is_matroid_index ? ranges : RangeHandler.getRangesUnion(ranges);
 
         let res: string = '';
 
@@ -193,7 +193,7 @@ export default class MatroidIndexHandler {
         for (let i in fields) {
             let field = fields[i];
 
-            res += '|' + RangeHandler.getInstance().humanizeRanges(vardata[field.field_id]);
+            res += '|' + RangeHandler.humanizeRanges(vardata[field.field_id]);
         }
         return res;
     }
@@ -236,7 +236,7 @@ export default class MatroidIndexHandler {
         let i = 0;
         while (i < fields.length) {
             let field = fields[i];
-            res[field.field_id] = this.from_normalized_ranges(pieces[i + 1], RangeHandler.getInstance().getRangeType(field), true, matroid_segmentations, field.field_id);
+            res[field.field_id] = this.from_normalized_ranges(pieces[i + 1], RangeHandler.getRangeType(field), true, matroid_segmentations, field.field_id);
             i++;
         }
         return res;
