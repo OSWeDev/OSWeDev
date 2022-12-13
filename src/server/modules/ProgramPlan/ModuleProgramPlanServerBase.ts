@@ -294,8 +294,8 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return null;
         }
 
-        let start_time: number = TimeSegmentHandler.getInstance().getStartTimeSegment(timeSegment);
-        let end_time: number = TimeSegmentHandler.getInstance().getEndTimeSegment(timeSegment);
+        let start_time: number = TimeSegmentHandler.getStartTimeSegment(timeSegment);
+        let end_time: number = TimeSegmentHandler.getEndTimeSegment(timeSegment);
 
         if (!this.programplan_shared_module.program_type_id) {
 

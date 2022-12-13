@@ -68,13 +68,13 @@ export default class TSRange implements IRange {
             return null;
         }
 
-        let range_min_ts: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(min, segment_type);
+        let range_min_ts: TimeSegment = TimeSegmentHandler.getCorrespondingTimeSegment(min, segment_type);
 
         if (!min_inclusiv) {
-            TimeSegmentHandler.getInstance().incTimeSegment(range_min_ts);
+            TimeSegmentHandler.incTimeSegment(range_min_ts);
         }
 
-        let range_max_ts: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(max, segment_type);
+        let range_max_ts: TimeSegment = TimeSegmentHandler.getCorrespondingTimeSegment(max, segment_type);
 
         if (range_min_ts.index > range_max_ts.index) {
             return null;
@@ -100,13 +100,13 @@ export default class TSRange implements IRange {
             return null;
         }
 
-        let range_max_ts: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(max, segment_type);
+        let range_max_ts: TimeSegment = TimeSegmentHandler.getCorrespondingTimeSegment(max, segment_type);
 
-        if ((!max_inclusiv) && TimeSegmentHandler.getInstance().isEltInSegment(max, range_max_ts)) {
-            TimeSegmentHandler.getInstance().decTimeSegment(range_max_ts);
+        if ((!max_inclusiv) && TimeSegmentHandler.isEltInSegment(max, range_max_ts)) {
+            TimeSegmentHandler.decTimeSegment(range_max_ts);
         }
 
-        let range_max_end: number = TimeSegmentHandler.getInstance().getEndTimeSegment(range_max_ts);
+        let range_max_end: number = TimeSegmentHandler.getEndTimeSegment(range_max_ts);
 
         if (range_max_end < min) {
             return null;

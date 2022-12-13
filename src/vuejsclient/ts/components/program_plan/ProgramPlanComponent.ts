@@ -243,7 +243,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
     private reset_targets = ThrottleHelper.getInstance().declare_throttle_without_args(this.reset_targets_throttled.bind(this), 100, { leading: false, trailing: true });
 
-    private fcSegment: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
+    private fcSegment: TimeSegment = TimeSegmentHandler.getCorrespondingTimeSegment(
         moment(this.calendar_date).utc(true).unix(),
         (this.viewname == "timelineWeek") ? TimeSegment.TYPE_WEEK : TimeSegment.TYPE_MONTH);
 
@@ -901,11 +901,11 @@ export default class ProgramPlanComponent extends VueComponentBase {
             return;
         }
 
-        let segment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
+        let segment = TimeSegmentHandler.getCorrespondingTimeSegment(
             moment(this.calendar_date).utc(true).unix(),
             (this.viewname == "timelineWeek") ? TimeSegment.TYPE_WEEK : TimeSegment.TYPE_MONTH);
 
-        if (!TimeSegmentHandler.getInstance().segmentsAreEquivalent(segment, this.fcSegment)) {
+        if (!TimeSegmentHandler.segmentsAreEquivalent(segment, this.fcSegment)) {
             this.fcSegment = segment;
             this.$refs.calendar['fireMethod']('gotoDate', this.calendar_date);
         }
@@ -1228,8 +1228,8 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
         await all_promises(promises);
 
-        this.set_filter_date_debut(this.fcSegment ? TimeSegmentHandler.getInstance().getStartTimeSegment(this.fcSegment) : null);
-        this.set_filter_date_fin(this.fcSegment ? Dates.add(TimeSegmentHandler.getInstance().getEndTimeSegment(this.fcSegment), -1, TimeSegment.TYPE_DAY) : null);
+        this.set_filter_date_debut(this.fcSegment ? TimeSegmentHandler.getStartTimeSegment(this.fcSegment) : null);
+        this.set_filter_date_fin(this.fcSegment ? Dates.add(TimeSegmentHandler.getEndTimeSegment(this.fcSegment), -1, TimeSegment.TYPE_DAY) : null);
 
         // this.filter_changed();
     }

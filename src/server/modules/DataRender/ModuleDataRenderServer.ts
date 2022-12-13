@@ -103,7 +103,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
             return null;
         }
 
-        return TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(latest_data.data_dateindex, rendererModule.data_timesegment_type);
+        return TimeSegmentHandler.getCorrespondingTimeSegment(latest_data.data_dateindex, rendererModule.data_timesegment_type);
     }
 
     public async getDataRenderers(): Promise<DataRendererVO[]> {
@@ -124,9 +124,9 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
         timeSegment: TimeSegment,
         rendered_data_time_segment_type: number): Promise<T[]> {
 
-        let timeSegments: TimeSegment[] = TimeSegmentHandler.getInstance().getAllDataTimeSegments(
-            TimeSegmentHandler.getInstance().getStartTimeSegment(timeSegment),
-            TimeSegmentHandler.getInstance().getEndTimeSegment(timeSegment),
+        let timeSegments: TimeSegment[] = TimeSegmentHandler.getAllDataTimeSegments(
+            TimeSegmentHandler.getStartTimeSegment(timeSegment),
+            TimeSegmentHandler.getEndTimeSegment(timeSegment),
             rendered_data_time_segment_type
         );
         return await query(datatable.vo_type)

@@ -193,7 +193,7 @@ export default class RangeHandler {
             let comparison: number = null;
             switch (range.range_type) {
                 case TSRange.RANGE_TYPE:
-                    comparison = TimeSegmentHandler.getInstance().compareSegmentTypes(range.segment_type, target_segment_type);
+                    comparison = TimeSegmentHandler.compareSegmentTypes(range.segment_type, target_segment_type);
                     break;
                 case NumRange.RANGE_TYPE:
                     comparison = NumSegmentHandler.getInstance().compareSegmentTypes(range.segment_type, target_segment_type);
@@ -1663,13 +1663,13 @@ export default class RangeHandler {
 
 
             case TSRange.RANGE_TYPE:
-                let range_max_ts: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(range.max, segment_type);
+                let range_max_ts: TimeSegment = TimeSegmentHandler.getCorrespondingTimeSegment(range.max, segment_type);
 
                 if ((!range.max_inclusiv) && (range_max_ts.index == range.max)) {
-                    TimeSegmentHandler.getInstance().decTimeSegment(range_max_ts);
+                    TimeSegmentHandler.decTimeSegment(range_max_ts);
                 }
 
-                let range_max_end_moment: number = TimeSegmentHandler.getInstance().getEndTimeSegment(range_max_ts);
+                let range_max_end_moment: number = TimeSegmentHandler.getEndTimeSegment(range_max_ts);
 
                 if (range_max_end_moment < range.min) {
                     return null;
@@ -1680,7 +1680,7 @@ export default class RangeHandler {
                 }
 
                 if (!!offset) {
-                    TimeSegmentHandler.getInstance().incTimeSegment(range_max_ts, segment_type, offset);
+                    TimeSegmentHandler.incTimeSegment(range_max_ts, segment_type, offset);
                 }
 
                 // Si on est sur un max range et qu'on veut pas retourner la valeur, on retourne null
@@ -2117,7 +2117,7 @@ export default class RangeHandler {
                     break;
 
                 case TSRange.RANGE_TYPE:
-                    min = TimeSegmentHandler.getInstance().getSmallestTimeSegmentationType(min, range.segment_type);
+                    min = TimeSegmentHandler.getSmallestTimeSegmentationType(min, range.segment_type);
                     break;
             }
         }
@@ -2336,7 +2336,7 @@ export default class RangeHandler {
                 return HourSegmentHandler.getInstance().getCorrespondingHourSegment(elt, segment_type) as any as ISegment;
 
             case TSRange.RANGE_TYPE:
-                return TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(elt, segment_type) as any as ISegment;
+                return TimeSegmentHandler.getCorrespondingTimeSegment(elt, segment_type) as any as ISegment;
         }
     }
 
@@ -2352,7 +2352,7 @@ export default class RangeHandler {
                 break;
 
             case TSRange.RANGE_TYPE:
-                TimeSegmentHandler.getInstance().incTimeSegment(segment as any as TimeSegment, segment_type, offset);
+                TimeSegmentHandler.incTimeSegment(segment as any as TimeSegment, segment_type, offset);
                 break;
         }
     }
