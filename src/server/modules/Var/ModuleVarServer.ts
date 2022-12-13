@@ -1018,7 +1018,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         VarsTabsSubsController.getInstance().register_sub(uid, client_tab_id, params ? params.map((param) => param.index) : []);
 
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+        if (ConfigurationService.node_configuration.DEBUG_VARS) {
             for (let i in params) {
                 let param = params[i];
 
@@ -1067,7 +1067,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         VarsTabsSubsController.getInstance().register_sub(uid, client_tab_id, params ? params.map((param) => param.index) : []);
 
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+        if (ConfigurationService.node_configuration.DEBUG_VARS) {
             for (let i in params) {
                 let param = params[i];
 
@@ -1089,7 +1089,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
             await PushDataServerController.getInstance().notifyVarsDatas(uid, client_tab_id, vars_to_notif);
 
-            if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+            if (ConfigurationService.node_configuration.DEBUG_VARS) {
                 for (let i in notifyable_vars) {
                     let param = notifyable_vars[i];
 
@@ -1151,7 +1151,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         let client_tab_id = StackContext.get('CLIENT_TAB_ID');
         VarsTabsSubsController.getInstance().unregister_sub(uid, client_tab_id, params.map((param) => param.check_param_is_valid(param._type) ? param.index : null));
 
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+        if (ConfigurationService.node_configuration.DEBUG_VARS) {
             for (let i in params) {
                 let param = params[i];
 
@@ -1347,7 +1347,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         accept_max_ranges: boolean = false
     ): Promise<VarDataBaseVO> {
 
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
+        if (ConfigurationService.node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
             ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':IN');
         }
 
@@ -1386,11 +1386,11 @@ export default class ModuleVarServer extends ModuleServerBase {
                                 ]);
                             context_query.discarded_field_paths = discarded_field_paths;
 
-                            if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
+                            if (ConfigurationService.node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
                                 ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':select_vos:IN');
                             }
                             let ids_db: Array<{ id: number }> = refuse_param ? null : await ModuleContextFilterServer.getInstance().select_vos(context_query);
-                            if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
+                            if (ConfigurationService.node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
                                 ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':select_vos:OUT');
                             }
 
@@ -1444,11 +1444,11 @@ export default class ModuleVarServer extends ModuleServerBase {
                             // et on limite à la limite configurée dans l'application
                             let limit_nb_range = await this.get_limit_nb_ts_ranges_on_param_by_context_filter();
 
-                            if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
+                            if (ConfigurationService.node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
                                 ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':get_ts_ranges_from_custom_filter:IN');
                             }
                             var_param[matroid_field.field_id] = this.get_ts_ranges_from_custom_filter(custom_filters[matroid_field.field_id], limit_nb_range);
-                            if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
+                            if (ConfigurationService.node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
                                 ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':get_ts_ranges_from_custom_filter:OUT');
                             }
 
@@ -1486,7 +1486,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         await all_promises(field_promises);
 
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
+        if (ConfigurationService.node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
             ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':OUT');
         }
 

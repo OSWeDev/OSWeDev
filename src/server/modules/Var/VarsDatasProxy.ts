@@ -125,7 +125,7 @@ export default class VarsDatasProxy {
     }
 
     public async get_var_datas_or_ask_to_bgthread(params: VarDataBaseVO[], notifyable_vars: VarDataBaseVO[], needs_computation: VarDataBaseVO[], client_user_id: number, client_tab_id: string, is_server_request: boolean, reason: string): Promise<void> {
-        let env = ConfigurationService.getInstance().node_configuration;
+        let env = ConfigurationService.node_configuration;
 
         if ((!params) || (!params.length)) {
             return;
@@ -245,19 +245,19 @@ export default class VarsDatasProxy {
             return;
         }
 
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
+        if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
             ConsoleHandler.log("prepend_var_datas:IN:" + var_datas.length + ":" + client_user_id + ":" + client_tab_id + ":" + is_server_request + ":" + reason);
         }
 
         if (!await ForkedTasksController.getInstance().exec_self_on_bgthread(VarsdatasComputerBGThread.getInstance().name, VarsDatasProxy.TASK_NAME_prepend_var_datas, var_datas, client_user_id, client_tab_id, is_server_request, reason, does_not_need_insert_or_update)) {
-            if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
+            if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
                 ConsoleHandler.log("prepend_var_datas:OUT not bgthread:" + var_datas.length + ":" + client_user_id + ":" + client_tab_id + ":" + is_server_request + ":" + reason);
             }
             return;
         }
 
         this.filter_var_datas_by_indexes(var_datas, client_user_id, client_tab_id, is_server_request, 'prepend_var_datas:' + reason, false, does_not_need_insert_or_update);
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
+        if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
             ConsoleHandler.log("prepend_var_datas:OUT:" + var_datas.length + ":" + client_user_id + ":" + client_tab_id + ":" + is_server_request + ":" + reason);
         }
     }
@@ -274,7 +274,7 @@ export default class VarsDatasProxy {
             return;
         }
 
-        let env = ConfigurationService.getInstance().node_configuration;
+        let env = ConfigurationService.node_configuration;
 
         let start_time = Dates.now();
         let real_start_time = start_time;
@@ -516,7 +516,7 @@ export default class VarsDatasProxy {
      */
     public async get_exact_param_from_buffer_or_bdd<T extends VarDataBaseVO>(var_data: T, is_server_request: boolean, reason: string): Promise<T> {
 
-        let DEBUG_VARS = ConfigurationService.getInstance().node_configuration.DEBUG_VARS;
+        let DEBUG_VARS = ConfigurationService.node_configuration.DEBUG_VARS;
 
         if (BGThreadServerController.getInstance().valid_bgthreads_names[VarsdatasComputerBGThread.getInstance().name]) {
             if (this.vars_datas_buffer_wrapped_indexes[var_data.index]) {
@@ -547,7 +547,7 @@ export default class VarsDatasProxy {
      */
     public async get_exact_params_from_buffer_or_bdd<T extends VarDataBaseVO>(var_datas: T[]): Promise<T[]> {
 
-        let env = ConfigurationService.getInstance().node_configuration;
+        let env = ConfigurationService.node_configuration;
 
         let res: T[] = [];
         let promises = [];
@@ -657,12 +657,12 @@ export default class VarsDatasProxy {
         }
         let nb_vars_in_buffer = vars_datas.length;
 
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+        if (ConfigurationService.node_configuration.DEBUG_VARS) {
             ConsoleHandler.log('VarsDatasProxy:prepare_current_batch_ordered_pick_list:filter_by_subs:START:' + nb_vars_in_buffer);
         }
         let registered_var_datas_indexes: string[] = await VarsTabsSubsController.getInstance().filter_by_subs(vars_datas.map((v) => v.index));
         registered_var_datas_indexes = registered_var_datas_indexes ? registered_var_datas_indexes : [];
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+        if (ConfigurationService.node_configuration.DEBUG_VARS) {
             ConsoleHandler.log('VarsDatasProxy:prepare_current_batch_ordered_pick_list:filter_by_subs:END:' + nb_vars_in_buffer);
         }
 
@@ -712,7 +712,7 @@ export default class VarsDatasProxy {
 
             if (removed_vars > 0) {
 
-                if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+                if (ConfigurationService.node_configuration.DEBUG_VARS) {
                     ConsoleHandler.log('VarsDatasProxy: removed ' + removed_vars + ' unregistered vars from cache');
                 }
 
@@ -742,7 +742,7 @@ export default class VarsDatasProxy {
             let registered_var_data = registered_var_datas_by_index[var_data_wrapper.var_data.index];
 
             if ((!registered_var_data) && (var_data_wrapper.client_tab_id)) {
-                if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+                if (ConfigurationService.node_configuration.DEBUG_VARS) {
                     ConsoleHandler.log('removing client tab:' + var_data_wrapper.var_data.index);
                 }
                 var_data_wrapper.client_tab_id = null;
@@ -751,7 +751,7 @@ export default class VarsDatasProxy {
             }
 
             if ((!!registered_var_data) && (!var_data_wrapper.client_tab_id)) {
-                if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+                if (ConfigurationService.node_configuration.DEBUG_VARS) {
                     ConsoleHandler.warn('FIXME: Should have updated the client_tab_id in the cache when registering the param');
                 }
                 var_data_wrapper.client_user_id = NaN;
@@ -784,20 +784,20 @@ export default class VarsDatasProxy {
             throw new Error('VarsDatasProxy.filter_var_datas_by_indexes: invalid bgthread name');
         }
 
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
+        if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
             ConsoleHandler.log("filter_var_datas_by_indexes:IN:" + var_datas.length + ":" + client_user_id + ":" + client_socket_id + ":" + is_server_request + ":" + reason);
         }
 
         for (let i in var_datas) {
             let var_data = var_datas[i];
 
-            if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
+            if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
                 ConsoleHandler.log("filter_var_datas_by_indexes:var_data:" + var_data.index + ":" + var_datas.length + ":" + client_user_id + ":" + client_socket_id + ":" + is_server_request + ":" + reason);
             }
 
             if (this.vars_datas_buffer_wrapped_indexes[var_data.index]) {
 
-                if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
+                if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
                     ConsoleHandler.log("filter_var_datas_by_indexes:!!wrapper:" + var_data.index + ":" + var_datas.length + ":" + client_user_id + ":" + client_socket_id + ":" + is_server_request + ":" + reason);
                 }
 
@@ -840,7 +840,7 @@ export default class VarsDatasProxy {
                 continue;
             }
 
-            if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
+            if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
                 ConsoleHandler.log("filter_var_datas_by_indexes:!wrapper:" + var_data.index + ":" + var_datas.length + ":" + client_user_id + ":" + client_socket_id + ":" + is_server_request + ":" + reason);
             }
 

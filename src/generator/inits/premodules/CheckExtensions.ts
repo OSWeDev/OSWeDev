@@ -32,7 +32,7 @@ export default class CheckExtensions implements IGeneratorWorker {
             await db.query("CREATE EXTENSION IF NOT EXISTS pgcrypto;");
             await db.query("CREATE EXTENSION IF NOT EXISTS cube;");
             await db.query("CREATE EXTENSION IF NOT EXISTS earthdistance;");
-            await db.query("ALTER ROLE " + ConfigurationService.getInstance().node_configuration.BDD_OWNER + " NOSUPERUSER;");
+            await db.query("ALTER ROLE " + ConfigurationService.node_configuration.BDD_OWNER + " NOSUPERUSER;");
 
         } catch (error) {
             ConsoleHandler.error('Le rôle de la base doit être initialement configuré en superuser. Ce patch supprime ensuite le droit superuser. Les extensions suivantes sont obligatoires: "btree_gist", "pgcrypto", "cube", "earthdistance". Erreur: ' + error);

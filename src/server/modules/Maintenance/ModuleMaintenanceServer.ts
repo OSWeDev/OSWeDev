@@ -188,7 +188,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
 
         ConsoleHandler.log('Maintenance demandée:' + validation_code);
 
-        if (ConfigurationService.getInstance().node_configuration.START_MAINTENANCE_ACCEPTATION_CODE != validation_code) {
+        if (ConfigurationService.node_configuration.START_MAINTENANCE_ACCEPTATION_CODE != validation_code) {
             ConsoleHandler.error('Maintenance refusée');
 
             return;

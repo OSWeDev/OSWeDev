@@ -137,7 +137,7 @@ export default class ModuleTableDBService {
              */
             let segment_test = null;
             let has_changes = true;
-            if (!ConfigurationService.getInstance().nodeInstallFullSegments) {
+            if (!ConfigurationService.nodeInstallFullSegments) {
                 segment_test = segments[0].min;
 
                 has_changes = await this.handle_check_segment(moduleTable, segment_test, common_id_seq_name, migration_todo);

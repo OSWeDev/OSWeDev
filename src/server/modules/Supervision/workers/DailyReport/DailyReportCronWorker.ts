@@ -64,7 +64,7 @@ export default class DailyReportCronWorker implements ICronWorker {
     private async send_teams(ordered_supervised_items_by_state: { [state: number]: ISupervisedItem[] }) {
         let TEAMS_WEBHOOK_PARAM_NAME: string = await ModuleParams.getInstance().getParamValue(DailyReportCronWorker.TEAMS_WEBHOOK_PARAM_NAME);
 
-        if (ConfigurationService.getInstance().node_configuration.BLOCK_MAIL_DELIVERY) {
+        if (ConfigurationService.node_configuration.BLOCK_MAIL_DELIVERY) {
             return;
         }
 
@@ -121,7 +121,7 @@ export default class DailyReportCronWorker implements ICronWorker {
             if (!log_errors) {
                 log_errors = '<ul>';
             }
-            log_errors += '<li><a href=\"' + ConfigurationService.getInstance().node_configuration.BASE_URL + 'admin/#/supervision/dashboard/item/' + supervised_item._type + '/' + supervised_item.id + '\">' + supervised_item.name + '</a></li>';
+            log_errors += '<li><a href=\"' + ConfigurationService.node_configuration.BASE_URL + 'admin/#/supervision/dashboard/item/' + supervised_item._type + '/' + supervised_item.id + '\">' + supervised_item.name + '</a></li>';
         }
 
         if (!!log_errors) {
@@ -132,7 +132,7 @@ export default class DailyReportCronWorker implements ICronWorker {
 
     private async send_mail(ordered_supervised_items_by_state: { [state: number]: ISupervisedItem[] }) {
 
-        if (ConfigurationService.getInstance().node_configuration.BLOCK_MAIL_DELIVERY) {
+        if (ConfigurationService.node_configuration.BLOCK_MAIL_DELIVERY) {
             return;
         }
 

@@ -255,7 +255,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         }
 
         let promises = [];
-        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 2));
+        let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
         for (let i in datas) {
             let data = datas[i];
 
@@ -850,7 +850,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     ) {
 
         let promises = [];
-        let max_connections_to_use = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 2));
+        let max_connections_to_use = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
         for (let field_id in exportable_datatable_custom_field_columns) {
             let custom_field_translatable_name = exportable_datatable_custom_field_columns[field_id];
             let cb = TableWidgetCustomFieldsController.getInstance().custom_components_export_cb_by_translatable_title[custom_field_translatable_name];
@@ -894,7 +894,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     ): Promise<IDistantVOBase[]> {
 
         let promises = [];
-        let limit = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 2));
+        let limit = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
 
         for (let i in ordered_column_list) {
             let data_field_name: string = ordered_column_list[i];

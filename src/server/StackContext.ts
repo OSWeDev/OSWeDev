@@ -4,8 +4,8 @@ import cls from './CLSHooked';
 
 export default class StackContext {
 
-    public static nsid: string = 'oswedev-stack-context';
-    public static ns = cls.createNamespace(this.nsid);
+    // public static nsid: string = 'oswedev-stack-context';
+    public static ns = cls.createNamespace('oswedev-stack-context');
 
     /**
      * Express.js middleware that is responsible for initializing the context for each request.

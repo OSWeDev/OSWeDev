@@ -302,7 +302,7 @@ export default class VarsComputeController {
         }
         node.already_tried_loading_data_and_deploy = true;
 
-        let DEBUG_VARS = ConfigurationService.getInstance().node_configuration.DEBUG_VARS;
+        let DEBUG_VARS = ConfigurationService.node_configuration.DEBUG_VARS;
 
         if (deployed_vars_datas[node.var_data.index]) {
             if (!node.successfully_deployed) {
@@ -564,11 +564,11 @@ export default class VarsComputeController {
     }
 
     private async load_nodes_datas(var_dag: VarDAG) {
-        let env = ConfigurationService.getInstance().node_configuration;
+        let env = ConfigurationService.node_configuration;
 
         let promises = [];
         let load_node_data_db_connect_coef_sum: number = 0;
-        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 2));
+        let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
 
         for (let i in var_dag.nodes) {
             let node = var_dag.nodes[i];
@@ -650,7 +650,7 @@ export default class VarsComputeController {
         let deps_ids_as_array = Object.keys(deps);
 
         let deps_promises = [];
-        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 2));
+        let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
 
         let start_time = Dates.now();
         let real_start_time = start_time;
@@ -702,7 +702,7 @@ export default class VarsComputeController {
 
     private async try_load_cache_complet(node: VarDAGNode) {
 
-        let DEBUG_VARS = ConfigurationService.getInstance().node_configuration.DEBUG_VARS;
+        let DEBUG_VARS = ConfigurationService.node_configuration.DEBUG_VARS;
 
         node.already_tried_load_cache_complet = true;
         let cache_complet = await VarsDatasProxy.getInstance().get_exact_param_from_buffer_or_bdd(node.var_data, false, 'try_load_cache_complet');
@@ -822,7 +822,7 @@ export default class VarsComputeController {
      */
     private async create_tree(): Promise<VarDAG> {
 
-        let DEBUG_VARS = ConfigurationService.getInstance().node_configuration.DEBUG_VARS;
+        let DEBUG_VARS = ConfigurationService.node_configuration.DEBUG_VARS;
 
         let var_dag: VarDAG = VarsdatasComputerBGThread.getInstance().current_batch_vardag;
 
@@ -863,7 +863,7 @@ export default class VarsComputeController {
                 let i = 0;
                 while ((wrapped_select_var) && (i < var_selection_pack_size)) {
 
-                    if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+                    if (ConfigurationService.node_configuration.DEBUG_VARS) {
                         ConsoleHandler.log('SELECTED WRAPPED VAR :' + wrapped_select_var.var_data.index +
                             ':client_user_id:' + wrapped_select_var.client_user_id +
                             ':client_socket_id:' + wrapped_select_var.client_tab_id +
@@ -1065,7 +1065,7 @@ export default class VarsComputeController {
      */
     private async filter_disabled_var(selected_var_datas: VarDataBaseVO[]): Promise<VarDataBaseVO[]> {
         let res: VarDataBaseVO[] = [];
-        let DEBUG_VARS = ConfigurationService.getInstance().node_configuration.DEBUG_VARS;
+        let DEBUG_VARS = ConfigurationService.node_configuration.DEBUG_VARS;
 
         for (let i in selected_var_datas) {
             let selected_var_data = selected_var_datas[i];
@@ -1189,7 +1189,7 @@ export default class VarsComputeController {
         var_dag: VarDAG) {
 
         let promises = [];
-        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 2));
+        let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
 
         for (let i in vars_to_deploy) {
 
@@ -1237,7 +1237,7 @@ export default class VarsComputeController {
     ) {
 
         let promises = [];
-        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 2));
+        let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
 
         for (let i in vars_to_deploy) {
             let var_to_deploy = vars_to_deploy[i];

@@ -84,7 +84,7 @@ export default class VarsServerController {
         VarsController.getInstance().var_conf_by_id[id] = conf;
         VarsController.getInstance().var_conf_by_name[conf.name] = conf;
 
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+        if (ConfigurationService.node_configuration.DEBUG_VARS) {
             ConsoleHandler.log('update_registered_varconf:UPDATED VARCConf VAR_ID:' + conf.id + ':' + JSON.stringify(conf));
         }
     }
@@ -94,7 +94,7 @@ export default class VarsServerController {
         delete VarsController.getInstance().var_conf_by_id[id];
         delete VarsController.getInstance().var_conf_by_name[name];
 
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+        if (ConfigurationService.node_configuration.DEBUG_VARS) {
             ConsoleHandler.log('delete_registered_varconf:DELETED VARCConf VAR_ID:' + id + ':' + name);
         }
     }
@@ -112,7 +112,7 @@ export default class VarsServerController {
         }
         this.varcacheconf_by_api_type_ids[conf.var_data_vo_type][cacheconf.var_id] = cacheconf;
 
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+        if (ConfigurationService.node_configuration.DEBUG_VARS) {
             ConsoleHandler.log('update_registered_varcacheconf:UPDATED VARCacheConf VAR_ID:' + cacheconf.var_id + ':' + JSON.stringify(cacheconf));
         }
     }
@@ -131,7 +131,7 @@ export default class VarsServerController {
         }
         delete this.varcacheconf_by_api_type_ids[conf.var_data_vo_type][cacheconf.var_id];
 
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+        if (ConfigurationService.node_configuration.DEBUG_VARS) {
             ConsoleHandler.log('delete_registered_varcacheconf:DELETED VARCacheConf VAR_ID:' + cacheconf.var_id + ':' + JSON.stringify(cacheconf));
         }
     }

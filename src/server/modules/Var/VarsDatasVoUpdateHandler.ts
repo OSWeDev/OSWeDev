@@ -275,7 +275,7 @@ export default class VarsDatasVoUpdateHandler {
         }
 
         let promises = [];
-        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 2));
+        let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
 
         for (let api_type_id in varindexes_by_api_type_id) {
             let indexes = varindexes_by_api_type_id[api_type_id];
@@ -323,10 +323,10 @@ export default class VarsDatasVoUpdateHandler {
             [invalidator.var_data.index]: invalidator.var_data
         };
 
-        let DEBUG_VARS = ConfigurationService.getInstance().node_configuration.DEBUG_VARS;
+        let DEBUG_VARS = ConfigurationService.node_configuration.DEBUG_VARS;
 
         let promises = [];
-        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 2));
+        let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
 
         while (ObjectHandler.getInstance().hasAtLeastOneAttribute(intersectors_by_index)) {
             for (let i in intersectors_by_index) {
@@ -880,7 +880,7 @@ export default class VarsDatasVoUpdateHandler {
         var_datas: VarDataBaseVO[],
         cached: VarDataBaseVO[],
     ) {
-        let env = ConfigurationService.getInstance().node_configuration;
+        let env = ConfigurationService.node_configuration;
 
         let var_data_by_index: { [index: string]: VarDataBaseVO } = {};
         for (let i in var_datas) {
@@ -1156,7 +1156,7 @@ export default class VarsDatasVoUpdateHandler {
 
         let promises = [];
 
-        let max_connections_to_use: number = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL - 1));
+        let max_connections_to_use: number = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL - 1));
 
         for (let var_id_s in invalidators_by_var_id) {
             let invalidators: VarDataInvalidatorVO[] = invalidators_by_var_id[var_id_s];
@@ -1479,7 +1479,7 @@ export default class VarsDatasVoUpdateHandler {
 
                 if ((!!vos_create_or_delete_buffer[vo_type]) && vos_create_or_delete_buffer[vo_type].length) {
 
-                    if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+                    if (ConfigurationService.node_configuration.DEBUG_VARS) {
                         ConsoleHandler.log(
                             'init_leaf_intersectors:get_invalid_params_intersectors_on_POST_C_POST_D_group:' +
                             var_controller.varConf.id + ':' + var_controller.varConf.name + ':' + vos_create_or_delete_buffer[vo_type].length);
@@ -1493,7 +1493,7 @@ export default class VarsDatasVoUpdateHandler {
 
                 if ((!!vos_update_buffer[vo_type]) && vos_update_buffer[vo_type].length) {
 
-                    if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+                    if (ConfigurationService.node_configuration.DEBUG_VARS) {
                         ConsoleHandler.log(
                             'init_leaf_intersectors:get_invalid_params_intersectors_on_POST_U_group:' +
                             var_controller.varConf.id + ':' + var_controller.varConf.name + ':' + vos_update_buffer[vo_type].length);

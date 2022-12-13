@@ -132,7 +132,8 @@ export default abstract class GeneratorBase {
 
     public async generate() {
 
-        ConfigurationService.getInstance().setEnvParams(this.STATIC_ENV_PARAMS);
+        ConfigurationService.init();
+        ConfigurationService.setEnvParams(this.STATIC_ENV_PARAMS);
 
         ConsoleHandler.init();
         FileLoggerHandler.getInstance().prepare().then(() => {
@@ -142,7 +143,7 @@ export default abstract class GeneratorBase {
             ConsoleHandler.error("Generator prepare : " + reason);
         });
 
-        const envParam: EnvParam = ConfigurationService.getInstance().node_configuration;
+        const envParam: EnvParam = ConfigurationService.node_configuration;
 
         let connectionString = envParam.CONNECTION_STRING;
 

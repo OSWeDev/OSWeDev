@@ -150,7 +150,7 @@ export default abstract class ModuleServiceBase {
     }
 
     get bdd_owner(): string {
-        return ConfigurationService.getInstance().node_configuration.BDD_OWNER;
+        return ConfigurationService.node_configuration.BDD_OWNER;
     }
 
     get sharedModules(): Module[] {
@@ -203,7 +203,7 @@ export default abstract class ModuleServiceBase {
     public async register_all_modules(db: IDatabase<any>, is_generator: boolean = false) {
         this.db_ = db;
 
-        db.$pool.options.max = ConfigurationService.getInstance().node_configuration.MAX_POOL;
+        db.$pool.options.max = ConfigurationService.node_configuration.MAX_POOL;
         db.$pool.options.idleTimeoutMillis = 120000;
 
         this.registered_base_modules = this.getBaseModules();
@@ -223,7 +223,7 @@ export default abstract class ModuleServiceBase {
         ModuleTableDBService.getInstance(db);
 
         // En version SERVER_START_BOOSTER on check pas le format de la BDD au démarrage, le générateur s'en charge déjà en amont
-        if ((!!is_generator) || (!ConfigurationService.getInstance().node_configuration.SERVER_START_BOOSTER)) {
+        if ((!!is_generator) || (!ConfigurationService.node_configuration.SERVER_START_BOOSTER)) {
 
             await this.create_modules_base_structure_in_db();
 
@@ -231,7 +231,7 @@ export default abstract class ModuleServiceBase {
             await this.install_modules();
         } else {
 
-            if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
                 ConsoleHandler.log('ModuleServiceBase:register_all_modules:load_or_create_module_is_actif:START');
             }
             for (let i in this.registered_modules) {
@@ -239,31 +239,31 @@ export default abstract class ModuleServiceBase {
 
                 await ModuleDBService.getInstance(db).load_or_create_module_is_actif(registered_module);
             }
-            if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
                 ConsoleHandler.log('ModuleServiceBase:register_all_modules:load_or_create_module_is_actif:END');
             }
         }
 
         // On lance la configuration des modules, et avant on configure les apis des modules server
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ModuleServiceBase:register_all_modules:configure_server_modules_apis:START');
         }
         await this.configure_server_modules_apis();
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ModuleServiceBase:register_all_modules:configure_server_modules_apis:END');
         }
 
         // On charge le cache des tables segmentées. On cherche à être exhaustifs pour le coup
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ModuleServiceBase:register_all_modules:preload_segmented_known_databases:START');
         }
         await this.preload_segmented_known_databases();
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ModuleServiceBase:register_all_modules:preload_segmented_known_databases:END');
         }
 
         // A mon avis c'est de la merde ça... on charge où la vérif des params, le hook install, ... ?
-        // if ((!!is_generator) || (!ConfigurationService.getInstance().node_configuration.SERVER_START_BOOSTER)) {
+        // if ((!!is_generator) || (!ConfigurationService.node_configuration.SERVER_START_BOOSTER)) {
 
         //     // On appelle le hook de configuration
         //     await this.configure_modules();
@@ -342,7 +342,7 @@ export default abstract class ModuleServiceBase {
         for (let i in this.server_modules) {
             let server_module: ModuleServerBase = this.server_modules[i];
 
-            if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
                 ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':START');
             }
 
@@ -354,26 +354,26 @@ export default abstract class ModuleServiceBase {
                     server_module.registerImport(),
                 ]);
 
-                if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+                if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
                     ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':registerCrons');
                 }
 
                 server_module.registerCrons();
 
-                if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+                if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
                     ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':registerAccessHooks');
                 }
                 server_module.registerAccessHooks();
 
                 if (app) {
-                    if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+                    if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
                         ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':registerExpressApis');
                     }
                     server_module.registerExpressApis(app);
                 }
             }
 
-            if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+            if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
                 ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':END');
             }
         }

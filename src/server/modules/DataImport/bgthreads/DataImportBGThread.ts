@@ -218,7 +218,7 @@ export default class DataImportBGThread implements IBGThread {
      */
     private async handlefasttrackerror(importHistoric: DataImportHistoricVO) {
 
-        if (!!ConfigurationService.getInstance().node_configuration.RETRY_FAILED_FAST_TRACK_IMPORTS_WITH_NORMAL_IMPORTATION) {
+        if (!!ConfigurationService.node_configuration.RETRY_FAILED_FAST_TRACK_IMPORTS_WITH_NORMAL_IMPORTATION) {
             ConsoleHandler.log('DataImportBGThread Using Fast Track DIH[' + importHistoric.id + '] failed, trying normal importation');
             importHistoric.use_fast_track = false;
             importHistoric.state = ModuleDataImport.IMPORTATION_STATE_UPLOADED;
@@ -242,7 +242,7 @@ export default class DataImportBGThread implements IBGThread {
         // await ModuleDataImportServer.getInstance().updateImportHistoric(importHistoric);
         let fasttrack_datas: IImportedData[] = await ModuleDataImportServer.getInstance().formatDatas(importHistoric);
 
-        if (!!ConfigurationService.getInstance().node_configuration.DEBUG_IMPORTS) {
+        if (!!ConfigurationService.node_configuration.DEBUG_IMPORTS) {
             ConsoleHandler.log('DataImportBGThread Using Fast Track DIH[' + importHistoric.id + '] :post formatDatas' +
                 ':IMPORTATION_STATE_FORMATTED:' + (importHistoric.state == ModuleDataImport.IMPORTATION_STATE_FORMATTED) +
                 ':fasttrack_datas:' + ((fasttrack_datas && fasttrack_datas.length) ? fasttrack_datas.length : 0));
@@ -265,7 +265,7 @@ export default class DataImportBGThread implements IBGThread {
         // await ModuleDataImportServer.getInstance().updateImportHistoric(importHistoric);
         await ModuleDataImportServer.getInstance().importDatas(importHistoric, fasttrack_datas);
 
-        if (!!ConfigurationService.getInstance().node_configuration.DEBUG_IMPORTS) {
+        if (!!ConfigurationService.node_configuration.DEBUG_IMPORTS) {
             ConsoleHandler.log('DataImportBGThread Using Fast Track DIH[' + importHistoric.id + '] :post importDatas' +
                 ':IMPORTATION_STATE_IMPORTED:' + (importHistoric.state == ModuleDataImport.IMPORTATION_STATE_IMPORTED));
         }
@@ -280,7 +280,7 @@ export default class DataImportBGThread implements IBGThread {
         // await ModuleDataImportServer.getInstance().updateImportHistoric(importHistoric);
         await ModuleDataImportServer.getInstance().posttreatDatas(importHistoric, fasttrack_datas);
 
-        if (!!ConfigurationService.getInstance().node_configuration.DEBUG_IMPORTS) {
+        if (!!ConfigurationService.node_configuration.DEBUG_IMPORTS) {
             ConsoleHandler.log('DataImportBGThread Using Fast Track DIH[' + importHistoric.id + '] :post posttreatDatas' +
                 ':IMPORTATION_STATE_POSTTREATED:' + (importHistoric.state == ModuleDataImport.IMPORTATION_STATE_POSTTREATED));
         }

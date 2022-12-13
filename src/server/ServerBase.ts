@@ -95,7 +95,8 @@ export default abstract class ServerBase {
         ServerBase.instance = this;
         this.modulesService = modulesService;
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
-        ConfigurationService.getInstance().setEnvParams(this.STATIC_ENV_PARAMS);
+        ConfigurationService.init();
+        ConfigurationService.setEnvParams(this.STATIC_ENV_PARAMS);
 
         ConsoleHandler.init();
         FileLoggerHandler.getInstance().prepare().then(() => {
@@ -121,17 +122,17 @@ export default abstract class ServerBase {
     /* istanbul ignore next: FIXME Don't want to test this file, but there are many things that should be externalized in smaller files and tested */
     public async initializeNodeServer() {
 
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:createMandatoryFolders:START');
         }
         await this.createMandatoryFolders();
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:createMandatoryFolders:END');
         }
 
         this.version = this.getVersion();
 
-        this.envParam = ConfigurationService.getInstance().node_configuration;
+        this.envParam = ConfigurationService.node_configuration;
 
         EnvHandler.BASE_URL = this.envParam.BASE_URL;
         EnvHandler.NODE_VERBOSE = !!this.envParam.NODE_VERBOSE;
@@ -154,23 +155,23 @@ export default abstract class ServerBase {
             max: this.envParam.MAX_POOL,
         });
 
-        this.db.$pool.options.max = ConfigurationService.getInstance().node_configuration.MAX_POOL;
+        this.db.$pool.options.max = ConfigurationService.node_configuration.MAX_POOL;
         this.db.$pool.options.idleTimeoutMillis = 120000;
 
         let GM = this.modulesService;
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:register_all_modules:START');
         }
         await GM.register_all_modules(this.db);
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:register_all_modules:END');
         }
 
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:initializeDataImports:START');
         }
         await this.initializeDataImports();
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:initializeDataImports:END');
         }
 
@@ -230,7 +231,7 @@ export default abstract class ServerBase {
         //   }*/
         // );
 
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:express:START');
         }
         this.app = express();
@@ -350,17 +351,17 @@ export default abstract class ServerBase {
             }
             next();
         };
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:express:END');
         }
 
         this.hook_configure_express();
 
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:hook_pwa_init:START');
         }
         await this.hook_pwa_init();
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:hook_pwa_init:END');
         }
 
@@ -377,11 +378,11 @@ export default abstract class ServerBase {
         //     next();
         // });
 
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:registerApis:START');
         }
         this.registerApis(this.app);
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:registerApis:END');
         }
 
@@ -738,48 +739,48 @@ export default abstract class ServerBase {
         });
 
         // On préload les droits / users / groupes / deps pour accélérer le démarrage
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:preload_access_rights:START');
         }
         await ModuleAccessPolicyServer.getInstance().preload_access_rights();
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:preload_access_rights:END');
         }
 
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:configure_server_modules:START');
         }
         await this.modulesService.configure_server_modules(this.app);
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:configure_server_modules:END');
         }
 
         // A ce stade on a chargé toutes les trads par défaut possible et immaginables
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:saveDefaultTranslations:START');
         }
         await DefaultTranslationsServerManager.getInstance().saveDefaultTranslations();
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:saveDefaultTranslations:END');
         }
 
         // Derniers chargements
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:late_server_modules_configurations:START');
         }
         await this.modulesService.late_server_modules_configurations();
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:late_server_modules_configurations:END');
         }
 
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:i18nextInit:getALL_LOCALES:START');
         }
         let i18nextInit = I18nextInit.getInstance(await ModuleTranslation.getInstance().getALL_LOCALES());
         this.app.use(i18nextInit.i18nextMiddleware.handle(i18nextInit.i18next, {
             ignoreRoutes: ["/public"]
         }));
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:i18nextInit:getALL_LOCALES:END');
         }
 
@@ -1047,7 +1048,7 @@ export default abstract class ServerBase {
         // this.initializePushApis(this.app);
         this.registerApis(this.app);
 
-        if (!!ConfigurationService.getInstance().node_configuration.ACTIVATE_LONG_JOHN) {
+        if (!!ConfigurationService.node_configuration.ACTIVATE_LONG_JOHN) {
             require('longjohn');
         }
 
@@ -1095,11 +1096,11 @@ export default abstract class ServerBase {
 
                 // ServerBase.getInstance().testNotifs();
 
-                if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+                if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
                     ConsoleHandler.log('ServerExpressController:hook_on_ready:START');
                 }
                 await ServerBase.getInstance().hook_on_ready();
-                if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+                if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
                     ConsoleHandler.log('ServerExpressController:hook_on_ready:END');
                 }
 
@@ -1113,16 +1114,16 @@ export default abstract class ServerBase {
                 //     fake_file
                 // ]);
 
-                if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+                if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
                     ConsoleHandler.log('ServerExpressController:fork_threads:START');
                 }
                 await ForkServerController.getInstance().fork_threads();
-                if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+                if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
                     ConsoleHandler.log('ServerExpressController:fork_threads:END');
                 }
                 BGThreadServerController.getInstance().server_ready = true;
 
-                if (ConfigurationService.getInstance().node_configuration.AUTO_END_MAINTENANCE_ON_START) {
+                if (ConfigurationService.node_configuration.AUTO_END_MAINTENANCE_ON_START) {
                     await ModuleMaintenance.getInstance().end_planned_maintenance();
                 }
 

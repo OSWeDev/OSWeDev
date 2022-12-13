@@ -24,12 +24,12 @@ export default class DefaultTranslationsServerManager {
     public async saveDefaultTranslations(force: boolean = false) {
 
         // Il faut utiliser la var d'en NODE_INSTALL = true pour lancer ce process (très long potentiellement)
-        if (!ConfigurationService.getInstance().nodeInstall) {
+        if (!ConfigurationService.nodeInstall) {
             return;
         }
 
         let promises = [];
-        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 2));
+        let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
         let registered_default_translations = this.clean_registered_default_translations();
 
         let langs: LangVO[] = null;

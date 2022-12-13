@@ -191,7 +191,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             });
 
             let langs: LangVO[] = await query(LangVO.API_TYPE_ID)
-                .filter_by_text_eq('code_lang', ConfigurationService.getInstance().node_configuration.DEFAULT_LOCALE)
+                .filter_by_text_eq('code_lang', ConfigurationService.node_configuration.DEFAULT_LOCALE)
                 .select_vos<LangVO>();
             let lang: LangVO = langs ? langs[0] : null;
 

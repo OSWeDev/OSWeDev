@@ -42,8 +42,10 @@ export default abstract class ForkedProcessWrapperBase {
         ForkedProcessWrapperBase.instance = this;
         this.modulesService = modulesService;
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
-        ConfigurationService.getInstance().setEnvParams(this.STATIC_ENV_PARAMS);
+        ConfigurationService.init();
+        ConfigurationService.setEnvParams(this.STATIC_ENV_PARAMS);
 
+        ConsoleHandler.init();
         FileLoggerHandler.getInstance().prepare().then(() => {
             ConsoleHandler.logger_handler = FileLoggerHandler.getInstance();
             ConsoleHandler.log("Forked Process starting");
@@ -89,35 +91,35 @@ export default abstract class ForkedProcessWrapperBase {
 
     public async run() {
 
-        const envParam: EnvParam = ConfigurationService.getInstance().node_configuration;
+        const envParam: EnvParam = ConfigurationService.node_configuration;
 
         let connectionString = envParam.CONNECTION_STRING;
 
         let pgp: pg_promise.IMain = pg_promise({});
         let db: IDatabase<any> = pgp(connectionString);
 
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ForkedProcessWrapperBase:register_all_modules:START');
         }
         await this.modulesService.register_all_modules(db);
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ForkedProcessWrapperBase:register_all_modules:END');
         }
 
         // On préload les droits / users / groupes / deps pour accélérer le démarrage
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ForkedProcessWrapperBase:preload_access_rights:START');
         }
         await ModuleAccessPolicyServer.getInstance().preload_access_rights();
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ForkedProcessWrapperBase:preload_access_rights:END');
         }
 
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ForkedProcessWrapperBase:configure_server_modules:START');
         }
         await this.modulesService.configure_server_modules(null);
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ForkedProcessWrapperBase:configure_server_modules:END');
         }
 

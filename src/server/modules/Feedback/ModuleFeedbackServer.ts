@@ -328,7 +328,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             await ModuleFileServer.getInstance().makeSureThisFolderExists('./files/feedbacks/');
             await ModuleFileServer.getInstance().writeFile('.' + feedback_file_patch, trello_message);
 
-            let envParam: EnvParam = ConfigurationService.getInstance().node_configuration;
+            let envParam: EnvParam = ConfigurationService.node_configuration;
             let file_url = envParam.BASE_URL + feedback_file_patch;
 
             trello_message = ((trello_message.length > 15000) ? trello_message.substr(0, 15000) + ' ... [truncated 15000 cars]' : trello_message);
@@ -393,7 +393,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
                     break;
             }
 
-            let BASE_URL: string = ConfigurationService.getInstance().node_configuration.BASE_URL;
+            let BASE_URL: string = ConfigurationService.node_configuration.BASE_URL;
             let url = FileHandler.getInstance().get_full_url(BASE_URL, api_log.url);
             apis_log_message += '1. [' + type + ' - ' + api_log.url + '](' + url + ')';
         }
@@ -429,7 +429,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     private async routes_to_string(feedback: FeedbackVO): Promise<string> {
         let FEEDBACK_TRELLO_ROUTE_LIMIT: string = await ModuleParams.getInstance().getParamValue(ModuleFeedbackServer.FEEDBACK_TRELLO_ROUTE_LIMIT_PARAM_NAME);
         let ROUTE_LIMIT: number = FEEDBACK_TRELLO_ROUTE_LIMIT ? parseInt(FEEDBACK_TRELLO_ROUTE_LIMIT.toString()) : 100;
-        let envParam: EnvParam = ConfigurationService.getInstance().node_configuration;
+        let envParam: EnvParam = ConfigurationService.node_configuration;
 
         let routes_message: string = '';
         ROUTE_LIMIT = ROUTE_LIMIT - feedback.routes_fullpaths.length;
@@ -456,7 +456,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     }
 
     private async user_infos_to_string(feedback: FeedbackVO): Promise<string> {
-        let envParam: EnvParam = ConfigurationService.getInstance().node_configuration;
+        let envParam: EnvParam = ConfigurationService.node_configuration;
 
         let res: string = ModuleFeedbackServer.TRELLO_SECTION_SEPARATOR;
         res += '##USER INFOS' + ModuleFeedbackServer.TRELLO_LINE_SEPARATOR;
@@ -488,7 +488,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     }
 
     private async feedback_infos_to_string(feedback: FeedbackVO): Promise<string> {
-        let envParam: EnvParam = ConfigurationService.getInstance().node_configuration;
+        let envParam: EnvParam = ConfigurationService.node_configuration;
 
         let res: string = ModuleFeedbackServer.TRELLO_SECTION_SEPARATOR;
         res += '##FEEDBACK INFOS' + ModuleFeedbackServer.TRELLO_LINE_SEPARATOR;
@@ -520,7 +520,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     }
 
     private async attachments_to_string(feedback: FeedbackVO): Promise<string> {
-        let envParam: EnvParam = ConfigurationService.getInstance().node_configuration;
+        let envParam: EnvParam = ConfigurationService.node_configuration;
 
         if (!feedback.file_attachment_1_id) {
             return '';
@@ -560,7 +560,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     }
 
     private async screen_captures_to_string(feedback: FeedbackVO): Promise<string> {
-        let envParam: EnvParam = ConfigurationService.getInstance().node_configuration;
+        let envParam: EnvParam = ConfigurationService.node_configuration;
 
         if (!feedback.screen_capture_1_id) {
             return '';

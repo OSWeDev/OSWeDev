@@ -29,7 +29,7 @@ export default class VarDAGNode extends DAGNodeBase {
             // Le but est de savoir si on était un batch var ne serait-ce qu'une fois parmi les demandes de calcul de cette var
             if (is_batch_var && !res.is_batch_var) {
 
-                if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+                if (ConfigurationService.node_configuration.DEBUG_VARS) {
                     ConsoleHandler.warn('Pour ma culture G: on demande un noeud dans l\'arbre qui existe déjà :' +
                         var_data.index + ': et qui n\'était pas un batch var, mais qui le devient');
                 }

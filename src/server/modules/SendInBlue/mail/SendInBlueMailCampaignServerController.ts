@@ -97,7 +97,7 @@ export default class SendInBlueMailCampaignServerController {
     public async createWithTemplate(campaignName: string, subject: string, contacts: SendInBlueContactVO[], templateId: number, params: { [param_name: string]: any } = {}, inlineImageActivation: boolean = false): Promise<SendInBlueMailCampaignDetailVO> {
 
         // On check que l'env permet d'envoyer des mails
-        if (ConfigurationService.getInstance().node_configuration.BLOCK_MAIL_DELIVERY) {
+        if (ConfigurationService.node_configuration.BLOCK_MAIL_DELIVERY) {
 
             ConsoleHandler.warn('Envoi de mails interdit sur cet env:templateId: ' + templateId);
             return null;

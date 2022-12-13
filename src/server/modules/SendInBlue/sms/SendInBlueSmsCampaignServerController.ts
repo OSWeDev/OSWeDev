@@ -44,7 +44,7 @@ export default class SendInBlueSmsCampaignServerController {
     public async createAndSend(campaignName: string, content: string, contacts: SendInBlueContactVO[], scheduledAt: number, testSms: boolean = false, phoneTest: SendInBlueSmsFormatVO = null): Promise<boolean> {
 
         // On check que l'env permet d'envoyer des mails
-        if (ConfigurationService.getInstance().node_configuration.BLOCK_MAIL_DELIVERY) {
+        if (ConfigurationService.node_configuration.BLOCK_MAIL_DELIVERY) {
 
             ConsoleHandler.warn('Envoi de mails interdit sur cet env:templateId: ' + content);
             return null;

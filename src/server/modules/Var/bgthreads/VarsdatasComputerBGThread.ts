@@ -249,7 +249,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
             if (!did_something) {
 
                 // ConsoleHandler.log('VarsdatasComputerBGThread.do_calculation_run:!did_something:refuse_computation:' + refuse_computation + ':');
-                if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+                if (ConfigurationService.node_configuration.DEBUG_VARS) {
                     ConsoleHandler.log('VarsdatasComputerBGThread.do_calculation_run:!did_something');
                 }
 
@@ -263,11 +263,11 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                     //     // On limite à un appel toutes les secondes
                     //     this.partial_clean_next_ms = performance.now() + 1000;
 
-                    //     if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+                    //     if (ConfigurationService.node_configuration.DEBUG_VARS) {
                     //         ConsoleHandler.log('VarsdatasComputerBGThread.do_calculation_run:partially_clean_bdd_cache:IN');
                     //     }
                     //     await VarsCacheController.getInstance().partially_clean_bdd_cache(); // PERF OK
-                    //     if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+                    //     if (ConfigurationService.node_configuration.DEBUG_VARS) {
                     //         ConsoleHandler.log('VarsdatasComputerBGThread.do_calculation_run:partially_clean_bdd_cache:OUT');
                     //     }
                     // }

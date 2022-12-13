@@ -37,7 +37,7 @@ export default class SendInBlueMailServerController {
 
         // On check que l'env permet d'envoyer des mails
         // On vérifie la whitelist
-        if (ConfigurationService.getInstance().node_configuration.BLOCK_MAIL_DELIVERY) {
+        if (ConfigurationService.node_configuration.BLOCK_MAIL_DELIVERY) {
 
             if (ModuleMailerServer.getInstance().check_mail_whitelist(to.email, this.convert_mails_vo_to_string_list(cc), this.convert_mails_vo_to_string_list(bcc))) {
                 ConsoleHandler.warn('Envoi de mails interdit sur cet env mais adresses whitelistées:' + to.email + ':' + this.convert_mails_vo_to_string_list(cc) + ':' + this.convert_mails_vo_to_string_list(bcc));
@@ -100,7 +100,7 @@ export default class SendInBlueMailServerController {
 
         // On check que l'env permet d'envoyer des mails
         // On vérifie la whitelist
-        if (ConfigurationService.getInstance().node_configuration.BLOCK_MAIL_DELIVERY) {
+        if (ConfigurationService.node_configuration.BLOCK_MAIL_DELIVERY) {
 
             if (ModuleMailerServer.getInstance().check_mail_whitelist(to.email, this.convert_mails_vo_to_string_list(cc), this.convert_mails_vo_to_string_list(bcc))) {
                 ConsoleHandler.warn('Envoi de mails interdit sur cet env mais adresses whitelistées:' + to.email + ':' + this.convert_mails_vo_to_string_list(cc) + ':' + this.convert_mails_vo_to_string_list(bcc));
@@ -251,7 +251,7 @@ export default class SendInBlueMailServerController {
         }
 
         // On ajoute les params d'environnement
-        let envs: EnvParam = ConfigurationService.getInstance().node_configuration;
+        let envs: EnvParam = ConfigurationService.node_configuration;
         for (let i in envs) {
             if (!params[i]) {
                 params[i] = envs[i];

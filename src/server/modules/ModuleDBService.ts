@@ -32,7 +32,7 @@ export default class ModuleDBService {
 
     private constructor(private db) {
         ModuleDBService.instance = this;
-        this.bdd_owner = ConfigurationService.getInstance().node_configuration.BDD_OWNER;
+        this.bdd_owner = ConfigurationService.node_configuration.BDD_OWNER;
     }
 
     public async preload_modules_is_actif() {
@@ -193,7 +193,7 @@ export default class ModuleDBService {
          * FIXME : on peut pas faire ça en fait
          */
         // let promises = [];
-        // let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 2));
+        // let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
         for (let i in module.datatables) {
             let datatable = module.datatables[i];
 

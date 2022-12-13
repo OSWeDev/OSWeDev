@@ -829,8 +829,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     public async deleteVOsMulticonnections<T extends IDistantVOBase>(vos: T[], max_connections_to_use: number = 0): Promise<InsertOrDeleteQueryResult[]> {
 
-        // max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL));
-        max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL - 1));
+        // max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL));
+        max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL - 1));
 
         let res: InsertOrDeleteQueryResult[] = [];
         let promises = [];
@@ -859,8 +859,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     public async insertOrUpdateVOsMulticonnections<T extends IDistantVOBase>(vos: T[], max_connections_to_use: number = 0): Promise<InsertOrDeleteQueryResult[]> {
 
-        // max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL));
-        max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL - 1));
+        // max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL));
+        max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL - 1));
 
         let res: InsertOrDeleteQueryResult[] = [];
         let promises = [];
@@ -977,7 +977,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         let vos_by_vo_tablename_and_ids: { [tablename: string]: { moduletable: ModuleTable<any>, vos: { [id: number]: IDistantVOBase[] } } } = {};
 
-        max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL - 1));
+        max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL - 1));
 
         let promises = [];
 
@@ -1476,13 +1476,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         // if (!this.copy_dedicated_pool) {
         //     this.copy_dedicated_pool = new Pool({
-        //         connectionString: ConfigurationService.getInstance().node_configuration.CONNECTION_STRING,
+        //         connectionString: ConfigurationService.node_configuration.CONNECTION_STRING,
         //         max: 10,
         //     });
         // }
 
         let copy_dedicated_pool: any = new Pool({
-            connectionString: ConfigurationService.getInstance().node_configuration.CONNECTION_STRING,
+            connectionString: ConfigurationService.node_configuration.CONNECTION_STRING,
             max: 1,
         });
 
@@ -1640,7 +1640,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL - 1));
+        let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL - 1));
         let res: T[] = null;
 
         if (moduleTable.is_segmented) {
@@ -1844,7 +1844,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             let param = new ThrottledSelectQueryParam([resolve], context_query, parameterizedQueryWrapperFields, query_, values);
 
-            if (ConfigurationService.getInstance().node_configuration.DEBUG_THROTTLED_SELECT) {
+            if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
                 ConsoleHandler.log('throttle_select_query:' + param.parameterized_full_query);
             }
 
@@ -1889,7 +1889,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
              */
             let throttled_select_query_params_by_index: { [index: number]: ThrottledSelectQueryParam } = {};
 
-            if (ConfigurationService.getInstance().node_configuration.DEBUG_THROTTLED_SELECT) {
+            if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
                 ConsoleHandler.log('throttled_select_query:IN:' + this.throttled_select_query_params.length);
             }
 
@@ -1903,7 +1903,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 if (throttled_select_query_params_by_parameterized_full_query[throttled_select_query_param.parameterized_full_query]) {
 
                     throttled_select_query_params_by_parameterized_full_query[throttled_select_query_param.parameterized_full_query].cbs.push(...throttled_select_query_param.cbs);
-                    if (ConfigurationService.getInstance().node_configuration.DEBUG_THROTTLED_SELECT) {
+                    if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
                         ConsoleHandler.log('throttled_select_query:found duplicated query:' + throttled_select_query_param.parameterized_full_query + ':' + throttled_select_query_params_by_parameterized_full_query[throttled_select_query_param.parameterized_full_query].cbs.length + 'x (counting cbs)');
                     }
 
@@ -1964,7 +1964,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 promises.push((async () => {
 
                     let request: string = "";
-                    if (ConfigurationService.getInstance().node_configuration.DEBUG_THROTTLED_SELECT) {
+                    if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
                         ConsoleHandler.log('throttled_select_query:do_throttled_select_query:PREPARE:' + i);
                     }
                     for (let j in throttled_select_query_params) {
@@ -1988,18 +1988,18 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         }
 
                         let this_query = "(SELECT " + param.index + " as ___throttled_select_query___index, ___throttled_select_query___query.* from (" + param.parameterized_full_query + ") ___throttled_select_query___query)";
-                        if (ConfigurationService.getInstance().node_configuration.DEBUG_THROTTLED_SELECT) {
+                        if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
                             ConsoleHandler.log('throttled_select_query:do_throttled_select_query:this_query:' + this_query);
                         }
                         request += this_query;
                     }
 
                     if (request != "") {
-                        if (ConfigurationService.getInstance().node_configuration.DEBUG_THROTTLED_SELECT) {
+                        if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
                             ConsoleHandler.log('throttled_select_query:do_throttled_select_query:START:' + i);
                         }
                         await this.do_throttled_select_query(request, null, throttled_select_query_params);
-                        if (ConfigurationService.getInstance().node_configuration.DEBUG_THROTTLED_SELECT) {
+                        if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
                             ConsoleHandler.log('throttled_select_query:do_throttled_select_query:END:' + i);
                         }
                     }
@@ -2245,7 +2245,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let res: T[] = [];
         let promises = [];
 
-        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 2));
+        let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
 
         for (let i in vos) {
             let vo = vos[i];
@@ -2784,7 +2784,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }
 
                 const sql = "DELETE FROM " + full_name + " where id = ${id} RETURNING id";
-                if (ConfigurationService.getInstance().node_configuration.DEBUG_DELETEVOS) {
+                if (ConfigurationService.node_configuration.DEBUG_DELETEVOS) {
                     ConsoleHandler.log('DELETEVOS:oneOrNone:' + sql + ':' + JSON.stringify(vo));
                 }
 
@@ -2804,7 +2804,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             for (let i in deleted_vos) {
                 let deleted_vo = deleted_vos[i];
-                if (ConfigurationService.getInstance().node_configuration.DEBUG_DELETEVOS) {
+                if (ConfigurationService.node_configuration.DEBUG_DELETEVOS) {
                     ConsoleHandler.log('DELETEVOS:post_delete_trigger_hook:deleted_vo:' + JSON.stringify(deleted_vo));
                 }
 
@@ -3132,7 +3132,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     private async getBaseUrl(): Promise<string> {
-        return ConfigurationService.getInstance().node_configuration.BASE_URL;
+        return ConfigurationService.node_configuration.BASE_URL;
     }
 
     /**
@@ -4849,7 +4849,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     private log_db_query_perf_start(method_name: string, query_string: string = null, step_name: string = null): number {
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_DB_QUERY_PERF) {
+        if (ConfigurationService.node_configuration.DEBUG_DB_QUERY_PERF) {
             let uid = this.log_db_query_perf_uid++;
             this.log_db_query_perf_start_by_uid[uid] = Dates.now_ms();
             let query_s = (query_string ? query_string.substring(0, 1000) : 'N/A');
@@ -4864,19 +4864,19 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     private log_db_query_perf_end(uid: number, method_name: string, query_string: string = null, step_name: string = null) {
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_DB_QUERY_PERF && !!this.log_db_query_perf_start_by_uid[uid]) {
+        if (ConfigurationService.node_configuration.DEBUG_DB_QUERY_PERF && !!this.log_db_query_perf_start_by_uid[uid]) {
             let end_ms = Dates.now_ms();
             let duration = Math.round(end_ms - this.log_db_query_perf_start_by_uid[uid]);
             let query_s = (query_string ? query_string.substring(0, 1000) : 'N/A');
             query_s = (query_s ? query_s.replace(/;/g, '') : 'N/A');
 
-            if (ConfigurationService.getInstance().node_configuration.DEBUG_SLOW_QUERIES &&
-                (duration > (10 * ConfigurationService.getInstance().node_configuration.DEBUG_SLOW_QUERIES_MS_LIMIT))) {
+            if (ConfigurationService.node_configuration.DEBUG_SLOW_QUERIES &&
+                (duration > (10 * ConfigurationService.node_configuration.DEBUG_SLOW_QUERIES_MS_LIMIT))) {
                 ConsoleHandler.error('log_db_query_perf_end;VERYSLOW;ModuleDAOServer;OUT;' + uid + ';' + end_ms + ';' + duration + ';' + method_name +
                     ';' + (step_name ? step_name : 'N/A') +
                     ';' + query_string);
-            } else if (ConfigurationService.getInstance().node_configuration.DEBUG_SLOW_QUERIES &&
-                (duration > ConfigurationService.getInstance().node_configuration.DEBUG_SLOW_QUERIES_MS_LIMIT)) {
+            } else if (ConfigurationService.node_configuration.DEBUG_SLOW_QUERIES &&
+                (duration > ConfigurationService.node_configuration.DEBUG_SLOW_QUERIES_MS_LIMIT)) {
                 ConsoleHandler.warn('log_db_query_perf_end;SLOW;ModuleDAOServer;OUT;' + uid + ';' + end_ms + ';' + duration + ';' + method_name +
                     ';' + (step_name ? step_name : 'N/A') +
                     ';' + query_string);
@@ -4939,7 +4939,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let results_of_index = results_by_index[index];
             let param = throttled_select_query_params_by_index[index];
 
-            if (ConfigurationService.getInstance().node_configuration.DEBUG_THROTTLED_SELECT) {
+            if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
                 ConsoleHandler.log('do_throttled_select_query:results_of_index:' + index + ':' + (results_of_index ? JSON.stringify(results_of_index) : 'null'));
             }
 
