@@ -753,7 +753,12 @@ export default class ModuleTable<T extends IDistantVOBase> {
                      * Prise en compte des tableaux. dans ce cas chaque élément du tableau est instancié
                      */
                     if (isArray(trans_)) {
-                        trans_ = this.default_transform_fields(trans_, true);
+                        let new_array = [];
+                        for (let i in trans_) {
+                            let transi = trans_[i];
+                            new_array.push(this.default_from_api_version(transi));
+                        }
+                        trans_ = new_array;
                     } else {
 
                         /**
@@ -762,12 +767,15 @@ export default class ModuleTable<T extends IDistantVOBase> {
                         let elt_type = trans_ ? trans_._type : null;
 
                         let field_table = elt_type ? VOsTypesManager.moduleTables_by_voType[elt_type] : null;
-                        let new_obj = field_table ? field_table.voConstructor() : new Object();
-                        trans_ = Object.assign(new_obj, trans_);
                         if (!field_table) {
-                            trans_ = this.default_transform_fields(trans_, true);
+                            let new_obj = new Object();
+                            for (let i in trans_) {
+                                let transi = trans_[i];
+                                new_obj[i] = this.default_from_api_version(transi);
+                            }
+                            trans_ = new_obj;
                         } else {
-                            trans_ = field_table.default_from_api_version(trans_);
+                            trans_ = Object.assign(field_table.voConstructor(), field_table.default_from_api_version(trans_));
                         }
                     }
                 }
@@ -931,7 +939,12 @@ export default class ModuleTable<T extends IDistantVOBase> {
                      * Prise en compte des tableaux. dans ce cas chaque élément du tableau est instancié
                      */
                     if (isArray(trans_)) {
-                        trans_ = this.default_transform_fields(trans_, false);
+                        let new_tab = [];
+                        for (let i in trans_) {
+                            let transi_ = trans_[i];
+                            new_tab.push(this.default_from_api_version(transi_));
+                        }
+                        trans_ = new_tab;
                     } else {
 
                         /**
@@ -940,12 +953,15 @@ export default class ModuleTable<T extends IDistantVOBase> {
                         let elt_type = trans_ ? trans_._type : null;
 
                         let field_table = elt_type ? VOsTypesManager.moduleTables_by_voType[elt_type] : null;
-                        let new_obj = field_table ? field_table.voConstructor() : new Object();
-                        trans_ = Object.assign(new_obj, trans_);
                         if (!field_table) {
-                            trans_ = this.default_transform_fields(trans_, false);
+                            let new_obj = new Object();
+                            for (let i in trans_) {
+                                let transi_ = trans_[i];
+                                new_obj[i] = this.default_from_api_version(transi_);
+                            }
+                            trans_ = new_obj;
                         } else {
-                            trans_ = field_table.default_from_api_version(trans_);
+                            trans_ = Object.assign(field_table.voConstructor(), field_table.default_from_api_version(trans_));
                         }
                     }
                 }
