@@ -88,11 +88,11 @@ export default class ModuleSurvey extends Module {
         let fields = [
 
 
-            new ModuleTableField('route_name', ModuleTableField.FIELD_TYPE_string, 'Route pour laquelle le survey existe ', true).hide_from_datatable(),
+            new ModuleTableField('route_name', ModuleTableField.FIELD_TYPE_string, 'Route pour laquelle le survey existe ', true),
 
-            new ModuleTableField('pop_up', ModuleTableField.FIELD_TYPE_boolean, 'Affichage automatique ou manuel ?', true, true, SurveyVO.SURVEY_TYPE_NOT_SET).setEnumValues(SurveyVO.SURVEY_TYPE_LABELS),
+            new ModuleTableField('pop_up', ModuleTableField.FIELD_TYPE_boolean, 'Affichage automatique ou manuel ?', false),
 
-            new ModuleTableField('time_before_pop_up', ModuleTableField.FIELD_TYPE_float, 'Temps avant affichage', true).hide_from_datatable(),
+            new ModuleTableField('time_before_pop_up', ModuleTableField.FIELD_TYPE_float, 'Temps avant affichage', true),
 
 
         ];

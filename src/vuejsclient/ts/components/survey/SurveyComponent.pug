@@ -8,7 +8,7 @@
 
     .survey_modal(:class='{"hidden": !!get_hidden}')
         .mx-0.mx-sm-auto
-            form(v-on:submit.prevent="send_survey")
+            form(v-on:submit.prevent="send_survey")(v-if="does_appear")
                 .card
                     .card-header.bg-primary
                         h5#exampleModalLabel.card-title.text-white.mt-2 Feedback request
