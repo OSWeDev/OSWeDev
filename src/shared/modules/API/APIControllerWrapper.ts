@@ -4,7 +4,7 @@ import ConsoleHandler from '../../tools/ConsoleHandler';
 import TypesHandler from '../../tools/TypesHandler';
 import IRange from '../DataRender/interfaces/IRange';
 import IDistantVOBase from '../IDistantVOBase';
-import VOsTypesManager from '../VOsTypesManager';
+import ModuleTable from '../ModuleTable';
 import IAPIController from './interfaces/IAPIController';
 import IAPIParamTranslator from './interfaces/IAPIParamTranslator';
 import IDateAPI from './interfaces/IDateAPI';
@@ -191,12 +191,7 @@ export default class APIControllerWrapper {
             return e;
         }
 
-        let moduletable = VOsTypesManager.moduleTables_by_voType[elt._type];
-        if (!moduletable) {
-            return elt;
-        }
-
-        return moduletable.from_api_version(elt);
+        return ModuleTable.default_from_api_version(elt);
     }
 
     public try_translate_vo_to_api(e: any): any {
@@ -240,12 +235,7 @@ export default class APIControllerWrapper {
             return e;
         }
 
-        let moduletable = VOsTypesManager.moduleTables_by_voType[elt._type];
-        if (!moduletable) {
-            return elt;
-        }
-
-        return moduletable.get_api_version(elt);
+        return ModuleTable.default_get_api_version(elt);
     }
 
     public try_translate_vos_from_api(e: any): any {

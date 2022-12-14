@@ -400,7 +400,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                     throw new Error('unknown table:' + vo._type);
                 }
 
-                vo = table.from_api_version(vo);
+                vo = ModuleTable.default_from_api_version(vo);
                 if (!vos_by_type_and_initial_id[vo._type]) {
                     vos_by_type_and_initial_id[vo._type] = {};
                 }
