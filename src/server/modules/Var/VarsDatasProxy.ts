@@ -17,7 +17,6 @@ import RangeHandler from '../../../shared/tools/RangeHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
-import DAOQueryCacheController from '../DAO/DAOQueryCacheController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import VarsCacheController from '../Var/VarsCacheController';
@@ -410,11 +409,6 @@ export default class VarsDatasProxy {
                 if (!result) {
                     throw new Error('VarsDatasProxy:handle_buffer:insert_without_triggers_using_COPY:Erreur - on garde dans le cache pour une prochaine tentative');
                 }
-
-                // TODO FIXME TO DELETE
-                // MDE A SUPPRIMER APRES MIGRATION MOMENTJS
-                // On force la suppression du cache mais c'est sûrement gourmant...
-                DAOQueryCacheController.getInstance().clear_cache(true);
 
                 for (let i in to_insert_by_type) {
                     let to_insert = to_insert_by_type[i];
