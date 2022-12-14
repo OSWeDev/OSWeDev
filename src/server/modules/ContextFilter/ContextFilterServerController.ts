@@ -259,6 +259,7 @@ export default class ContextFilterServerController {
                         } else if (active_field_filter.param_textarray != null) {
                             if (active_field_filter.param_textarray.length == 0) {
                                 where_conditions.push("false");
+                                break;
                             }
 
                             let like_array = [];
@@ -367,6 +368,7 @@ export default class ContextFilterServerController {
 
                             if (active_field_filter.param_numeric_array.length == 0) {
                                 where_conditions.push("false");
+                                break;
                             }
 
                             for (let i in active_field_filter.param_numeric_array) {
@@ -643,6 +645,7 @@ export default class ContextFilterServerController {
 
                             if (active_field_filter.param_textarray.length == 0) {
                                 where_conditions.push("false");
+                                break;
                             }
 
                             let like_array = [];
@@ -795,6 +798,7 @@ export default class ContextFilterServerController {
                         } else if (active_field_filter.param_textarray != null) {
                             if (active_field_filter.param_textarray.length == 0) {
                                 where_conditions.push("false");
+                                break;
                             }
 
                             let like_array = [];
@@ -952,6 +956,7 @@ export default class ContextFilterServerController {
                         } else if (active_field_filter.param_textarray != null) {
                             if (active_field_filter.param_textarray.length == 0) {
                                 where_conditions.push("false");
+                                break;
                             }
 
                             let like_array = [];
@@ -1689,6 +1694,7 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numeric_array != null) {
                             if (active_field_filter.param_numeric_array.length == 0) {
                                 where_conditions.push("false");
+                                break;
                             }
 
                             for (let i in active_field_filter.param_numeric_array) {
@@ -1787,6 +1793,7 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numeric_array != null) {
                             if (active_field_filter.param_numeric_array.length == 0) {
                                 where_conditions.push("false");
+                                break;
                             }
 
                             for (let i in active_field_filter.param_numeric_array) {
@@ -1885,6 +1892,7 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numeric_array != null) {
                             if (active_field_filter.param_numeric_array.length == 0) {
                                 where_conditions.push("false");
+                                break;
                             }
 
                             for (let i in active_field_filter.param_numeric_array) {
@@ -1983,6 +1991,7 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numeric_array != null) {
                             if (active_field_filter.param_numeric_array.length == 0) {
                                 where_conditions.push("false");
+                                break;
                             }
 
                             for (let i in active_field_filter.param_numeric_array) {
@@ -2117,6 +2126,7 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numeric_array != null) {
                             if (active_field_filter.param_numeric_array.length == 0) {
                                 where_conditions.push("false");
+                                break;
                             }
 
                             for (let i in active_field_filter.param_numeric_array) {

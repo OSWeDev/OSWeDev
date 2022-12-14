@@ -64,7 +64,6 @@ import ModuleTableDBService from '../ModuleTableDBService';
 import PushDataServerController from '../PushData/PushDataServerController';
 import ModuleVocusServer from '../Vocus/ModuleVocusServer';
 import DAOCronWorkersHandler from './DAOCronWorkersHandler';
-import DAOQueryCacheController from './DAOQueryCacheController';
 import DAOServerController from './DAOServerController';
 import DAOPostCreateTriggerHook from './triggers/DAOPostCreateTriggerHook';
 import DAOPostDeleteTriggerHook from './triggers/DAOPostDeleteTriggerHook';
@@ -1562,6 +1561,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             ConsoleHandler.getInstance().error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: on relance la copy avec les correctifs');
                             result = await self.insert_without_triggers_using_COPY(vos, segmented_value);
                             ConsoleHandler.getInstance().error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: résultat copy avec correctifs:' + result);
+                        } else {
+                            let get_select_query_str = await query(moduleTable.vo_type).filter_by_text_has('_bdd_only_index', vos.map((vo: VarDataBaseVO) => vo._bdd_only_index)).get_select_query_str();
+                            ConsoleHandler.getInstance().error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: on a pas trouvé de doublons ce qui ne devrait jamais arriver');
+                            ConsoleHandler.getInstance().error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: \n' + lines.join('\n'));
+                            ConsoleHandler.getInstance().error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: ' + get_select_query_str.query);
                         }
                     } else if (error && error.message) {
                         ConsoleHandler.getInstance().error('insert_without_triggers_using_COPY:Erreur, on tente une insertion classique mais sans triggers');
@@ -2472,9 +2476,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
 
             if (results && isUpdates && (isUpdates.length == results.length) && vos && (vos.length == results.length)) {
-                // On vide le cache
-                await DAOQueryCacheController.getInstance().broad_cast_clear_cache();
-
                 for (let i in results) {
 
                     if (isUpdates[i]) {
@@ -2817,9 +2818,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }).then(async (value: any) => {
 
             this.log_db_query_perf_end(query_uid, 'deleteVOs');
-
-            // On vide le cache
-            await DAOQueryCacheController.getInstance().broad_cast_clear_cache();
 
             for (let i in deleted_vos) {
                 let deleted_vo = deleted_vos[i];
