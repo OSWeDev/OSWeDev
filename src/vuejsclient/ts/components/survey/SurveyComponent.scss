@@ -22,12 +22,12 @@
     .survey_modal {
 
         position: fixed;
-        right: 10px;
+        right: 7px;
         width: 46em;
         background: white;
-        bottom: 70px;
+        bottom: 60px;
         padding: 1em;
-        border-radius: 10px;
+        border-radius: 7px;
         box-shadow: 1px 1px 6px -2px;
         max-height: 80%;
         overflow-y: scroll;
@@ -35,11 +35,84 @@
         z-index: 99999;
         max-width: 95%;
 
-        .survey_modal_header {
+        .smiley {
+            display: flex;
+            justify-content: center;
 
-            padding-bottom: 1em;
-            border-bottom: solid 2px #DDD;
-            margin-bottom: 1em;
+            .smiley_very_happy {
+
+                i.fa-regular.fa-face-grin-stars {
+                    color: green;
+                    padding: 7px 7px;
+                    font-size: 60px
+                }
+
+                i.fa-solid.fa-face-grin-stars {
+                    color: green;
+                    padding: 7px 7px;
+                    font-size: 60px
+                }
+            }
+
+            .smiley_happy {
+
+                i.fa-solid.fa-face-smile {
+                    color: lightgreen;
+                    padding: 7px 7px;
+                    font-size: 60px
+                }
+
+                i.fa-regular.fa-face-smile {
+                    color: lightgreen;
+                    padding: 7px 7px;
+                    font-size: 60px
+                }
+            }
+
+            .smiley_meh {
+
+                i.fa-solid.fa-face-meh {
+                    color: darkgoldenrod;
+                    padding: 7px 7px;
+                    font-size: 60px
+                }
+
+                i.fa-regular.fa-face-meh {
+                    color: darkgoldenrod;
+                    padding: 7px 7px;
+                    font-size: 60px
+                }
+            }
+
+            .smiley_bad {
+
+                i.fa-solid.fa-face-frown {
+                    color: red;
+                    padding: 7px 7px;
+                    font-size: 60px
+                }
+
+                i.fa-regular.fa-face-frown {
+                    color: red;
+                    padding: 7px 7px;
+                    font-size: 60px
+                }
+            }
+
+            .no_opinion {
+
+                i.fa-solid.fa-comment-slash {
+
+                    padding: 7px 7px;
+                    font-size: 60px
+                }
+
+                i.fa-regular.fa-comment-slash {
+
+                    padding: 7px 7px;
+                    font-size: 60px
+                }
+            }
         }
 
         textarea,
@@ -85,7 +158,6 @@
 
     }
 
-    .survey_modal.hidden {
-        display: none;
-    }
+
+
 }

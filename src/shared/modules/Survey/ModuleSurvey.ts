@@ -65,12 +65,12 @@ export default class ModuleSurvey extends Module {
         let fields = [
             user_id,
 
-            new ModuleTableField('message', ModuleTableField.FIELD_TYPE_string, 'Message', true).hide_from_datatable(),
+            new ModuleTableField('message', ModuleTableField.FIELD_TYPE_string, 'Message', false).hide_from_datatable(),
 
 
-            new ModuleTableField('survey_type', ModuleTableField.FIELD_TYPE_enum, 'Avis', true, true, SurveyVO.SURVEY_TYPE_NOT_SET).setEnumValues(SurveyVO.SURVEY_TYPE_LABELS),
+            new ModuleTableField('survey_type', ModuleTableField.FIELD_TYPE_string, 'Avis', true).hide_from_datatable(),
 
-            new ModuleTableField('survey_route_name', ModuleTableField.FIELD_TYPE_string, 'URL fin Survey', true).hide_from_datatable(),
+            new ModuleTableField('route_name', ModuleTableField.FIELD_TYPE_string, 'Route du module enquêté', true).hide_from_datatable(),
 
 
         ];

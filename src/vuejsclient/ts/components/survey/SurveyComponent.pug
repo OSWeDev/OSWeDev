@@ -1,63 +1,87 @@
-.survey.hide_from_screenshot(v-if="isActive")
+.survey.hide_from_screenshot(v-if="isActive && active_survey")
     .survey_switcher(@click='switch_hidden')
         template(v-if='get_hidden')
-            i.fa.fa-comment.fa-fw(aria-hidden="true")
+            i.fa-solid.fa-face-thinking
         template(v-else)
-            i.fa.fa-commenting.fa-fw(aria-hidden="true")
+            i.fa-regular.fa-face-thinking
         span {{ label('survey.btn.title') }}
 
     .survey_modal(:class='{"hidden": !!get_hidden}')
         .mx-0.mx-sm-auto
-            form(v-on:submit.prevent="send_survey")(v-if="does_appear")
-                .card
-                    .card-header.bg-primary
-                        h5#exampleModalLabel.card-title.text-white.mt-2 Feedback request
-                    .modal-body
+            form(v-on:submit.prevent="send_survey")
+                .modal-body
+                    .text-center
+                        i.far.fa-file-alt.fa-4x.mb-3.text-primary
+                        p
+                            strong {{ label('survey.header') }}
+                        p
+                            | {{ label('survey.header_2') }}
+                            strong   {{ label('survey.header_3') }}
+                    hr
+                    form.px-4(action='')
                         .text-center
-                            i.far.fa-file-alt.fa-4x.mb-3.text-primary
-                            p
-                                strong Your opinion matters
-                            p
-                                | Have some ideas how to improve our product?
-                                strong Give us your feedback.
-                        hr
-                        form.px-4(action='')
-                            p.text-center
-                                strong Your rating:
-                            .form-check.mb-2
-                                input.form-check-input(type='radio' id="survey_type_2" value='2' v-model="tmp_type")
-                                label.form-check-label(for='survey_type_2')
-                                    | Very good
-                            .form-check.mb-2
-                                input.form-check-input(type='radio' id="survey_type_1" value='1' v-model="tmp_type")
-                                label.form-check-label(for='survey_type_1')
-                                    | Good
-                            .form-check.mb-2
-                                input.form-check-input(type='radio' id="survey_type_0" value='0' v-model="tmp_type")
-                                label.form-check-label(for='survey_type_0')
-                                    | Mediocre
-                            .form-check.mb-2
-                                input.form-check-input(type='radio' id="survey_type_3" value='3' v-model="tmp_type")
-                                label.form-check-label(for='survey_type_3')
-                                    | Bad
-                            .form-check.mb-2
-                                input.form-check-input(type='radio' id="survey_type_4" value='4' v-model="tmp_type")
-                                label.form-check-label(for='survey_type_4')
-                                    | Very bad
-                            p.text-center
-                                strong What could we improve?
-                            // Message input
-                            .row
-                                .col-sm-12
-                                    label(for='survey_message') {{ label('feedback_handler.message.label') }}
-                            .row
-                                .col-sm-12
-                                    textarea.form-control(name="survey_message" cols="80" rows="10" v-model="tmp_message")
+                            label {{ label('survey.rating') }}
+                                i.fa.fa-asterisk.mandatory
+                        .spacer
 
-                    .spacer
-                    
+                        //- Définition des smiley , malheureusement difficile de faire une boucle car les smileys sont tous différents
+                        .smiley
+                            .smiley_very_happy
+                                .selected(v-if='tmp_type == 0')
+                                    .btn.btn-default.very_good.mr-2
+                                        i.fa-solid.fa-face-grin-stars
+                                .select(v-else)
+                                    .btn.btn-default.very_good.mr-2(@click='give_opinion(0)')
+                                        i.fa-regular.fa-face-grin-stars
 
-                    .btn.btn-secondary.btn-block.btn-flat(@click='switch_hidden') {{ label('feedback_handler.hide') }}
-                    .btn.btn-default.btn-block.btn-flat(@click='reload') {{ label('feedback_handler.clear') }}
-                    button.btn.btn-primary.btn-block.btn-flat(type="submit") {{ label('feedback_handler.submit') }}
+                            .smiley_happy
+                                .selected(v-if='tmp_type == 1')
+                                    .btn.btn-default.good.mr-2
+                                        i.fa-solid.fa-face-smile
+                                .select(v-else)
+                                    .btn.btn-default.good.mr-2(@click='give_opinion(1)')
+                                        i.fa-regular.fa-face-smile
+
+
+                            .smiley_meh    
+                                .selected(v-if='tmp_type == 2')
+                                    .btn.btn-default.mediocre.mr-2
+                                        i.fa-solid.fa-face-meh
+                                .select(v-else)
+                                    .btn.btn-default.mediocre.mr-2(@click='give_opinion(2)')
+                                        i.fa-regular.fa-face-meh
+                            
+
+                            .smiley_bad
+                                .selected(v-if='tmp_type == 3')
+                                    .btn.btn-default.bad.mr-2
+                                        i.fa-solid.fa-face-frown
+                                .select(v-else)
+                                    .btn.btn-default.bad.mr-2(@click='give_opinion(3)')
+                                        i.fa-regular.fa-face-frown
+                            
+                            .no_opinion
+                                .selected(v-if='tmp_type == 4')
+                                    .btn.btn-default.no_opinion.mr-2
+                                        i.fa-solid.fa-comment-slash
+                                .select(v-else)
+                                    .btn.btn-default.no_opinion.mr-2(@click='give_opinion(4)')
+                                        i.fa-regular.fa-comment-slash
+                        
+                        
+                        .spacer
+                        p.text-center
+                            strong {{ label('survey.message.remarque.label') }}
+                        // Message input
+                        .row
+                            .col-sm-12
+                                label(for='survey_message') {{ label('survey.message.label') }}
+                        .row
+                            .col-sm-12
+                                textarea.form-control(name="survey_message" cols="80" rows="1" v-model="tmp_message")
+
+                
+                    .btn.btn-secondary.btn-block.btn-flat(@click='switch_hidden') {{ label('survey.hide') }}
+                    button.btn.btn-primary.btn-block.btn-flat(type="submit") {{ label('survey.submit') }}
+
 

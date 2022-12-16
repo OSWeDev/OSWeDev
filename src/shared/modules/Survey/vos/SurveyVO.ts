@@ -4,7 +4,7 @@ import IVersionedVO from '../../Versioned/interfaces/IVersionedVO';
 export default class SurveyVO implements IVersionedVO {
     public static API_TYPE_ID: string = "survey";
 
-    public static SURVEY_TYPE_LABELS: string[] = ['survey.SURVEY_TYPE.VERY_GOOD', 'survey.SURVEY_TYPE.GOOD', 'survey.SURVEY_TYPE.MEDIOCRE', 'survey.SURVEY_TYPE.BAD', 'survey.SURVEY_TYPE.VERY_BAD'];
+    public static SURVEY_TYPE_LABELS: string[] = ['TRES BIEN', 'BIEN', 'MOYEN', 'MAUVAIS', 'SANS OPINION'];
     public static SURVEY_TYPE_ENHANCEMENT_REQUEST: number = 0;
     public static SURVEY_TYPE_BUG: number = 1;
     public static SURVEY_TYPE_INCIDENT: number = 2;
@@ -18,10 +18,10 @@ export default class SurveyVO implements IVersionedVO {
     public user_id: number;
 
 
-    public survey_type: number;
+    public survey_type: string;
 
     // URL (with Query) when the user sent the survey
-    public survey_route_name: string;
+    public route_name: string;
 
 
     public parent_id: number;

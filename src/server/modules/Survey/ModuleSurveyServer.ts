@@ -87,14 +87,30 @@ export default class ModuleSurveyServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Vider' },
             'survey.clear.___LABEL___'));
-
-        //Header
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': 'Faites-nous part de vos suggestions, informez-nous d\'un incident ou d\'un bug, ou laissez-nous simplement un message' },
+            { 'fr-fr': 'Enquête de satisfaction' },
+            'survey.title.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Votre avis compte' },
             'survey.header.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Appreciez vous la solution ?' },
+            'survey.header_2.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Faites nous un retour !' },
+            'survey.header_3.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Votre avis' },
+            'survey.rating.___LABEL___'));
+
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Message' },
             'survey.message.label.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Des remarques ?' },
+            'survey.message.remarque.label.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Envoyer' },
             'survey.submit.___LABEL___'));
@@ -114,6 +130,9 @@ export default class ModuleSurveyServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Demande d\'évolution ou proposition d\'amélioration' },
             'survey.type.request.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Avis obligatoire' },
+            'survey.needs_opinion.___LABEL___'));
 
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
@@ -122,6 +141,9 @@ export default class ModuleSurveyServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Erreur lors de la transmission. Merci de contacter l\'équipe projet pour les en informer.' },
             'survey.survey.error'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Une erreur est survenue. Veuillez contacter l\'équipe technique par mail pour faire votre commentaire.' },
+            'survey.error_sending_feedback.___LABEL___'));
 
 
         //SurveyComponent - Enquête de satisfaction
