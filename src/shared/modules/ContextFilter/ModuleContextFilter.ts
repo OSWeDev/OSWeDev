@@ -241,6 +241,7 @@ export default class ModuleContextFilter extends Module {
             new ModuleTableField('filter_type', ModuleTableField.FIELD_TYPE_enum, 'Type', true).setEnumValues(ContextFilterVO.TYPE_LABELS),
             new ModuleTableField('param_text', ModuleTableField.FIELD_TYPE_string, 'param_text', false),
             new ModuleTableField('param_numeric', ModuleTableField.FIELD_TYPE_float, 'param_numeric', false),
+            new ModuleTableField('param_numeric_array', ModuleTableField.FIELD_TYPE_int_array, 'param_numeric_array', false),
             new ModuleTableField('param_textarray', ModuleTableField.FIELD_TYPE_string_array, 'param_textarray', false),
             new ModuleTableField('param_tsrange', ModuleTableField.FIELD_TYPE_tstz_array, 'param_tsrange', false),
             new ModuleTableField('param_numranges', ModuleTableField.FIELD_TYPE_numrange_array, 'param_numranges', false),

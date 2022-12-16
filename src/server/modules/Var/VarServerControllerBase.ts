@@ -140,8 +140,8 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      * @param datasources_values les datas de chaque datasource, par nom du datasource
      * @param deps_values les valeurs des deps, par id de dep
      */
-    public UT__getParamDependencies(param: TData, datasources_values: { [ds_name: string]: any }, deps_values: { [dep_id: string]: number } = null): { [dep_id: string]: VarDataBaseVO } {
-        return this.getParamDependencies(this.UT__getTestVarDAGNode(param, datasources_values, deps_values));
+    public async UT__getParamDependencies(param: TData, datasources_values: { [ds_name: string]: any }, deps_values: { [dep_id: string]: number } = null): Promise<{ [dep_id: string]: VarDataBaseVO }> {
+        return this.getParamDependencies(await this.UT__getTestVarDAGNode(param, datasources_values, deps_values));
     }
 
     /**
@@ -151,8 +151,8 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      * @param datasources_values les datas de chaque datasource, par nom du datasource
      * @param deps_values les valeurs des deps, par id de dep
      */
-    public UT__getValue(param: TData, datasources_values: { [ds_name: string]: any } = null, deps_values: { [dep_id: string]: number } = null): number {
-        return this.getValue(this.UT__getTestVarDAGNode(param, datasources_values, deps_values));
+    public async UT__getValue(param: TData, datasources_values: { [ds_name: string]: any } = null, deps_values: { [dep_id: string]: number } = null): Promise<number> {
+        return this.getValue(await this.UT__getTestVarDAGNode(param, datasources_values, deps_values));
     }
 
     /**
@@ -267,9 +267,9 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      * @param datasources les datas de chaque datasource, par nom du datasource
      * @param deps_values les valeurs des deps, par id de dep
      */
-    private UT__getTestVarDAGNode(param: TData, datasources: { [ds_name: string]: any } = null, deps_values: { [dep_id: string]: number } = null): VarDAGNode {
+    private async UT__getTestVarDAGNode(param: TData, datasources: { [ds_name: string]: any } = null, deps_values: { [dep_id: string]: number } = null): Promise<VarDAGNode> {
         let dag: VarDAG = new VarDAG();
-        let varDAGNode: VarDAGNode = VarDAGNode.getInstance(dag, param, VarsComputeController, false);
+        let varDAGNode: VarDAGNode = await VarDAGNode.getInstance(dag, param, VarsComputeController, false);
 
         if (!varDAGNode) {
             return null;
@@ -280,7 +280,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
         for (let i in deps) {
             let dep_value = deps_values ? deps_values[i] : undefined;
 
-            let var_dag_node_dep = VarDAGNode.getInstance(dag, Object.assign(cloneDeep(param), { value: dep_value }), VarsComputeController, false);
+            let var_dag_node_dep = await VarDAGNode.getInstance(dag, Object.assign(cloneDeep(param), { value: dep_value }), VarsComputeController, false);
             if (!var_dag_node_dep) {
                 return null;
             }

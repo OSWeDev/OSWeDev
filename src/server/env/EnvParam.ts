@@ -38,6 +38,7 @@ export default class EnvParam implements IEnvParam {
     public DEBUG_DELETEVOS?: boolean = false;
     public DEBUG_START_SERVER?: boolean = false;
     public DEBUG_DB_QUERY_PERF?: boolean = false;
+    public DEBUG_DB_FULL_QUERY_PERF?: boolean = false;
     public DEBUG_INTERTHREADS_MESSAGES?: boolean = false;
     public DEBUG_IMPORTS?: boolean = false;
     public DEBUG_THROTTLED_SELECT?: boolean = false;

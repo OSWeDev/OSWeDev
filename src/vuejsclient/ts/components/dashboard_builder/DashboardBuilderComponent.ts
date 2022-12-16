@@ -24,6 +24,7 @@ import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import LocaleManager from '../../../../shared/tools/LocaleManager';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../shared/tools/PromiseTools';
+import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
 import WeightHandler from '../../../../shared/tools/WeightHandler';
 import VueAppController from '../../../VueAppController';
 import InlineTranslatableText from '../InlineTranslatableText/InlineTranslatableText';
@@ -115,6 +116,8 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     private can_use_clipboard: boolean = false;
 
+    private throttle_on_load_dashboard = ThrottleHelper.getInstance().declare_throttle_without_args(this.on_load_dashboard, 50);
+
     private async update_layout_widget(widget: DashboardPageWidgetVO) {
         if ((!this.$refs) || (!this.$refs['Dashboardbuilderboardcomponent'])) {
             return;
@@ -150,7 +153,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
                     self.loading = true;
                     self.dashboards = await query(DashboardVO.API_TYPE_ID).select_vos<DashboardVO>();
-                    await self.on_load_dashboard();
+                    await self.throttle_on_load_dashboard();
                     // On crée des trads, on les recharge
                     await VueAppController.getInstance().initializeFlatLocales();
                     self.set_flat_locale_translations(VueAppController.getInstance().ALL_FLAT_LOCALE_TRANSLATIONS);
@@ -417,7 +420,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         }
 
         this.dashboard = await query(DashboardVO.API_TYPE_ID).filter_by_id(parseInt(this.dashboard_id)).select_vo<DashboardVO>();
-        await this.on_load_dashboard();
+        await this.throttle_on_load_dashboard();
 
         this.loading = false;
     }
@@ -435,7 +438,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
             });
         }
 
-        await this.on_load_dashboard();
+        await this.throttle_on_load_dashboard();
         this.loading = false;
     }
 

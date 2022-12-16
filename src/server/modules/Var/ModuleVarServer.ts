@@ -26,6 +26,7 @@ import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../shared/modules/Var/VarsController';
+import { GetVarParamFromContextFiltersParamVOStatic } from '../../../shared/modules/Var/vos/GetVarParamFromContextFiltersParamVO';
 import SlowVarVO from '../../../shared/modules/Var/vos/SlowVarVO';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfIds from '../../../shared/modules/Var/vos/VarConfIds';
@@ -38,6 +39,7 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
+import SemaphoreHandler from '../../../shared/tools/SemaphoreHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import ConfigurationService from '../../env/ConfigurationService';
@@ -62,6 +64,7 @@ import PushDataServerController from '../PushData/PushDataServerController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import DataSourcesController from './datasource/DataSourcesController';
+import GetVarParamFromContextFiltersParam from './GetVarParamFromContextFiltersParam';
 import NotifVardatasParam from './notifs/NotifVardatasParam';
 import ThrottleGetVarDatasByIndex from './throttle_params/ThrottleGetVarDatasByIndex';
 import VarCronWorkersHandler from './VarCronWorkersHandler';
@@ -108,6 +111,7 @@ export default class ModuleVarServer extends ModuleServerBase {
     private throttled_get_var_data_by_index_params: ThrottleGetVarDatasByIndex[] = [];
 
     private throttle_get_var_data_by_index: () => void = ThrottleHelper.getInstance().declare_throttle_without_args(this.throttled_get_var_data_by_index.bind(this), 1, { leading: false, trailing: true });
+    private throttle_getVarParamFromContextFilters = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(this.throttled_getVarParamsFromContextFilters.bind(this), 10, { leading: false, trailing: true });
 
     private limit_nb_ts_ranges_on_param_by_context_filter: number = null;
     private limit_nb_ts_ranges_on_param_by_context_filter_last_update: number = null;
@@ -1204,7 +1208,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         let dag: VarDAG = new VarDAG();
-        let varDAGNode: VarDAGNode = VarDAGNode.getInstance(dag, param, VarsComputeController, false);
+        let varDAGNode: VarDAGNode = await VarDAGNode.getInstance(dag, param, VarsComputeController, false);
 
         if (!varDAGNode) {
             return null;
@@ -1228,7 +1232,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             [param.index]: param
         };
 
-        let node = VarDAGNode.getInstance(var_dag, param, VarsComputeController, false);
+        let node = await VarDAGNode.getInstance(var_dag, param, VarsComputeController, false);
 
         if (!node) {
             return null;
@@ -1293,7 +1297,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         // WARNING on se base sur un fake node par ce que je vois pas comment faire autrement...
         let dag: VarDAG = new VarDAG();
-        let varDAGNode: VarDAGNode = VarDAGNode.getInstance(dag, param, VarsComputeController, false);
+        let varDAGNode: VarDAGNode = await VarDAGNode.getInstance(dag, param, VarsComputeController, false);
 
         if (!varDAGNode) {
             return null;
@@ -1359,6 +1363,49 @@ export default class ModuleVarServer extends ModuleServerBase {
         if (!var_conf) {
             return null;
         }
+
+        return new Promise(async (resolve, reject) => {
+            let param = new GetVarParamFromContextFiltersParam(
+                var_name,
+                get_active_field_filters,
+                custom_filters,
+                active_api_type_ids,
+                discarded_field_paths,
+                accept_max_ranges,
+                resolve
+            );
+
+            await this.throttle_getVarParamFromContextFilters(param);
+        });
+
+    }
+
+    private async throttled_getVarParamsFromContextFilters(params: GetVarParamFromContextFiltersParam[]) {
+        let max_concurrent_promises: number = ConfigurationService.node_configuration.MAX_POOL / 2;
+
+        let promises = [];
+        for (let i in params) {
+
+            if (promises.length >= max_concurrent_promises) {
+                await all_promises(promises);
+                promises = [];
+            }
+            promises.push(this.throttled_getVarParamFromContextFilters(params[i]));
+        }
+
+        await all_promises(promises);
+    }
+
+    private async throttled_getVarParamFromContextFilters(param: GetVarParamFromContextFiltersParam) {
+
+        let var_name = param.var_name;
+        let get_active_field_filters = param.get_active_field_filters;
+        let custom_filters = param.custom_filters;
+        let active_api_type_ids = param.active_api_type_ids;
+        let discarded_field_paths = param.discarded_field_paths;
+        let accept_max_ranges = param.accept_max_ranges;
+        let var_conf = VarsController.getInstance().var_conf_by_name[var_name];
+        let resolve = param.resolve;
 
         let var_param: VarDataBaseVO = VarDataBaseVO.createNew(var_name);
 
@@ -1463,7 +1510,6 @@ export default class ModuleVarServer extends ModuleServerBase {
                                 } else {
                                     var_param[matroid_field.field_id] = [RangeHandler.getMaxNumRange()];
                                 }
-                                return;
                             }
                             break;
                         }
@@ -1490,7 +1536,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':OUT');
         }
 
-        return refuse_param ? null : var_param;
+        resolve(refuse_param ? null : var_param);
     }
 
     private async get_limit_nb_ts_ranges_on_param_by_context_filter(): Promise<number> {
@@ -1499,6 +1545,7 @@ export default class ModuleVarServer extends ModuleServerBase {
          */
         if ((this.limit_nb_ts_ranges_on_param_by_context_filter == null) || (this.limit_nb_ts_ranges_on_param_by_context_filter_last_update < (Dates.now() - 300))) {
             this.limit_nb_ts_ranges_on_param_by_context_filter = await ModuleParams.getInstance().getParamValueAsInt(ModuleVarServer.PARAM_NAME_limit_nb_ts_ranges_on_param_by_context_filter, 100);
+            this.limit_nb_ts_ranges_on_param_by_context_filter_last_update = Dates.now();
         }
         return this.limit_nb_ts_ranges_on_param_by_context_filter;
     }

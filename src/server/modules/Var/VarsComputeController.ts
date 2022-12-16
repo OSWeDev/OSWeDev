@@ -40,6 +40,28 @@ export default class VarsComputeController {
     public static PARAM_NAME_estimated_tree_computation_time_limit: string = 'VarsComputeController.estimated_tree_computation_time_limit';
     public static PARAM_NAME_var_selection_pack_size: string = 'VarsComputeController.var_selection_pack_size';
 
+    public static cached_estimated_tree_computation_time_target: number = null;
+    public static cached_estimated_tree_computation_time_limit: number = null;
+    public static cached_var_selection_pack_size: number = null;
+
+    /**
+     * On demande de recharge le estimated_tree_computation_time_limit toutes les minutes au max
+     */
+    public static async get_estimated_tree_computation_time_target(): Promise<number> {
+        await VarsComputeController.check_computation_params();
+        return VarsComputeController.cached_estimated_tree_computation_time_target;
+    }
+
+    public static async get_estimated_tree_computation_time_limit(): Promise<number> {
+        await VarsComputeController.check_computation_params();
+        return VarsComputeController.cached_estimated_tree_computation_time_limit;
+    }
+
+    public static async get_var_selection_pack_size(): Promise<number> {
+        await VarsComputeController.check_computation_params();
+        return VarsComputeController.cached_var_selection_pack_size;
+    }
+
     /**
      * Multithreading notes :
      *  - There's only one bgthread doing all the computations, and separated from the other threads if the project decides to do so
@@ -54,10 +76,29 @@ export default class VarsComputeController {
 
     private static instance: VarsComputeController = null;
 
-    private cached_estimated_tree_computation_time_target: number = null;
-    private cached_estimated_tree_computation_time_limit: number = null;
-    private last_update_estimated_tree_computation_time: number = null;
-    private cached_var_selection_pack_size: number = null;
+    private static last_update_estimated_tree_computation_time: number = null;
+
+    private static async check_computation_params(): Promise<void> {
+        if ((!this.last_update_estimated_tree_computation_time) || (this.last_update_estimated_tree_computation_time < (Dates.now() - 60))) {
+
+            let promises = [];
+            let self = this;
+
+
+            promises.push((async () => {
+                self.cached_var_selection_pack_size = await ModuleParams.getInstance().getParamValueAsInt(VarsComputeController.PARAM_NAME_var_selection_pack_size, 50);
+            })());
+            promises.push((async () => {
+                self.cached_estimated_tree_computation_time_limit = await ModuleParams.getInstance().getParamValueAsInt(VarsComputeController.PARAM_NAME_estimated_tree_computation_time_limit, 300000);
+            })());
+            promises.push((async () => {
+                self.cached_estimated_tree_computation_time_target = await ModuleParams.getInstance().getParamValueAsInt(VarsComputeController.PARAM_NAME_estimated_tree_computation_time_target, 3000);
+            })());
+            this.last_update_estimated_tree_computation_time = Dates.now();
+
+            await all_promises(promises);
+        }
+    }
 
     protected constructor() {
     }
@@ -278,11 +319,13 @@ export default class VarsComputeController {
     ) {
 
         // on récupère le noeud de l'arbre
-        let node = VarDAGNode.getInstance(var_dag, var_to_deploy, VarsComputeController, false);
+        let node = await VarDAGNode.getInstance(var_dag, var_to_deploy, VarsComputeController, false);
 
         if (!node) {
             return null;
         }
+
+        node.has_started_deployment = true;
 
         // si le noeud est déjà chargé, on sort
         if ((VarsServerController.getInstance().has_valid_value(node.var_data)) || (node.already_tried_loading_data_and_deploy)) {
@@ -321,55 +364,6 @@ export default class VarsComputeController {
             return;
         }
         deployed_vars_datas[node.var_data.index] = true;
-
-        let estimated_tree_computation_time_limit = await this.get_estimated_tree_computation_time_limit();
-
-        let batchperf_computation_wrapper_total_estimated_remaining_time = var_dag.perfs ? Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.computation_wrapper)) : 0;
-        let current_computation_wrapper_total_elapsed_time = var_dag.perfs ? performance.now() - var_dag.perfs.computation_wrapper.start_time : 0;
-
-        if ((batchperf_computation_wrapper_total_estimated_remaining_time) && (current_computation_wrapper_total_elapsed_time) && ((batchperf_computation_wrapper_total_estimated_remaining_time + current_computation_wrapper_total_elapsed_time) > estimated_tree_computation_time_limit)) {
-            if (DEBUG_VARS) {
-                ConsoleHandler.error('BATCH estimated work time + elapsed (' +
-                    batchperf_computation_wrapper_total_estimated_remaining_time + current_computation_wrapper_total_elapsed_time +
-                    ') > limit (' + estimated_tree_computation_time_limit + ')');
-
-                var_dag.timed_out = true;
-
-                /**
-                 * Tous les noeuds qui ne sont pas successfully_deployed doivent être retirés de l'arbre à ce stade et on part en calcul
-                 *  pour éviter les blocages on en garde au moins 1
-                 */
-                let nodes_to_remove: VarDAGNode[] = [];
-                for (let i in var_dag.nodes) {
-                    let unsuccessfully_deployed_node = var_dag.nodes[i];
-
-                    if (!!unsuccessfully_deployed_node.successfully_deployed) {
-                        continue;
-                    }
-
-                    ConsoleHandler.error('BATCH removing node ' + unsuccessfully_deployed_node.var_data.index + ' from tree');
-                    nodes_to_remove.push(unsuccessfully_deployed_node);
-                }
-
-                if (nodes_to_remove.length == var_dag.nb_nodes) {
-                    let shifted = nodes_to_remove.shift();
-                    ConsoleHandler.error('BATCH cancel removing node ' + shifted.var_data.index + ' from tree to keep at least one');
-                    // Mais dans ce cas il faut forcer son déploiement
-                    node = shifted;
-                } else {
-                    node = null;
-                }
-
-                for (let i in nodes_to_remove) {
-                    let node_to_remove = nodes_to_remove[i];
-                    node_to_remove.unlinkFromDAG();
-                }
-
-                if (!node) {
-                    return;
-                }
-            }
-        }
 
         this.start_node_deploiement(node);
 
@@ -683,7 +677,7 @@ export default class VarsComputeController {
                 continue;
             }
 
-            let dep_node = VarDAGNode.getInstance(node.var_dag, dep, VarsComputeController, false);
+            let dep_node = await VarDAGNode.getInstance(node.var_dag, dep, VarsComputeController, false);
             if (!dep_node) {
                 return;
             }
@@ -772,7 +766,7 @@ export default class VarsComputeController {
                 aggregated_deps['AGG_' + (index++)] = data;
 
                 // on peut essayer de notifier les deps issues des aggréagations qui auraient déjà une valeur valide
-                let dep_node = VarDAGNode.getInstance(node.var_dag, data, VarsComputeController, false);
+                let dep_node = await VarDAGNode.getInstance(node.var_dag, data, VarsComputeController, false);
                 if (!dep_node) {
                     return null;
                 }
@@ -826,8 +820,8 @@ export default class VarsComputeController {
 
         let var_dag: VarDAG = VarsdatasComputerBGThread.getInstance().current_batch_vardag;
 
-        let estimated_tree_computation_time_target = await this.get_estimated_tree_computation_time_target();
-        let var_selection_pack_size = await this.get_var_selection_pack_size();
+        let estimated_tree_computation_time_target = await VarsComputeController.get_estimated_tree_computation_time_target();
+        let var_selection_pack_size = await VarsComputeController.get_var_selection_pack_size();
 
         let all_selected_var_datas = [];
 
@@ -937,7 +931,7 @@ export default class VarsComputeController {
                  * On insère le noeud dans l'arbre en premier pour forcer le flag already_tried_load_cache_complet
                  *  puisque si on avait ce cache on demanderait pas un calcul à ce stade
                  */
-                let var_dag_node = VarDAGNode.getInstance(var_dag, selected_var_data, VarsComputeController, true);
+                let var_dag_node = await VarDAGNode.getInstance(var_dag, selected_var_data, VarsComputeController, true);
                 if (!var_dag_node) {
 
                     ConsoleHandler.log('UNSELECTED VAR:' + selected_var_data.index);
@@ -1251,7 +1245,7 @@ export default class VarsComputeController {
                 promises = [];
             }
 
-            let var_dag_node = VarDAGNode.getInstance(var_dag, var_to_deploy, VarsComputeController, false);
+            let var_dag_node = await VarDAGNode.getInstance(var_dag, var_to_deploy, VarsComputeController, false);
             if (!var_dag_node) {
                 await all_promises(promises);
                 return;
@@ -1294,7 +1288,7 @@ export default class VarsComputeController {
                 continue;
             }
 
-            let dep_node = VarDAGNode.getInstance(var_dag, dep, VarsComputeController, false);
+            let dep_node = await VarDAGNode.getInstance(var_dag, dep, VarsComputeController, false);
             if (!dep_node) {
                 return;
             }
@@ -1384,53 +1378,41 @@ export default class VarsComputeController {
         aggregated_datas[cloned_var_data.index] = cloned_var_data;
     }
 
-    /**
-     * On demande de recharge le estimated_tree_computation_time_limit toutes les minutes au max
-     */
-    private async get_estimated_tree_computation_time_target(): Promise<number> {
-        await this.check_computation_params();
-        return this.cached_estimated_tree_computation_time_target;
-    }
-
-    private async get_estimated_tree_computation_time_limit(): Promise<number> {
-        await this.check_computation_params();
-        return this.cached_estimated_tree_computation_time_limit;
-    }
-
-    private async get_var_selection_pack_size(): Promise<number> {
-        await this.check_computation_params();
-        return this.cached_var_selection_pack_size;
-    }
-
-    private async check_computation_params(): Promise<void> {
-        if ((!this.last_update_estimated_tree_computation_time) || (this.last_update_estimated_tree_computation_time < (Dates.now() - 60))) {
-
-            let promises = [];
-            let self = this;
-
-
-            promises.push((async () => {
-                self.cached_var_selection_pack_size = await ModuleParams.getInstance().getParamValueAsInt(VarsComputeController.PARAM_NAME_var_selection_pack_size, 50);
-            })());
-            promises.push((async () => {
-                self.cached_estimated_tree_computation_time_limit = await ModuleParams.getInstance().getParamValueAsInt(VarsComputeController.PARAM_NAME_estimated_tree_computation_time_limit, 300000);
-            })());
-            promises.push((async () => {
-                self.cached_estimated_tree_computation_time_target = await ModuleParams.getInstance().getParamValueAsInt(VarsComputeController.PARAM_NAME_estimated_tree_computation_time_target, 3000);
-            })());
-            this.last_update_estimated_tree_computation_time = Dates.now();
-
-            await all_promises(promises);
-        }
-    }
-
     private async create_tree_perf_wrapper(var_dag: VarDAG) {
         if (var_dag.perfs) {
             VarDagPerfsServerController.getInstance().start_nodeperfelement(var_dag.perfs.create_tree, 'create_tree');
         }
         await this.create_tree();
+
+
+        if (var_dag.timed_out) {
+            /**
+             * On a timeout, on nettoie ce qu'on peut pour redescendre autant que possible sous le timeout
+             */
+            ConsoleHandler.log('VarsdatasComputerBGThread create_tree - vardag timed_out - before cleaning tree - ' + var_dag.nb_nodes + ' nodes, ' + Object.keys(var_dag.leafs).length + ' leafs, ' + Object.keys(var_dag.roots).length + ' roots');
+            await this.clean_timedout_tree(var_dag);
+            ConsoleHandler.log('VarsdatasComputerBGThread create_tree - vardag timed_out - cleaned tree - ' + var_dag.nb_nodes + ' nodes, ' + Object.keys(var_dag.leafs).length + ' leafs, ' + Object.keys(var_dag.roots).length + ' roots');
+        }
+
+
         if (var_dag.perfs) {
             VarDagPerfsServerController.getInstance().end_nodeperfelement(var_dag.perfs.create_tree, 'create_tree');
+        }
+    }
+
+    /**
+     * On supprime de l'arbre des roots tant que l'on a au moins 1 noeud dans l'arbre et que le temps de calcul est supérieur au timeout (sans prendre en compte le temps déjà écoulé cette fois)
+     * @param var_dag
+     */
+    private async clean_timedout_tree(var_dag: VarDAG) {
+        while (await VarDagPerfsServerController.dag_is_in_timeout_without_elpased_time(var_dag) && (var_dag.nb_nodes > 0)) {
+
+            let node = var_dag.roots[Object.keys(var_dag.roots)[0]];
+            if (!node) {
+                throw new Error('VarsdatasComputerBGThread clean_timedout_tree - no more roots, but var_dag.nb_nodes > 0, how is this even possible ?');
+            }
+            ConsoleHandler.log('VarsdatasComputerBGThread clean_timedout_tree - removing node - ' + node.var_data.index + ' - ' + var_dag.nb_nodes + ' nodes, ' + Object.keys(var_dag.leafs).length + ' leafs, ' + Object.keys(var_dag.roots).length + ' roots');
+            node.unlinkFromDAG();
         }
     }
 
@@ -1673,7 +1655,7 @@ export default class VarsComputeController {
                  */
                 for (let depi in aggregated_datas) {
                     let aggregated_data = aggregated_datas[depi];
-                    let dep_node = VarDAGNode.getInstance(node.var_dag, aggregated_data, VarsComputeController, false, true);
+                    let dep_node = await VarDAGNode.getInstance(node.var_dag, aggregated_data, VarsComputeController, false, true);
 
                     if (!dep_node) {
                         return;

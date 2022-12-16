@@ -3673,13 +3673,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
      */
     private async getNamedVoByName<U extends INamedVO>(API_TYPE_ID: string, name: string): Promise<U> {
 
-        let moduleTable: ModuleTable<U> = VOsTypesManager.moduleTables_by_voType[API_TYPE_ID];
-        if (moduleTable.is_segmented) {
-            // TODO FIXME segmented moduletable
-            throw new Error('Not Implemented');
-        }
-
-        return await this.selectOne<U>(API_TYPE_ID, "where LOWER(name) = LOWER($1)", [name]);
+        return await query(API_TYPE_ID).filter_by_text_eq('name', name, API_TYPE_ID, true).select_vo<U>();
     }
 
 
@@ -4851,8 +4845,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
         if (ConfigurationService.node_configuration.DEBUG_DB_QUERY_PERF) {
             let uid = this.log_db_query_perf_uid++;
             this.log_db_query_perf_start_by_uid[uid] = Dates.now_ms();
-            let query_s = (query_string ? query_string.substring(0, 1000) : 'N/A');
-            query_s = (query_s ? query_s.replace(/;/g, '') : 'N/A');
+            let query_s = (query_string ? (ConfigurationService.node_configuration.DEBUG_DB_FULL_QUERY_PERF ? query_string : query_string.substring(0, 1000)) : 'N/A');
+            // query_s = (query_s ? query_s.replace(/;/g, '') : 'N/A');
             ConsoleHandler.log('log_db_query_perf_start;;ModuleDAOServer;IN;' + uid + ';' + this.log_db_query_perf_start_by_uid[uid] + ';0;' + method_name +
                 ';' + (step_name ? step_name : 'N/A') +
                 ';' + query_s);
@@ -4866,8 +4860,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
         if (ConfigurationService.node_configuration.DEBUG_DB_QUERY_PERF && !!this.log_db_query_perf_start_by_uid[uid]) {
             let end_ms = Dates.now_ms();
             let duration = Math.round(end_ms - this.log_db_query_perf_start_by_uid[uid]);
-            let query_s = (query_string ? query_string.substring(0, 1000) : 'N/A');
-            query_s = (query_s ? query_s.replace(/;/g, '') : 'N/A');
+            let query_s = (query_string ? (ConfigurationService.node_configuration.DEBUG_DB_FULL_QUERY_PERF ? query_string : query_string.substring(0, 1000)) : 'N/A');
+            // query_s = (query_s ? query_s.replace(/;/g, '') : 'N/A');
 
             if (ConfigurationService.node_configuration.DEBUG_SLOW_QUERIES &&
                 (duration > (10 * ConfigurationService.node_configuration.DEBUG_SLOW_QUERIES_MS_LIMIT))) {

@@ -97,7 +97,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
                     params = [res];
                 }
                 returnvalue = await StackContext.runPromise(
-                    ServerExpressController.getInstance().getStackContextFromReq(req, req.session as IServerUserSession),
+                    await ServerExpressController.getInstance().getStackContextFromReq(req, req.session as IServerUserSession),
                     async () => await api.SERVER_HANDLER(...params, req));
             } catch (error) {
                 ConsoleHandler.error(error);

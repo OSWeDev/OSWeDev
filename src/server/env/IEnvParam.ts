@@ -34,6 +34,7 @@ export default interface IEnvParam {
     DEBUG_IMPORTS?: boolean;
     DEBUG_DELETEVOS?: boolean;
     DEBUG_THROTTLED_SELECT?: boolean;
+    DEBUG_DB_FULL_QUERY_PERF?: boolean;
     DEBUG_INTERTHREADS_MESSAGES?: boolean;
 
     START_MAINTENANCE_ACCEPTATION_CODE: string;

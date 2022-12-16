@@ -1034,7 +1034,15 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
     }
 
+    /**
+     * On ajoute un cache au sein de la session pour éviter de faire des requêtes inutiles
+     */
     public async getSelfUser(): Promise<UserVO> {
+
+        if (StackContext.get('SELF_USER')) {
+            return StackContext.get('SELF_USER');
+        }
+
         /**
          * on doit pouvoir charger son propre user
          */

@@ -606,7 +606,7 @@ export default abstract class ServerBase {
                         if (!this.check_session_validity(session)) {
                             await ConsoleHandler.warn('unregisterSession:!check_session_validity:UID:' + session.uid);
                             await StackContext.runPromise(
-                                ServerExpressController.getInstance().getStackContextFromReq(req, session),
+                                await ServerExpressController.getInstance().getStackContextFromReq(req, session),
                                 async () => {
 
                                     await PushDataServerController.getInstance().unregisterSession(session);
@@ -637,7 +637,7 @@ export default abstract class ServerBase {
 
                         await ConsoleHandler.warn('unregisterSession:last_check_blocked_or_expired:UID:' + session.uid + ':user:' + (user ? JSON.stringify(user) : 'N/A'));
                         await StackContext.runPromise(
-                            ServerExpressController.getInstance().getStackContextFromReq(req, session),
+                            await ServerExpressController.getInstance().getStackContextFromReq(req, session),
                             async () => {
 
                                 await PushDataServerController.getInstance().unregisterSession(session);
@@ -656,7 +656,7 @@ export default abstract class ServerBase {
                 if (MaintenanceServerController.getInstance().has_planned_maintenance) {
 
                     await StackContext.runPromise(
-                        ServerExpressController.getInstance().getStackContextFromReq(req, session),
+                        await ServerExpressController.getInstance().getStackContextFromReq(req, session),
                         async () => await MaintenanceServerController.getInstance().inform_user_on_request(session.uid));
                 }
 
@@ -724,7 +724,7 @@ export default abstract class ServerBase {
             let has_access: boolean = false;
 
             await StackContext.runPromise(
-                ServerExpressController.getInstance().getStackContextFromReq(req, session),
+                await ServerExpressController.getInstance().getStackContextFromReq(req, session),
                 async () => {
                     file = await query(FileVO.API_TYPE_ID).filter_is_true('is_secured').filter_by_text_eq('path', ModuleFile.SECURED_FILES_ROOT + folders + file_name).select_vo<FileVO>();
                     has_access = (file && file.file_access_policy_name) ? ModuleAccessPolicyServer.getInstance().checkAccessSync(file.file_access_policy_name) : false;
@@ -797,7 +797,7 @@ export default abstract class ServerBase {
             }
 
             let has_access: boolean = await StackContext.runPromise(
-                ServerExpressController.getInstance().getStackContextFromReq(req, session),
+                await ServerExpressController.getInstance().getStackContextFromReq(req, session),
                 async () => ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_FO_ACCESS, can_fail));
 
             if (!has_access) {
@@ -821,7 +821,7 @@ export default abstract class ServerBase {
             }
 
             let has_access: boolean = await StackContext.runPromise(
-                ServerExpressController.getInstance().getStackContextFromReq(req, session),
+                await ServerExpressController.getInstance().getStackContextFromReq(req, session),
                 async () => ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_BO_ACCESS, can_fail));
 
             if (!has_access) {
@@ -842,7 +842,7 @@ export default abstract class ServerBase {
 
             if (file_name) {
                 await StackContext.runPromise(
-                    ServerExpressController.getInstance().getStackContextFromReq(req, session),
+                    await ServerExpressController.getInstance().getStackContextFromReq(req, session),
                     async () => {
                         has_access = ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS) && ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS);
                     });
@@ -885,7 +885,7 @@ export default abstract class ServerBase {
 
                     await ConsoleHandler.warn('unregisterSession:getcsrftoken:UID:' + session.uid + ':user:' + (user ? JSON.stringify(user) : 'N/A'));
                     await StackContext.runPromise(
-                        ServerExpressController.getInstance().getStackContextFromReq(req, session),
+                        await ServerExpressController.getInstance().getStackContextFromReq(req, session),
                         async () => {
 
                             await PushDataServerController.getInstance().unregisterSession(session);
@@ -929,7 +929,7 @@ export default abstract class ServerBase {
         this.app.get('/logout', async (req, res) => {
 
             let err = await StackContext.runPromise(
-                ServerExpressController.getInstance().getStackContextFromReq(req, req.session),
+                await ServerExpressController.getInstance().getStackContextFromReq(req, req.session),
                 async () => await ModuleAccessPolicyServer.getInstance().logout()
             );
 
@@ -956,7 +956,7 @@ export default abstract class ServerBase {
             const session = req.session;
 
             let user: UserVO = await StackContext.runPromise(
-                ServerExpressController.getInstance().getStackContextFromReq(req, session),
+                await ServerExpressController.getInstance().getStackContextFromReq(req, session),
                 async () => await ModuleAccessPolicyServer.getInstance().getSelfUser());
 
             res.json(JSON.stringify(
@@ -974,7 +974,7 @@ export default abstract class ServerBase {
             const session = req.session;
 
             let user: UserVO = await StackContext.runPromise(
-                ServerExpressController.getInstance().getStackContextFromReq(req, session),
+                await ServerExpressController.getInstance().getStackContextFromReq(req, session),
                 async () => await ModuleAccessPolicyServer.getInstance().getSelfUser());
 
             res.json(JSON.stringify(
