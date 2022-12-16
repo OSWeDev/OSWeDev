@@ -1405,15 +1405,36 @@ export default class VarsComputeController {
      * @param var_dag
      */
     private async clean_timedout_tree(var_dag: VarDAG) {
-        while (await VarDagPerfsServerController.dag_is_in_timeout_without_elpased_time(var_dag) && (var_dag.nb_nodes > 0)) {
+        while (await VarDagPerfsServerController.dag_is_in_timeout_without_elpased_time(var_dag) && this.has_node_to_compute_or_deploy(var_dag)) {
 
-            let node = var_dag.roots[Object.keys(var_dag.roots)[0]];
+            let node = null;
+
+            for (let i in var_dag.roots) {
+                let root = var_dag.roots[i];
+                if (root.successfully_deployed || VarsServerController.getInstance().has_valid_value(root.var_data)) {
+                    continue;
+                }
+                node = root;
+                break;
+            }
+
             if (!node) {
-                throw new Error('VarsdatasComputerBGThread clean_timedout_tree - no more roots, but var_dag.nb_nodes > 0, how is this even possible ?');
+                break;
             }
             ConsoleHandler.log('VarsdatasComputerBGThread clean_timedout_tree - removing node - ' + node.var_data.index + ' - ' + var_dag.nb_nodes + ' nodes, ' + Object.keys(var_dag.leafs).length + ' leafs, ' + Object.keys(var_dag.roots).length + ' roots');
             node.unlinkFromDAG();
         }
+    }
+
+    private has_node_to_compute_or_deploy(var_dag: VarDAG) {
+
+        for (let i in var_dag.nodes) {
+            let node = var_dag.nodes[i];
+            if ((!node.successfully_deployed) && !VarsServerController.getInstance().has_valid_value(node.var_data)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private async load_nodes_datas_perf_wrapper(var_dag: VarDAG) {

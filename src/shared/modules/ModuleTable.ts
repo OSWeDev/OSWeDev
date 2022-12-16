@@ -874,7 +874,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                         let new_array = [];
                         for (let i in trans_) {
                             let transi = trans_[i];
-                            new_array.push(ModuleTable.default_from_api_version((typeof transi === 'string') ? JSON.parse(transi) : transi));
+                            new_array.push(ModuleTable.default_from_api_version(this.try_get_json(transi)));
                         }
                         trans_ = new_array;
                     } else {
@@ -889,7 +889,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                             let new_obj = new Object();
                             for (let i in trans_) {
                                 let transi = trans_[i];
-                                new_obj[i] = ModuleTable.default_from_api_version((typeof transi === 'string') ? JSON.parse(transi) : transi);
+                                new_obj[i] = ModuleTable.default_from_api_version(this.try_get_json(transi));
                             }
                             trans_ = new_obj;
                         } else {
@@ -1302,5 +1302,13 @@ export default class ModuleTable<T extends IDistantVOBase> {
             }
             return 0;
         });
+    }
+
+    private try_get_json(e: any): any {
+        try {
+            return (e && (typeof e === 'string') && e.startsWith('{') && e.endsWith('}')) ? JSON.parse(e) : e;
+        } catch (error) {
+            return e;
+        }
     }
 }
