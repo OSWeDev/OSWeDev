@@ -41,7 +41,12 @@ export default class CheckSegmentedIdsCronWorker implements ICronWorker {
             for (let table_name in DAOServerController.segmented_known_databases[table.name]) {
                 let full_name = table.name + '.' + table_name;
 
-                let vos: IDistantVOBase[] = table.forceNumerics(await ModuleDAOServer.getInstance().query('select * from ' + full_name));
+                let res = await ModuleDAOServer.getInstance().query('select * from ' + full_name);
+                for (let j in res) {
+                    let data = res[j];
+                    data._type = table.vo_type;
+                }
+                let vos: IDistantVOBase[] = table.forceNumerics(res);
 
                 for (let vo_i in vos) {
                     let vo = vos[vo_i];

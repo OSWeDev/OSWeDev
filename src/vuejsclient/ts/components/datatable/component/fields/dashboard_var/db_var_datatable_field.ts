@@ -1,11 +1,13 @@
-import { cloneDeep } from 'lodash';
+import { cloneDeep, debounce } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVO, { filter } from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import DashboardBuilderController from '../../../../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
+import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import TableColumnDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import NumSegment from '../../../../../../../shared/modules/DataRender/vos/NumSegment';
 import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
@@ -18,6 +20,8 @@ import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import { ModuleDashboardPageGetter } from '../../../../dashboard_builder/page/DashboardPageStore';
+import DashboardBuilderWidgetsController from '../../../../dashboard_builder/widgets/DashboardBuilderWidgetsController';
+import ValidationFiltersWidgetController from '../../../../dashboard_builder/widgets/validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../../../../dashboard_builder/widgets/var_widget/VarWidgetComponent';
 import VueComponentBase from '../../../../VueComponentBase';
 import './db_var_datatable_field.scss';
@@ -49,13 +53,20 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
     @Prop({ default: null })
     private columns: TableColumnDescVO[];
 
+    @Prop({ default: null })
+    private all_page_widget: DashboardPageWidgetVO[];
+
+    @Prop({ default: null })
+    private page_widget: DashboardPageWidgetVO;
+
     @ModuleDashboardPageGetter
     private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
 
     @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
 
-    private throttled_init_param = ThrottleHelper.getInstance().declare_throttle_without_args(this.init_param.bind(this), 50, { leading: false, trailing: true });
+    private throttle_init_param = debounce(this.throttled_init_param.bind(this), 500);
+    private throttle_do_init_param = debounce(this.throttled_do_init_param.bind(this), 500);
 
     private var_param: VarDataBaseVO = null;
     private dashboard: DashboardVO = null;
@@ -71,14 +82,62 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
     @Watch('filter_type', { immediate: true })
     @Watch('filter_additional_params', { immediate: true })
     @Watch('get_active_field_filters', { immediate: true })
-    @Watch('row_value', { immediate: true })
     @Watch('columns', { immediate: true })
     private async onchange_dashboard_id() {
-        await this.throttled_init_param();
+        await this.throttle_init_param();
 
     }
 
-    private async init_param() {
+    private mounted() {
+        ValidationFiltersWidgetController.getInstance().register_updater(
+            this.dashboard_id,
+            this.page_widget.page_id,
+            this.page_widget.id,
+            this.throttle_do_init_param.bind(this),
+        );
+    }
+
+    private async throttled_init_param() {
+
+        // Si j'ai mon bouton de validation des filtres qui est actif, j'attends que ce soit lui qui m'appelle
+        if (this.has_widget_validation_filtres()) {
+            return;
+        }
+
+        await this.throttle_do_init_param();
+    }
+
+    @Watch('row_value', { immediate: true })
+    private async onchange_row() {
+        await this.throttle_do_init_param();
+    }
+
+    get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
+        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
+    }
+
+    private has_widget_validation_filtres(): boolean {
+
+        if (!this.all_page_widget) {
+            return false;
+        }
+
+        for (let i in this.all_page_widget) {
+            let widget: DashboardWidgetVO = this.widgets_by_id[this.all_page_widget[i].widget_id];
+
+            if (!widget) {
+                continue;
+            }
+
+            if (widget.is_validation_filters) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private async throttled_do_init_param() {
 
         this.is_loading = true;
 

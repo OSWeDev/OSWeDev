@@ -246,6 +246,10 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         if ((!context_query.fields) || !context_query.fields.length) {
 
             let table = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
+            for (let j in res) {
+                let data = res[j];
+                data._type = context_query.base_api_type_id;
+            }
             res = table.forceNumerics(res);
             for (let i in res) {
                 let e = res[i];

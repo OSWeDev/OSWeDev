@@ -80,7 +80,10 @@
                     :filter_additional_params="field.filter_additional_params"
                     :dashboard_id="field.dashboard_id"
                     :row_value="vo"
-                    :columns="columns")
+                    :columns="columns"
+                    :all_page_widget="all_page_widget"
+                    :page_widget="page_widget"
+                )
 
             template(v-else)
                 span {{ field_value }}

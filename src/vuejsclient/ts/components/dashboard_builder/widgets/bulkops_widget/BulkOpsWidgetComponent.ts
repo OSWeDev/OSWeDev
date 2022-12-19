@@ -58,6 +58,9 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
     @Prop({ default: null })
     private dashboard_page: DashboardPageVO;
 
+    @Prop({ default: null })
+    private all_page_widget: DashboardPageWidgetVO[];
+
     private data_rows: any[] = [];
 
     private pagination_count: number = 0;

@@ -90,7 +90,12 @@ export default class ModuleTableDBService {
                     let segmentation_bdd_values: IDistantVOBase[] = null;
 
                     try {
-                        segmentation_bdd_values = moduleTable.forceNumerics(await this.db.query("SELECT * FROM ref." + moduleTable.name + ";"));
+                        let datas: IDistantVOBase[] = await this.db.query("SELECT * FROM ref." + moduleTable.name + ";");
+                        for (let i in datas) {
+                            let data = datas[i];
+                            data._type = moduleTable.vo_type;
+                        }
+                        segmentation_bdd_values = moduleTable.forceNumerics(datas);
                     } catch (error) {
                     }
 

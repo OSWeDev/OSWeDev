@@ -28,6 +28,56 @@ import cloneDeep = require('lodash/cloneDeep');
 
 export default class ModuleTable<T extends IDistantVOBase> {
 
+    public static defaultforceNumeric<T extends IDistantVOBase>(e: T) {
+        if (!e) {
+            return null;
+        }
+        if (!e._type) {
+            return e;
+        }
+
+        let moduleTable = VOsTypesManager.moduleTables_by_voType[e._type];
+
+        for (let i in moduleTable.readonlyfields_by_ids) {
+            let field = moduleTable.readonlyfields_by_ids[i];
+            delete e[field.field_id];
+        }
+
+        let res: T = Object.assign(moduleTable.voConstructor(), e);
+
+        // // Si le type diffère, on veut créer une nouvelle instance et réinitialiser tous les champs ensuite
+        // if (e._type != this.vo_type) {
+
+        //     for (let i in this.readonlyfields_by_ids) {
+        //         let field = this.readonlyfields_by_ids[i];
+        //         delete e[field.field_id];
+        //     }
+        //     res = Object.assign(this.voConstructor(), e);
+        //     res._type = this.vo_type;
+        // }
+
+        res.id = ConversionHandler.forceNumber(e.id);
+
+        if (!moduleTable.fields_) {
+            return res;
+        }
+        for (let i in moduleTable.fields_) {
+            let field = moduleTable.fields_[i];
+
+            moduleTable.force_numeric_field(field, e, res);
+        }
+
+        return res;
+    }
+
+    public static defaultforceNumerics<T extends IDistantVOBase>(es: T[]): T[] {
+        for (let i in es) {
+            es[i] = ModuleTable.defaultforceNumeric(es[i]);
+        }
+        return es;
+    }
+
+
     /**
      * Permet de récupérer un clone dont les fields sont trasférable via l'api (en gros ça passe par un json.stringify).
      * Cela autorise l'usage en VO de fields dont les types sont incompatibles nativement avec json.stringify (moment par exemple qui sur un parse reste une string)
@@ -295,8 +345,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
         this.voConstructor = voConstructor;
 
         this.default_label_field = default_label_field;
-        this.forceNumeric = this.defaultforceNumeric;
-        this.forceNumerics = this.defaultforceNumerics;
+        this.forceNumeric = ModuleTable.defaultforceNumeric;
+        this.forceNumerics = ModuleTable.defaultforceNumerics;
 
         this.get_bdd_version = this.default_get_bdd_version;
 
@@ -1057,12 +1107,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                      * Prise en compte des tableaux. dans ce cas chaque élément du tableau est instancié
                      */
                     if (isArray(trans_)) {
-                        let new_tab = [];
-                        for (let i in trans_) {
-                            let transi_ = trans_[i];
-                            new_tab.push(ModuleTable.default_get_api_version((typeof transi_ === 'string') ? JSON.parse(transi_) : transi_));
-                        }
-                        trans_ = new_tab;
+                        trans_ = ModuleTable.defaultforceNumerics(trans_);
                     } else {
 
                         /**
@@ -1075,11 +1120,11 @@ export default class ModuleTable<T extends IDistantVOBase> {
                             let new_obj = new Object();
                             for (let i in trans_) {
                                 let transi_ = trans_[i];
-                                new_obj[i] = ModuleTable.default_get_api_version((typeof transi_ === 'string') ? JSON.parse(transi_) : transi_);
+                                new_obj[i] = ModuleTable.defaultforceNumeric((typeof transi_ === 'string') ? JSON.parse(transi_) : transi_);
                             }
                             trans_ = new_obj;
                         } else {
-                            trans_ = Object.assign(field_table.voConstructor(), ModuleTable.default_get_api_version(trans_));
+                            trans_ = Object.assign(field_table.voConstructor(), ModuleTable.defaultforceNumeric(trans_));
                         }
                     }
                 }
@@ -1250,44 +1295,6 @@ export default class ModuleTable<T extends IDistantVOBase> {
         }
 
         return res;
-    }
-
-    private defaultforceNumeric(e: T) {
-        if (!e) {
-            return null;
-        }
-
-        // Si le type diffère, on veut créer une nouvelle instance et réinitialiser tous les champs ensuite
-        let res: T = e;
-        if (e._type != this.vo_type) {
-
-            for (let i in this.readonlyfields_by_ids) {
-                let field = this.readonlyfields_by_ids[i];
-                delete e[field.field_id];
-            }
-            res = Object.assign(this.voConstructor(), e);
-            res._type = this.vo_type;
-        }
-
-        res.id = ConversionHandler.forceNumber(e.id);
-
-        if (!this.fields_) {
-            return res;
-        }
-        for (let i in this.fields_) {
-            let field = this.fields_[i];
-
-            this.force_numeric_field(field, e, res);
-        }
-
-        return res;
-    }
-
-    private defaultforceNumerics(es: T[]): T[] {
-        for (let i in es) {
-            es[i] = this.defaultforceNumeric(es[i]);
-        }
-        return es;
     }
 
     private set_sortedFields() {

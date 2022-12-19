@@ -3164,7 +3164,7 @@ export default class ContextFilterServerController {
 
                     if (query_res && query_res.length) {
 
-                        let unique_segment_vos = await ModuleDAOServer.getInstance().filterVOsAccess(linked_segment_table, ModuleDAO.DAO_ACCESS_TYPE_READ, linked_segment_table.forceNumerics(query_res));
+                        let unique_segment_vos = await ModuleDAOServer.getInstance().filterVOsAccess(linked_segment_table, ModuleDAO.DAO_ACCESS_TYPE_READ, query_res);
 
                         if (unique_segment_vos && (unique_segment_vos.length == 1)) {
                             is_implemented = true;

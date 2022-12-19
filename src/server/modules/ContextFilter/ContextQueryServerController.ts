@@ -87,8 +87,10 @@ export default class ContextQueryServerController {
 
         let moduletable = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
 
-        // On devrait plus avoir besoin de faire ça ici, on doit le faire dans la requête directement et sur tous les types rencontrés
-        // return await ModuleDAOServer.getInstance().filterVOsAccess(moduletable, ModuleDAO.DAO_ACCESS_TYPE_READ, moduletable.forceNumerics(query_res));
+        for (let i in query_res) {
+            let data = query_res[i];
+            data._type = moduletable.vo_type;
+        }
 
         // Anonymisation
         let uid = await StackContext.get('UID');

@@ -6,6 +6,7 @@ import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/D
 import ManyToOneReferenceDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
 import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import DashboardBuilderController from '../../../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
+import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import TableFieldTypesManager from '../../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
@@ -50,6 +51,12 @@ export default class DatatableComponentField extends VueComponentBase {
 
     @Prop({ default: null })
     private filter_custom_field_filters: { [field_id: string]: string };
+
+    @Prop({ default: null })
+    private all_page_widget: DashboardPageWidgetVO[];
+
+    @Prop({ default: null })
+    private page_widget: DashboardPageWidgetVO;
 
     private has_access_DAO_ACCESS_TYPE_INSERT_OR_UPDATE: boolean = false;
     private is_load: boolean = false;

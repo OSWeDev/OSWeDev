@@ -21,6 +21,7 @@ import TypesHandler from '../../../../../../../shared/tools/TypesHandler';
 import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
+import ValidationFiltersCallUpdaters from '../../validation_filters_widget/ValidationFiltersCallUpdaters';
 import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
 import FieldValueFilterWidgetController from '../FieldValueFilterWidgetController';
 import FieldValueFilterWidgetOptions from '../options/FieldValueFilterWidgetOptions';
@@ -97,11 +98,6 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         this.old_widget_options = cloneDeep(this.widget_options);
 
         this.is_init = false;
-        ValidationFiltersWidgetController.getInstance().set_is_init(
-            this.dashboard_page,
-            this.page_widget,
-            false
-        );
         await this.throttled_update_visible_options();
     }
 
@@ -296,13 +292,16 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         if (!old_is_init) {
             // Si on a des valeurs par défaut, on va faire l'init
             if (this.default_values && (this.default_values.length > 0)) {
-                ValidationFiltersWidgetController.getInstance().set_is_init(
-                    this.dashboard_page,
-                    this.page_widget,
-                    true
-                );
 
                 this.tmp_filter_active_options = this.default_values;
+
+                ValidationFiltersWidgetController.getInstance().throttle_call_updaters(
+                    new ValidationFiltersCallUpdaters(
+                        this.dashboard_page.dashboard_id,
+                        this.dashboard_page.id
+                    )
+                );
+
                 return;
             }
         }
