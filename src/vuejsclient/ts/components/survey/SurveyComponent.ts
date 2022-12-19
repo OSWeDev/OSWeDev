@@ -3,7 +3,7 @@
 import { throttle } from 'lodash';
 import Component from 'vue-class-component';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Watch } from 'vue-property-decorator';
 import ModuleSurvey from '../../../../shared/modules/Survey/ModuleSurvey';
 import SurveyVO from '../../../../shared/modules/Survey/vos/SurveyVO';
 import VueAppController from '../../../VueAppController';
@@ -15,6 +15,7 @@ import { ModuleSurveyAction, ModuleSurveyGetter } from './store/SurveyStore';
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
 import SurveyParamVO from '../../../../shared/modules/Survey/vos/SurveyParamVO';
+import { on } from 'process';
 
 const { parse, stringify } = require('flatted/cjs');
 /*
@@ -53,6 +54,7 @@ export default class SurveyComponent extends VueComponentBase {
     @Watch('$route.name', { immediate: true })
     private onchange_route_name() {
 
+
         this.throttled_retry();
 
     }
@@ -61,7 +63,8 @@ export default class SurveyComponent extends VueComponentBase {
         // console.log("Changement de route !");
 
         try {
-
+            this.set_hidden(true); //On fait en sorte de cacher l'enquête dès qu'il y a changement de page.
+            this.tmp_type = null;
             //Le survey apparaît-il-sur cette page ?
             this.need_a_survey = await query(SurveyParamVO.API_TYPE_ID).filter_by_text_eq('route_name', this.$route.name).select_vo<SurveyParamVO>();
 
@@ -77,7 +80,7 @@ export default class SurveyComponent extends VueComponentBase {
                 this.pop_up = this.need_a_survey.pop_up;
                 if (this.pop_up) {
                     this.time_before_pop_up = this.need_a_survey.time_before_pop_up * 1000; //En ms
-                    setTimeout(this.switch_hidden, this.time_before_pop_up);
+                    setTimeout(this.turn_on, this.time_before_pop_up);
 
                 }
                 this.display_survey = true;
@@ -97,6 +100,8 @@ export default class SurveyComponent extends VueComponentBase {
 
     private reload() {
 
+        this.set_hidden(true); //On fait en sorte de cacher l'enquête dès qu'il y a changement de page.
+
         this.tmp_type = null;
 
         this.tmp_message = null;
@@ -108,6 +113,16 @@ export default class SurveyComponent extends VueComponentBase {
     private switch_hidden() {
         this.set_hidden(!this.get_hidden);
     }
+
+
+    private turn_on() {
+        /* Pareil que switch_hidden , simplement ne fonctionne que si la fenêtre est fermée.*/
+        if (this.get_hidden == true) {
+            this.set_hidden(!this.get_hidden);
+        }
+
+    }
+
 
     private give_opinion(opinion: number) {
         this.tmp_type = opinion;
@@ -130,8 +145,9 @@ export default class SurveyComponent extends VueComponentBase {
          *  - Si on a bien un avis
          *
          */
-        if ((!this.tmp_type)) {
+        if ((this.tmp_type == null)) {
             this.snotify.error(this.label('survey.needs_opinion'));
+            this.reload();
             this.is_already_sending_survey = false;
             return;
         }
@@ -152,7 +168,6 @@ export default class SurveyComponent extends VueComponentBase {
             return;
         }
 
-        this.set_hidden(true);
         this.is_already_sending_survey = false;
         this.display_survey = false; //L'enquête disparaît à tout jamais
         this.reload();

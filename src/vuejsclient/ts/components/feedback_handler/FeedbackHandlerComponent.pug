@@ -3,7 +3,7 @@
         template(v-if='get_hidden')
             i.fa.fa-comment.fa-fw(aria-hidden="true")
         template(v-else)
-            i.fa.fa-commenting.fa-fw(aria-hidden="true")
+            i.fa-solid.fa-comment-dots.fa-fw(aria-hidden="true")
         span {{ label('feedback_handler.btn.title') }}
 
     .feedback_handler_modal(:class='{"hidden": !!get_hidden}')
