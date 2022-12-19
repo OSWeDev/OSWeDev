@@ -194,6 +194,9 @@ export default class CRUDComponentField extends VueComponentBase
     @Prop({ default: false })
     private show_pencil_btn: boolean;
 
+    @Prop({ default: false })
+    private hide_text_cliquable: boolean;
+
     private this_CRUDComp_UID: number = null;
 
     private auto_validate_start: number = null;
