@@ -44,7 +44,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
      * Local thread cache -----
      */
     public policy_group: AccessPolicyGroupVO = null;
-    private flat_translations: { [code_text: string]: string } = null;
+    private flat_translations: { [code_lang: string]: { [code_text: string]: string } } = null;
     /**
      * ----- Local thread cache
      */
@@ -696,8 +696,8 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
     private async getALL_FLAT_LOCALE_TRANSLATIONS(code_lang: string): Promise<{ [code_text: string]: string }> {
 
-        if (this.flat_translations) {
-            return this.flat_translations;
+        if (this.flat_translations && this.flat_translations[code_lang]) {
+            return this.flat_translations[code_lang];
         }
 
         let res: { [code_text: string]: string } = {};
@@ -731,7 +731,10 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         await this.add_locale_flat_translations(translatableTexts_by_id, lang_translations, res);
         await this.add_locale_flat_translations(translatableTexts_by_id, default_translations, res);
 
-        this.flat_translations = res;
+        if (!this.flat_translations) {
+            this.flat_translations = {};
+        }
+        this.flat_translations[code_lang] = res;
         return res;
     }
 

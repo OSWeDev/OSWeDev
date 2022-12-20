@@ -2473,7 +2473,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
 
             if (results && isUpdates && (isUpdates.length == results.length) && vos && (vos.length == results.length)) {
-
                 for (let i in results) {
 
                     if (isUpdates[i]) {

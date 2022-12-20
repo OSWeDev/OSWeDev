@@ -77,6 +77,11 @@ export default class ModuleRequestServer extends ModuleServerBase {
                         }
                     }
 
+                    if (!!result_headers) {
+                        resolve({ datas: buffer, headers: result_headers });
+                        return;
+                    }
+
                     resolve(buffer);
                 });
 

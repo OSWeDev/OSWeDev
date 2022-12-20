@@ -669,6 +669,7 @@ export default abstract class ModuleServiceBase {
 
             ConsoleHandler.error(error);
         }
+
         return res;
     }
 
@@ -718,6 +719,7 @@ export default abstract class ModuleServiceBase {
 
             ConsoleHandler.error(error);
         }
+
         return res;
     }
 }

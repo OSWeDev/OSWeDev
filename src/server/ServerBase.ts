@@ -1148,12 +1148,6 @@ export default abstract class ServerBase {
 
             res.sendFile(path.resolve('./dist/vuejsclient/public/pwa/client-sw.' + version + '.js'));
         });
-
-        this.app.get('/vuejsclient/public/pwa/login-sw.' + version + '.js', (req, res, next) => {
-            res.header('Service-Worker-Allowed', '/');
-
-            res.sendFile(path.resolve('./dist/vuejsclient/public/pwa/login-sw.' + version + '.js'));
-        });
     }
 
     /* istanbul ignore next: hardly testable */

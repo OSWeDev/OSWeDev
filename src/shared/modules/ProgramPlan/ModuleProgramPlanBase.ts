@@ -362,8 +362,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
             return;
         }
 
-        let target_id = new ModuleTableField('target_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Cible', false);
-        let contact_id = new ModuleTableField('contact_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Contact', false);
+        let target_id = new ModuleTableField('target_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Cible', true);
+        let contact_id = new ModuleTableField('contact_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Contact', true);
 
         additional_fields.unshift(
             target_id,

@@ -191,6 +191,12 @@ export default class CRUDComponentField extends VueComponentBase
     @Prop({ default: false })
     private is_dashboard_builder: boolean;
 
+    @Prop({ default: false })
+    private show_pencil_btn: boolean;
+
+    @Prop({ default: false })
+    private hide_text_cliquable: boolean;
+
     private this_CRUDComp_UID: number = null;
 
     private auto_validate_start: number = null;
@@ -432,7 +438,7 @@ export default class CRUDComponentField extends VueComponentBase
 
         if ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
             ((this.field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html)) {
-            input_value = input;
+            input_value = input.root.innerHTML;
         } else {
             input_value = input.value;
         }
@@ -494,14 +500,20 @@ export default class CRUDComponentField extends VueComponentBase
         return input_value;
     }
 
-    private async validateInput(input: any) {
+    /**
+     * Validation de la valeur du champ
+     * @param input Champ de saisie
+     * @param wait_endofchange Permet de ne pas enregistrer les champs input de suite pour ne pas perdre le focus
+     * @returns
+     */
+    private async validateInput(input: any, wait_endofchange: boolean = false) {
 
         if (this.inline_input_mode) {
-            await this.prepare_auto_validate();
+            await this.prepare_auto_validate(false, null, wait_endofchange);
             return;
         }
 
-        let tmp = this.getInputValue(input);
+        let tmp = input ? this.getInputValue(input) : this.field_value;
         if (this.field_value != tmp) {
             this.field_value = tmp;
         }
@@ -518,16 +530,28 @@ export default class CRUDComponentField extends VueComponentBase
         this.debounced_onchangevo_emitter();
     }
 
-    private validateEndOfInput(input: any) {
+    /**
+     * Validation de la valeur du champ
+     * @param input Champ de saisie
+     * @param force_save Permet de forcer l'enregistrement (nécessaire pour les champs input vu qu'on attent (wait_endofchange) la fin de la saisie)
+     * @returns
+     */
+    private async validateEndOfInput(input: any, force_save: boolean = false) {
 
         //TODO checker impact sur le crud employee GR notement avec la mise en majuscule nom/prenom et le numéro employée
         // if (!this.inline_input_mode) {
         //     return;
         // }
 
-        let tmp = this.getInputValue(input);
+        let tmp = input ? this.getInputValue(input) : this.field_value;
         if (this.field_value != tmp) {
             this.field_value = tmp;
+        }
+
+        if (this.inline_input_mode) {
+            if (force_save) {
+                await this.prepare_auto_validate();
+            }
         }
 
         if (this.field.onEndOfChange) {
@@ -1701,30 +1725,33 @@ export default class CRUDComponentField extends VueComponentBase
         return this.field.translatable_place_holder ? this.field.translatable_place_holder : this.field.translatable_title;
     }
 
-    private async prepare_auto_validate(force_live_validation: boolean = false, event: any = null) {
+    private async prepare_auto_validate(force_live_validation: boolean = false, event: any = null, wait_endofchange: boolean = false) {
         this.update_vo_field_value_from_input_field_value();
-        if ((!force_live_validation) && this.auto_validate_inline_input) {
 
-            if (this.debounced_validate_inline_input_auto) {
-                this.debounced_validate_inline_input_auto();
-            }
+        if (!wait_endofchange) {
+            if ((!force_live_validation) && this.auto_validate_inline_input) {
 
-            /**
-             * Pour recharger les animations, il faut sortir du cas !!this.auto_validate_start
-             */
-            if (!!this.auto_validate_start) {
-                let self = this;
+                if (this.debounced_validate_inline_input_auto) {
+                    this.debounced_validate_inline_input_auto();
+                }
 
-                this.auto_validate_start = null;
-                setTimeout(() => {
-                    self.auto_validate_start = Dates.now();
-                }, 50);
+                /**
+                 * Pour recharger les animations, il faut sortir du cas !!this.auto_validate_start
+                 */
+                if (!!this.auto_validate_start) {
+                    let self = this;
+
+                    this.auto_validate_start = null;
+                    setTimeout(() => {
+                        self.auto_validate_start = Dates.now();
+                    }, 50);
+                } else {
+                    this.auto_validate_start = Dates.now();
+                    CRUDFormServices.getInstance().auto_updates_waiting[this.this_CRUDComp_UID] = true;
+                }
             } else {
-                this.auto_validate_start = Dates.now();
-                CRUDFormServices.getInstance().auto_updates_waiting[this.this_CRUDComp_UID] = true;
+                await this.validate_inline_input(event);
             }
-        } else {
-            await this.validate_inline_input(event);
         }
     }
 }

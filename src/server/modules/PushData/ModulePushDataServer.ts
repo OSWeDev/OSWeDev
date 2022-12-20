@@ -7,6 +7,7 @@ import DefaultTranslationManager from '../../../shared/modules/Translation/Defau
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import EnvHandler from '../../../shared/tools/EnvHandler';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
@@ -37,6 +38,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
 
     public registerServerApiHandlers() {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModulePushData.APINAME_set_prompt_result, this.set_prompt_result.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModulePushData.APINAME_get_app_version, this.get_app_version.bind(this));
     }
 
     public async configure() {
@@ -109,5 +111,9 @@ export default class ModulePushDataServer extends ModuleServerBase {
         } catch (error) {
             ConsoleHandler.error(error);
         }
+    }
+
+    private async get_app_version(): Promise<string> {
+        return EnvHandler.getInstance().VERSION;
     }
 }

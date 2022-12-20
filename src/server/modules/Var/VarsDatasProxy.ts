@@ -407,7 +407,7 @@ export default class VarsDatasProxy {
                 await all_promises(promises);
 
                 if (!result) {
-                    throw new Error('VarsDatasProxy:handle_buffer:insert_without_triggers_using_COPY:Erreur - on garde dans le cache pour une prochaine tentative');
+                    ConsoleHandler.getInstance().error('VarsDatasProxy:handle_buffer:insert_without_triggers_using_COPY:Erreur - on garde dans le cache pour une prochaine tentative');
                 }
 
                 for (let i in to_insert_by_type) {

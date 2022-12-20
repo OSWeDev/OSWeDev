@@ -46,7 +46,7 @@ export default class VarsInitController {
             new ModuleTableField('value_type', ModuleTableField.FIELD_TYPE_enum, 'Type', true, true, VarDataBaseVO.VALUE_TYPE_COMPUTED).setEnumValues(VarDataBaseVO.VALUE_TYPE_LABELS).index(),
             new ModuleTableField('value_ts', ModuleTableField.FIELD_TYPE_tstz, 'Date mise à jour').set_segmentation_type(TimeSegment.TYPE_SECOND),
             new ModuleTableField('last_reads_ts', ModuleTableField.FIELD_TYPE_tstz_array, 'Dates derniers accès').set_segmentation_type(TimeSegment.TYPE_SECOND),
-            new ModuleTableField('_bdd_only_index', ModuleTableField.FIELD_TYPE_string, 'Index pour recherche exacte', false, false).index().unique().readonly(), // TODO FIXME passer obligatoire quand tous les projets ont migrés en V3 ça sera plus simple
+            new ModuleTableField('_bdd_only_index', ModuleTableField.FIELD_TYPE_string, 'Index pour recherche exacte', true, false).index().unique().readonly(), // TODO FIXME passer obligatoire quand tous les projets ont migrés en V3 ça sera plus simple
         ]);
 
         let datatable = new ModuleTable(module, api_type_id, constructor, var_fields, null).defineAsMatroid();

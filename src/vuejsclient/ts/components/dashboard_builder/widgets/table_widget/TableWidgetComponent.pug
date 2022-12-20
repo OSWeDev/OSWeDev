@@ -114,13 +114,13 @@ include ../../../../../views/mixins/loading.pug
                                             template(v-if="column.type == 3")
                                                 input.d-print-none.form-control(
                                                     type="checkbox"
-                                                    v-model="selected_rows[row.__crud_actions]"
+                                                    v-model="selected_rows[parseInt(row.__crud_actions)]"
                                                     :style="{width: (column.column_width ? column.column_width + 'rem' : null)}"
                                                 )
 
                                             //- If it's the crud actions
                                             template(v-if="(column.type == 0) && !column.hide_from_table")
-                                                .btn-group.d-print-none(v-tooltip='label("table_widget_component.id", {id : row.__crud_actions})' :style="{width: (column.column_width ? column.column_width + 'rem' : null)}")
+                                                .btn-group.d-print-none(v-tooltip='label("table_widget_component.id", {id : parseInt(row.__crud_actions)})' :style="{width: (column.column_width ? column.column_width + 'rem' : null)}")
                                                     template(v-if='update_button')
                                                         .btn.btn-sm.btn-primary(@click="open_update(column.api_type_id, row.__crud_actions?parseInt(row.__crud_actions):null)")
                                                             i.fa.fa-pencil
@@ -168,7 +168,7 @@ include ../../../../../views/mixins/loading.pug
                                                         :ask_confirmation_to_delete='true'
                                                         :inline_input_mode='true'
                                                         :inline_input_read_value="row[column.datatable_field_uid]"
-                                                        :key='"crudcomponentfield_" + column.datatable_field_uid + "___" + row.__crud_actions'
+                                                        :key='"crudcomponentfield_" + column.datatable_field_uid + "___" + parseInt(row.__crud_actions)'
                                                         :is_dashboard_builder="true"
                                                         :inline_input_show_clear='false'
                                                         :auto_validate_inline_input='true'
@@ -198,7 +198,7 @@ include ../../../../../views/mixins/loading.pug
                                                     )
                                                 template(v-if="child.type == 0 && !child.hide_from_table")
                                                     td.btn-group.d-print-none(
-                                                        v-tooltip='label("table_widget_component.id", {id : row.__crud_actions})' :style="{width: (child.column_width ? child.column_width + 'rem' : null)}" 
+                                                        v-tooltip='label("table_widget_component.id", {id : parseInt(row.__crud_actions)})' :style="{width: (child.column_width ? child.column_width + 'rem' : null)}" 
                                                         )
                                                         template(v-if='update_button')
                                                             .btn.btn-sm.btn-primary(@click="open_update(child.api_type_id, row.__crud_actions?parseInt(row.__crud_actions):null)")
