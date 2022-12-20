@@ -42,6 +42,7 @@ import ModulePushData from '../../shared/modules/PushData/ModulePushData';
 import ModuleRequest from '../../shared/modules/Request/ModuleRequest';
 import ModuleSASSSkinConfigurator from '../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
 import ModuleSendInBlue from '../../shared/modules/SendInBlue/ModuleSendInBlue';
+import ModuleSurvey from '../../shared/modules/Survey/ModuleSurvey';
 import ModuleSupervision from '../../shared/modules/Supervision/ModuleSupervision';
 import ModuleTableFieldTypes from '../../shared/modules/TableFieldTypes/ModuleTableFieldTypes';
 import ModuleTeamsAPI from '../../shared/modules/TeamsAPI/ModuleTeamsAPI';
@@ -99,6 +100,7 @@ import ModuleRequestServer from './Request/ModuleRequestServer';
 import ModuleSASSSkinConfiguratorServer from './SASSSkinConfigurator/ModuleSASSSkinConfiguratorServer';
 import ModuleSendInBlueServer from './SendInBlue/ModuleSendInBlueServer';
 import ModuleSupervisionServer from './Supervision/ModuleSupervisionServer';
+import ModuleSurveyServer from './Survey/ModuleSurveyServer';
 import ModuleTeamsAPIServer from './TeamsAPI/ModuleTeamsAPIServer';
 import ModuleTranslationsImportServer from './Translation/import/ModuleTranslationsImportServer';
 import ModuleTranslationServer from './Translation/ModuleTranslationServer';
@@ -516,6 +518,7 @@ export default abstract class ModuleServiceBase {
             ModuleSendInBlue.getInstance(),
             ModuleVocus.getInstance(),
             ModuleFeedback.getInstance(),
+            ModuleSurvey.getInstance(),
             ModuleRequest.getInstance(),
             ModuleDocument.getInstance(),
             ModuleFork.getInstance(),
@@ -567,6 +570,7 @@ export default abstract class ModuleServiceBase {
             ModuleSendInBlueServer.getInstance(),
             ModuleVocusServer.getInstance(),
             ModuleFeedbackServer.getInstance(),
+            ModuleSurveyServer.getInstance(),
             ModuleRequestServer.getInstance(),
             ModuleDocumentServer.getInstance(),
             ModuleForkServer.getInstance(),

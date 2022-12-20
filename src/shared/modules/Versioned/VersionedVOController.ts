@@ -155,4 +155,15 @@ export default class VersionedVOController implements IVOController {
     public getTrashedVersionedVoType(original_vo_type: string): string {
         return '__' + VersionedVOController.VERSIONED_TRASHED_DATABASE + '__' + original_vo_type;
     }
+
+    public get_registeredModuleTables_by_vo_type(vo_type: string): ModuleTable<any> {
+        let result: Array<ModuleTable<any>> = this.registeredModuleTables.filter((obj) => {
+            return obj.vo_type === vo_type;
+        });
+        if (result.length > 1) {
+            console.log("Attention , il y a deux tables de même vo_type !");
+        }
+        return result[0];
+    }
+
 }
