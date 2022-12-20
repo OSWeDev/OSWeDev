@@ -2817,9 +2817,9 @@ export default class ContextFilterServerController {
                                 throw new Error('Error should not filter on empty range array TYPE_NUMERIC_CONTAINS');
                             }
 
-                            let nb_values: number = RangeHandler.getInstance().get_all_segmented_elements_from_ranges(active_field_filter.param_numranges).length;
+                            let nb_values: number = RangeHandler.get_all_segmented_elements_from_ranges(active_field_filter.param_numranges).length;
 
-                            let table = VOsTypesManager.getInstance().moduleTables_by_voType[active_field_filter.vo_type];
+                            let table = VOsTypesManager.moduleTables_by_voType[active_field_filter.vo_type];
                             let table_name = table.full_name.split('.')[1];
                             let ranges_query = 'ANY(' + range_to_db + ')';
 
@@ -2845,9 +2845,9 @@ export default class ContextFilterServerController {
                                 throw new Error('Error should not filter on empty range array TYPE_NUMERIC_CONTAINS');
                             }
 
-                            let nb_values: number = RangeHandler.getInstance().get_all_segmented_elements_from_ranges(active_field_filter.param_tsranges).length;
+                            let nb_values: number = RangeHandler.get_all_segmented_elements_from_ranges(active_field_filter.param_tsranges).length;
 
-                            let table = VOsTypesManager.getInstance().moduleTables_by_voType[active_field_filter.vo_type];
+                            let table = VOsTypesManager.moduleTables_by_voType[active_field_filter.vo_type];
                             let table_name = table.full_name.split('.')[1];
                             let ranges_query = 'ANY(' + range_to_db + ')';
 

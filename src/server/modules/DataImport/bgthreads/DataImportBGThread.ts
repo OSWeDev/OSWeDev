@@ -302,7 +302,7 @@ export default class DataImportBGThread implements IBGThread {
         switch (importHistoric.state) {
             case ModuleDataImport.IMPORTATION_STATE_UPLOADED:
                 importHistoric.state = ModuleDataImport.IMPORTATION_STATE_FORMATTING;
-                ConsoleHandler.getInstance().log('DataImportBGThread DIH[' + importHistoric.id + '] state:' + importHistoric.state + ':');
+                ConsoleHandler.log('DataImportBGThread DIH[' + importHistoric.id + '] state:' + importHistoric.state + ':');
                 await ModuleDataImportServer.getInstance().updateImportHistoric(importHistoric);
                 await ModuleDataImportServer.getInstance().formatDatas(importHistoric);
                 return true;

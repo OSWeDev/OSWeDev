@@ -159,7 +159,7 @@ export default class PushDataVueModule extends VueModuleBase {
     private async check_version_app() {
         let server_app_version: string = await ModulePushData.getInstance().get_app_version();
 
-        if (EnvHandler.getInstance().VERSION != server_app_version) {
+        if (EnvHandler.VERSION != server_app_version) {
             VueAppBase.instance_.vueInstance.snotify.warning(
                 VueAppBase.instance_.vueInstance.label("app_version_changed"),
                 { timeout: 3000 }
