@@ -148,6 +148,7 @@ export default class ContextFilterVO implements IDistantVOBase {
     public static TYPE_NUMERIC_EQUALS_ANY: number = 58;
     public static TYPE_NUMERIC_INCLUDES: number = 13;
     public static TYPE_NUMERIC_IS_INCLUDED_IN: number = 14;
+    public static TYPE_NUMERIC_CONTAINS: number = 61;
     public static TYPE_NUMERIC_NOT_EQUALS: number = 57;
 
     /**
@@ -191,6 +192,8 @@ export default class ContextFilterVO implements IDistantVOBase {
     public static TYPE_TEXT_INCLUDES_NONE: number = 36;
     public static TYPE_TEXT_STARTSWITH_NONE: number = 37;
     public static TYPE_TEXT_ENDSWITH_NONE: number = 38;
+
+    public static TYPE_TEXT_CONTAINS_ALL_EXACT: number = 60;
 
     /**
      * Dates special filters
@@ -327,14 +330,15 @@ export default class ContextFilterVO implements IDistantVOBase {
     public right_hook: ContextFilterVO;
 
     /**
-     * Sous-requête liée dans le cas d'un type sub_query
-     */
-    public sub_query: ContextQueryVO;
-
-    /**
      * Permet de faire référence à un field de la query, plutôt qu'une valeur
      */
     public param_alias: string;
+
+    /**
+     * WARNING : Ne pas modifier directement toujours passer par set_sub_query pour mettre à jour le prefix de la sub_query
+     * Sous-requête liée dans le cas d'un type sub_query
+     */
+    public sub_query: ContextQueryVO = null;
 
     /**
      * Filtrer par text en début de la valeur du champ
@@ -342,6 +346,24 @@ export default class ContextFilterVO implements IDistantVOBase {
      */
     public by_text_starting_with(starts_with: string | string[], text_ignore_case: boolean = true/*, text_trim: boolean = false*/): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_TEXT_STARTSWITH_ANY;
+        if (isArray(starts_with)) {
+            this.param_textarray = starts_with;
+        } else {
+            this.param_text = starts_with;
+        }
+
+        this.text_ignore_case = text_ignore_case;
+        // this.text_trim = text_trim;
+
+        return this;
+    }
+
+    /**
+     * Filtrer par text pas en début de la valeur du champ
+     * @param included le texte qu'on veut pas voir apparaître au début de la valeur du champs
+     */
+    public by_text_starting_with_none(starts_with: string | string[], text_ignore_case: boolean = true/*, text_trim: boolean = false*/): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_TEXT_STARTSWITH_NONE;
         if (isArray(starts_with)) {
             this.param_textarray = starts_with;
         } else {
@@ -453,13 +475,31 @@ export default class ContextFilterVO implements IDistantVOBase {
     }
 
     /**
+     * Filtrer par text non contenu dans la valeur du champ
+     * @param included le texte qu'on ne veut pas voir apparaître dans la valeur du champs
+     */
+    public by_text_excluding(included: string | string[], text_ignore_case: boolean = true/*, text_trim: boolean = false*/): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_TEXT_INCLUDES_NONE;
+        if (isArray(included)) {
+            this.param_textarray = included;
+        } else {
+            this.param_text = included;
+        }
+
+        this.text_ignore_case = text_ignore_case;
+        // this.text_trim = text_trim;
+
+        return this;
+    }
+
+    /**
      * Filter by ID not in (subquery)
      * @param query la sous requête qui doit renvoyer les ids comme unique field
      */
-    public by_id_not_in(query: ContextQueryVO): ContextFilterVO {
+    public by_id_not_in(query: ContextQueryVO, this_query: ContextQueryVO): ContextFilterVO {
         this.field_id = 'id';
         this.filter_type = ContextFilterVO.TYPE_NOT_IN;
-        this.sub_query = query;
+        this.set_sub_query(query, this_query);
         return this;
     }
 
@@ -467,9 +507,9 @@ export default class ContextFilterVO implements IDistantVOBase {
      * Filtrer un champ number par un sous-requête : field not in (subquery)
      * @param query la sous requête qui doit renvoyer les nums acceptés en un unique field
      */
-    public by_num_not_in(query: ContextQueryVO): ContextFilterVO {
+    public by_num_not_in(query: ContextQueryVO, this_query: ContextQueryVO): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_NOT_IN;
-        this.sub_query = query;
+        this.set_sub_query(query, this_query);
         return this;
     }
 
@@ -477,9 +517,9 @@ export default class ContextFilterVO implements IDistantVOBase {
      * Filtrer en fonction d'un sub en exists
      * @param query la sous requête qui doit renvoyer aucune ligne pour être valide
      */
-    public by_exists(query: ContextQueryVO): ContextFilterVO {
+    public by_exists(query: ContextQueryVO, this_query: ContextQueryVO): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_EXISTS;
-        this.sub_query = query;
+        this.set_sub_query(query, this_query);
         return this;
     }
 
@@ -487,9 +527,9 @@ export default class ContextFilterVO implements IDistantVOBase {
      * Filtrer en fonction d'un sub en not exists
      * @param query la sous requête qui doit renvoyer aucune ligne pour être valide
      */
-    public by_not_exists(query: ContextQueryVO): ContextFilterVO {
+    public by_not_exists(query: ContextQueryVO, this_query: ContextQueryVO): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_NOT_EXISTS;
-        this.sub_query = query;
+        this.set_sub_query(query, this_query);
         return this;
     }
 
@@ -497,10 +537,10 @@ export default class ContextFilterVO implements IDistantVOBase {
      * Filter by ID in (subquery)
      * @param query la sous requête qui doit renvoyer les ids comme unique field
      */
-    public by_id_in(query: ContextQueryVO): ContextFilterVO {
+    public by_id_in(query: ContextQueryVO, this_query: ContextQueryVO): ContextFilterVO {
         this.field_id = 'id';
         this.filter_type = ContextFilterVO.TYPE_IN;
-        this.sub_query = query;
+        this.set_sub_query(query, this_query);
         return this;
     }
 
@@ -508,9 +548,9 @@ export default class ContextFilterVO implements IDistantVOBase {
      * Filtrer un champ number par un sous-requête : field in (subquery)
      * @param query la sous requête qui doit renvoyer les nums acceptés en un unique field
      */
-    public by_num_in(query: ContextQueryVO): ContextFilterVO {
+    public by_num_in(query: ContextQueryVO, this_query: ContextQueryVO): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_IN;
-        this.sub_query = query;
+        this.set_sub_query(query, this_query);
         return this;
     }
 
@@ -763,6 +803,16 @@ export default class ContextFilterVO implements IDistantVOBase {
     }
 
     /**
+     * Filtre par inclusion de num_ranges et vérifie que le nombre de valeurs est supérieur ou égal au nombre de ranges
+     * @param ranges
+     */
+    public by_num_contains_ranges(ranges: NumRange[]): ContextFilterVO {
+        this.filter_type = ContextFilterVO.TYPE_NUMERIC_CONTAINS;
+        this.param_numranges = ranges;
+        return this;
+    }
+
+    /**
      * Filtre par intersection de num_ranges
      * @param ranges
      */
@@ -864,6 +914,16 @@ export default class ContextFilterVO implements IDistantVOBase {
         this.filter_type = ContextFilterVO.TYPE_BOOLEAN_FALSE_ANY;
         return this;
     }
+
+    public set_sub_query(sub_query: ContextQueryVO, this_query: ContextQueryVO): ContextFilterVO {
+        this.sub_query = sub_query;
+        if (!sub_query) {
+            return this;
+        }
+
+        sub_query.query_tables_prefix = '_' + (this_query.query_tables_prefix ? this_query.query_tables_prefix : '');
+        return this;
+    }
 }
 
 /**
@@ -883,7 +943,6 @@ export const filter = (API_TYPE_ID: string = null, field_id: string = null): Con
     res.param_text = null;
     res.param_tsranges = null;
     res.param_textarray = null;
-    res.sub_query = null;
     res.vo_type = API_TYPE_ID;
     return res;
 };

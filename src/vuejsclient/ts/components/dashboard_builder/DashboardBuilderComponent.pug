@@ -84,7 +84,7 @@
                         template(v-for='(page_, pagei) in pages')
                             .page
                                 .select(v-if='page && (page_.id != page.id)')
-                                    i.fa-solid.fa-hand-o-down.fa-fw.btn_icon(aria-hidden="true" @click="select_page_clear_navigation(page_)" v-tooltip.top='label("dashboard_builder.pages.tooltip_select_page")')
+                                    i.fa-solid.fa-hand-point-down.fa-fw.btn_icon(aria-hidden="true" @click="select_page_clear_navigation(page_)" v-tooltip.top='label("dashboard_builder.pages.tooltip_select_page")')
                                 .selected(v-else)
                                     i.fa-solid.fa-check-circle.fa-fw(aria-hidden="true" v-tooltip.top='label("dashboard_builder.pages.tooltip_selected_page")')
                                 .name
@@ -134,8 +134,8 @@
             
             .fields_wrapper(v-if='show_build_page' :class='{"collapsed":collapsed_fields_wrapper}')
                 .collapse_fields_wrapper(@click='reverse_collapse_fields_wrapper' :class='{"collapsed":collapsed_fields_wrapper}')
-                    i.fa-solid.fa-caret-square-o-right.fa-fw(aria-hidden="true" v-if='!collapsed_fields_wrapper')
-                    i.fa-solid.fa-caret-square-o-left.fa-fw(aria-hidden="true" v-if='collapsed_fields_wrapper')
+                    i.fa-solid.fa-square-caret-right.fa-fw(aria-hidden="true" v-if='!collapsed_fields_wrapper')
+                    i.fa-solid.fa-square-caret-left.fa-fw(aria-hidden="true" v-if='collapsed_fields_wrapper')
 
                 .collapsible_component_wrapper(:class='{"collapsed":collapsed_fields_wrapper}')
                     Dashboardbuilderwidgetscomponent(

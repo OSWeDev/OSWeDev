@@ -6,6 +6,7 @@ export default class ContextQueryFieldVO implements IDistantVOBase {
 
     public static FIELD_MODIFIER_NONE: number = 0;
     public static FIELD_MODIFIER_NULL_IF_NAN: number = 1;
+    public static FIELD_MODIFIER_LOWER: number = 2;
 
     public id: number;
     public _type: string = ContextQueryFieldVO.API_TYPE_ID;

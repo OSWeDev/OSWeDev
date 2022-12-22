@@ -264,6 +264,10 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         for (let i in rdvs) {
             ids.push(rdvs[i].id);
         }
+
+        if (!ids.length) {
+            return [];
+        }
         return await query(this.programplan_shared_module.rdv_prep_type_id).filter_by_num_has('rdv_id', ids).select_vos<IPlanRDVPrep>();
     }
 
@@ -276,6 +280,10 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         let ids: number[] = [];
         for (let i in rdvs) {
             ids.push(rdvs[i].id);
+        }
+
+        if (!ids.length) {
+            return [];
         }
         return await query(this.programplan_shared_module.rdv_cr_type_id).filter_by_num_has('rdv_id', ids).select_vos<IPlanRDVCR>();
     }
@@ -434,13 +442,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         root_filter.left_hook = is_own_facilitator_filter;
         root_filter.right_hook = is_own_facilitators_manager_filter;
 
-        let res: ContextQueryVO = new ContextQueryVO();
-        res.base_api_type_id = moduletable.vo_type;
-        res.active_api_type_ids = [moduletable.vo_type, this.programplan_shared_module.manager_type_id];
-        res.fields = [new ContextQueryFieldVO(moduletable.vo_type, 'id', 'filter_' + moduletable.vo_type + '_id')];
-        res.filters = [root_filter];
-        res.is_access_hook_def = true;
-        return res;
+        return query(moduletable.vo_type).using(this.programplan_shared_module.manager_type_id).field('id', 'filter_' + moduletable.vo_type + '_id').add_filters([root_filter]).ignore_access_hooks();
     }
 
     /**
@@ -501,13 +503,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         root_filter.left_hook = is_own_manager_filter;
         root_filter.right_hook = is_own_facilitators_manager_filter;
 
-        let res: ContextQueryVO = new ContextQueryVO();
-        res.base_api_type_id = moduletable.vo_type;
-        res.active_api_type_ids = [moduletable.vo_type, this.programplan_shared_module.facilitator_type_id];
-        res.fields = [new ContextQueryFieldVO(moduletable.vo_type, 'id', 'filter_' + moduletable.vo_type + '_id')];
-        res.filters = [root_filter];
-        res.is_access_hook_def = true;
-        return res;
+        return query(moduletable.vo_type).using(this.programplan_shared_module.facilitator_type_id).field('id', 'filter_' + moduletable.vo_type + '_id').add_filters([root_filter]).ignore_access_hooks();
     }
 
     /**
@@ -714,13 +710,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         is_own_facilitators_rdv_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
         is_own_facilitators_rdv_filter.param_numeric = loggedUserId;
 
-        let res: ContextQueryVO = new ContextQueryVO();
-        res.base_api_type_id = moduletable.vo_type;
-        res.active_api_type_ids = [moduletable.vo_type];
-        res.fields = [new ContextQueryFieldVO(moduletable.vo_type, 'id', 'filter_' + moduletable.vo_type + '_id')];
-        res.filters = [is_own_facilitators_rdv_filter];
-        res.is_access_hook_def = true;
-        return res;
+        return query(moduletable.vo_type).field('id', 'filter_' + moduletable.vo_type + '_id').add_filters([is_own_facilitators_rdv_filter]).ignore_access_hooks();
     }
 
     /**
@@ -774,22 +764,12 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
          * Là on utilise la récursivité des subquery, en disant qu'on peut read un cr ou prep de rdv readable
          *  donc on fait une subquery sur rdv.id mais en indiquant bien que cette subquery doit utiliser les context filters access hooks
          */
-        let sub_query_list_rdvs: ContextQueryVO = new ContextQueryVO();
-        sub_query_list_rdvs.base_api_type_id = this.programplan_shared_module.rdv_type_id;
-        sub_query_list_rdvs.active_api_type_ids = [this.programplan_shared_module.rdv_type_id];
-        sub_query_list_rdvs.fields = [new ContextQueryFieldVO(this.programplan_shared_module.rdv_type_id, 'id', 'filter_' + this.programplan_shared_module.rdv_type_id + '_id_for_filter_' + moduletable.vo_type + '_id')];
+        let res: ContextQueryVO = query(moduletable.vo_type)
+            .field('id', 'filter_' + moduletable.vo_type + '_id')
+            .filter_by_num_in('rdv_id',
+                query(this.programplan_shared_module.rdv_type_id).field('id', 'filter_' + this.programplan_shared_module.rdv_type_id + '_id_for_filter_' + moduletable.vo_type + '_id'))
+            .ignore_access_hooks();
 
-        let filter: ContextFilterVO = new ContextFilterVO();
-        filter.field_id = 'rdv_id';
-        filter.vo_type = moduletable.vo_type;
-        filter.filter_type = ContextFilterVO.TYPE_IN;
-        filter.sub_query = sub_query_list_rdvs;
-
-        let res: ContextQueryVO = new ContextQueryVO();
-        res.base_api_type_id = moduletable.vo_type;
-        res.active_api_type_ids = [moduletable.vo_type];
-        res.fields = [new ContextQueryFieldVO(moduletable.vo_type, 'id', 'filter_' + moduletable.vo_type + '_id')];
-        res.filters = [filter];
         res.is_access_hook_def = true;
         return res;
     }

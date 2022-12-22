@@ -321,12 +321,12 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             return;
         }
 
-        let query_: ContextQueryVO = query(this.widget_options.api_type_id).set_limit(this.widget_options.limit, this.pagination_offset);
-        query_.active_api_type_ids = this.dashboard.api_type_ids;
-        query_.fields = [];
-        query_.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
-            ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters)
-        );
+        let query_: ContextQueryVO = query(this.widget_options.api_type_id)
+            .set_limit(this.widget_options.limit, this.pagination_offset)
+            .using(this.dashboard.api_type_ids)
+            .add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
+                ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters)
+            ));
 
         for (let i in this.fields) {
             let field = this.fields[i];
@@ -349,7 +349,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
                 query_.base_api_type_id = field.moduleTable.vo_type;
             }
 
-            query_.fields.push(new ContextQueryFieldVO(field.moduleTable.vo_type, field.module_table_field_id, field.datatable_field_uid));
+            query_.add_fields([new ContextQueryFieldVO(field.moduleTable.vo_type, field.module_table_field_id, field.datatable_field_uid)]);
         }
 
 
@@ -455,10 +455,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
                                     let new_value = self.moduletable.default_get_field_api_version(self.new_value, self.moduletable.get_field_by_id(self.field_id_selected));
 
-                                    let context_query: ContextQueryVO = new ContextQueryVO();
-                                    context_query.base_api_type_id = self.api_type_id;
-                                    context_query.active_api_type_ids = self.dashboard.api_type_ids;
-                                    context_query.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(self.get_active_field_filters);
+                                    let context_query: ContextQueryVO = query(self.api_type_id).using(self.dashboard.api_type_ids).add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(self.get_active_field_filters));
 
                                     await ModuleContextFilter.getInstance().update_vos(
                                         context_query,

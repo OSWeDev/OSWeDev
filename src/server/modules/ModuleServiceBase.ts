@@ -70,7 +70,6 @@ import ModulePaiementServer from './Commerce/Paiement/ModulePaiementServer';
 import ModuleProduitServer from './Commerce/Produit/ModuleProduitServer';
 import ModuleContextFilterServer from './ContextFilter/ModuleContextFilterServer';
 import ModuleCronServer from './Cron/ModuleCronServer';
-import DAOQueryCacheController from './DAO/DAOQueryCacheController';
 import ModuleDAOServer from './DAO/ModuleDAOServer';
 import ModuleDashboardBuilderServer from './DashboardBuilder/ModuleDashboardBuilderServer';
 import ModuleDataExportServer from './DataExport/ModuleDataExportServer';
@@ -590,12 +589,6 @@ export default abstract class ModuleServiceBase {
 
     private async db_none(query: string, values?: []) {
 
-        /**
-         * Handle query cache update
-         */
-
-        await DAOQueryCacheController.getInstance().invalidate_cache_from_query_or_return_result(query, values);
-
         try {
             await this.db_.none(query, values);
         } catch (error) {
@@ -639,17 +632,10 @@ export default abstract class ModuleServiceBase {
 
     private async db_query(query: string, values?: []) {
 
-        /**
-         * Handle query cache update
-         */
-        let res = await DAOQueryCacheController.getInstance().invalidate_cache_from_query_or_return_result(query, values);
-
-        if (typeof res !== 'undefined') {
-            return res;
-        }
+        let res = null;
 
         try {
-            res = await this.db_.query(query, values);
+            res = (values && values.length) ? await this.db_.query(query, values) : await this.db_.query(query);
         } catch (error) {
 
             let self = this;
@@ -660,8 +646,7 @@ export default abstract class ModuleServiceBase {
 
                 try {
                     // Retry once
-                    res = await this.db_.query(query, values);
-                    DAOQueryCacheController.getInstance().save_cache_from_query_result(query, values, res);
+                    res = (values && values.length) ? await this.db_.query(query, values) : await this.db_.query(query);
                 } catch (error2) {
                     ConsoleHandler.getInstance().error(error + ' - retry failed - ' + error2);
                     throw error2;
@@ -689,8 +674,6 @@ export default abstract class ModuleServiceBase {
             ConsoleHandler.getInstance().error(error);
         }
 
-        DAOQueryCacheController.getInstance().save_cache_from_query_result(query, values, res);
-
         return res;
     }
 
@@ -699,11 +682,7 @@ export default abstract class ModuleServiceBase {
         /**
          * Handle query cache update
          */
-        let res = await DAOQueryCacheController.getInstance().invalidate_cache_from_query_or_return_result(query, values);
-
-        if (typeof res !== 'undefined') {
-            return res;
-        }
+        let res = null;
 
         try {
             res = await this.db_.oneOrNone(query, values);
@@ -718,7 +697,6 @@ export default abstract class ModuleServiceBase {
                 try {
                     // Retry once
                     res = await this.db_.oneOrNone(query, values);
-                    DAOQueryCacheController.getInstance().save_cache_from_query_result(query, values, res);
                 } catch (error2) {
                     ConsoleHandler.getInstance().error(error + ' - retry failed - ' + error2);
                     throw error2;
@@ -745,8 +723,6 @@ export default abstract class ModuleServiceBase {
 
             ConsoleHandler.getInstance().error(error);
         }
-
-        DAOQueryCacheController.getInstance().save_cache_from_query_result(query, values, res);
 
         return res;
     }

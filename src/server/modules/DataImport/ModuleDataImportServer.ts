@@ -636,11 +636,12 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                         continue;
                     }
 
-                    let log: DataImportErrorLogVO = DataImportErrorLogVO.createNew(data.not_validated_msg, importHistoric.id);
-                    error_logs.push(log);
+                    error_logs.push(DataImportErrorLogVO.createNew(data.not_validated_msg, importHistoric.id));
                 }
 
-                await ModuleDAO.getInstance().insertOrUpdateVOs(error_logs);
+                if (error_logs.length > 0) {
+                    await ModuleDAO.getInstance().insertOrUpdateVOs(error_logs);
+                }
             }
 
             has_datas = has_datas || ((pre_validation_formattedDatasStats.nb_row_unvalidated + pre_validation_formattedDatasStats.nb_row_validated) > 0);
@@ -1066,12 +1067,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         /**
          * On utilise pas l'offset par ce que le filtrage va déjà avoir cet effet, les states sont mis à jour
          */
-        let query_: ContextQueryVO = new ContextQueryVO();
-        query_.base_api_type_id = raw_api_type_id;
-        query_.active_api_type_ids = [raw_api_type_id];
-        query_.filters = [filter];
-        query_.query_limit = batch_size;
-        query_.query_offset = 0;
+        let query_: ContextQueryVO = query(raw_api_type_id).add_filters([filter]).set_limit(batch_size, 0);
 
         return await ModuleContextFilterServer.getInstance().select_vos(query_);
     }

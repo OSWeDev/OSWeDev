@@ -418,6 +418,14 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
 
     private change_is_filtres_deplie() {
         this.is_filtres_deplie = !this.is_filtres_deplie;
+        // on ajoute la classe filtre_deplie au body si le bloc des filtres est déplié
+        if (this.is_filtres_deplie === true) {
+
+            $("body").addClass('filtre_deplie');
+        } else {
+
+            $("body").removeClass('filtre_deplie');
+        }
     }
 
     // private select_widget_and_stop(event, page_widget) {

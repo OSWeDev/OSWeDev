@@ -26,6 +26,34 @@ import './VarWidgetComponent.scss';
 })
 export default class VarWidgetComponent extends VueComponentBase {
 
+    public static get_var_custom_filters(
+        var_custom_filters: { [var_param_field_name: string]: string },
+        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }): { [var_param_field_name: string]: ContextFilterVO } {
+
+        /**
+         * On crée le custom_filters
+         */
+        let custom_filters: { [var_param_field_name: string]: ContextFilterVO } = {};
+
+        for (let var_param_field_name in var_custom_filters) {
+            let custom_filter_name = var_custom_filters[var_param_field_name];
+
+            if (!custom_filter_name) {
+                continue;
+            }
+
+            let custom_filter = get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] ? get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][custom_filter_name] : null;
+
+            if (!custom_filter) {
+                continue;
+            }
+
+            custom_filters[var_param_field_name] = custom_filter;
+        }
+
+        return custom_filters;
+    }
+
     @ModuleDashboardPageGetter
     private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
 
@@ -103,23 +131,7 @@ export default class VarWidgetComponent extends VueComponentBase {
         /**
          * On crée le custom_filters
          */
-        let custom_filters: { [var_param_field_name: string]: ContextFilterVO } = {};
-
-        for (let var_param_field_name in this.var_custom_filters) {
-            let custom_filter_name = this.var_custom_filters[var_param_field_name];
-
-            if (!custom_filter_name) {
-                continue;
-            }
-
-            let custom_filter = this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] ? this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][custom_filter_name] : null;
-
-            if (!custom_filter) {
-                continue;
-            }
-
-            custom_filters[var_param_field_name] = custom_filter;
-        }
+        let custom_filters: { [var_param_field_name: string]: ContextFilterVO } = VarWidgetComponent.get_var_custom_filters(this.var_custom_filters, this.get_active_field_filters);
 
         /**
          * Pour les dates il faut réfléchir....

@@ -90,7 +90,7 @@ export default class ModuleFacturationProAPI extends Module {
         while (has_more) {
             has_more = false;
             let result_headers = {};
-            let elts: IDistantVOBase[] = await ModuleRequest.getInstance().sendRequestFromApp(
+            let elts: { datas: IDistantVOBase[], headers: any } = await ModuleRequest.getInstance().sendRequestFromApp(
                 ModuleRequest.METHOD_GET,
                 "www.facturation.pro",
                 (url.startsWith('/') ? url : '/' + url) + ModuleRequest.getInstance().get_params_url(
@@ -104,10 +104,10 @@ export default class ModuleFacturationProAPI extends Module {
                 result_headers
             );
 
-            res = res.concat(elts);
+            res = res.concat(elts.datas);
             page++;
 
-            let pagination = (result_headers && result_headers['x-pagination']) ? JSON.parse(result_headers['x-pagination']) : null;
+            let pagination = (elts.headers && elts.headers['x-pagination']) ? JSON.parse(elts.headers['x-pagination']) : null;
             has_more = pagination && pagination['total_pages'] && pagination['current_page'] &&
                 (pagination['current_page'] < pagination['total_pages']);
         }

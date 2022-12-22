@@ -38,8 +38,8 @@
 
     .options_wrapper(:class='{"collapsed":collapsed_options_wrapper}')
         .collapse_options_wrapper(@click='reverse_collapse_options_wrapper' :class='{"collapsed":collapsed_options_wrapper}')
-            i.fa-solid.fa-caret-square-o-right.fa-fw(aria-hidden="true" v-if='!collapsed_options_wrapper')
-            i.fa-solid.fa-caret-square-o-left.fa-fw(aria-hidden="true" v-if='collapsed_options_wrapper')
+            i.fa-solid.fa-square-caret-right.fa-fw(aria-hidden="true" v-if='!collapsed_options_wrapper')
+            i.fa-solid.fa-square-caret-left.fa-fw(aria-hidden="true" v-if='collapsed_options_wrapper')
 
         .collapsible_component_wrapper(:class='{"collapsed":collapsed_options_wrapper}')
             .add_menu_wrapper
@@ -54,7 +54,7 @@
                     .row
                         .col-sm-12
                             .save(@click="update_db_menu")
-                                i.fa-solid.fa-floppy-o.fa-fw(aria-hidden="true")
+                                i.fa-solid.fa-floppy-disks.fa-fw(aria-hidden="true")
                                 | {{ label('menu_organizer.save') }}
                     .row
                         .col-sm-12
@@ -129,7 +129,7 @@
                         .row
                             .col-sm-12
                                 .save(@click="update_selected")
-                                    i.fa-solid.fa-floppy-o.fa-fw(aria-hidden="true")
+                                    i.fa-solid.fa-floppy-disks.fa-fw(aria-hidden="true")
                                     | {{ label('menu_organizer.save_selected') }}
                         .row
                             .col-sm-12

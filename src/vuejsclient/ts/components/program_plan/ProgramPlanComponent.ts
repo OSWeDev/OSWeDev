@@ -1733,12 +1733,23 @@ export default class ProgramPlanComponent extends VueComponentBase {
         let promises: Array<Promise<any>> = [];
 
         if (!!this.program_plan_shared_module.rdv_prep_type_id) {
+            if ((!rdvs_ids) || !rdvs_ids.length) {
+                self.addPrepsByIds([]);
+                return;
+            }
+
             promises.push((async () => {
                 let vos: IPlanRDVPrep[] = await query(this.program_plan_shared_module.rdv_prep_type_id).filter_by_num_has('rdv_id', rdvs_ids).select_vos<IPlanRDVPrep>();
                 self.addPrepsByIds(vos);
             })());
         }
         promises.push((async () => {
+
+            if ((!rdvs_ids) || !rdvs_ids.length) {
+                self.addCrsByIds([]);
+                return;
+            }
+
             let vos: IPlanRDVCR[] = await query(this.program_plan_shared_module.rdv_cr_type_id).filter_by_num_has('rdv_id', rdvs_ids).select_vos<IPlanRDVCR>();
             self.addCrsByIds(vos);
         })());
