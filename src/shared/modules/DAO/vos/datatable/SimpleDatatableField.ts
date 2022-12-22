@@ -416,7 +416,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                         case TimeSegment.TYPE_WEEK:
                             return value ? this.getMomentDateFieldInclusif(Dates.startOf(value, TimeSegment.TYPE_WEEK), moduleTableField, false) : null;
                         case TimeSegment.TYPE_YEAR:
-                            return value ? Dates.year(Dates.startOf(value, TimeSegment.TYPE_YEAR)) : null;
+                            return value ? Dates.startOf(value, TimeSegment.TYPE_YEAR) : null;
                         case TimeSegment.TYPE_DAY:
                             return value ? this.getMomentDateFieldInclusif(Dates.startOf(value, TimeSegment.TYPE_DAY), moduleTableField, false) : null;
                         default:
@@ -437,7 +437,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                             case TimeSegment.TYPE_WEEK:
                                 res_tstz_array.push(v ? this.getMomentDateFieldInclusif(Dates.startOf(v, TimeSegment.TYPE_WEEK), moduleTableField, false) : null);
                             case TimeSegment.TYPE_YEAR:
-                                res_tstz_array.push(Dates.year(Dates.startOf(v, TimeSegment.TYPE_YEAR)));
+                                res_tstz_array.push(v ? Dates.startOf(v, TimeSegment.TYPE_YEAR) : null);
                             case TimeSegment.TYPE_DAY:
                                 res_tstz_array.push(v ? this.getMomentDateFieldInclusif(Dates.startOf(v, TimeSegment.TYPE_DAY), moduleTableField, false) : null);
                             default:
