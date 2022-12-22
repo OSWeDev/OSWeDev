@@ -69,24 +69,8 @@ export default class ModuleSurveyServer extends ModuleServerBase {
     public async configure() {
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': 'Un incident technique - un comportement inhabituel de la solution - , qui induit une indisponibilité partielle ou totale du service' },
-            'survey.type.incident.tooltip.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': 'Une erreur logicielle reproductible par rapport au fonctionnement attendu au sein de l\'application' },
-            'survey.type.bug.tooltip.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': 'Une demande d\'évolution ou une suggestion pour améliorer la solution et répondre mieux à votre besoin' },
-            'survey.type.request.tooltip.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': 'Tout autre message adressé aux équipes techniques, relatif à une page / un fonctionnement de l\'application' },
-            'survey.type.not_set.tooltip.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Fermer' },
             'survey.hide.___LABEL___'));
-
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': 'Vider' },
-            'survey.clear.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Enquête de satisfaction' },
             'survey.title.___LABEL___'));
@@ -116,20 +100,20 @@ export default class ModuleSurveyServer extends ModuleServerBase {
             'survey.submit.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': 'Bug' },
-            'survey.type.bug.___LABEL___'));
+            { 'fr-fr': 'Sans opinion' },
+            'survey.SURVEY_TYPE.NO_OPINION'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': 'Incident' },
-            'survey.type.incident.___LABEL___'));
+            { 'fr-fr': 'Mauvais' },
+            'survey.SURVEY_TYPE.BAD'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': 'Type de message' },
-            'survey.type.label.___LABEL___'));
+            { 'fr-fr': 'Moyen' },
+            'survey.SURVEY_TYPE.MEDIOCRE'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': 'Autre' },
-            'survey.type.not_set.___LABEL___'));
+            { 'fr-fr': 'Bien' },
+            'survey.SURVEY_TYPE.GOOD'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': 'Demande d\'évolution ou proposition d\'amélioration' },
-            'survey.type.request.___LABEL___'));
+            { 'fr-fr': 'Très bien' },
+            'survey.SURVEY_TYPE.VERY_GOOD'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Avis obligatoire' },
             'survey.needs_opinion.___LABEL___'));

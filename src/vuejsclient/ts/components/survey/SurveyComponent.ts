@@ -157,7 +157,7 @@ export default class SurveyComponent extends VueComponentBase {
 
 
         survey.route_name = this.$route.name;
-        survey.survey_type = SurveyVO.SURVEY_TYPE_LABELS[this.tmp_type];
+        survey.survey_type = this.tmp_type;
         survey.message = this.tmp_message;
 
 
