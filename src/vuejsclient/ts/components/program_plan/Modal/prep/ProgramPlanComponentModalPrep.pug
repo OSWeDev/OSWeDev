@@ -12,8 +12,8 @@
                 .prep
                     .row
                         .col-sm-12
-                            i.fa.fa-trash(aria-hidden="true", @click="delete_prep(selected_rdv_prep)" v-if='can_edit')
-                            i.fa.fa-pencil(aria-hidden="true", @click="editPrep(selected_rdv_prep)" v-if='can_edit')
+                            i.fa-solid.fa-trash(aria-hidden="true", @click="delete_prep(selected_rdv_prep)" v-if='can_edit')
+                            i.fa-solid.fa-pencil(aria-hidden="true", @click="editPrep(selected_rdv_prep)" v-if='can_edit')
                     .row
                         .col-sm-12
                             .custom_prep_read_component(:is="custom_prep_read_component" :rdv='selected_rdv' :prep='selected_rdv_prep')
@@ -33,8 +33,8 @@
     //-                     button.btn.btn-secondary(v-show="newprep_seemore" @click="newprep_seemore = !newprep_seemore" type="button")
     //-                         i.newprep_seemorl.fa.fa-compress(aria-hidden="true")
     //-                         | {{ label('programplan.rdv_modal.newprep_seemorl.compress') }}
-    //-                     i.fa.fa-trash(aria-hidden="true", @click="delete_prep(prep)")
-    //-                     i.fa.fa-pencil(aria-hidden="true", @click="editPrep(prep)")
+    //-                     i.fa-solid.fa-trash(aria-hidden="true", @click="delete_prep(prep)")
+    //-                     i.fa-solid.fa-pencil(aria-hidden="true", @click="editPrep(prep)")
     //-                     .custom_prep_read_component(:is="custom_prep_read_component" :rdv='selected_rdv' :prep='prep')
                                 
     .row(v-if="selected_rdv && selected_rdv.id && edited_prep")

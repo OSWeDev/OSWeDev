@@ -1,13 +1,13 @@
 .percent_slot
-    i.fa.fa-arrow-up.arrow-positive(aria-hidden="true", v-if="(column_data.value > 0) && (column_data.value >= positive_min)")
-    i.fa.fa-arrow-up.arrow-medium(aria-hidden="true", v-if="(column_data.value > 0) && (column_data.value >= medium_min) && (column_data.value < positive_min)")
-    i.fa.fa-arrow-up.arrow-negative(aria-hidden="true", v-if="(column_data.value > 0) && (column_data.value < medium_min)")
-    i.fa.fa-arrow-down.arrow-negative(aria-hidden="true", v-if="(column_data.value < 0)  && (column_data.value < medium_min)")
-    i.fa.fa-arrow-up.arrow-medium(aria-hidden="true", v-if="(column_data.value < 0) && (column_data.value >= medium_min) && (column_data.value < positive_min)")
-    i.fa.fa-arrow-up.arrow-positive(aria-hidden="true", v-if="(column_data.value < 0) && (column_data.value >= positive_min)")
-    i.fa.fa-arrow-right.arrow-negative(aria-hidden="true", v-if="(column_data.value == 0)  && (column_data.value < medium_min)")
-    i.fa.fa-arrow-right.arrow-medium(aria-hidden="true", v-if="(column_data.value == 0) && (column_data.value >= medium_min) && (column_data.value < positive_min)")
-    i.fa.fa-arrow-right.arrow-positive(aria-hidden="true", v-if="(column_data.value == 0) && (column_data.value >= positive_min)")
+    i.fa-solid.fa-arrow-up.arrow-positive(aria-hidden="true", v-if="(column_data.value > 0) && (column_data.value >= positive_min)")
+    i.fa-solid.fa-arrow-up.arrow-medium(aria-hidden="true", v-if="(column_data.value > 0) && (column_data.value >= medium_min) && (column_data.value < positive_min)")
+    i.fa-solid.fa-arrow-up.arrow-negative(aria-hidden="true", v-if="(column_data.value > 0) && (column_data.value < medium_min)")
+    i.fa-solid.fa-arrow-down.arrow-negative(aria-hidden="true", v-if="(column_data.value < 0)  && (column_data.value < medium_min)")
+    i.fa-solid.fa-arrow-up.arrow-medium(aria-hidden="true", v-if="(column_data.value < 0) && (column_data.value >= medium_min) && (column_data.value < positive_min)")
+    i.fa-solid.fa-arrow-up.arrow-positive(aria-hidden="true", v-if="(column_data.value < 0) && (column_data.value >= positive_min)")
+    i.fa-solid.fa-arrow-right.arrow-negative(aria-hidden="true", v-if="(column_data.value == 0)  && (column_data.value < medium_min)")
+    i.fa-solid.fa-arrow-right.arrow-medium(aria-hidden="true", v-if="(column_data.value == 0) && (column_data.value >= medium_min) && (column_data.value < positive_min)")
+    i.fa-solid.fa-arrow-right.arrow-positive(aria-hidden="true", v-if="(column_data.value == 0) && (column_data.value >= positive_min)")
     span(v-if="column && (column_data.value != 999) && (column_data.value != -999) && (column.type == type_percent)") {{ const_filters.percent.read(column_data.value, 1) }}
     span(v-if="column && (column_data.value != 999) && (column_data.value != -999) && (column.type == type_amount)") {{ const_filters.amount.read(column_data.value, 1) }}
     span(v-if="column && (column_data.value != 999) && (column_data.value != -999) && (column.type == type_fixed)") {{ const_filters.toFixed.read(column_data.value, 1) }}

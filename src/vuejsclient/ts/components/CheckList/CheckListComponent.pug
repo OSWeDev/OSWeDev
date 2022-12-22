@@ -52,7 +52,7 @@ include ../../../views/mixins/loading.pug
             .col-sm-12
                 .is_limited_by_number {{ label('checklist.is_limited_by_number', {limit: 15}) }}
                     button.action-button(@click="()=>{show_anyway=true}")
-                        i.fa.fa-filter(aria-hidden="true")
+                        i.fa-solid.fa-filter(aria-hidden="true")
                         span {{ label('checklist.toggle_limit_by_number') }}
 
         .row(v-else)

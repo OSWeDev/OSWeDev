@@ -14,10 +14,10 @@ include ../../../../../views/mixins/loading.pug
                             template(v-for='(page_, pagei) in pages')
                                 .page 
                                     .selected(v-if='page_.id == page_to_copy_in_id')
-                                        i.fa.fa-check-circle.fa-fw(aria-hidden="true")
+                                        i.fa-solid.fa-check-circle.fa-fw(aria-hidden="true")
                                         //- Page selectionnée.
                                     .select(v-else)
-                                        i.fa.fa-hand-o-down.fa-fw.btn_icon(aria-hidden="true" @click="select_page_to_copy_in(page_)")
+                                        i.fa-solid.fa-hand-o-down.fa-fw.btn_icon(aria-hidden="true" @click="select_page_to_copy_in(page_)")
 
                                     .name
                                         Inlinetranslatabletext(:code_text="pages_name_code_text[pagei]" :is_editable="false")

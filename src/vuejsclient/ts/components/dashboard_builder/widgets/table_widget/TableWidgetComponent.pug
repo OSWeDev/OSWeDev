@@ -6,7 +6,7 @@ include ../../../../../views/mixins/loading.pug
 
             template(v-if='loaded_once && is_busy')
                 .is_busy 
-                    i.fa.fa-refresh.fa-spin(aria-hidden="true")
+                    i.fa-solid.fa-refresh.fa-spin(aria-hidden="true")
 
             .table_header {{ table_header_title }}
 
@@ -29,16 +29,16 @@ include ../../../../../views/mixins/loading.pug
                 template(v-if='!!crud_activated_api_type')
                     .crud_actions.btn-group.d-print-none
                         button.btn.btn-sm.btn-danger(v-if='can_delete_all', @click='confirm_delete_all')
-                            i.fa.fa-trash.fa-lg.btn_icon(aria-hidden="true")
+                            i.fa-solid.fa-trash.fa-lg.btn_icon(aria-hidden="true")
                             | {{ label('crud.actions.delete_all') }}
                         button.btn.btn-sm.btn-secondary(v-if='can_refresh', @click='refresh')
-                            i.fa.fa-refresh.fa-lg.btn_icon(aria-hidden="true")
+                            i.fa-solid.fa-refresh.fa-lg.btn_icon(aria-hidden="true")
                             | {{ label('crud.actions.refresh') }}
                         button.btn.btn-sm.btn-outline-dark(v-if='can_export' @click="choose_export_type")
-                            i.fa.fa-download.fa-lg.btn_icon
+                            i.fa-solid.fa-download.fa-lg.btn_icon
                             | {{ label('crud.actions.export') }}
                         button.btn.btn-sm.btn-success(v-if='can_create' @click="open_create")
-                            i.fa.fa-plus-circle.fa-lg.btn_icon
+                            i.fa-solid.fa-plus-circle.fa-lg.btn_icon
                             | {{ label('crud.actions.create') }}
 
             .table_wrapper
@@ -71,11 +71,11 @@ include ../../../../../views/mixins/loading.pug
                                         template(v-if="column.type == 1")
                                             .order_by
                                                 template(v-if='(order_asc_on_id != column.id) && (order_desc_on_id != column.id)')
-                                                    i.fa.fa-sort.fa-fw(aria-hidden="true")
+                                                    i.fa-solid.fa-sort.fa-fw(aria-hidden="true")
                                                 template(v-if='order_asc_on_id == column.id')
-                                                    i.fa.fa-sort-asc.fa-fw(aria-hidden="true")
+                                                    i.fa-solid.fa-sort-asc.fa-fw(aria-hidden="true")
                                                 template(v-if='order_desc_on_id == column.id')
-                                                    i.fa.fa-sort-desc.fa-fw(aria-hidden="true")
+                                                    i.fa-solid.fa-sort-desc.fa-fw(aria-hidden="true")
 
                                         Inlinetranslatabletext( :code_text="column.get_translatable_name_code_text(page_widget.id)")
 
@@ -89,11 +89,11 @@ include ../../../../../views/mixins/loading.pug
                                         template(v-if="child.type == 1")
                                             .order_by
                                                 template(v-if='(order_asc_on_id != child.id) && (order_desc_on_id != child.id)')
-                                                    i.fa.fa-sort.fa-fw(aria-hidden="true")
+                                                    i.fa-solid.fa-sort.fa-fw(aria-hidden="true")
                                                 template(v-if='order_asc_on_id == child.id')
-                                                    i.fa.fa-sort-asc.fa-fw(aria-hidden="true")
+                                                    i.fa-solid.fa-sort-asc.fa-fw(aria-hidden="true")
                                                 template(v-if='order_desc_on_id == child.id')
-                                                    i.fa.fa-sort-desc.fa-fw(aria-hidden="true")
+                                                    i.fa-solid.fa-sort-desc.fa-fw(aria-hidden="true")
                                         Inlinetranslatabletext( :code_text="child.get_translatable_name_code_text(page_widget.id)")
                                         template(v-if="child.type == 0")
                                         Inlinetranslatabletext()
@@ -123,13 +123,13 @@ include ../../../../../views/mixins/loading.pug
                                                 .btn-group.d-print-none(v-tooltip='label("table_widget_component.id", {id : row.__crud_actions})' :style="{width: (column.column_width ? column.column_width + 'rem' : null)}")
                                                     template(v-if='update_button')
                                                         .btn.btn-sm.btn-primary(@click="open_update(column.api_type_id, row.__crud_actions)")
-                                                            i.fa.fa-pencil
+                                                            i.fa-solid.fa-pencil
                                                     template(v-if="can_open_vocus")
                                                         .btn.btn-xs.btn-secondary(@click="open_vocus(column.api_type_id, row.__crud_actions)")
-                                                            i.fa.fa-search
+                                                            i.fa-solid.fa-search
                                                     template(v-if="delete_button")
                                                         .btn.btn-sm.btn-danger(@click="confirm_delete(column.api_type_id, row.__crud_actions)")
-                                                            i.fa.fa-trash
+                                                            i.fa-solid.fa-trash
 
                                             //- If it's a component
                                             //-  or any other type of fields
@@ -196,13 +196,13 @@ include ../../../../../views/mixins/loading.pug
                                                         )
                                                         template(v-if='update_button')
                                                             .btn.btn-sm.btn-primary(@click="open_update(child.api_type_id, row.__crud_actions)")
-                                                                i.fa.fa-pencil
+                                                                i.fa-solid.fa-pencil
                                                         template(v-if="can_open_vocus")
                                                             .btn.btn-xs.btn-secondary(@click="open_vocus(child.api_type_id, row.__crud_actions)")
-                                                                i.fa.fa-search
+                                                                i.fa-solid.fa-search
                                                         template(v-if="delete_button")
                                                             .btn.btn-sm.btn-danger(@click="confirm_delete(child.api_type_id, row.__crud_actions)")
-                                                                i.fa.fa-trash
+                                                                i.fa-solid.fa-trash
                                                                             
                     template(v-if="has_table_total_footer && data_rows && (data_rows.length > 0)")
                         tfoot

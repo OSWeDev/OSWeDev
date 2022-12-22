@@ -9,7 +9,7 @@
     //- (@click="(event) => select_widget_and_stop(event, null)")
     .grid_wrapper(:class="{ filter_plie: (dashboard_page.group_filters && !is_filtres_deplie) }")
         template(v-if='!editable_dashboard_page')
-            i.fa.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
+            i.fa-solid.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
         template(v-else)
             Gridlayout(
                 :layout.sync="editable_dashboard_page.layout"
@@ -31,9 +31,9 @@
                                 Inlinetranslatabletext(:code_text="dashboard_page.translatable_group_filters_code_text" :is_editable="editable" default_translation="Filtres")
                             .text-right.chevron
                                 template(v-if="is_filtres_deplie")
-                                    i.fa.fa-chevron-up
+                                    i.fa-solid.fa-chevron-up
                                 template(v-else)
-                                    i.fa.fa-chevron-down
+                                    i.fa-solid.fa-chevron-down
 
                         .row.body-filters-bloc(v-show="is_filtres_deplie")
                             template(v-for="item in editable_dashboard_page.layout")

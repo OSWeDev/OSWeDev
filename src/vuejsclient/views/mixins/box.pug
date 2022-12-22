@@ -2,7 +2,7 @@ mixin box(title, icon, iconx, icony, nomaxwidth)
   .box.box-info(class=nomaxwidth?'no-max-width':'')
     .box-header.with-border
       - if ((typeof icon != "undefined") && icon && icon.startsWith('fa-')) {
-      i.fa.box-header-icon(aria-hidden="true" class=icon)
+      i.fa-solid.box-header-icon(aria-hidden="true" class=icon)
       - } else if (typeof icon != "undefined" && icon != ""){
       -   icony = icony ? icony : "0px";
       -   iconx = iconx ? iconx : "0px";
@@ -11,6 +11,6 @@ mixin box(title, icon, iconx, icony, nomaxwidth)
       h3.box-title= title
       .box-tools.pull-right.hidden-print
         button.btn.btn-box-tool(type='button', data-widget='collapse')
-          i.fa.fa-minus
+          i.fa-solid.fa-minus
     .box-body
       block
