@@ -12,7 +12,7 @@
 
     //-         //- Handler
     //-         VueNestableHandle(:item="item")
-    //-             i.fa.fa-bars
+    //-             i.fa-solid.fa-bars
 
     //-         //- Content
     //-         span Item :: {{ item.text }}
@@ -30,7 +30,7 @@
                 template(slot-scope="{ item }")
 
                     Vuenestablehandle(:item="item")
-                        i.fa.fa-bars.fa-fw(aria-hidden="true")
+                        i.fa-solid.fa-bars.fa-fw(aria-hidden="true")
 
                     .item_content(:class='{ has_focus : (selected_item && (selected_item.id == item.id)) , hidden: item.hidden }' @click='select_menu(item)')
                         .menu_name {{ item.text }}
@@ -38,15 +38,15 @@
 
     .options_wrapper(:class='{"collapsed":collapsed_options_wrapper}')
         .collapse_options_wrapper(@click='reverse_collapse_options_wrapper' :class='{"collapsed":collapsed_options_wrapper}')
-            i.fa.fa-caret-square-o-right.fa-fw(aria-hidden="true" v-if='!collapsed_options_wrapper')
-            i.fa.fa-caret-square-o-left.fa-fw(aria-hidden="true" v-if='collapsed_options_wrapper')
+            i.fa-solid.fa-caret-square-o-right.fa-fw(aria-hidden="true" v-if='!collapsed_options_wrapper')
+            i.fa-solid.fa-caret-square-o-left.fa-fw(aria-hidden="true" v-if='collapsed_options_wrapper')
 
         .collapsible_component_wrapper(:class='{"collapsed":collapsed_options_wrapper}')
             .add_menu_wrapper
                 .row
                     .col-sm-12
                         .add(@click="add_menu")
-                            i.fa.fa-plus.fa-fw(aria-hidden="true")
+                            i.fa-solid.fa-plus.fa-fw(aria-hidden="true")
                             | {{ label('menu_organizer.add') }}
 
             template(v-if='has_modif')
@@ -54,18 +54,18 @@
                     .row
                         .col-sm-12
                             .save(@click="update_db_menu")
-                                i.fa.fa-floppy-o.fa-fw(aria-hidden="true")
+                                i.fa-solid.fa-floppy-o.fa-fw(aria-hidden="true")
                                 | {{ label('menu_organizer.save') }}
                     .row
                         .col-sm-12
                             .cancel(@click="reload_from_db")
-                                i.fa.fa-refresh.fa-fw(aria-hidden="true")
+                                i.fa-solid.fa-refresh.fa-fw(aria-hidden="true")
                                 | {{ label('menu_organizer.cancel') }}
                                 
             template(v-if='selected_item && selected_item.id')
                 .selected_item_wrapper
                     .unselect(@click='unselect')
-                        i.fa.fa-times.fa-fw(aria-hidden="true")
+                        i.fa-solid.fa-times.fa-fw(aria-hidden="true")
 
                     .row
                         .col-sm-12
@@ -129,12 +129,12 @@
                         .row
                             .col-sm-12
                                 .save(@click="update_selected")
-                                    i.fa.fa-floppy-o.fa-fw(aria-hidden="true")
+                                    i.fa-solid.fa-floppy-o.fa-fw(aria-hidden="true")
                                     | {{ label('menu_organizer.save_selected') }}
                         .row
                             .col-sm-12
                                 .cancel(@click="reload_selected")
-                                    i.fa.fa-refresh.fa-fw(aria-hidden="true")
+                                    i.fa-solid.fa-refresh.fa-fw(aria-hidden="true")
                                     | {{ label('menu_organizer.cancel_selected') }}
 
             template(v-if='(!selected_item) && app_names && !!app_names.length')

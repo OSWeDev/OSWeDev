@@ -1,7 +1,7 @@
 .inline_translatable_text
     template(v-if='!get_initialized')
         .is_initializing
-            i.fa.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
+            i.fa-solid.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
     template(v-else)
 
         template(v-if='!is_editable')
@@ -14,8 +14,8 @@
                     input.editable_text(type="text" v-model="text" :disabled="!semaphore" v-tooltip='parameterized_text')
                 template(v-if='!semaphore')
                     .is_updating
-                        i.fa.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
+                        i.fa-solid.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
                 template(v-else)
                     template(v-if='has_modif')
                         .update_trad
-                            i.fa.fa-floppy-o.fa-fw(aria-hidden="true" @click="update_trad")
+                            i.fa-solid.fa-floppy-o.fa-fw(aria-hidden="true" @click="update_trad")

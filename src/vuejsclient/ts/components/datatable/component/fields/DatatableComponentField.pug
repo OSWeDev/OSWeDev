@@ -10,7 +10,7 @@
                     template(v-if="field_value == 'false' || field_value === false")
                         i.boolean_value.is_false.fa(:class="{[field.moduleTableField.boolean_icon_false]: true, 'text-success': field.moduleTableField.boolean_invert_colors, 'text-danger': !field.moduleTableField.boolean_invert_colors}")
                 template(v-else-if="field.moduleTableField.field_type == 'password'")
-                    i.fa.fa-lock
+                    i.fa-solid.fa-lock
                 template(v-else-if="field.moduleTableField.field_type == 'number[]'")
                     ul.multi-input(v-if="field_value")
                         li(v-for="value in field_value") {{ value }}

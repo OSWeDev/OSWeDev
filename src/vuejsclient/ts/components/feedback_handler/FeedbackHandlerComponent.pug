@@ -1,7 +1,7 @@
 .feedback_handler.hide_from_screenshot(v-if="isActive")
     .feedback_handler_switcher(@click='switch_hidden')
         template(v-if='get_hidden')
-            i.fa.fa-comment.fa-fw(aria-hidden="true")
+            i.fa-solid.fa-comment.fa-fw(aria-hidden="true")
         template(v-else)
             i.fa-solid.fa-comment-dots.fa-fw(aria-hidden="true")
         span {{ label('feedback_handler.btn.title') }}
@@ -14,7 +14,7 @@
                 .row
                     .col-sm-12
                         label(for='feedback_user') {{ label('feedback_handler.user.label') }}
-                            i.fa.fa-asterisk.mandatory
+                            i.fa-solid.fa-asterisk.mandatory
                 .row
                     .col-sm-12
                         input.form-control(type='text' name='feedback_user' v-model="tmp_user")
@@ -24,7 +24,7 @@
                 .row
                     .col-sm-12
                         label(for='feedback_email') {{ label('feedback_handler.email.label') }}
-                            i.fa.fa-asterisk.mandatory
+                            i.fa-solid.fa-asterisk.mandatory
                 .row
                     .col-sm-12
                         input.form-control(type='text' name='feedback_email' v-model="tmp_email")
@@ -66,7 +66,7 @@
                 .row
                     .col-sm-12
                         label {{ label('feedback_handler.type.label') }}
-                            i.fa.fa-asterisk.mandatory
+                            i.fa-solid.fa-asterisk.mandatory
                 .row
                     .col-sm-12
                         input(type="radio" id="feedback_type_2" value='2' v-model="tmp_type")
@@ -89,7 +89,7 @@
                 .row
                     .col-sm-12
                         label(for='feedback_title') {{ label('feedback_handler.title.label') }}
-                            i.fa.fa-asterisk.mandatory
+                            i.fa-solid.fa-asterisk.mandatory
                 .row
                     .col-sm-12
                         input.form-control(type='text' name='feedback_title' v-model="tmp_title")
@@ -99,7 +99,7 @@
                 .row
                     .col-sm-12
                         label(for='feedback_message') {{ label('feedback_handler.message.label') }}
-                            i.fa.fa-asterisk.mandatory
+                            i.fa-solid.fa-asterisk.mandatory
                 .row
                     .col-sm-12
                         textarea.form-control(name="feedback_message" cols="80" rows="10" v-model="tmp_message")
@@ -109,7 +109,7 @@
                 .row
                     .col-sm-12
                         label {{ label('feedback_handler.captures.label') }}
-                            i.fa.fa-asterisk.mandatory
+                            i.fa-solid.fa-asterisk.mandatory
                 .row
                     .col-sm-4
                         Screenshotcomponent(id='tmp_capture_1_vo' :filevo="tmp_capture_1_vo" @uploaded="uploadedCapture1(...arguments)" ref='ScreenshotComponent1')

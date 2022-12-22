@@ -40,16 +40,16 @@ mixin var_data_content()
                                         span(class='var-data-suffix') {{ suffix }}
                                 template(v-else)
                                     template(v-if='is_being_updated')
-                                        i.fa.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
+                                        i.fa-solid.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
                                     template(v-else) {{ null_value_replacement }}
                         template
                             template(v-if='(!!var_data)&&(var_data_value != null)')
                                 template(v-if='can_inline_edit')
-                                    i.fa.fa-pencil.text-primary.import_marker_var(aria-hidden="true")
+                                    i.fa-solid.fa-pencil.text-primary.import_marker_var(aria-hidden="true")
                                 template(v-if='(var_data_value_is_imported && show_import) || is_show_import_aggregated')
-                                    i.fa.fa-cloud-download.text-default.import_marker_var(aria-hidden="true")
+                                    i.fa-solid.fa-cloud-download.text-default.import_marker_var(aria-hidden="true")
                                 template(v-if='var_data_value_is_denied')
-                                    i.fa.fa-exclamation-triangle.text-danger.denied_marker_var(aria-hidden="true")
+                                    i.fa-solid.fa-exclamation-triangle.text-danger.denied_marker_var(aria-hidden="true")
 
 
 

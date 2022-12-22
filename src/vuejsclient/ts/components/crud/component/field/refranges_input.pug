@@ -11,15 +11,15 @@
     Alertcomponent.datatable_field_alert.refranges_datatable_field_alert(:path='alert_path')
     label {{ label_replacement ? label(label_replacement) : t(field.translatable_title) }}
         template(v-if="field.is_required")
-            i.fa.fa-asterisk.mandatory
+            i.fa-solid.fa-asterisk.mandatory
 
     .btn-group.link_ref.hidden-print(v-show='can_insert_or_update_target && show_insert_or_update_target')
         template(v-if="field_value")
             a.btn.btn-sm.btn-primary(:href="get_crud_link(field.targetModuleTable.vo_type, field_value)" :target="!is_dashboard_builder ? '_blank' : ''")
-                i.fa.fa-pencil
+                i.fa-solid.fa-pencil
 
         a.btn.btn-sm.btn-success(:href="get_crud_link(field.targetModuleTable.vo_type, null)" :target="!is_dashboard_builder ? '_blank' : ''")
-            i.fa.fa-plus-circle
+            i.fa-solid.fa-plus-circle
 
     multiselect(
         :preselect-first="false",

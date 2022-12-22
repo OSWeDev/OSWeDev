@@ -21,7 +21,7 @@
                         .row 
                             .col-sm-12
                                 .my_account_login(v-tooltip='editable_login_tooltip')
-                                    i.fa.fa-id-card.fa-fw(aria-hidden="true")
+                                    i.fa-solid.fa-id-card.fa-fw(aria-hidden="true")
                                     Crudcomponentfield(
                                         @onchangevo='onchangevo'
                                         :field="editable_login"
@@ -40,7 +40,7 @@
                         .row(v-if='show_firstname_field')
                             .col-sm-12
                                 .my_account_firstname(v-tooltip='editable_firstname_tooltip')
-                                    i.fa.fa-id-card.fa-fw(aria-hidden="true")
+                                    i.fa-solid.fa-id-card.fa-fw(aria-hidden="true")
                                     Crudcomponentfield(
                                         @onchangevo='onchangevo'
                                         :field="editable_firstname"
@@ -59,7 +59,7 @@
                         .row(v-if='show_lastname_field')
                             .col-sm-12
                                 .my_account_lastname(v-tooltip='editable_lastname_tooltip')
-                                    i.fa.fa-id-card.fa-fw(aria-hidden="true" style='opacity:0')
+                                    i.fa-solid.fa-id-card.fa-fw(aria-hidden="true" style='opacity:0')
                                     Crudcomponentfield(
                                         @onchangevo='onchangevo'
                                         :field="editable_lastname"
@@ -78,7 +78,7 @@
                         .row 
                             .col-sm-12
                                 .my_account_email(v-tooltip='editable_email_tooltip')
-                                    i.fa.fa-envelope.fa-fw(aria-hidden="true")
+                                    i.fa-solid.fa-envelope.fa-fw(aria-hidden="true")
                                     Crudcomponentfield(
                                         @onchangevo='onchangevo'
                                         :field="editable_email"

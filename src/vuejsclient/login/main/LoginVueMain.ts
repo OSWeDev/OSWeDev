@@ -1,5 +1,5 @@
 import "bootstrap/dist/css/bootstrap.min.css";
-import 'font-awesome/css/font-awesome.min.css';
+// import 'font-awesome/css/font-awesome.min.css';
 import { Component } from "vue-property-decorator";
 import "vue-snotify/styles/material.scss";
 import OnPageTranslation from '../../ts/components/OnPageTranslation/component/OnPageTranslation';

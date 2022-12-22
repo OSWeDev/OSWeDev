@@ -22,11 +22,11 @@
                         td.vocus_crud
                             .btn-group.d-print-none
                                 router-link.btn.btn-sm.btn-primary.m-1(:to="getCRUDUpdateLink(vo._type, vo.id)")
-                                    i.fa.fa-pencil
+                                    i.fa-solid.fa-pencil
                                 router-link.btn.btn-sm.btn-secondary.m-1(:to="getVocusLink(vo._type, vo.id)")
-                                    i.fa.fa-search
+                                    i.fa-solid.fa-search
                                 router-link.btn.btn-sm.btn-danger.m-1(:to="getCRUDDeleteLink(vo._type, vo.id)")
-                                    i.fa.fa-trash
+                                    i.fa-solid.fa-trash
 
                     template(v-if="refvos")
                         tr.refvo(v-for='refvo in refvos' :class='{"is_cascade": refvo.is_cascade}')
@@ -36,11 +36,11 @@
                             td.vocus_crud
                                 .btn-group.d-print-none
                                     router-link.btn.btn-sm.btn-primary.m-1(:to="getCRUDUpdateLink(refvo.linked_type, refvo.linked_id)")
-                                        i.fa.fa-pencil
+                                        i.fa-solid.fa-pencil
                                     router-link.btn.btn-sm.btn-secondary.m-1(:to="getVocusLink(refvo.linked_type, refvo.linked_id)")
-                                        i.fa.fa-search
+                                        i.fa-solid.fa-search
                                     router-link.btn.btn-sm.btn-danger.m-1(:to="getCRUDDeleteLink(refvo.linked_type, refvo.linked_id)")
-                                        i.fa.fa-trash
+                                        i.fa-solid.fa-trash
     .row(v-if='limit1000')
         .col-sm-12
             .limit1000 {{ label('vocus.limit1000') }}
