@@ -26,6 +26,7 @@ import DashboardWidgetVO from '../../../../../../shared/modules/DashboardBuilder
 import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import ModuleDataExport from '../../../../../../shared/modules/DataExport/ModuleDataExport';
 import ExportContextQueryToXLSXParamVO from '../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
+import ExportVarcolumnConf from '../../../../../../shared/modules/DataExport/vos/ExportVarcolumnConf';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../../shared/modules/ModuleTable';
@@ -34,6 +35,7 @@ import VarConfVO from '../../../../../../shared/modules/Var/vos/VarConfVO';
 import ModuleVocus from '../../../../../../shared/modules/Vocus/ModuleVocus';
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import WeightHandler from '../../../../../../shared/tools/WeightHandler';
@@ -50,6 +52,7 @@ import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page
 import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsController';
 import FieldValueFilterWidgetOptions from '../field_value_filter_widget/options/FieldValueFilterWidgetOptions';
 import ValidationFiltersWidgetController from '../validation_filters_widget/ValidationFiltersWidgetController';
+import VarWidgetComponent from '../var_widget/VarWidgetComponent';
 import CRUDCreateModalComponent from './crud_modals/create/CRUDCreateModalComponent';
 import CRUDUpdateModalComponent from './crud_modals/update/CRUDUpdateModalComponent';
 import TableWidgetOptions from './options/TableWidgetOptions';
@@ -70,6 +73,10 @@ import TableWidgetController from './TableWidgetController';
     }
 })
 export default class TableWidgetComponent extends VueComponentBase {
+
+
+    @ModuleDashboardPageGetter
+    private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
 
     @ModuleDashboardPageAction
     private set_discarded_field_paths: (discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }) => void;
@@ -1116,12 +1123,31 @@ export default class TableWidgetComponent extends VueComponentBase {
             }
         }
 
-        let query_: ContextQueryVO = query(this.widget_options.crud_api_type_id ? this.widget_options.crud_api_type_id : null).set_limit(this.limit, this.pagination_offset);
-        query_.active_api_type_ids = this.dashboard.api_type_ids;
-        query_.fields = [];
-        query_.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
-            ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters)
-        );
+        let crud_api_type_id = this.widget_options.crud_api_type_id ? this.widget_options.crud_api_type_id : null;
+        if (!crud_api_type_id) {
+            for (let column_id in this.fields) {
+                let field = this.fields[column_id];
+
+                if (!field.moduleTable.vo_type) {
+                    continue;
+                }
+
+                crud_api_type_id = field.moduleTable.vo_type;
+                break;
+            }
+        }
+
+        if (!crud_api_type_id) {
+            ConsoleHandler.getInstance().error('Pas de crud_api_type_id pour le table widget impossible de générer la requête');
+            return;
+        }
+
+        let query_: ContextQueryVO = query(crud_api_type_id)
+            .set_limit(this.limit, this.pagination_offset)
+            .using(this.dashboard.api_type_ids)
+            .add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
+                ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters)
+            ));
 
         let db_cells_source = await query(DashboardGraphVORefVO.API_TYPE_ID)
             .filter_by_num_eq('dashboard_id', this.dashboard.id)
@@ -1213,10 +1239,6 @@ export default class TableWidgetComponent extends VueComponentBase {
                 return;
             }
 
-            if (!query_.base_api_type_id) {
-                query_.base_api_type_id = field.moduleTable.vo_type;
-            }
-
             // let column: TableColumnDescVO = this.columns_by_field_id[field.datatable_field_uid];
             let column: TableColumnDescVO = clone[field.datatable_field_uid];
 
@@ -1234,7 +1256,7 @@ export default class TableWidgetComponent extends VueComponentBase {
                 }
             }
 
-            query_.fields.push(new ContextQueryFieldVO(field.moduleTable.vo_type, field.module_table_field_id, field.datatable_field_uid, aggregator));
+            query_.add_fields([new ContextQueryFieldVO(field.moduleTable.vo_type, field.module_table_field_id, field.datatable_field_uid, aggregator)]);
         }
 
         // Si je suis sur une table segmentée, je vais voir si j'ai un filtre sur mon field qui segmente
@@ -1608,8 +1630,52 @@ export default class TableWidgetComponent extends VueComponentBase {
             context_query,
             this.exportable_datatable_columns,
             this.datatable_columns_labels,
-            this.exportable_datatable_custom_field_columns
+            this.exportable_datatable_custom_field_columns,
+            this.varcolumn_conf,
+            this.get_active_field_filters,
+            this.columns_custom_filters,
+            this.dashboard.api_type_ids,
+            this.get_discarded_field_paths
         );
+    }
+
+    get columns_custom_filters(): { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } {
+        let res: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = {};
+
+        for (let i in this.columns) {
+            let column = this.columns[i];
+
+            if (column.type !== TableColumnDescVO.TYPE_var_ref) {
+                continue;
+            }
+
+            res[column.datatable_field_uid] = VarWidgetComponent.get_var_custom_filters(
+                ObjectHandler.getInstance().hasAtLeastOneAttribute(column.filter_custom_field_filters) ? column.filter_custom_field_filters : null,
+                this.get_active_field_filters);
+        }
+
+        return res;
+    }
+
+    get varcolumn_conf(): { [datatable_field_uid: string]: ExportVarcolumnConf } {
+        let res: { [datatable_field_uid: string]: ExportVarcolumnConf } = {};
+
+        for (let i in this.columns) {
+            let column = this.columns[i];
+
+            if (column.type !== TableColumnDescVO.TYPE_var_ref) {
+                continue;
+            }
+
+            let varcolumn_conf: ExportVarcolumnConf = {
+                custom_field_filters: column.filter_custom_field_filters,
+                var_id: column.var_id
+            };
+
+            res[column.datatable_field_uid] = varcolumn_conf;
+        }
+
+        return res;
     }
 
     get datatable_columns_labels(): any {
@@ -1778,6 +1844,8 @@ export default class TableWidgetComponent extends VueComponentBase {
                 param.ordered_column_list,
                 param.column_labels,
                 param.exportable_datatable_custom_field_columns,
+                param.varcolumn_conf,
+                param.custom_filters,
                 param.is_secured,
                 param.file_access_policy_name
             );

@@ -13,7 +13,7 @@ import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
-import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextFilterVO, { filter } from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import { IContextHookFilterVos } from '../../../shared/modules/DAO/interface/IContextHookFilterVos';
 import { IHookFilterVos } from '../../../shared/modules/DAO/interface/IHookFilterVos';
@@ -64,7 +64,6 @@ import ModuleTableDBService from '../ModuleTableDBService';
 import PushDataServerController from '../PushData/PushDataServerController';
 import ModuleVocusServer from '../Vocus/ModuleVocusServer';
 import DAOCronWorkersHandler from './DAOCronWorkersHandler';
-import DAOQueryCacheController from './DAOQueryCacheController';
 import DAOServerController from './DAOServerController';
 import DAOPostCreateTriggerHook from './triggers/DAOPostCreateTriggerHook';
 import DAOPostDeleteTriggerHook from './triggers/DAOPostDeleteTriggerHook';
@@ -75,6 +74,8 @@ import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
 import ThrottledSelectQueryParam from './vos/ThrottledSelectQueryParam';
 import pgPromise = require('pg-promise');
+import VarsController from '../../../shared/modules/Var/VarsController';
+import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -887,10 +888,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
      */
     public async delete_all_vos_triggers_ok(api_type_id: string) {
 
-        let context_query: ContextQueryVO = new ContextQueryVO();
-        context_query.base_api_type_id = api_type_id;
-        context_query.active_api_type_ids = [api_type_id];
-        await ModuleContextFilter.getInstance().delete_vos(context_query);
+        await ModuleContextFilter.getInstance().delete_vos(query(api_type_id));
     }
 
     /**
@@ -1053,10 +1051,27 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             let vos_by_ids = vos_by_vo_tablename_and_ids[tablename].vos;
             for (let vo_id in vos_by_ids) {
+
+                if (vo_id == 'null') {
+                    vo_id = null;
+                }
+
                 let values = [];
                 let setters: any[] = [];
                 let is_update: boolean = false;
                 let cpt_field: number = 1;
+
+                if ((!!vo_id) && (!!vos_by_ids[vo_id]) && (vos_by_ids[vo_id].length > 1)) {
+
+                    // On a de multiples updates sur un même id, on prend le dernier mais on log tout
+                    let length = vos_by_ids[vo_id].length;
+                    vos_by_ids[vo_id].forEach((vo) => {
+                        ConsoleHandler.getInstance().warn('Multiple updates (' + length + ') on the same id, we take the last one but you should check your code :' + vo._type + ':' + vo.id + ':' + JSON.stringify(vo));
+
+                    });
+
+                    vos_by_ids[vo_id] = [vos_by_ids[vo_id][length - 1]];
+                }
 
                 for (let i in vos_by_ids[vo_id]) {
                     let vo: IDistantVOBase = moduleTable.get_bdd_version(vos_by_ids[vo_id][i]);
@@ -1266,15 +1281,57 @@ export default class ModuleDAOServer extends ModuleServerBase {
          * On check aussi que l'on a pas des updates à faire et uniquement des inserts, sinon on fait un update des vos concernés avant de faire les inserts (on pourrait le faire en // mais c'est plus compliqué)
          */
         let update_vos: IDistantVOBase[] = [];
+        let check_pixel_update_vos_by_type: { [vo_type: string]: VarDataBaseVO[] } = {};
         let insert_vos: IDistantVOBase[] = [];
 
         for (let i in vos) {
             let vo = vos[i];
 
             if (!!vo.id) {
+
+                /**
+                 * Si on est sur du pixel && never_delete, on doit pas avoir un update sauf changement de valeur ou de type de valeur, le reste osef
+                 *  et comme on a un bug visiblement en amont qui essaie d'insérer ce type de valeur, on rajoute un contrôle ici qui sera toujours plus rapide que de faire un update
+                 */
+                if (VOsTypesManager.getInstance().moduleTables_by_voType[vo._type].isMatroidTable) {
+                    let conf = VarsController.getInstance().var_conf_by_id[vo['var_id']];
+                    if (conf && conf.pixel_activated && conf.pixel_never_delete) {
+
+                        if (!check_pixel_update_vos_by_type[vo._type]) {
+                            check_pixel_update_vos_by_type[vo._type] = [];
+                        }
+                        check_pixel_update_vos_by_type[vo._type].push(vo as VarDataBaseVO);
+                        continue;
+                    }
+                }
+
                 update_vos.push(vo);
             } else {
                 insert_vos.push(vo);
+            }
+        }
+
+
+        for (let api_type in check_pixel_update_vos_by_type) {
+            let check_pixel_update_vos = check_pixel_update_vos_by_type[api_type];
+
+            if ((!check_pixel_update_vos) || (!check_pixel_update_vos.length)) {
+                continue;
+            }
+
+            let db_check_pixel_update_vos: VarDataBaseVO[] = await query(api_type).filter_by_ids(check_pixel_update_vos.map((vo) => vo.id)).select_vos();
+
+            let db_check_pixel_update_vos_by_id: { [id: number]: VarDataBaseVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(db_check_pixel_update_vos);
+
+            for (let j in check_pixel_update_vos) {
+                let vo = check_pixel_update_vos[j];
+                let db_vo = db_check_pixel_update_vos_by_id[vo.id];
+
+                if (db_vo && (db_vo.value == vo.value) && (db_vo.value_type == vo.value_type)) {
+                    ConsoleHandler.getInstance().error('On a un insert/update de pixel alors que le pixel existe déjà en base avec la même valeur et le même type. On ne fait rien mais on ne devrait pas arriver ici.DB:' + JSON.stringify(db_vo) + ':app:' + JSON.stringify(vo));
+                    continue;
+                }
+                update_vos.push(vo);
             }
         }
 
@@ -1357,7 +1414,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 /**
                  * Cas des strings
                  */
-                let stringified = (fieldValue == null) ? '' : JSON.stringify(fieldValue);
+                let stringified = (Number.isNaN(fieldValue) || (fieldValue == null)) ? '' : JSON.stringify(fieldValue);
                 if ((!!stringified) && (typeof fieldValue == 'string')) {
                     if (stringified.length == 2) {
                         stringified = "''";
@@ -1509,6 +1566,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             ConsoleHandler.getInstance().error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: on relance la copy avec les correctifs');
                             result = await self.insert_without_triggers_using_COPY(vos, segmented_value);
                             ConsoleHandler.getInstance().error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: résultat copy avec correctifs:' + result);
+                        } else {
+                            let get_select_query_str = await query(moduleTable.vo_type).filter_by_text_has('_bdd_only_index', vos.map((vo: VarDataBaseVO) => vo._bdd_only_index)).get_select_query_str();
+                            ConsoleHandler.getInstance().error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: on a pas trouvé de doublons ce qui ne devrait jamais arriver');
+                            ConsoleHandler.getInstance().error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: \n' + lines.join('\n'));
+                            ConsoleHandler.getInstance().error('insert_without_triggers_using_COPY:Erreur de duplication d\'index: ' + get_select_query_str.query);
                         }
                     } else if (error && error.message) {
                         ConsoleHandler.getInstance().error('insert_without_triggers_using_COPY:Erreur, on tente une insertion classique mais sans triggers');
@@ -2211,7 +2273,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let res: T[] = [];
         let promises = [];
 
-        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 10));
+        let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 2));
 
         for (let i in vos) {
             let vo = vos[i];
@@ -2246,6 +2308,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         let fields = moduleTable.get_fields();
         let refuse: boolean = false;
+        let promises = [];
+
         for (let j in fields) {
             let field = fields[j];
 
@@ -2268,20 +2332,25 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         break;
                     }
 
-                    refuse = true;
-                    let nb: number = await this.countVosByIdsRanges(field.manyToOne_target_moduletable.vo_type, vo[field.field_id]);
-                    if (nb == RangeHandler.getInstance().getCardinalFromArray(vo[field.field_id])) {
-                        refuse = false;
-                    }
+                    promises.push((async () => {
+                        try {
+                            let nb: number = await this.countVosByIdsRanges(field.manyToOne_target_moduletable.vo_type, vo[field.field_id]);
+                            if (nb != RangeHandler.getInstance().getCardinalFromArray(vo[field.field_id])) {
+                                refuse = true;
+                            }
+                        } catch (error) {
+                            ConsoleHandler.getInstance().error(error);
+                            refuse = true;
+                        }
+                    })());
                     break;
                 default:
-                    refuse = true;
-            }
-
-            if (refuse) {
-                break;
+                    return true;
             }
         }
+
+        await all_promises(promises);
+
         return refuse;
     }
 
@@ -2412,9 +2481,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
 
             if (results && isUpdates && (isUpdates.length == results.length) && vos && (vos.length == results.length)) {
-                // On vide le cache
-                await DAOQueryCacheController.getInstance().broad_cast_clear_cache();
-
                 for (let i in results) {
 
                     if (isUpdates[i]) {
@@ -2458,10 +2524,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         continue;
                     }
 
-                    let filter: ContextFilterVO = new ContextFilterVO();
-                    filter.vo_type = moduleTable.vo_type;
-                    filter.field_id = field.field_id;
-                    filters.push(filter);
+                    let filter_: ContextFilterVO = null;
 
                     switch (field.field_type) {
                         case ModuleTableField.FIELD_TYPE_string:
@@ -2469,8 +2532,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         case ModuleTableField.FIELD_TYPE_html:
                         case ModuleTableField.FIELD_TYPE_password:
                         case ModuleTableField.FIELD_TYPE_textarea:
-                            filter.param_text = vo[field.field_id];
-                            filter.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ANY;
+                            filter_ = filter(moduleTable.vo_type, field.field_id).by_text_has(vo[field.field_id]);
                             break;
                         case ModuleTableField.FIELD_TYPE_amount:
                         case ModuleTableField.FIELD_TYPE_date:
@@ -2486,24 +2548,20 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         case ModuleTableField.FIELD_TYPE_prct:
                         case ModuleTableField.FIELD_TYPE_tstz:
                         case ModuleTableField.FIELD_TYPE_foreign_key:
-                            filter.param_numeric = vo[field.field_id];
-                            filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
+                            filter_ = filter(moduleTable.vo_type, field.field_id).by_num_eq(vo[field.field_id]); // pas has ?
                             break;
                         default:
                             throw new Error('Not Implemented');
                     }
+
+                    filters.push(filter_);
                 }
 
                 if ((!filters) || (!filters.length)) {
                     continue;
                 }
 
-                let query_: ContextQueryVO = new ContextQueryVO();
-                query_.base_api_type_id = vo._type;
-                query_.active_api_type_ids = [vo._type];
-                query_.filters = filters;
-                query_.query_limit = 1;
-                query_.query_offset = 0;
+                let query_: ContextQueryVO = query(vo._type).add_filters(filters).set_limit(1, 0);
 
                 /**
                  * On doit absolument ignorer tout access hook à ce niveau sinon on risque de rater l'élément en base
@@ -2765,9 +2823,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }).then(async (value: any) => {
 
             this.log_db_query_perf_end(query_uid, 'deleteVOs');
-
-            // On vide le cache
-            await DAOQueryCacheController.getInstance().broad_cast_clear_cache();
 
             for (let i in deleted_vos) {
                 let deleted_vo = deleted_vos[i];

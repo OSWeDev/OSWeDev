@@ -136,20 +136,7 @@ export default class SlowVarKiHandler {
 
     private async handle_stuck_slow_vars(): Promise<void> {
 
-        let filter = new ContextFilterVO();
-        filter.field_id = 'type';
-        filter.vo_type = SlowVarVO.API_TYPE_ID;
-        filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
-        filter.param_numeric = SlowVarVO.TYPE_TESTING;
-
-        let query_: ContextQueryVO = new ContextQueryVO();
-        query_.base_api_type_id = SlowVarVO.API_TYPE_ID;
-        query_.active_api_type_ids = [SlowVarVO.API_TYPE_ID];
-        query_.filters = [filter];
-        query_.query_limit = 0;
-        query_.query_offset = 0;
-
-        let items: SlowVarVO[] = await ModuleContextFilter.getInstance().select_vos<SlowVarVO>(query_);
+        let items: SlowVarVO[] = await query(SlowVarVO.API_TYPE_ID).filter_by_num_eq('type', SlowVarVO.TYPE_TESTING).select_vos<SlowVarVO>();
 
         if (items && items.length) {
 

@@ -39,14 +39,10 @@ describe('ContextQueryServer', () => {
         filter_.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ANY;
         filter_.param_text = 'fr-fr';
 
-        let context_query: ContextQueryVO = new ContextQueryVO();
-        context_query.active_api_type_ids = [UserVO.API_TYPE_ID, LangVO.API_TYPE_ID];
-        context_query.base_api_type_id = UserVO.API_TYPE_ID;
-        context_query.fields = [
+        let context_query: ContextQueryVO = query(UserVO.API_TYPE_ID).using(LangVO.API_TYPE_ID).add_fields([
             new ContextQueryFieldVO(UserVO.API_TYPE_ID, 'firstname', 'firstname'),
             new ContextQueryFieldVO(UserVO.API_TYPE_ID, 'lastname', 'lastname'),
-        ];
-        context_query.filters = [filter_];
+        ]).add_filters([filter_]);
         context_query.set_sort(new SortByVO(UserVO.API_TYPE_ID, 'name', true));
 
         let request: ParameterizedQueryWrapper = await ContextQueryServerController.getInstance().build_select_query(context_query);
@@ -72,13 +68,9 @@ describe('ContextQueryServer', () => {
         filter_.field_id = 'firstname';
         filter_.filter_type = ContextFilterVO.TYPE_NULL_NONE;
 
-        let context_query: ContextQueryVO = new ContextQueryVO();
-        context_query.active_api_type_ids = [UserVO.API_TYPE_ID, LangVO.API_TYPE_ID];
-        context_query.base_api_type_id = LangVO.API_TYPE_ID;
-        context_query.fields = [
+        let context_query: ContextQueryVO = query(LangVO.API_TYPE_ID).using(UserVO.API_TYPE_ID).add_fields([
             new ContextQueryFieldVO(LangVO.API_TYPE_ID, 'code_lang', 'code_lang'),
-        ];
-        context_query.filters = [filter_];
+        ]).add_filters([filter_]);
         context_query.set_sort(new SortByVO(UserVO.API_TYPE_ID, 'phone', true));
 
         let request: ParameterizedQueryWrapper = await ContextQueryServerController.getInstance().build_select_query(context_query);
@@ -103,13 +95,9 @@ describe('ContextQueryServer', () => {
         filter_.field_id = 'firstname';
         filter_.filter_type = ContextFilterVO.TYPE_NULL_NONE;
 
-        let context_query: ContextQueryVO = new ContextQueryVO();
-        context_query.active_api_type_ids = [UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, LangVO.API_TYPE_ID];
-        context_query.base_api_type_id = UserRoleVO.API_TYPE_ID;
-        context_query.fields = [
+        let context_query: ContextQueryVO = query(UserRoleVO.API_TYPE_ID).using([UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, LangVO.API_TYPE_ID]).add_fields([
             new ContextQueryFieldVO(UserRoleVO.API_TYPE_ID, 'role_id', 'role_id'),
-        ];
-        context_query.filters = [filter_];
+        ]).add_filters([filter_]);
         context_query.set_sort(new SortByVO(UserVO.API_TYPE_ID, 'phone', true));
 
         let request: ParameterizedQueryWrapper = await ContextQueryServerController.getInstance().build_select_query(context_query);
@@ -127,13 +115,11 @@ describe('ContextQueryServer', () => {
         filter_.field_id = 'translatable_name';
         filter_.filter_type = ContextFilterVO.TYPE_NULL_NONE;
 
-        context_query = new ContextQueryVO();
-        context_query.active_api_type_ids = [UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, LangVO.API_TYPE_ID, RoleVO.API_TYPE_ID];
-        context_query.base_api_type_id = UserRoleVO.API_TYPE_ID;
-        context_query.fields = [
+        context_query = query(UserRoleVO.API_TYPE_ID).using([UserVO.API_TYPE_ID, LangVO.API_TYPE_ID, RoleVO.API_TYPE_ID]);
+        context_query.add_fields([
             new ContextQueryFieldVO(UserRoleVO.API_TYPE_ID, 'role_id', 'role_id'),
-        ];
-        context_query.filters = [filter_];
+        ]);
+        context_query.add_filters([filter_]);
         context_query.set_sort(new SortByVO(RoleVO.API_TYPE_ID, 'translatable_name', true));
 
         request = await ContextQueryServerController.getInstance().build_select_query(context_query);
@@ -158,13 +144,9 @@ describe('ContextQueryServer', () => {
         filter_.field_id = 'anon_field_id';
         filter_.filter_type = ContextFilterVO.TYPE_NULL_NONE;
 
-        let context_query: ContextQueryVO = new ContextQueryVO();
-        context_query.active_api_type_ids = [UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, LangVO.API_TYPE_ID, AnonymizationUserConfVO.API_TYPE_ID];
-        context_query.base_api_type_id = UserRoleVO.API_TYPE_ID;
-        context_query.fields = [
+        let context_query: ContextQueryVO = query(UserRoleVO.API_TYPE_ID).using([UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, LangVO.API_TYPE_ID, AnonymizationUserConfVO.API_TYPE_ID]).add_fields([
             new ContextQueryFieldVO(UserRoleVO.API_TYPE_ID, 'role_id', 'role_id'),
-        ];
-        context_query.filters = [filter_];
+        ]).add_filters([filter_]);
         context_query.set_sort(new SortByVO(AnonymizationUserConfVO.API_TYPE_ID, 'anon_field_id', true));
 
         let request: ParameterizedQueryWrapper = await ContextQueryServerController.getInstance().build_select_query(context_query);
@@ -190,14 +172,11 @@ describe('ContextQueryServer', () => {
         filter_.field_id = 'field_id';
         filter_.filter_type = ContextFilterVO.TYPE_NULL_NONE;
 
-        let context_query: ContextQueryVO = new ContextQueryVO();
-        context_query.active_api_type_ids = [
-            UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, RoleVO.API_TYPE_ID, AnonymizationUserConfVO.API_TYPE_ID, AnonymizationFieldConfVO.API_TYPE_ID];
-        context_query.base_api_type_id = UserRoleVO.API_TYPE_ID;
-        context_query.fields = [
-            new ContextQueryFieldVO(UserRoleVO.API_TYPE_ID, 'role_id', 'role_id'),
-        ];
-        context_query.filters = [filter_];
+        let context_query: ContextQueryVO = query(UserRoleVO.API_TYPE_ID).using([
+            UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, RoleVO.API_TYPE_ID, AnonymizationUserConfVO.API_TYPE_ID, AnonymizationFieldConfVO.API_TYPE_ID])
+            .add_fields([
+                new ContextQueryFieldVO(UserRoleVO.API_TYPE_ID, 'role_id', 'role_id'),
+            ]).add_filters([filter_]);
         context_query.set_sort(new SortByVO(AnonymizationFieldConfVO.API_TYPE_ID, 'vo_type', true));
 
         let request: ParameterizedQueryWrapper = await ContextQueryServerController.getInstance().build_select_query(context_query);
@@ -224,14 +203,11 @@ describe('ContextQueryServer', () => {
         filter_.field_id = 'field_id';
         filter_.filter_type = ContextFilterVO.TYPE_NULL_NONE;
 
-        let context_query: ContextQueryVO = new ContextQueryVO();
-        context_query.active_api_type_ids = [
-            UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, RoleVO.API_TYPE_ID, AnonymizationUserConfVO.API_TYPE_ID, AnonymizationFieldConfVO.API_TYPE_ID];
-        context_query.base_api_type_id = UserRoleVO.API_TYPE_ID;
-        context_query.fields = [
+        let context_query: ContextQueryVO = query(UserRoleVO.API_TYPE_ID).using([
+            UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, RoleVO.API_TYPE_ID, AnonymizationUserConfVO.API_TYPE_ID, AnonymizationFieldConfVO.API_TYPE_ID]
+        ).add_fields([
             new ContextQueryFieldVO(RoleVO.API_TYPE_ID, 'translatable_name', 'translatable_name'),
-        ];
-        context_query.filters = [filter_];
+        ]).add_filters([filter_]);
         context_query.set_sort(new SortByVO(AnonymizationFieldConfVO.API_TYPE_ID, 'vo_type', true));
 
         let request: ParameterizedQueryWrapper = await ContextQueryServerController.getInstance().build_select_query(context_query);
@@ -352,9 +328,10 @@ describe('ContextQueryServer', () => {
      */
     it('test .build_select_query having auto', async () => {
 
-        let context_query: ContextQueryVO = query(UserVO.API_TYPE_ID).field('id').add_filters([
-            filter(RoleVO.API_TYPE_ID).by_id_in(query(RoleVO.API_TYPE_ID).field('id')).or(
-                filter(UserVO.API_TYPE_ID).by_id_not_in(query(UserRoleVO.API_TYPE_ID).field('user_id').ignore_access_hooks())
+        let context_query: ContextQueryVO = query(UserVO.API_TYPE_ID).field('id');
+        context_query.add_filters([
+            filter(RoleVO.API_TYPE_ID).by_id_in(query(RoleVO.API_TYPE_ID).field('id'), context_query).or(
+                filter(UserVO.API_TYPE_ID).by_id_not_in(query(UserRoleVO.API_TYPE_ID).field('user_id').ignore_access_hooks(), context_query)
             )
         ]).ignore_access_hooks();
 
@@ -386,22 +363,24 @@ describe('ContextQueryServer', () => {
      */
     it('test .build_select_query chained OR', async () => {
 
+        let context_query: ContextQueryVO = query(UserVO.API_TYPE_ID);
+
         let f1 = ContextFilterVO.or([
-            filter(RoleVO.API_TYPE_ID).by_id_in(query(RoleVO.API_TYPE_ID).field('id').ignore_access_hooks()),
-            filter(UserVO.API_TYPE_ID).by_id_not_in(query(UserRoleVO.API_TYPE_ID).field('user_id').ignore_access_hooks()),
+            filter(RoleVO.API_TYPE_ID).by_id_in(query(RoleVO.API_TYPE_ID).field('id').ignore_access_hooks(), context_query),
+            filter(UserVO.API_TYPE_ID).by_id_not_in(query(UserRoleVO.API_TYPE_ID).field('user_id').ignore_access_hooks(), context_query),
             filter(UserVO.API_TYPE_ID).by_id(15)
         ]);
 
         let filter_ = filter(UserVO.API_TYPE_ID).by_id(15);
         let compl = ContextFilterVO.or([
             filter(UserVO.API_TYPE_ID).by_id_in(
-                query(UserVO.API_TYPE_ID).field('id').ignore_access_hooks()),
+                query(UserVO.API_TYPE_ID).field('id').ignore_access_hooks(), context_query),
             filter(UserVO.API_TYPE_ID).by_id_in(
-                query(UserVO.API_TYPE_ID).field('id').ignore_access_hooks())
+                query(UserVO.API_TYPE_ID).field('id').ignore_access_hooks(), context_query)
         ]);
         filter_ = filter_.or(compl);
 
-        let context_query: ContextQueryVO = query(UserVO.API_TYPE_ID).add_filters([f1]).add_filters([filter_]).ignore_access_hooks();
+        context_query.add_filters([f1]).add_filters([filter_]).ignore_access_hooks();
 
         let request: ParameterizedQueryWrapper = await ContextQueryServerController.getInstance().build_select_query(context_query);
 

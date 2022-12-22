@@ -6,6 +6,7 @@ import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapp
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
+import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
@@ -14,6 +15,7 @@ import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultT
 import ModuleVocus from '../../../shared/modules/Vocus/ModuleVocus';
 import VocusInfoVO from '../../../shared/modules/Vocus/vos/VocusInfoVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+import RangeHandler from '../../../shared/tools/RangeHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
@@ -151,7 +153,9 @@ export default class ModuleVocusServer extends ModuleServerBase {
         for (let i in refFields) {
             let refField = refFields[i];
 
-            let refvos: IDistantVOBase[] = await query(refField.module_table.vo_type).filter_by_num_eq(refField.field_id, id).select_vos<IDistantVOBase>();
+            let refvos: IDistantVOBase[] = await query(refField.module_table.vo_type)
+                .filter_by_num_x_ranges(refField.field_id, [RangeHandler.getInstance().create_single_elt_NumRange(id, NumSegment.TYPE_INT)])
+                .select_vos<IDistantVOBase>();
 
             for (let j in refvos) {
                 let refvo: IDistantVOBase = refvos[j];

@@ -1,7 +1,7 @@
 import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextFilterVO, { filter } from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
@@ -17,6 +17,7 @@ import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import { ModuleDashboardPageGetter } from '../../../../dashboard_builder/page/DashboardPageStore';
+import VarWidgetComponent from '../../../../dashboard_builder/widgets/var_widget/VarWidgetComponent';
 import VueComponentBase from '../../../../VueComponentBase';
 import './db_var_datatable_field.scss';
 
@@ -127,23 +128,7 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
         /**
          * On crée le custom_filters
          */
-        let custom_filters: { [var_param_field_name: string]: ContextFilterVO } = {};
-
-        for (let var_param_field_name in this.var_custom_filters) {
-            let custom_filter_name = this.var_custom_filters[var_param_field_name];
-
-            if (!custom_filter_name) {
-                continue;
-            }
-
-            let custom_filter = this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] ? this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][custom_filter_name] : null;
-
-            if (!custom_filter) {
-                continue;
-            }
-
-            custom_filters[var_param_field_name] = custom_filter;
-        }
+        let custom_filters: { [var_param_field_name: string]: ContextFilterVO } = VarWidgetComponent.get_var_custom_filters(this.var_custom_filters, this.get_active_field_filters);
 
         this.var_param = await ModuleVar.getInstance().getVarParamFromContextFilters(
             VarsController.getInstance().var_conf_by_id[this.var_id].name,
@@ -157,16 +142,13 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
 
 
     private get_ContextFilterVO_add_Column_context(column: TableColumnDescVO): ContextFilterVO {
-        let translated_active_options = new ContextFilterVO();
-
-        translated_active_options.field_id = column.field_id;
-        translated_active_options.vo_type = column.api_type_id;
+        let translated_active_options = null;
 
         let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[column.api_type_id];
         let field = moduletable.get_field_by_id(column.field_id);
 
         if (this.row_value[column.datatable_field_uid] == null) {
-            translated_active_options.filter_type = ContextFilterVO.TYPE_NULL_ALL;
+            translated_active_options = filter(column.api_type_id, column.field_id).is_null();
         } else {
             switch (field.field_type) {
                 case ModuleTableField.FIELD_TYPE_file_ref:
@@ -184,13 +166,11 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
                 case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
                 case ModuleTableField.FIELD_TYPE_hours_and_minutes:
                 case ModuleTableField.FIELD_TYPE_hour:
-                    translated_active_options.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
-                    translated_active_options.param_numeric = this.row_value[column.datatable_field_uid];
+                    translated_active_options = filter(column.api_type_id, column.field_id).by_num_eq(this.row_value[column.datatable_field_uid]);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstz:
-                    translated_active_options.filter_type = ContextFilterVO.TYPE_DATE_EQUALS;
-                    translated_active_options.param_numeric = this.row_value[column.datatable_field_uid];
+                    translated_active_options = filter(column.api_type_id, column.field_id).by_date_eq(this.row_value[column.datatable_field_uid]);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_html:
@@ -200,8 +180,7 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
                 case ModuleTableField.FIELD_TYPE_string:
                 case ModuleTableField.FIELD_TYPE_textarea:
                 case ModuleTableField.FIELD_TYPE_translatable_text:
-                    translated_active_options.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ALL;
-                    translated_active_options.param_text = this.row_value[column.datatable_field_uid];
+                    translated_active_options = filter(column.api_type_id, column.field_id).by_text_eq(this.row_value[column.datatable_field_uid]);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_plain_vo_obj:
@@ -210,9 +189,9 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
 
                 case ModuleTableField.FIELD_TYPE_boolean:
                     if (!!this.row_value[column.datatable_field_uid]) {
-                        translated_active_options.filter_type = ContextFilterVO.TYPE_BOOLEAN_TRUE_ALL;
+                        translated_active_options = filter(column.api_type_id, column.field_id).is_true();
                     } else {
-                        translated_active_options.filter_type = ContextFilterVO.TYPE_BOOLEAN_FALSE_ALL;
+                        translated_active_options = filter(column.api_type_id, column.field_id).is_false();
                     }
                     break;
 
@@ -249,8 +228,7 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
                 case ModuleTableField.FIELD_TYPE_date:
                 case ModuleTableField.FIELD_TYPE_day:
                 case ModuleTableField.FIELD_TYPE_month:
-                    translated_active_options.filter_type = ContextFilterVO.TYPE_DATE_EQUALS;
-                    translated_active_options.param_numeric = this.row_value[column.datatable_field_uid];
+                    translated_active_options = filter(column.api_type_id, column.field_id).by_date_eq(this.row_value[column.datatable_field_uid]);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_timewithouttimezone:

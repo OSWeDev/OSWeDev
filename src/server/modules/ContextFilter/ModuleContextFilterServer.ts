@@ -1,7 +1,7 @@
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
-import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import ContextQueryVO from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ContextFilterVO, { filter } from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
@@ -95,24 +95,17 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         }
 
         let field = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id].getFieldFromId(unique_field_id);
-        let filter: ContextFilterVO = new ContextFilterVO();
-        filter.vo_type = api_type_id;
-        filter.field_id = field.field_id;
+        let filter_: ContextFilterVO = null;
 
         switch (field.field_type) {
             case ModuleTableField.FIELD_TYPE_string:
-                filter.param_text = unique_field_value;
-                filter.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ANY;
+                filter_ = filter(api_type_id, field.field_id).by_text_has(unique_field_value);
                 break;
             default:
                 throw new Error('Not Implemented');
         }
 
-        let context_query: ContextQueryVO = new ContextQueryVO();
-        context_query.base_api_type_id = api_type_id;
-        context_query.active_api_type_ids = [api_type_id];
-        context_query.filters = [filter];
-        context_query.query_limit = 1;
+        let context_query: ContextQueryVO = query(api_type_id).add_filters([filter_]).set_limit(1);
 
         let res = await this.select_vos<T>(context_query);
         return (res && res.length) ? res[0] : null;

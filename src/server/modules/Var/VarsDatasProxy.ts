@@ -1,5 +1,6 @@
 
 
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
@@ -16,7 +17,6 @@ import RangeHandler from '../../../shared/tools/RangeHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
-import DAOQueryCacheController from '../DAO/DAOQueryCacheController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import VarsCacheController from '../Var/VarsCacheController';
@@ -372,8 +372,8 @@ export default class VarsDatasProxy {
 
                 let promises = [];
                 let result = true;
-                for (let i in to_insert_by_type) {
-                    let to_insert = to_insert_by_type[i];
+                for (let api_type_id in to_insert_by_type) {
+                    let to_insert = to_insert_by_type[api_type_id];
 
                     // on filtre les vars qui ont des indexs trops gros pour postgresql
                     let filtered_insert = await this.filter_var_datas_by_index_size_limit(to_insert);
@@ -386,18 +386,29 @@ export default class VarsDatasProxy {
                         if (!await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(filtered_insert)) {
                             result = false;
                         }
+
+                        /**
+                         * Par contre si ça marche il faut mettre à jour les ids dans le cache
+                         */
+                        let filtered_insert_by_index: { [index: string]: VarDataBaseVO } = {};
+                        for (let i in filtered_insert) {
+                            let var_data = filtered_insert[i];
+                            filtered_insert_by_index[var_data.index] = var_data;
+                        }
+                        let inserted_vars: VarDataBaseVO[] = await query(api_type_id).filter_by_text_has('_bdd_only_index', to_insert.map((var_data: VarDataBaseVO) => var_data.index)).select_vos<VarDataBaseVO>();
+
+                        for (let i in inserted_vars) {
+                            let inserted_var = inserted_vars[i];
+
+                            filtered_insert_by_index[inserted_var.index].id = inserted_var.id;
+                        }
                     })());
                 }
                 await all_promises(promises);
 
                 if (!result) {
-                    throw new Error('VarsDatasProxy:handle_buffer:insert_without_triggers_using_COPY:Erreur - on garde dans le cache pour une prochaine tentative');
+                    ConsoleHandler.getInstance().error('VarsDatasProxy:handle_buffer:insert_without_triggers_using_COPY:Erreur - on garde dans le cache pour une prochaine tentative');
                 }
-
-                // TODO FIXME TO DELETE
-                // MDE A SUPPRIMER APRES MIGRATION MOMENTJS
-                // On force la suppression du cache mais c'est sûrement gourmant...
-                DAOQueryCacheController.getInstance().clear_cache(true);
 
                 for (let i in to_insert_by_type) {
                     let to_insert = to_insert_by_type[i];
@@ -938,7 +949,7 @@ export default class VarsDatasProxy {
             return false;
         }
         if (
-            (var_data_buffer.var_data.value != handle_var.value) ||
+            ((var_data_buffer.var_data.value != handle_var.value) && ((!isNaN(var_data_buffer.var_data.value)) || (!isNaN(handle_var.value)))) ||
             (var_data_buffer.var_data.value_ts != handle_var.value_ts) ||
             (var_data_buffer.var_data.value_type != handle_var.value_type)) {
             ConsoleHandler.getInstance().error(

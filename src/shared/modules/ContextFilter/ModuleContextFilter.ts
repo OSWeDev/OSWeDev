@@ -233,6 +233,8 @@ export default class ModuleContextFilter extends Module {
 
             new ModuleTableField('left_hook', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'left_hook', false).set_plain_obj_cstr(() => new ContextFilterVO()),
             new ModuleTableField('right_hook', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'right_hook', false).set_plain_obj_cstr(() => new ContextFilterVO()),
+
+            new ModuleTableField('sub_query', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'sub_query', false).set_plain_obj_cstr(() => new ContextQueryVO()),
         ];
 
         let datatable = new ModuleTable(this, ContextFilterVO.API_TYPE_ID, () => new ContextFilterVO(), datatable_fields, null, "Filtre contextuel");

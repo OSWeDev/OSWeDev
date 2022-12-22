@@ -30,6 +30,8 @@ import FileVO from '../shared/modules/File/vos/FileVO';
 import Dates from '../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleMaintenance from '../shared/modules/Maintenance/ModuleMaintenance';
 import ModulesManager from '../shared/modules/ModulesManager';
+import ModuleParams from '../shared/modules/Params/ModuleParams';
+import ModulePushData from '../shared/modules/PushData/ModulePushData';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
 import ConsoleHandler from '../shared/tools/ConsoleHandler';
 import EnvHandler from '../shared/tools/EnvHandler';
@@ -931,6 +933,9 @@ export default abstract class ServerBase {
 
             // await ThreadHandler.getInstance().sleep(1000);
             // res.redirect('/');
+
+            let PARAM_TECH_DISCONNECT_URL: string = await ModuleParams.getInstance().getParamValue(ModulePushData.PARAM_TECH_DISCONNECT_URL);
+            res.redirect(PARAM_TECH_DISCONNECT_URL);
         });
 
         this.app.use('/js', express.static('client/js'));
@@ -1140,12 +1145,6 @@ export default abstract class ServerBase {
             res.header('Service-Worker-Allowed', '/');
 
             res.sendFile(path.resolve('./dist/vuejsclient/public/pwa/client-sw.' + version + '.js'));
-        });
-
-        this.app.get('/vuejsclient/public/pwa/login-sw.' + version + '.js', (req, res, next) => {
-            res.header('Service-Worker-Allowed', '/');
-
-            res.sendFile(path.resolve('./dist/vuejsclient/public/pwa/login-sw.' + version + '.js'));
         });
     }
 

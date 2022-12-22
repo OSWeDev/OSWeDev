@@ -35,6 +35,11 @@
             text-decoration: none;
         }
 
+        &.noclick {
+            margin-left: 15px;
+            margin-right: 0;
+        }
+
         &.STATE_ERROR {
             background-color: red;
         }

@@ -1379,13 +1379,12 @@ export default class ModuleVarServer extends ModuleServerBase {
                     case ModuleTableField.FIELD_TYPE_refrange_array:
                         if (matroid_field.has_relation) {
 
-                            let context_query: ContextQueryVO = new ContextQueryVO();
-                            context_query.base_api_type_id = matroid_field.manyToOne_target_moduletable.vo_type;
-                            context_query.active_api_type_ids = active_api_type_ids;
-                            context_query.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(cleaned_active_field_filters);
-                            context_query.fields = [
-                                new ContextQueryFieldVO(matroid_field.manyToOne_target_moduletable.vo_type, matroid_field.target_field, 'id')
-                            ];
+                            let context_query: ContextQueryVO = query(matroid_field.manyToOne_target_moduletable.vo_type)
+                                .using(active_api_type_ids)
+                                .add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(cleaned_active_field_filters))
+                                .add_fields([
+                                    new ContextQueryFieldVO(matroid_field.manyToOne_target_moduletable.vo_type, matroid_field.target_field, 'id')
+                                ]);
                             context_query.discarded_field_paths = discarded_field_paths;
 
                             if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
@@ -1649,20 +1648,8 @@ export default class ModuleVarServer extends ModuleServerBase {
     }
 
     private async load_slowvars() {
-        let filter_ = new ContextFilterVO();
-        filter_.field_id = 'type';
-        filter_.vo_type = SlowVarVO.API_TYPE_ID;
-        filter_.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
-        filter_.param_numeric = SlowVarVO.TYPE_DENIED;
 
-        let query_: ContextQueryVO = new ContextQueryVO();
-        query_.base_api_type_id = SlowVarVO.API_TYPE_ID;
-        query_.active_api_type_ids = [SlowVarVO.API_TYPE_ID];
-        query_.filters = [filter_];
-        query_.query_limit = 0;
-        query_.query_offset = 0;
-
-        let items: SlowVarVO[] = await ModuleContextFilter.getInstance().select_vos<SlowVarVO>(query_);
+        let items: SlowVarVO[] = await query(SlowVarVO.API_TYPE_ID).filter_by_num_eq('type', SlowVarVO.TYPE_DENIED).select_vos<SlowVarVO>();
 
         VarsDatasProxy.getInstance().denied_slowvars = {};
         for (let i in items) {

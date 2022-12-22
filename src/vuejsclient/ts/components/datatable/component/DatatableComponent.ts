@@ -106,6 +106,10 @@ export default class DatatableComponent extends VueComponentBase {
 
     private debounced_update_datatable_data: () => Promise<void> = debounce(this.update_datatable_data, 500) as any as () => Promise<void>;
 
+    get v_client_table_key() {
+        return this.datatable ? this.datatable.API_TYPE_ID : null;
+    }
+
     get isModuleParamTable() {
         return VOsTypesManager.getInstance().moduleTables_by_voType[this.datatable.API_TYPE_ID] ?
             VOsTypesManager.getInstance().moduleTables_by_voType[this.datatable.API_TYPE_ID].isModuleParamTable : false;
@@ -678,15 +682,15 @@ export default class DatatableComponent extends VueComponentBase {
         return res;
     }
 
-    private changeTextFilterValue(datatable_field_uid: string) {
-        Event.$emit('vue-tables.filter::' + datatable_field_uid,
-            this.custom_filters_values[datatable_field_uid] ? this.custom_filters_values[datatable_field_uid] : false);
+    private changeTextFilterValue(datatable_field: DatatableField<any, any>) {
+        Event.$emit('vue-tables.filter::' + (datatable_field.moduleTable.vo_type + '_' + datatable_field.datatable_field_uid),
+            this.custom_filters_values[datatable_field.datatable_field_uid] ? this.custom_filters_values[datatable_field.datatable_field_uid] : false);
     }
 
-    private changeBooleanFilterValue(datatable_field_uid: string) {
+    private changeBooleanFilterValue(datatable_field: DatatableField<any, any>) {
         // Impossible d'envoyer un event avec une valeur false (donc false, 0, ...) car sinon c'est comme supprimer le filtre
-        Event.$emit('vue-tables.filter::' + datatable_field_uid,
-            this.custom_filters_values[datatable_field_uid] ? (this.custom_filters_values[datatable_field_uid].value ? "VRAI" : "FAUX") : false);
+        Event.$emit('vue-tables.filter::' + (datatable_field.moduleTable.vo_type + '_' + datatable_field.datatable_field_uid),
+            this.custom_filters_values[datatable_field.datatable_field_uid] ? (this.custom_filters_values[datatable_field.datatable_field_uid].value ? "VRAI" : "FAUX") : false);
     }
 
     @Watch('$route')
@@ -697,9 +701,9 @@ export default class DatatableComponent extends VueComponentBase {
 
     @Watch('embed_filter', { immediate: true, deep: true })
     private async onFilterChange() {
-        if (!!this.embed_filter) {
-            await this.debounced_update_datatable_data();
-        }
+        // if (!!this.embed_filter) {
+        await this.debounced_update_datatable_data();
+        // }
     }
 
     @Watch('custom_filters_values', { deep: true })
@@ -711,7 +715,7 @@ export default class DatatableComponent extends VueComponentBase {
 
                 switch (simpleField.moduleTableField.field_type) {
                     case ModuleTableField.FIELD_TYPE_boolean:
-                        this.changeBooleanFilterValue(field.datatable_field_uid);
+                        this.changeBooleanFilterValue(field);
                         break;
 
                     case ModuleTableField.FIELD_TYPE_daterange:
@@ -724,10 +728,10 @@ export default class DatatableComponent extends VueComponentBase {
                     case ModuleTableField.FIELD_TYPE_tstz_array:
                     //TODO ?
                     default:
-                        this.changeTextFilterValue(field.datatable_field_uid);
+                        this.changeTextFilterValue(field);
                 }
             } else {
-                this.changeTextFilterValue(field.datatable_field_uid);
+                this.changeTextFilterValue(field);
             }
         }
     }
@@ -1003,7 +1007,7 @@ export default class DatatableComponent extends VueComponentBase {
             }
 
             customFilters.push({
-                name: field.datatable_field_uid,
+                name: field.moduleTable.vo_type + '_' + field.datatable_field_uid,
                 callback: function (row, query) {
                     switch (field.type) {
                         case DatatableField.SIMPLE_FIELD_TYPE:

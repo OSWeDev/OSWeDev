@@ -441,12 +441,13 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
                     filters[self.checklist_shared_module.checklistitem_type_id]['archived'],
                     filter);
 
-            let query_: ContextQueryVO = query(self.checklist_shared_module.checklistitem_type_id).set_limit(this.pagination_pagesize, this.pagination_offset);
-            query_.active_api_type_ids = this.dashboard.api_type_ids;
-            query_.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(filters);
-            query_.set_sort(new SortByVO(self.checklist_shared_module.checklistitem_type_id, 'id', false));
+            let query_: ContextQueryVO = query(self.checklist_shared_module.checklistitem_type_id)
+                .set_limit(this.pagination_pagesize, this.pagination_offset)
+                .using(this.dashboard.api_type_ids)
+                .add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(filters))
+                .set_sort(new SortByVO(self.checklist_shared_module.checklistitem_type_id, 'id', false));
 
-            let items: ICheckListItem[] = await ModuleContextFilter.getInstance().select_vos<ICheckListItem>(query_);
+            let items: ICheckListItem[] = await query_.select_vos<ICheckListItem>();
 
             // Si je ne suis pas sur la dernière demande, je me casse
             if (this.last_calculation_cpt != launch_cpt) {
@@ -482,10 +483,9 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
 
         this.infos_cols_labels = this.checklist_controller.get_infos_cols_labels();
 
-        let query_count: ContextQueryVO = new ContextQueryVO();
-        query_count.base_api_type_id = self.checklist_shared_module.checklistitem_type_id;
-        query_count.active_api_type_ids = this.dashboard.api_type_ids;
-        query_count.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(filters);
+        let query_count: ContextQueryVO = query(self.checklist_shared_module.checklistitem_type_id)
+            .using(this.dashboard.api_type_ids)
+            .add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(filters));
         this.pagination_count = await ModuleContextFilter.getInstance().select_count(query_count);
 
         // Si je ne suis pas sur la dernière demande, je me casse

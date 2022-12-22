@@ -60,7 +60,6 @@ require('moment-json-parser').overrideDefault();
 
 export default abstract class VueAppBase {
 
-    public static APP_VERSION_COOKIE: string = "app_version";
     public static instance_: VueAppBase;
 
     public static getInstance(): VueAppBase {
@@ -360,11 +359,6 @@ export default abstract class VueAppBase {
                 document.body.className += " isfront";
             }
 
-            // Si on a pas la même version entre le front et le back, on redirige vers la page de mise à jour
-            if (!this.checkAppVersion()) {
-                return;
-            }
-
             next();
         });
 
@@ -422,18 +416,13 @@ export default abstract class VueAppBase {
         this.vueInstance = this.createVueMain();
         this.vueInstance.$mount('#vueDIV');
 
-        // Si on a pas la même version entre le front et le back, on redirige vers la page de mise à jour
-        if (!this.checkAppVersion(false)) {
-            return;
-        }
-
         await this.postMountHook();
 
         let app_name: "client" | "admin" | "login" = this.appController.app_name;
 
         if (EnvHandler.getInstance().ACTIVATE_PWA && ((app_name == "client") || (app_name == "login"))) {
             await PWAController.getInstance().initialize_pwa(
-                '/vuejsclient/public/pwa/' + app_name + '-sw.' + EnvHandler.getInstance().VERSION + '.js'
+                '/vuejsclient/public/pwa/client-sw.' + EnvHandler.getInstance().VERSION + '.js'
             );
         }
         // this.registerPushWorker();
@@ -474,34 +463,6 @@ export default abstract class VueAppBase {
     protected abstract initializeVueAppModulesDatas(): Promise<any>;
     protected async postInitializationHook() { }
     protected async postMountHook() { }
-
-    /**
-     *
-     * @returns false si on a pas la même version entre le front et le back, true sinon
-     */
-    protected checkAppVersion(reload_window: boolean = true): boolean {
-        if (!this.vueInstance) {
-            return true;
-        }
-
-        if (EnvHandler.getInstance().VERSION != this.vueInstance.$cookies.get(VueAppBase.APP_VERSION_COOKIE)) {
-            this.vueInstance.$cookies.set(VueAppBase.APP_VERSION_COOKIE, EnvHandler.getInstance().VERSION);
-
-            if (reload_window) {
-                this.vueInstance.$snotify.warning(
-                    this.vueInstance.label("app_version_changed"),
-                    { timeout: 3000 }
-                );
-
-                setTimeout(() => {
-                    window.location.reload();
-                }, 3000);
-                return false;
-            }
-        }
-
-        return true;
-    }
 
     protected async unregisterVarsBeforeUnload() {
         if (VarsClientController.getInstance().registered_var_params) {

@@ -10,13 +10,15 @@ export default class SendRequestParamVO implements IAPIParamTranslator<SendReque
         posts: {} = null,
         headers: {} = null,
         sendHttps: boolean = false,
-        result_headers: {} = null): SendRequestParamVO {
+        result_headers: {} = null,
+        nojsonparse: boolean = false
+    ): SendRequestParamVO {
 
-        return new SendRequestParamVO(method, host, path, posts, headers, sendHttps);
+        return new SendRequestParamVO(method, host, path, posts, headers, sendHttps, result_headers, nojsonparse);
     }
 
     public static getAPIParams(param: SendRequestParamVO): any[] {
-        return [param.method, param.host, param.path, param.posts, param.headers, param.sendHttps, param.result_headers];
+        return [param.method, param.host, param.path, param.posts, param.headers, param.sendHttps, param.result_headers, param.nojsonparse];
     }
 
     public constructor(
@@ -26,8 +28,9 @@ export default class SendRequestParamVO implements IAPIParamTranslator<SendReque
         public posts: {} = null,
         public headers: {} = null,
         public sendHttps: boolean = false,
-        public result_headers: {} = null) {
-    }
+        public result_headers: {} = null,
+        public nojsonparse: boolean = false,
+    ) { }
 }
 
 export const SendRequestParamVOStatic: IAPIParamTranslatorStatic<SendRequestParamVO> = SendRequestParamVO;

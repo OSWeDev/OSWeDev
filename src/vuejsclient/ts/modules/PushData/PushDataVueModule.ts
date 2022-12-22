@@ -19,6 +19,7 @@ import AjaxCacheClientController from '../AjaxCache/AjaxCacheClientController';
 import VueModuleBase from '../VueModuleBase';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import EnvHandler from '../../../../shared/tools/EnvHandler';
 
 export default class PushDataVueModule extends VueModuleBase {
 
@@ -101,6 +102,10 @@ export default class PushDataVueModule extends VueModuleBase {
          * Sur une reco on veut rejouer tous les registerParams
          */
         this.socket.on('connect', () => {
+            setTimeout(async () => {
+                await self.check_version_app();
+            }, 1);
+
             if (!first) {
 
                 setTimeout(async () => {
@@ -110,6 +115,10 @@ export default class PushDataVueModule extends VueModuleBase {
         });
 
         this.socket.on('reconnect', () => {
+            setTimeout(async () => {
+                await self.check_version_app();
+            }, 1);
+
             setTimeout(async () => {
                 await VarsClientController.getInstance().registerAllParamsAgain();
             }, 10000);
@@ -141,6 +150,25 @@ export default class PushDataVueModule extends VueModuleBase {
 
 
         // TODO: Handle other notif types
+    }
+
+    /**
+     *
+     * @returns Si on a pas la même version entre le front et le back, on recharge la page
+     */
+    private async check_version_app() {
+        let server_app_version: string = await ModulePushData.getInstance().get_app_version();
+
+        if (EnvHandler.getInstance().VERSION != server_app_version) {
+            VueAppBase.instance_.vueInstance.snotify.warning(
+                VueAppBase.instance_.vueInstance.label("app_version_changed"),
+                { timeout: 3000 }
+            );
+
+            setTimeout(() => {
+                window.location.reload();
+            }, 3000);
+        }
     }
 
     private async notifications_handler(notifications: NotificationVO[]) {
