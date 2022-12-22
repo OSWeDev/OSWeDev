@@ -4,7 +4,7 @@
             template(v-if='inline_input_show_clear && !field.is_required')
                 i.inline_input_show_clear.fa.fa-trash.btn-danger(@click='inline_clear_value' :class="{busy: inline_input_is_busy}")
             template(v-else)
-                i.inline_input_hide_clear.fa.fa-arrow-circle-o-right.btn-info(:class="{busy: inline_input_is_busy}")
+                i.inline_input_hide_clear.fa.fa-circle-arrow-right.btn-info(:class="{busy: inline_input_is_busy}")
         template(v-else)
             i.inline_input_cancel_input.fa.fa-undo.btn-warning(@click='cancel_input' :class="{busy: inline_input_is_busy}")
             
@@ -52,6 +52,6 @@
         
     template(v-if='inline_input_mode && (!is_disabled) && ((!inline_input_mode_input_only) || auto_validate_inline_input)')
         template(v-if='inline_input_is_editing || auto_validate_inline_input')
-            i.inline_input_is_editing.fa.fa-floppy-o.btn-success(@click='validate_inline_input' :class="{busy: inline_input_is_busy, auto_validate: auto_validate_inline_input, is_auto_validating: auto_validate_inline_input && (inline_input_is_busy || !!auto_validate_start)}")
+            i.inline_input_is_editing.fa.fa-floppy-disks.btn-success(@click='validate_inline_input' :class="{busy: inline_input_is_busy, auto_validate: auto_validate_inline_input, is_auto_validating: auto_validate_inline_input && (inline_input_is_busy || !!auto_validate_start)}")
         template(v-else-if='!auto_validate_inline_input')
             i.inline_input_is_not_editing.fa.fa-pencil.btn-primary(@click='prepare_inline_input' :class="{busy: inline_input_is_busy}")

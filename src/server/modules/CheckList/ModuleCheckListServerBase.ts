@@ -54,6 +54,10 @@ export default abstract class ModuleCheckListServerBase extends ModuleServerBase
         }, 'menu.menuelements.admin.checklist.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'CheckList Prime'
+        }, 'menu.menuelements.admin.cklst_item_prime.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Erreur lors de la suppression'
         }, 'CheckListComponent.deleteSelectedItem.failed.___LABEL___'));
 
