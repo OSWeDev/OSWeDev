@@ -8,9 +8,9 @@ import FactuProCategoryVO from './vos/categories/FactuProCategoryVO';
 import FactuProCustomersLISTParams from './vos/customers/FactuProCustomersLISTParams';
 import FactuProCustomerVO from './vos/customers/FactuProCustomerVO';
 import FactuProInvoicesLISTParams from './vos/invoices/FactuProInvoicesLISTParams';
+import FactuProInvoiceVO from './vos/invoices/FactuProInvoiceVO';
 import FactuProProductsLISTParams from './vos/products/FactuProProductsLISTParams';
 import FactuProProductVO from './vos/products/FactuProProductVO';
-import FactuProInvoiceVO from './vos/invoices/FactuProInvoiceVO';
 
 export default class ModuleFacturationProAPI extends Module {
 
@@ -71,6 +71,21 @@ export default class ModuleFacturationProAPI extends Module {
             params as any as { [i: string]: string },
         ) as FactuProInvoiceVO[];
         return invoices;
+    }
+
+    public async download_invoice(firm_id: number, invoice_id: string, original: boolean) {
+
+        let invoice_pdf = await ModuleRequest.getInstance().sendRequestFromApp(
+            ModuleRequest.METHOD_GET,
+            "www.facturation.pro",
+            "/firms/" + firm_id + "/invoices/" + invoice_id + ".pdf" + (original ? "?original=1" : ""),
+            null,
+            await this.getHeadersRequest(),
+            true,
+            null
+        );
+
+        return invoice_pdf;
     }
 
     public async list_categories(firm_id: number, params: FactuProCategoriesLISTParams) {
