@@ -194,6 +194,9 @@ export default class CRUDComponentField extends VueComponentBase
     @Prop({ default: false })
     private show_pencil_btn: boolean;
 
+    @Prop({ default: false })
+    private hide_text_cliquable: boolean;
+
     private this_CRUDComp_UID: number = null;
 
     private auto_validate_start: number = null;
@@ -435,7 +438,7 @@ export default class CRUDComponentField extends VueComponentBase
 
         if ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
             ((this.field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html)) {
-            input_value = input;
+            input_value = input.root.innerHTML;
         } else {
             input_value = input.value;
         }
@@ -510,7 +513,7 @@ export default class CRUDComponentField extends VueComponentBase
             return;
         }
 
-        let tmp = this.getInputValue(input);
+        let tmp = input ? this.getInputValue(input) : this.field_value;
         if (this.field_value != tmp) {
             this.field_value = tmp;
         }
@@ -540,7 +543,7 @@ export default class CRUDComponentField extends VueComponentBase
         //     return;
         // }
 
-        let tmp = this.getInputValue(input);
+        let tmp = input ? this.getInputValue(input) : this.field_value;
         if (this.field_value != tmp) {
             this.field_value = tmp;
         }

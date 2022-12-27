@@ -15,7 +15,8 @@ export default class MenuElementVO implements IDistantVOBase {
         target: string,
         target_is_routename: boolean = true,
         menu_parent_id: number = null,
-        hidden: boolean = false
+        hidden: boolean = false,
+        target_blank: boolean = false,
     ): MenuElementVO {
 
         let res = new MenuElementVO();
@@ -29,6 +30,7 @@ export default class MenuElementVO implements IDistantVOBase {
         res.target_is_routename = target_is_routename;
         res.menu_parent_id = menu_parent_id;
         res.hidden = hidden;
+        res.target_blank = target_blank;
         return res;
     }
 
@@ -50,6 +52,7 @@ export default class MenuElementVO implements IDistantVOBase {
     public access_policy_name: string;
 
     public hidden: boolean;
+    public target_blank: boolean;
 
     public parent_id: number;
     public trashed: boolean;

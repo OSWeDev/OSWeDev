@@ -1,11 +1,14 @@
+import { cloneDeep } from 'lodash';
 import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
+import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import MatroidIndexHandler from '../../../shared/tools/MatroidIndexHandler';
@@ -43,6 +46,7 @@ export default class ContextFilterServerController {
      * @returns
      */
     public async update_where_conditions(
+        context_query: ContextQueryVO,
         query_result: ParameterizedQueryWrapper,
         where_conditions: string[],
         active_field_filter: ContextFilterVO,
@@ -102,6 +106,89 @@ export default class ContextFilterServerController {
             case ContextFilterVO.TYPE_BOOLEAN_FALSE_ALL:
             case ContextFilterVO.TYPE_BOOLEAN_FALSE_ANY:
                 where_conditions.push(field_id + " = FALSE");
+                break;
+
+            case ContextFilterVO.TYPE_TEXT_CONTAINS_ALL_EXACT:
+                switch (field_type) {
+
+                    case ModuleTableField.FIELD_TYPE_string:
+                    case ModuleTableField.FIELD_TYPE_html:
+                    case ModuleTableField.FIELD_TYPE_file_field:
+                    case ModuleTableField.FIELD_TYPE_textarea:
+                    case ModuleTableField.FIELD_TYPE_translatable_text:
+                    case ModuleTableField.FIELD_TYPE_email:
+                    case ModuleTableField.FIELD_TYPE_password:
+
+                    /**
+                     * C'est pas ça, pour plein de raisons : il faut pouvoir conserver les filtres dans la sub query ,mais pas tous sinon cyclique
+                     *  et puis en fait l'exemple c'est de savoir si un utilisateur est rôles A et B,  mais on trouvera toujours A et B dans les rôles,
+                     *  juste peut-etre pas dans les rôles de l'utilisateur. Donc faudrait même presque tester les role_id du userrolevo dont user_id = x
+                     *  à creuser
+                     */
+                    // /**
+                    //  * Le but est d'identifier que toutes les refs de ce champs (toutes les valeurs possibles avec la requête en cours)
+                    //  *  incluent toutes les valeurs du param text_array
+                    //  */
+                    // if ((!active_field_filter.param_textarray) || (!active_field_filter.param_textarray.length)) {
+                    //     throw new Error('Not implemented');
+                    // }
+
+                    // let filters = context_query.filters.filter((filter) => filter != active_field_filter);
+                    // let sub_query = cloneDeep(context_query);
+                    // sub_query.base_api_type_id = active_field_filter.vo_type;
+                    // sub_query.filters = filters;
+                    // sub_query.fields = [];
+                    // sub_query.field(
+                    //     active_field_filter.field_id, null, active_field_filter.vo_type,
+                    //     VarConfVO.ARRAY_AGG_AGGREGATOR,
+                    //     active_field_filter.text_ignore_case ? ContextQueryFieldVO.FIELD_MODIFIER_LOWER : ContextQueryFieldVO.FIELD_MODIFIER_NONE);
+                    // let sub_query_str = await ContextQueryServerController.getInstance().build_select_query(sub_query);
+
+                    // if ((!sub_query_str) || (!sub_query_str.query)) {
+                    //     throw new Error('Invalid query');
+                    // }
+
+                    // let string_array = '';
+                    // if (active_field_filter.text_ignore_case) {
+                    //     string_array = active_field_filter.param_textarray.map((t) => t ? t.toLowerCase() : t).join("', '");
+                    // } else {
+                    //     string_array = active_field_filter.param_textarray.join("', '");
+                    // }
+
+                    // where_conditions.push('(' + sub_query_str + ") @> Array['" + string_array + "']");
+
+                    // break;
+
+
+                    case ModuleTableField.FIELD_TYPE_amount:
+                    case ModuleTableField.FIELD_TYPE_enum:
+                    case ModuleTableField.FIELD_TYPE_file_ref:
+                    case ModuleTableField.FIELD_TYPE_float:
+                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableField.FIELD_TYPE_foreign_key:
+                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableField.FIELD_TYPE_image_ref:
+                    case ModuleTableField.FIELD_TYPE_int:
+                    case ModuleTableField.FIELD_TYPE_prct:
+                    case ModuleTableField.FIELD_TYPE_tstz:
+
+                    case ModuleTableField.FIELD_TYPE_isoweekdays:
+                    case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
+                    case ModuleTableField.FIELD_TYPE_tstz_array:
+
+                    case ModuleTableField.FIELD_TYPE_numrange:
+                    case ModuleTableField.FIELD_TYPE_tsrange:
+
+                    case ModuleTableField.FIELD_TYPE_numrange_array:
+                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                    case ModuleTableField.FIELD_TYPE_string_array:
+                    case ModuleTableField.FIELD_TYPE_html_array:
+                    default:
+                        throw new Error('Not Implemented');
+                }
                 break;
 
             case ContextFilterVO.TYPE_TEXT_INCLUDES_ANY:
@@ -172,6 +259,7 @@ export default class ContextFilterServerController {
                         } else if (active_field_filter.param_textarray != null) {
                             if (active_field_filter.param_textarray.length == 0) {
                                 where_conditions.push("false");
+                                break;
                             }
 
                             let like_array = [];
@@ -280,6 +368,7 @@ export default class ContextFilterServerController {
 
                             if (active_field_filter.param_numeric_array.length == 0) {
                                 where_conditions.push("false");
+                                break;
                             }
 
                             for (let i in active_field_filter.param_numeric_array) {
@@ -556,6 +645,7 @@ export default class ContextFilterServerController {
 
                             if (active_field_filter.param_textarray.length == 0) {
                                 where_conditions.push("false");
+                                break;
                             }
 
                             let like_array = [];
@@ -708,6 +798,7 @@ export default class ContextFilterServerController {
                         } else if (active_field_filter.param_textarray != null) {
                             if (active_field_filter.param_textarray.length == 0) {
                                 where_conditions.push("false");
+                                break;
                             }
 
                             let like_array = [];
@@ -865,6 +956,7 @@ export default class ContextFilterServerController {
                         } else if (active_field_filter.param_textarray != null) {
                             if (active_field_filter.param_textarray.length == 0) {
                                 where_conditions.push("false");
+                                break;
                             }
 
                             let like_array = [];
@@ -1602,6 +1694,7 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numeric_array != null) {
                             if (active_field_filter.param_numeric_array.length == 0) {
                                 where_conditions.push("false");
+                                break;
                             }
 
                             for (let i in active_field_filter.param_numeric_array) {
@@ -1700,6 +1793,7 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numeric_array != null) {
                             if (active_field_filter.param_numeric_array.length == 0) {
                                 where_conditions.push("false");
+                                break;
                             }
 
                             for (let i in active_field_filter.param_numeric_array) {
@@ -1798,6 +1892,7 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numeric_array != null) {
                             if (active_field_filter.param_numeric_array.length == 0) {
                                 where_conditions.push("false");
+                                break;
                             }
 
                             for (let i in active_field_filter.param_numeric_array) {
@@ -1896,6 +1991,7 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numeric_array != null) {
                             if (active_field_filter.param_numeric_array.length == 0) {
                                 where_conditions.push("false");
+                                break;
                             }
 
                             for (let i in active_field_filter.param_numeric_array) {
@@ -2030,6 +2126,7 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numeric_array != null) {
                             if (active_field_filter.param_numeric_array.length == 0) {
                                 where_conditions.push("false");
+                                break;
                             }
 
                             for (let i in active_field_filter.param_numeric_array) {
@@ -2258,15 +2355,15 @@ export default class ContextFilterServerController {
 
             case ContextFilterVO.TYPE_FILTER_OR:
                 let conditions_OR: string[] = [];
-                await this.update_where_conditions(query_result, conditions_OR, active_field_filter.left_hook, tables_aliases_by_type);
-                await this.update_where_conditions(query_result, conditions_OR, active_field_filter.right_hook, tables_aliases_by_type);
+                await this.update_where_conditions(context_query, query_result, conditions_OR, active_field_filter.left_hook, tables_aliases_by_type);
+                await this.update_where_conditions(context_query, query_result, conditions_OR, active_field_filter.right_hook, tables_aliases_by_type);
                 where_conditions.push(' ((' + conditions_OR[0] + ') OR (' + conditions_OR[1] + ')) ');
                 break;
 
             case ContextFilterVO.TYPE_FILTER_AND:
                 let conditions_AND: string[] = [];
-                await this.update_where_conditions(query_result, conditions_AND, active_field_filter.left_hook, tables_aliases_by_type);
-                await this.update_where_conditions(query_result, conditions_AND, active_field_filter.right_hook, tables_aliases_by_type);
+                await this.update_where_conditions(context_query, query_result, conditions_AND, active_field_filter.left_hook, tables_aliases_by_type);
+                await this.update_where_conditions(context_query, query_result, conditions_AND, active_field_filter.right_hook, tables_aliases_by_type);
                 where_conditions.push(' ((' + conditions_AND[0] + ') AND (' + conditions_AND[1] + ')) ');
                 break;
 
@@ -2275,7 +2372,7 @@ export default class ContextFilterServerController {
                 throw new Error('Not Implemented');
 
             // let conditions_NOT: string[] = [];
-            // await this.update_where_conditions(conditions_NOT, active_field_filter.left_hook, tables_aliases_by_type);
+            // await this.update_where_conditions(context_query, conditions_NOT, active_field_filter.left_hook, tables_aliases_by_type);
             // where_conditions.push(' (NOT (' + conditions_NOT[0] + ')) ');
             // break;
 
@@ -2755,6 +2852,93 @@ export default class ContextFilterServerController {
                                 '  where tempo2.id = ' + tables_aliases_by_type[active_field_filter.vo_type] + '.id) tempo1' +
                                 '  where tempo1.a <@ ' + ranges_query +
                                 '  ) = array_length(' + tables_aliases_by_type[active_field_filter.vo_type] + '.' + field.field_id + ',1) ');
+                            break;
+                        }
+
+                    case ModuleTableField.FIELD_TYPE_amount:
+                    case ModuleTableField.FIELD_TYPE_enum:
+                    case ModuleTableField.FIELD_TYPE_file_ref:
+                    case ModuleTableField.FIELD_TYPE_float:
+                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableField.FIELD_TYPE_foreign_key:
+                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableField.FIELD_TYPE_image_ref:
+                    case ModuleTableField.FIELD_TYPE_int:
+                    case ModuleTableField.FIELD_TYPE_prct:
+                    case ModuleTableField.FIELD_TYPE_tstz:
+
+                    case ModuleTableField.FIELD_TYPE_isoweekdays:
+                    case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
+                    case ModuleTableField.FIELD_TYPE_tstz_array:
+
+                    case ModuleTableField.FIELD_TYPE_numrange:
+                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    default:
+                        throw new Error('Not Implemented');
+                }
+                break;
+
+            case ContextFilterVO.TYPE_NUMERIC_CONTAINS:
+                switch (field_type) {
+                    case ModuleTableField.FIELD_TYPE_numrange_array:
+                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableField.FIELD_TYPE_refrange_array:
+
+                        if (active_field_filter.param_numranges && active_field_filter.param_numranges.length) {
+
+                            let range_to_db = DAOServerController.getInstance().get_ranges_translated_to_bdd_queryable_ranges(
+                                active_field_filter.param_numranges, field, field.field_type
+                            );
+
+                            if (!range_to_db) {
+                                throw new Error('Error should not filter on empty range array TYPE_NUMERIC_CONTAINS');
+                            }
+
+                            let nb_values: number = RangeHandler.getInstance().get_all_segmented_elements_from_ranges(active_field_filter.param_numranges).length;
+
+                            let table = VOsTypesManager.getInstance().moduleTables_by_voType[active_field_filter.vo_type];
+                            let table_name = table.full_name.split('.')[1];
+                            let ranges_query = 'ANY(' + range_to_db + ')';
+
+                            where_conditions.push(
+                                '(' +
+                                '  select count(1)' +
+                                '  from (' +
+                                '   select unnest(tempo2.' + field.field_id + ') a' +
+                                '  from ' + table.full_name + ' tempo2' +
+                                '  where tempo2.id = ' + tables_aliases_by_type[active_field_filter.vo_type] + '.id) tempo1' +
+                                '  where tempo1.a <@ ' + ranges_query +
+                                '  ) >= ' + nb_values + ' ');
+                            break;
+                        }
+
+                        if (active_field_filter.param_tsranges && active_field_filter.param_tsranges.length) {
+
+                            let range_to_db = DAOServerController.getInstance().get_ranges_translated_to_bdd_queryable_ranges(
+                                active_field_filter.param_tsranges, field, field.field_type
+                            );
+
+                            if (!range_to_db) {
+                                throw new Error('Error should not filter on empty range array TYPE_NUMERIC_CONTAINS');
+                            }
+
+                            let nb_values: number = RangeHandler.getInstance().get_all_segmented_elements_from_ranges(active_field_filter.param_tsranges).length;
+
+                            let table = VOsTypesManager.getInstance().moduleTables_by_voType[active_field_filter.vo_type];
+                            let table_name = table.full_name.split('.')[1];
+                            let ranges_query = 'ANY(' + range_to_db + ')';
+
+                            where_conditions.push(
+                                '(' +
+                                '  select count(1)' +
+                                '  from (' +
+                                '   select unnest(tempo2.' + field.field_id + ') a' +
+                                '  from ' + table.full_name + ' tempo2' +
+                                '  where tempo2.id = ' + tables_aliases_by_type[active_field_filter.vo_type] + '.id) tempo1' +
+                                '  where tempo1.a <@ ' + ranges_query +
+                                '  ) >= ' + nb_values + ' ');
                             break;
                         }
 

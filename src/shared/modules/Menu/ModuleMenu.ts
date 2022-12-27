@@ -79,6 +79,7 @@ export default class ModuleMenu extends Module {
             new ModuleTableField('target_is_routename', ModuleTableField.FIELD_TYPE_boolean, 'La cible est une route ?', false, true, true),
 
             new ModuleTableField('hidden', ModuleTableField.FIELD_TYPE_boolean, 'Caché', false, true, false),
+            new ModuleTableField('target_blank', ModuleTableField.FIELD_TYPE_boolean, 'Target _blank', false, true, false),
 
             new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', false, true, 0),
 

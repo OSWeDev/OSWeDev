@@ -12,6 +12,7 @@ import { APISimpleVOParamVOStatic } from '../DAO/vos/APISimpleVOParamVO';
 export default class ModulePushData extends Module {
 
     public static APINAME_set_prompt_result: string = 'set_prompt_result';
+    public static APINAME_get_app_version: string = 'get_app_version';
     public static PARAM_TECH_DISCONNECT_URL: string = 'TECH_DISCONNECT_URL';
 
     public static getInstance(): ModulePushData {
@@ -27,6 +28,8 @@ export default class ModulePushData extends Module {
         notification: NotificationVO
     ) => Promise<any> = APIControllerWrapper.sah(ModulePushData.APINAME_set_prompt_result);
 
+    public get_app_version: () => Promise<string> = APIControllerWrapper.sah(ModulePushData.APINAME_get_app_version);
+
     private constructor() {
 
         super("pushdata", "PushData");
@@ -40,6 +43,12 @@ export default class ModulePushData extends Module {
             ModulePushData.APINAME_set_prompt_result,
             [NotificationVO.API_TYPE_ID],
             APISimpleVOParamVOStatic
+        ));
+
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<void, string>(
+            null,
+            ModulePushData.APINAME_get_app_version,
+            []
         ));
     }
 

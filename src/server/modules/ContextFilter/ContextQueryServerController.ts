@@ -788,7 +788,7 @@ export default class ContextQueryServerController {
                 /**
                  * Check injection : OK
                  */
-                await ContextFilterServerController.getInstance().update_where_conditions(query_result, where_conditions, filter, tables_aliases_by_type);
+                await ContextFilterServerController.getInstance().update_where_conditions(context_query, query_result, where_conditions, filter, tables_aliases_by_type);
             }
 
             let tables_aliases_by_type_for_access_hooks = cloneDeep(tables_aliases_by_type);

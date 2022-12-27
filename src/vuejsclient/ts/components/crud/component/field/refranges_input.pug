@@ -46,7 +46,7 @@
         :deselect-label='label("multiselect.deselectLabel")'
         :deselect-group-label='label("multiselect.deselectGroupLabel")'
     )
-    template(v-if="!is_readonly")
+    template(v-if="!is_readonly && !hide_text_cliquable")
         .text_cliquable.ml-1(@click='select_all') {{ label('select_all') }}
         .inter_text -
         .text_cliquable(@click='select_none') {{ label('select_none') }}
