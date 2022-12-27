@@ -28,6 +28,9 @@ include ../../../../../views/mixins/loading.pug
 
                 template(v-if='!!crud_activated_api_type')
                     .crud_actions.btn-group.d-print-none
+                        button.btn.btn-sm.btn-secondary(v-if='can_getquerystr', @click='getquerystr')
+                            i.fa.fa-copy.fa-lg.btn_icon(aria-hidden="true")
+                            | {{ label('crud.actions.getquerystr') }}
                         button.btn.btn-sm.btn-danger(v-if='can_delete_all', @click='confirm_delete_all')
                             i.fa.fa-trash.fa-lg.btn_icon(aria-hidden="true")
                             | {{ label('crud.actions.delete_all') }}

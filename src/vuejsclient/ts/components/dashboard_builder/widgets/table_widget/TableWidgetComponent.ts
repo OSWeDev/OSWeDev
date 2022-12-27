@@ -97,6 +97,8 @@ export default class TableWidgetComponent extends VueComponentBase {
     @ModuleDashboardPageGetter
     private get_Crudcreatemodalcomponent: CRUDCreateModalComponent;
 
+    @Prop({ default: false })
+    private is_edit_mode: boolean;
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
@@ -159,6 +161,19 @@ export default class TableWidgetComponent extends VueComponentBase {
 
     get all_page_widget_by_id(): { [id: number]: DashboardPageWidgetVO } {
         return VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
+    }
+
+    get can_getquerystr() {
+        return this.is_edit_mode;
+    }
+
+    public async getquerystr() {
+        if (!this.actual_rows_query) {
+            return null;
+        }
+        let query_string = await this.actual_rows_query.get_select_query_str();
+        await navigator.clipboard.writeText(query_string.query);
+        await this.$snotify.success(this.label('copied_to_clipboard'));
     }
 
     @Watch('columns')

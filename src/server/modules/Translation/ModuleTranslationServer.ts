@@ -185,6 +185,12 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Tout supprimer'
         }, 'crud.actions.delete_all.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Query string'
+        }, 'crud.actions.getquerystr.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Copié dans le presse-papier !'
+        }, 'copied_to_clipboard.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Supprimer TOUTES les données ? Les filtrages sont ignorés'
