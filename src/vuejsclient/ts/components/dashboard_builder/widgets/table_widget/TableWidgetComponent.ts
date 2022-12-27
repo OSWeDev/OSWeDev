@@ -155,6 +155,17 @@ export default class TableWidgetComponent extends VueComponentBase {
 
     private old_widget_options: TableWidgetOptions = null;
 
+    private table_columns: TableColumnDescVO[] = [];
+
+    get all_page_widget_by_id(): { [id: number]: DashboardPageWidgetVO } {
+        return VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
+    }
+
+    @Watch('columns')
+    private async onchange_columns() {
+        await this.throttle_update_visible_options();
+    }
+
     /**
      * On doit avoir accepté sur la tableau, sur le champs, etre readonly
      */
@@ -718,6 +729,35 @@ export default class TableWidgetComponent extends VueComponentBase {
                 continue;
             }
 
+            /**
+             * Gestion du check de présence d'un filtrage
+             */
+            if (column.show_if_any_filter_active && column.show_if_any_filter_active.length) {
+
+                let activated = false;
+                for (let j in column.show_if_any_filter_active) {
+                    let page_filter_id = column.show_if_any_filter_active[j];
+
+                    let page_widget = this.all_page_widget_by_id[page_filter_id];
+                    if (!page_widget) {
+                        column.show_if_any_filter_active = [];
+                        continue;
+                    }
+                    let page_widget_options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
+                    if ((!this.get_active_field_filters) ||
+                        (!this.get_active_field_filters[page_widget_options.vo_field_ref.api_type_id]) ||
+                        (!this.get_active_field_filters[page_widget_options.vo_field_ref.api_type_id][page_widget_options.vo_field_ref.field_id])) {
+                        continue;
+                    }
+
+                    activated = true;
+                }
+
+                if (!activated) {
+                    continue;
+                }
+            }
+
             res.push(Object.assign(new TableColumnDescVO(), column));
         }
         WeightHandler.getInstance().sortByWeight(res);
@@ -1062,6 +1102,7 @@ export default class TableWidgetComponent extends VueComponentBase {
 
         let launch_cpt: number = (this.last_calculation_cpt + 1);
 
+        this.table_columns = cloneDeep(this.columns);
         this.last_calculation_cpt = launch_cpt;
 
         this.update_cpt_live++;
@@ -1332,6 +1373,7 @@ export default class TableWidgetComponent extends VueComponentBase {
             );
         }
 
+        query_.query_distinct = true;
         let rows = await ModuleContextFilter.getInstance().select_datatable_rows(query_);
 
         // Si je ne suis pas sur la dernière demande, je me casse
@@ -1375,9 +1417,10 @@ export default class TableWidgetComponent extends VueComponentBase {
 
         this.data_rows = data_rows;
 
-        let context_query = cloneDeep(query_);
+        let context_query: ContextQueryVO = cloneDeep(query_);
         context_query.set_limit(0, 0);
         context_query.set_sort(null);
+        context_query.query_distinct = true;
         this.pagination_count = await ModuleContextFilter.getInstance().select_count(context_query);
 
         // Si je ne suis pas sur la dernière demande, je me casse

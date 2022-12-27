@@ -168,6 +168,29 @@
                             :width="160"
                             :labels="{checked: label('table_widget_column_conf.editable_column.show_tooltip.show'), unchecked: label('table_widget_column_conf.editable_column.show_tooltip.hide')}")
 
+                    .show_if_any_filter_active(v-tooltip='label("table_widget_column_conf.show_if_any_filter_active")')
+                        multiselect(
+                            :preselect-first="false"
+                            :multiple="true"
+                            v-model="column.show_if_any_filter_active"
+                            :placeholder="label('table_widget_column.show_if_any_filter_active')"
+                            :options="show_if_any_filter_active_options"
+                            :custom-label="show_if_any_filter_active_label"
+                            :allow-empty="true",
+                            autocomplete="off"
+
+                            :searchable="true"
+                            :internal-search="true"
+
+                            id="show_if_any_filter_active"
+
+                            :select-label='label("multiselect.selectLabel")'
+                            :select-group-label='label("multiselect.selectGroupLabel")'
+                            :selected-label='label("multiselect.selectedLabel")'
+                            :deselect-label='label("multiselect.deselectLabel")'
+                            :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                        )
+
                     .filter_by_access(v-tooltip='label("table_widget_column_conf.filter_by_access")')
                         multiselect(
                             :preselect-first="false"

@@ -198,6 +198,8 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('header_name', ModuleTableField.FIELD_TYPE_string, "Entête de colonne"),
 
             new ModuleTableField('filter_custom_field_filters', ModuleTableField.FIELD_TYPE_plain_vo_obj, "filter_custom_field_filters"),
+
+            new ModuleTableField('show_if_any_filter_active', ModuleTableField.FIELD_TYPE_int_array, "show_if_any_filter_active"),
         ];
 
         this.datatables.push(new ModuleTable(this, TableColumnDescVO.API_TYPE_ID, () => new TableColumnDescVO(), datatable_fields, null, "Référence de champs"));

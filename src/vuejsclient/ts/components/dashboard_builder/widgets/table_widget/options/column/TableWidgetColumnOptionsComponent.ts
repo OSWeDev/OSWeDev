@@ -22,6 +22,9 @@ import { ModuleDashboardPageGetter } from '../../../../page/DashboardPageStore';
 import { cloneDeep } from 'lodash';
 import Dates from '../../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import WidgetFilterOptionsComponent from '../../../var_widget/options/filters/WidgetFilterOptionsComponent';
+import { all_promises } from '../../../../../../../../shared/tools/PromiseTools';
+import DashboardWidgetVO from '../../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import FieldValueFilterWidgetOptions from '../../../field_value_filter_widget/options/FieldValueFilterWidgetOptions';
 
 @Component({
     template: require('./TableWidgetColumnOptionsComponent.pug'),
@@ -35,6 +38,13 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
 
     @ModuleDashboardPageGetter
     private get_custom_filters: string[];
+
+    @ModuleDashboardPageGetter
+    private get_page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase };
+
+    @ModuleDashboardPageGetter
+    private get_page_widgets: DashboardPageWidgetVO[];
+
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
@@ -70,6 +80,34 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     private show_options: boolean = false;
     private error: boolean = false;
     private custom_filter_names: { [field_id: string]: string } = {};
+
+    private all_filter_widgets_ids: number[] = [];
+
+    get page_widget_by_id(): { [pwid: number]: DashboardPageWidgetVO } {
+        return VOsTypesManager.vosArray_to_vosByIds(this.get_page_widgets);
+    }
+
+    get show_if_any_filter_active_options(): number[] {
+        let self = this;
+        return this.get_page_widgets.filter((page_widget: DashboardPageWidgetVO) => {
+
+            let options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
+
+            return options && options.vo_field_ref && options.vo_field_ref.api_type_id && options.vo_field_ref.field_id && (self.all_filter_widgets_ids.indexOf(page_widget.widget_id) > -1);
+        }).map((page_widget: DashboardPageWidgetVO) => page_widget.id);
+    }
+
+    private show_if_any_filter_active_label(page_widget_id: number): string {
+        let page_widget = this.page_widget_by_id[page_widget_id];
+        if (!page_widget) {
+            return "[" + page_widget_id + "] " + "???";
+        }
+        let options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
+        if (!options || !options.vo_field_ref || !options.vo_field_ref.api_type_id || !options.vo_field_ref.field_id) {
+            return "[" + page_widget.id + "] " + "???";
+        }
+        return "[" + page_widget.id + "] " + options.vo_field_ref.api_type_id + " > " + options.vo_field_ref.field_id;
+    }
 
     private async update_additional_options(additional_options: string) {
         if (!this.column) {
@@ -236,16 +274,28 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     }
 
     private async mounted() {
-        let policies = await query(AccessPolicyVO.API_TYPE_ID).field('translatable_name').select_vos<AccessPolicyVO>();
+        let promises = [];
+        let self = this;
 
-        this.filter_by_access_options = policies ? policies.map((e) => e.translatable_name) : [];
+        promises.push(((async () => {
+            let all_ids = await query(DashboardWidgetVO.API_TYPE_ID).field('id').filter_is_true('is_filter').select_vos<DashboardWidgetVO>();
+            self.all_filter_widgets_ids = all_ids ? all_ids.map((e) => e.id) : [];
+        })()));
+        promises.push(((async () => {
+            let policies = await query(AccessPolicyVO.API_TYPE_ID).field('translatable_name').select_vos<AccessPolicyVO>();
+
+            self.filter_by_access_options = policies ? policies.map((e) => e.translatable_name) : [];
+        })()));
+
+        await all_promises(promises);
     }
 
     private filter_by_access_label(translatable_name: string): string {
         return this.label(translatable_name);
     }
 
-    @Watch('filter_by_access')
+    @Watch('column.filter_by_access')
+    @Watch('column.show_if_any_filter_active')
     private async onchange_filter_by_access() {
         if (!this.object_column) {
             return;
@@ -437,6 +487,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.exportable = true;
         new_column.hide_from_table = false;
         new_column.filter_by_access = null;
+        new_column.show_if_any_filter_active = [];
         new_column.enum_bg_colors = null;
         new_column.enum_fg_colors = null;
         new_column.can_filter_by = false;
@@ -467,6 +518,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.exportable = true;
         new_column.hide_from_table = false;
         new_column.filter_by_access = null;
+        new_column.show_if_any_filter_active = [];
         new_column.enum_bg_colors = null;
         new_column.enum_fg_colors = null;
         new_column.can_filter_by = false;
@@ -514,6 +566,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.exportable = true;
         new_column.hide_from_table = false;
         new_column.filter_by_access = null;
+        new_column.show_if_any_filter_active = [];
         new_column.enum_bg_colors = null;
         new_column.enum_fg_colors = null;
         new_column.can_filter_by = true;
@@ -556,6 +609,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.exportable = true;
         new_column.hide_from_table = false;
         new_column.filter_by_access = null;
+        new_column.show_if_any_filter_active = [];
         new_column.enum_bg_colors = null;
         new_column.enum_fg_colors = null;
         new_column.can_filter_by = false;

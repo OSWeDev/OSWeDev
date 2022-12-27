@@ -1343,6 +1343,16 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Afficher une popup sur les champs du tableau" },
             'table_widget_column_conf.show_tooltip.___LABEL___'
         ));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Filtres" },
+            'table_widget_column.show_if_any_filter_active.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher si 1 filtre actif" },
+            'table_widget_column_conf.show_if_any_filter_active.___LABEL___'
+        ));
+
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "La colonne peut-être éditée directement dans le tableau" },
             'table_widget_column_conf.editable_column.___LABEL___'

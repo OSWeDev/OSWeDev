@@ -2,7 +2,7 @@ include ../../../../../views/mixins/loading.pug
 
 .table_widget_component
     +loading()
-        template(v-if='columns')
+        template(v-if='table_columns')
 
             template(v-if='loaded_once && is_busy')
                 .is_busy 
@@ -45,7 +45,7 @@ include ../../../../../views/mixins/loading.pug
                 table.table-striped.table-hover(:class='{"has_sticky_cols": has_sticky_cols}')
                     thead
                         tr(v-if='has_group_headers')
-                            template(v-for='column in columns')
+                            template(v-for='column in table_columns')
                                 template(v-if="!column.hide_from_table")
                             
                                     //- debut de la colonne d'entete
@@ -57,7 +57,7 @@ include ../../../../../views/mixins/loading.pug
                                     
                                     th.table_header(v-if="column.type != 5")
                         tr
-                            template(v-for='column in columns')
+                            template(v-for='column in table_columns')
                                 template(v-if="!column.hide_from_table")
                                 
                                     th.table_header(
@@ -100,7 +100,7 @@ include ../../../../../views/mixins/loading.pug
                     template(v-if="update_cpt_live <= 1")
                         tbody
                             tr.table_row(v-for='row in data_rows' :class='{"is_filtering": is_filtering_by, "filtered_value": is_filtering_by && !is_row_filter_ok(row)}')
-                                template(v-for='column in columns')
+                                template(v-for='column in table_columns')
                                     template(v-if="!column.hide_from_table")
                                         td.table_col(
                                             v-if="column.type != 5"
@@ -139,7 +139,7 @@ include ../../../../../views/mixins/loading.pug
                                                         Datatablecomponentfield.is_enum(
                                                             :field="fields[column.id]"
                                                             :vo="row"
-                                                            :columns="columns"
+                                                            :columns="table_columns"
                                                             :all_page_widget="all_page_widget"
                                                             :page_widget="page_widget"
                                                             :style="{width: (column.column_width ? column.column_width + 'rem' : null), background: (column.enum_bg_colors ? column.enum_bg_colors[row[column.datatable_field_uid + '__raw']] : ''), color: (column.enum_fg_colors ? column.enum_fg_colors[row[column.datatable_field_uid + '__raw']] : '') }"
@@ -150,7 +150,7 @@ include ../../../../../views/mixins/loading.pug
                                                                 :filter_custom_field_filters="column.filter_custom_field_filters"
                                                                 :field="fields[column.id]"
                                                                 :vo="row"
-                                                                :columns="columns"
+                                                                :columns="table_columns"
                                                                 :style="'width: ' + (column.column_width ? column.column_width + 'rem' : null)"
                                                                 :is_dashboard_builder="true"
                                                                 :show_tooltip="column.show_tooltip"
@@ -188,7 +188,7 @@ include ../../../../../views/mixins/loading.pug
                                                         :filter_custom_field_filters="column.filter_custom_field_filters"
                                                         :field="fields[child.id]"
                                                         :vo="row"
-                                                        :columns="columns"
+                                                        :columns="table_columns"
                                                         :style="'width: ' + (child.column_width ? child.column_width + 'rem' : null)"
                                                         :is_dashboard_builder="true"
                                                         :show_tooltip="child.show_tooltip"
@@ -215,7 +215,7 @@ include ../../../../../views/mixins/loading.pug
                             template(v-if="!!colspan_total")
                                 td.text-center(:colspan='colspan_total') {{ label('table_widget_component.table_total_footer')}}
 
-                            template(v-for='(column, index_column) in columns')
+                            template(v-for='(column, index_column) in table_columns')
                                 template(v-if="is_column_type_number(column)")
                                     td.text-center
                                         template(v-if="column_total && column_total[column.api_type_id]")
