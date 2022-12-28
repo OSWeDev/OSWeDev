@@ -134,7 +134,7 @@ export default class ForkServerController {
              */
             let max_timeout = 300;
             while (!ForkServerController.getInstance().forks_alive[i]) {
-                await ThreadHandler.getInstance().sleep(1000);
+                await ThreadHandler.sleep(1000);
                 max_timeout--;
                 if (!(max_timeout % 10)) {
                     ConsoleHandler.log('Waiting for ALIVE SIGNAL from fork ' + forked.uid);
@@ -229,7 +229,7 @@ export default class ForkServerController {
 
         while (true) {
 
-            await ThreadHandler.getInstance().sleep(10000);
+            await ThreadHandler.sleep(10000);
 
             for (let i in this.forks) {
                 let forked: IFork = this.forks[i];

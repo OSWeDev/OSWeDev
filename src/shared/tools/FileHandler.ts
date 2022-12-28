@@ -34,7 +34,7 @@ export default class FileHandler {
 
         while (has_changes) {
 
-            await ThreadHandler.getInstance().sleep(timeout_ms);
+            await ThreadHandler.sleep(timeout_ms);
             has_changes = false;
 
             let stats: Stats = statSync(filename);

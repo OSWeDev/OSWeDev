@@ -286,7 +286,7 @@ export default class VarsDatasProxy {
                 ConsoleHandler.warn('VarsDatasProxy:handle_buffer:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
             }
 
-            await ThreadHandler.getInstance().sleep(9);
+            await ThreadHandler.sleep(9);
         }
         this.semaphore_handle_buffer = true;
 

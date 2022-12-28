@@ -61,7 +61,7 @@ export default class ModuleForkServer extends ModuleServerBase {
 
         while (throttle > 0) {
             ConsoleHandler.error("Received KILL SIGN from parent - KILL in " + throttle);
-            await ThreadHandler.getInstance().sleep(1000);
+            await ThreadHandler.sleep(1000);
             throttle--;
         }
         ConsoleHandler.error("Received KILL SIGN from parent - KILL");

@@ -17,6 +17,7 @@ import VarDataProxyWrapperVO from '../../../shared/modules/Var/vos/VarDataProxyW
 import VarPixelFieldConfVO from '../../../shared/modules/Var/vos/VarPixelFieldConfVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ConfigurationService from '../../env/ConfigurationService';
@@ -560,9 +561,9 @@ export default class VarsComputeController {
     private async load_nodes_datas(var_dag: VarDAG) {
         let env = ConfigurationService.node_configuration;
 
-        let promises = [];
-        let load_node_data_db_connect_coef_sum: number = 0;
-        let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
+        // let load_node_data_db_connect_coef_sum: number = 0;
+        let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL));
+        let promise_pipeline = new PromisePipeline(max);
 
         for (let i in var_dag.nodes) {
             let node = var_dag.nodes[i];
@@ -587,25 +588,25 @@ export default class VarsComputeController {
                 continue;
             }
 
-            if (load_node_data_db_connect_coef_sum >= max) {
-                await Promise.all(promises);
-                load_node_data_db_connect_coef_sum = 0;
-                promises = [];
-            }
+            // if (load_node_data_db_connect_coef_sum >= max) {
+            //     await Promise.all(promises);
+            //     load_node_data_db_connect_coef_sum = 0;
+            //     promises = [];
+            // }
 
-            for (let dssi in dss) {
-                let ds = dss[dssi];
-                load_node_data_db_connect_coef_sum += ds.load_node_data_db_connect_coef;
-            }
+            // for (let dssi in dss) {
+            //     let ds = dss[dssi];
+            //     load_node_data_db_connect_coef_sum += ds.load_node_data_db_connect_coef;
+            // }
 
-            promises.push((async () => {
+            await promise_pipeline.push(async () => {
 
                 VarDagPerfsServerController.getInstance().start_nodeperfelement(node.perfs.load_node_datas);
 
                 await DataSourcesController.getInstance().load_node_datas(dss, node);
 
                 VarDagPerfsServerController.getInstance().end_nodeperfelement(node.perfs.load_node_datas);
-            })());
+            });
 
             if (env.DEBUG_VARS) {
                 ConsoleHandler.log('loaded_node_datas:index:' + node.var_data.index + ":value:" + node.var_data.value + ":value_ts:" + node.var_data.value_ts + ":type:" + VarDataBaseVO.VALUE_TYPE_LABELS[node.var_data.value_type] +
@@ -613,9 +614,7 @@ export default class VarsComputeController {
             }
         }
 
-        if (promises && promises.length) {
-            await Promise.all(promises);
-        }
+        await promise_pipeline.end();
     }
 
     /**
@@ -643,8 +642,8 @@ export default class VarsComputeController {
         let deps_as_array = Object.values(deps);
         let deps_ids_as_array = Object.keys(deps);
 
-        let deps_promises = [];
         let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
+        let promise_pipeline = new PromisePipeline(max);
 
         let start_time = Dates.now();
         let real_start_time = start_time;
@@ -662,13 +661,6 @@ export default class VarsComputeController {
                 ConsoleHandler.warn('VarsComputeController:handle_deploy_deps:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
             }
 
-            /**
-             * On fait des packs de promises...
-             */
-            if (deps_promises.length >= max) {
-                await Promise.all(deps_promises);
-                deps_promises = [];
-            }
             let dep = deps_as_array[deps_i];
             let dep_id = deps_ids_as_array[deps_i];
 
@@ -684,14 +676,12 @@ export default class VarsComputeController {
 
             node.addOutgoingDep(dep_id, dep_node);
 
-            deps_promises.push((async () => {
+            await promise_pipeline.push(async () => {
                 await this.load_caches_and_imports_on_var_to_deploy(dep_node.var_data, dep_node.var_dag, deployed_vars_datas, vars_datas);
-            })());
+            });
         }
 
-        if (deps_promises.length) {
-            await Promise.all(deps_promises);
-        }
+        await promise_pipeline.end();
     }
 
     private async try_load_cache_complet(node: VarDAGNode) {
@@ -1182,28 +1172,23 @@ export default class VarsComputeController {
         vars_to_deploy: { [index: string]: VarDataBaseVO },
         var_dag: VarDAG) {
 
-        let promises = [];
         let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
+        let promise_pipeline = new PromisePipeline(max);
 
         for (let i in vars_to_deploy) {
 
             let var_to_deploy: VarDataBaseVO = vars_to_deploy[i];
 
-            if (promises.length >= max) {
-                await all_promises(promises);
-                if (var_dag.timed_out && !!var_dag.nb_nodes) {
-                    return;
-                }
+            await promise_pipeline.push(async () => {
+                this.load_caches_and_imports_on_var_to_deploy(var_to_deploy, var_dag);
+            });
 
-                promises = [];
+            if (var_dag.timed_out && !!var_dag.nb_nodes) {
+                return;
             }
-
-            promises.push(this.load_caches_and_imports_on_var_to_deploy(var_to_deploy, var_dag));
         }
 
-        if (promises && promises.length) {
-            await all_promises(promises);
-        }
+        await promise_pipeline.end();
     }
 
     private async notify_var_data_post_deploy(var_dag_node: VarDAGNode) {
@@ -1230,8 +1215,8 @@ export default class VarsComputeController {
         var_dag: VarDAG
     ) {
 
-        let promises = [];
         let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
+        let promise_pipeline = new PromisePipeline(max);
 
         for (let i in vars_to_deploy) {
             let var_to_deploy = vars_to_deploy[i];
@@ -1240,23 +1225,18 @@ export default class VarsComputeController {
                 continue;
             }
 
-            if (promises.length >= max) {
-                await all_promises(promises);
-                promises = [];
-            }
-
             let var_dag_node = await VarDAGNode.getInstance(var_dag, var_to_deploy, VarsComputeController, false);
             if (!var_dag_node) {
-                await all_promises(promises);
+                await promise_pipeline.end();
                 return;
             }
 
-            promises.push(this.deploy_deps_on_var_to_deploy(var_dag_node, var_dag));
+            await promise_pipeline.push(async () => {
+                this.deploy_deps_on_var_to_deploy(var_dag_node, var_dag);
+            });
         }
 
-        if (promises && promises.length) {
-            await all_promises(promises);
-        }
+        await promise_pipeline.end();
     }
 
     private async deploy_deps_on_var_to_deploy(

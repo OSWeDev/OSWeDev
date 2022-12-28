@@ -216,7 +216,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         await ModuleDAO.getInstance().insertOrUpdateVO(maintenance);
 
         let readonly_maintenance_deadline = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_start_maintenance_force_readonly_after_x_ms, 60000);
-        await ThreadHandler.getInstance().sleep(readonly_maintenance_deadline);
+        await ThreadHandler.sleep(readonly_maintenance_deadline);
         await VarsDatasVoUpdateHandler.getInstance().force_empty_vars_datas_vo_update_cache();
     }
 

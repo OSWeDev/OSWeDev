@@ -76,6 +76,7 @@ import ThrottledSelectQueryParam from './vos/ThrottledSelectQueryParam';
 import pgPromise = require('pg-promise');
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
+import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -830,28 +831,21 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         // max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL));
         max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL - 1));
+        let promise_pipeline = new PromisePipeline(max_connections_to_use);
 
         let res: InsertOrDeleteQueryResult[] = [];
-        let promises = [];
         for (let i in vos) {
             let vo = vos[i];
 
-            if ((!!max_connections_to_use) && (promises.length >= max_connections_to_use)) {
-                await all_promises(promises);
-                promises = [];
-            }
-
-            promises.push((async () => {
+            await promise_pipeline.push(async () => {
                 let delete_res = await this.deleteVOs([vo]);
                 if (delete_res && delete_res.length == 1) {
                     res.push(delete_res[0]);
                 }
-            })());
+            });
         }
 
-        if (!!promises.length) {
-            await all_promises(promises);
-        }
+        await promise_pipeline.end();
 
         return res;
     }
@@ -860,25 +854,18 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         // max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL));
         max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL - 1));
+        let promise_pipeline = new PromisePipeline(max_connections_to_use);
 
         let res: InsertOrDeleteQueryResult[] = [];
-        let promises = [];
         for (let i in vos) {
             let vo = vos[i];
 
-            if ((!!max_connections_to_use) && (promises.length >= max_connections_to_use)) {
-                await all_promises(promises);
-                promises = [];
-            }
-
-            promises.push((async () => {
+            await promise_pipeline.push(async () => {
                 res.push(await this.insertOrUpdateVO(vo));
-            })());
+            });
         }
 
-        if (!!promises.length) {
-            await all_promises(promises);
-        }
+        await promise_pipeline.end();
 
         return res;
     }
@@ -978,7 +965,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL - 1));
 
-        let promises = [];
+        let promise_pipeline = new PromisePipeline(max_connections_to_use);
 
         for (let i in vos) {
             let vo: IDistantVOBase = vos[i];
@@ -993,12 +980,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 };
             }
 
-            if ((!!max_connections_to_use) && (promises.length >= max_connections_to_use)) {
-                await all_promises(promises);
-                promises = [];
-            }
-
-            promises.push((async () => {
+            await promise_pipeline.push(async () => {
                 let vo_id: number = !!vo.id ? vo.id : 0;
 
                 if (!vo_id) {
@@ -1011,18 +993,15 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }
 
                 vos_by_vo_tablename_and_ids[tablename].vos[vo_id].push(vo);
-            })());
+            });
         }
 
-        if (!!promises.length) {
-            await all_promises(promises);
-        }
-
-        promises = [];
+        await promise_pipeline.end();
 
         let res: InsertOrDeleteQueryResult[] = [];
         let reste_a_faire = [];
 
+        promise_pipeline = new PromisePipeline(max_connections_to_use);
         for (let tablename in vos_by_vo_tablename_and_ids) {
             let tableFields: string[] = [];
 
@@ -1135,11 +1114,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }
 
 
-                if ((!!max_connections_to_use) && (promises.length >= max_connections_to_use)) {
-                    await all_promises(promises);
-                    promises = [];
-                }
-
                 let sql: string = null;
 
                 if (is_update) {
@@ -1175,7 +1149,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     sql += " RETURNING ID;";
                 }
 
-                promises.push((async () => {
+                await promise_pipeline.push(async () => {
                     let uid = this.log_db_query_perf_start('insertOrUpdateVOs_without_triggers', sql);
                     let results = await ModuleServiceBase.getInstance().db.query(sql);
                     this.log_db_query_perf_end(uid, 'insertOrUpdateVOs_without_triggers', sql);
@@ -1184,13 +1158,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         let result = results[i];
                         res.push(new InsertOrDeleteQueryResult((result && result.id) ? parseInt(result.id.toString()) : null));
                     }
-                })());
+                });
             }
         }
 
-        if (!!promises.length) {
-            await all_promises(promises);
-        }
+        await promise_pipeline.end();
 
         if (reste_a_faire && reste_a_faire.length) {
             let reste_a_faire_res = await this.insertOrUpdateVOs_without_triggers(reste_a_faire, max_connections_to_use);
@@ -1644,7 +1616,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL - 1));
         let res: T[] = null;
 
         if (moduleTable.is_segmented) {
@@ -2263,30 +2234,23 @@ export default class ModuleDAOServer extends ModuleServerBase {
      */
     private async filterByForeignKeys<T extends IDistantVOBase>(vos: T[]): Promise<T[]> {
         let res: T[] = [];
-        let promises = [];
 
         let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
+        let promise_pipeline = new PromisePipeline(max);
 
         for (let i in vos) {
             let vo = vos[i];
 
-            if (promises.length >= max) {
-                await all_promises(promises);
-                promises = [];
-            }
-
-            promises.push((async () => {
+            await promise_pipeline.push(async () => {
                 let refuse: boolean = await this.refuseVOByForeignKeys(vo);
 
                 if (!refuse) {
                     res.push(vo);
                 }
-            })());
+            });
         }
 
-        if (promises.length >= 1) {
-            await all_promises(promises);
-        }
+        await promise_pipeline.end();
 
         return res;
     }

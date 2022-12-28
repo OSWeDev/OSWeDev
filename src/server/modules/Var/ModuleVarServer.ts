@@ -37,6 +37,7 @@ import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import SemaphoreHandler from '../../../shared/tools/SemaphoreHandler';
@@ -847,7 +848,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 ||
                 (await VarsDatasProxy.getInstance().has_vardata_waiting_for_computation())
             ) {
-                await ThreadHandler.getInstance().sleep(1000);
+                await ThreadHandler.sleep(1000);
                 let actual_time = Dates.now();
 
                 if (actual_time > (start_time + 60)) {
@@ -892,7 +893,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 ||
                 (await VarsDatasProxy.getInstance().has_vardata_waiting_for_computation())
             ) {
-                await ThreadHandler.getInstance().sleep(interval_sleep_ms);
+                await ThreadHandler.sleep(interval_sleep_ms);
                 let actual_time = Dates.now();
 
                 if (actual_time > (start_time + (timeout_ms / 1000))) {
@@ -1383,17 +1384,15 @@ export default class ModuleVarServer extends ModuleServerBase {
     private async throttled_getVarParamsFromContextFilters(params: GetVarParamFromContextFiltersParam[]) {
         let max_concurrent_promises: number = ConfigurationService.node_configuration.MAX_POOL / 2;
 
-        let promises = [];
+        let promise_pipeline = new PromisePipeline(max_concurrent_promises);
         for (let i in params) {
 
-            if (promises.length >= max_concurrent_promises) {
-                await all_promises(promises);
-                promises = [];
-            }
-            promises.push(this.throttled_getVarParamFromContextFilters(params[i]));
+            await promise_pipeline.push(async () => {
+                await this.throttled_getVarParamFromContextFilters(params[i]);
+            });
         }
 
-        await all_promises(promises);
+        await promise_pipeline.end();
     }
 
     private async throttled_getVarParamFromContextFilters(param: GetVarParamFromContextFiltersParam) {

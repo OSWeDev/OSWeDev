@@ -2,6 +2,7 @@ import DefaultTranslationManager from '../../../../shared/modules/Translation/De
 import DefaultTranslation from '../../../../shared/modules/Translation/vos/DefaultTranslation';
 import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
 import VarsController from '../../../../shared/modules/Var/VarsController';
+import PromisePipeline from '../../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../../shared/tools/PromiseTools';
 import ConfigurationService from '../../../env/ConfigurationService';
 import VarsdatasComputerBGThread from '../bgthreads/VarsdatasComputerBGThread';
@@ -36,8 +37,8 @@ export default class DataSourcesController {
      */
     public async load_node_datas(dss: DataSourceControllerBase[], node: VarDAGNode): Promise<void> {
 
-        let promises = [];
         let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
+        let promise_pipeline = new PromisePipeline(max);
 
         for (let i in dss) {
             let ds = dss[i];
@@ -46,18 +47,13 @@ export default class DataSourcesController {
                 VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[ds.name] = {};
             }
 
-            if (promises.length >= max) {
-                await Promise.all(promises);
-                promises = [];
-            }
-
             // Si on est sur du perf monitoring on doit faire les appels séparément...
-            promises.push(ds.load_node_data(node));
+            await promise_pipeline.push(async () => {
+                ds.load_node_data(node);
+            });
         }
 
-        if (promises && promises.length) {
-            await Promise.all(promises);
-        }
+        await promise_pipeline.end();
     }
 
     public registerDataSource(

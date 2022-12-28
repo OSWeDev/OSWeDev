@@ -6,6 +6,7 @@ import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import ConfigurationService from '../../env/ConfigurationService';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
@@ -28,28 +29,28 @@ export default class DefaultTranslationsServerManager {
             return;
         }
 
-        let promises = [];
         let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
+        let promise_pipeline = new PromisePipeline(max);
         let registered_default_translations = this.clean_registered_default_translations();
 
         let langs: LangVO[] = null;
-        promises.push((async () => {
+        await promise_pipeline.push(async () => {
             langs = await query(LangVO.API_TYPE_ID).select_vos<LangVO>();
-        })());
+        });
 
         let translatables: TranslatableTextVO[] = null;
         let translatable_by_code_text: { [code_text: string]: TranslatableTextVO } = {};
-        promises.push((async () => {
+        await promise_pipeline.push(async () => {
             translatables = await query(TranslatableTextVO.API_TYPE_ID).select_vos<TranslatableTextVO>();
             for (let i in translatables) {
                 let translatable = translatables[i];
                 translatable_by_code_text[translatable.code_text] = translatable;
             }
-        })());
+        });
 
         let translations: TranslationVO[] = null;
         let translation_by_lang_id_and_text_id: { [lang_id: number]: { [text_id: number]: TranslationVO } } = {};
-        promises.push((async () => {
+        await promise_pipeline.push(async () => {
             translations = await query(TranslationVO.API_TYPE_ID).select_vos<TranslationVO>();
 
             for (let i in translations) {
@@ -60,26 +61,21 @@ export default class DefaultTranslationsServerManager {
                 }
                 translation_by_lang_id_and_text_id[translation.lang_id][translation.text_id] = translation;
             }
-        })());
+        });
 
-        await Promise.all(promises);
+        await promise_pipeline.end();
 
-        promises = [];
+        promise_pipeline = new PromisePipeline(max);
         for (let i in registered_default_translations) {
 
-            if (promises.length >= max) {
-                await all_promises(promises);
-                promises = [];
-            }
-
-            promises.push(this.saveDefaultTranslation(registered_default_translations[i], langs, translatable_by_code_text, translation_by_lang_id_and_text_id));
+            await promise_pipeline.push(async () => {
+                await this.saveDefaultTranslation(registered_default_translations[i], langs, translatable_by_code_text, translation_by_lang_id_and_text_id);
+            });
 
             // await this.saveDefaultTranslation(registered_default_translations[i]);
         }
 
-        if (promises && promises.length) {
-            await all_promises(promises);
-        }
+        await promise_pipeline.end();
 
         await this.cleanTranslationCodes(translatables);
     }

@@ -933,7 +933,7 @@ export default abstract class ServerBase {
                 async () => await ModuleAccessPolicyServer.getInstance().logout()
             );
 
-            // await ThreadHandler.getInstance().sleep(1000);
+            // await ThreadHandler.sleep(1000);
             // res.redirect('/');
 
             let PARAM_TECH_DISCONNECT_URL: string = await ModuleParams.getInstance().getParamValue(ModulePushData.PARAM_TECH_DISCONNECT_URL);
@@ -1011,7 +1011,7 @@ export default abstract class ServerBase {
              */
             let timeout_sec: number = 30;
             while ((!ForkServerController.getInstance().forks_are_initialized) && (timeout_sec > 0)) {
-                await ThreadHandler.getInstance().sleep(1000);
+                await ThreadHandler.sleep(1000);
                 timeout_sec--;
             }
 

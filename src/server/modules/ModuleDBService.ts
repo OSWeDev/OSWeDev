@@ -69,7 +69,7 @@ export default class ModuleDBService {
 
         while (true) {
 
-            await ThreadHandler.getInstance().sleep(ModuleDBService.reloadParamsTimeout);
+            await ThreadHandler.sleep(ModuleDBService.reloadParamsTimeout);
 
             let paramsChanged: Array<ModuleParamChange<any>> = await this.loadParams(module);
 

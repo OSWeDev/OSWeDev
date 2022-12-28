@@ -7,6 +7,7 @@ import MainAggregateOperatorsHandlers from '../../../shared/modules/Var/MainAggr
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
+import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import ConfigurationService from '../../env/ConfigurationService';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
@@ -164,27 +165,22 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
         /**
          * On peut pas les mettre en // ?
          */
-        let promises = [];
         let limit = ConfigurationService.node_configuration.MAX_POOL / 3;
+        let promise_pipeline = new PromisePipeline(limit);
 
         for (let k in c_or_d_vos) {
             let vo_create_or_delete = c_or_d_vos[k];
 
-            if (promises.length >= limit) {
-                await all_promises(promises);
-                promises = [];
-            }
-
-            promises.push((async () => {
+            await promise_pipeline.push(async () => {
                 let tmp = await this.get_invalid_params_intersectors_on_POST_C_POST_D(vo_create_or_delete);
                 if ((!tmp) || (!tmp.length)) {
                     return;
                 }
                 tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
-            })());
+            });
         }
 
-        await all_promises(promises);
+        await promise_pipeline.end();
 
         return Object.values(intersectors_by_index);
     }
@@ -198,27 +194,22 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
         /**
          * On peut pas les mettre en // ?
          */
-        let promises = [];
         let limit = ConfigurationService.node_configuration.MAX_POOL / 3;
+        let promise_pipeline = new PromisePipeline(limit);
 
         for (let k in u_vo_holders) {
             let u_vo_holder = u_vo_holders[k];
 
-            if (promises.length >= limit) {
-                await all_promises(promises);
-                promises = [];
-            }
-
-            promises.push((async () => {
+            await promise_pipeline.push(async () => {
                 let tmp = await this.get_invalid_params_intersectors_on_POST_U(u_vo_holder);
                 if ((!tmp) || (!tmp.length)) {
                     return;
                 }
                 tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
-            })());
+            });
         }
 
-        await all_promises(promises);
+        await promise_pipeline.end();
 
         return Object.values(intersectors_by_index);
     }

@@ -13,6 +13,7 @@ import VarDataInvalidatorVO from '../../../shared/modules/Var/vos/VarDataInvalid
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
@@ -181,7 +182,7 @@ export default class VarsDatasVoUpdateHandler {
                 ConsoleHandler.warn("Cache des modifications de VO vidé. Prêt pour le redémarrage");
                 return;
             }
-            await ThreadHandler.getInstance().sleep(5000);
+            await ThreadHandler.sleep(5000);
             max_sleeps--;
             if (max_sleeps <= 0) {
                 throw new Error('Unable to force_empty_vars_datas_vo_update_cache');
@@ -274,8 +275,8 @@ export default class VarsDatasVoUpdateHandler {
             varindexes_by_api_type_id[var_to_delete._type].push(var_to_delete.index);
         }
 
-        let promises = [];
         let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
+        let promise_pipeline = new PromisePipeline(max);
 
         for (let api_type_id in varindexes_by_api_type_id) {
             let indexes = varindexes_by_api_type_id[api_type_id];
@@ -284,21 +285,14 @@ export default class VarsDatasVoUpdateHandler {
                 continue;
             }
 
-            if (promises.length >= max) {
-                await all_promises(promises);
-                promises = [];
-            }
-
-            promises.push((async () => {
+            await promise_pipeline.push(async () => {
                 let moduleTable = VOsTypesManager.moduleTables_by_voType[api_type_id];
                 let request = "DELETE FROM " + moduleTable.full_name + " WHERE _bdd_only_index in ('" + indexes.join("','") + "');";
                 await ModuleDAOServer.getInstance().query(request);
-            })());
+            });
         }
 
-        if (!!promises.length) {
-            await all_promises(promises);
-        }
+        await promise_pipeline.end();
     }
 
     /**
@@ -325,8 +319,8 @@ export default class VarsDatasVoUpdateHandler {
 
         let DEBUG_VARS = ConfigurationService.node_configuration.DEBUG_VARS;
 
-        let promises = [];
         let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
+        let promise_pipeline = new PromisePipeline(max);
 
         while (ObjectHandler.getInstance().hasAtLeastOneAttribute(intersectors_by_index)) {
             for (let i in intersectors_by_index) {
@@ -343,12 +337,7 @@ export default class VarsDatasVoUpdateHandler {
                     intersector, VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED, false,
                     invalidator.invalidate_denied, invalidator.invalidate_imports);
 
-                if (promises.length >= max) {
-                    await Promise.all(promises);
-                    promises = [];
-                }
-
-                promises.push((async () => {
+                await promise_pipeline.push(async () => {
 
                     let deps_intersectors = await this.get_deps_intersectors(intersector);
 
@@ -374,12 +363,10 @@ export default class VarsDatasVoUpdateHandler {
                         ConsoleHandler.log('invalidate_datas_and_parents:END SOLVING:' + intersector.index + ':');
                     }
                     delete intersectors_by_index[intersector.index];
-                })());
+                });
             }
 
-            if (promises && promises.length) {
-                await Promise.all(promises);
-            }
+            await promise_pipeline.end();
         }
     }
 
@@ -1154,9 +1141,8 @@ export default class VarsDatasVoUpdateHandler {
         let var_datas_by_index: { [index: string]: VarDataBaseVO } = {};
         let cached_by_index: { [index: string]: VarDataBaseVO } = {};
 
-        let promises = [];
-
         let max_connections_to_use: number = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL - 1));
+        let promise_pipeline = new PromisePipeline(max_connections_to_use);
 
         for (let var_id_s in invalidators_by_var_id) {
             let invalidators: VarDataInvalidatorVO[] = invalidators_by_var_id[var_id_s];
@@ -1165,13 +1151,8 @@ export default class VarsDatasVoUpdateHandler {
                 continue;
             }
 
-            if ((!!max_connections_to_use) && (promises.length >= max_connections_to_use)) {
-                await all_promises(promises);
-                promises = [];
-            }
-
             let self = this;
-            promises.push((async () => {
+            await promise_pipeline.push(async () => {
                 let tmp_var_datas: VarDataBaseVO[] = await self.load_invalidateds_from_bdd(invalidators);
 
                 if (tmp_var_datas && (tmp_var_datas.length > 0)) {
@@ -1180,9 +1161,9 @@ export default class VarsDatasVoUpdateHandler {
                         var_datas_by_index[var_data.index] = var_data;
                     }
                 }
-            })());
+            });
 
-            promises.push((async () => {
+            await promise_pipeline.push(async () => {
                 for (let i in invalidators) {
                     let invalidator = invalidators[i];
 
@@ -1194,13 +1175,10 @@ export default class VarsDatasVoUpdateHandler {
                         }
                     }
                 }
-            })());
+            });
         }
 
-        if (promises.length > 0) {
-            await all_promises(promises);
-            promises = [];
-        }
+        await promise_pipeline.end();
 
         await this.handle_invalidation(
             Object.values(var_datas_by_index),

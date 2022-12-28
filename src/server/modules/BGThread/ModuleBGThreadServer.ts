@@ -130,7 +130,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
 
         while (true) {
 
-            await ThreadHandler.getInstance().sleep(bgthread.current_timeout);
+            await ThreadHandler.sleep(bgthread.current_timeout);
 
             /**
              * On check le bloquage par param toutes les minutes
