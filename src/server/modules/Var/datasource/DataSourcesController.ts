@@ -49,7 +49,7 @@ export default class DataSourcesController {
 
             // Si on est sur du perf monitoring on doit faire les appels séparément...
             await promise_pipeline.push(async () => {
-                ds.load_node_data(node);
+                await ds.load_node_data(node);
             });
         }
 

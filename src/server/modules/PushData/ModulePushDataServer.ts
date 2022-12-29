@@ -80,6 +80,9 @@ export default class ModulePushDataServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Supprimer'
         }, 'UserNotifComponent.mark_as_read.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Télécharger'
+        }, 'notification.simple_downloadable_link.download.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Tout supprimer'

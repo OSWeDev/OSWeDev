@@ -1180,7 +1180,7 @@ export default class VarsComputeController {
             let var_to_deploy: VarDataBaseVO = vars_to_deploy[i];
 
             await promise_pipeline.push(async () => {
-                this.load_caches_and_imports_on_var_to_deploy(var_to_deploy, var_dag);
+                await this.load_caches_and_imports_on_var_to_deploy(var_to_deploy, var_dag);
             });
 
             if (var_dag.timed_out && !!var_dag.nb_nodes) {
@@ -1232,7 +1232,7 @@ export default class VarsComputeController {
             }
 
             await promise_pipeline.push(async () => {
-                this.deploy_deps_on_var_to_deploy(var_dag_node, var_dag);
+                await this.deploy_deps_on_var_to_deploy(var_dag_node, var_dag);
             });
         }
 

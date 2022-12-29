@@ -1278,7 +1278,6 @@ export default class ContextQueryServerController {
             if (!loaded) {
                 loaded = true;
                 uid = StackContext.get('UID');
-                user_data = uid ? await ServerBase.getInstance().getUserData(uid) : null;
                 user = await ModuleAccessPolicyServer.getInstance().getSelfUser();
                 user_roles_by_role_id = AccessPolicyServerController.getInstance().getUsersRoles(true, uid);
                 user_roles = ObjectHandler.getInstance().hasAtLeastOneAttribute(user_roles_by_role_id) ? Object.values(user_roles_by_role_id) : null;
@@ -1290,7 +1289,7 @@ export default class ContextQueryServerController {
                 let hook_cb = hook_cbs[j];
 
                 promises.push((async () => {
-                    let query_ = await hook_cb(module_table, uid, user, user_data, user_roles);
+                    let query_ = await hook_cb(module_table, uid, user, null, user_roles);
 
                     if (!query_) {
                         return;

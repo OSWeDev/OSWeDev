@@ -1907,7 +1907,8 @@ export default class TableWidgetComponent extends VueComponentBase {
                 param.active_api_type_ids,
                 param.discarded_field_paths,
                 param.is_secured,
-                param.file_access_policy_name
+                param.file_access_policy_name,
+                VueAppBase.getInstance().appController.data_user ? VueAppBase.getInstance().appController.data_user.id : null
             );
         }
     }

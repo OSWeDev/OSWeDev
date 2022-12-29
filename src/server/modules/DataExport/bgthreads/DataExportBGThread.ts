@@ -1,19 +1,15 @@
+import ContextFilterVO, { filter } from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import SortByVO from '../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import ExportHistoricVO from '../../../../shared/modules/DataExport/vos/ExportHistoricVO';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
-import ModuleDAOServer from '../../DAO/ModuleDAOServer';
+import PushDataServerController from '../../PushData/PushDataServerController';
 import DataExportServerController from '../DataExportServerController';
 import IExportableDatas from '../interfaces/IExportableDatas';
-import moment = require('moment');
-import ModulePushDataServer from '../../PushData/ModulePushDataServer';
-import PushDataServerController from '../../PushData/PushDataServerController';
-import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import RangeHandler from '../../../../shared/tools/RangeHandler';
-import ContextFilterVO, { filter } from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import SortByVO from '../../../../shared/modules/ContextFilter/vos/SortByVO';
 
 export default class DataExportBGThread implements IBGThread {
 

@@ -114,11 +114,6 @@ export default abstract class ServerBase {
         this.csrfProtection = csrf({ cookie: true });
     }
 
-    /* istanbul ignore next: nothing to test here */
-    public async getUserData(uid: number) {
-        return null;
-    }
-
     /* istanbul ignore next: FIXME Don't want to test this file, but there are many things that should be externalized in smaller files and tested */
     public async initializeNodeServer() {
 

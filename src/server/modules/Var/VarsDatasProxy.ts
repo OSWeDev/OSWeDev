@@ -230,7 +230,7 @@ export default class VarsDatasProxy {
             return;
         }
 
-        this.filter_var_datas_by_indexes(var_datas, null, null, false, 'append_var_datas:' + reason, false, false);
+        await this.filter_var_datas_by_indexes(var_datas, null, null, false, 'append_var_datas:' + reason, false, false);
     }
 
     /**
@@ -255,7 +255,7 @@ export default class VarsDatasProxy {
             return;
         }
 
-        this.filter_var_datas_by_indexes(var_datas, client_user_id, client_tab_id, is_server_request, 'prepend_var_datas:' + reason, false, does_not_need_insert_or_update);
+        await this.filter_var_datas_by_indexes(var_datas, client_user_id, client_tab_id, is_server_request, 'prepend_var_datas:' + reason, false, does_not_need_insert_or_update);
         if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
             ConsoleHandler.log("prepend_var_datas:OUT:" + var_datas.length + ":" + client_user_id + ":" + client_tab_id + ":" + is_server_request + ":" + reason);
         }
@@ -529,7 +529,7 @@ export default class VarsDatasProxy {
         }
 
         if (!!res) {
-            let cached_res: T[] = this.filter_var_datas_by_indexes([res], null, null, is_server_request, 'get_exact_param_from_buffer_or_bdd:' + reason, false, true) as T[];
+            let cached_res: T[] = await this.filter_var_datas_by_indexes([res], null, null, is_server_request, 'get_exact_param_from_buffer_or_bdd:' + reason, false, true) as T[];
             return cached_res[0];
         }
         return null;
@@ -629,7 +629,16 @@ export default class VarsDatasProxy {
             return;
         }
 
-        this.filter_var_datas_by_indexes(var_datas, null, null, false, 'update_existing_buffered_older_datas:' + reason, true, false);
+        for (let i in var_datas) {
+            let var_data = var_datas[i];
+            let wrapper = this.vars_datas_buffer_wrapped_indexes[var_data.index];
+            if (!wrapper) {
+                continue;
+            }
+
+            wrapper.var_data = var_data;
+            wrapper.reason = reason;
+        }
     }
 
     /**
@@ -770,7 +779,7 @@ export default class VarsDatasProxy {
      * @param var_datas
      * @returns list of var_datas, as found (or added) in the cache. if not on primary thread, might return less elements than the input list
      */
-    private filter_var_datas_by_indexes(var_datas: VarDataBaseVO[], client_user_id: number, client_socket_id: string, is_server_request: boolean, reason: string, donot_insert_if_absent: boolean, just_been_loaded_from_db: boolean): VarDataBaseVO[] {
+    private async filter_var_datas_by_indexes(var_datas: VarDataBaseVO[], client_user_id: number, client_socket_id: string, is_server_request: boolean, reason: string, donot_insert_if_absent: boolean, just_been_loaded_from_db: boolean): Promise<VarDataBaseVO[]> {
 
         let res: VarDataBaseVO[] = [];
 
@@ -798,34 +807,46 @@ export default class VarsDatasProxy {
                 let wrapper = this.vars_datas_buffer_wrapped_indexes[var_data.index];
                 res.push(wrapper.var_data);
 
+                // Si on avait un id et que la nouvelle valeur n'en a pas, on concerve l'id précieusement
+                if (var_data && wrapper.var_data && (!var_data.id) && (wrapper.var_data.id)) {
+                    var_data.id = wrapper.var_data.id;
+                }
+
                 /**
-                 * Si ça existe déjà dans la liste d'attente on l'ajoute pas mais on met à jour pour intégrer les calculs faits le cas échéant
-                 *  Si on vide le value_ts on prend la modif aussi ça veut dire qu'on invalide la valeur en cache
+                 * Si on demande avec un vardata quasi vide (sans valeur, sans value_ts) et que ça existe déjà dans le cache avec une valid value,
+                 *  on demande de notifier directement la var_data du cache.
                  */
-                if ((!var_data.value_ts) || ((!!var_data.value_ts) && ((!wrapper.var_data.value_ts) ||
-                    (var_data.value_ts && (wrapper.var_data.value_ts < var_data.value_ts))))) {
+                if ((!VarsServerController.getInstance().has_valid_value(var_data)) &&
+                    (VarsServerController.getInstance().has_valid_value(wrapper.var_data))) {
 
-                    // Si on avait un id et que la nouvelle valeur n'en a pas, on concerve l'id précieusement
-                    if ((!var_data.id) && (wrapper.var_data.id)) {
-                        var_data.id = wrapper.var_data.id;
-                    }
+                    await VarsTabsSubsController.getInstance().notify_vardatas(
+                        [new NotifVardatasParam([wrapper.var_data])]);
+                    await VarsServerCallBackSubsController.getInstance().notify_vardatas([wrapper.var_data]);
 
-                    // FIXME On devrait checker les champs pour voir si il y a une différence non ?
-                    // wrapper.needs_insert_or_update = !just_been_loaded_from_db;
+                    continue;
+                }
 
-                    // Si on dit qu'on vient de la charger de la base, on peut stocker l'info de dernière mise à jour en bdd
-                    if (just_been_loaded_from_db) {
-                        wrapper.last_insert_or_update = Dates.now();
-                        wrapper.update_timeout();
-                    }
+                /**
+                 * Sinon, si on a dans le cache une version incomplète (sans valeur, sans value_ts) et que la demande est complète (avec valeur, avec value_ts),
+                 * on met à jour la version du cache avec la demande
+                 */
+                if ((!VarsServerController.getInstance().has_valid_value(wrapper.var_data)) &&
+                    (VarsServerController.getInstance().has_valid_value(var_data))) {
+
                     wrapper.var_data = var_data;
-                    this.add_read_stat(wrapper);
-                    // On push pas puisque c'était déjà en attente d'action
+                }
 
-                    // Si on met en cache une data à calculer on s'assure qu'on a bien un calcul qui vient rapidement
-                    if (!VarsServerController.getInstance().has_valid_value(var_data)) {
-                        VarsdatasComputerBGThread.getInstance().force_run_asap();
-                    }
+                // Si on dit qu'on vient de la charger de la base, on peut stocker l'info de dernière mise à jour en bdd
+                if (just_been_loaded_from_db) {
+                    wrapper.last_insert_or_update = Dates.now();
+                    wrapper.update_timeout();
+                }
+
+                this.add_read_stat(wrapper);
+
+                // Si on met en cache une data à calculer on s'assure qu'on a bien un calcul qui vient rapidement
+                if (!VarsServerController.getInstance().has_valid_value(wrapper.var_data)) {
+                    VarsdatasComputerBGThread.getInstance().force_run_asap();
                 }
                 continue;
             }

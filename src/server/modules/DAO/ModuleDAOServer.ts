@@ -2103,8 +2103,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let hook = hooks[i];
 
             let uid: number = StackContext.get('UID');
-            let user_data = uid ? await ServerBase.getInstance().getUserData(uid) : null;
-            vos = await hook(datatable, vos, uid, user_data) as T[];
+            vos = await hook(datatable, vos, uid, null) as T[];
         }
 
         if (vos && vos.length && !this.checkAccessSync(datatable, ModuleDAO.DAO_ACCESS_TYPE_READ)) {
@@ -2989,8 +2988,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let hook = hooks[i];
 
             let uid: number = StackContext.get('UID');
-            let user_data = uid ? await ServerBase.getInstance().getUserData(uid) : null;
-            let filtered: T[] = await hook(datatable, (((typeof vo != 'undefined') && (vo != null)) ? [vo] : null), uid, user_data) as T[];
+            let filtered: T[] = await hook(datatable, (((typeof vo != 'undefined') && (vo != null)) ? [vo] : null), uid, null) as T[];
 
             if ((!filtered) || (!filtered.length)) {
                 return null;

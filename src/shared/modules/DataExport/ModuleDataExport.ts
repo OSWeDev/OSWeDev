@@ -54,7 +54,8 @@ export default class ModuleDataExport extends Module {
         discarded_field_paths?: { [vo_type: string]: { [field_id: string]: boolean } },
 
         is_secured?: boolean,
-        file_access_policy_name?: string
+        file_access_policy_name?: string,
+        target_user_id?: number
     ) => Promise<string> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVO);
     public exportContextQueryToXLSXFile: (
         filename: string,
@@ -71,7 +72,9 @@ export default class ModuleDataExport extends Module {
         discarded_field_paths?: { [vo_type: string]: { [field_id: string]: boolean } },
 
         is_secured?: boolean,
-        file_access_policy_name?: string) => Promise<FileVO> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVOFile);
+        file_access_policy_name?: string,
+        target_user_id?: number
+    ) => Promise<FileVO> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVOFile);
 
     public exportDataToXLSX: (
         filename: string,

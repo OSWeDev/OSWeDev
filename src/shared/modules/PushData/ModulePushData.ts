@@ -68,6 +68,8 @@ export default class ModulePushData extends Module {
             }),
             new ModuleTableField('simple_notif_label', ModuleTableField.FIELD_TYPE_translatable_text, 'Msg Translatable'),
             new ModuleTableField('simple_notif_json_params', ModuleTableField.FIELD_TYPE_string, 'Params JSON', false, true, null),
+            new ModuleTableField('simple_downloadable_link', ModuleTableField.FIELD_TYPE_string, 'Lien téléchargeable', false, true, null),
+
             new ModuleTableField('dao_notif_type', ModuleTableField.FIELD_TYPE_enum, 'Dao Type').setEnumValues({
                 [NotificationVO.DAO_GET_VO_BY_ID]: NotificationVO.DAO_NAMES[NotificationVO.DAO_GET_VO_BY_ID],
                 [NotificationVO.DAO_GET_VOS]: NotificationVO.DAO_NAMES[NotificationVO.DAO_GET_VOS]

@@ -20,12 +20,13 @@ export default class ExportContextQueryToXLSXParamVO implements IAPIParamTransla
         active_api_type_ids: string[] = null,
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
         is_secured: boolean = false,
-        file_access_policy_name: string = null
+        file_access_policy_name: string = null,
+        target_user_id: number = null
     ): ExportContextQueryToXLSXParamVO {
 
         return new ExportContextQueryToXLSXParamVO(
             filename, context_query, ordered_column_list, column_labels, exportable_datatable_custom_field_columns, columns, varcolumn_conf,
-            active_field_filters, custom_filters, active_api_type_ids, discarded_field_paths, is_secured, file_access_policy_name);
+            active_field_filters, custom_filters, active_api_type_ids, discarded_field_paths, is_secured, file_access_policy_name, target_user_id);
     }
 
     public static getAPIParams(param: ExportContextQueryToXLSXParamVO): any[] {
@@ -42,7 +43,8 @@ export default class ExportContextQueryToXLSXParamVO implements IAPIParamTransla
             param.active_api_type_ids,
             param.discarded_field_paths,
             param.is_secured,
-            param.file_access_policy_name
+            param.file_access_policy_name,
+            param.target_user_id
         ];
     }
 
@@ -61,7 +63,8 @@ export default class ExportContextQueryToXLSXParamVO implements IAPIParamTransla
         public discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
 
         public is_secured: boolean = false,
-        public file_access_policy_name: string = null
+        public file_access_policy_name: string = null,
+        public target_user_id: number = null
     ) { }
 }
 
