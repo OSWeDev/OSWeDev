@@ -6,7 +6,7 @@ include ../../../../../views/mixins/loading.pug
 
             template(v-if='loaded_once && is_busy')
                 .is_busy 
-                    i.fa.fa-refresh.fa-spin(aria-hidden="true")
+                    i.fa-solid.fa-refresh.fa-spin(aria-hidden="true")
 
             .row.row_field
                 .col-sm-5.field_id_selection 
@@ -123,5 +123,5 @@ include ../../../../../views/mixins/loading.pug
             .row.button_confirm_bulkops
                 .col-sm-12.text-center
                     button.btn.btn-sm.btn-primary(@click='confirm_bulkops')
-                        i.fa.fa-cogs.fa-lg.btn_icon(aria-hidden="true")
+                        i.fa-solid.fa-cogs.fa-lg.btn_icon(aria-hidden="true")
                         | {{ label('bulkops.actions.confirm_bulkops') }}

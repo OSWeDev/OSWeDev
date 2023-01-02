@@ -6,6 +6,8 @@ import ContextFilterHandler from '../../../../../../../shared/modules/ContextFil
 import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO, { filter } from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
+
 import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
@@ -23,12 +25,14 @@ import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import TypesHandler from '../../../../../../../shared/tools/TypesHandler';
 import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../../VueComponentBase';
+
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
 import FieldValueFilterWidgetOptions from '../options/FieldValueFilterWidgetOptions';
 import AdvancedStringFilter from './AdvancedStringFilter';
 import './FieldValueFilterStringWidgetComponent.scss';
+import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
 
 @Component({
     template: require('./FieldValueFilterStringWidgetComponent.pug'),
@@ -52,6 +56,10 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
     private set_widget_invisibility: (w_id: number) => void;
     @ModuleDashboardPageAction
     private set_widget_visibility: (w_id: number) => void;
+    @ModuleDashboardPageAction
+    private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
+    @ModuleDroppableVoFieldsAction
+    private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
@@ -67,6 +75,9 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
     @Prop({ default: null })
     private dashboard_page: DashboardPageVO;
+
+    private changement_default: boolean = false; //Attribut pour reaffecter les valeurs par défaut lorsqu'elles sont modifiées.
+
 
     private tmp_filter_active_options: DataFilterOption[] = [];
     private tmp_filter_active_options_lvl2: { [filter_opt_value: string]: DataFilterOption[] } = {};
@@ -115,8 +126,13 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             if (isEqual(this.widget_options, this.old_widget_options)) {
                 return;
             }
-        }
 
+        }
+        try {
+            if (!isEqual(this.widget_options.default_filter_opt_values, this.old_widget_options.default_filter_opt_values)) {
+                this.changement_default = true;
+            }
+        } catch { }
         this.old_widget_options = cloneDeep(this.widget_options);
 
         this.is_init = false;
@@ -134,7 +150,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
     }
 
     @Watch('tmp_filter_active_options')
-    private onchange_tmp_filter_active_options() {
+    private async onchange_tmp_filter_active_options() {
 
         if (!this.widget_options) {
             return;
@@ -171,6 +187,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                 this.tmp_filter_active_options_lvl2 = new_tmp_filter_active_options_lvl2;
                 return;
             }
+
         }
 
         // Si on a un lvl2, on va filtrer par leurs valeurs donc on va dans l'autre fonction
@@ -179,12 +196,15 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             return;
         }
 
+
         this.set_active_field_filter({
             field_id: this.vo_field_ref.field_id,
             vo_type: this.vo_field_ref.api_type_id,
             active_field_filter: this.get_active_field_filter(this.vo_field_ref, this.tmp_filter_active_options),
         });
     }
+
+
 
     @Watch('tmp_filter_active_options_lvl2')
     private onchange_tmp_filter_active_options_lvl2() {
@@ -252,6 +272,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             vo_type: this.vo_field_ref.api_type_id
         });
     }
+
 
     private get_active_field_filter(vo_field_ref: VOFieldRefVO, tmp_filter_active_options: DataFilterOption[]): ContextFilterVO {
         let res: ContextFilterVO[] = [];
@@ -525,6 +546,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         await this.throttled_update_visible_options();
     }
 
+
     private async update_visible_options() {
 
         let launch_cpt: number = (this.last_calculation_cpt + 1);
@@ -549,9 +571,23 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                     this.dashboard_page,
                     this.page_widget,
                     true
-                );
+                ); //Si on a des valeurs par défaut mais qu'aucune n'ont été changée et qu'on a des champs déjà remplis auparavant
+                if (this.get_active_field_filters && this.get_active_field_filters[this.vo_field_ref.api_type_id] &&
+                    this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id] && !this.changement_default) {
 
-                this.tmp_filter_active_options = this.default_values;
+                    /**
+                     * On essaye d'appliquer les filtres. Si on peut pas appliquer un filtre, on garde l'info pour afficher une petite alerte
+                     * Cela a lieu lors d'un changement de page par exemple
+                     */
+                    this.warn_existing_external_filters = !this.try_apply_actual_active_filters(this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id]);
+                } else { //Si il y a eu changement de val par défaut ou aucun champs remplit avec d'autre valeurs
+                    this.tmp_filter_active_options = this.default_values;
+                    this.changement_default = false;
+                }
+                return;
+
+            } else if (this.changement_default) {
+                this.tmp_filter_active_options = null;
                 return;
             }
         }
@@ -1557,6 +1593,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                     options.vo_field_sort_lvl2,
                     options.autovalidate_advanced_filter,
                     options.add_is_null_selectable,
+                    options.previous_tmp_filter_opt_values
                 ) : null;
             }
         } catch (error) {

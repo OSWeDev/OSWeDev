@@ -3,7 +3,7 @@
         .col-sm-2
         .col-sm-8
             img(v-if="img_type == img_type_img", :src="img_src")
-            i.fa.hidden-print(v-if="img_type == img_type_icon", :class="'fa-' + img_src")
+            i.fa-solid.hidden-print(v-if="img_type == img_type_icon", :class="'fa-' + img_src")
         .col-sm-2
     .row.text-center
         h4 {{ t(title) }}

@@ -187,6 +187,14 @@ export default abstract class VueAppBase {
             }
         );
 
+        // Vu avec MDE -> on laisse le script en load public pour le moment sinon il faut faire la modification dans tous les projets
+        const fontawesome = document.createElement("script");
+        fontawesome.setAttribute(
+            "src",
+            "//kit.fontawesome.com/26085407f2.js"
+        );
+        document.head.appendChild(fontawesome);
+
         Vue.config.keyCodes.page_up = 33;
         Vue.config.keyCodes.page_down = 34;
 

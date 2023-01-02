@@ -1,5 +1,5 @@
 import Component from 'vue-class-component';
-import { Prop } from 'vue-property-decorator';
+import { Prop, Watch } from 'vue-property-decorator';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
@@ -15,6 +15,7 @@ import './FieldValueFilterWidgetComponent.scss';
 import FieldValueFilterNumberWidgetComponent from './number/FieldValueFilterNumberWidgetComponent';
 import FieldValueFilterWidgetOptions from './options/FieldValueFilterWidgetOptions';
 import FieldValueFilterStringWidgetComponent from './string/FieldValueFilterStringWidgetComponent';
+import DataFilterOption from '../../../../../../shared/modules/DataRender/vos/DataFilterOption';
 
 @Component({
     template: require('./FieldValueFilterWidgetComponent.pug'),
@@ -39,6 +40,7 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
 
     @Prop({ default: null })
     private dashboard_page: DashboardPageVO;
+
 
     get is_type_boolean(): boolean {
 
@@ -209,6 +211,7 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
         if (!this.page_widget) {
             return null;
         }
+
 
         let options: FieldValueFilterWidgetOptions = null;
         try {

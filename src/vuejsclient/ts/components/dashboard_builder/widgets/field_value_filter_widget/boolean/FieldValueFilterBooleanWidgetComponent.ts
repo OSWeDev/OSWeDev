@@ -42,6 +42,8 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
     @Prop({ default: null })
     private dashboard_page: DashboardPageVO;
 
+    private changement_default: boolean = false; //Attribut pour reaffecter les valeurs par défaut lorsqu'elles sont modifiées.
+
     private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
 
     private boolean_filter_types: number[] = [];
@@ -85,11 +87,26 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
     private async update_visible_options() {
         // Si on a des valeurs par défaut, on va faire l'init
         if (this.is_init && this.default_values && (this.default_values.length > 0)) {
-            this.is_init = false;
-            this.boolean_filter_types = this.default_values;
-            return;
-        }
+            //Si on a des valeurs par défaut mais qu'aucune n'ont été changée et qu'on a des champs déjà remplis auparavant
+            if (this.get_active_field_filters && this.get_active_field_filters[this.vo_field_ref.api_type_id] &&
+                this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id] && !this.changement_default) {
 
+                /**
+                 * On essaye d'appliquer les filtres. Si on peut pas appliquer un filtre, on garde l'info pour afficher une petite alerte
+                 * Cela a lieu lors d'un changement de page par exemple
+                 */
+                this.try_apply_actual_active_filters(this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id]);
+            } else { //Si il y a eu changement de val par défaut ou aucun champs remplit avec d'autre valeurs
+                this.is_init = false;
+                this.boolean_filter_types = this.default_values;
+                this.changement_default = false;
+            }
+            return;
+
+
+        } else if (this.changement_default) {
+            this.boolean_filter_types = null;
+        }
         /**
          * Cas où l'on réinit un filter alors qu'on a déjà un filtre actif enregistré (retour sur la page du filtre typiquement)
          */
@@ -125,6 +142,12 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
                 return;
             }
         }
+
+        try {
+            if (!isEqual(this.widget_options.default_filter_opt_values, this.old_widget_options.default_filter_opt_values)) {
+                this.changement_default = true;
+            }
+        } catch { }
 
         this.old_widget_options = cloneDeep(this.widget_options);
         this.is_init = true;

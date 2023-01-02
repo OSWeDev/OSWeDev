@@ -13,6 +13,6 @@
     .tables_graph_edit_form_cell(v-if="cellData && cellData.value && !cellData.edge")           
         .name {{ cell_name }}
         .delete(@click='confirm_delete_cell')
-            i.fa.fa-trash.fa-fw(aria-hidden="true")
+            i.fa-solid.fa-trash.fa-fw(aria-hidden="true")
             | {{ label('tables_graph_edit_form.delete') }}
     .tables_graph_edit_form_cell(v-else) {{ label('tables_graph_edit_form.no_object_selected') }}

@@ -137,7 +137,7 @@ export default class ContextFilterTestsTools {
             new ModuleTableField('lastname', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': 'Nom' }), false),
             new ModuleTableField('email', ModuleTableField.FIELD_TYPE_email, new DefaultTranslation({ 'fr-fr': 'E-mail' }), true),
             new ModuleTableField('phone', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': 'Téléphone' })),
-            new ModuleTableField('blocked', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ 'fr-fr': 'Compte blocké' }), true, true, false),
+            new ModuleTableField('blocked', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ 'fr-fr': 'Compte bloqué' }), true, true, false),
             new ModuleTableField('password', ModuleTableField.FIELD_TYPE_password, new DefaultTranslation({ 'fr-fr': 'Mot de passe' }), true),
             new ModuleTableField('password_change_date', ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ 'fr-fr': 'Date de changement du mot de passe' }), false),
             new ModuleTableField('reminded_pwd_1', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ 'fr-fr': 'Premier rappel envoyé' }), true, true, false),

@@ -43,7 +43,7 @@ include ../../../../views/mixins/loading.pug
 
                     tr.clickable(v-for="program in programs_by_category[programs_category.id]" v-if='program.nb_targets > 0' @click="open_program(program)")
                         td.bold {{ program.name }}
-                            i.fa.fa-calendar.pull-left(aria-hidden="true")
+                            i.fa-solid.fa-calendar.pull-left(aria-hidden="true")
                         td {{ program.days_by_target }}
                         td {{ program.nb_targets }}
                         td {{ program.nb_targets * program.days_by_target }}

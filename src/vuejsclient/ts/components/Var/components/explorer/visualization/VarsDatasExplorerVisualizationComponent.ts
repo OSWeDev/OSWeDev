@@ -4,6 +4,7 @@ import VarDataBaseVO from '../../../../../../../shared/modules/Var/vos/VarDataBa
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../../store/VarStore';
+import VarsClientController from '../../../VarsClientController';
 import { ModuleVarsDatasExplorerVuexAction, ModuleVarsDatasExplorerVuexGetter } from '../VarsDatasExplorerVuexStore';
 import './VarsDatasExplorerVisualizationComponent.scss';
 
@@ -51,34 +52,51 @@ export default class VarsDatasExplorerVisualizationComponent extends VueComponen
     }
 
     private async display_all_index() {
-        let each_line_of_textarea = this.multi_param_index.split('\n');
-        let array_of_datas = [];
-        let array_of_promise = [];
-        each_line_of_textarea.forEach((index: string) => {
-            let datass: any = ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString('crescendo_day_dr', null, null, '_bdd_only_index', [index]);
-            array_of_promise.push(datass);
-        });
-        await Promise.all(array_of_promise).then((datas: any) => {
-            array_of_datas = datas;
-        });
-        let res: { [index: string]: VarDataBaseVO } = {};
-        let current_index: string;
+
+        //Si le champs est vide ou incohérent, on réinitialise les résultats.
+        if (this.multi_param_index == null) {
+            this.set_filtered_datas({});
+            return;
+        }
 
         try {
-            for (let i in array_of_datas) {
-                current_index = i;
-                let filter_param = array_of_datas[i][0];
-                res[filter_param.index] = filter_param;
-            }
-            this.error_data = null;
+            let each_line_of_textarea = this.multi_param_index.split('\n');
+            let array_of_datas = [];
+            let array_of_promise = [];
 
-            this.display_data = true;
-            this.set_filtered_datas(res);
+
+            each_line_of_textarea.forEach((index: string) => {
+                //let datass: any = ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString('crescendo_day_dr', null, null, '_bdd_only_index', [index]);
+                let var_param = VarsClientController.getInstance().registered_var_params[index]['var_param'];
+
+                array_of_promise.push(var_param);
+            });
+            await Promise.all(array_of_promise).then((datas: any) => {
+                array_of_datas = datas;
+            });
+            let res: { [index: string]: VarDataBaseVO } = {};
+            let current_index: string;
+
+            try {
+                for (let i in array_of_datas) {
+                    current_index = i;
+                    let filter_param = array_of_datas[i];
+                    res[filter_param.index] = filter_param;
+                }
+                this.error_data = null;
+
+                this.display_data = true;
+                this.set_filtered_datas(res);
+            } catch {
+                console.log("L'index numéro %i est inexistant  !", current_index);
+                this.error_data = current_index; //Il y a une erreur de saisie d'index
+                this.display_data = true;
+            }
         } catch {
-            console.log("L'index numéro %i est inexistant  !", current_index);
-            this.error_data = current_index; //Il y a une erreur de saisie d'index
-            this.display_data = true;
+            this.set_filtered_datas({});
+            return;
         }
+
     }
 
 
