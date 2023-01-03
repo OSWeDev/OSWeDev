@@ -185,7 +185,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
                     let min_period: number = RangeHandler.getInstance().getSegmentedMin(field_value, null, 0, moduleTableField.return_min_value);
                     if (min_period) {
-                        res_tsrange.push(ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(min_period));
+                        res_tsrange.push(Dates.format_segment(min_period, moduleTableField.segmentation_type, moduleTableField.format_localized_time));
                         none = false;
                     } else {
                         res_tsrange.push('');
@@ -194,8 +194,11 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     let max_period: number = RangeHandler.getInstance().getSegmentedMax(field_value, null, 0, moduleTableField.return_max_value);
 
                     if (max_period) {
-                        res_tsrange.push(ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(max_period));
-                        none = false;
+                        // Si mon max est différent du min, j'ajoute, sinon ça ne sert à rien car ça affiche en double
+                        if (max_period != min_period) {
+                            res_tsrange.push(Dates.format_segment(max_period, moduleTableField.segmentation_type, moduleTableField.format_localized_time));
+                            none = false;
+                        }
                     } else {
                         res_tsrange.push('');
                     }
@@ -219,8 +222,10 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     let max_number: number = RangeHandler.getInstance().getSegmentedMax(field_value, null, 0, moduleTableField.return_max_value);
 
                     if (max_number) {
-                        res_numrange.push(max_number.toFixed(0));
-                        none_number = false;
+                        if (max_number.toFixed(0) != min_number.toFixed(0)) {
+                            res_numrange.push(max_number.toFixed(0));
+                            none_number = false;
+                        }
                     } else {
                         res_numrange.push('');
                     }

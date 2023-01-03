@@ -1410,6 +1410,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
 
         switch (field.field_type) {
             case ModuleTableField.FIELD_TYPE_tstz:
+            case ModuleTableField.FIELD_TYPE_tsrange:
+            case ModuleTableField.FIELD_TYPE_tstzrange_array:
+            case ModuleTableField.FIELD_TYPE_tstz_array:
                 return true;
         }
     }
