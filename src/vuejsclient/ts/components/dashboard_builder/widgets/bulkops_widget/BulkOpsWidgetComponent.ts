@@ -281,11 +281,26 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             let cloned_raw = cloneDeep(row);
             let cloned_res = cloneDeep(row);
             cloned_raw[this.field_id_selected] = this.new_value;
-            await DatatableRowController.getInstance().get_datatable_row_field_data_async(cloned_raw, cloned_res, this.get_datatable_row_editable_field, null);
+            await ContextFilterHandler.getInstance().get_datatable_row_field_data_async(cloned_raw, cloned_res, this.get_datatable_row_editable_field);
             res.push(cloned_res);
         }
 
         this.data_rows_after = res;
+    }
+
+    get columns_by_field_id(): { [datatable_field_uid: string]: TableColumnDescVO } {
+        if (!this.columns) {
+            return null;
+        }
+
+        let res: { [datatable_field_uid: string]: TableColumnDescVO } = {};
+
+        for (let i in this.columns) {
+            let col = this.columns[i];
+            res[col.datatable_field_uid] = col;
+        }
+
+        return res;
     }
 
     private async update_visible_options() {
@@ -339,9 +354,9 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
                 continue;
             }
 
-            if (this.dashboard.api_type_ids.indexOf(field.moduleTable.vo_type) < 0) {
+            if (this.dashboard.api_type_ids.indexOf(field.vo_type_id) < 0) {
                 ConsoleHandler.warn('select_datatable_rows: asking for datas from types not included in request:' +
-                    field.datatable_field_uid + ':' + field.moduleTable.vo_type);
+                    field.datatable_field_uid + ':' + field.vo_type_id);
                 this.data_rows = [];
                 this.loaded_once = true;
                 this.is_busy = false;
@@ -349,14 +364,19 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             }
 
             if (!query_.base_api_type_id) {
-                query_.base_api_type_id = field.moduleTable.vo_type;
+                query_.base_api_type_id = field.vo_type_id;
             }
 
-            query_.add_fields([new ContextQueryFieldVO(field.moduleTable.vo_type, field.module_table_field_id, field.datatable_field_uid)]);
+            query_.add_fields([new ContextQueryFieldVO(field.vo_type_id, field.module_table_field_id, field.datatable_field_uid)]);
         }
 
+        let fields: { [datatable_field_uid: number]: DatatableField<any, any> } = {};
+        for (let i in this.fields) {
+            let field = this.fields[i];
+            fields[field.datatable_field_uid] = field;
+        }
 
-        let rows = await ModuleContextFilter.getInstance().select_datatable_rows(query_);
+        let rows = await ModuleContextFilter.getInstance().select_datatable_rows(query_, this.columns_by_field_id, fields);
 
         // Si je ne suis pas sur la dernière demande, je me casse
         if (this.last_calculation_cpt != launch_cpt) {
@@ -375,7 +395,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             for (let j in this.fields) {
                 let field = this.fields[j];
 
-                promises.push(DatatableRowController.getInstance().get_datatable_row_field_data_async(row, resData, field, null));
+                promises.push(ContextFilterHandler.getInstance().get_datatable_row_field_data_async(row, resData, field));
             }
             data_rows.push(resData);
         }

@@ -29,7 +29,7 @@ import cloneDeep = require('lodash/cloneDeep');
 export default class ModuleTable<T extends IDistantVOBase> {
 
     public static defaultforceNumeric<T extends IDistantVOBase>(e: T) {
-        if (!e) {
+        if (e == null) {
             return null;
         }
         if (!e._type) {
@@ -149,7 +149,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
      * des méthodes sur les vos et de l'héritage de vo normalement ... théoriquement
      */
     public static default_from_api_version<T extends IDistantVOBase>(e: any): T {
-        if (!e) {
+        if (e == null) {
             return null;
         }
 
@@ -910,7 +910,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
             case ModuleTableField.FIELD_TYPE_plain_vo_obj:
 
-                if (!e || (e == '{}')) {
+                if ((e == null) || (e == '{}')) {
                     return null;
                 }
 

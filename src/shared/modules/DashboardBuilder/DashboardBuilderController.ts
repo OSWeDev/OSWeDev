@@ -87,6 +87,13 @@ export default class DashboardBuilderController {
                 continue;
             }
 
+            /**
+             * Si on est sur une aggrégation, on doit ignorer le filtrage sur cette colonne
+             */
+            if (column.many_to_many_aggregate) {
+                continue;
+            }
+
             if (!context[column.api_type_id]) {
                 context[column.api_type_id] = {};
             }
@@ -117,7 +124,7 @@ export default class DashboardBuilderController {
         let moduletable = VOsTypesManager.moduleTables_by_voType[column.api_type_id];
         let field = moduletable.get_field_by_id(column.field_id);
 
-        if (row_value[column.datatable_field_uid] == null) {
+        if (row_value[column.datatable_field_uid + '__raw'] == null) {
             translated_active_options = filter(column.api_type_id, column.field_id).is_null();
         } else {
             switch (field.field_type) {
@@ -143,13 +150,13 @@ export default class DashboardBuilderController {
                     if (Array.isArray(row_value[column.datatable_field_uid + '__raw'])) {
                         translated_active_options = filter(column.api_type_id, column.field_id).by_num_has(row_value[column.datatable_field_uid + '__raw']);
                     } else {
-                        translated_active_options = filter(column.api_type_id, column.field_id).by_num_eq(row_value[column.datatable_field_uid]);
+                        translated_active_options = filter(column.api_type_id, column.field_id).by_num_eq(row_value[column.datatable_field_uid + '__raw']);
                     }
 
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstz:
-                    translated_active_options = filter(column.api_type_id, column.field_id).by_date_eq(row_value[column.datatable_field_uid]);
+                    translated_active_options = filter(column.api_type_id, column.field_id).by_date_eq(row_value[column.datatable_field_uid + '__raw']);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_html:
@@ -166,7 +173,7 @@ export default class DashboardBuilderController {
                     if (Array.isArray(row_value[column.datatable_field_uid + '__raw'])) {
                         translated_active_options = filter(column.api_type_id, column.field_id).by_text_has(row_value[column.datatable_field_uid + '__raw']);
                     } else {
-                        translated_active_options = filter(column.api_type_id, column.field_id).by_text_eq(row_value[column.datatable_field_uid]);
+                        translated_active_options = filter(column.api_type_id, column.field_id).by_text_eq(row_value[column.datatable_field_uid + '__raw']);
                     }
                     break;
 
@@ -175,7 +182,7 @@ export default class DashboardBuilderController {
                     throw new Error('Not Implemented');
 
                 case ModuleTableField.FIELD_TYPE_boolean:
-                    if (!!row_value[column.datatable_field_uid]) {
+                    if (!!row_value[column.datatable_field_uid + '__raw']) {
                         translated_active_options = filter(column.api_type_id, column.field_id).is_true();
                     } else {
                         translated_active_options = filter(column.api_type_id, column.field_id).is_false();
@@ -196,7 +203,11 @@ export default class DashboardBuilderController {
                     throw new Error('Not Implemented');
 
                 case ModuleTableField.FIELD_TYPE_tsrange:
-                    throw new Error('Not Implemented');
+
+                    if (row_value[column.datatable_field_uid + '__raw'] != null) {
+                        translated_active_options = filter(column.api_type_id, column.field_id).by_num_x_ranges([row_value[column.datatable_field_uid + '__raw']]);
+                    }
+                    break;
 
                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
                     throw new Error('Not Implemented');
@@ -215,7 +226,7 @@ export default class DashboardBuilderController {
                 case ModuleTableField.FIELD_TYPE_date:
                 case ModuleTableField.FIELD_TYPE_day:
                 case ModuleTableField.FIELD_TYPE_month:
-                    translated_active_options = filter(column.api_type_id, column.field_id).by_date_eq(row_value[column.datatable_field_uid]);
+                    translated_active_options = filter(column.api_type_id, column.field_id).by_date_eq(row_value[column.datatable_field_uid + '__raw']);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_timewithouttimezone:

@@ -1,15 +1,16 @@
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../shared/modules/ModuleTable';
-import ObjectHandler from '../../../../tools/ObjectHandler';
 import WeightHandler from '../../../../tools/WeightHandler';
 import Alert from '../../../Alert/vos/Alert';
 import ModuleTableField from '../../../ModuleTableField';
+import DefaultTranslation from '../../../Translation/vos/DefaultTranslation';
+import VOsTypesManager from '../../../VOsTypesManager';
 import ICRUDComponentField from '../../interface/ICRUDComponentField';
 
 /**
  * On utilise le design pattern Fluent_interface : https://en.wikipedia.org/wiki/Fluent_interface
  */
-export default abstract class DatatableField<T, U> {
+export default abstract class DatatableField<T, U> implements IDistantVOBase {
 
     public static REF_RANGES_FIELD_TYPE: string = "RefRanges";
     public static MANY_TO_MANY_FIELD_TYPE: string = "ManyToMany";
@@ -30,14 +31,16 @@ export default abstract class DatatableField<T, U> {
 
     public static computed_value: { [datatable_field_uid: string]: (field_value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase, datatable_field_uid: string) => any } = {};
 
+    /**
+     * Field uniquement côté client..... a voir si on a pas plus propre comme système
+     */
     public vue_component: ICRUDComponentField = null;
 
-    /**
-     * Il faudrait employer des slots ou des composants vue directement
-     */
-    public uiFieldComponent: any;
+    public id: number;
+    public _type: string;
 
-    public moduleTable: ModuleTable<any>;
+    public _vo_type_id: string;
+    public vo_type_full_name: string;
 
     public tooltip: string = null;
 
@@ -82,7 +85,9 @@ export default abstract class DatatableField<T, U> {
      * BEWARE : Only update for view datatables purposes with viewing multiple times the same field, on different angles.
      * On create or update tables, let it same as datatable_field_uid
      */
-    public module_table_field_id: string;
+    public _module_table_field_id: string;
+
+    abstract get translatable_title(): string;
 
     public validate: (data: any) => string;
     public onChange: (vo: IDistantVOBase) => void;
@@ -106,18 +111,45 @@ export default abstract class DatatableField<T, U> {
      * @param datatable_field_uid uid au sein de la datatable pour ce field. Permet d'identifier la colonne. Un nom compatible avec un nom de field
      * @param translatable_title Le titre du field, à passer à la traduction au dernier moment
      */
-    protected constructor(public type: string, public datatable_field_uid: string, public translatable_title: string = null) {
-        this.module_table_field_id = this.datatable_field_uid;
-        this.validate = null;
-        this.onChange = null;
-        this.onEndOfChange = null;
-        this.isVisibleUpdateOrCreate = () => true;
+    public type: string;
+    public datatable_field_uid: string;
+
+    get module_table_field_id(): string {
+        return this._module_table_field_id;
+    }
+
+    set module_table_field_id(module_table_field_id: string) {
+        this._module_table_field_id = module_table_field_id;
+
+        this.update_moduleTableField();
+    }
+
+    public setModuleTable(moduleTable: ModuleTable<any>): this {
+        this.vo_type_full_name = moduleTable.full_name;
+        this.vo_type_id = moduleTable.vo_type;
+        return this;
+    }
+
+    get vo_type_id(): string {
+        return this._vo_type_id;
+    }
+
+    set vo_type_id(vo_type_id: string) {
+        this._vo_type_id = vo_type_id;
+        this.update_moduleTableField();
+    }
+
+    get moduleTableField(): ModuleTableField<T> {
+        if (!this.vo_type_id) {
+            return null;
+        }
+        return VOsTypesManager.moduleTables_by_voType[this.vo_type_id].getFieldFromId(this.module_table_field_id);
     }
 
     public auto_update_datatable_field_uid_with_vo_type() {
         if (!this.semaphore_auto_update_datatable_field_uid_with_vo_type) {
             this.semaphore_auto_update_datatable_field_uid_with_vo_type = true;
-            this.datatable_field_uid = (this.moduleTable ? this.moduleTable.vo_type : this.type) + '___' + this.datatable_field_uid;
+            this.datatable_field_uid = (this.vo_type_id ? this.vo_type_id : this.type) + '___' + this.datatable_field_uid;
         }
         return this;
     }
@@ -249,15 +281,12 @@ export default abstract class DatatableField<T, U> {
         return this;
     }
 
-
     /**
      * BEWARE : Only update for view datatables purposes with viewing multiple times the same field, on different angles.
      * On create or update tables, let it same as module_table_field_id
      */
     public setUID_for_readDuplicateOnly(datatable_field_uid: string): this {
         this.datatable_field_uid = datatable_field_uid;
-
-        // TODO FIXME FORCE READONLY ???
         return this;
     }
 
@@ -286,13 +315,11 @@ export default abstract class DatatableField<T, U> {
     }
 
     get alert_path(): string {
-        if (!this.moduleTable) {
+        if (!this.vo_type_full_name) {
             return this.datatable_field_uid;
         }
-        return this.moduleTable.full_name + '.' + this.datatable_field_uid;
+        return this.vo_type_full_name + '.' + this.datatable_field_uid;
     }
-
-    public abstract setModuleTable(moduleTable: ModuleTable<any>): DatatableField<T, U>;
 
     /**
      * A modifier pour gérer le dataToIHM en fonction des types d'entrée sortie.
@@ -372,5 +399,23 @@ export default abstract class DatatableField<T, U> {
         DatatableField.computed_value[this.datatable_field_uid] = computed_value;
 
         return this;
+    }
+
+    protected init(_type: string, type: string, datatable_field_uid: string) {
+        this._type = _type;
+        this.type = type;
+        this.datatable_field_uid = datatable_field_uid;
+        this.module_table_field_id = datatable_field_uid;
+        this.validate = null;
+        this.onChange = null;
+        this.onEndOfChange = null;
+        this.isVisibleUpdateOrCreate = () => true;
+    }
+
+    private update_moduleTableField() {
+        if (this.moduleTableField) {
+            this.is_required = this.moduleTableField.field_required;
+            this.validate = this.validate ? this.validate : this.moduleTableField.validate;
+        }
     }
 }

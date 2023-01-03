@@ -60,6 +60,7 @@ export default class ExportContextQueryToXLSXBGThread implements IBGThread {
                 export_query.column_labels,
                 export_query.exportable_datatable_custom_field_columns,
                 export_query.columns,
+                export_query.fields,
                 export_query.varcolumn_conf,
                 export_query.active_field_filters,
                 export_query.custom_filters,

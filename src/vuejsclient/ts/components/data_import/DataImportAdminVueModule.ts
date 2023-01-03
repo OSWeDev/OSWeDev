@@ -1,4 +1,5 @@
-import ComponentDatatableField from '../../../../shared/modules/DAO/vos/datatable/ComponentDatatableField';
+import Vue from 'vue';
+import ComponentDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/ComponentDatatableFieldVO';
 import ModuleDataImport from '../../../../shared/modules/DataImport/ModuleDataImport';
 import DataImportColumnVO from '../../../../shared/modules/DataImport/vos/DataImportColumnVO';
 import DataImportFormatVO from '../../../../shared/modules/DataImport/vos/DataImportFormatVO';
@@ -10,7 +11,6 @@ import CRUDComponentManager from '../../../ts/components/crud/CRUDComponentManag
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import VueAppController from '../../../VueAppController';
 import MenuController from '../menu/MenuController';
-import ReimportComponent from './reimport_component/reimport_component';
 import './scss/data_import.scss';
 
 export default class DataImportAdminVueModule extends VueModuleBase {
@@ -100,7 +100,8 @@ export default class DataImportAdminVueModule extends VueModuleBase {
         // On adapte le CRUD des imports pour avoir un bouton de réimport et une colonne de visualisation graphique de l'état
         let historic_crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[DataImportHistoricVO.API_TYPE_ID];
 
-        historic_crud.readDatatable.unshiftField(new ComponentDatatableField('reimporter', ReimportComponent, 'file_id'));
+        Vue.component('Reimportcomponent', async () => (await import(/* webpackChunkName: "ReimportComponent" */  './reimport_component/reimport_component')));
+        historic_crud.readDatatable.unshiftField(ComponentDatatableFieldVO.createNew('reimporter', 'Reimportcomponent', 'file_id'));
 
 
         await CRUDComponentManager.getInstance().registerCRUD(

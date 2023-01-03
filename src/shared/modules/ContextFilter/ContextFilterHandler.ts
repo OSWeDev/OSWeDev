@@ -1,15 +1,22 @@
-import { cloneDeep } from "lodash";
+import { cloneDeep, isArray } from "lodash";
+import ConsoleHandler from "../../tools/ConsoleHandler";
+import { all_promises } from "../../tools/PromiseTools";
 import RangeHandler from "../../tools/RangeHandler";
+import DatatableField from "../DAO/vos/datatable/DatatableField";
+import ManyToManyReferenceDatatableFieldVO from "../DAO/vos/datatable/ManyToManyReferenceDatatableFieldVO";
+import ManyToOneReferenceDatatableFieldVO from "../DAO/vos/datatable/ManyToOneReferenceDatatableFieldVO";
+import OneToManyReferenceDatatableFieldVO from "../DAO/vos/datatable/OneToManyReferenceDatatableFieldVO";
+import RefRangesReferenceDatatableFieldVO from "../DAO/vos/datatable/RefRangesReferenceDatatableFieldVO";
+import SimpleDatatableFieldVO from "../DAO/vos/datatable/SimpleDatatableFieldVO";
 import VOFieldRefVO from "../DashboardBuilder/vos/VOFieldRefVO";
 import DataFilterOption from "../DataRender/vos/DataFilterOption";
 import NumSegment from "../DataRender/vos/NumSegment";
 import TSRange from "../DataRender/vos/TSRange";
-import ModuleTable from "../ModuleTable";
+import IDistantVOBase from "../IDistantVOBase";
 import ModuleTableField from "../ModuleTableField";
 import VOsTypesManager from "../VOsTypesManager";
 import ContextFilterVO from "./vos/ContextFilterVO";
-import ContextQueryFieldVO from "./vos/ContextQueryFieldVO";
-import ContextQueryVO, { query } from "./vos/ContextQueryVO";
+import { query } from "./vos/ContextQueryVO";
 
 export default class ContextFilterHandler {
 
@@ -23,6 +30,213 @@ export default class ContextFilterHandler {
     private static instance: ContextFilterHandler = null;
 
     private constructor() { }
+
+    public async get_datatable_row_field_data_async(
+        raw_data: IDistantVOBase, resData: any, field: DatatableField<any, any>
+    ): Promise<any> {
+
+        try {
+
+            switch (field.type) {
+
+                case DatatableField.CRUD_ACTIONS_FIELD_TYPE:
+                    resData[field.datatable_field_uid] = raw_data[field.datatable_field_uid];
+                    break;
+
+                case DatatableField.SIMPLE_FIELD_TYPE:
+                    let simpleField: SimpleDatatableFieldVO<any, any> = (field) as SimpleDatatableFieldVO<any, any>;
+                    let module_table_field_id = field.semaphore_auto_update_datatable_field_uid_with_vo_type ?
+                        simpleField.moduleTableField.module_table.vo_type + '___' + simpleField.moduleTableField.field_id :
+                        simpleField.moduleTableField.field_id;
+
+                    let value = field.dataToReadIHM(raw_data[module_table_field_id], raw_data);
+                    // Limite à 300 cars si c'est du html et strip html
+                    if (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html) {
+
+                        if (value) {
+                            try {
+                                value = value.replace(/&nbsp;/gi, ' ');
+                                value = value.replace(/<\/div>/gi, '\n');
+                                value = value.replace(/<\/span>/gi, '\n');
+                                value = value.replace(/<\/ul>/gi, '\n');
+                                value = value.replace(/<\/li>/gi, '\n');
+                                value = value.replace(/<\/p>/gi, '\n');
+                                value = value.replace(/<br>/gi, '\n');
+                                value = value.replace(/<(?:.|\n)*?>/gm, '');
+                                // value = $("<p>" + value + "</p>").text();
+                            } catch (error) {
+                                value = value;
+                            }
+
+                            if (value.length > 300) {
+                                value = value.substring(0, 300) + '...';
+                            }
+                        }
+                    }
+
+                    if (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html_array) {
+
+                        for (let vi in value) {
+                            let v = value[vi];
+
+                            try {
+
+                                v = v.replace(/&nbsp;/gi, ' ');
+                                v = v.replace(/<\/div>/gi, '\n');
+                                v = v.replace(/<\/span>/gi, '\n');
+                                v = v.replace(/<\/ul>/gi, '\n');
+                                v = v.replace(/<\/li>/gi, '\n');
+                                v = v.replace(/<\/p>/gi, '\n');
+                                v = v.replace(/<br>/gi, '\n');
+                                v = v.replace(/<(?:.|\n)*?>/gm, '');
+                                // v = $("<p>" + v + "</p>").text();
+                            } catch (error) {
+                                v = v;
+                            }
+
+                            if (v.length > 300) {
+                                v = v.substring(0, 300) + '...';
+                            }
+
+                            value[vi] = v;
+                        }
+                    }
+
+
+                    resData[field.datatable_field_uid] = value;
+                    break;
+
+                case DatatableField.COMPUTED_FIELD_TYPE:
+                    resData[field.datatable_field_uid] = field.dataToReadIHM(null, raw_data);
+                    break;
+
+                case DatatableField.COMPONENT_FIELD_TYPE:
+                    resData[field.datatable_field_uid] = null;
+                    break;
+
+                case DatatableField.FILE_FIELD_TYPE:
+                    resData[field.datatable_field_uid] = null;
+                    break;
+
+                case DatatableField.MANY_TO_ONE_FIELD_TYPE:
+                    let manyToOneField: ManyToOneReferenceDatatableFieldVO<any> = (field) as ManyToOneReferenceDatatableFieldVO<any>;
+
+                    let src_module_table_field_id = field.semaphore_auto_update_datatable_field_uid_with_vo_type ?
+                        manyToOneField.srcField.module_table.vo_type + '___' + manyToOneField.srcField.field_id :
+                        manyToOneField.srcField.field_id;
+
+                    // On va chercher la valeur du champs depuis la valeur de la donnée liée
+                    if (!!raw_data[src_module_table_field_id]) {
+                        let ref_data: IDistantVOBase = await query(manyToOneField.targetModuleTable.vo_type).filter_by_id(raw_data[src_module_table_field_id]).select_vo();
+                        resData[field.datatable_field_uid] = manyToOneField.dataToHumanReadable(ref_data);
+                        resData[field.datatable_field_uid + "___id___"] = raw_data[src_module_table_field_id];
+                        resData[field.datatable_field_uid + "___type___"] = manyToOneField.targetModuleTable.vo_type;
+                    }
+                    break;
+
+                case DatatableField.ONE_TO_MANY_FIELD_TYPE:
+                    let oneToManyField: OneToManyReferenceDatatableFieldVO<any> = (field) as OneToManyReferenceDatatableFieldVO<any>;
+
+                    resData[field.datatable_field_uid] = [];
+
+                    // if ((!!prepared_ref_fields_data_for_update) && (!!prepared_ref_fields_data_for_update[field.datatable_field_uid]) && (!!prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id])) {
+                    //     for (let oneToManyTargetId in prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id]) {
+                    //         resData[field.datatable_field_uid].push({
+                    //             id: oneToManyTargetId,
+                    //             label: oneToManyField.dataToHumanReadable(prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id][oneToManyTargetId])
+                    //         });
+                    //     }
+                    // }
+
+                    if (!!raw_data[field.datatable_field_uid]) {
+                        let vo_ids: any[] = raw_data[field.datatable_field_uid];
+
+                        if (!isArray(vo_ids)) {
+                            vo_ids = [vo_ids];
+                        }
+
+                        let promises = [];
+
+                        for (let i in vo_ids) {
+                            promises.push((async () => {
+                                let ref_data: IDistantVOBase = await query(manyToManyField.targetModuleTable.vo_type).filter_by_id(vo_ids[i]).select_vo();
+
+                                resData[field.datatable_field_uid].push({
+                                    id: ref_data.id,
+                                    label: manyToManyField.dataToHumanReadable(ref_data)
+                                });
+                            })());
+                        }
+
+                        await all_promises(promises);
+                    }
+                    break;
+
+                case DatatableField.MANY_TO_MANY_FIELD_TYPE:
+                    let manyToManyField: ManyToManyReferenceDatatableFieldVO<any, any> = (field) as ManyToManyReferenceDatatableFieldVO<any, any>;
+
+                    resData[field.datatable_field_uid] = [];
+
+                    // if ((!!prepared_ref_fields_data_for_update) && (!!prepared_ref_fields_data_for_update[field.datatable_field_uid]) && (!!prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id])) {
+                    //     for (let oneToManyTargetId in prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id]) {
+                    //         resData[field.datatable_field_uid].push({
+                    //             id: oneToManyTargetId,
+                    //             label: manyToManyField.dataToHumanReadable(prepared_ref_fields_data_for_update[field.datatable_field_uid][raw_data.id][oneToManyTargetId])
+                    //         });
+                    //     }
+                    // }
+
+                    if (!!raw_data[field.datatable_field_uid]) {
+                        let vo_ids: any[] = raw_data[field.datatable_field_uid];
+
+                        if (!isArray(vo_ids)) {
+                            vo_ids = [vo_ids];
+                        }
+
+                        let promises = [];
+
+                        for (let i in vo_ids) {
+                            promises.push((async () => {
+                                let ref_data: IDistantVOBase = await query(manyToManyField.targetModuleTable.vo_type).filter_by_id(vo_ids[i]).select_vo();
+
+                                resData[field.datatable_field_uid].push({
+                                    id: ref_data.id,
+                                    label: manyToManyField.dataToHumanReadable(ref_data)
+                                });
+                            })());
+                        }
+
+                        await all_promises(promises);
+                    }
+
+                    break;
+
+                case DatatableField.REF_RANGES_FIELD_TYPE:
+                    let refField: RefRangesReferenceDatatableFieldVO<any> = (field) as RefRangesReferenceDatatableFieldVO<any>;
+
+                    resData[field.datatable_field_uid] = [];
+
+                    let refField_src_module_table_field_id = field.semaphore_auto_update_datatable_field_uid_with_vo_type ?
+                        refField.srcField.module_table.vo_type + '___' + refField.srcField.field_id :
+                        refField.srcField.field_id;
+
+                    await RangeHandler.foreach_ranges_batch_await(raw_data[refField_src_module_table_field_id], async (id: number) => {
+                        let ref_data: IDistantVOBase = await query(refField.targetModuleTable.vo_type).filter_by_id(id).select_vo();
+                        resData[field.datatable_field_uid].push({
+                            id: id,
+                            label: refField.dataToHumanReadable(ref_data)
+                        });
+                    });
+                    break;
+
+                default:
+                    break;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+            resData[field.datatable_field_uid] = null;
+        }
+    }
 
     public get_active_field_filters(filters: ContextFilterVO[]): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
         let res: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = {};

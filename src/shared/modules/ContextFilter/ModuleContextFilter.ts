@@ -2,6 +2,8 @@ import ParameterizedQueryWrapper from '../../../server/modules/ContextFilter/vos
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
+import DatatableField from '../DAO/vos/datatable/DatatableField';
+import TableColumnDescVO from '../DashboardBuilder/vos/TableColumnDescVO';
 import DataFilterOption from '../DataRender/vos/DataFilterOption';
 import IDistantVOBase from '../IDistantVOBase';
 import Module from '../Module';
@@ -67,7 +69,9 @@ export default class ModuleContextFilter extends Module {
      * @param context_query le champs fields doit être rempli avec les champs ciblés par la requête (et avec les alias voulus)
      */
     public select_datatable_rows: (
-        context_query: ContextQueryVO
+        context_query: ContextQueryVO,
+        columns_by_field_id: { [datatable_field_uid: string]: TableColumnDescVO },
+        fields: { [datatable_field_uid: number]: DatatableField<any, any> }
     ) => Promise<any[]> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_select_datatable_rows);
 
     /**

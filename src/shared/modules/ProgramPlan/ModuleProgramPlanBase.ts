@@ -1,9 +1,13 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import TimeHandler from '../../tools/TimeHandler';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
+import ComputedDatatableFieldVO from '../DAO/vos/datatable/ComputedDatatableFieldVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import FileVO from '../File/vos/FileVO';
+import Dates from '../FormatDatesNombres/Dates/Dates';
+import ModuleFormatDatesNombres from '../FormatDatesNombres/ModuleFormatDatesNombres';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
@@ -35,6 +39,9 @@ import IPlanTaskType from './interfaces/IPlanTaskType';
 import ProgramSegmentParamVO, { ProgramSegmentParamVOStatic } from './vos/ProgramSegmentParamVO';
 
 export default abstract class ModuleProgramPlanBase extends Module {
+
+    public static rdv_date_compute_function_uid: string = 'ModuleProgramPlanBase.rdv_date_compute_function_uid';
+    public static facilitator_name_compute_function_uid: string = 'ModuleProgramPlanBase.facilitator_name_compute_function_uid';
 
     get POLICY_GROUP(): string { return AccessPolicyTools.POLICY_GROUP_UID_PREFIX + this.name; }
     get POLICY_BO_ACCESS(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.BO_ACCESS'; }
@@ -110,6 +117,9 @@ export default abstract class ModuleProgramPlanBase extends Module {
     public initialize() {
         this.fields = [];
         this.datatables = [];
+
+        ComputedDatatableFieldVO.define_compute_function(ModuleProgramPlanBase.rdv_date_compute_function_uid, (rdv: IPlanRDV) => Dates.format(rdv.start_time, ModuleFormatDatesNombres.FORMAT_YYYYMMDD + ' ' + TimeHandler.MINUTES_TIME_FOR_INDEX_FORMAT));
+        ComputedDatatableFieldVO.define_compute_function(ModuleProgramPlanBase.facilitator_name_compute_function_uid, (facilitator: IPlanFacilitator) => facilitator.firstname + ' ' + facilitator.lastname);
     }
 
     public initialize_later() {

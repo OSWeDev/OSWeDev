@@ -7,7 +7,7 @@ import AnimationThemeVO from "../../../../../../shared/modules/Animation/vos/Ani
 import AnimationUserModuleVO from "../../../../../../shared/modules/Animation/vos/AnimationUserModuleVO";
 import { query } from "../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import ModuleDAO from "../../../../../../shared/modules/DAO/ModuleDAO";
-import SimpleDatatableField from "../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField";
+import SimpleDatatableFieldVO from "../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO";
 import VarsController from "../../../../../../shared/modules/Var/VarsController";
 import VOsTypesManager from "../../../../../../shared/modules/VOsTypesManager";
 import { all_promises } from "../../../../../../shared/tools/PromiseTools";
@@ -101,7 +101,7 @@ export default class VueAnimationModuleFeedbackComponent extends VueComponentBas
     }
 
     get commentaire_editable_field() {
-        return new SimpleDatatableField('commentaire').setModuleTable(VOsTypesManager.moduleTables_by_voType[AnimationUserModuleVO.API_TYPE_ID]);
+        return SimpleDatatableFieldVO.createNew('commentaire').setModuleTable(VOsTypesManager.moduleTables_by_voType[AnimationUserModuleVO.API_TYPE_ID]);
     }
 
     get module_id(): number {

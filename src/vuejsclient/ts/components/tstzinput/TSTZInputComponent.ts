@@ -2,7 +2,7 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import * as lang from "vuejs-datepicker/src/locale";
-import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import SimpleDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
@@ -25,7 +25,7 @@ export default class TSTZInputComponent extends VueComponentBase {
     private value: number;
 
     @Prop({ default: null })
-    private field: SimpleDatatableField<any, any>;
+    private field: SimpleDatatableFieldVO<any, any>;
 
     @Prop({ default: null })
     private vo: IDistantVOBase;
@@ -146,7 +146,7 @@ export default class TSTZInputComponent extends VueComponentBase {
 
     get segmentation_type(): number {
         if (this.field.type == 'Simple') {
-            return (this.field as SimpleDatatableField<any, any>).moduleTableField.segmentation_type;
+            return (this.field as SimpleDatatableFieldVO<any, any>).moduleTableField.segmentation_type;
         }
 
         return null;
@@ -154,7 +154,7 @@ export default class TSTZInputComponent extends VueComponentBase {
 
     get format_localized_time(): boolean {
         if (this.field.type == 'Simple') {
-            return (this.field as SimpleDatatableField<any, any>).moduleTableField.format_localized_time;
+            return (this.field as SimpleDatatableFieldVO<any, any>).moduleTableField.format_localized_time;
         }
 
         return null;

@@ -3,7 +3,7 @@ import * as moment from 'moment';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import * as lang from "vuejs-datepicker/src/locale";
-import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import SimpleDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import TSRange from '../../../../shared/modules/DataRender/vos/TSRange';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -36,7 +36,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
     private value: TSRange;
 
     @Prop({ default: null })
-    private field: SimpleDatatableField<any, any>;
+    private field: SimpleDatatableFieldVO<any, any>;
 
     @Prop({ default: null })
     private segmentation_type: number;
@@ -263,7 +263,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
 
     get format_localized_time(): boolean {
         if (this.field.type == 'Simple') {
-            return (this.field as SimpleDatatableField<any, any>).moduleTableField.format_localized_time;
+            return (this.field as SimpleDatatableFieldVO<any, any>).moduleTableField.format_localized_time;
         }
 
         return null;

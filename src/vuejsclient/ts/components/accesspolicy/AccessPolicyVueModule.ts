@@ -1,7 +1,8 @@
+import Vue from 'vue';
 import { RouteConfig } from 'vue-router';
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
-import ComponentDatatableField from '../../../../shared/modules/DAO/vos/datatable/ComponentDatatableField';
+import ComponentDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/ComponentDatatableFieldVO';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import CRUDComponentManager from '../crud/CRUDComponentManager';
@@ -31,24 +32,27 @@ export default class AccessPolicyVueModule extends VueModuleBase {
             this.getRouteUser()
         );
 
+        Vue.component('Impersonatecomponent', async () => (await import(/* webpackChunkName: "ImpersonateComponent" */  './user/impersonate/ImpersonateComponent')));
         TableWidgetController.getInstance().register_component(
-            new ComponentDatatableField(
+            ComponentDatatableFieldVO.createNew(
                 'impersonate',
-                ImpersonateComponent,
+                'Impersonatecomponent',
                 'id'
             ).setModuleTable(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID])
         );
+        Vue.component('Sendinitpwdcomponent', async () => (await import(/* webpackChunkName: "SendInitPwdComponent" */  './user/sendinitpwd/SendInitPwdComponent')));
         TableWidgetController.getInstance().register_component(
-            new ComponentDatatableField(
+            ComponentDatatableFieldVO.createNew(
                 'sendinitpwd',
-                SendInitPwdComponent,
+                'Sendinitpwdcomponent',
                 'id'
             ).setModuleTable(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID])
         );
+        Vue.component('Sendrecapturecomponent', async () => (await import(/* webpackChunkName: "SendRecaptureComponent" */  './user/sendrecapture/SendRecaptureComponent')));
         TableWidgetController.getInstance().register_component(
-            new ComponentDatatableField(
+            ComponentDatatableFieldVO.createNew(
                 'sendrecapture',
-                SendRecaptureComponent,
+                'Sendrecapturecomponent',
                 'id'
             ).setModuleTable(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID])
         );

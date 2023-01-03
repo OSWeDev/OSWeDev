@@ -1216,6 +1216,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'dashboard_viewer.group_filters.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Problème lors du chargement du Tableau de bord" },
+            'dashboard_viewer.loading_failed.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Valider" },
             'dashboard_viewer.block_widgets_updates.___LABEL___'
         ));

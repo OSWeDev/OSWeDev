@@ -352,6 +352,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
     }
 
+    public async late_configuration() {
+        await ModuleDAO.getInstance().late_configuration();
+    }
+
     public async configure() {
 
         await this.create_or_replace_function_ref_get_user();

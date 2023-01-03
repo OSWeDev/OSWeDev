@@ -6,7 +6,7 @@ import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
 import VueComponentBase from '../VueComponentBase';
 import './IsoWeekDaysInputComponent.scss';
-import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import SimpleDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 
 @Component({
     template: require('./IsoWeekDaysInputComponent.pug'),
@@ -24,7 +24,7 @@ export default class IsoWeekDaysInputComponent extends VueComponentBase {
     private value: NumRange[];
 
     @Prop({ default: null })
-    private field: SimpleDatatableField<any, any>;
+    private field: SimpleDatatableFieldVO<any, any>;
 
     @Prop({ default: null })
     private vo: IDistantVOBase;

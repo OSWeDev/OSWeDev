@@ -12,7 +12,7 @@ import AnimationUserModuleVO from "../../../../../../shared/modules/Animation/vo
 import AnimationUserQRVO from "../../../../../../shared/modules/Animation/vos/AnimationUserQRVO";
 import { query } from "../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import ModuleDAO from "../../../../../../shared/modules/DAO/ModuleDAO";
-import SimpleDatatableField from "../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField";
+import SimpleDatatableFieldVO from "../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO";
 import NumRange from "../../../../../../shared/modules/DataRender/vos/NumRange";
 import NumSegment from "../../../../../../shared/modules/DataRender/vos/NumSegment";
 import DocumentVO from "../../../../../../shared/modules/Document/vos/DocumentVO";
@@ -278,11 +278,11 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
     }
 
     get name_theme_editable_field() {
-        return new SimpleDatatableField('name').setModuleTable(VOsTypesManager.moduleTables_by_voType[AnimationThemeVO.API_TYPE_ID]);
+        return SimpleDatatableFieldVO.createNew('name').setModuleTable(VOsTypesManager.moduleTables_by_voType[AnimationThemeVO.API_TYPE_ID]);
     }
 
     get name_module_editable_field() {
-        return new SimpleDatatableField('name').setModuleTable(VOsTypesManager.moduleTables_by_voType[AnimationModuleVO.API_TYPE_ID]);
+        return SimpleDatatableFieldVO.createNew('name').setModuleTable(VOsTypesManager.moduleTables_by_voType[AnimationModuleVO.API_TYPE_ID]);
     }
 
     get ordered_qrs(): AnimationQRVO[] {

@@ -1,4 +1,5 @@
-import ComponentDatatableField from '../../../../shared/modules/DAO/vos/datatable/ComponentDatatableField';
+import Vue from 'vue';
+import ComponentDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/ComponentDatatableFieldVO';
 import ModuleDataImport from '../../../../shared/modules/DataImport/ModuleDataImport';
 import DataImportHistoricVO from '../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
@@ -24,8 +25,9 @@ export default class DataImportVueModule extends VueModuleBase {
     }
 
     public initialize() {
+        Vue.component('Reimportcomponent', async () => (await import(/* webpackChunkName: "ReimportComponent" */  './reimport_component/reimport_component')));
         TableWidgetController.getInstance().register_component(
-            new ComponentDatatableField('reimporter', ReimportComponent, 'file_id')
+            ComponentDatatableFieldVO.createNew('reimporter', 'Reimportcomponent', 'file_id')
                 .setModuleTable(VOsTypesManager.moduleTables_by_voType[DataImportHistoricVO.API_TYPE_ID])
         );
     }

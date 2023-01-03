@@ -14,8 +14,8 @@
 // import ProduitVO from '../../../../shared/modules/Commerce/Produit/vos/ProduitVO';
 // import TypeProduitVO from '../../../../shared/modules/Commerce/Produit/vos/TypeProduitVO';
 // import Datatable from '../../../../shared/modules/DAO/vos/datatable/Datatable';
-// import ManyToOneReferenceDatatableField from '../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
-// import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+// import ManyToOneReferenceDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableFieldVO';
+// import SimpleDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 // import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 // import CRUDComponentManager from '../../../ts/components/crud/CRUDComponentManager';
 // import MenuBranch from '../../../ts/components/menu/vos/MenuBranch';
@@ -266,17 +266,17 @@
 //     private getCommandeCRUD(): CRUD<CommandeVO> {
 //         let crud: CRUD<CommandeVO> = new CRUD<CommandeVO>(new Datatable<CommandeVO>(CommandeVO.API_TYPE_ID));
 
-//         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("identifiant"));
-//         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("date"));
-//         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("statut"));
+//         crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("identifiant"));
+//         crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("date"));
+//         crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("statut"));
 
-//         crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
+//         crud.readDatatable.pushField(ManyToOneReferenceDatatableFieldVO.createNew(
 //             "client_id",
 //             VOsTypesManager.moduleTables_by_voType[ClientVO.API_TYPE_ID], [
-//             new ManyToOneReferenceDatatableField<any>(
+//             ManyToOneReferenceDatatableFieldVO.createNew(
 //                 "user_id",
 //                 VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID], [
-//                 new SimpleDatatableField("name")
+//                 SimpleDatatableFieldVO.createNew("name")
 //             ])
 //         ]));
 
@@ -289,23 +289,23 @@
 //     private getLigneCommandeCRUD(): CRUD<LigneCommandeVO> {
 //         let crud: CRUD<LigneCommandeVO> = new CRUD<LigneCommandeVO>(new Datatable<LigneCommandeVO>(LigneCommandeVO.API_TYPE_ID));
 
-//         crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
+//         crud.readDatatable.pushField(ManyToOneReferenceDatatableFieldVO.createNew(
 //             "commande_id",
 //             VOsTypesManager.moduleTables_by_voType[CommandeVO.API_TYPE_ID], [
-//             new SimpleDatatableField("identifiant")
+//             SimpleDatatableFieldVO.createNew("identifiant")
 //         ]));
-//         crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
+//         crud.readDatatable.pushField(ManyToOneReferenceDatatableFieldVO.createNew(
 //             "produit_id",
 //             VOsTypesManager.moduleTables_by_voType[ProduitVO.API_TYPE_ID], [
-//             new SimpleDatatableField("titre")
+//             SimpleDatatableFieldVO.createNew("titre")
 //         ]));
-//         crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
+//         crud.readDatatable.pushField(ManyToOneReferenceDatatableFieldVO.createNew(
 //             "informations_id",
 //             VOsTypesManager.moduleTables_by_voType[InformationsVO.API_TYPE_ID], [
-//             new SimpleDatatableField("email")
+//             SimpleDatatableFieldVO.createNew("email")
 //         ]));
-//         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("prix_unitaire"));
-//         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("quantite"));
+//         crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("prix_unitaire"));
+//         crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("quantite"));
 
 //         CRUD.addManyToManyFields(crud, VOsTypesManager.moduleTables_by_voType[LigneCommandeVO.API_TYPE_ID]);
 //         CRUD.addOneToManyFields(crud, VOsTypesManager.moduleTables_by_voType[LigneCommandeVO.API_TYPE_ID]);
@@ -316,17 +316,17 @@
 //     private getPaiementCRUD(): CRUD<PaiementVO> {
 //         let crud: CRUD<PaiementVO> = new CRUD<PaiementVO>(new Datatable<PaiementVO>(PaiementVO.API_TYPE_ID));
 
-//         crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
+//         crud.readDatatable.pushField(ManyToOneReferenceDatatableFieldVO.createNew(
 //             "abonnement_id",
 //             VOsTypesManager.moduleTables_by_voType[AbonnementVO.API_TYPE_ID], [
-//             new SimpleDatatableField("echeance")
+//             SimpleDatatableFieldVO.createNew("echeance")
 //         ]));
-//         crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
+//         crud.readDatatable.pushField(ManyToOneReferenceDatatableFieldVO.createNew(
 //             "mode_paiement_id",
 //             VOsTypesManager.moduleTables_by_voType[ModePaiementVO.API_TYPE_ID], [
-//             new SimpleDatatableField("mode")
+//             SimpleDatatableFieldVO.createNew("mode")
 //         ]));
-//         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("statut"));
+//         crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("statut"));
 
 //         CRUD.addManyToManyFields(crud, VOsTypesManager.moduleTables_by_voType[PaiementVO.API_TYPE_ID]);
 //         CRUD.addOneToManyFields(crud, VOsTypesManager.moduleTables_by_voType[PaiementVO.API_TYPE_ID]);
@@ -337,17 +337,17 @@
 //     private getFacturationProduitCRUD(): CRUD<FacturationProduitVO> {
 //         let crud: CRUD<FacturationProduitVO> = new CRUD<FacturationProduitVO>(new Datatable<FacturationProduitVO>(FacturationProduitVO.API_TYPE_ID));
 
-//         crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
+//         crud.readDatatable.pushField(ManyToOneReferenceDatatableFieldVO.createNew(
 //             "facturation_id",
 //             VOsTypesManager.moduleTables_by_voType[FacturationVO.API_TYPE_ID], [
-//             new SimpleDatatableField("titre")
+//             SimpleDatatableFieldVO.createNew("titre")
 //         ]));
-//         crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
+//         crud.readDatatable.pushField(ManyToOneReferenceDatatableFieldVO.createNew(
 //             "produit_id",
 //             VOsTypesManager.moduleTables_by_voType[ProduitVO.API_TYPE_ID], [
-//             new SimpleDatatableField("titre")
+//             SimpleDatatableFieldVO.createNew("titre")
 //         ]));
-//         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("par_defaut"));
+//         crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("par_defaut"));
 
 //         CRUD.addManyToManyFields(crud, VOsTypesManager.moduleTables_by_voType[FacturationProduitVO.API_TYPE_ID]);
 //         CRUD.addOneToManyFields(crud, VOsTypesManager.moduleTables_by_voType[FacturationProduitVO.API_TYPE_ID]);

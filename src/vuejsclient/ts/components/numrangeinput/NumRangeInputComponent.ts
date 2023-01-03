@@ -1,6 +1,6 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import SimpleDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import NumRange from '../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../../shared/modules/DataRender/vos/NumSegment';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
@@ -26,7 +26,7 @@ export default class NumRangeInputComponent extends VueComponentBase {
     private value: NumRange;
 
     @Prop({ default: null })
-    private field: SimpleDatatableField<any, any>;
+    private field: SimpleDatatableFieldVO<any, any>;
 
     @Prop({ default: null })
     private vo: IDistantVOBase;

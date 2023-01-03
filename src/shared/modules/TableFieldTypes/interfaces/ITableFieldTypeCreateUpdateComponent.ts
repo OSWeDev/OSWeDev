@@ -1,4 +1,4 @@
-import SimpleDatatableField from '../../DAO/vos/datatable/SimpleDatatableField';
+import SimpleDatatableFieldVO from '../../DAO/vos/datatable/SimpleDatatableFieldVO';
 import IDistantVOBase from '../../IDistantVOBase';
 
 /**
@@ -6,7 +6,7 @@ import IDistantVOBase from '../../IDistantVOBase';
  */
 export default interface ITableFieldTypeCreateUpdateComponent {
     vo: IDistantVOBase;
-    field: SimpleDatatableField<any, any>;
+    field: SimpleDatatableFieldVO<any, any>;
     required: boolean;
     disabled: boolean;
 }

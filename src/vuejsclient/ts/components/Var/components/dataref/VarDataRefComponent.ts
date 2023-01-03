@@ -3,7 +3,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import debounce from 'lodash/debounce';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
-import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
@@ -226,7 +226,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         if (!this.var_param) {
             return null;
         }
-        return new SimpleDatatableField("value").setModuleTable(VOsTypesManager.moduleTables_by_voType[this.var_param._type]);
+        return SimpleDatatableFieldVO.createNew("value").setModuleTable(VOsTypesManager.moduleTables_by_voType[this.var_param._type]);
     }
 
     private var_data_updater() {

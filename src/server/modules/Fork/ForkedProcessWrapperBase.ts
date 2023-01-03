@@ -123,6 +123,9 @@ export default abstract class ForkedProcessWrapperBase {
             ConsoleHandler.log('ForkedProcessWrapperBase:configure_server_modules:END');
         }
 
+        // Derniers chargements
+        await this.modulesService.late_server_modules_configurations();
+
         BGThreadServerController.getInstance().server_ready = true;
         CronServerController.getInstance().server_ready = true;
 

@@ -1,4 +1,4 @@
-import { cloneDeep } from 'lodash';
+import { cloneDeep, isArray } from 'lodash';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
@@ -8,6 +8,13 @@ import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos
 import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import DatatableField from '../../../shared/modules/DAO/vos/datatable/DatatableField';
+import ManyToManyReferenceDatatableFieldVO from '../../../shared/modules/DAO/vos/datatable/ManyToManyReferenceDatatableFieldVO';
+import ManyToOneReferenceDatatableFieldVO from '../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableFieldVO';
+import OneToManyReferenceDatatableFieldVO from '../../../shared/modules/DAO/vos/datatable/OneToManyReferenceDatatableFieldVO';
+import RefRangesReferenceDatatableFieldVO from '../../../shared/modules/DAO/vos/datatable/RefRangesReferenceDatatableFieldVO';
+import SimpleDatatableFieldVO from '../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
+import TableColumnDescVO from '../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
@@ -18,8 +25,10 @@ import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
+import ConfigurationService from '../../env/ConfigurationService';
 import ServerBase from '../../ServerBase';
 import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
@@ -186,7 +195,10 @@ export default class ContextQueryServerController {
      *  Compatibilité avec l'alias 'label' qui est un mot réservé en bdd
      * @param context_query le champs fields doit être rempli avec les champs ciblés par la requête (et avec les alias voulus)
      */
-    public async select_datatable_rows(context_query: ContextQueryVO): Promise<any[]> {
+    public async select_datatable_rows(
+        context_query: ContextQueryVO,
+        columns_by_field_id: { [datatable_field_uid: string]: TableColumnDescVO },
+        fields: { [datatable_field_uid: number]: DatatableField<any, any> }): Promise<any[]> {
 
         if (!context_query) {
             throw new Error('Invalid context_query param');
@@ -249,13 +261,16 @@ export default class ContextQueryServerController {
         }
 
         /**
-         * Traitement des champs
+         * Traitement des champs. on met dans + '__raw' les valeurs brutes, et on met dans le champ lui même la valeur formatée
          */
+        let limit = ConfigurationService.node_configuration.MAX_POOL / 2;
+        let promise_pipeline = new PromisePipeline(limit);
         for (let i in query_res) {
             let row = query_res[i];
 
             if (row && row[label_replacement]) {
                 row['label'] = row[label_replacement];
+                row['label' + '__raw'] = row[label_replacement];
                 delete row[label_replacement];
             }
 
@@ -263,6 +278,7 @@ export default class ContextQueryServerController {
                 let field = context_query.fields[j];
 
                 if (field.field_id == 'id') {
+                    // row['id' + '__raw'] = row['id'];
                     continue;
                 }
                 let field_id = field.alias ? field.alias : field.field_id;
@@ -278,8 +294,18 @@ export default class ContextQueryServerController {
                     default:
                         break;
                 }
+                row[field_id + '__raw'] = row[field_id];
+
+                // si on est en édition on laisse la data raw
+                if (columns_by_field_id && fields && fields[field_id] && ((!columns_by_field_id[field_id]) || columns_by_field_id[field_id].readonly)) {
+                    await promise_pipeline.push(async () => {
+                        await ContextFilterHandler.getInstance().get_datatable_row_field_data_async(row, row, fields[field_id]);
+                    });
+                }
             }
         }
+
+        await promise_pipeline.end();
 
         /**
          * Remise du field 'label'
@@ -356,7 +382,7 @@ export default class ContextQueryServerController {
 
         context_query.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(get_active_field_filters);
 
-        let query_res: any[] = await this.select_datatable_rows(context_query);
+        let query_res: any[] = await this.select_datatable_rows(context_query, null, null);
         if ((!query_res) || (!query_res.length)) {
             return res;
         }

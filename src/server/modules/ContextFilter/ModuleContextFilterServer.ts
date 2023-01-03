@@ -2,6 +2,8 @@ import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapp
 import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO, { filter } from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import DatatableField from '../../../shared/modules/DAO/vos/datatable/DatatableField';
+import TableColumnDescVO from '../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
@@ -150,9 +152,12 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
      * Filtrer des infos avec les context filters, en indiquant obligatoirement les champs ciblés, qui peuvent appartenir à des tables différentes
      * @param context_query le champs fields doit être rempli avec les champs ciblés par la requête (et avec les alias voulus)
      */
-    private async select_datatable_rows(context_query: ContextQueryVO): Promise<any[]> {
+    private async select_datatable_rows(
+        context_query: ContextQueryVO,
+        columns_by_field_id: { [datatable_field_uid: string]: TableColumnDescVO },
+        fields: { [datatable_field_uid: number]: DatatableField<any, any> }): Promise<any[]> {
 
-        return await ContextQueryServerController.getInstance().select_datatable_rows(context_query);
+        return await ContextQueryServerController.getInstance().select_datatable_rows(context_query, columns_by_field_id, fields);
     }
 
     /**

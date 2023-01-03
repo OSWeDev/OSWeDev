@@ -8,7 +8,7 @@ import NFCUserTagListComponent from "../../../ts/components/NFCConnect/user_tag_
 import SessionShareComponent from "../../../ts/components/session_share/SessionShareComponent";
 import AccessPolicyMyAccountComponentController from "./AccessPolicyMyAccountComponentController";
 import VOsTypesManager from "../../../../shared/modules/VOsTypesManager";
-import SimpleDatatableField from "../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField";
+import SimpleDatatableFieldVO from "../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO";
 
 @Component({
     template: require('./AccessPolicyMyAccountComponent.pug'),
@@ -87,23 +87,23 @@ export default class AccessPolicyMyAccountComponent extends VueComponentBase {
     }
 
     get editable_login() {
-        return new SimpleDatatableField('name').setModuleTable(this.user_moduletable);
+        return SimpleDatatableFieldVO.createNew('name').setModuleTable(this.user_moduletable);
     }
 
     get editable_firstname() {
-        return new SimpleDatatableField('firstname').setModuleTable(this.user_moduletable);
+        return SimpleDatatableFieldVO.createNew('firstname').setModuleTable(this.user_moduletable);
     }
 
     get editable_lastname() {
-        return new SimpleDatatableField('lastname').setModuleTable(this.user_moduletable);
+        return SimpleDatatableFieldVO.createNew('lastname').setModuleTable(this.user_moduletable);
     }
 
     get editable_email() {
-        return new SimpleDatatableField('email').setModuleTable(this.user_moduletable);
+        return SimpleDatatableFieldVO.createNew('email').setModuleTable(this.user_moduletable);
     }
 
     get editable_phone() {
-        return new SimpleDatatableField('phone').setModuleTable(this.user_moduletable);
+        return SimpleDatatableFieldVO.createNew('phone').setModuleTable(this.user_moduletable);
     }
 
     private async onchangevo() {

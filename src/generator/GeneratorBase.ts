@@ -210,6 +210,9 @@ export default abstract class GeneratorBase {
         }
         console.log("post modules initialization workers done.");
 
+        // Derniers chargements
+        await this.modulesService.late_server_modules_configurations();
+
         /**
          * On décale les trads après les post modules workers sinon les trads sont pas générées sur créa d'une lang en post worker => cas de la créa de nouveau projet
          */

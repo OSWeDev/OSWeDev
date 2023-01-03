@@ -1,7 +1,7 @@
 
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import SimpleDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import HourRange from '../../../../shared/modules/DataRender/vos/HourRange';
 import HourSegment from '../../../../shared/modules/DataRender/vos/HourSegment';
 import Durations from '../../../../shared/modules/FormatDatesNombres/Dates/Durations';
@@ -38,7 +38,7 @@ export default class HourrangeInputComponent extends VueComponentBase {
     private value: HourRange;
 
     @Prop({ default: null })
-    private field: SimpleDatatableField<any, any>;
+    private field: SimpleDatatableFieldVO<any, any>;
 
     @Prop({ default: null })
     private vo: IDistantVOBase;

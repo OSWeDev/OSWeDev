@@ -5,40 +5,56 @@ import ModuleTable from '../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
 import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
+import VOsTypesManager from '../../../VOsTypesManager';
 
-export default class RefRangesReferenceDatatableField<Target extends IDistantVOBase> extends ReferenceDatatableField<Target> {
+export default class RefRangesReferenceDatatableFieldVO<Target extends IDistantVOBase> extends ReferenceDatatableField<Target> {
 
-    public filterOptionsForUpdateOrCreateOnRefRanges: (vo: IDistantVOBase, options: { [id: number]: Target }) => { [id: number]: Target } = null;
-    public srcField: ModuleTableField<any> = null;
+    public static API_TYPE_ID: string = "rr_dtf";
 
-    public constructor(
+    public static createNew(
         datatable_field_uid: string,
-        targetModuleTable: ModuleTable<Target>,
-        sortedTargetFields: Array<DatatableField<any, any>>,
-        translatable_title: string = null) {
-        super(DatatableField.REF_RANGES_FIELD_TYPE, datatable_field_uid, targetModuleTable, sortedTargetFields, translatable_title);
+        targetModuleTable: ModuleTable<any>,
+        sortedTargetFields: Array<DatatableField<any, any>>): RefRangesReferenceDatatableFieldVO<any> {
+
+        let res = new RefRangesReferenceDatatableFieldVO();
+        res.init_ref_dtf(RefRangesReferenceDatatableFieldVO.API_TYPE_ID, DatatableField.REF_RANGES_FIELD_TYPE, datatable_field_uid, targetModuleTable, sortedTargetFields);
+        return res;
     }
 
-    public setFilterOptionsForUpdateOrCreateOnRefRanges(filterOptionsForUpdateOrCreateOnRefRanges: (vo: IDistantVOBase, options: { [id: number]: Target }) => { [id: number]: Target }): RefRangesReferenceDatatableField<Target> {
+    public filterOptionsForUpdateOrCreateOnRefRanges: (vo: IDistantVOBase, options: { [id: number]: Target }) => { [id: number]: Target } = null;
+
+    public _src_field_id: string;
+
+    get src_field_id(): string {
+        return this._src_field_id;
+    }
+
+    set src_field_id(src_field_id: string) {
+        this._src_field_id = src_field_id;
+        this.is_required = this.srcField.field_required;
+        this.validate = this.validate ? this.validate : this.srcField.validate;
+    }
+
+    get srcField(): ModuleTableField<any> {
+        return VOsTypesManager.moduleTables_by_voType[this.vo_type_id].getFieldFromId(this.src_field_id);
+    }
+
+    public setFilterOptionsForUpdateOrCreateOnRefRanges(filterOptionsForUpdateOrCreateOnRefRanges: (vo: IDistantVOBase, options: { [id: number]: Target }) => { [id: number]: Target }): RefRangesReferenceDatatableFieldVO<Target> {
         this.filterOptionsForUpdateOrCreateOnRefRanges = filterOptionsForUpdateOrCreateOnRefRanges;
         return this;
     }
 
-    public setModuleTable(moduleTable: ModuleTable<any>): RefRangesReferenceDatatableField<Target> {
-        this.moduleTable = moduleTable;
-        this.srcField = this.moduleTable.getFieldFromId(this.module_table_field_id);
-
-        if (!this.translatable_title) {
-            this.translatable_title = this.targetModuleTable.label.code_text;
+    get translatable_title(): string {
+        if (!this.vo_type_full_name) {
+            return null;
         }
+
+        let e = this.targetModuleTable.label.code_text;
         if (this.module_table_field_id != this.datatable_field_uid) {
-            this.translatable_title = this.translatable_title.substr(0, this.translatable_title.indexOf(DefaultTranslation.DEFAULT_LABEL_EXTENSION)) + "." + this.datatable_field_uid + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+            return e.substr(0, e.indexOf(DefaultTranslation.DEFAULT_LABEL_EXTENSION)) + "." + this.datatable_field_uid + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        } else {
+            return e;
         }
-
-        this.is_required = this.srcField.field_required;
-        this.validate = this.validate ? this.validate : this.srcField.validate;
-
-        return this;
     }
 
     public dataToUpdateIHM<T, U>(e: T, vo: IDistantVOBase): U {

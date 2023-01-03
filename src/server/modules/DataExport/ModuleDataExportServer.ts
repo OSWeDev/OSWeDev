@@ -9,6 +9,7 @@ import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleCon
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import DatatableField from '../../../shared/modules/DAO/vos/datatable/DatatableField';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import DashboardBuilderController from '../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import TableWidgetCustomFieldsController from '../../../shared/modules/DashboardBuilder/TableWidgetCustomFieldsController';
@@ -123,7 +124,6 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
 
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVO, this.prepare_exportContextQueryToXLSX.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVOFile, this.exportContextQueryToXLSXFile.bind(this));
 
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToXLSXParamVO, this.exportDataToXLSX.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToXLSXParamVOFile, this.exportDataToXLSXFile.bind(this));
@@ -210,6 +210,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         exportable_datatable_custom_field_columns: { [datatable_field_uid: string]: string } = null,
 
         columns: TableColumnDescVO[],
+        fields: { [datatable_field_uid: number]: DatatableField<any, any> },
         varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConf } = null,
         active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
         custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
@@ -234,6 +235,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             column_labels,
             exportable_datatable_custom_field_columns,
             columns,
+            fields,
             varcolumn_conf,
             active_field_filters,
             custom_filters,
@@ -259,7 +261,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         column_labels: { [field_name: string]: string },
         exportable_datatable_custom_field_columns: { [datatable_field_uid: string]: string } = null,
 
-        columns: TableColumnDescVO[],
+        columns: TableColumnDescVO[] = null,
+        fields: { [datatable_field_uid: number]: DatatableField<any, any> } = null,
         varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConf } = null,
         active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
         custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
@@ -285,6 +288,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     column_labels,
                     exportable_datatable_custom_field_columns,
                     columns,
+                    fields,
                     varcolumn_conf,
                     active_field_filters,
                     custom_filters,
@@ -303,6 +307,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 column_labels,
                 exportable_datatable_custom_field_columns,
                 columns,
+                fields,
                 varcolumn_conf,
                 active_field_filters,
                 custom_filters,
@@ -322,7 +327,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         column_labels: { [field_name: string]: string },
         exportable_datatable_custom_field_columns: { [datatable_field_uid: string]: string } = null,
 
-        columns: TableColumnDescVO[],
+        columns: TableColumnDescVO[] = null,
+        fields: { [datatable_field_uid: number]: DatatableField<any, any> } = null,
         varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConf } = null,
         active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
         custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
@@ -335,12 +341,17 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         target_user_id: number = null): Promise<void> {
 
         let api_type_id = context_query.base_api_type_id;
+        let columns_by_field_id = {};
+        for (let i in columns) {
+            let column = columns[i];
+            columns_by_field_id[column.datatable_field_uid] = column;
+        }
         let datas = (context_query.fields && context_query.fields.length) ?
-            await ModuleContextFilter.getInstance().select_datatable_rows(context_query) :
+            await ModuleContextFilter.getInstance().select_datatable_rows(context_query, columns_by_field_id, fields) :
             await ModuleContextFilter.getInstance().select_vos(context_query);
         datas = await this.addVarColumnsValues(datas, ordered_column_list, columns, varcolumn_conf, active_field_filters, custom_filters, active_api_type_ids, discarded_field_paths);
 
-        datas = await this.translate_context_query_fields_from_bdd(datas, context_query);
+        datas = await this.translate_context_query_fields_from_bdd(datas, context_query, !!(context_query.fields && context_query.fields.length));
 
         await this.update_custom_fields(datas, exportable_datatable_custom_field_columns);
 
@@ -386,7 +397,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         }
     }
 
-    public async translate_context_query_fields_from_bdd(datas: any[], context_query: ContextQueryVO): Promise<any[]> {
+    public async translate_context_query_fields_from_bdd(datas: any[], context_query: ContextQueryVO, use_raw_field: boolean = false): Promise<any[]> {
         if ((!datas) || (!datas.length)) {
             return null;
         }
@@ -437,7 +448,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     }
 
                     table.force_numeric_field(table_field, data, res[i], field.alias);
-                    await this.field_to_xlsx(table_field, res[i], res[i], field.alias);
+                    await this.field_to_xlsx(table_field, res[i], res[i], field.alias, use_raw_field);
                 });
             }
         }
@@ -445,69 +456,6 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         await promise_pipeline.end();
 
         return res;
-    }
-
-    /**
-     * Export des résultats d'un context_query en XLSX, et on renvoie le file généré
-     */
-    public async exportContextQueryToXLSXFile(
-        filename: string,
-        context_query: ContextQueryVO,
-        ordered_column_list: string[],
-        column_labels: { [field_name: string]: string },
-        exportable_datatable_custom_field_columns: { [datatable_field_uid: string]: string } = null,
-
-        columns: TableColumnDescVO[],
-        varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConf } = null,
-        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
-        custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
-        active_api_type_ids: string[] = null,
-        discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
-
-        is_secured: boolean = false,
-        file_access_policy_name: string = null,
-        target_user_id: number = null
-    ): Promise<FileVO> {
-
-        target_user_id = target_user_id ? target_user_id : StackContext.get('UID');
-
-        let api_type_id = context_query.base_api_type_id;
-        let datas = (context_query.fields && context_query.fields.length) ?
-            await ModuleContextFilter.getInstance().select_datatable_rows(context_query) :
-            await ModuleContextFilter.getInstance().select_vos(context_query);
-        datas = await this.addVarColumnsValues(datas, ordered_column_list, columns, varcolumn_conf, active_field_filters, custom_filters, active_api_type_ids, discarded_field_paths);
-
-        datas = await this.translate_context_query_fields_from_bdd(datas, context_query);
-
-        await this.update_custom_fields(datas, exportable_datatable_custom_field_columns);
-
-        let filepath: string = await this.exportDataToXLSX_base(
-            filename,
-            datas,
-            ordered_column_list,
-            column_labels,
-            api_type_id,
-            is_secured,
-            file_access_policy_name
-        );
-
-        if (!filepath) {
-            ConsoleHandler.error('Erreur lors de l\'export:' + filename);
-            return null;
-        }
-
-        let file: FileVO = new FileVO();
-        file.path = filepath;
-        file.file_access_policy_name = file_access_policy_name;
-        file.is_secured = is_secured;
-        let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(file);
-        if ((!res) || (!res.id)) {
-            ConsoleHandler.error('Erreur lors de l\'enregistrement du fichier en base:' + filepath);
-            return null;
-        }
-        file.id = res.id;
-
-        return file;
     }
 
     /**
@@ -865,20 +813,21 @@ export default class ModuleDataExportServer extends ModuleServerBase {
      * @param dest_vo le vo de destination de la traduction (potentiellement le même que src_vo)
      * @param field_alias optionnel. Permet de définir un nom de champs différent du field_id utilisé dans le src_vo et le dest_vo typiquement en résultat d'un contextquery
      */
-    private async field_to_xlsx(field: ModuleTableField<any>, src_vo: any, dest_vo: any, field_alias: string = null) {
+    private async field_to_xlsx(field: ModuleTableField<any>, src_vo: any, dest_vo: any, field_alias: string = null, use_raw_field: boolean = false) {
 
-        let field_id = field_alias ? field_alias : field.field_id;
+        let src_field_id = (field_alias ? field_alias : field.field_id) + (use_raw_field ? '__raw' : '');
+        let dest_field_id = (field_alias ? field_alias : field.field_id);
 
         /**
          * Si le champ possible un custom_to_api
          */
         if (!!field.custom_translate_to_xlsx) {
-            dest_vo[field_id] = field.custom_translate_to_xlsx(src_vo[field_id]);
+            dest_vo[dest_field_id] = field.custom_translate_to_xlsx(src_vo[src_field_id]);
             /**
              * Compatibilité MSGPACK : il traduit les undefind en null
              */
-            if (typeof dest_vo[field_id] === 'undefined') {
-                delete dest_vo[field_id];
+            if (typeof dest_vo[dest_field_id] === 'undefined') {
+                delete dest_vo[dest_field_id];
             }
             return;
         }
@@ -888,18 +837,18 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             // TODO FIXME  export des ranges dans xlsx à réfléchir...
 
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                let tab_tstzrange_array = src_vo[field_id];
-                dest_vo[field_id] = '';
+                let tab_tstzrange_array = src_vo[src_field_id];
+                dest_vo[dest_field_id] = '';
 
                 for (let i in tab_tstzrange_array) {
                     let range = tab_tstzrange_array[i];
                     if (range) {
 
-                        if (dest_vo[field_id] != '') {
-                            dest_vo[field_id] += ', ';
+                        if (dest_vo[dest_field_id] != '') {
+                            dest_vo[dest_field_id] += ', ';
                         }
-                        dest_vo[field_id] += Dates.format_segment(RangeHandler.getSegmentedMin(src_vo[field_id], src_vo[field_id].segment_type), src_vo[field_id].segment_type) + ' - ' +
-                            Dates.format_segment(RangeHandler.getSegmentedMax(src_vo[field_id], src_vo[field_id].segment_type), src_vo[field_id].segment_type);
+                        dest_vo[dest_field_id] += Dates.format_segment(RangeHandler.getSegmentedMin(src_vo[src_field_id], src_vo[src_field_id].segment_type), src_vo[src_field_id].segment_type) + ' - ' +
+                            Dates.format_segment(RangeHandler.getSegmentedMax(src_vo[src_field_id], src_vo[src_field_id].segment_type), src_vo[src_field_id].segment_type);
                     }
                 }
                 break;
@@ -908,56 +857,56 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_refrange_array:
             case ModuleTableField.FIELD_TYPE_isoweekdays:
             case ModuleTableField.FIELD_TYPE_hourrange_array:
-                let tab = src_vo[field_id];
-                dest_vo[field_id] = '';
+                let tab = src_vo[src_field_id];
+                dest_vo[dest_field_id] = '';
 
                 for (let i in tab) {
                     let range = tab[i];
                     if (range) {
 
-                        if (dest_vo[field_id] != '') {
-                            dest_vo[field_id] += ', ';
+                        if (dest_vo[dest_field_id] != '') {
+                            dest_vo[dest_field_id] += ', ';
                         }
-                        dest_vo[field_id] += RangeHandler.getSegmentedMin(src_vo[field_id], src_vo[field_id].segment_type) + ' - ' + RangeHandler.getSegmentedMax(src_vo[field_id], src_vo[field_id].segment_type);
+                        dest_vo[dest_field_id] += RangeHandler.getSegmentedMin(src_vo[src_field_id], src_vo[src_field_id].segment_type) + ' - ' + RangeHandler.getSegmentedMax(src_vo[src_field_id], src_vo[src_field_id].segment_type);
                     }
                 }
                 break;
 
             case ModuleTableField.FIELD_TYPE_tsrange:
-                dest_vo[field_id] = Dates.format_segment(RangeHandler.getSegmentedMin(src_vo[field_id], src_vo[field_id].segment_type), src_vo[field_id].segment_type) + ' - ' +
-                    Dates.format_segment(RangeHandler.getSegmentedMax(src_vo[field_id], src_vo[field_id].segment_type), src_vo[field_id].segment_type);
+                dest_vo[dest_field_id] = Dates.format_segment(RangeHandler.getSegmentedMin(src_vo[src_field_id], src_vo[src_field_id].segment_type), src_vo[src_field_id].segment_type) + ' - ' +
+                    Dates.format_segment(RangeHandler.getSegmentedMax(src_vo[src_field_id], src_vo[src_field_id].segment_type), src_vo[src_field_id].segment_type);
                 break;
 
             case ModuleTableField.FIELD_TYPE_numrange:
             case ModuleTableField.FIELD_TYPE_hourrange:
-                dest_vo[field_id] = RangeHandler.getSegmentedMin(src_vo[field_id], src_vo[field_id].segment_type) + ' - ' + RangeHandler.getSegmentedMax(src_vo[field_id], src_vo[field_id].segment_type);
+                dest_vo[dest_field_id] = RangeHandler.getSegmentedMin(src_vo[src_field_id], src_vo[src_field_id].segment_type) + ' - ' + RangeHandler.getSegmentedMax(src_vo[src_field_id], src_vo[src_field_id].segment_type);
                 break;
 
             case ModuleTableField.FIELD_TYPE_tstz:
 
-                dest_vo[field_id] = this.format_date_utc(src_vo[field_id]);
+                dest_vo[dest_field_id] = this.format_date_utc(src_vo[src_field_id]);
                 break;
 
             case ModuleTableField.FIELD_TYPE_tstz_array:
-                if ((src_vo[field_id] === null) || (typeof src_vo[field_id] === 'undefined')) {
-                    dest_vo[field_id] = src_vo[field_id];
+                if ((src_vo[src_field_id] === null) || (typeof src_vo[src_field_id] === 'undefined')) {
+                    dest_vo[dest_field_id] = src_vo[src_field_id];
                 } else {
-                    dest_vo[field_id] = (src_vo[field_id] as number[]).map((ts: number) => this.format_date_utc(ts));
+                    dest_vo[dest_field_id] = (src_vo[src_field_id] as number[]).map((ts: number) => this.format_date_utc(ts));
                 }
                 break;
 
             case ModuleTableField.FIELD_TYPE_plain_vo_obj:
-                delete dest_vo[field_id];
+                delete dest_vo[dest_field_id];
                 break;
 
             case ModuleTableField.FIELD_TYPE_enum:
                 let user = await ModuleAccessPolicy.getInstance().getSelfUser();
                 let trads: TranslationVO[] = await query(TranslationVO.API_TYPE_ID)
-                    .filter_by_text_eq('code_text', field.enum_values[src_vo[field_id]], TranslatableTextVO.API_TYPE_ID)
+                    .filter_by_text_eq('code_text', field.enum_values[src_vo[src_field_id]], TranslatableTextVO.API_TYPE_ID)
                     .filter_by_num_in('lang_id', query(UserVO.API_TYPE_ID).field('lang_id').filter_by_id(user.id))
                     .select_vos();
                 let trad = trads ? trads[0] : null;
-                dest_vo[field_id] = trad ? trad.translated : null;
+                dest_vo[dest_field_id] = trad ? trad.translated : null;
                 break;
 
 
@@ -973,10 +922,10 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 /**
                  * Si on a un type string, mais que la bdd renvoie un array, on join(',') pour avoir une string
                  */
-                if (Array.isArray(src_vo[field_id])) {
-                    dest_vo[field_id] = src_vo[field_id].join(',');
+                if (Array.isArray(src_vo[src_field_id])) {
+                    dest_vo[dest_field_id] = src_vo[src_field_id].join(',');
                 } else {
-                    dest_vo[field_id] = src_vo[field_id];
+                    dest_vo[dest_field_id] = src_vo[src_field_id];
                 }
                 break;
 
@@ -992,11 +941,11 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_prct:
             case ModuleTableField.FIELD_TYPE_hour:
             default:
-                dest_vo[field_id] = src_vo[field_id];
+                dest_vo[dest_field_id] = src_vo[src_field_id];
         }
 
-        if (typeof dest_vo[field_id] === 'undefined') {
-            delete dest_vo[field_id];
+        if (typeof dest_vo[dest_field_id] === 'undefined') {
+            delete dest_vo[dest_field_id];
         }
     }
 

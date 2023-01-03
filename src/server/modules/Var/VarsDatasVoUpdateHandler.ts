@@ -320,9 +320,10 @@ export default class VarsDatasVoUpdateHandler {
         let DEBUG_VARS = ConfigurationService.node_configuration.DEBUG_VARS;
 
         let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
-        let promise_pipeline = new PromisePipeline(max);
 
         while (ObjectHandler.getInstance().hasAtLeastOneAttribute(intersectors_by_index)) {
+            let promise_pipeline = new PromisePipeline(max);
+
             for (let i in intersectors_by_index) {
                 let intersector = intersectors_by_index[i];
 
@@ -339,29 +340,35 @@ export default class VarsDatasVoUpdateHandler {
 
                 await promise_pipeline.push(async () => {
 
-                    let deps_intersectors = await this.get_deps_intersectors(intersector);
+                    try {
 
-                    for (let j in deps_intersectors) {
-                        let dep_intersector = deps_intersectors[j];
+                        let deps_intersectors = await this.get_deps_intersectors(intersector);
 
-                        if (intersectors_by_index[dep_intersector.index]) {
-                            continue;
-                        }
-                        let dep_intersector_conf_id = this.get_validator_config_id(invalidator, true, dep_intersector.index);
-                        if (solved_invalidators_by_index[dep_intersector_conf_id]) {
-                            continue;
+                        for (let j in deps_intersectors) {
+                            let dep_intersector = deps_intersectors[j];
+
+                            if (intersectors_by_index[dep_intersector.index]) {
+                                continue;
+                            }
+                            let dep_intersector_conf_id = this.get_validator_config_id(invalidator, true, dep_intersector.index);
+                            if (solved_invalidators_by_index[dep_intersector_conf_id]) {
+                                continue;
+                            }
+
+                            if (DEBUG_VARS) {
+                                ConsoleHandler.log('invalidate_datas_and_parents:' + intersector.index + '=>' + dep_intersector.index + ':');
+                            }
+
+                            intersectors_by_index[dep_intersector.index] = dep_intersector;
                         }
 
                         if (DEBUG_VARS) {
-                            ConsoleHandler.log('invalidate_datas_and_parents:' + intersector.index + '=>' + dep_intersector.index + ':');
+                            ConsoleHandler.log('invalidate_datas_and_parents:END SOLVING:' + intersector.index + ':');
                         }
-
-                        intersectors_by_index[dep_intersector.index] = dep_intersector;
+                    } catch (error) {
+                        ConsoleHandler.error('invalidate_datas_and_parents:FAILED:' + intersector.index + ':' + error);
                     }
 
-                    if (DEBUG_VARS) {
-                        ConsoleHandler.log('invalidate_datas_and_parents:END SOLVING:' + intersector.index + ':');
-                    }
                     delete intersectors_by_index[intersector.index];
                 });
             }
