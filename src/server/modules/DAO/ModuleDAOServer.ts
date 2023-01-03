@@ -2961,7 +2961,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         } else {
 
-            if (DAOServerController.getInstance().pre_update_trigger_hook.has_trigger(vo._type)) {
+            if (DAOServerController.getInstance().pre_create_trigger_hook.has_trigger(vo._type)) {
 
                 // Ajout des triggers, avant et après modification.
                 //  Attention si un des output est false avant modification, on annule la modification

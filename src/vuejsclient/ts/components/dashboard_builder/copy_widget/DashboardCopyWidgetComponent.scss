@@ -1,0 +1,22 @@
+.dashboard_menu_conf {
+
+    .menu_switch {
+        padding: 1em;
+
+        >.label {
+            display: inline-block;
+            font-weight: bold;
+            margin-left: 0.5em;
+            vertical-align: top;
+        }
+
+        .toggle_wrapper {
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .menus_organizer_wrapper {
+            padding: 1em;
+        }
+    }
+}

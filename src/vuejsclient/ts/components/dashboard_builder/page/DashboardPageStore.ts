@@ -10,6 +10,7 @@ import CRUDCreateModalComponent from "../widgets/table_widget/crud_modals/create
 
 import DashboardPageVO from "../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO";
 import ChecklistItemModalComponent from "../widgets/checklist_widget/checklist_item_modal/ChecklistItemModalComponent";
+import DashboardCopyWidgetComponent from "../copy_widget/DashboardCopyWidgetComponent";
 
 export type DashboardPageContext = ActionContext<IDashboardPageState, any>;
 
@@ -21,6 +22,7 @@ export interface IDashboardPageState {
     Checklistitemmodalcomponent: ChecklistItemModalComponent;
     Crudupdatemodalcomponent: CRUDUpdateModalComponent;
     Crudcreatemodalcomponent: CRUDCreateModalComponent;
+    Dashboardcopywidgetcomponent: DashboardCopyWidgetComponent;
 
 
     page_history: DashboardPageVO[];
@@ -61,6 +63,7 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             Checklistitemmodalcomponent: null,
             Crudupdatemodalcomponent: null,
             Crudcreatemodalcomponent: null,
+            Dashboardcopywidgetcomponent: null,
             page_history: [],
             custom_filters: [],
             widgets_invisibility: {},
@@ -96,6 +99,10 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
             get_Crudcreatemodalcomponent(state: IDashboardPageState): CRUDCreateModalComponent {
                 return state.Crudcreatemodalcomponent;
+            },
+
+            get_Dashboardcopywidgetcomponent(state: IDashboardPageState): DashboardCopyWidgetComponent {
+                return state.Dashboardcopywidgetcomponent;
             },
 
 
@@ -152,6 +159,10 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
             set_Crudcreatemodalcomponent(state: IDashboardPageState, Crudcreatemodalcomponent: CRUDCreateModalComponent) {
                 state.Crudcreatemodalcomponent = Crudcreatemodalcomponent;
+            },
+
+            set_Dashboardcopywidgetcomponent(state: IDashboardPageState, Dashboardcopywidgetcomponent: DashboardCopyWidgetComponent) {
+                state.Dashboardcopywidgetcomponent = Dashboardcopywidgetcomponent;
             },
 
 
@@ -271,6 +282,10 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
                 commit_set_Crudcreatemodalcomponent(context, Crudcreatemodalcomponent);
             },
 
+            set_Dashboardcopywidgetcomponent(context: DashboardPageContext, Dashboardcopywidgetcomponent: DashboardCopyWidgetComponent) {
+                commit_set_Dashboardcopywidgetcomponent(context, Dashboardcopywidgetcomponent);
+            },
+
             set_active_field_filters(context: DashboardPageContext, active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }) {
                 commit_set_active_field_filters(context, active_field_filters);
             },
@@ -318,6 +333,7 @@ export const commit_remove_active_field_filter = commit(DashboardPageStoreInstan
 export const commit_set_Checklistitemmodalcomponent = commit(DashboardPageStoreInstance.mutations.set_Checklistitemmodalcomponent);
 export const commit_set_Crudupdatemodalcomponent = commit(DashboardPageStoreInstance.mutations.set_Crudupdatemodalcomponent);
 export const commit_set_Crudcreatemodalcomponent = commit(DashboardPageStoreInstance.mutations.set_Crudcreatemodalcomponent);
+export const commit_set_Dashboardcopywidgetcomponent = commit(DashboardPageStoreInstance.mutations.set_Dashboardcopywidgetcomponent);
 export const commit_set_page_history = commit(DashboardPageStoreInstance.mutations.set_page_history);
 export const commit_add_page_history = commit(DashboardPageStoreInstance.mutations.add_page_history);
 export const commit_pop_page_history = commit(DashboardPageStoreInstance.mutations.pop_page_history);

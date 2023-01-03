@@ -2,22 +2,20 @@
 
 import { throttle } from 'lodash';
 import Component from 'vue-class-component';
-import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import { Watch } from 'vue-property-decorator';
+import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleSurvey from '../../../../shared/modules/Survey/ModuleSurvey';
+import SurveyParamVO from '../../../../shared/modules/Survey/vos/SurveyParamVO';
 import SurveyVO from '../../../../shared/modules/Survey/vos/SurveyVO';
 import VueAppController from '../../../VueAppController';
 import FileComponent from '../file/FileComponent';
 import ScreenshotComponent from '../screenshot/ScreenshotComponent';
 import VueComponentBase from '../VueComponentBase';
-import './SurveyComponent.scss';
 import { ModuleSurveyAction, ModuleSurveyGetter } from './store/SurveyStore';
-import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
-import SurveyParamVO from '../../../../shared/modules/Survey/vos/SurveyParamVO';
-import { on } from 'process';
+import './SurveyComponent.scss';
 
-const { parse, stringify } = require('flatted/cjs');
 /*
 TODO survey ouvert ou pas en fonction du route_name ok
     combien de temps, ok
@@ -64,38 +62,41 @@ export default class SurveyComponent extends VueComponentBase {
 
         try {
             this.set_hidden(true); //On fait en sorte de cacher l'enquête dès qu'il y a changement de page.
-            this.tmp_type = null;
-            //Le survey apparaît-il-sur cette page ?
-            this.need_a_survey = await query(SurveyParamVO.API_TYPE_ID).filter_by_text_eq('route_name', this.$route.name).select_vo<SurveyParamVO>();
 
-            if (this.need_a_survey) {
-                //L'utilisateur a-t-il déjà complété ce survey ?
-                this.user = await ModuleAccessPolicy.getInstance().getSelfUser();
-                let user_id = this.user.id;
-                this.already_submitted = await query(SurveyVO.API_TYPE_ID).filter_by_num_eq('user_id', user_id).filter_by_text_eq('route_name', this.$route.name).select_vo<SurveyVO>();
-            }
+            if (this.$route.name) {
+                this.tmp_type = null;
+                //Le survey apparaît-il-sur cette page ?
+                this.need_a_survey = await query(SurveyParamVO.API_TYPE_ID).filter_by_text_eq('route_name', this.$route.name).select_vo<SurveyParamVO>();
 
-            //Si le survey est autorisé à apparaître : Est-ce un pop-up ? Si oui Combien de temps avant d'apparaître ?
-            if (this.need_a_survey && !this.already_submitted) {
-                this.pop_up = this.need_a_survey.pop_up;
-                if (this.pop_up) {
-                    this.time_before_pop_up = this.need_a_survey.time_before_pop_up * 1000; //En ms
-                    setTimeout(this.turn_on, this.time_before_pop_up);
-
+                if (this.need_a_survey) {
+                    //L'utilisateur a-t-il déjà complété ce survey ?
+                    this.user = await ModuleAccessPolicy.getInstance().getSelfUser();
+                    let user_id = this.user.id;
+                    this.already_submitted = await query(SurveyVO.API_TYPE_ID).filter_by_num_eq('user_id', user_id).filter_by_text_eq('route_name', this.$route.name).select_vo<SurveyVO>();
                 }
-                this.display_survey = true;
-            } else { this.display_survey = false; }
+
+                //Si le survey est autorisé à apparaître : Est-ce un pop-up ? Si oui Combien de temps avant d'apparaître ?
+                if (this.need_a_survey && !this.already_submitted) {
+                    this.pop_up = this.need_a_survey.pop_up;
+                    if (this.pop_up) {
+                        this.time_before_pop_up = this.need_a_survey.time_before_pop_up * 1000; //En ms
+                        setTimeout(this.turn_on, this.time_before_pop_up);
+
+                    }
+                    this.display_survey = true;
+                } else {
+                    this.display_survey = false;
+                }
+            }
 
         } catch (e) {
             this.display_survey = false;
             console.log("Erreur lors du chargement de l'enquête");
         }
-
     }
 
     private async mounted() {
         this.reload();
-
     }
 
     private reload() {
@@ -105,7 +106,6 @@ export default class SurveyComponent extends VueComponentBase {
         this.tmp_type = null;
 
         this.tmp_message = null;
-
 
         this.is_already_sending_survey = false;
     }

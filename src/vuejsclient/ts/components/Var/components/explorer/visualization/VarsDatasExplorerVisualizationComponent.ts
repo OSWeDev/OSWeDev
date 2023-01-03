@@ -2,6 +2,7 @@ import { Component, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import VarDataBaseVO from '../../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
+import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../../store/VarStore';
 import VarsClientController from '../../../VarsClientController';
@@ -26,9 +27,7 @@ export default class VarsDatasExplorerVisualizationComponent extends VueComponen
     private param_index: string = null;
     private multi_param_index: string = null;
     private display_data: boolean = false;
-    private error_data: string = null; //Ligne correspondant à l'index erroné.
-
-
+    private errors_data: string[] = null; //Ligne correspondant à l'index erroné.
 
     @Watch('getDescSelectedVarParam', { immediate: true })
     private onchange_getDescSelectedVarParam() {
@@ -56,55 +55,31 @@ export default class VarsDatasExplorerVisualizationComponent extends VueComponen
         //Si le champs est vide ou incohérent, on réinitialise les résultats.
         if (this.multi_param_index == null) {
             this.set_filtered_datas({});
+            this.errors_data = null;
+            this.display_data = false;
             return;
         }
 
-        try {
-            let each_line_of_textarea = this.multi_param_index.split('\n');
-            let array_of_datas = [];
-            let array_of_promise = [];
+        let each_line_of_textarea: string[] = this.multi_param_index.split('\n');
+        let var_param_by_index: { [index: string]: VarDataBaseVO } = {};
+        let errors: string[] = [];
 
-
-            each_line_of_textarea.forEach((index: string) => {
-                //let datass: any = ModuleDAO.getInstance().getVosByRefFieldsIdsAndFieldsString('crescendo_day_dr', null, null, '_bdd_only_index', [index]);
-                let var_param = VarsClientController.getInstance().registered_var_params[index]['var_param'];
-
-                array_of_promise.push(var_param);
-            });
-            await Promise.all(array_of_promise).then((datas: any) => {
-                array_of_datas = datas;
-            });
-            let res: { [index: string]: VarDataBaseVO } = {};
-            let current_index: string;
-
-            try {
-                for (let i in array_of_datas) {
-                    current_index = i;
-                    let filter_param = array_of_datas[i];
-                    res[filter_param.index] = filter_param;
-                }
-                this.error_data = null;
-
-                this.display_data = true;
-                this.set_filtered_datas(res);
-            } catch {
-                console.log("L'index numéro %i est inexistant  !", current_index);
-                this.error_data = current_index; //Il y a une erreur de saisie d'index
-                this.display_data = true;
+        each_line_of_textarea.forEach((index: string) => {
+            if (!index || !index.length) {
+                return;
             }
-        } catch {
-            this.set_filtered_datas({});
-            return;
-        }
 
+            let var_param = VarDataBaseVO.from_index(index);
+
+            if (var_param) {
+                var_param_by_index[index] = var_param;
+            } else {
+                errors.push(index);
+            }
+        });
+
+        this.errors_data = errors;
+        this.display_data = true;
+        this.set_filtered_datas(var_param_by_index);
     }
-
-
-
-
-    get _error_data() {
-        /*Indique si oui ou non il y a un index erroné parmis ceux indiqués */
-        return this.error_data;
-    }
-
 }

@@ -52,7 +52,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
     @Prop({ default: null })
     private dashboard_page: DashboardPageVO;
 
-    private changement_default: boolean = false; //Attribut pour reaffecter les valeurs par défaut lorsqu'elles sont modifiées.
+    private default_values_changed: boolean = false; //Attribut pour reaffecter les valeurs par défaut lorsqu'elles sont modifiées.
 
 
     private tmp_filter_active_options: DataFilterOption[] = null;
@@ -93,6 +93,10 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         if (!!this.old_widget_options) {
             if (isEqual(this.widget_options, this.old_widget_options)) {
                 return;
+            }
+
+            if (!isEqual(this.widget_options.default_filter_opt_values, this.old_widget_options.default_filter_opt_values)) {
+                this.default_values_changed = true;
             }
         }
 
@@ -303,24 +307,19 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                     this.page_widget,
                     true
                 );
-                //Si on a des valeurs par défaut mais qu'aucune n'ont été changée et qu'on a des champs déjà remplis auparavant
-                if (this.get_active_field_filters && this.get_active_field_filters[this.vo_field_ref.api_type_id] &&
-                    this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id] && !this.changement_default) {
 
-                    /**
-                     * On essaye d'appliquer les filtres. Si on peut pas appliquer un filtre, on garde l'info pour afficher une petite alerte
-                     * Cela a lieu lors d'un changement de page par exemple
-                     */
-                    this.warn_existing_external_filters = !this.try_apply_actual_active_filters(this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id]);
-                } else { //Si il y a eu changement de val par défaut ou aucun champs remplit avec d'autre valeurs
+                // Si je n'ai pas de filtre actif OU que ma valeur de default values à changée, je prends les valeurs par défaut
+                let has_active_field_filter: boolean = !!(
+                    this.get_active_field_filters &&
+                    this.get_active_field_filters[this.vo_field_ref.api_type_id] &&
+                    this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id]
+                );
+
+                if (!has_active_field_filter || this.default_values_changed) {
+                    this.default_values_changed = false;
                     this.tmp_filter_active_options = this.default_values;
-                    this.changement_default = false;
+                    return;
                 }
-                return;
-
-
-            } else if (this.changement_default) {
-                return;
             }
         }
 

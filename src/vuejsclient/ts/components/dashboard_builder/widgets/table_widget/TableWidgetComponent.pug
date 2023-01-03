@@ -125,10 +125,10 @@ include ../../../../../views/mixins/loading.pug
                                                         .btn.btn-sm.btn-primary(@click="open_update(column.api_type_id, parseInt(row.__crud_actions))")
                                                             i.fa-solid.fa-pencil
                                                     template(v-if="can_open_vocus")
-                                                        .btn.btn-xs.btn-secondary(@click="open_vocus(column.api_type_id, row.__crud_actions)")
+                                                        .btn.btn-xs.btn-secondary(@click="open_vocus(column.api_type_id, parseInt(row.__crud_actions))")
                                                             i.fa.fa-search
                                                     template(v-if="delete_button")
-                                                        .btn.btn-sm.btn-danger(@click="confirm_delete(column.api_type_id, row.__crud_actions)")
+                                                        .btn.btn-sm.btn-danger(@click="confirm_delete(column.api_type_id, parseInt(row.__crud_actions))")
                                                             i.fa.fa-trash
 
                                             //- If it's a component
@@ -195,13 +195,13 @@ include ../../../../../views/mixins/loading.pug
                                                         v-tooltip='label("table_widget_component.id", {id : parseInt(row.__crud_actions)})' :style="{width: (child.column_width ? child.column_width + 'rem' : null)}" 
                                                         )
                                                         template(v-if='update_button')
-                                                            .btn.btn-sm.btn-primary(@click="open_update(child.api_type_id, row.__crud_actions)")
+                                                            .btn.btn-sm.btn-primary(@click="open_update(child.api_type_id, parseInt(row.__crud_actions))")
                                                                 i.fa.fa-pencil
                                                         template(v-if="can_open_vocus")
-                                                            .btn.btn-xs.btn-secondary(@click="open_vocus(child.api_type_id, row.__crud_actions)")
+                                                            .btn.btn-xs.btn-secondary(@click="open_vocus(child.api_type_id, parseInt(row.__crud_actions))")
                                                                 i.fa.fa-search
                                                         template(v-if="delete_button")
-                                                            .btn.btn-sm.btn-danger(@click="confirm_delete(child.api_type_id, row.__crud_actions)")
+                                                            .btn.btn-sm.btn-danger(@click="confirm_delete(child.api_type_id, parseInt(row.__crud_actions))")
                                                                 i.fa.fa-trash
                                                                             
                     template(v-if="has_table_total_footer && data_rows && (data_rows.length > 0)")
