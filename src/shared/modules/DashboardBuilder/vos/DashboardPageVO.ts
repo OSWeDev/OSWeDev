@@ -1,7 +1,6 @@
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
 import IWeightedItem from "../../../tools/interfaces/IWeightedItem";
 import DefaultTranslation from "../../Translation/vos/DefaultTranslation";
-import TranslatableTextVO from "../../Translation/vos/TranslatableTextVO";
 import DashboardBuilderController from "../DashboardBuilderController";
 import IDashboardPageVO from "../interfaces/IDashboardPageVO";
 

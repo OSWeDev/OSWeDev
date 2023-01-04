@@ -1,9 +1,6 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import ContextFilterHandler from '../../../../shared/modules/ContextFilter/ContextFilterHandler';
-import ModuleContextFilter from '../../../../shared/modules/ContextFilter/ModuleContextFilter';
-import ContextFilterVO from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import ContextQueryVO, { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import DashboardBuilderController from '../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
