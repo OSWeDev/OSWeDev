@@ -139,11 +139,18 @@ export default abstract class DatatableField<T, U> implements IDistantVOBase {
         this.update_moduleTableField();
     }
 
-    get moduleTableField(): ModuleTableField<T> {
+    get moduleTable(): ModuleTable<any> {
         if (!this.vo_type_id) {
             return null;
         }
-        return VOsTypesManager.moduleTables_by_voType[this.vo_type_id].getFieldFromId(this.module_table_field_id);
+        return VOsTypesManager.moduleTables_by_voType[this.vo_type_id];
+    }
+
+    get moduleTableField(): ModuleTableField<T> {
+        if (!this.moduleTable) {
+            return null;
+        }
+        return this.moduleTable.getFieldFromId(this.module_table_field_id);
     }
 
     public auto_update_datatable_field_uid_with_vo_type() {
