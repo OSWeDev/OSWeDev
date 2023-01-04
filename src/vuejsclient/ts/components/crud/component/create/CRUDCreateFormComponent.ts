@@ -75,9 +75,12 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
     private crud: CRUD<any> = null;
 
 
-    public async update_key() {
+    public async update_key(force_new_vo: boolean) {
         if (this.crud && (this.crud_createDatatable_key != this.crud.createDatatable.key)) {
-            await this.prepareNewVO();
+            if (force_new_vo) {
+                await this.prepareNewVO();
+            }
+
             this.crud_createDatatable_key = this.crud.createDatatable.key;
         }
     }
