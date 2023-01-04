@@ -9,12 +9,14 @@
 
             form(v-on:submit.prevent="login", :class="{error: has_error_form}")
                 .form-group.has-feedback
-                    input.form-control(type='text', v-model='email', :placeholder='label("login.email_placeholder")')
                     i.fa-solid.fa-id-card.pull-right.fa-fw(aria-hidden="true")
+                    input.form-control(type='text', v-model='email', :placeholder='label("login.email_placeholder")')
+                    
                 .form-group.has-feedback
-                    input.form-control(:type="show_password ? 'text' : 'password'", v-model='password' :placeholder='label("login.password_placeholder")')
                     i.fa-solid.fa-eye.pull-right.fa-fw.c-p(v-if="!show_password" @click="set_show_password(true)")
                     i.fa-solid.fa-eye-slash.pull-right.fa-fw.c-p(v-if="show_password" @click="set_show_password(false)")
+                    input.form-control(:type="show_password ? 'text' : 'password'", v-model='password' :placeholder='label("login.password_placeholder")')
+                    
                     //- i.fa-solid.fa-lock.pull-right.fa-fw(aria-hidden="true")
                 .center.signin-submit
                     button.btn.btn-primary.btn-block.btn-flat(type="submit") 
