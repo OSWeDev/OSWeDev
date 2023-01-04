@@ -3,7 +3,7 @@
         .col-sm-12        
             vue-dropzone(v-if="!readonly" :ref="'filedropzone' + uid" :id="'filedropzone' + uid" :options="dropzoneOptions")
                 .dz-message
-                    i.fa.fa-upload.fa-3x(aria-hidden="true")
+                    i.fa-solid.fa-upload.fa-3x(aria-hidden="true")
             a.btn.btn-sm.btn-primary(v-if="(!!imagevo) && imagevo.id" :href="'/' + imagevo.path" target='_blank')
                 i.fa-download.fa.fa-lg.btn_icon(aria-hidden="true")
                 | {{ label('file.download') }}

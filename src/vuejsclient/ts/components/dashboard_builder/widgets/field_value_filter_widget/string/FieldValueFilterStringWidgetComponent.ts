@@ -6,6 +6,7 @@ import ContextFilterHandler from '../../../../../../../shared/modules/ContextFil
 import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO, { filter } from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+
 import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
@@ -23,6 +24,8 @@ import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import TypesHandler from '../../../../../../../shared/tools/TypesHandler';
 import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../../VueComponentBase';
+
+import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import ValidationFiltersCallUpdaters from '../../validation_filters_widget/ValidationFiltersCallUpdaters';
@@ -54,6 +57,10 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
     private set_widget_invisibility: (w_id: number) => void;
     @ModuleDashboardPageAction
     private set_widget_visibility: (w_id: number) => void;
+    @ModuleDashboardPageAction
+    private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
+    @ModuleDroppableVoFieldsAction
+    private set_selected_fields: (selected_fields: { [api_type_id: string]: { [field_id: string]: boolean } }) => void;
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
@@ -69,6 +76,9 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
     @Prop({ default: null })
     private dashboard_page: DashboardPageVO;
+
+    private default_values_changed: boolean = false; // Attribut pour reaffecter les valeurs par défaut lorsqu'elles sont modifiées.
+
 
     private tmp_filter_active_options: DataFilterOption[] = [];
     private tmp_filter_active_options_lvl2: { [filter_opt_value: string]: DataFilterOption[] } = {};
@@ -116,6 +126,10 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         if (!!this.old_widget_options) {
             if (isEqual(this.widget_options, this.old_widget_options)) {
                 return;
+            }
+
+            if (!isEqual(this.widget_options.default_filter_opt_values, this.old_widget_options.default_filter_opt_values)) {
+                this.default_values_changed = true;
             }
         }
 
@@ -168,6 +182,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                 this.tmp_filter_active_options_lvl2 = new_tmp_filter_active_options_lvl2;
                 return;
             }
+
         }
 
         // Si on a un lvl2, on va filtrer par leurs valeurs donc on va dans l'autre fonction
@@ -176,12 +191,15 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             return;
         }
 
+
         this.set_active_field_filter({
             field_id: this.vo_field_ref.field_id,
             vo_type: this.vo_field_ref.api_type_id,
             active_field_filter: this.get_active_field_filter(this.vo_field_ref, this.tmp_filter_active_options),
         });
     }
+
+
 
     @Watch('tmp_filter_active_options_lvl2')
     private onchange_tmp_filter_active_options_lvl2() {
@@ -249,6 +267,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             vo_type: this.vo_field_ref.api_type_id
         });
     }
+
 
     private get_active_field_filter(vo_field_ref: VOFieldRefVO, tmp_filter_active_options: DataFilterOption[]): ContextFilterVO {
         let res: ContextFilterVO[] = [];
@@ -522,6 +541,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         await this.throttled_update_visible_options();
     }
 
+
     private async update_visible_options() {
 
         let launch_cpt: number = (this.last_calculation_cpt + 1);
@@ -543,16 +563,26 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             // Si on a des valeurs par défaut, on va faire l'init
             if (this.default_values && (this.default_values.length > 0)) {
 
-                this.tmp_filter_active_options = this.default_values;
-
-                ValidationFiltersWidgetController.getInstance().throttle_call_updaters(
-                    new ValidationFiltersCallUpdaters(
-                        this.dashboard_page.dashboard_id,
-                        this.dashboard_page.id
-                    )
+                // Si je n'ai pas de filtre actif OU que ma valeur de default values à changée, je prends les valeurs par défaut
+                let has_active_field_filter: boolean = !!(
+                    this.get_active_field_filters &&
+                    this.get_active_field_filters[this.vo_field_ref.api_type_id] &&
+                    this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id]
                 );
 
-                return;
+                if (!has_active_field_filter || this.default_values_changed) {
+                    this.default_values_changed = false;
+                    this.tmp_filter_active_options = this.default_values;
+
+                    ValidationFiltersWidgetController.getInstance().throttle_call_updaters(
+                        new ValidationFiltersCallUpdaters(
+                            this.dashboard_page.dashboard_id,
+                            this.dashboard_page.id
+                        )
+                    );
+
+                    return;
+                }
             }
         }
 

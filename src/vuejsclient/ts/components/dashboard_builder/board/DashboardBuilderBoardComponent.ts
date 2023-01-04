@@ -22,6 +22,7 @@ import CRUDCreateModalComponent from '../widgets/table_widget/crud_modals/create
 import CRUDUpdateModalComponent from '../widgets/table_widget/crud_modals/update/CRUDUpdateModalComponent';
 import './DashboardBuilderBoardComponent.scss';
 import DashboardBuilderBoardItemComponent from './item/DashboardBuilderBoardItemComponent';
+import DashboardCopyWidgetComponent from '../copy_widget/DashboardCopyWidgetComponent';
 
 @Component({
     template: require('./DashboardBuilderBoardComponent.pug'),
@@ -31,6 +32,7 @@ import DashboardBuilderBoardItemComponent from './item/DashboardBuilderBoardItem
         Dashboardbuilderboarditemcomponent: DashboardBuilderBoardItemComponent,
         Crudupdatemodalcomponent: CRUDUpdateModalComponent,
         Crudcreatemodalcomponent: CRUDCreateModalComponent,
+        Dashboardcopywidgetcomponent: DashboardCopyWidgetComponent,
         Checklistitemmodalcomponent: ChecklistItemModalComponent,
         Inlinetranslatabletext: InlineTranslatableText,
     }
@@ -59,7 +61,8 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     @ModuleDashboardPageAction
     private set_Crudcreatemodalcomponent: (Crudcreatemodalcomponent: CRUDCreateModalComponent) => void;
 
-
+    @ModuleDashboardPageAction
+    private set_Dashboardcopywidgetcomponent: (Dashboardcopywidgetcomponent: DashboardCopyWidgetComponent) => void;
 
     @ModuleDashboardPageGetter
     private get_widgets_invisibility: { [w_id: number]: boolean };
@@ -155,6 +158,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         this.set_Checklistitemmodalcomponent(this.$refs['Checklistitemmodalcomponent'] as ChecklistItemModalComponent);
         this.set_Crudupdatemodalcomponent(this.$refs['Crudupdatemodalcomponent'] as CRUDUpdateModalComponent);
         this.set_Crudcreatemodalcomponent(this.$refs['Crudcreatemodalcomponent'] as CRUDCreateModalComponent);
+        this.set_Dashboardcopywidgetcomponent(this.$refs['Dashboardcopywidgetcomponent'] as DashboardCopyWidgetComponent);
     }
 
     @Watch('get_widgets_invisibility', { deep: true })
@@ -313,8 +317,6 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         await ModuleDAO.getInstance().insertOrUpdateVO(widget);
         this.set_page_widget(widget);
     }
-
-
 
     private async delete_widget(page_widget: DashboardPageWidgetVO) {
         let self = this;

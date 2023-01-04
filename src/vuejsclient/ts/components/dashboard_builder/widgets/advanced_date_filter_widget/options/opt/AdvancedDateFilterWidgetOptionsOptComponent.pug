@@ -11,14 +11,14 @@
             )
 
         .remove_opt.col-sm-2.text-center(@click="remove_opt")
-            i.fa.fa-trash(aria-hidden="true")
+            i.fa-solid.fa-trash(aria-hidden="true")
 
         template(v-if='!show_options')
             .show_options.col-sm-2.text-center(@click="unhide_options")
-                i.fa.fa-cogs(aria-hidden="true")
+                i.fa-solid.fa-cogs(aria-hidden="true")
         template(v-else)
             .hide_options.col-sm-2.text-center(@click="hide_options")
-                i.fa.fa-cogs(aria-hidden="true")
+                i.fa-solid.fa-cogs(aria-hidden="true")
 
             .col-sm-12.mt-2
                 .search_type

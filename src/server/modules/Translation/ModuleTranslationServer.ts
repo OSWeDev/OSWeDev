@@ -430,6 +430,15 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Autres langues'
         }, 'on_page_translation.show_other_langs.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Enregistrement en cours'
+        }, 'on_page_translation.save_translation.start.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Echec de la sauvegarde'
+        }, 'on_page_translation.save_translation.ko.___LABEL___'));
+
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Surcharger'
         }, 'translations_import_params.overwrite.___LABEL___'));

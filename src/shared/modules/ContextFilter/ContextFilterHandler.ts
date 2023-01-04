@@ -616,6 +616,9 @@ export default class ContextFilterHandler {
                 break;
 
             case ModuleTableField.FIELD_TYPE_tstz:
+            case ModuleTableField.FIELD_TYPE_tsrange:
+            case ModuleTableField.FIELD_TYPE_tstzrange_array:
+            case ModuleTableField.FIELD_TYPE_tstz_array:
                 translated_active_options.filter_type = ContextFilterVO.TYPE_DATE_INTERSECTS;
                 translated_active_options.param_tsranges = [ts_range];
                 break;

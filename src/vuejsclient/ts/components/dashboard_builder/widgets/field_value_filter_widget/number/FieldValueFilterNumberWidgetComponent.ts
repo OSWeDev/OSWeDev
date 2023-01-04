@@ -5,7 +5,7 @@ import ContextFilterHandler from '../../../../../../../shared/modules/ContextFil
 import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
-import ContextQueryVO, { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
@@ -54,6 +54,9 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
     @Prop({ default: null })
     private dashboard_page: DashboardPageVO;
 
+    private default_values_changed: boolean = false; //Attribut pour reaffecter les valeurs par défaut lorsqu'elles sont modifiées.
+
+
     private tmp_filter_active_options: DataFilterOption[] = null;
 
     private filter_visible_options: DataFilterOption[] = [];
@@ -92,6 +95,10 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         if (!!this.old_widget_options) {
             if (isEqual(this.widget_options, this.old_widget_options)) {
                 return;
+            }
+
+            if (!isEqual(this.widget_options.default_filter_opt_values, this.old_widget_options.default_filter_opt_values)) {
+                this.default_values_changed = true;
             }
         }
 
@@ -293,16 +300,26 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
             // Si on a des valeurs par défaut, on va faire l'init
             if (this.default_values && (this.default_values.length > 0)) {
 
-                this.tmp_filter_active_options = this.default_values;
-
-                ValidationFiltersWidgetController.getInstance().throttle_call_updaters(
-                    new ValidationFiltersCallUpdaters(
-                        this.dashboard_page.dashboard_id,
-                        this.dashboard_page.id
-                    )
+                // Si je n'ai pas de filtre actif OU que ma valeur de default values à changée, je prends les valeurs par défaut
+                let has_active_field_filter: boolean = !!(
+                    this.get_active_field_filters &&
+                    this.get_active_field_filters[this.vo_field_ref.api_type_id] &&
+                    this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id]
                 );
 
-                return;
+                if (!has_active_field_filter || this.default_values_changed) {
+                    this.default_values_changed = false;
+                    this.tmp_filter_active_options = this.default_values;
+
+                    ValidationFiltersWidgetController.getInstance().throttle_call_updaters(
+                        new ValidationFiltersCallUpdaters(
+                            this.dashboard_page.dashboard_id,
+                            this.dashboard_page.id
+                        )
+                    );
+
+                    return;
+                }
             }
         }
 

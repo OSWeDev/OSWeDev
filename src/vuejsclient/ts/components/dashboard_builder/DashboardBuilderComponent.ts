@@ -512,6 +512,8 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
     private select_page_clear_navigation(page: DashboardPageVO) {
         this.set_page_history([]);
+
+
         this.page = page;
     }
 
@@ -768,6 +770,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     }
 
     private async mounted() {
+
 
         let self = this;
         await navigator.permissions.query({ name: "clipboard-write" as any }).then((result) => {

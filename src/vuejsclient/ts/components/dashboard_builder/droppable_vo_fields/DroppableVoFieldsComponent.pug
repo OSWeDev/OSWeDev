@@ -17,9 +17,9 @@
                             .close_api_type_id(v-else) -
                         .icons
                             .api_type_id_type
-                                i.fa.fa-table.fa-fw(aria-hidden="true")
+                                i.fa-solid.fa-table.fa-fw(aria-hidden="true")
                             .api_type_id_selected
-                                i.fa.fa-check-circle.fa-fw(aria-hidden="true" v-if="has_selected_field[api_type_id]")
+                                i.fa-solid.fa-check-circle.fa-fw(aria-hidden="true" v-if="has_selected_field[api_type_id]")
                         .title {{ api_type_titles[api_type_id] }}
                     .content(v-if='!closed_api_type_id[api_type_id]')
                         .fields

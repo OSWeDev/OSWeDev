@@ -204,6 +204,14 @@ export default class ModuleVarServer extends ModuleServerBase {
         }, 'vars_datas_explorer_visualization.param_from_index.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Index + Entrée - Validez à vide pour réinitialiser.'
+        }, 'vars_datas_explorer_visualization.param_from_index.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Index de la variable sélectionnée'
+        }, 'vars_datas_explorer_visualization.chosen_index.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': '</ul>'
         }, 'VarDataRefComponent.var_data_value_tooltip_suffix.___LABEL___'));
 

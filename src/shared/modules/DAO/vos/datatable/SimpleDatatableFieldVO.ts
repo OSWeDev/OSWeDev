@@ -193,7 +193,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
                     let min_period: number = RangeHandler.getSegmentedMin(field_value, TimeSegment.TYPE_DAY, 0, moduleTableField.return_min_value);
                     if (min_period) {
-                        res_tsrange.push(ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(min_period));
+                        res_tsrange.push(Dates.format_segment(min_period, moduleTableField.segmentation_type, moduleTableField.format_localized_time));
                         none = false;
                     } else {
                         res_tsrange.push('');
@@ -202,8 +202,11 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     let max_period: number = RangeHandler.getSegmentedMax(field_value, TimeSegment.TYPE_DAY, 0, moduleTableField.return_max_value);
 
                     if (max_period) {
-                        res_tsrange.push(ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(max_period));
-                        none = false;
+                        // Si mon max est différent du min, j'ajoute, sinon ça ne sert à rien car ça affiche en double
+                        if (max_period != min_period) {
+                            res_tsrange.push(Dates.format_segment(max_period, moduleTableField.segmentation_type, moduleTableField.format_localized_time));
+                            none = false;
+                        }
                     } else {
                         res_tsrange.push('');
                     }
@@ -227,8 +230,10 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     let max_number: number = RangeHandler.getSegmentedMax(field_value, null, 0, moduleTableField.return_max_value);
 
                     if (max_number) {
-                        res_numrange.push(max_number.toFixed(0));
-                        none_number = false;
+                        if (max_number.toFixed(0) != min_number.toFixed(0)) {
+                            res_numrange.push(max_number.toFixed(0));
+                            none_number = false;
+                        }
                     } else {
                         res_numrange.push('');
                     }
@@ -424,7 +429,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                         case TimeSegment.TYPE_WEEK:
                             return value ? this.getMomentDateFieldInclusif(Dates.startOf(value, TimeSegment.TYPE_WEEK), moduleTableField, false) : null;
                         case TimeSegment.TYPE_YEAR:
-                            return value ? Dates.year(Dates.startOf(value, TimeSegment.TYPE_YEAR)) : null;
+                            return value ? Dates.startOf(value, TimeSegment.TYPE_YEAR) : null;
                         case TimeSegment.TYPE_DAY:
                             return value ? this.getMomentDateFieldInclusif(Dates.startOf(value, TimeSegment.TYPE_DAY), moduleTableField, false) : null;
                         default:
@@ -445,7 +450,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                             case TimeSegment.TYPE_WEEK:
                                 res_tstz_array.push(v ? this.getMomentDateFieldInclusif(Dates.startOf(v, TimeSegment.TYPE_WEEK), moduleTableField, false) : null);
                             case TimeSegment.TYPE_YEAR:
-                                res_tstz_array.push(Dates.year(Dates.startOf(v, TimeSegment.TYPE_YEAR)));
+                                res_tstz_array.push(v ? Dates.startOf(v, TimeSegment.TYPE_YEAR) : null);
                             case TimeSegment.TYPE_DAY:
                                 res_tstz_array.push(v ? this.getMomentDateFieldInclusif(Dates.startOf(v, TimeSegment.TYPE_DAY), moduleTableField, false) : null);
                             default:

@@ -53,6 +53,7 @@ export default class DashboardViewerComponent extends VueComponentBase {
 
     private can_edit: boolean = false;
 
+
     private select_widget(page_widget) {
         this.selected_widget = page_widget;
     }
@@ -132,6 +133,7 @@ export default class DashboardViewerComponent extends VueComponentBase {
         this.add_page_history(this.page);
         this.select_widget(null);
         this.page = page;
+
     }
 
     get dashboard_name_code_text(): string {

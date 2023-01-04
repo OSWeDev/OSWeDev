@@ -1,4 +1,5 @@
 import Component from 'vue-class-component';
+import { isEqual } from 'lodash';
 import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterHandler from '../../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
@@ -54,7 +55,6 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
 
     @Watch('ts_range')
     private onchange_ts_range() {
-
         if (!this.widget_options) {
             return;
         }

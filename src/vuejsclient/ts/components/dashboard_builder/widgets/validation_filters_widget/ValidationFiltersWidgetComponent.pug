@@ -2,5 +2,5 @@ include ../../../../../views/mixins/loading.pug
 
 .validation_filters_widget_component
     button(@click="validate") 
-        i.fa.fa-spin.fa-spinner.mr-2(v-if="start_update")
+        i.fa-solid.fa-spin.fa-spinner.mr-2(v-if="start_update")
         span {{ label('dashboard_viewer.block_widgets_updates') }}

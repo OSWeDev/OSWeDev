@@ -221,6 +221,12 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             { 'fr-fr': 'Je souhaite être rappelé' },
             'feedback_handler.wish_be_called.label.___LABEL___')
         );
+
+        //SurveyComponent - Enquête de satisfaction
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Votre avis', 'es-es': 'Su opinión' },
+            'survey.btn.title.___LABEL___')
+        );
     }
 
     public registerServerApiHandlers() {

@@ -1,7 +1,7 @@
 .rootElt.file_datatable_field
     template(v-if="!loaded")
         .is_loading
-            i.fa.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
+            i.fa-solid.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
     template(v-else)
         template(v-if='path')
             .text-left(v-if="show_file_name")

@@ -1,8 +1,8 @@
 .vars_manager.hidden-print(v-if="has_access_desc_mode" :class="{'desc_mode': isDescMode}")
 
     .icons
-        i.fa.fa-check-circle.fa-fw(aria-hidden="true" :class="{'active': isDescMode}" @click='switchDescMode')
-        i.fa.fa-question-circle.fa-fw(aria-hidden="true" :class="{'active': is_show_public_tooltip}" @click='switch_public_explaination')
+        i.fa-solid.fa-check-circle.fa-fw(aria-hidden="true" :class="{'active': isDescMode}" @click='switchDescMode')
+        i.fa-solid.fa-question-circle.fa-fw(aria-hidden="true" :class="{'active': is_show_public_tooltip}" @click='switch_public_explaination')
 
     template(v-if='isDescMode')
         Draggablewindowcomponent(
@@ -24,8 +24,8 @@
             :closed_minw="448"
         )
             .slot_header(slot='icons')
-                i.fa.fa-repeat.fa-fw.pull-right(aria-hidden="true" :class="{'disabled':!can_redo}" @click='redo')
-                i.fa.fa-undo.fa-fw.pull-right(aria-hidden="true" :class="{'disabled':!can_undo}" @click='undo')
+                i.fa-solid.fa-repeat.fa-fw.pull-right(aria-hidden="true" :class="{'disabled':!can_redo}" @click='redo')
+                i.fa-solid.fa-undo.fa-fw.pull-right(aria-hidden="true" :class="{'disabled':!can_undo}" @click='undo')
 
             var-desc(:var_param='getDescSelectedVarParam')
 

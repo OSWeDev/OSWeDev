@@ -3,13 +3,13 @@
     //-     span(slot="no-options") Vide
     //-     template(slot="option", slot-scope="option")
     //-         .selected_filter_option(v-if="option.select_state == filter_state_selected")
-    //-             i.fa.fa-object-group(aria-hidden='true')
+    //-             i.fa-solid.fa-object-group(aria-hidden='true')
     //-             span {{ option.label }}
     //-         .selectable_filter_option(v-if="option.select_state == filter_state_selectable")
-    //-             i.fa.fa-object-group(aria-hidden='true')
+    //-             i.fa-solid.fa-object-group(aria-hidden='true')
     //-             span {{ option.label }}
     //-         .unselectable_filter_option(v-if="option.select_state == filter_state_unselectable", disabled="true")
-    //-             i.fa.fa-object-group(aria-hidden='true')
+    //-             i.fa-solid.fa-object-group(aria-hidden='true')
     //-             span {{ option.label }}
 
     template(v-if="have_options")

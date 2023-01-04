@@ -48,7 +48,6 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
     @Prop({ default: null })
     private dashboard: DashboardVO;
 
-
     @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
 
@@ -212,12 +211,12 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         if (!this.widget_options) {
             return;
         }
-
         this.next_update_options = this.widget_options;
         this.next_update_options.default_filter_opt_values = (this.tmp_default_filter_opt_values && this.tmp_default_filter_opt_values.length > 0) ? this.tmp_default_filter_opt_values : null;
 
         await this.throttled_update_options();
     }
+
 
     @Watch('tmp_default_ts_range_values')
     private async onchange_tmp_default_ts_range_values() {
@@ -1411,6 +1410,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
 
         switch (field.field_type) {
             case ModuleTableField.FIELD_TYPE_tstz:
+            case ModuleTableField.FIELD_TYPE_tsrange:
+            case ModuleTableField.FIELD_TYPE_tstzrange_array:
+            case ModuleTableField.FIELD_TYPE_tstz_array:
                 return true;
         }
     }

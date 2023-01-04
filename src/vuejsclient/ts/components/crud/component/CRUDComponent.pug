@@ -8,29 +8,29 @@ include ../../../../views/mixins/loading.pug
                 h5(v-if='!embed') {{ CRUDTitle }}
                 .btn-group.d-print-none
                     button.btn.btn-sm.btn-danger.m-1(v-if='(!embed) && can_delete_all', @click='delete_all()')
-                        i.fa.fa-trash.fa-lg.btn_icon(aria-hidden="true")
+                        i.fa-solid.fa-trash.fa-lg.btn_icon(aria-hidden="true")
                         | {{ label('crud.actions.delete_all') }}
                     button.btn.btn-sm.btn-secondary.m-1(v-if='!embed', @click='reload_datas()')
-                        i.fa.fa-refresh.fa-lg.btn_icon(aria-hidden="true")
+                        i.fa-solid.fa-refresh.fa-lg.btn_icon(aria-hidden="true")
                         | {{ label('crud.actions.refresh') }}
                     button.btn.btn-sm.btn-outline-dark.m-1(v-if="isExportableToXLSX && !embed", href="#", @click="export_to_xlsx()")
-                        i.fa.fa-download.fa-lg.btn_icon
+                        i.fa-solid.fa-download.fa-lg.btn_icon
                         | {{ label('crud.actions.export') }}
                     router-link.btn.btn-sm.btn-success.m-1(:to="getCRUDCreateLink(api_type_id)", v-if='(!embed) && (!crud.forced_readonly) && (!isModuleParamTable)')
-                        i.fa.fa-plus-circle.fa-lg.btn_icon
+                        i.fa-solid.fa-plus-circle.fa-lg.btn_icon
                         | {{ label('crud.actions.create') }}
 
                     //- template(v-if="(!crud.forced_readonly) && (!isModuleParamTable)")
                     //-     template(v-if="embed")
                     //-         button.btn.btn-sm.btn-success.m-1(@click="showCreateModal()")
-                    //-             i.fa.fa-plus-circle.fa-lg.btn_icon
+                    //-             i.fa-solid.fa-plus-circle.fa-lg.btn_icon
                     //-             | {{ label('crud.actions.create') }}
                     //-     template(v-else)
                     //-         router-link.btn.btn-sm.btn-success.m-1(:to="getCRUDCreateLink(api_type_id)")
-                    //-             i.fa.fa-plus-circle.fa-lg.btn_icon
+                    //-             i.fa-solid.fa-plus-circle.fa-lg.btn_icon
                     //-             | {{ label('crud.actions.create') }}
                     //- a.btn.btn-danger(role="button" href="#deleteData" data-toggle="modal" v-if="select_options && (select_options.length > 1)")
-                    //-     i.fa.fa-trash
+                    //-     i.fa-solid.fa-trash
                     //-     span {{ label('crud.actions.delete') }}
             //- span {{ modal_show_create }} {{ modal_show_update }} {{ modal_show_delete }}
             Datatable.crud_datatable(

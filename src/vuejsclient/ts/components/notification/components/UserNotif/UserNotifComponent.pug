@@ -2,13 +2,13 @@
 
     .type_icon_wrapper(@click='redirect_notification()') 
         template(v-if='is_error')
-            i.fa.fa-exclamation-triangle.fa-fw.type_icon_error(aria-hidden="true")
+            i.fa-solid.fa-exclamation-triangle.fa-fw.type_icon_error(aria-hidden="true")
         template(v-if='is_warn')
-            i.fa.fa-exclamation-triangle.fa-fw.type_icon_warn(aria-hidden="true")        
+            i.fa-solid.fa-exclamation-triangle.fa-fw.type_icon_warn(aria-hidden="true")        
         template(v-if='is_info')
-            i.fa.fa-exclamation-circle.fa-fw.type_icon_info(aria-hidden="true")
+            i.fa-solid.fa-exclamation-circle.fa-fw.type_icon_info(aria-hidden="true")
         template(v-if='is_success')
-            i.fa.fa-check-circle.fa-fw.type_icon_success(aria-hidden="true")
+            i.fa-solid.fa-check-circle.fa-fw.type_icon_success(aria-hidden="true")
 
     .notif_date(@click='redirect_notification()')  {{ date_notification }}
     .notif_content(@click='redirect_notification()')  {{ notification.simple_notif_json_params ? t(notification.simple_notif_label, JSON.parse(notification.simple_notif_json_params)) : t(notification.simple_notif_label) }}

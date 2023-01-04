@@ -92,7 +92,9 @@ export default class TSRangeInputComponent extends VueComponentBase {
     private onchange_field() {
         if (!!this.field) {
             if (this.segmentation_type == null) {
-                this.segmentation_type_ = this.field.moduleTableField.segmentation_type;
+                if (this.field.moduleTableField) {
+                    this.segmentation_type_ = this.field.moduleTableField.segmentation_type;
+                }
                 return;
             }
         }

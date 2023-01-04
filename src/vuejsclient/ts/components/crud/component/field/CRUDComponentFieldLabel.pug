@@ -1,8 +1,8 @@
 template(v-if="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))")
     label.field_label(v-if="show_title" :class="{'inverse_label': inverse_label, 'special_placeholder_label': special_placeholder, 'has_value': (field_value && (field_value.length > 0 || (field_value.toString().length > 0)))}") {{ label_replacement ? label(label_replacement) : t(field.translatable_title) }}
         template(v-if="show_mandatory_star")
-            i.fa.fa-asterisk.mandatory
+            i.fa-solid.fa-asterisk.mandatory
 template(v-else)
     label.field_label(v-if="show_title", :for="field.datatable_field_uid" :class="{'inverse_label': inverse_label, 'special_placeholder_label': special_placeholder, 'has_value': (field_value && (field_value.length > 0 || (field_value.toString().length > 0)))}") {{ label_replacement ? label(label_replacement) : t(field.translatable_title) }}
         template(v-if="show_mandatory_star")
-            i.fa.fa-asterisk.mandatory
+            i.fa-solid.fa-asterisk.mandatory

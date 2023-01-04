@@ -6,8 +6,8 @@
                 .cr
                     .row
                         .col-sm-12
-                            i.fa.fa-trash(aria-hidden="true", @click="delete_cr(selected_rdv_cr)" v-if='can_edit')
-                            i.fa.fa-pencil(aria-hidden="true", @click="editCR(selected_rdv_cr)" v-if='can_edit')
+                            i.fa-solid.fa-trash(aria-hidden="true", @click="delete_cr(selected_rdv_cr)" v-if='can_edit')
+                            i.fa-solid.fa-pencil(aria-hidden="true", @click="editCR(selected_rdv_cr)" v-if='can_edit')
                     .row
                         .col-sm-12
                             .custom_cr_read_component(:is="custom_cr_read_component" :rdv='selected_rdv' :cr='selected_rdv_cr')

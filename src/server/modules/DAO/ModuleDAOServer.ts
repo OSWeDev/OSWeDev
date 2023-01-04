@@ -2400,6 +2400,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             query_.filter_by_num_eq(moduleTable.table_segmented_field.field_id, moduleTable.get_segmented_field_value_from_vo(vo));
                         }
                         preUpdates[i] = await query_.select_vo();
+
+                        if (!preUpdates[i]) {
+                            // Cas d'un objet en cache server ou client mais qui n'existe plus sur la BDD => on doit insérer du coup un nouveau
+                            isUpdates[i] = false;
+                            vo.id = null;
+                        }
                     }
                 }
 
@@ -2860,11 +2866,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         if (vo.id) {
 
-            // Ajout des triggers, avant et après modification.
-            //  Attention si un des output est false avant modification, on annule la modification
-            let res: boolean[] = await DAOServerController.getInstance().pre_update_trigger_hook.trigger(vo._type, new DAOUpdateVOHolder(pre_update_vo, vo));
-            if (!BooleanHandler.getInstance().AND(res, true)) {
-                return null;
+            if (DAOServerController.getInstance().pre_update_trigger_hook.has_trigger(vo._type)) {
+
+                // Ajout des triggers, avant et après modification.
+                //  Attention si un des output est false avant modification, on annule la modification
+                let res: boolean[] = await DAOServerController.getInstance().pre_update_trigger_hook.trigger(vo._type, new DAOUpdateVOHolder(pre_update_vo, vo));
+                if (!BooleanHandler.getInstance().AND(res, true)) {
+                    return null;
+                }
             }
 
             const setters = [];
@@ -2911,11 +2920,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         } else {
 
-            // Ajout des triggers, avant et après modification.
-            //  Attention si un des output est false avant modification, on annule la modification
-            let res: boolean[] = await DAOServerController.getInstance().pre_create_trigger_hook.trigger(vo._type, vo);
-            if (!BooleanHandler.getInstance().AND(res, true)) {
-                return null;
+            if (DAOServerController.getInstance().pre_create_trigger_hook.has_trigger(vo._type)) {
+
+                // Ajout des triggers, avant et après modification.
+                //  Attention si un des output est false avant modification, on annule la modification
+                let res: boolean[] = await DAOServerController.getInstance().pre_create_trigger_hook.trigger(vo._type, vo);
+                if (!BooleanHandler.getInstance().AND(res, true)) {
+                    return null;
+                }
             }
 
             const tableFields = [];

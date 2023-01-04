@@ -235,7 +235,7 @@ export default class CRUDComponentField extends VueComponentBase
         this.inline_input_is_editing = this.force_input_is_editing;
         if (this.inline_input_mode && this.force_input_is_editing && this.$refs.input_elt && !!this.$refs.input_elt['focus']) {
             let self = this;
-            this.$nextTick(() => self.$refs.input_elt['focus']());
+            //this.$nextTick(() => self.$refs.input_elt['focus']()); -> Autofocus du curseur lors du changement de page - voir ticket focus_auto
         }
 
         this.select_options_enabled_by_id = this.get_check_field_options_enabled(this.field);

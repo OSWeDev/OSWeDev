@@ -42,6 +42,8 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
     @Prop({ default: null })
     private dashboard_page: DashboardPageVO;
 
+    private default_values_changed: boolean = false; //Attribut pour reaffecter les valeurs par défaut lorsqu'elles sont modifiées.
+
     private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
 
     private boolean_filter_types: number[] = [];
@@ -85,9 +87,21 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
     private async update_visible_options() {
         // Si on a des valeurs par défaut, on va faire l'init
         if (this.is_init && this.default_values && (this.default_values.length > 0)) {
-            this.is_init = false;
-            this.boolean_filter_types = this.default_values;
-            return;
+            // Si on a des valeurs par défaut, on va faire l'init
+
+            // Si je n'ai pas de filtre actif OU que ma valeur de default values à changée, je prends les valeurs par défaut
+            let has_active_field_filter: boolean = !!(
+                this.get_active_field_filters &&
+                this.get_active_field_filters[this.vo_field_ref.api_type_id] &&
+                this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id]
+            );
+
+            if (!has_active_field_filter || this.default_values_changed) {
+                this.is_init = false;
+                this.boolean_filter_types = this.default_values;
+                this.default_values_changed = false;
+                return;
+            }
         }
 
         /**
@@ -123,6 +137,10 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
         if (!!this.old_widget_options) {
             if (isEqual(this.widget_options, this.old_widget_options)) {
                 return;
+            }
+
+            if (!isEqual(this.widget_options.default_filter_opt_values, this.old_widget_options.default_filter_opt_values)) {
+                this.default_values_changed = true;
             }
         }
 
