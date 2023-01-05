@@ -3,15 +3,13 @@ import UserVO from '../AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import APISimpleVOParamVO, { APISimpleVOParamVOStatic } from '../DAO/vos/APISimpleVOParamVO';
-import TimeSegment from '../DataRender/vos/TimeSegment';
-import FileVO from '../File/vos/FileVO';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VersionedVOController from '../Versioned/VersionedVOController';
 import VOsTypesManager from '../VOsTypesManager';
-import SurveyVO from './vos/SurveyVO';
 import SurveyParamVO from './vos/SurveyParamVO';
+import SurveyVO from './vos/SurveyVO';
 
 
 export default class ModuleSurvey extends Module {
@@ -75,7 +73,7 @@ export default class ModuleSurvey extends Module {
         let table = new ModuleTable(this, SurveyVO.API_TYPE_ID, () => new SurveyVO(), fields, null, 'Surveys');
         this.datatables.push(table);
 
-        user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
 
         VersionedVOController.getInstance().registerModuleTable(table);
     }

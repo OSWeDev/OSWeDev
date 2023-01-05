@@ -223,7 +223,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         );
 
         //SurveyComponent - Enquête de satisfaction
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Votre avis', 'es-es': 'Su opinión' },
             'survey.btn.title.___LABEL___')
         );
