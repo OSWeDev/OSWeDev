@@ -26,6 +26,9 @@ export default class ImageFormatVO implements IVersionedVO, INamedVO {
     public align_haut: number;
     public quality: number;
 
+    public height: number;
+    public width: number;
+
     public parent_id: number;
     public trashed: boolean;
     public version_num: number;

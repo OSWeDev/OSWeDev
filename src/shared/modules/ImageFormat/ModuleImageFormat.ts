@@ -72,6 +72,8 @@ export default class ModuleImageFormat extends Module {
             new ModuleTableField('align_larg', ModuleTableField.FIELD_TYPE_enum, 'Alignement en largeur', true, true, ImageFormatVO.HALIGN_CENTER).setEnumValues(ImageFormatVO.HALIGN_NAMES),
             new ModuleTableField('align_haut', ModuleTableField.FIELD_TYPE_enum, 'Alignement en hauteur', true, true, ImageFormatVO.VALIGN_CENTER).setEnumValues(ImageFormatVO.VALIGN_NAMES),
             new ModuleTableField('quality', ModuleTableField.FIELD_TYPE_prct, 'Qualité', true, true, 0.9),
+            new ModuleTableField('height', ModuleTableField.FIELD_TYPE_int, 'Hauteur'),
+            new ModuleTableField('width', ModuleTableField.FIELD_TYPE_int, 'Largeur'),
         ];
 
         let table = new ModuleTable(this, ImageFormatVO.API_TYPE_ID, () => new ImageFormatVO(), fields, null, 'Formats d\'image');

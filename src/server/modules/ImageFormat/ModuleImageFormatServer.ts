@@ -1,4 +1,6 @@
+import * as fs from 'fs';
 import * as jimp from 'jimp';
+import * as path from 'path';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
@@ -7,17 +9,16 @@ import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapp
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import ModuleFile from '../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import ModuleImageFormat from '../../../shared/modules/ImageFormat/ModuleImageFormat';
 import FormattedImageVO from '../../../shared/modules/ImageFormat/vos/FormattedImageVO';
 import ImageFormatVO from '../../../shared/modules/ImageFormat/vos/ImageFormatVO';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
-import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
-import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
@@ -107,6 +108,9 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
                 return null;
             }
 
+            param_height = !!format.height ? format.height : param_height;
+            param_width = !!format.width ? format.width : param_width;
+
             /**
              * On tente de trouver une image cohérente (même format et résolution proche)
              *  Si on trouve, on envoie l'image
@@ -168,19 +172,33 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
             /**
              * Sinon il faut générer l'image
              */
-            let image = await jimp.read(ModuleImageFormat.RESIZABLE_IMGS_PATH_BASE + src);
+            let extname: string = path.extname(src);
+            let new_src: string = ModuleImageFormat.RESIZABLE_IMGS_PATH_BASE + format.name + "/" + src.replace(ModuleFile.FILES_ROOT, '').replace(extname, '') + '__' + param_width + '_' + param_height + extname;
+
+            let image = await jimp.read(src);
 
             let base_image_width: number = image.getWidth();
             let base_image_height: number = image.getHeight();
 
             if (!image) {
-                ConsoleHandler.getInstance().error('Impossible de charger l\'image à cette url :' + src);
+                ConsoleHandler.getInstance().error('Impossible de charger l\'image à cette url :' + new_src);
                 return null;
             }
 
             if ((!format.remplir_haut) && (!format.remplir_larg)) {
-                // contain
-                image.contain(param_width, param_height);
+                let ratio_height: number = param_height ? (base_image_height / param_height) : 0;
+                let ratio_width: number = param_width ? (base_image_width / param_width) : 0;
+
+                if (ratio_height > ratio_width) {
+                    // On veut remplir en hauteur uniquement : resize largeur fixée, hauteur auto
+                    image.resize(jimp.AUTO, param_height);
+                } else if (ratio_width > ratio_height) {
+                    // On veut remplir en largeur uniquement : resize hauteur fixée, largeur auto
+                    image.resize(param_width, jimp.AUTO);
+                } else {
+                    // contain
+                    image.contain(param_width, param_height);
+                }
 
             } else if (!format.remplir_haut) {
                 // On veut remplir en largeur uniquement : resize hauteur fixée, largeur auto
@@ -197,8 +215,15 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
 
             let new_img_file: FileVO = new FileVO();
             new_img_file.is_secured = false;
-            new_img_file.path = ModuleImageFormat.RESIZABLE_IMGS_PATH_BASE + src.substring(0, src.length - 4) + '__' + param_width + '_' + param_height + src.substring(src.length - 4, src.length);
+            new_img_file.path = new_src;
+
+            let src_dirname: string = path.dirname(new_img_file.path);
+            if (!fs.existsSync(src_dirname)) {
+                fs.mkdirSync(src_dirname, { recursive: true });
+            }
+
             await image.writeAsync(new_img_file.path);
+
             let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(new_img_file);
             new_img_file.id = res.id;
 
@@ -207,8 +232,8 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
             new_img_formattee.align_larg = format.align_larg;
             new_img_formattee.file_id = new_img_file.id;
             new_img_formattee.image_format_id = format.id;
-            new_img_formattee.image_height = base_image_height;
-            new_img_formattee.image_width = base_image_width;
+            new_img_formattee.image_height = param_height;
+            new_img_formattee.image_width = param_width;
             new_img_formattee.image_src = src;
             new_img_formattee.quality = format.quality;
             new_img_formattee.remplir_haut = format.remplir_haut;
