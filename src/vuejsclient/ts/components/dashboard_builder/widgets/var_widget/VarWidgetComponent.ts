@@ -249,7 +249,10 @@ export default class VarWidgetComponent extends VueComponentBase {
                     options.var_id,
                     options.filter_type,
                     options.filter_custom_field_filters,
-                    options.filter_additional_params) : null;
+                    options.filter_additional_params,
+                    options.bg_color,
+                    options.fg_color_value,
+                    options.fg_color_text) : null;
             }
         } catch (error) {
             ConsoleHandler.error(error);

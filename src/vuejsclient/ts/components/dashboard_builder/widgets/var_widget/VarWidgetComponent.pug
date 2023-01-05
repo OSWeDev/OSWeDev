@@ -1,4 +1,4 @@
-.var_widget_component
+.var_widget_component(:style='widget_options ? {background: widget_options.bg_color ? widget_options.bg_color : "inherit", color: widget_options.fg_color_value ? widget_options.fg_color_value : "inherit"} : {}')
     template(v-if='var_param')
         .var_data
             var-data(
@@ -7,4 +7,4 @@
                 :filter_additional_params='var_filter_additional_params'
             )
         .var_label 
-            Inlinetranslatabletext(:code_text="title_name_code_text")
+            Inlinetranslatabletext(:code_text="title_name_code_text" :style='widget_options ? {color: widget_options.fg_color_text ? widget_options.fg_color_text : "inherit"} : {}')

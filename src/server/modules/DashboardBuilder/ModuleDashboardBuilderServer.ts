@@ -573,6 +573,16 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'table_widget_column.new_column_select_type_var_ref.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Couleur du fond'
+        }, 'var_widget_options_component.bg_color.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Couleur de la valeur'
+        }, 'var_widget_options_component.fg_color_value.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Couleur du texte'
+        }, 'var_widget_options_component.fg_color_text.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Filter'
         }, 'FieldValueFilterWidget.filter_placeholder.___LABEL___'));
 

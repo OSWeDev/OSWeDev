@@ -37,9 +37,35 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
 
     private next_update_options: VarWidgetOptions = null;
     private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
+    private throttled_update_colors = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_colors.bind(this), 800, { leading: false, trailing: true });
 
     private tmp_selected_var_name: string = null;
     private custom_filter_names: { [field_id: string]: string } = {};
+
+    private fg_color_value: string = null;
+    private fg_color_text: string = null;
+    private bg_color: string = null;
+
+    private async update_colors() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (!this.next_update_options) {
+            this.next_update_options = new VarWidgetOptions(
+                this.widget_options.var_id,
+                this.widget_options.filter_type,
+                this.widget_options.filter_custom_field_filters,
+                this.widget_options.filter_additional_params,
+                this.widget_options.bg_color,
+                this.widget_options.fg_color_value,
+                this.widget_options.fg_color_text);
+        }
+        this.widget_options.fg_color_value = this.fg_color_value;
+        this.widget_options.fg_color_text = this.fg_color_text;
+        this.widget_options.bg_color = this.bg_color;
+        await this.throttled_update_options();
+    }
 
     private async change_custom_filter(field_id: string, custom_filter: string) {
         if (!this.widget_options) {
@@ -51,7 +77,10 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
                 this.widget_options.var_id,
                 this.widget_options.filter_type,
                 this.widget_options.filter_custom_field_filters,
-                this.widget_options.filter_additional_params);
+                this.widget_options.filter_additional_params,
+                this.widget_options.bg_color,
+                this.widget_options.fg_color_value,
+                this.widget_options.fg_color_text);
         }
         this.custom_filter_names[field_id] = custom_filter;
         this.next_update_options.filter_custom_field_filters = this.custom_filter_names;
@@ -100,7 +129,10 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
                 this.widget_options.var_id,
                 this.widget_options.filter_type,
                 this.widget_options.filter_custom_field_filters,
-                this.widget_options.filter_additional_params);
+                this.widget_options.filter_additional_params,
+                this.widget_options.bg_color,
+                this.widget_options.fg_color_value,
+                this.widget_options.fg_color_text);
         }
         this.next_update_options.filter_additional_params = additional_options;
         await this.throttled_update_options();
@@ -116,7 +148,10 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
                 this.widget_options.var_id,
                 this.widget_options.filter_type,
                 this.widget_options.filter_custom_field_filters,
-                this.widget_options.filter_additional_params);
+                this.widget_options.filter_additional_params,
+                this.widget_options.bg_color,
+                this.widget_options.fg_color_value,
+                this.widget_options.fg_color_text);
         }
         this.next_update_options.filter_type = filter_type;
         await this.throttled_update_options();
@@ -157,6 +192,9 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
         }
         this.tmp_selected_var_name = this.widget_options.var_id + ' | ' + this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(this.widget_options.var_id));
         this.custom_filter_names = this.widget_options.filter_custom_field_filters ? cloneDeep(this.widget_options.filter_custom_field_filters) : {};
+        this.fg_color_value = this.widget_options.fg_color_value;
+        this.fg_color_text = this.widget_options.fg_color_text;
+        this.bg_color = this.widget_options.bg_color;
         this.next_update_options = this.widget_options;
     }
 
@@ -237,7 +275,10 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
                     options.var_id,
                     options.filter_type,
                     options.filter_custom_field_filters,
-                    options.filter_additional_params) : null;
+                    options.filter_additional_params,
+                    this.widget_options.bg_color,
+                    this.widget_options.fg_color_value,
+                    this.widget_options.fg_color_text) : null;
             }
         } catch (error) {
             ConsoleHandler.error(error);
