@@ -173,7 +173,13 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
              * Sinon il faut générer l'image
              */
             let extname: string = path.extname(src);
-            let new_src: string = ModuleImageFormat.RESIZABLE_IMGS_PATH_BASE + format.name + "/" + src.replace(ModuleFile.FILES_ROOT, '').replace(extname, '') + '__' + param_width + '_' + param_height + extname;
+            let new_src: string = ModuleImageFormat.RESIZABLE_IMGS_PATH_BASE + format.name + "/" + src.replace(ModuleFile.FILES_ROOT, '').replace(extname, '');
+
+            if (format.add_size_rename_name) {
+                new_src += '__' + param_width + '_' + param_height;
+            }
+
+            new_src += extname;
 
             let image = await jimp.read(src);
 

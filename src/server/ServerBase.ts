@@ -687,7 +687,7 @@ export default abstract class ServerBase {
 
             // Génération à la volée des images en fonction du format demandé
             if (req.url.indexOf(ModuleImageFormat.RESIZABLE_IMGS_PATH_BASE.replace('./', '/')) == 0) {
-                let matches: string[] = req.url.match('(' + ModuleImageFormat.RESIZABLE_IMGS_PATH_BASE.replace('./', '/') + ')([a-z|0-9]+)/(.*)');
+                let matches: string[] = req.url.match('(' + ModuleImageFormat.RESIZABLE_IMGS_PATH_BASE.replace('./', '/') + ')([A-Z|a-z|0-9]+)/(.*)');
 
                 if (!matches || !matches.length) {
                     return res.status(404).send('Not matches');
@@ -696,9 +696,9 @@ export default abstract class ServerBase {
                 let format_name: string = matches[2];
                 let file_path: string = decodeURI(matches[3]);
 
-                if (fs.existsSync(req.url) || !format_name || !file_path) {
+                if (fs.existsSync(decodeURI(req.url)) || !format_name || !file_path) {
                     // Le fichier existe, on le renvoie directement
-                    return res.sendFile(path.resolve(req.url));
+                    return res.sendFile(path.resolve(decodeURI(req.url)));
                 }
 
                 let base_filepath: string = ModuleFile.FILES_ROOT + file_path;

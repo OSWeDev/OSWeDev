@@ -74,6 +74,7 @@ export default class ModuleImageFormat extends Module {
             new ModuleTableField('quality', ModuleTableField.FIELD_TYPE_prct, 'Qualité', true, true, 0.9),
             new ModuleTableField('height', ModuleTableField.FIELD_TYPE_int, 'Hauteur'),
             new ModuleTableField('width', ModuleTableField.FIELD_TYPE_int, 'Largeur'),
+            new ModuleTableField('add_size_rename_name', ModuleTableField.FIELD_TYPE_boolean, 'Ajouter la taille au nom', false, true, true),
         ];
 
         let table = new ModuleTable(this, ImageFormatVO.API_TYPE_ID, () => new ImageFormatVO(), fields, null, 'Formats d\'image');
