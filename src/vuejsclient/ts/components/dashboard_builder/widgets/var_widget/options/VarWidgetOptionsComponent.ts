@@ -2,6 +2,7 @@ import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
+import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
@@ -36,6 +37,7 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
     private get_custom_filters: string[];
 
     private next_update_options: VarWidgetOptions = null;
+    private throttled_reload_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.reload_options.bind(this), 50, { leading: false, trailing: true });
     private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
     private throttled_update_colors = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_colors.bind(this), 800, { leading: false, trailing: true });
 
@@ -45,6 +47,8 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
     private fg_color_value: string = null;
     private fg_color_text: string = null;
     private bg_color: string = null;
+
+    private widget_options: VarWidgetOptions = null;
 
     private async update_colors() {
         if (!this.widget_options) {
@@ -90,7 +94,7 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
     get fields_that_could_get_custom_filter(): string[] {
         let res: string[] = [];
 
-        if (!this.widget_options.var_id) {
+        if (!this.widget_options || !this.widget_options.var_id) {
             return null;
         }
 
@@ -182,20 +186,77 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
         return res;
     }
 
-    @Watch('widget_options', { immediate: true })
-    private onchange_widget_options() {
+    private reload_options() {
+        if (!this.page_widget) {
+            this.widget_options = null;
+        } else {
+
+            let options: VarWidgetOptions = null;
+            try {
+                if (!!this.page_widget.json_options) {
+                    options = JSON.parse(this.page_widget.json_options) as VarWidgetOptions;
+                    if (this.widget_options &&
+                        (this.widget_options.var_id == options.var_id) &&
+                        (this.widget_options.filter_type == options.filter_type) &&
+                        (ObjectHandler.getInstance().are_equal(this.widget_options.filter_custom_field_filters, options.filter_custom_field_filters)) &&
+                        (this.widget_options.filter_additional_params == options.filter_additional_params) &&
+                        (this.widget_options.bg_color == options.bg_color) &&
+                        (this.widget_options.fg_color_value == options.fg_color_value) &&
+                        (this.widget_options.fg_color_text == options.fg_color_text)) {
+                        options = null;
+                    }
+
+                    options = options ? new VarWidgetOptions(
+                        options.var_id,
+                        options.filter_type,
+                        options.filter_custom_field_filters,
+                        options.filter_additional_params,
+                        options.bg_color,
+                        options.fg_color_value,
+                        options.fg_color_text) : null;
+                }
+            } catch (error) {
+                ConsoleHandler.error(error);
+            }
+
+            if ((!!options) && (!!this.page_widget.json_options)) {
+                this.widget_options = options;
+            } else if ((!!this.widget_options) && !this.page_widget.json_options) {
+                this.widget_options = null;
+            }
+        }
+
         if (!this.widget_options) {
             this.next_update_options = null;
             this.tmp_selected_var_name = null;
             this.custom_filter_names = {};
             return;
         }
-        this.tmp_selected_var_name = this.widget_options.var_id + ' | ' + this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(this.widget_options.var_id));
-        this.custom_filter_names = this.widget_options.filter_custom_field_filters ? cloneDeep(this.widget_options.filter_custom_field_filters) : {};
-        this.fg_color_value = this.widget_options.fg_color_value;
-        this.fg_color_text = this.widget_options.fg_color_text;
-        this.bg_color = this.widget_options.bg_color;
-        this.next_update_options = this.widget_options;
+
+        if (this.tmp_selected_var_name != (this.widget_options.var_id + ' | ' + this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(this.widget_options.var_id)))) {
+            this.tmp_selected_var_name = this.widget_options.var_id + ' | ' + this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(this.widget_options.var_id));
+        }
+        if (this.custom_filter_names != (this.widget_options.filter_custom_field_filters ? cloneDeep(this.widget_options.filter_custom_field_filters) : {})) {
+            this.custom_filter_names = this.widget_options.filter_custom_field_filters ? cloneDeep(this.widget_options.filter_custom_field_filters) : {};
+        }
+        if (this.fg_color_value != this.widget_options.fg_color_value) {
+            this.fg_color_value = this.widget_options.fg_color_value;
+        }
+        if (this.fg_color_text != this.widget_options.fg_color_text) {
+            this.fg_color_text = this.widget_options.fg_color_text;
+        }
+        if (this.bg_color != this.widget_options.bg_color) {
+            this.bg_color = this.widget_options.bg_color;
+        }
+        if (this.next_update_options != this.widget_options) {
+            this.next_update_options = this.widget_options;
+        }
+    }
+
+    @Watch('page_widget', { immediate: true })
+    @Watch('widget_options')
+    private async onchange_widget_options() {
+        await this.throttled_reload_options();
     }
 
     @Watch('tmp_selected_var_name')
@@ -260,30 +321,5 @@ export default class VarWidgetOptionsComponent extends VueComponentBase {
         }
 
         return this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(this.widget_options.var_id));
-    }
-
-    get widget_options(): VarWidgetOptions {
-        if (!this.page_widget) {
-            return null;
-        }
-
-        let options: VarWidgetOptions = null;
-        try {
-            if (!!this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as VarWidgetOptions;
-                options = options ? new VarWidgetOptions(
-                    options.var_id,
-                    options.filter_type,
-                    options.filter_custom_field_filters,
-                    options.filter_additional_params,
-                    this.widget_options.bg_color,
-                    this.widget_options.fg_color_value,
-                    this.widget_options.fg_color_text) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        return options;
     }
 }

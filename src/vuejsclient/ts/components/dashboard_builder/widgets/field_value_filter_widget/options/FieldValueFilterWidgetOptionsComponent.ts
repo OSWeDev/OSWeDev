@@ -75,9 +75,19 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         BooleanFilter.FILTER_TYPE_VIDE
     ];
 
+    private checkbox_columns_options: number[] = [
+        FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_1,
+        FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_2,
+        FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_3,
+        FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_4,
+        FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_6,
+        FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_12
+    ];
+
     private tmp_default_advanced_string_filter_type: number = null;
 
     private max_visible_options: number = null;
+    private checkbox_columns: number = null;
     private tmp_segmentation_type: DataFilterOption = null;
 
     private tmp_default_filter_opt_values: DataFilterOption[] = [];
@@ -137,6 +147,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
             this.crud_api_type_id_selected = null;
             this.tmp_exclude_filter_opt_values = [];
             this.tmp_exclude_ts_range_values = null;
+            this.checkbox_columns = FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_1;
             return;
         }
         this.max_visible_options = this.widget_options.max_visible_options;
@@ -144,6 +155,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.tmp_default_ts_range_values = this.widget_options.default_ts_range_values;
         this.tmp_default_boolean_values = this.widget_options.default_boolean_values ? this.widget_options.default_boolean_values : [];
         this.tmp_segmentation_type = !!this.widget_options.segmentation_type ? this.segmentation_type_options.find((e) => e.id == this.widget_options.segmentation_type) : null;
+        this.checkbox_columns = this.widget_options.checkbox_columns ? this.widget_options.checkbox_columns : FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_1;
         this.tmp_default_advanced_string_filter_type = this.widget_options.default_advanced_string_filter_type;
         this.crud_api_type_id_selected = this.widget_options.other_ref_api_type_id;
         this.tmp_exclude_filter_opt_values = this.widget_options.exclude_filter_opt_values ? this.widget_options.exclude_filter_opt_values : [];
@@ -201,6 +213,20 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         if (!this.tmp_segmentation_type || (this.widget_options.segmentation_type != this.tmp_segmentation_type.id)) {
             this.next_update_options = this.widget_options;
             this.next_update_options.segmentation_type = this.tmp_segmentation_type ? this.tmp_segmentation_type.id : null;
+
+            await this.throttled_update_options();
+        }
+    }
+
+    @Watch('checkbox_columns')
+    private async onchange_checkbox_columns() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if ((this.checkbox_columns == null) || (this.widget_options.checkbox_columns != this.checkbox_columns)) {
+            this.next_update_options = this.widget_options;
+            this.next_update_options.checkbox_columns = this.checkbox_columns;
 
             await this.throttled_update_options();
         }
@@ -276,6 +302,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 null,
                 this.can_select_multiple,
                 this.is_checkbox,
+                this.checkbox_columns,
                 50,
                 this.show_search_field,
                 this.hide_lvl2_if_lvl1_not_selected,
@@ -317,6 +344,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 null,
                 this.can_select_multiple,
                 this.is_checkbox,
+                this.checkbox_columns,
                 50,
                 this.show_search_field,
                 this.hide_lvl2_if_lvl1_not_selected,
@@ -358,6 +386,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 null,
                 this.can_select_multiple,
                 this.is_checkbox,
+                this.checkbox_columns,
                 50,
                 this.show_search_field,
                 this.hide_lvl2_if_lvl1_not_selected,
@@ -399,6 +428,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 null,
                 this.can_select_multiple,
                 this.is_checkbox,
+                this.checkbox_columns,
                 50,
                 this.show_search_field,
                 this.hide_lvl2_if_lvl1_not_selected,
@@ -440,6 +470,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 null,
                 this.can_select_multiple,
                 this.is_checkbox,
+                this.checkbox_columns,
                 50,
                 this.show_search_field,
                 this.hide_lvl2_if_lvl1_not_selected,
@@ -481,6 +512,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 null,
                 this.can_select_multiple,
                 this.is_checkbox,
+                this.checkbox_columns,
                 50,
                 this.show_search_field,
                 this.hide_lvl2_if_lvl1_not_selected,
@@ -522,6 +554,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 null,
                 this.can_select_multiple,
                 this.is_checkbox,
+                this.checkbox_columns,
                 50,
                 this.show_search_field,
                 this.hide_lvl2_if_lvl1_not_selected,
@@ -563,6 +596,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 null,
                 this.can_select_multiple,
                 this.is_checkbox,
+                this.checkbox_columns,
                 50,
                 this.show_search_field,
                 this.hide_lvl2_if_lvl1_not_selected,
@@ -604,6 +638,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 null,
                 this.can_select_multiple,
                 this.is_checkbox,
+                this.checkbox_columns,
                 50,
                 this.show_search_field,
                 this.hide_lvl2_if_lvl1_not_selected,
@@ -645,6 +680,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 null,
                 this.can_select_multiple,
                 this.is_checkbox,
+                this.checkbox_columns,
                 50,
                 this.show_search_field,
                 this.hide_lvl2_if_lvl1_not_selected,
@@ -686,6 +722,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 null,
                 this.can_select_multiple,
                 this.is_checkbox,
+                this.checkbox_columns,
                 50,
                 this.show_search_field,
                 this.hide_lvl2_if_lvl1_not_selected,
@@ -727,6 +764,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 null,
                 this.can_select_multiple,
                 this.is_checkbox,
+                this.checkbox_columns,
                 50,
                 this.show_search_field,
                 this.hide_lvl2_if_lvl1_not_selected,
@@ -768,6 +806,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 null,
                 this.can_select_multiple,
                 this.is_checkbox,
+                this.checkbox_columns,
                 50,
                 this.show_search_field,
                 this.hide_lvl2_if_lvl1_not_selected,
@@ -923,6 +962,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 null,
                 this.can_select_multiple,
                 this.is_checkbox,
+                this.checkbox_columns,
                 50,
                 this.show_search_field,
                 this.hide_lvl2_if_lvl1_not_selected,
@@ -969,6 +1009,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 null,
                 this.can_select_multiple,
                 this.is_checkbox,
+                this.checkbox_columns,
                 50,
                 this.show_search_field,
                 this.hide_lvl2_if_lvl1_not_selected,
@@ -1015,6 +1056,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 null,
                 this.can_select_multiple,
                 this.is_checkbox,
+                this.checkbox_columns,
                 50,
                 this.show_search_field,
                 this.hide_lvl2_if_lvl1_not_selected,
@@ -1061,6 +1103,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 null,
                 this.can_select_multiple,
                 this.is_checkbox,
+                this.checkbox_columns,
                 50,
                 this.show_search_field,
                 this.hide_lvl2_if_lvl1_not_selected,
@@ -1107,6 +1150,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 null,
                 this.can_select_multiple,
                 this.is_checkbox,
+                this.checkbox_columns,
                 50,
                 this.show_search_field,
                 this.hide_lvl2_if_lvl1_not_selected,
@@ -1251,6 +1295,13 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         }
     }
 
+    private checkbox_columns_label(e: number): string {
+        if (e != null) {
+            return this.t(FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_LABELS[e]);
+        }
+        return null;
+    }
+
     private boolean_filter_type_label(filter_type: number): string {
         if (filter_type != null) {
             return this.t(BooleanFilter.FILTER_TYPE_LABELS[filter_type]);
@@ -1285,6 +1336,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                     options.vo_field_sort,
                     options.can_select_multiple,
                     options.is_checkbox,
+                    options.checkbox_columns,
                     options.max_visible_options,
                     options.show_search_field,
                     options.hide_lvl2_if_lvl1_not_selected,

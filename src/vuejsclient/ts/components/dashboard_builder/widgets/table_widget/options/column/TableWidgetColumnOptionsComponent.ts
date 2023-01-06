@@ -139,7 +139,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     get fields_that_could_get_custom_filter(): string[] {
         let res: string[] = [];
 
-        if (!this.object_column.var_id) {
+        if (!this.object_column || !this.object_column.var_id) {
             return null;
         }
 

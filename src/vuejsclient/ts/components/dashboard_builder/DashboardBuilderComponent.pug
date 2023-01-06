@@ -47,15 +47,15 @@
                                     )
 
                         .col-sm-2
-                            .copy_dashboard(v-if="can_use_clipboard")
+                            .btn-success.copy_dashboard(v-if="can_use_clipboard")
                                 i.fa-solid.fa-download.fa-fw.btn_icon(aria-hidden="true" @click="copy_dashboard" v-tooltip='label("dashboard_builder.copy_dashboard")')
-                            .replace_dashboard(v-if="can_use_clipboard")
+                            .btn-warning.replace_dashboard(v-if="can_use_clipboard")
                                 i.fa-solid.fa-upload.fa-fw.btn_icon(aria-hidden="true" @click="paste_dashboard(dashboard)" v-tooltip='label("dashboard_builder.replace_dashboard")')
-                            .delete_dashboard
+                            .btn-danger.delete_dashboard
                                 i.fa-solid.fa-trash.fa-fw.btn_icon(aria-hidden="true" @click="confirm_delete_dashboard" v-tooltip='label("dashboard_builder.delete_dashboard")')
-                            .create_dashboard
+                            .btn-primary.create_dashboard
                                 i.fa-solid.fa-plus.fa-fw.btn_icon(aria-hidden="true" @click="create_new_dashboard" v-tooltip='label("dashboard_builder.create_dashboard")')
-                            .create_dashboard_from(v-if="can_use_clipboard")
+                            .btn-primary.create_dashboard_from(v-if="can_use_clipboard")
                                 i.fa-solid.fa-upload.fa-fw.btn_icon(aria-hidden="true" @click="paste_dashboard(null)" v-tooltip='label("dashboard_builder.create_dashboard_from")')
 
         
@@ -83,9 +83,9 @@
                                     i.fa-solid.fa-arrow-circle-left.fa-fw.btn_icon(aria-hidden="true" @click="select_previous_page" v-tooltip.top='label("dashboard_builder.pages.tooltip_select_previous_page")')
                         template(v-for='(page_, pagei) in pages')
                             .page
-                                .select(v-if='page && (page_.id != page.id)')
+                                .btn-primary.select(v-if='page && (page_.id != page.id)')
                                     i.fa-solid.fa-hand-point-down.fa-fw.btn_icon(aria-hidden="true" @click="select_page_clear_navigation(page_)" v-tooltip.top='label("dashboard_builder.pages.tooltip_select_page")')
-                                .selected(v-else)
+                                .btn-success.selected(v-else)
                                     i.fa-solid.fa-check-circle.fa-fw(aria-hidden="true" v-tooltip.top='label("dashboard_builder.pages.tooltip_selected_page")')
                                 .name
                                     Inlinetranslatabletext(:code_text="pages_name_code_text[pagei]" :is_editable="true")
@@ -109,10 +109,10 @@
                                             :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                                         )
 
-                                .delete 
+                                .btn-danger.delete 
                                     i.fa-solid.fa-trash.fa-fw.btn_icon(aria-hidden="true" @click="confirm_delete_page(page_)" v-tooltip.top='label("dashboard_builder.pages.tooltip_delete_page")')
 
-                        .create_dashboard_page
+                        .btn-primary.create_dashboard_page
                             i.fa-solid.fa-plus.fa-fw.btn_icon(aria-hidden="true" @click="create_dashboard_page" v-tooltip.top='label("dashboard_builder.pages.tooltip_create_dashboard_page")')
 
         template(v-if='!page')

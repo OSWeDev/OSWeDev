@@ -948,6 +948,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'field_value_filter_widget_component.is_checkbox.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Nombre de colonnes de cases à cocher" },
+            'field_value_filter_widget_component.checkbox_columns.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Afficher le champ de recherche" },
             'field_value_filter_widget_component.show_search_field.___LABEL___'
         ));

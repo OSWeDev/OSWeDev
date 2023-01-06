@@ -120,6 +120,114 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         AdvancedStringFilter.FILTER_TYPE_NEST_PAS_VIDE
     ];
 
+    get div_column_class(): string {
+        if (!this.widget_options) {
+            return null;
+        }
+
+        switch (this.widget_options.checkbox_columns) {
+            case FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_1:
+            default:
+                return 'col-md-12';
+            case FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_2:
+                return 'col-md-6';
+            case FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_3:
+                return 'col-md-4';
+            case FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_4:
+                return 'col-md-3';
+            case FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_6:
+                return 'col-md-2';
+            case FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_12:
+                return 'col-md-1';
+        }
+    }
+
+    get tmp_filter_active_options_by_column(): { [column_id: number]: DataFilterOption[] } {
+        if ((!this.widget_options) || (!this.tmp_filter_active_options) || (!this.tmp_filter_active_options.length)) {
+            return {};
+        }
+
+        let nb_columns = 1;
+        switch (this.widget_options.checkbox_columns) {
+            case FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_2:
+                nb_columns = 2;
+                break;
+            case FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_3:
+                nb_columns = 3;
+                break;
+            case FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_4:
+                nb_columns = 4;
+                break;
+            case FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_6:
+                nb_columns = 6;
+                break;
+            case FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_12:
+                nb_columns = 12;
+                break;
+        }
+
+        let res: { [column_id: number]: DataFilterOption[] } = {};
+        let column_id = 0;
+        let nb_elt_by_column = Math.ceil(this.tmp_filter_active_options.length / nb_columns);
+
+        for (let i in this.tmp_filter_active_options) {
+            let filter_opt = this.tmp_filter_active_options[i];
+            let i_n = parseInt(i);
+
+            if (!res[column_id]) {
+                res[column_id] = [];
+            }
+
+            res[column_id].push(filter_opt);
+
+            column_id = Math.floor(i_n / nb_elt_by_column);
+        }
+
+        return res;
+    }
+
+    get filter_visible_options_by_column(): { [column_id: number]: DataFilterOption[] } {
+        if ((!this.filter_visible_options) || (!this.filter_visible_options.length)) {
+            return {};
+        }
+
+        let nb_columns = 1;
+        switch (this.widget_options.checkbox_columns) {
+            case FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_2:
+                nb_columns = 2;
+                break;
+            case FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_3:
+                nb_columns = 3;
+                break;
+            case FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_4:
+                nb_columns = 4;
+                break;
+            case FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_6:
+                nb_columns = 6;
+                break;
+            case FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_12:
+                nb_columns = 12;
+                break;
+        }
+
+        let res: { [column_id: number]: DataFilterOption[] } = {};
+        let column_id = 0;
+        let nb_elt_by_column = Math.ceil(this.filter_visible_options.length / nb_columns);
+
+        for (let i in this.filter_visible_options) {
+            let filter_opt = this.filter_visible_options[i];
+            let i_n = parseInt(i);
+            column_id = Math.floor(i_n / nb_elt_by_column);
+
+            if (!res[column_id]) {
+                res[column_id] = [];
+            }
+
+            res[column_id].push(filter_opt);
+        }
+
+        return res;
+    }
 
     @Watch('widget_options', { immediate: true })
     private async onchange_widget_options() {
@@ -1566,6 +1674,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                     options.vo_field_sort,
                     options.can_select_multiple,
                     options.is_checkbox,
+                    options.checkbox_columns,
                     options.max_visible_options,
                     options.show_search_field,
                     options.hide_lvl2_if_lvl1_not_selected,

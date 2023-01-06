@@ -1,5 +1,5 @@
 
-.crud_create_form
+.modal_copy_widget_form
     .modal#modal_copy_widget
         template(v-if="show_modal")
             .modal-dialog
@@ -12,10 +12,10 @@
                         .pages
                             template(v-for='(page_, pagei) in pages')
                                 .page 
-                                    .selected(v-if='page_.id == page_to_copy_in_id')
+                                    .btn-success.selected(v-if='page_.id == page_to_copy_in_id')
                                         i.fa-solid.fa-check-circle.fa-fw(aria-hidden="true")
                                         //- Page selectionnée.
-                                    .select(v-else)
+                                    .btn-primary.select(v-else)
                                         i.fa-solid.fa-hand-point-down.fa-fw.btn_icon(aria-hidden="true" @click="select_page_to_copy_in(page_)")
 
                                     .name

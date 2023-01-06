@@ -213,6 +213,7 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
                     options.vo_field_sort,
                     options.can_select_multiple,
                     options.is_checkbox,
+                    options.checkbox_columns,
                     options.max_visible_options,
                     options.show_search_field,
                     options.hide_lvl2_if_lvl1_not_selected,

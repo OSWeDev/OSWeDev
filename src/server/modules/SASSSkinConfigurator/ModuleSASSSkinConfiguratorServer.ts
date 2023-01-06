@@ -1,9 +1,9 @@
-import ModuleTableField from '../../../shared/modules/ModuleTableField';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ModuleSASSSkinConfigurator from '../../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ModuleFileServer from '../File/ModuleFileServer';
 import ModuleServerBase from '../ModuleServerBase';
-import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 
 export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
 
@@ -18,6 +18,14 @@ export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
 
     private constructor() {
         super(ModuleSASSSkinConfigurator.getInstance().name);
+    }
+
+    public registerServerApiHandlers() {
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleSASSSkinConfigurator.APINAME_get_sass_param_value, this.get_sass_param_value.bind(this));
+    }
+
+    public async get_sass_param_value(param_name: string) {
+        return ModuleSASSSkinConfigurator.getInstance().getParamValue(param_name);
     }
 
     public async generate() {
