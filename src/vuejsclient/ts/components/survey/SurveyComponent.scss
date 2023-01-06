@@ -39,6 +39,12 @@
             display: flex;
             justify-content: center;
 
+            .selected {
+                .btn {
+                    border-color: gold;
+                }
+            }
+
             .smiley_very_happy {
 
                 i.fa-regular.fa-face-grin-stars {
@@ -57,13 +63,13 @@
             .smiley_happy {
 
                 i.fa-solid.fa-face-smile {
-                    color: lightgreen;
+                    color: mediumseagreen;
                     padding: 7px 7px;
                     font-size: 60px
                 }
 
                 i.fa-regular.fa-face-smile {
-                    color: lightgreen;
+                    color: mediumseagreen;
                     padding: 7px 7px;
                     font-size: 60px
                 }
@@ -87,13 +93,13 @@
             .smiley_bad {
 
                 i.fa-solid.fa-face-frown {
-                    color: red;
+                    color: darkred;
                     padding: 7px 7px;
                     font-size: 60px
                 }
 
                 i.fa-regular.fa-face-frown {
-                    color: red;
+                    color: darkred;
                     padding: 7px 7px;
                     font-size: 60px
                 }

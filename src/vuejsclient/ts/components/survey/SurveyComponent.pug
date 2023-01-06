@@ -3,7 +3,7 @@
         template(v-if='get_hidden')
             i.fa-solid.fa-face-smile.fa-fw
         template(v-else)
-            i.fa-regular.fa-face-smile.fa-fw
+            i.fa-solid.fa-face-smile.fa-fw
         span {{ label('survey.btn.title') }}
 
     .survey_modal(:class='{"hidden": !!get_hidden}')
@@ -15,8 +15,7 @@
                         p
                             strong {{ label('survey.header') }}
                         p
-                            | {{ label('survey.header_2') }}
-                            strong   {{ label('survey.header_3') }}
+                            span(v-html="need_a_survey ? need_a_survey.content : null")
                     hr
                     form.px-4(action='')
                         .text-center
@@ -33,7 +32,7 @@
                                         i.fa-solid.fa-comment-slash
                                 .select(v-else)
                                     .btn.btn-default.no_opinion.mr-2(@click='give_opinion(0)')
-                                        i.fa-regular.fa-comment-slash
+                                        i.fa-solid.fa-comment-slash
 
                             .smiley_bad
                                 .selected(v-if='tmp_type == 1')
@@ -41,7 +40,7 @@
                                         i.fa-solid.fa-face-frown
                                 .select(v-else)
                                     .btn.btn-default.bad.mr-2(@click='give_opinion(1)')
-                                        i.fa-regular.fa-face-frown
+                                        i.fa-solid.fa-face-frown
 
                             .smiley_meh    
                                 .selected(v-if='tmp_type == 2')
@@ -49,7 +48,7 @@
                                         i.fa-solid.fa-face-meh
                                 .select(v-else)
                                     .btn.btn-default.mediocre.mr-2(@click='give_opinion(2)')
-                                        i.fa-regular.fa-face-meh
+                                        i.fa-solid.fa-face-meh
                             
                             .smiley_happy
                                 .selected(v-if='tmp_type == 3')
@@ -57,7 +56,7 @@
                                         i.fa-solid.fa-face-smile
                                 .select(v-else)
                                     .btn.btn-default.good.mr-2(@click='give_opinion(3)')
-                                        i.fa-regular.fa-face-smile
+                                        i.fa-solid.fa-face-smile
                             
                             
                             .smiley_very_happy
@@ -66,7 +65,7 @@
                                         i.fa-solid.fa-face-grin-stars
                                 .select(v-else)
                                     .btn.btn-default.very_good.mr-2(@click='give_opinion(4)')
-                                        i.fa-regular.fa-face-grin-stars
+                                        i.fa-solid.fa-face-grin-stars
 
                         
                         
