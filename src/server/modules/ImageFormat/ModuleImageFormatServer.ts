@@ -230,6 +230,22 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
 
             await image.writeAsync(new_img_file.path);
 
+            if (format.watermark_txt) {
+                image = await jimp.read(new_img_file.path);
+                base_image_width = image.getWidth();
+                base_image_height = image.getHeight();
+
+                let font = await jimp.loadFont(jimp['FONT_SANS_' + format.watermark_font + '_BLACK']);
+
+                image.print(font, format.watermark_x, format.watermark_y, {
+                    text: format.watermark_txt,
+                    alignmentX: format.watermark_horizontal_align,
+                    alignmentY: format.watermark_vertical_align
+                }, base_image_width, base_image_height);
+
+                await image.writeAsync(new_img_file.path);
+            }
+
             let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(new_img_file);
             new_img_file.id = res.id;
 
