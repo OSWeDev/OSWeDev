@@ -4,8 +4,8 @@ include ../../../../../views/mixins/loading.pug
     +loading()
         form(v-on:submit.prevent="updateVO")
             .crud_update_form_header
+                a.btn.close.f-r(@click="cancel") &times;
                 .title.d-ib {{ label('crud.update.modal.title') }}
-                a.btn.close(@click="cancel") &times;
 
             .crud_update_form_body
                 .alert.alert-danger(v-if="is_only_readable") {{ label('crud.update.modal.readonly') }}
