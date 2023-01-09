@@ -1633,9 +1633,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 return null;
             }
 
-            let segmented_res: T[] = [];
-
-            // TODO MDE - UNION ALL et vérifier si plus rapide sur PSA
             let segmentations_tables: { [table_name: string]: number } = {};
 
             RangeHandler.foreach_ranges_sync(ranges, (segment_value) => {
@@ -1650,6 +1647,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             let request: string = null;
 
+            let fields_select: string = 't.id';
+            let fields = moduleTable.get_fields();
+            for (let i in fields) {
+                let field = fields[i];
+
+                fields_select += ',t.' + field.field_id;
+            }
+
             for (let segmentation_table in segmentations_tables) {
 
                 if (!request) {
@@ -1658,7 +1663,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     request += ' UNION ALL ';
                 }
 
-                request += "SELECT " + (distinct ? 'distinct' : '') + " t.* ";
+                request += "SELECT " + (distinct ? 'distinct' : '') + " " + fields_select + " ";
                 request += " FROM " + segmentation_table + ' t ';
                 request += (query_ ? query_.replace(/;/g, '') : '');
             }
@@ -3075,6 +3080,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 segmentations = DAOServerController.segmented_known_databases[moduleTable.database];
             }
 
+            let fields_select: string = 't.id';
+            let fields = moduleTable.get_fields();
+            for (let i in fields) {
+                let field = fields[i];
+
+                fields_select += ',t.' + field.field_id;
+            }
+
             for (let segmentation_table in segmentations) {
 
                 if (!request) {
@@ -3082,7 +3095,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 } else {
                     request += ' UNION ALL ';
                 }
-                request += 'select * from ' + moduleTable.database + '.' + segmentation_table + ' t where id = ' + id + ' ';
+                request += 'select ' + fields_select + ' from ' + moduleTable.database + '.' + segmentation_table + ' t where id = ' + id + ' ';
             }
 
             /**
@@ -3560,6 +3573,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let segmentations: { [table_name: string]: number } = DAOServerController.segmented_known_databases[moduleTable.database];
             let request = null;
 
+            let fields_select: string = 't.id';
+            let fields = moduleTable.get_fields();
+            for (let i in fields) {
+                let field = fields[i];
+
+                fields_select += ',t.' + field.field_id;
+            }
+
             for (let segmentation_table in segmentations) {
 
                 if (!request) {
@@ -3567,7 +3588,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 } else {
                     request += ' UNION ALL ';
                 }
-                request += 'select * from ' + moduleTable.database + '.' + segmentation_table + ' t WHERE id in (' + ids + ') ';
+                request += 'select ' + fields_select + ' from ' + moduleTable.database + '.' + segmentation_table + ' t WHERE id in (' + ids + ') ';
             }
 
             /**
@@ -3879,6 +3900,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 });
             }
 
+            let fields_select: string = 't.id';
+            let fields = moduleTable.get_fields();
+            for (let i in fields) {
+                let field = fields[i];
+
+                fields_select += ',t.' + field.field_id;
+            }
+
             for (let segmentation_table in segmentations_tables) {
 
                 if (!request) {
@@ -3895,7 +3924,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     return null;
                 }
 
-                request += 'select * from ' + db_full_name + ' t where ' + filter_by_matroid_clause + (additional_condition ? additional_condition : '');
+                request += 'select ' + fields_select + ' from ' + db_full_name + ' t where ' + filter_by_matroid_clause + (additional_condition ? additional_condition : '');
             }
 
             if (!request) {
@@ -4050,6 +4079,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     segmentations_tables = DAOServerController.segmented_known_databases[moduleTable.database];
                 }
 
+                let fields_select: string = 't.id';
+                let fields = moduleTable.get_fields();
+                for (let j in fields) {
+                    let field = fields[j];
+
+                    fields_select += ',t.' + field.field_id;
+                }
+
                 for (let segmentation_table in segmentations_tables) {
 
                     if (!request) {
@@ -4064,7 +4101,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         ConsoleHandler.error('filterVosByMatroidsIntersections:Where clause invalid :api_type_id:' + (fields_ids_mapper ? JSON.stringify(fields_ids_mapper) : fields_ids_mapper));
                         throw new Error('Where clause invalid');
                     }
-                    request += 'select * from ' + moduleTable.database + '.' + segmentation_table + ' t where ' + clause + ' ';
+                    request += 'select ' + fields_select + ' from ' + moduleTable.database + '.' + segmentation_table + ' t where ' + clause + ' ';
                 }
 
                 /**
@@ -4313,6 +4350,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     throw new Error('Not Implemented');
                 }
 
+                let fields_select: string = 't.id';
+                let fields = moduleTable.get_fields();
+                for (let j in fields) {
+                    let field = fields[j];
+
+                    fields_select += ',t.' + field.field_id;
+                }
+
                 for (let segmentation_table in segmentations_tables) {
 
                     if (!request) {
@@ -4320,7 +4365,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     } else {
                         request += ' UNION ALL ';
                     }
-                    request += 'select * from ' + moduleTable.database + '.' + segmentation_table + ' t where ' + where_clause + ' ';
+                    request += 'select ' + fields_select + ' from ' + moduleTable.database + '.' + segmentation_table + ' t where ' + where_clause + ' ';
                 }
 
                 /**

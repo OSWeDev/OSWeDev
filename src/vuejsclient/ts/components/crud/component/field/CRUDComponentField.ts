@@ -438,7 +438,7 @@ export default class CRUDComponentField extends VueComponentBase
 
         if ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
             ((this.field as SimpleDatatableFieldVO<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html)) {
-            input_value = input.root.innerHTML;
+            input_value = input;
         } else {
             input_value = input.value;
         }

@@ -66,8 +66,6 @@ export default class ModuleSurvey extends Module {
             new ModuleTableField('message', ModuleTableField.FIELD_TYPE_string, 'Message', false).hide_from_datatable(),
             new ModuleTableField('survey_type', ModuleTableField.FIELD_TYPE_enum, 'Avis', true).setEnumValues(SurveyVO.SURVEY_TYPE_LABELS),
             new ModuleTableField('route_name', ModuleTableField.FIELD_TYPE_string, 'Route du module enquêté', true).hide_from_datatable(),
-
-
         ];
 
         let table = new ModuleTable(this, SurveyVO.API_TYPE_ID, () => new SurveyVO(), fields, null, 'Surveys');
@@ -81,15 +79,10 @@ export default class ModuleSurvey extends Module {
     private initializeParamSurveyVO() {
 
         let fields = [
-
-
             new ModuleTableField('route_name', ModuleTableField.FIELD_TYPE_string, 'Route pour laquelle le survey existe ', true),
-
             new ModuleTableField('pop_up', ModuleTableField.FIELD_TYPE_boolean, 'Affichage automatique ou manuel ?', false),
-
             new ModuleTableField('time_before_pop_up', ModuleTableField.FIELD_TYPE_float, 'Temps avant affichage', true),
-
-
+            new ModuleTableField('content', ModuleTableField.FIELD_TYPE_html, 'Contenu'),
         ];
 
         let table = new ModuleTable(this, SurveyParamVO.API_TYPE_ID, () => new SurveyParamVO(), fields, null, 'SurveysParam');

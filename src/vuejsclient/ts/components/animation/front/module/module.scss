@@ -28,24 +28,30 @@ $circle-width-hover: 0.07em;
                 margin-top: 5px;
                 cursor: pointer;
 
-                &.fa {
+                &.fa-trophy {
                     font-size: 17px;
                     padding-top: 3px;
                     color: $animation_orange;
                     text-align: center;
                     padding-left: 1px;
+                    background: rgba(255, 255, 255, 0.3);
 
-                    &.fa-trophy {
-                        background: rgba(255, 255, 255, 0.3);
-
-                        &.actif {
-                            background: rgba(255, 255, 255, 1);
-                        }
+                    &.actif {
+                        background: rgba(255, 255, 255, 1);
                     }
 
-                    &.fa-check {
-                        color: $animation_vert;
+                    &:before {
+                        margin-right: 0;
                     }
+                }
+
+                &.fa-check {
+                    font-size: 17px;
+                    padding-top: 3px;
+                    color: $animation_orange;
+                    text-align: center;
+                    padding-left: 1px;
+                    color: $animation_vert;
 
                     &:before {
                         margin-right: 0;

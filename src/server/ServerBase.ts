@@ -28,6 +28,9 @@ import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
 import ModuleFile from '../shared/modules/File/ModuleFile';
 import FileVO from '../shared/modules/File/vos/FileVO';
 import Dates from '../shared/modules/FormatDatesNombres/Dates/Dates';
+import ModuleImageFormat from '../shared/modules/ImageFormat/ModuleImageFormat';
+import FormattedImageVO from '../shared/modules/ImageFormat/vos/FormattedImageVO';
+import ImageFormatVO from '../shared/modules/ImageFormat/vos/ImageFormatVO';
 import ModuleMaintenance from '../shared/modules/Maintenance/ModuleMaintenance';
 import ModulesManager from '../shared/modules/ModulesManager';
 import ModuleParams from '../shared/modules/Params/ModuleParams';
@@ -45,7 +48,6 @@ import AccessPolicyDeleteSessionBGThread from './modules/AccessPolicy/bgthreads/
 import ModuleAccessPolicyServer from './modules/AccessPolicy/ModuleAccessPolicyServer';
 import BGThreadServerController from './modules/BGThread/BGThreadServerController';
 import CronServerController from './modules/Cron/CronServerController';
-import ModuleDAOServer from './modules/DAO/ModuleDAOServer';
 import ModuleFileServer from './modules/File/ModuleFileServer';
 import ForkedTasksController from './modules/Fork/ForkedTasksController';
 import ForkServerController from './modules/Fork/ForkServerController';
@@ -679,6 +681,53 @@ export default abstract class ServerBase {
                 AccessPolicyDeleteSessionBGThread.TASK_NAME_add_api_reqs,
                 api_req
             );
+
+            // Génération à la volée des images en fonction du format demandé
+            if (req.url.indexOf(ModuleImageFormat.RESIZABLE_IMGS_PATH_BASE.replace('./', '/')) == 0) {
+                let matches: string[] = req.url.match('(' + ModuleImageFormat.RESIZABLE_IMGS_PATH_BASE.replace('./', '/') + ')([A-Z|a-z|0-9]+)/(.*)');
+
+                if (!matches || !matches.length) {
+                    return res.status(404).send('Not matches');
+                }
+
+                let format_name: string = matches[2];
+                let file_path: string = decodeURI(matches[3]);
+
+                if (fs.existsSync(decodeURI(req.url)) || !format_name || !file_path) {
+                    // Le fichier existe, on le renvoie directement
+                    return res.sendFile(path.resolve(decodeURI(req.url)));
+                }
+
+                let base_filepath: string = ModuleFile.FILES_ROOT + file_path;
+
+                // On vérifie que le fichier de base existe pour appliquer le format dessus
+                if (!fs.existsSync(base_filepath)) {
+                    // Le fichier n'existe pas, donc 404
+                    return res.status(404).send('Not found : ' + base_filepath);
+                }
+
+                let format: ImageFormatVO = await query(ImageFormatVO.API_TYPE_ID)
+                    .filter_by_text_eq('name', format_name, ImageFormatVO.API_TYPE_ID, true)
+                    .select_vo<ImageFormatVO>();
+
+                if (!format) {
+                    // Pas de format
+                    return res.status(404).send('Pas de format : ' + format_name);
+                }
+
+                let formatted_image: FormattedImageVO = await ModuleImageFormat.getInstance().get_formatted_image(
+                    base_filepath,
+                    format_name,
+                    format.width,
+                    format.height
+                );
+
+                if (!formatted_image) {
+                    return res.status(404).send('Erreur génération image formatée');
+                }
+
+                return res.sendFile(path.resolve(formatted_image.formatted_src));
+            }
 
             next();
         });

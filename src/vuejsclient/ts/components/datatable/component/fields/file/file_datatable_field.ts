@@ -18,7 +18,7 @@ export default class FileDatatableFieldComponent extends VueComponentBase {
     @Prop({ default: null })
     public file_path: string;
 
-    @Prop({ default: true })
+    @Prop({ default: false })
     public show_tooltip: boolean;
 
     @Prop({ default: null })
