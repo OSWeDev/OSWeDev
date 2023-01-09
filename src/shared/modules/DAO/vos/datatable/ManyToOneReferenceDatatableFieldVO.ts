@@ -17,6 +17,7 @@ export default class ManyToOneReferenceDatatableFieldVO<Target extends IDistantV
 
         let res = new ManyToOneReferenceDatatableFieldVO();
         res.init_ref_dtf(ManyToOneReferenceDatatableFieldVO.API_TYPE_ID, DatatableField.MANY_TO_ONE_FIELD_TYPE, datatable_field_uid, targetModuleTable, sortedTargetFields);
+        res.src_field_id = datatable_field_uid;
         return res;
     }
 
@@ -35,12 +36,25 @@ export default class ManyToOneReferenceDatatableFieldVO<Target extends IDistantV
 
     set src_field_id(src_field_id: string) {
         this._src_field_id = src_field_id;
-        this.is_required = this.srcField.field_required;
-        this.validate = this.validate ? this.validate : this.srcField.validate;
+
+        this.onupdateSrcField();
+    }
+
+    public setModuleTable(moduleTable: ModuleTable<any>): this {
+        this.vo_type_full_name = moduleTable.full_name;
+        this.vo_type_id = moduleTable.vo_type;
+
+        this.onupdateSrcField();
+
+        return this;
     }
 
     get srcField(): ModuleTableField<any> {
-        return VOsTypesManager.moduleTables_by_voType[this.vo_type_id].getFieldFromId(this.src_field_id);
+        if (!this.moduleTable) {
+            return null;
+        }
+
+        return this.moduleTable.getFieldFromId(this.src_field_id);
     }
 
     get translatable_title(): string {
@@ -63,4 +77,13 @@ export default class ManyToOneReferenceDatatableFieldVO<Target extends IDistantV
     public dataToHumanReadableField(e: IDistantVOBase): any {
         return this.voIdToHumanReadable(e[this.datatable_field_uid]);
     }
+
+    private onupdateSrcField() {
+        if (!this.srcField) {
+            return;
+        }
+        this.is_required = this.srcField.field_required;
+        this.validate = this.validate ? this.validate : this.srcField.validate;
+    }
+
 }

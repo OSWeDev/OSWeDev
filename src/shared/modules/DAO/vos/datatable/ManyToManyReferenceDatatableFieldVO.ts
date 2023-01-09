@@ -43,11 +43,11 @@ export default class ManyToManyReferenceDatatableFieldVO<Target extends IDistant
     }
 
     get translatable_title(): string {
-        if (!this.vo_type_full_name) {
+        if ((!this.vo_type_full_name) || (!this.moduleTable)) {
             return null;
         }
 
-        let e = VOsTypesManager.moduleTables_by_voType[this.vo_type_id].label.code_text;
+        let e = this.moduleTable.label.code_text;
         if (this.module_table_field_id != this.datatable_field_uid) {
             return e.substr(0, e.indexOf(DefaultTranslation.DEFAULT_LABEL_EXTENSION)) + "." + this.datatable_field_uid + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
         } else {

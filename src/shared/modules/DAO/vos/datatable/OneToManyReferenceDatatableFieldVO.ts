@@ -32,12 +32,22 @@ export default class OneToManyReferenceDatatableFieldVO<Target extends IDistantV
 
     set dest_field_id(dest_field_id: string) {
         this._dest_field_id = dest_field_id;
-        this.is_required = this.destField.field_required;
-        this.validate = this.validate ? this.validate : this.destField.validate;
+
+        this.onupdatedestField();
+    }
+
+    get target_module_table_type_id(): string {
+        return this._target_module_table_type_id;
+    }
+
+    set target_module_table_type_id(target_module_table_type_id: string) {
+        this._target_module_table_type_id = target_module_table_type_id;
+
+        this.onupdatedestField();
     }
 
     get destField(): ModuleTableField<any> {
-        if (!this.dest_field_id) {
+        if ((!this.dest_field_id) || (!this.target_module_table_type_id)) {
             return null;
         }
 
@@ -82,4 +92,13 @@ export default class OneToManyReferenceDatatableFieldVO<Target extends IDistantV
         }
         return res;
     }
+
+    private onupdatedestField() {
+        if (!this.destField) {
+            return;
+        }
+        this.is_required = this.destField.field_required;
+        this.validate = this.validate ? this.validate : this.destField.validate;
+    }
+
 }

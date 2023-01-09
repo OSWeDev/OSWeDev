@@ -6,8 +6,16 @@ import VOsTypesManager from '../../../VOsTypesManager';
 
 export default abstract class ReferenceDatatableField<Target extends IDistantVOBase> extends DatatableField<number, number> {
 
-    public target_module_table_type_id: string;
+    public _target_module_table_type_id: string;
     public sortedTargetFields: Array<DatatableField<any, any>>;
+
+    get target_module_table_type_id(): string {
+        return this._target_module_table_type_id;
+    }
+
+    set target_module_table_type_id(target_module_table_type_id: string) {
+        this._target_module_table_type_id = target_module_table_type_id;
+    }
 
     get targetModuleTable(): ModuleTable<Target> {
         return this.target_module_table_type_id ? VOsTypesManager.moduleTables_by_voType[this.target_module_table_type_id] : null;
@@ -59,6 +67,7 @@ export default abstract class ReferenceDatatableField<Target extends IDistantVOB
             sortedTargetFields[i].vo_type_full_name = targetModuleTable.full_name;
             sortedTargetFields[i].vo_type_id = targetModuleTable.vo_type;
         }
+        this.sortedTargetFields = sortedTargetFields;
 
         let has_weight: boolean = false;
 

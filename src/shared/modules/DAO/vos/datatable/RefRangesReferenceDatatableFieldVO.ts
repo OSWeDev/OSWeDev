@@ -31,12 +31,25 @@ export default class RefRangesReferenceDatatableFieldVO<Target extends IDistantV
 
     set src_field_id(src_field_id: string) {
         this._src_field_id = src_field_id;
-        this.is_required = this.srcField.field_required;
-        this.validate = this.validate ? this.validate : this.srcField.validate;
+
+        this.onupdateSrcField();
     }
 
     get srcField(): ModuleTableField<any> {
-        return VOsTypesManager.moduleTables_by_voType[this.vo_type_id].getFieldFromId(this.src_field_id);
+        if (!this.moduleTable) {
+            return null;
+        }
+
+        return this.moduleTable.getFieldFromId(this.src_field_id);
+    }
+
+    public setModuleTable(moduleTable: ModuleTable<any>): this {
+        this.vo_type_full_name = moduleTable.full_name;
+        this.vo_type_id = moduleTable.vo_type;
+
+        this.onupdateSrcField();
+
+        return this;
     }
 
     public setFilterOptionsForUpdateOrCreateOnRefRanges(filterOptionsForUpdateOrCreateOnRefRanges: (vo: IDistantVOBase, options: { [id: number]: Target }) => { [id: number]: Target }): RefRangesReferenceDatatableFieldVO<Target> {
@@ -88,5 +101,13 @@ export default class RefRangesReferenceDatatableFieldVO<Target extends IDistantV
             dest_ids.push(id);
         });
         return dest_ids;
+    }
+
+    private onupdateSrcField() {
+        if (!this.srcField) {
+            return;
+        }
+        this.is_required = this.srcField.field_required;
+        this.validate = this.validate ? this.validate : this.srcField.validate;
     }
 }

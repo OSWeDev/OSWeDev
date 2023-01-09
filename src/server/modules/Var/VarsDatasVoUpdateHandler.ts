@@ -238,14 +238,19 @@ export default class VarsDatasVoUpdateHandler {
         let intersectors_by_index: { [index: string]: VarDataBaseVO } = await this.init_leaf_intersectors(vo_types, vos_update_buffer, vos_create_or_delete_buffer);
         let solved_invalidators_by_index: { [conf_id: string]: VarDataInvalidatorVO } = {};
 
+        let max = Math.max(ConfigurationService.node_configuration.MAX_POOL / 2, 1);
+        let promise_pipeline = new PromisePipeline(max);
         for (let i in intersectors_by_index) {
             let intersector = intersectors_by_index[i];
 
-            await this.invalidate_datas_and_parents(
-                new VarDataInvalidatorVO(intersector, VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED, true, false, false),
-                solved_invalidators_by_index);
+            await promise_pipeline.push(async () => {
+                await this.invalidate_datas_and_parents(
+                    new VarDataInvalidatorVO(intersector, VarDataInvalidatorVO.INVALIDATOR_TYPE_INTERSECTED, true, false, false),
+                    solved_invalidators_by_index);
+            });
         }
 
+        await promise_pipeline.end();
         await this.push_invalidators(Object.values(solved_invalidators_by_index));
 
         // On met à jour le param en base pour refléter les modifs qui restent en attente de traitement

@@ -4,7 +4,6 @@ import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolic
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
-import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
@@ -26,7 +25,6 @@ import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../shared/modules/Var/VarsController';
-import { GetVarParamFromContextFiltersParamVOStatic } from '../../../shared/modules/Var/vos/GetVarParamFromContextFiltersParamVO';
 import SlowVarVO from '../../../shared/modules/Var/vos/SlowVarVO';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfIds from '../../../shared/modules/Var/vos/VarConfIds';
@@ -40,7 +38,6 @@ import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
-import SemaphoreHandler from '../../../shared/tools/SemaphoreHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import ConfigurationService from '../../env/ConfigurationService';
@@ -49,7 +46,6 @@ import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import ContextQueryServerController from '../ContextFilter/ContextQueryServerController';
 import ModuleContextFilterServer from '../ContextFilter/ModuleContextFilterServer';
-import ParameterizedQueryWrapper from '../ContextFilter/vos/ParameterizedQueryWrapper';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
 import DAOPostDeleteTriggerHook from '../DAO/triggers/DAOPostDeleteTriggerHook';
@@ -85,6 +81,7 @@ export default class ModuleVarServer extends ModuleServerBase {
     public static TASK_NAME_delete_varcacheconf_from_cache = 'Var.delete_varcacheconf_from_cache';
     public static TASK_NAME_update_varcacheconf_from_cache = 'Var.update_varcacheconf_from_cache';
     public static TASK_NAME_exec_in_computation_hole = 'Var.exec_in_computation_hole';
+    public static TASK_NAME_force_delete_all_cache_except_imported_data = 'Var.force_delete_all_cache_except_imported_data';
 
     public static TASK_NAME_wait_for_computation_hole = 'Var.wait_for_computation_hole';
     public static TASK_NAME_invalidate_imports_for_u = 'VarsDatasProxy.invalidate_imports_for_u';
@@ -370,6 +367,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_delete_varcacheconf_from_cache, this.delete_varcacheconf_from_cache.bind(this));
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_update_varcacheconf_from_cache, this.update_varcacheconf_from_cache.bind(this));
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_exec_in_computation_hole, this.exec_in_computation_hole.bind(this));
+        ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_force_delete_all_cache_except_imported_data, this.force_delete_all_cache_except_imported_data.bind(this));
 
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_invalidate_imports_for_u, this.invalidate_imports_for_u.bind(this));
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_invalidate_imports_for_c, this.invalidate_imports_for_c.bind(this));
@@ -870,6 +868,37 @@ export default class ModuleVarServer extends ModuleServerBase {
 
 
     /**
+     * Objectif : vider tout le cache des vars, y compris les pixels qu'on supprime théoriquement pas
+     */
+    public async force_delete_all_cache_except_imported_data(): Promise<void> {
+
+        return new Promise(async (resolve, reject) => {
+            if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+                reject,
+                VarsdatasComputerBGThread.getInstance().name,
+                ModuleVarServer.TASK_NAME_force_delete_all_cache_except_imported_data,
+                resolve)) {
+                return;
+            }
+
+            let cb = async () => {
+
+                for (let api_type_id in VarsServerController.getInstance().varcacheconf_by_api_type_ids) {
+
+                    let moduletable = VOsTypesManager.moduleTables_by_voType[api_type_id];
+                    await ModuleDAOServer.getInstance().query('DELETE from ' + moduletable.full_name + ' where value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';');
+                }
+
+                VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes = {};
+
+                resolve();
+            };
+
+            await this.exec_in_computation_hole(cb, 100, 600000);
+        });
+    }
+
+    /**
      * Objectif : lancer un comportement dans un trou forcé d'exec des vars
      * Fonction ayant pour but d'être appelée sur le thread de computation des vars
      * FIXME : POURQUOI ? await ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(reject, VarsServerCallBackSubsController.TASK_NAME_get_vars_datas, resolve
@@ -878,7 +907,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         return new Promise(async (resolve, reject) => {
 
-            if (!ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+            if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
                 reject,
                 VarsdatasComputerBGThread.getInstance().name,
                 ModuleVarServer.TASK_NAME_exec_in_computation_hole,
@@ -1851,4 +1880,6 @@ export default class ModuleVarServer extends ModuleServerBase {
             await this.throttle_get_var_data_by_index();
         });
     }
+
+
 }

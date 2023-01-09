@@ -2,7 +2,7 @@ import { cloneDeep, isArray } from 'lodash';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
-import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextFilterVO, { filter } from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
@@ -696,6 +696,13 @@ export default class ContextQueryServerController {
                         }
                         queries.push(query_segmented.query);
                     }
+
+                    /**
+                     * Dans le cas des segmented, on remonte pas auto l'ajout des fields si on en avait pas dans la requete initiale, contrairement aux queries non segmentées, ce qui empeche le throttle
+                     */
+                    if ((!context_query.fields) && (context_query_segmented.fields)) {
+                        context_query.fields = context_query_segmented.fields;
+                    }
                 }
 
                 if (!queries.length) {
@@ -949,10 +956,10 @@ export default class ContextQueryServerController {
         let where_conditions: string[] = [];
 
         for (let i in context_query.filters) {
-            let filter = context_query.filters[i];
+            let f = context_query.filters[i];
 
             aliases_n = await this.updates_jointures_from_filter(
-                filter,
+                f,
                 context_query,
                 jointures,
                 joined_tables_by_vo_type,
@@ -963,7 +970,7 @@ export default class ContextQueryServerController {
             /**
              * Check injection : OK
              */
-            await ContextFilterServerController.getInstance().update_where_conditions(context_query, query_result, where_conditions, filter, tables_aliases_by_type);
+            await ContextFilterServerController.getInstance().update_where_conditions(context_query, query_result, where_conditions, f, tables_aliases_by_type);
         }
 
         let tables_aliases_by_type_for_access_hooks = cloneDeep(tables_aliases_by_type);
@@ -1515,13 +1522,25 @@ export default class ContextQueryServerController {
         }
 
         for (let i in filters) {
-            let filter = filters[i];
+            let f = filters[i];
 
-            if (filter.vo_type == forbidden_api_type_id) {
-                continue;
+            if (f.vo_type == forbidden_api_type_id) {
+
+                /**
+                 * Si on est sur un filtre sur une ref de table externe, on traduit le filtre du champs en filtre de l'id de la table ciblée par le lien
+                 *  par exemple si on a un filtre de ldf.pdv_id et ldf est segmentée, alors on remplace par un filtre équivalent sur pdv.id
+                 */
+                //TODO FIXME handle refranges
+                let field = VOsTypesManager.moduleTables_by_voType[f.vo_type].getFieldFromId(f.field_id);
+                if (field && (field.field_type == ModuleTableField.FIELD_TYPE_foreign_key)) {
+                    f.vo_type = field.manyToOne_target_moduletable.vo_type;
+                    f.field_id = 'id';
+                } else {
+                    continue;
+                }
             }
 
-            context_query.add_filters([filter]);
+            context_query.add_filters([f]);
         }
 
         return context_query;
