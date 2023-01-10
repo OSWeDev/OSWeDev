@@ -43,6 +43,7 @@ import ModuleRequest from '../../shared/modules/Request/ModuleRequest';
 import ModuleSASSSkinConfigurator from '../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
 import ModuleSendInBlue from '../../shared/modules/SendInBlue/ModuleSendInBlue';
 import ModuleSurvey from '../../shared/modules/Survey/ModuleSurvey';
+import ModulePopup from '../../shared/modules/Popup/ModulePopup';
 import ModuleSupervision from '../../shared/modules/Supervision/ModuleSupervision';
 import ModuleTableFieldTypes from '../../shared/modules/TableFieldTypes/ModuleTableFieldTypes';
 import ModuleTeamsAPI from '../../shared/modules/TeamsAPI/ModuleTeamsAPI';
@@ -100,6 +101,7 @@ import ModuleSASSSkinConfiguratorServer from './SASSSkinConfigurator/ModuleSASSS
 import ModuleSendInBlueServer from './SendInBlue/ModuleSendInBlueServer';
 import ModuleSupervisionServer from './Supervision/ModuleSupervisionServer';
 import ModuleSurveyServer from './Survey/ModuleSurveyServer';
+import ModulePopupServer from './Popup/ModulePopupServer';
 import ModuleTeamsAPIServer from './TeamsAPI/ModuleTeamsAPIServer';
 import ModuleTranslationsImportServer from './Translation/import/ModuleTranslationsImportServer';
 import ModuleTranslationServer from './Translation/ModuleTranslationServer';
@@ -518,6 +520,7 @@ export default abstract class ModuleServiceBase {
             ModuleVocus.getInstance(),
             ModuleFeedback.getInstance(),
             ModuleSurvey.getInstance(),
+            ModulePopup.getInstance(),
             ModuleRequest.getInstance(),
             ModuleDocument.getInstance(),
             ModuleFork.getInstance(),
@@ -570,6 +573,7 @@ export default abstract class ModuleServiceBase {
             ModuleVocusServer.getInstance(),
             ModuleFeedbackServer.getInstance(),
             ModuleSurveyServer.getInstance(),
+            ModulePopupServer.getInstance(),
             ModuleRequestServer.getInstance(),
             ModuleDocumentServer.getInstance(),
             ModuleForkServer.getInstance(),
