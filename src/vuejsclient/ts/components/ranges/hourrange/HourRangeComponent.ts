@@ -26,11 +26,11 @@ export default class HourRangeComponent extends VueComponentBase {
         switch (this.range.segment_type) {
 
             case HourSegment.TYPE_SECOND:
-                return Durations.format(RangeHandler.getInstance().getSegmentedMin(this.range), ModuleFormatDatesNombres.FORMAT_HHmmss);
+                return Durations.format(RangeHandler.getSegmentedMin(this.range), ModuleFormatDatesNombres.FORMAT_HHmmss);
             case HourSegment.TYPE_MINUTE:
-                return Durations.format(RangeHandler.getInstance().getSegmentedMin(this.range), ModuleFormatDatesNombres.FORMAT_HHmm);
+                return Durations.format(RangeHandler.getSegmentedMin(this.range), ModuleFormatDatesNombres.FORMAT_HHmm);
             case HourSegment.TYPE_HOUR:
-                return Durations.format(RangeHandler.getInstance().getSegmentedMin(this.range), ModuleFormatDatesNombres.FORMAT_HH);
+                return Durations.format(RangeHandler.getSegmentedMin(this.range), ModuleFormatDatesNombres.FORMAT_HH);
 
             default: return null;
         }
@@ -45,11 +45,11 @@ export default class HourRangeComponent extends VueComponentBase {
         switch (this.range.segment_type) {
 
             case HourSegment.TYPE_SECOND:
-                return Durations.format(RangeHandler.getInstance().getSegmentedMax(this.range), ModuleFormatDatesNombres.FORMAT_HHmmss);
+                return Durations.format(RangeHandler.getSegmentedMax(this.range), ModuleFormatDatesNombres.FORMAT_HHmmss);
             case HourSegment.TYPE_MINUTE:
-                return Durations.format(RangeHandler.getInstance().getSegmentedMax(this.range), ModuleFormatDatesNombres.FORMAT_HHmm);
+                return Durations.format(RangeHandler.getSegmentedMax(this.range), ModuleFormatDatesNombres.FORMAT_HHmm);
             case HourSegment.TYPE_HOUR:
-                return Durations.format(RangeHandler.getInstance().getSegmentedMax(this.range), ModuleFormatDatesNombres.FORMAT_HH);
+                return Durations.format(RangeHandler.getSegmentedMax(this.range), ModuleFormatDatesNombres.FORMAT_HH);
 
             default: return null;
         }
@@ -60,6 +60,6 @@ export default class HourRangeComponent extends VueComponentBase {
             return false;
         }
 
-        return (RangeHandler.getInstance().getSegmentedMin(this.range) == RangeHandler.MIN_HOUR) && (RangeHandler.getInstance().getSegmentedMax(this.range) == RangeHandler.MAX_HOUR);
+        return (RangeHandler.getSegmentedMin(this.range) == RangeHandler.MIN_HOUR) && (RangeHandler.getSegmentedMax(this.range) == RangeHandler.MAX_HOUR);
     }
 }

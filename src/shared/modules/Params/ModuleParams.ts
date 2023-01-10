@@ -1,4 +1,5 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import ConsoleHandler from '../../tools/ConsoleHandler';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
@@ -79,27 +80,47 @@ export default class ModuleParams extends Module {
     }
 
     public async getParamValueAsString(param_name: string, default_if_undefined: string = null): Promise<string> {
-        let res = await this.getParamValue(param_name);
+        try {
+            let res = await this.getParamValue(param_name);
 
-        return (res != null) ? res : default_if_undefined;
+            return (res != null) ? res : default_if_undefined;
+        } catch (error) {
+            ConsoleHandler.error(error);
+            return default_if_undefined;
+        }
     }
 
     public async getParamValueAsInt(param_name: string, default_if_undefined: number = null): Promise<number> {
-        let res = await this.getParamValue(param_name);
+        try {
+            let res = await this.getParamValue(param_name);
 
-        return (res != null) ? parseInt(res) : default_if_undefined;
+            return (res != null) ? parseInt(res) : default_if_undefined;
+        } catch (error) {
+            ConsoleHandler.error(error);
+            return default_if_undefined;
+        }
     }
 
     public async getParamValueAsBoolean(param_name: string, default_if_undefined: boolean = false): Promise<boolean> {
-        let res = await this.getParamValueAsInt(param_name);
+        try {
+            let res = await this.getParamValueAsInt(param_name);
 
-        return (res != null) ? (res != 0) : default_if_undefined;
+            return (res != null) ? (res != 0) : default_if_undefined;
+        } catch (error) {
+            ConsoleHandler.error(error);
+            return default_if_undefined;
+        }
     }
 
     public async getParamValueAsFloat(param_name: string, default_if_undefined: number = null): Promise<number> {
-        let res = await this.getParamValue(param_name);
+        try {
+            let res = await this.getParamValue(param_name);
 
-        return (res != null) ? parseFloat(res) : default_if_undefined;
+            return (res != null) ? parseFloat(res) : default_if_undefined;
+        } catch (error) {
+            ConsoleHandler.error(error);
+            return default_if_undefined;
+        }
     }
 
     public async setParamValueAsBoolean(param_name: string, param_value: boolean): Promise<void> {

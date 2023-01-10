@@ -32,7 +32,7 @@ export default class ModuleDBService {
 
     private constructor(private db) {
         ModuleDBService.instance = this;
-        this.bdd_owner = ConfigurationService.getInstance().node_configuration.BDD_OWNER;
+        this.bdd_owner = ConfigurationService.node_configuration.BDD_OWNER;
     }
 
     public async preload_modules_is_actif() {
@@ -69,7 +69,7 @@ export default class ModuleDBService {
 
         while (true) {
 
-            await ThreadHandler.getInstance().sleep(ModuleDBService.reloadParamsTimeout);
+            await ThreadHandler.sleep(ModuleDBService.reloadParamsTimeout);
 
             let paramsChanged: Array<ModuleParamChange<any>> = await this.loadParams(module);
 
@@ -193,7 +193,7 @@ export default class ModuleDBService {
          * FIXME : on peut pas faire ça en fait
          */
         // let promises = [];
-        // let max = Math.max(1, Math.floor(ConfigurationService.getInstance().node_configuration.MAX_POOL / 2));
+        // let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
         for (let i in module.datatables) {
             let datatable = module.datatables[i];
 
@@ -226,7 +226,7 @@ export default class ModuleDBService {
 
         // On lance le thread de reload de la conf toutes les X seconds, si il y a des paramètres
         if (module.fields && (module.fields.length > 0)) {
-            this.reloadParamsThread(module).then().catch((error) => ConsoleHandler.getInstance().error(error));
+            this.reloadParamsThread(module).then().catch((error) => ConsoleHandler.error(error));
         }
 
         // On appelle le hook de fin d'installation

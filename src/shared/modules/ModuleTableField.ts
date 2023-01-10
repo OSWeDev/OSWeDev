@@ -136,8 +136,6 @@ export default class ModuleTableField<T> {
      */
     public validate_input: (input_value: any, field: DatatableField<any, any>, vo: any) => Alert[];
 
-    public plain_obj_cstr: () => any = null;
-
     public return_min_value: boolean = true;
     public return_max_value: boolean = true;
 
@@ -210,11 +208,6 @@ export default class ModuleTableField<T> {
         if (!found) {
             this.module_table.uniq_indexes.push([this]);
         }
-    }
-
-    public set_plain_obj_cstr(plain_obj_cstr: () => any): ModuleTableField<T> {
-        this.plain_obj_cstr = plain_obj_cstr;
-        return this;
     }
 
     public setValidatInputFunc(validate_input: (input_value: any, field: DatatableField<any, any>, vo: any) => Alert[]): ModuleTableField<T> {
@@ -414,7 +407,7 @@ export default class ModuleTableField<T> {
             this.field_label.code_text = "fields.labels." + module_name + "." + this.field_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
         }
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(this.field_label);
+        DefaultTranslationManager.registerDefaultTranslation(this.field_label);
 
         return this;
     }
@@ -430,7 +423,7 @@ export default class ModuleTableField<T> {
             }
             return this.field_id + ' ' + this.getPGSqlFieldType() + (this.field_required ? ' NOT NULL' : '') + (this.has_default ? ' DEFAULT ' + default_value : '') + (this.is_unique ? ' UNIQUE' : '');
         } catch (error) {
-            ConsoleHandler.getInstance().error('Valeur par défaut incompatible avec la BDD pour le champs:' + this.field_id + ':' + error);
+            ConsoleHandler.error('Valeur par défaut incompatible avec la BDD pour le champs:' + this.field_id + ':' + error);
         }
         return this.field_id + ' ' + this.getPGSqlFieldType() + (this.field_required ? ' NOT NULL' : '') + (this.is_unique ? ' UNIQUE' : '');
     }

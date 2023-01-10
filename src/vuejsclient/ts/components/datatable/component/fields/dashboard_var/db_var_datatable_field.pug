@@ -1,10 +1,10 @@
 .db_var_datatable_field
     .var_data
-        template(v-if='!!var_param')
+        template(v-if='is_loading || !var_param')
+            i.fa-solid.fa-spinner.fa-spin
+        template(v-else)
             var-data(
                 :var_param="var_param"
                 :filter='var_filter'
                 :filter_additional_params='var_filter_additional_params'
             )
-        template(v-else-if='isLoading')
-            i.fa-solid.fa-spinner.fa-spin

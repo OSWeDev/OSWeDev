@@ -43,7 +43,7 @@ export default class AnimationController {
             try {
                 return JSON.parse(vo.reponses);
             } catch {
-                ConsoleHandler.getInstance().error("PB getReponses :: vo_id" + vo.id);
+                ConsoleHandler.error("PB getReponses :: vo_id" + vo.id);
             }
         }
 
@@ -55,7 +55,7 @@ export default class AnimationController {
             try {
                 return JSON.parse(vo.messages);
             } catch {
-                ConsoleHandler.getInstance().error("PB getMessagesModule :: vo_id" + vo.id);
+                ConsoleHandler.error("PB getMessagesModule :: vo_id" + vo.id);
             }
         }
 

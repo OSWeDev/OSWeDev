@@ -68,70 +68,70 @@ export default class ModuleSurveyServer extends ModuleServerBase {
 
     public async configure() {
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Fermer' },
             'survey.hide.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Enquête de satisfaction' },
             'survey.title.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Votre avis compte' },
             'survey.header.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Appreciez vous la solution ?' },
             'survey.header_2.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Faites nous un retour !' },
             'survey.header_3.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Votre avis' },
             'survey.rating.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Message' },
             'survey.message.label.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Des remarques ?' },
             'survey.message.remarque.label.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Envoyer' },
             'survey.submit.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Sans opinion' },
             'survey.SURVEY_TYPE.NO_OPINION'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Mauvais' },
             'survey.SURVEY_TYPE.BAD'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Moyen' },
             'survey.SURVEY_TYPE.MEDIOCRE'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Bien' },
             'survey.SURVEY_TYPE.GOOD'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Très bien' },
             'survey.SURVEY_TYPE.VERY_GOOD'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Avis obligatoire' },
             'survey.needs_opinion.___LABEL___'));
 
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Votre retour d\'expérience a bien été transmis. Merci.' },
             'survey.survey.success'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Erreur lors de la transmission. Merci de contacter l\'équipe projet pour les en informer.' },
             'survey.survey.error'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Une erreur est survenue. Veuillez contacter l\'équipe technique par mail pour faire votre commentaire.' },
             'survey.error_sending_feedback.___LABEL___'));
 
 
         //SurveyComponent - Enquête de satisfaction
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Votre avis', 'es-es': 'Su opinión' },
             'survey.btn.title.___LABEL___')
         );
@@ -152,7 +152,7 @@ export default class ModuleSurveyServer extends ModuleServerBase {
         }
 
         let uid = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
-        let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
+        let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
         try {
 
@@ -183,7 +183,7 @@ export default class ModuleSurveyServer extends ModuleServerBase {
 
             return true;
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
             await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'survey.survey.error', true);
             return false;
         }

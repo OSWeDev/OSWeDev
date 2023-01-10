@@ -74,8 +74,8 @@ export default class MultipleVoFieldRefHolderComponent extends VueComponentBase 
             return false;
         }
 
-        let vo_field_ref_field = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
-        let new_field = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id].get_field_by_id(field_id);
+        let vo_field_ref_field = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
+        let new_field = VOsTypesManager.moduleTables_by_voType[api_type_id].get_field_by_id(field_id);
 
         if (this.is_type_boolean(vo_field_ref_field)) {
             return this.is_type_boolean(new_field);

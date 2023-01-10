@@ -110,7 +110,7 @@ export default class ForkMessageController {
             return;
         }
 
-        ConsoleHandler.getInstance().warn("Retry messages... :" + this.stacked_msg_waiting.length + ':');
+        ConsoleHandler.warn("Retry messages... :" + this.stacked_msg_waiting.length + ':');
 
         let stacked_msg_waiting = this.stacked_msg_waiting;
         this.stacked_msg_waiting = [];
@@ -136,14 +136,14 @@ export default class ForkMessageController {
             let log_msg_error = performance.now();
             if (this.last_log_msg_error < (log_msg_error - 60)) {
                 this.last_log_msg_error = log_msg_error;
-                ConsoleHandler.getInstance().error(error);
+                ConsoleHandler.error(error);
             }
 
             /**
              * si le pid du sendHandle est plus actif, ça sert à rien de retenter
              */
             if (msg_wrapper.sendHandle && msg_wrapper.sendHandle.pid && !msg_wrapper.sendHandle.connected) {
-                ConsoleHandler.getInstance().error('ForkMessageController.handle_send_error: sendHandle.pid:' + msg_wrapper.sendHandle.pid + ' is not connected');
+                ConsoleHandler.error('ForkMessageController.handle_send_error: sendHandle.pid:' + msg_wrapper.sendHandle.pid + ' is not connected');
             }
 
             this.stacked_msg_waiting.push(msg_wrapper);
@@ -158,7 +158,7 @@ export default class ForkMessageController {
                      * On doit restart ASAP
                      */
                     ForkServerController.getInstance().forks_reload_asap[msg_wrapper.forked_target.uid] = false;
-                    ConsoleHandler.getInstance().error('handle_send_error:uid:' + msg_wrapper.forked_target.uid + ':On relance le thread le plus vite possible.');
+                    ConsoleHandler.error('handle_send_error:uid:' + msg_wrapper.forked_target.uid + ':On relance le thread le plus vite possible.');
                     ForkServerController.getInstance().forks_availability[msg_wrapper.forked_target.uid] = null;
                     ForkServerController.getInstance().forks_alive[msg_wrapper.forked_target.uid] = false;
                     ForkServerController.getInstance().throttled_reload_unavailable_threads();
@@ -167,7 +167,7 @@ export default class ForkMessageController {
 
                 if (ForkServerController.getInstance().forks_availability[msg_wrapper.forked_target.uid] &&
                     (Dates.add(Dates.now(), -1, TimeSegment.TYPE_MINUTE) > ForkServerController.getInstance().forks_availability[msg_wrapper.forked_target.uid])) {
-                    ConsoleHandler.getInstance().error('handle_send_error:uid:' + msg_wrapper.forked_target.uid + ':On relance le thread, indisponible depuis plus de 60 secondes.');
+                    ConsoleHandler.error('handle_send_error:uid:' + msg_wrapper.forked_target.uid + ':On relance le thread, indisponible depuis plus de 60 secondes.');
                     ForkServerController.getInstance().forks_availability[msg_wrapper.forked_target.uid] = null;
                     ForkServerController.getInstance().forks_alive[msg_wrapper.forked_target.uid] = false;
                     ForkServerController.getInstance().throttled_reload_unavailable_threads();

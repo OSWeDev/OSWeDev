@@ -29,6 +29,6 @@ export default class AccessPolicyCronWorkersHandler {
         planCronWorker.type_recurrence = CronWorkerPlanification.TYPE_RECURRENCE_JOURS;
         planCronWorker.worker_uid = PasswordInvalidationCronWorker.getInstance().worker_uid;
         // Pas besoin d'être dans un contexte synchrone
-        ModuleCronServer.getInstance().planCronWorker(planCronWorker).then().catch((error) => ConsoleHandler.getInstance().error(error));
+        ModuleCronServer.getInstance().planCronWorker(planCronWorker).then().catch((error) => ConsoleHandler.error(error));
     }
 }

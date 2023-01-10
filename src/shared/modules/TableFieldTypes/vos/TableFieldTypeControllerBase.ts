@@ -1,5 +1,5 @@
 import Datatable from '../../DAO/vos/datatable/Datatable';
-import SimpleDatatableField from '../../DAO/vos/datatable/SimpleDatatableField';
+import SimpleDatatableFieldVO from '../../DAO/vos/datatable/SimpleDatatableFieldVO';
 import IDistantVOBase from '../../IDistantVOBase';
 import ModuleTableField from '../../ModuleTableField';
 import ITableFieldTypeCreateUpdateComponent from '../interfaces/ITableFieldTypeCreateUpdateComponent';
@@ -21,10 +21,10 @@ export default abstract class TableFieldTypeControllerBase {
     public abstract getPGSqlFieldType(): string;
     public abstract defaultValidator(data: any, field: ModuleTableField<any>): string;
 
-    public abstract dataToIHM<T extends IDistantVOBase, U extends IDistantVOBase>(vo: T, field: SimpleDatatableField<any, any>, res: U, datatable: Datatable<any>, isUpdate: boolean);
-    public abstract IHMToData<T extends IDistantVOBase, U extends IDistantVOBase>(vo: T, field: SimpleDatatableField<any, any>, res: U, datatable: Datatable<any>, isUpdate: boolean);
+    public abstract dataToIHM<T extends IDistantVOBase, U extends IDistantVOBase>(vo: T, field: SimpleDatatableFieldVO<any, any>, res: U, datatable: Datatable<any>, isUpdate: boolean);
+    public abstract IHMToData<T extends IDistantVOBase, U extends IDistantVOBase>(vo: T, field: SimpleDatatableFieldVO<any, any>, res: U, datatable: Datatable<any>, isUpdate: boolean);
 
-    public abstract getIHMToExportString<T extends IDistantVOBase>(vo: T, field: SimpleDatatableField<any, any>, datatable: Datatable<any>): string;
+    public abstract getIHMToExportString<T extends IDistantVOBase>(vo: T, field: SimpleDatatableFieldVO<any, any>, datatable: Datatable<any>): string;
 
     public abstract defaultDataToReadIHM<T extends IDistantVOBase>(field_value: any, moduleTableField: ModuleTableField<any>, vo: T): any;
     public abstract defaultReadIHMToData<T extends IDistantVOBase>(value: any, moduleTableField: ModuleTableField<any>, vo: T): any;

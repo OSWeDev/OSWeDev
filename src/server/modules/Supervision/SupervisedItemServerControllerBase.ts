@@ -25,7 +25,7 @@ export default abstract class SupervisedItemServerControllerBase<T extends ISupe
                 await this.work_one(supervised_pdv);
             }
         } catch (e) {
-            ConsoleHandler.getInstance().error(e);
+            ConsoleHandler.error(e);
         }
 
         return true;
@@ -44,7 +44,7 @@ export default abstract class SupervisedItemServerControllerBase<T extends ISupe
                 await this.work_one(supervised_pdv);
             }
         } catch (e) {
-            ConsoleHandler.getInstance().error(e);
+            ConsoleHandler.error(e);
         }
 
         return true;

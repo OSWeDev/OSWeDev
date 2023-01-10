@@ -95,135 +95,135 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
 
     public async configure() {
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Un incident technique - un comportement inhabituel de la solution - , qui induit une indisponibilité partielle ou totale du service' },
             'feedback_handler.type.incident.tooltip.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Une erreur logicielle reproductible par rapport au fonctionnement attendu au sein de l\'application' },
             'feedback_handler.type.bug.tooltip.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Une demande d\'évolution ou une suggestion pour améliorer la solution et répondre mieux à votre besoin' },
             'feedback_handler.type.request.tooltip.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Tout autre message adressé aux équipes techniques, relatif à une page / un fonctionnement de l\'application' },
             'feedback_handler.type.not_set.tooltip.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Fermer' },
             'feedback_handler.hide.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Nécessite au moins une capture écran.' },
             'FeedbackHandlerComponent.needs_at_least_one_screenshot.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Message ou titre obligatoire.' },
             'FeedbackHandlerComponent.needs_message_or_title.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Message et titre obligatoires.' },
             'FeedbackHandlerComponent.needs_message_and_title.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Utilisateur et email obligatoires.' },
             'FeedbackHandlerComponent.needs_user_and_email.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Merci de renseigner un téléphone pour être rappelé.' },
             'FeedbackHandlerComponent.needs_phone.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Je souhaite être rappelé' },
             'feedback_handler.wish_be_called.on.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Je souhaite être rappelé' },
             'feedback_handler.wish_be_called.off.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Fichiers' },
             'feedback_handler.attachments.label.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Captures écran' },
             'feedback_handler.captures.label.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Vider' },
             'feedback_handler.clear.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'E-mail' },
             'feedback_handler.email.label.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Faites-nous part de vos suggestions, informez-nous d\'un incident ou d\'un bug, ou laissez-nous simplement un message' },
             'feedback_handler.header.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Message' },
             'feedback_handler.message.label.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Téléphone' },
             'feedback_handler.phone.label.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Envoyer' },
             'feedback_handler.submit.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Titre' },
             'feedback_handler.title.label.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Bug' },
             'feedback_handler.type.bug.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Incident' },
             'feedback_handler.type.incident.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Type de message' },
             'feedback_handler.type.label.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Autre' },
             'feedback_handler.type.not_set.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Demande d\'évolution ou proposition d\'amélioration' },
             'feedback_handler.type.request.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Utilisateur' },
             'feedback_handler.user.label.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Demande d\'évolution' },
             'feedback.FEEDBACK_TYPE.ENHANCEMENT_REQUEST'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Bug' },
             'feedback.FEEDBACK_TYPE.BUG'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Incident technique' },
             'feedback.FEEDBACK_TYPE.INCIDENT'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Autre' },
             'feedback.FEEDBACK_TYPE.NOT_SET'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Votre retour d\'expérience a bien été transmis. Merci.' },
             'feedback.feedback.success'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Erreur lors de la transmission. Merci de contacter l\'équipe projet pour les en informer.' },
             'feedback.feedback.error'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': '[FEEDBACK:%%VAR%%FEEDBACK_ID%%] Confirmation de réception de votre retour d\'expérience' },
             'mails.feedback.confirmation.subject'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Nous avons bien reçu votre retour d\'expérience intitulé "%%VAR%%FEEDBACK_TITLE%%" et allons le traiter rapidement. Nous vous tiendrons informé de son évolution. A des fins de suivi, votre retour d\'expérience porte le numéro %%VAR%%FEEDBACK_ID%%. Toute l\'équipe vous remercie de faire progresser notre solution.' },
             'mails.feedback.confirmation.html'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Une erreur est survenue. Veuillez contacter l\'équipe technique par mail pour faire votre commentaire.' },
             'error_sending_feedback.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Nous contacter', 'es-es': 'Contáctenos' },
             'feedback_handler.btn.title.___LABEL___')
         );
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Horaires de préférence', 'es-es': 'Horas preferidas' },
             'feedback_handler.preferred_times_called.label.___LABEL___')
         );
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Je souhaite être rappelé' },
             'feedback_handler.wish_be_called.label.___LABEL___')
         );
 
         //SurveyComponent - Enquête de satisfaction
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Votre avis', 'es-es': 'Su opinión' },
             'survey.btn.title.___LABEL___')
         );
@@ -244,7 +244,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         }
 
         let uid = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
-        let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
+        let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
         try {
 
@@ -334,7 +334,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             await ModuleFileServer.getInstance().makeSureThisFolderExists('./files/feedbacks/');
             await ModuleFileServer.getInstance().writeFile('.' + feedback_file_patch, trello_message);
 
-            let envParam: EnvParam = ConfigurationService.getInstance().node_configuration;
+            let envParam: EnvParam = ConfigurationService.node_configuration;
             let file_url = envParam.BASE_URL + feedback_file_patch;
 
             trello_message = ((trello_message.length > 15000) ? trello_message.substr(0, 15000) + ' ... [truncated 15000 cars]' : trello_message);
@@ -360,7 +360,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
 
             return true;
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
             await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'feedback.feedback.error', true);
             return false;
         }
@@ -399,7 +399,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
                     break;
             }
 
-            let BASE_URL: string = ConfigurationService.getInstance().node_configuration.BASE_URL;
+            let BASE_URL: string = ConfigurationService.node_configuration.BASE_URL;
             let url = FileHandler.getInstance().get_full_url(BASE_URL, api_log.url);
             apis_log_message += '1. [' + type + ' - ' + api_log.url + '](' + url + ')';
         }
@@ -435,7 +435,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     private async routes_to_string(feedback: FeedbackVO): Promise<string> {
         let FEEDBACK_TRELLO_ROUTE_LIMIT: string = await ModuleParams.getInstance().getParamValue(ModuleFeedbackServer.FEEDBACK_TRELLO_ROUTE_LIMIT_PARAM_NAME);
         let ROUTE_LIMIT: number = FEEDBACK_TRELLO_ROUTE_LIMIT ? parseInt(FEEDBACK_TRELLO_ROUTE_LIMIT.toString()) : 100;
-        let envParam: EnvParam = ConfigurationService.getInstance().node_configuration;
+        let envParam: EnvParam = ConfigurationService.node_configuration;
 
         let routes_message: string = '';
         ROUTE_LIMIT = ROUTE_LIMIT - feedback.routes_fullpaths.length;
@@ -462,7 +462,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     }
 
     private async user_infos_to_string(feedback: FeedbackVO): Promise<string> {
-        let envParam: EnvParam = ConfigurationService.getInstance().node_configuration;
+        let envParam: EnvParam = ConfigurationService.node_configuration;
 
         let res: string = ModuleFeedbackServer.TRELLO_SECTION_SEPARATOR;
         res += '##USER INFOS' + ModuleFeedbackServer.TRELLO_LINE_SEPARATOR;
@@ -494,7 +494,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     }
 
     private async feedback_infos_to_string(feedback: FeedbackVO): Promise<string> {
-        let envParam: EnvParam = ConfigurationService.getInstance().node_configuration;
+        let envParam: EnvParam = ConfigurationService.node_configuration;
 
         let res: string = ModuleFeedbackServer.TRELLO_SECTION_SEPARATOR;
         res += '##FEEDBACK INFOS' + ModuleFeedbackServer.TRELLO_LINE_SEPARATOR;
@@ -526,7 +526,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     }
 
     private async attachments_to_string(feedback: FeedbackVO): Promise<string> {
-        let envParam: EnvParam = ConfigurationService.getInstance().node_configuration;
+        let envParam: EnvParam = ConfigurationService.node_configuration;
 
         if (!feedback.file_attachment_1_id) {
             return '';
@@ -566,7 +566,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     }
 
     private async screen_captures_to_string(feedback: FeedbackVO): Promise<string> {
-        let envParam: EnvParam = ConfigurationService.getInstance().node_configuration;
+        let envParam: EnvParam = ConfigurationService.node_configuration;
 
         if (!feedback.screen_capture_1_id) {
             return '';

@@ -1,6 +1,6 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import SimpleDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import NumRange from '../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../../shared/modules/DataRender/vos/NumSegment';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
@@ -26,7 +26,7 @@ export default class NumRangeInputComponent extends VueComponentBase {
     private value: NumRange;
 
     @Prop({ default: null })
-    private field: SimpleDatatableField<any, any>;
+    private field: SimpleDatatableFieldVO<any, any>;
 
     @Prop({ default: null })
     private vo: IDistantVOBase;
@@ -73,10 +73,10 @@ export default class NumRangeInputComponent extends VueComponentBase {
 
         let new_value = null;
         if (!this.is_single && !!this.numrange_start && !!this.numrange_start.length && !!this.numrange_end && !!this.numrange_end.length) {
-            new_value = RangeHandler.getInstance().createNew(NumRange.RANGE_TYPE, Number.parseInt(this.numrange_start), Number.parseInt(this.numrange_end), true, true, NumSegment.TYPE_INT);
+            new_value = RangeHandler.createNew(NumRange.RANGE_TYPE, Number.parseInt(this.numrange_start), Number.parseInt(this.numrange_end), true, true, NumSegment.TYPE_INT);
         } else if (this.is_single && (!!this.numrange_start && !!this.numrange_start.length && (!this.numrange_end || !this.numrange_end.length))) {
             let num: number = Number.parseInt(this.numrange_start);
-            new_value = RangeHandler.getInstance().create_single_elt_NumRange(num, NumSegment.TYPE_INT);
+            new_value = RangeHandler.create_single_elt_NumRange(num, NumSegment.TYPE_INT);
         } else {
             new_value = null;
         }
@@ -86,7 +86,7 @@ export default class NumRangeInputComponent extends VueComponentBase {
          */
         let old_value = this.vo ? this.vo[this.field.datatable_field_uid] : null;
         if ((old_value == new_value) ||
-            (RangeHandler.getInstance().is_same(old_value, new_value))) {
+            (RangeHandler.is_same(old_value, new_value))) {
             return;
         }
         this.new_value = new_value;

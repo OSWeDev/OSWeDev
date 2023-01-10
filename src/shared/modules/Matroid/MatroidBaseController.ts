@@ -40,7 +40,7 @@ export default class MatroidBaseController {
                 return null;
             }
 
-            cardinal += RangeHandler.getInstance().getCardinal(matroid_base.ranges[i]);
+            cardinal += RangeHandler.getCardinal(matroid_base.ranges[i]);
         }
         return cardinal;
     }
@@ -61,7 +61,7 @@ export default class MatroidBaseController {
         for (let i in a.ranges) {
             let range_a = a.ranges[i];
 
-            if (RangeHandler.getInstance().range_intersects_any_range(range_a, b.ranges)) {
+            if (RangeHandler.range_intersects_any_range(range_a, b.ranges)) {
                 return true;
             }
         }
@@ -94,7 +94,7 @@ export default class MatroidBaseController {
             return new MatroidBaseCutResult(null, matroidbase_to_cut);
         }
 
-        let cut_result: RangesCutResult<IRange> = RangeHandler.getInstance().cuts_ranges(matroidbase_cutter.ranges, matroidbase_to_cut.ranges);
+        let cut_result: RangesCutResult<IRange> = RangeHandler.cuts_ranges(matroidbase_cutter.ranges, matroidbase_to_cut.ranges);
 
         let res_chopped = (cut_result && cut_result.chopped_items && cut_result.chopped_items.length) ?
             MatroidBase.createNew(

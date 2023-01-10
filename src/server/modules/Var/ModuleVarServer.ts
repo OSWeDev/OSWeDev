@@ -4,7 +4,6 @@ import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolic
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
-import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
@@ -36,6 +35,7 @@ import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
@@ -46,7 +46,6 @@ import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import ContextQueryServerController from '../ContextFilter/ContextQueryServerController';
 import ModuleContextFilterServer from '../ContextFilter/ModuleContextFilterServer';
-import ParameterizedQueryWrapper from '../ContextFilter/vos/ParameterizedQueryWrapper';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
 import DAOPostDeleteTriggerHook from '../DAO/triggers/DAOPostDeleteTriggerHook';
@@ -62,6 +61,7 @@ import PushDataServerController from '../PushData/PushDataServerController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import DataSourcesController from './datasource/DataSourcesController';
+import GetVarParamFromContextFiltersParam from './GetVarParamFromContextFiltersParam';
 import NotifVardatasParam from './notifs/NotifVardatasParam';
 import ThrottleGetVarDatasByIndex from './throttle_params/ThrottleGetVarDatasByIndex';
 import VarCronWorkersHandler from './VarCronWorkersHandler';
@@ -81,6 +81,7 @@ export default class ModuleVarServer extends ModuleServerBase {
     public static TASK_NAME_delete_varcacheconf_from_cache = 'Var.delete_varcacheconf_from_cache';
     public static TASK_NAME_update_varcacheconf_from_cache = 'Var.update_varcacheconf_from_cache';
     public static TASK_NAME_exec_in_computation_hole = 'Var.exec_in_computation_hole';
+    public static TASK_NAME_force_delete_all_cache_except_imported_data = 'Var.force_delete_all_cache_except_imported_data';
 
     public static TASK_NAME_wait_for_computation_hole = 'Var.wait_for_computation_hole';
     public static TASK_NAME_invalidate_imports_for_u = 'VarsDatasProxy.invalidate_imports_for_u';
@@ -108,6 +109,7 @@ export default class ModuleVarServer extends ModuleServerBase {
     private throttled_get_var_data_by_index_params: ThrottleGetVarDatasByIndex[] = [];
 
     private throttle_get_var_data_by_index: () => void = ThrottleHelper.getInstance().declare_throttle_without_args(this.throttled_get_var_data_by_index.bind(this), 1, { leading: false, trailing: true });
+    private throttle_getVarParamFromContextFilters = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(this.throttled_getVarParamsFromContextFilters.bind(this), 10, { leading: false, trailing: true });
 
     private limit_nb_ts_ranges_on_param_by_context_filter: number = null;
     private limit_nb_ts_ranges_on_param_by_context_filter_last_update: number = null;
@@ -122,10 +124,10 @@ export default class ModuleVarServer extends ModuleServerBase {
         VarsServerCallBackSubsController.getInstance();
         ModuleBGThreadServer.getInstance().registerBGThread(VarsdatasComputerBGThread.getInstance());
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Valeur' }, 'var.desc_mode.var_data.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Description' }, 'var.desc_mode.var_description.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Paramètres' }, 'var.desc_mode.var_params.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Dépendances' }, 'var.desc_mode.var_deps.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Valeur' }, 'var.desc_mode.var_data.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Description' }, 'var.desc_mode.var_description.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Paramètres' }, 'var.desc_mode.var_params.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Dépendances' }, 'var.desc_mode.var_deps.___LABEL___'));
 
         let postCTrigger: DAOPostCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
         let postUTrigger: DAOPostUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
@@ -142,215 +144,219 @@ export default class ModuleVarServer extends ModuleServerBase {
         postUTrigger.registerHandler(VarConfVO.API_TYPE_ID, this, this.onUVarConf);
         postDTrigger.registerHandler(VarConfVO.API_TYPE_ID, this, this.onPostDVarConf);
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Calculée'
         }, 'var_data.value_type.computed'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Importée'
         }, 'var_data.value_type.import'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'TOUT supprimer ? Même les imports ?'
         }, 'vars_datas_explorer_actions.delete_cache_and_import_intersection.body.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'ATTENTION'
         }, 'vars_datas_explorer_actions.delete_cache_and_import_intersection.title.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Suppression en cours...'
         }, 'vars_datas_explorer_actions.delete_cache_and_import_intersection.start.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Suppression terminée'
         }, 'vars_datas_explorer_actions.delete_cache_and_import_intersection.ok.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'A tester'
         }, 'slow_var.type.needs_test'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Refusée'
         }, 'slow_var.type.denied'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'En cours de test'
         }, 'slow_var.type.tesing'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Datasources'
         }, 'var.desc_mode.var_datasources.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Vider l\'arbre'
         }, 'var_desc.clearDag.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Actualiser la HeatMap des deps'
         }, 'var_desc.refreshDependenciesHeatmap.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': '<b>Variable</b><hr><ul>'
         }, 'VarDataRefComponent.var_data_value_tooltip_prefix.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': '<li>Dernière mise à jour le <b>{formatted_date}</b><br><i>{value}</i></li>'
         }, 'VarDataRefComponent.var_data_value_tooltip.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': '<li>Import ou saisie le <b>{formatted_date}</b><br><i>{value}</i></li>'
         }, 'VarDataRefComponent.var_data_value_import_tooltip.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Index + Entrée'
+        }, 'vars_datas_explorer_visualization.param_from_index.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Index + Entrée - Validez à vide pour réinitialiser.'
         }, 'vars_datas_explorer_visualization.param_from_index.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Index de la variable sélectionnée'
         }, 'vars_datas_explorer_visualization.chosen_index.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': '</ul>'
         }, 'VarDataRefComponent.var_data_value_tooltip_suffix.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'SlowVars'
         }, 'menu.menuelements.admin.SlowVarVO.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'En cours de test'
         }, 'slow_var.type.testing'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Matroids calculés'
         }, 'var.desc_mode.computed_datas_matroids.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Matroids chargés'
         }, 'var.desc_mode.loaded_datas_matroids.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Valeur totale des matroids chargés'
         }, 'var.desc_mode.loaded_datas_matroids_sum_value.___LABEL___'));
 
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Tout en cache/pas de chunks'
         }, 'var_cache_conf.cache_strategy.cache_all_never_load_chunks'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Rien en cache'
         }, 'var_cache_conf.cache_strategy.cache_none'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Pixel'
         }, 'var_cache_conf.cache_strategy.pixel'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Variable invalidée, calcul en cours...'
         }, 'var.desc_mode.update_var_data.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Invalidation impossible sur un import'
         }, 'var.desc_mode.update_var_data.not_allowed_on_imports.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Indicateurs - Objectif'
         }, 'fields.labels.ref.module_psa_primes_indicateur.___LABEL____var_objectif_id'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Indicateurs - Réalisé'
         }, 'fields.labels.ref.module_psa_primes_indicateur.___LABEL____var_realise_id'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Performance'
         }, 'fields.labels.ref.module_var_var_perf.___LABEL____var_id'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Variable lente'
         }, 'fields.labels.ref.module_var_slow_var.___LABEL____var_id'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Var conf cache'
         }, 'menu.menuelements.admin.VarCacheConfVO.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Nombre de deps'
         }, 'var.desc_mode.dependencies_number.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Deps en % de l\'arbre'
         }, 'var.desc_mode.dependencies_tree_prct.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': '% de vars enregistrées'
         }, 'var_desc_registrations.vardag_registered_prct.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': '% de vars enregistrées / var_id'
         }, 'var_desc_registrations.vardag_registered_prct_by_var_id.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Taille de l\'arbre'
         }, 'var_desc_registrations.vardag_size.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Données importées/aggrégées'
         }, 'var_desc.aggregated_var_datas.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Cache des modifications de VO vidé. Prêt pour le redémarrage'
         }, 'force_empty_vars_datas_vo_update_cache.done'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Import ?'
         }, 'var_desc.var_data_is_import.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Date màj : {last_update}'
         }, 'var_desc.var_data_last_update.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Explication du calcul'
         }, 'var_desc.explaination.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Markers'
         }, 'var.desc_mode.var_markers.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Actualiser le graph'
         }, 'var_desc.create_graph.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'StepByStep'
         }, 'var_desc.pause.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Limité à 10 deps affichées. Cliquer pour les voir toutes...'
         }, 'var_desc_explain_dep.limit_10.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Variable'
         }, 'var_desc.var_controller_label.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Valeur non formatée'
         }, 'var_desc.var_data_label.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Source de données'
         }, 'var_desc.var_ds_label.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Supprimer le cache par intersection'
         }, 'vars_datas_explorer_actions.delete_cache_intersection.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Afficher les données exactes'
         }, 'vars_datas_explorer_actions.get_exact.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Calculer ce paramètre'
         }, 'vars_datas_explorer_actions.show_exact.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Afficher les données incluses'
         }, 'vars_datas_explorer_actions.get_included.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Afficher les données intersectées'
         }, 'vars_datas_explorer_actions.get_intersection.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Invalider le cache par intersection'
         }, 'vars_datas_explorer_actions.invalidate_cache_intersection.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Invalider l\'arbre en cache par intersection'
         }, 'vars_datas_explorer_actions.invalidate_cache_intersection_and_depstree.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Supprimer le cache et les imports par intersection'
         }, 'vars_datas_explorer_actions.delete_cache_and_import_intersection.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Variables'
         }, 'vars_datas_explorer_filters.vars_confs.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Performances'
         }, 'menu.menuelements.admin.VarPerfVO.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Afficher'
         }, 'var_desc_explain.show_help_tooltip.visible.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Masquer'
         }, 'var_desc_explain.show_help_tooltip.hidden.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Explication synthétique publique'
         }, 'var_desc.public.___LABEL___'));
 
@@ -361,6 +367,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_delete_varcacheconf_from_cache, this.delete_varcacheconf_from_cache.bind(this));
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_update_varcacheconf_from_cache, this.update_varcacheconf_from_cache.bind(this));
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_exec_in_computation_hole, this.exec_in_computation_hole.bind(this));
+        ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_force_delete_all_cache_except_imported_data, this.force_delete_all_cache_except_imported_data.bind(this));
 
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_invalidate_imports_for_u, this.invalidate_imports_for_u.bind(this));
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_invalidate_imports_for_c, this.invalidate_imports_for_c.bind(this));
@@ -417,7 +424,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         try {
             VarsDatasVoUpdateHandler.getInstance().register_vo_cud([vo]);
         } catch (error) {
-            ConsoleHandler.getInstance().error('invalidate_var_cache_from_vo:type:' + vo._type + ':id:' + vo.id + ':' + vo + ':' + error);
+            ConsoleHandler.error('invalidate_var_cache_from_vo:type:' + vo._type + ':id:' + vo.id + ':' + vo + ':' + error);
         }
     }
 
@@ -432,7 +439,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         try {
             VarsDatasVoUpdateHandler.getInstance().register_vo_cud([vo_update_handler]);
         } catch (error) {
-            ConsoleHandler.getInstance().error('invalidate_var_cache_from_vo:type:' + vo_update_handler.post_update_vo._type + ':id:' + vo_update_handler.post_update_vo.id + ':' + vo_update_handler.post_update_vo + ':' + error);
+            ConsoleHandler.error('invalidate_var_cache_from_vo:type:' + vo_update_handler.post_update_vo._type + ':id:' + vo_update_handler.post_update_vo.id + ':' + vo_update_handler.post_update_vo + ':' + error);
         }
     }
 
@@ -536,7 +543,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             let vo = vos[i];
 
             if (!vo.check_param_is_valid(vo._type)) {
-                ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+                ConsoleHandler.error('Les champs du matroid ne correspondent pas à son typage');
                 continue;
             }
 
@@ -560,7 +567,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             let vo = vos[i];
 
             if (!vo.check_param_is_valid(vo._type)) {
-                ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+                ConsoleHandler.error('Les champs du matroid ne correspondent pas à son typage');
                 continue;
             }
 
@@ -582,7 +589,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             let vo = vos[i];
 
             if (!vo.check_param_is_valid(vo._type)) {
-                ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+                ConsoleHandler.error('Les champs du matroid ne correspondent pas à son typage');
                 continue;
             }
 
@@ -601,7 +608,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         throw new Error('Not implemented');
         // // On peut pas supprimer comme ça directement ça enfreint les règles de thread, de cache des vars, ....
         // for (let api_type_id in VarsServerController.getInstance().varcacheconf_by_api_type_ids) {
-        //     let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+        //     let moduletable = VOsTypesManager.moduleTables_by_voType[api_type_id];
 
         //     await ModuleDAOServer.getInstance().query('DELETE from ' + moduletable.full_name + ' where value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';');
         // }
@@ -618,7 +625,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             let vo = vos[i];
 
             if (!vo.check_param_is_valid(vo._type)) {
-                ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+                ConsoleHandler.error('Les champs du matroid ne correspondent pas à son typage');
                 continue;
             }
 
@@ -637,18 +644,18 @@ export default class ModuleVarServer extends ModuleServerBase {
         //     let vo = vos[i];
 
         //     if (!vo.check_param_is_valid(vo._type)) {
-        //         ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+        //         ConsoleHandler.error('Les champs du matroid ne correspondent pas à son typage');
         //         continue;
         //     }
 
-        //     let moduletable_vardata = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
+        //     let moduletable_vardata = VOsTypesManager.moduleTables_by_voType[vo._type];
         //     let query_: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroidIntersection(vo._type, vo, null);
 
         //     if (moduletable_vardata.is_segmented) {
 
         //         let ranges: NumRange[] = ModuleDAOServer.getInstance().get_all_ranges_from_segmented_table(moduletable_vardata);
 
-        //         await RangeHandler.getInstance().foreach_ranges(ranges, async (segment: number) => {
+        //         await RangeHandler.foreach_ranges(ranges, async (segment: number) => {
         //             let request: string = 'delete from ' + moduletable_vardata.get_segmented_full_name(segment) + ' t where ' +
         //                 query_ + ' and value_type=' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';';
         //             await ModuleServiceBase.getInstance().db.query(request);
@@ -673,7 +680,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             let vo = vos[i];
 
             if (!vo.check_param_is_valid(vo._type)) {
-                ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+                ConsoleHandler.error('Les champs du matroid ne correspondent pas à son typage');
                 continue;
             }
 
@@ -692,18 +699,18 @@ export default class ModuleVarServer extends ModuleServerBase {
         //     let vo = vos[i];
 
         //     if (!vo.check_param_is_valid(vo._type)) {
-        //         ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+        //         ConsoleHandler.error('Les champs du matroid ne correspondent pas à son typage');
         //         continue;
         //     }
 
-        //     let moduletable_vardata = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
+        //     let moduletable_vardata = VOsTypesManager.moduleTables_by_voType[vo._type];
         //     let query_: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroidIntersection(vo._type, vo, null);
 
         //     if (moduletable_vardata.is_segmented) {
 
         //         let ranges: NumRange[] = ModuleDAOServer.getInstance().get_all_ranges_from_segmented_table(moduletable_vardata);
 
-        //         await RangeHandler.getInstance().foreach_ranges(ranges, async (segment: number) => {
+        //         await RangeHandler.foreach_ranges(ranges, async (segment: number) => {
         //             let request: string = 'delete from ' + moduletable_vardata.get_segmented_full_name(segment) + ' t where ' +
         //                 query_ + ';';
         //             await ModuleServiceBase.getInstance().db.query(request);
@@ -847,18 +854,49 @@ export default class ModuleVarServer extends ModuleServerBase {
                 ||
                 (await VarsDatasProxy.getInstance().has_vardata_waiting_for_computation())
             ) {
-                await ThreadHandler.getInstance().sleep(1000);
+                await ThreadHandler.sleep(1000);
                 let actual_time = Dates.now();
 
                 if (actual_time > (start_time + 60)) {
                     start_time = actual_time;
-                    ConsoleHandler.getInstance().warn('ModuleVarServer:wait_for_computation_hole:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
+                    ConsoleHandler.warn('ModuleVarServer:wait_for_computation_hole:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
                 }
             }
             resolve(true);
         });
     }
 
+
+    /**
+     * Objectif : vider tout le cache des vars, y compris les pixels qu'on supprime théoriquement pas
+     */
+    public async force_delete_all_cache_except_imported_data(): Promise<void> {
+
+        return new Promise(async (resolve, reject) => {
+            if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+                reject,
+                VarsdatasComputerBGThread.getInstance().name,
+                ModuleVarServer.TASK_NAME_force_delete_all_cache_except_imported_data,
+                resolve)) {
+                return;
+            }
+
+            let cb = async () => {
+
+                for (let api_type_id in VarsServerController.getInstance().varcacheconf_by_api_type_ids) {
+
+                    let moduletable = VOsTypesManager.moduleTables_by_voType[api_type_id];
+                    await ModuleDAOServer.getInstance().query('DELETE from ' + moduletable.full_name + ' where value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';');
+                }
+
+                VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes = {};
+
+                resolve();
+            };
+
+            await this.exec_in_computation_hole(cb, 100, 600000);
+        });
+    }
 
     /**
      * Objectif : lancer un comportement dans un trou forcé d'exec des vars
@@ -869,7 +907,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         return new Promise(async (resolve, reject) => {
 
-            if (!ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+            if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
                 reject,
                 VarsdatasComputerBGThread.getInstance().name,
                 ModuleVarServer.TASK_NAME_exec_in_computation_hole,
@@ -892,12 +930,12 @@ export default class ModuleVarServer extends ModuleServerBase {
                 ||
                 (await VarsDatasProxy.getInstance().has_vardata_waiting_for_computation())
             ) {
-                await ThreadHandler.getInstance().sleep(interval_sleep_ms);
+                await ThreadHandler.sleep(interval_sleep_ms);
                 let actual_time = Dates.now();
 
                 if (actual_time > (start_time + (timeout_ms / 1000))) {
                     start_time = actual_time;
-                    ConsoleHandler.getInstance().warn('ModuleVarServer:exec_in_computation_hole:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
+                    ConsoleHandler.warn('ModuleVarServer:exec_in_computation_hole:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
                 }
             }
 
@@ -906,7 +944,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             try {
                 await cb();
             } catch (err) {
-                ConsoleHandler.getInstance().error("ModuleVarServer:exec_in_computation_hole:cb:" + err);
+                ConsoleHandler.error("ModuleVarServer:exec_in_computation_hole:cb:" + err);
             }
 
             VarsdatasComputerBGThread.getInstance().semaphore = false;
@@ -1017,16 +1055,16 @@ export default class ModuleVarServer extends ModuleServerBase {
          */
         params = this.filter_null_fields_params(params);
 
-        let uid = StackContext.getInstance().get('UID');
-        let client_tab_id = StackContext.getInstance().get('CLIENT_TAB_ID');
+        let uid = StackContext.get('UID');
+        let client_tab_id = StackContext.get('CLIENT_TAB_ID');
 
         VarsTabsSubsController.getInstance().register_sub(uid, client_tab_id, params ? params.map((param) => param.index) : []);
 
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+        if (ConfigurationService.node_configuration.DEBUG_VARS) {
             for (let i in params) {
                 let param = params[i];
 
-                ConsoleHandler.getInstance().log('update_params_registration:' + param.index + ':UID:' + uid + ':CLIENT_TAB_ID:' + client_tab_id);
+                ConsoleHandler.log('update_params_registration:' + param.index + ':UID:' + uid + ':CLIENT_TAB_ID:' + client_tab_id);
             }
         }
     }
@@ -1056,7 +1094,7 @@ export default class ModuleVarServer extends ModuleServerBase {
          */
         params = params.filter((param) => {
             if (!MatroidController.getInstance().check_bases_not_max_ranges(param)) {
-                ConsoleHandler.getInstance().error('VarDAGNode.getInstance:!check_bases_not_max_ranges:' + param.index);
+                ConsoleHandler.error('VarDAGNode.getInstance:!check_bases_not_max_ranges:' + param.index);
                 return false;
             }
             return true;
@@ -1066,16 +1104,16 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
-        let uid = StackContext.getInstance().get('UID');
-        let client_tab_id = StackContext.getInstance().get('CLIENT_TAB_ID');
+        let uid = StackContext.get('UID');
+        let client_tab_id = StackContext.get('CLIENT_TAB_ID');
 
         VarsTabsSubsController.getInstance().register_sub(uid, client_tab_id, params ? params.map((param) => param.index) : []);
 
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+        if (ConfigurationService.node_configuration.DEBUG_VARS) {
             for (let i in params) {
                 let param = params[i];
 
-                ConsoleHandler.getInstance().log('register_params:' + param.index + ':UID:' + uid + ':CLIENT_TAB_ID:' + client_tab_id);
+                ConsoleHandler.log('register_params:' + param.index + ':UID:' + uid + ':CLIENT_TAB_ID:' + client_tab_id);
             }
         }
 
@@ -1093,11 +1131,11 @@ export default class ModuleVarServer extends ModuleServerBase {
 
             await PushDataServerController.getInstance().notifyVarsDatas(uid, client_tab_id, vars_to_notif);
 
-            if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+            if (ConfigurationService.node_configuration.DEBUG_VARS) {
                 for (let i in notifyable_vars) {
                     let param = notifyable_vars[i];
 
-                    ConsoleHandler.getInstance().log('register_param:NOTIFIED:' + param.index + ':UID:' + uid + ':CLIENT_TAB_ID:' + client_tab_id);
+                    ConsoleHandler.log('register_param:NOTIFIED:' + param.index + ':UID:' + uid + ':CLIENT_TAB_ID:' + client_tab_id);
                 }
             }
         }
@@ -1125,7 +1163,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 if ((!param[matroid_field.field_id]) || (!(param[matroid_field.field_id] as IRange[]).length) ||
                     ((param[matroid_field.field_id] as IRange[]).indexOf(null) >= 0)) {
                     filter_ = true;
-                    ConsoleHandler.getInstance().error("Registered wrong Matroid:" + JSON.stringify(param) + ':refused');
+                    ConsoleHandler.error("Registered wrong Matroid:" + JSON.stringify(param) + ':refused');
                     break;
                 }
             }
@@ -1151,15 +1189,15 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
-        let uid = StackContext.getInstance().get('UID');
-        let client_tab_id = StackContext.getInstance().get('CLIENT_TAB_ID');
+        let uid = StackContext.get('UID');
+        let client_tab_id = StackContext.get('CLIENT_TAB_ID');
         VarsTabsSubsController.getInstance().unregister_sub(uid, client_tab_id, params.map((param) => param.check_param_is_valid(param._type) ? param.index : null));
 
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
+        if (ConfigurationService.node_configuration.DEBUG_VARS) {
             for (let i in params) {
                 let param = params[i];
 
-                ConsoleHandler.getInstance().log('unregister_param:' + param.index + ':UID:' + uid + ':CLIENT_TAB_ID:' + client_tab_id);
+                ConsoleHandler.log('unregister_param:' + param.index + ':UID:' + uid + ':CLIENT_TAB_ID:' + client_tab_id);
             }
         }
     }
@@ -1197,7 +1235,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         if (!param.check_param_is_valid(param._type)) {
-            ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+            ConsoleHandler.error('Les champs du matroid ne correspondent pas à son typage');
             return null;
         }
 
@@ -1208,17 +1246,19 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         let dag: VarDAG = new VarDAG();
-        let varDAGNode: VarDAGNode = VarDAGNode.getInstance(dag, param, VarsComputeController, false);
+        let varDAGNode: VarDAGNode = await VarDAGNode.getInstance(dag, param, VarsComputeController, false);
 
         if (!varDAGNode) {
             return null;
         }
 
         let predeps = var_controller.getDataSourcesPredepsDependencies();
-        await DataSourcesController.getInstance().load_node_datas(predeps, varDAGNode);
+        if (predeps && predeps.length) {
+            await DataSourcesController.getInstance().load_node_datas(predeps, varDAGNode);
+        }
 
         // TEMP DEBUG JFE :
-        // ConsoleHandler.getInstance().log("cpt_for_datasources :: " + JSON.stringify(this.cpt_for_datasources));
+        // ConsoleHandler.log("cpt_for_datasources :: " + JSON.stringify(this.cpt_for_datasources));
 
         return var_controller.getParamDependencies(varDAGNode);
     }
@@ -1230,7 +1270,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             [param.index]: param
         };
 
-        let node = VarDAGNode.getInstance(var_dag, param, VarsComputeController, false);
+        let node = await VarDAGNode.getInstance(var_dag, param, VarsComputeController, false);
 
         if (!node) {
             return null;
@@ -1261,14 +1301,14 @@ export default class ModuleVarServer extends ModuleServerBase {
             for (let i in varconf.pixel_fields) {
                 let pixel_field = varconf.pixel_fields[i];
 
-                if (RangeHandler.getInstance().getCardinalFromArray(param[pixel_field.pixel_param_field_id]) != 1) {
+                if (RangeHandler.getCardinalFromArray(param[pixel_field.pixel_param_field_id]) != 1) {
                     is_pixel = false;
                     break;
                 }
             }
 
             if (!is_pixel) {
-                ConsoleHandler.getInstance().warn('refused getVarParamDatas on pixellised varconf but param is not a pixel');
+                ConsoleHandler.warn('refused getVarParamDatas on pixellised varconf but param is not a pixel');
                 return null;
             }
         }
@@ -1280,7 +1320,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         let value_size_limit: number = 10000;
 
         if (!param.check_param_is_valid(param._type)) {
-            ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+            ConsoleHandler.error('Les champs du matroid ne correspondent pas à son typage');
             return null;
         }
 
@@ -1295,7 +1335,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         // WARNING on se base sur un fake node par ce que je vois pas comment faire autrement...
         let dag: VarDAG = new VarDAG();
-        let varDAGNode: VarDAGNode = VarDAGNode.getInstance(dag, param, VarsComputeController, false);
+        let varDAGNode: VarDAGNode = await VarDAGNode.getInstance(dag, param, VarsComputeController, false);
 
         if (!varDAGNode) {
             return null;
@@ -1321,7 +1361,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             try {
                 data_jsoned = JSON.stringify(data);
             } catch (error) {
-                ConsoleHandler.getInstance().error('getVarParamDatas:failed JSON:' + error);
+                ConsoleHandler.error('getVarParamDatas:failed JSON:' + error);
             }
 
             if ((!data_jsoned) || (!data_jsoned.length)) {
@@ -1335,7 +1375,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         // TEMP DEBUG JFE :
-        // ConsoleHandler.getInstance().log("cpt_for_datasources :: " + JSON.stringify(this.cpt_for_datasources));
+        // ConsoleHandler.log("cpt_for_datasources :: " + JSON.stringify(this.cpt_for_datasources));
 
         return datasources_values;
     }
@@ -1345,11 +1385,12 @@ export default class ModuleVarServer extends ModuleServerBase {
         get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
         custom_filters: { [var_param_field_name: string]: ContextFilterVO },
         active_api_type_ids: string[],
-        discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }
+        discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
+        accept_max_ranges: boolean = false
     ): Promise<VarDataBaseVO> {
 
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
-            ConsoleHandler.getInstance().log('getVarParamFromContextFilters: ' + var_name + ':IN');
+        if (ConfigurationService.node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
+            ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':IN');
         }
 
         if (!var_name) {
@@ -1360,6 +1401,47 @@ export default class ModuleVarServer extends ModuleServerBase {
         if (!var_conf) {
             return null;
         }
+
+        return new Promise(async (resolve, reject) => {
+            let param = new GetVarParamFromContextFiltersParam(
+                var_name,
+                get_active_field_filters,
+                custom_filters,
+                active_api_type_ids,
+                discarded_field_paths,
+                accept_max_ranges,
+                resolve
+            );
+
+            await this.throttle_getVarParamFromContextFilters(param);
+        });
+
+    }
+
+    private async throttled_getVarParamsFromContextFilters(params: GetVarParamFromContextFiltersParam[]) {
+        let max_concurrent_promises: number = ConfigurationService.node_configuration.MAX_POOL / 2;
+
+        let promise_pipeline = new PromisePipeline(max_concurrent_promises);
+        for (let i in params) {
+
+            await promise_pipeline.push(async () => {
+                await this.throttled_getVarParamFromContextFilters(params[i]);
+            });
+        }
+
+        await promise_pipeline.end();
+    }
+
+    private async throttled_getVarParamFromContextFilters(param: GetVarParamFromContextFiltersParam) {
+
+        let var_name = param.var_name;
+        let get_active_field_filters = param.get_active_field_filters;
+        let custom_filters = param.custom_filters;
+        let active_api_type_ids = param.active_api_type_ids;
+        let discarded_field_paths = param.discarded_field_paths;
+        let accept_max_ranges = param.accept_max_ranges;
+        let var_conf = VarsController.getInstance().var_conf_by_name[var_name];
+        let resolve = param.resolve;
 
         let var_param: VarDataBaseVO = VarDataBaseVO.createNew(var_name);
 
@@ -1387,43 +1469,56 @@ export default class ModuleVarServer extends ModuleServerBase {
                                 ]);
                             context_query.discarded_field_paths = discarded_field_paths;
 
-                            if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
-                                ConsoleHandler.getInstance().log('getVarParamFromContextFilters: ' + var_name + ':select_vos:IN');
+                            if (ConfigurationService.node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
+                                ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':select_vos:IN');
                             }
                             let ids_db: Array<{ id: number }> = refuse_param ? null : await ModuleContextFilterServer.getInstance().select_vos(context_query);
-                            if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
-                                ConsoleHandler.getInstance().log('getVarParamFromContextFilters: ' + var_name + ':select_vos:OUT');
+                            if (ConfigurationService.node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
+                                ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':select_vos:OUT');
                             }
 
                             if (!ids_db) {
+
                                 // Max range étant interdit sur les registers de var, on force un retour null
-                                if (!refuse_param) {
-                                    ConsoleHandler.getInstance().error('getVarParamFromContextFilters: max range not allowed on registers of var');
-                                    refuse_param = true;
+                                if (!accept_max_ranges) {
+
+                                    if (!refuse_param) {
+                                        ConsoleHandler.error('getVarParamFromContextFilters: max range not allowed on registers of var');
+                                        refuse_param = true;
+                                    }
+                                } else {
+                                    var_param[matroid_field.field_id] = [RangeHandler.getMaxNumRange()];
                                 }
-                                // var_param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxNumRange()];
                                 break;
                             }
 
                             let ids: number[] = [];
                             ids_db.forEach((id_db) => ids.push(id_db.id));
 
-                            var_param[matroid_field.field_id] = RangeHandler.getInstance().get_ids_ranges_from_list(ids);
+                            var_param[matroid_field.field_id] = RangeHandler.get_ids_ranges_from_list(ids);
                         } else {
                             // Max range étant interdit sur les registers de var, on force un retour null
-                            if (!refuse_param) {
-                                ConsoleHandler.getInstance().error('getVarParamFromContextFilters: max range not allowed on registers of var');
-                                refuse_param = true;
+                            if (!accept_max_ranges) {
+
+                                if (!refuse_param) {
+                                    ConsoleHandler.error('getVarParamFromContextFilters: max range not allowed on registers of var');
+                                    refuse_param = true;
+                                }
+                            } else {
+                                var_param[matroid_field.field_id] = [RangeHandler.getMaxNumRange()];
                             }
-                            // var_param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxNumRange()];
                         }
                         break;
                     case ModuleTableField.FIELD_TYPE_hourrange_array:
-                        if (!refuse_param) {
-                            ConsoleHandler.getInstance().error('getVarParamFromContextFilters: max range not allowed on registers of var');
-                            refuse_param = true;
+                        if (!accept_max_ranges) {
+
+                            if (!refuse_param) {
+                                ConsoleHandler.error('getVarParamFromContextFilters: max range not allowed on registers of var');
+                                refuse_param = true;
+                            }
+                        } else {
+                            var_param[matroid_field.field_id] = [RangeHandler.getMaxHourRange()];
                         }
-                        // var_param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxHourRange()];
                         break;
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
                         if (!!custom_filters[matroid_field.field_id]) {
@@ -1432,30 +1527,40 @@ export default class ModuleVarServer extends ModuleServerBase {
                             // et on limite à la limite configurée dans l'application
                             let limit_nb_range = await this.get_limit_nb_ts_ranges_on_param_by_context_filter();
 
-                            if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
-                                ConsoleHandler.getInstance().log('getVarParamFromContextFilters: ' + var_name + ':get_ts_ranges_from_custom_filter:IN');
+                            if (ConfigurationService.node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
+                                ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':get_ts_ranges_from_custom_filter:IN');
                             }
                             var_param[matroid_field.field_id] = this.get_ts_ranges_from_custom_filter(custom_filters[matroid_field.field_id], limit_nb_range);
-                            if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
-                                ConsoleHandler.getInstance().log('getVarParamFromContextFilters: ' + var_name + ':get_ts_ranges_from_custom_filter:OUT');
+                            if (ConfigurationService.node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
+                                ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':get_ts_ranges_from_custom_filter:OUT');
                             }
 
                             if (!var_param[matroid_field.field_id]) {
-                                if (!refuse_param) {
-                                    ConsoleHandler.getInstance().error('getVarParamFromContextFilters: max range not allowed on registers of var');
-                                    refuse_param = true;
+                                if (!accept_max_ranges) {
+
+                                    if (!refuse_param) {
+                                        ConsoleHandler.error('getVarParamFromContextFilters: max range not allowed on registers of var');
+                                        refuse_param = true;
+                                    }
+
+                                } else {
+                                    var_param[matroid_field.field_id] = [RangeHandler.getMaxNumRange()];
                                 }
-                                return;
                             }
                             break;
                         }
 
                         // Max range étant interdit sur les registers de var, on force un retour null
-                        if (!refuse_param) {
-                            ConsoleHandler.getInstance().error('getVarParamFromContextFilters: max range not allowed on registers of var');
-                            refuse_param = true;
+                        if (!accept_max_ranges) {
+
+                            if (!refuse_param) {
+                                ConsoleHandler.error('getVarParamFromContextFilters: max range not allowed on registers of var');
+                                refuse_param = true;
+                            }
+
+                        } else {
+                            var_param[matroid_field.field_id] = [RangeHandler.getMaxTSRange()];
                         }
-                        // var_param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxTSRange()];
                         break;
                 }
             })(matroid_field_));
@@ -1463,11 +1568,11 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         await all_promises(field_promises);
 
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
-            ConsoleHandler.getInstance().log('getVarParamFromContextFilters: ' + var_name + ':OUT');
+        if (ConfigurationService.node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
+            ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':OUT');
         }
 
-        return refuse_param ? null : var_param;
+        resolve(refuse_param ? null : var_param);
     }
 
     private async get_limit_nb_ts_ranges_on_param_by_context_filter(): Promise<number> {
@@ -1476,6 +1581,7 @@ export default class ModuleVarServer extends ModuleServerBase {
          */
         if ((this.limit_nb_ts_ranges_on_param_by_context_filter == null) || (this.limit_nb_ts_ranges_on_param_by_context_filter_last_update < (Dates.now() - 300))) {
             this.limit_nb_ts_ranges_on_param_by_context_filter = await ModuleParams.getInstance().getParamValueAsInt(ModuleVarServer.PARAM_NAME_limit_nb_ts_ranges_on_param_by_context_filter, 100);
+            this.limit_nb_ts_ranges_on_param_by_context_filter_last_update = Dates.now();
         }
         return this.limit_nb_ts_ranges_on_param_by_context_filter;
     }
@@ -1490,7 +1596,7 @@ export default class ModuleVarServer extends ModuleServerBase {
          *      par contre si on commence par limiter à 2019 et 2020 on a 1 range, puis 2 avec le découpage mois, puis ~60 avec les découpages lundi et jeudi donc là ça passe
          */
         if (!custom_filter) {
-            return [RangeHandler.getInstance().getMaxTSRange()];
+            return [RangeHandler.getMaxTSRange()];
         }
 
         /**
@@ -1498,7 +1604,7 @@ export default class ModuleVarServer extends ModuleServerBase {
          */
         let year = ContextFilterHandler.getInstance().find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_YEAR);
         if (!year) {
-            return [RangeHandler.getInstance().getMaxTSRange()];
+            return [RangeHandler.getMaxTSRange()];
         }
 
         let tsranges = this.get_ts_ranges_from_custom_filter_year(year, limit_nb_range);
@@ -1535,7 +1641,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         let numranges: NumRange[] = null;
 
         if (custom_filter.param_numeric != null) {
-            numranges = [RangeHandler.getInstance().create_single_elt_NumRange(custom_filter.param_numeric, NumSegment.TYPE_INT)];
+            numranges = [RangeHandler.create_single_elt_NumRange(custom_filter.param_numeric, NumSegment.TYPE_INT)];
         }
 
         numranges = numranges ? numranges : custom_filter.param_numranges;
@@ -1544,23 +1650,23 @@ export default class ModuleVarServer extends ModuleServerBase {
             return tsranges;
         }
 
-        if ((RangeHandler.getInstance().getCardinalFromArray(tsranges) * numranges.length) > limit_nb_range) {
+        if ((RangeHandler.getCardinalFromArray(tsranges) * numranges.length) > limit_nb_range) {
             return null;
         }
 
         let res: TSRange[] = [];
-        RangeHandler.getInstance().foreach_ranges_sync(tsranges, (day: number) => {
+        RangeHandler.foreach_ranges_sync(tsranges, (day: number) => {
 
-            RangeHandler.getInstance().foreach_ranges_sync(numranges, (dom: number) => {
+            RangeHandler.foreach_ranges_sync(numranges, (dom: number) => {
 
                 if (dom == Dates.date(day)) {
-                    res.push(RangeHandler.getInstance().create_single_elt_TSRange(day, TimeSegment.TYPE_DAY));
+                    res.push(RangeHandler.create_single_elt_TSRange(day, TimeSegment.TYPE_DAY));
                 }
             });
         }, TimeSegment.TYPE_DAY);
 
         if (res && res.length) {
-            res = RangeHandler.getInstance().getRangesUnion(res);
+            res = RangeHandler.getRangesUnion(res);
         }
         return res;
     }
@@ -1569,7 +1675,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         let numranges: NumRange[] = null;
 
         if (custom_filter.param_numeric != null) {
-            numranges = [RangeHandler.getInstance().create_single_elt_NumRange(custom_filter.param_numeric, NumSegment.TYPE_INT)];
+            numranges = [RangeHandler.create_single_elt_NumRange(custom_filter.param_numeric, NumSegment.TYPE_INT)];
         }
 
         numranges = numranges ? numranges : custom_filter.param_numranges;
@@ -1578,23 +1684,23 @@ export default class ModuleVarServer extends ModuleServerBase {
             return tsranges;
         }
 
-        if ((RangeHandler.getInstance().getCardinalFromArray(tsranges) * numranges.length) > limit_nb_range) {
+        if ((RangeHandler.getCardinalFromArray(tsranges) * numranges.length) > limit_nb_range) {
             return null;
         }
 
         let res: TSRange[] = [];
-        RangeHandler.getInstance().foreach_ranges_sync(tsranges, (day: number) => {
+        RangeHandler.foreach_ranges_sync(tsranges, (day: number) => {
 
-            RangeHandler.getInstance().foreach_ranges_sync(numranges, (dow: number) => {
+            RangeHandler.foreach_ranges_sync(numranges, (dow: number) => {
 
                 if (dow == Dates.isoWeekday(day)) {
-                    res.push(RangeHandler.getInstance().create_single_elt_TSRange(day, TimeSegment.TYPE_DAY));
+                    res.push(RangeHandler.create_single_elt_TSRange(day, TimeSegment.TYPE_DAY));
                 }
             });
         }, TimeSegment.TYPE_DAY);
 
         if (res && res.length) {
-            res = RangeHandler.getInstance().getRangesUnion(res);
+            res = RangeHandler.getRangesUnion(res);
         }
         return res;
     }
@@ -1603,7 +1709,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         let numranges: NumRange[] = null;
 
         if (custom_filter.param_numeric != null) {
-            numranges = [RangeHandler.getInstance().create_single_elt_NumRange(custom_filter.param_numeric, NumSegment.TYPE_INT)];
+            numranges = [RangeHandler.create_single_elt_NumRange(custom_filter.param_numeric, NumSegment.TYPE_INT)];
         }
 
         numranges = numranges ? numranges : custom_filter.param_numranges;
@@ -1612,28 +1718,28 @@ export default class ModuleVarServer extends ModuleServerBase {
             return tsranges;
         }
 
-        if ((RangeHandler.getInstance().getCardinalFromArray(tsranges) * numranges.length) > limit_nb_range) {
+        if ((RangeHandler.getCardinalFromArray(tsranges) * numranges.length) > limit_nb_range) {
             return null;
         }
 
         let res: TSRange[] = [];
-        RangeHandler.getInstance().foreach_ranges_sync(tsranges, (year: number) => {
+        RangeHandler.foreach_ranges_sync(tsranges, (year: number) => {
 
-            RangeHandler.getInstance().foreach_ranges_sync(numranges, (month_i: number) => {
+            RangeHandler.foreach_ranges_sync(numranges, (month_i: number) => {
 
-                res.push(RangeHandler.getInstance().create_single_elt_TSRange(Dates.add(year, month_i - 1, TimeSegment.TYPE_MONTH), TimeSegment.TYPE_MONTH));
+                res.push(RangeHandler.create_single_elt_TSRange(Dates.add(year, month_i - 1, TimeSegment.TYPE_MONTH), TimeSegment.TYPE_MONTH));
             });
         });
 
         if (res && res.length) {
-            res = RangeHandler.getInstance().getRangesUnion(res);
+            res = RangeHandler.getRangesUnion(res);
         }
         return res;
     }
 
     private get_ts_ranges_from_custom_filter_year(custom_filter: ContextFilterVO, limit_nb_range): TSRange[] {
         if (custom_filter.param_numeric != null) {
-            return [RangeHandler.getInstance().create_single_elt_TSRange(Dates.startOf(Dates.year(0, custom_filter.param_numeric), TimeSegment.TYPE_YEAR), TimeSegment.TYPE_YEAR)];
+            return [RangeHandler.create_single_elt_TSRange(Dates.startOf(Dates.year(0, custom_filter.param_numeric), TimeSegment.TYPE_YEAR), TimeSegment.TYPE_YEAR)];
         }
 
         if (custom_filter.param_numranges && (custom_filter.param_numranges.length > limit_nb_range)) {
@@ -1641,8 +1747,8 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         let res: TSRange[] = [];
-        RangeHandler.getInstance().foreach_ranges_sync(custom_filter.param_numranges, (year: number) => {
-            res.push(RangeHandler.getInstance().create_single_elt_TSRange(Dates.startOf(Dates.year(0, year), TimeSegment.TYPE_YEAR), TimeSegment.TYPE_YEAR));
+        RangeHandler.foreach_ranges_sync(custom_filter.param_numranges, (year: number) => {
+            res.push(RangeHandler.create_single_elt_TSRange(Dates.startOf(Dates.year(0, year), TimeSegment.TYPE_YEAR), TimeSegment.TYPE_YEAR));
         });
         return res;
     }
@@ -1705,7 +1811,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                     // let query_wrapper: ParameterizedQueryWrapper = await query(api_type_id).filter_by_text_has('_bdd_only_index', indexes).get_select_query_str();
 
                     // if (!query_wrapper) {
-                    //     ConsoleHandler.getInstance().warn('Refused (probably session lost) to get_var_data_by_index for api_type_id ' + api_type_id);
+                    //     ConsoleHandler.warn('Refused (probably session lost) to get_var_data_by_index for api_type_id ' + api_type_id);
                     //     return;
                     // }
 
@@ -1774,4 +1880,6 @@ export default class ModuleVarServer extends ModuleServerBase {
             await this.throttle_get_var_data_by_index();
         });
     }
+
+
 }

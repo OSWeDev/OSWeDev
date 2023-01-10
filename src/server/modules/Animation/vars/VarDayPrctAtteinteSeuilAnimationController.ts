@@ -37,7 +37,7 @@ export default class VarDayPrctAtteinteSeuilAnimationController extends VarServe
 
     protected constructor() {
         super(
-            new VarConfVO(AnimationController.VarDayPrctAtteinteSeuilAnimationController_VAR_NAME, ThemeModuleDataRangesVO.API_TYPE_ID, TimeSegment.TYPE_DAY),
+            new VarConfVO(AnimationController.VarDayPrctAtteinteSeuilAnimationController_VAR_NAME, ThemeModuleDataRangesVO.API_TYPE_ID),
             { 'fr-fr': 'Prct atteinte seuil animation' },
             {
                 'fr-fr': 'Prctage atteinte seuil de l\'animation.'
@@ -92,9 +92,9 @@ export default class VarDayPrctAtteinteSeuilAnimationController extends VarServe
                 return ThemeModuleDataRangesVO.createNew(
                     var_name,
                     false,
-                    [RangeHandler.getInstance().getMaxNumRange()],
-                    [RangeHandler.getInstance().getMaxNumRange()],
-                    [RangeHandler.getInstance().getMaxNumRange()]
+                    [RangeHandler.getMaxNumRange()],
+                    [RangeHandler.getMaxNumRange()],
+                    [RangeHandler.getMaxNumRange()]
                     // TODO FIXME Améliorer ce matroid point de vue métier
                 );
         }

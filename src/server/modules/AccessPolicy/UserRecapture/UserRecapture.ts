@@ -67,7 +67,7 @@ export default class UserRecapture {
     public async beginrecapture_user(user: UserVO): Promise<boolean> {
 
         // On doit se comporter comme un server à ce stade
-        await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
+        await StackContext.runPromise({ IS_CLIENT: false }, async () => {
 
             await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
 
@@ -122,7 +122,7 @@ export default class UserRecapture {
         let translation = await ModuleTranslation.getInstance().getTranslation(lang.id, translatable_text.id);
 
         // On doit se comporter comme un server à ce stade
-        await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
+        await StackContext.runPromise({ IS_CLIENT: false }, async () => {
 
             await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
 

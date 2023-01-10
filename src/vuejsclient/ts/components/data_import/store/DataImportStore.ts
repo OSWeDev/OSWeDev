@@ -52,7 +52,7 @@ export default class DataImportStore implements IStoreModule<IDataImportState, D
             api_type_id_tester: (api_type_id: string) => true,
             segment_type: TimeSegment.TYPE_MONTH,
             segment_offset: 9,
-            lower_segment: TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(Dates.now(), TimeSegment.TYPE_MONTH),
+            lower_segment: TimeSegmentHandler.getCorrespondingTimeSegment(Dates.now(), TimeSegment.TYPE_MONTH),
             segment_number: 12
         };
 
@@ -68,19 +68,19 @@ export default class DataImportStore implements IStoreModule<IDataImportState, D
 
                 let lower_time_segment = state.lower_segment ? state.lower_segment : null;
                 if (!lower_time_segment) {
-                    lower_time_segment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(Dates.now(), state.segment_type);
+                    lower_time_segment = TimeSegmentHandler.getCorrespondingTimeSegment(Dates.now(), state.segment_type);
 
-                    lower_time_segment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(lower_time_segment, state.segment_type, medium_segment_i);
+                    lower_time_segment = TimeSegmentHandler.getPreviousTimeSegment(lower_time_segment, state.segment_type, medium_segment_i);
                 }
 
                 if (lower_time_segment.type != state.segment_type) {
-                    lower_time_segment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(lower_time_segment.index, state.segment_type);
+                    lower_time_segment = TimeSegmentHandler.getCorrespondingTimeSegment(lower_time_segment.index, state.segment_type);
                 }
 
                 let segment = lower_time_segment;
                 for (let i = 0; i < state.segment_number; i++) {
                     res.push(segment);
-                    segment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(segment, state.segment_type, -1);
+                    segment = TimeSegmentHandler.getPreviousTimeSegment(segment, state.segment_type, -1);
                 }
 
                 return res;
@@ -130,16 +130,16 @@ export default class DataImportStore implements IStoreModule<IDataImportState, D
                 state.api_type_id_tester = (api_type_id: string) => true;
                 state.segment_type = TimeSegment.TYPE_MONTH;
                 state.segment_offset = 9;
-                state.lower_segment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(Dates.now(), TimeSegment.TYPE_MONTH);
+                state.lower_segment = TimeSegmentHandler.getCorrespondingTimeSegment(Dates.now(), TimeSegment.TYPE_MONTH);
                 state.segment_number = 12;
             },
 
             previous_segments(state: IDataImportState) {
-                state.lower_segment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(state.lower_segment, state.segment_type, state.segment_offset);
+                state.lower_segment = TimeSegmentHandler.getPreviousTimeSegment(state.lower_segment, state.segment_type, state.segment_offset);
             },
 
             next_segments(state: IDataImportState) {
-                state.lower_segment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(state.lower_segment, state.segment_type, -state.segment_offset);
+                state.lower_segment = TimeSegmentHandler.getPreviousTimeSegment(state.lower_segment, state.segment_type, -state.segment_offset);
             },
 
             setApiTypeIdTester(state: IDataImportState, api_type_id_tester: (api_type_id: string) => boolean) {

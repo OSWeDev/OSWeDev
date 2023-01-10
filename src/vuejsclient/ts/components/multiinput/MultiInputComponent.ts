@@ -1,6 +1,6 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import SimpleDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import VueComponentBase from '../VueComponentBase';
 import './MultiInputComponent.scss';
@@ -35,7 +35,7 @@ export default class MultiInputComponent extends VueComponentBase {
     private value: any[];
 
     @Prop({ default: null })
-    private field: SimpleDatatableField<any, any>;
+    private field: SimpleDatatableFieldVO<any, any>;
 
     @Prop({ default: null })
     private vo: IDistantVOBase;

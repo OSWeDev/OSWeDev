@@ -56,7 +56,7 @@ export default abstract class ModuleCheckListBase extends Module {
             return;
         }
 
-        if (VOsTypesManager.getInstance().moduleTables_by_voType[this.checklist_type_id]) {
+        if (VOsTypesManager.moduleTables_by_voType[this.checklist_type_id]) {
             return;
         }
 
@@ -80,7 +80,7 @@ export default abstract class ModuleCheckListBase extends Module {
             return;
         }
 
-        if (VOsTypesManager.getInstance().moduleTables_by_voType[this.checklistitem_type_id]) {
+        if (VOsTypesManager.moduleTables_by_voType[this.checklistitem_type_id]) {
             return;
         }
 
@@ -96,7 +96,7 @@ export default abstract class ModuleCheckListBase extends Module {
         );
 
         let datatable = new ModuleTable(this, this.checklistitem_type_id, constructor, additional_fields, label_field, "Eléments de la checklist");
-        checklist_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.checklist_type_id]);
+        checklist_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.checklist_type_id]);
         VersionedVOController.getInstance().registerModuleTable(datatable);
         this.datatables.push(datatable);
     }
@@ -107,7 +107,7 @@ export default abstract class ModuleCheckListBase extends Module {
             return;
         }
 
-        if (VOsTypesManager.getInstance().moduleTables_by_voType[this.checklistitemcheckpoints_type_id]) {
+        if (VOsTypesManager.moduleTables_by_voType[this.checklistitemcheckpoints_type_id]) {
             return;
         }
 
@@ -120,8 +120,8 @@ export default abstract class ModuleCheckListBase extends Module {
         );
 
         let datatable = new ModuleTable(this, this.checklistitemcheckpoints_type_id, constructor, additional_fields, null, "CheckListItemCheckPoints");
-        checklistitem_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.checklistitem_type_id]);
-        checkpoint_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.checkpoint_type_id]);
+        checklistitem_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.checklistitem_type_id]);
+        checkpoint_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.checkpoint_type_id]);
         this.datatables.push(datatable);
     }
 
@@ -131,7 +131,7 @@ export default abstract class ModuleCheckListBase extends Module {
             return;
         }
 
-        if (VOsTypesManager.getInstance().moduleTables_by_voType[this.checkpoint_type_id]) {
+        if (VOsTypesManager.moduleTables_by_voType[this.checkpoint_type_id]) {
             return;
         }
 
@@ -148,7 +148,7 @@ export default abstract class ModuleCheckListBase extends Module {
         );
 
         let datatable = new ModuleTable(this, this.checkpoint_type_id, constructor, additional_fields, label_field, "CheckPoints");
-        checklist_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.checklist_type_id]);
+        checklist_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.checklist_type_id]);
         this.datatables.push(datatable);
     }
 
@@ -167,8 +167,8 @@ export default abstract class ModuleCheckListBase extends Module {
     //     );
 
     //     let datatable = new ModuleTable(this, this.checkpointdep_type_id, constructor, additional_fields, null, "Dépendances des CheckPoints");
-    //     checkpoint_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.checkpoint_type_id]);
-    //     dependson_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.checkpoint_type_id]);
+    //     checkpoint_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.checkpoint_type_id]);
+    //     dependson_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[this.checkpoint_type_id]);
     //     this.datatables.push(datatable);
     // }
 }

@@ -31,16 +31,16 @@ export default class ModuleAPIServer extends ModuleServerBase {
     public registerExpressApis(app: Express): void {
 
         // On doit register toutes les APIs
-        for (let i in APIControllerWrapper.getInstance().registered_apis) {
-            let api: APIDefinition<any, any> = APIControllerWrapper.getInstance().registered_apis[i];
+        for (let i in APIControllerWrapper.registered_apis) {
+            let api: APIDefinition<any, any> = APIControllerWrapper.registered_apis[i];
 
             switch (api.api_type) {
                 case APIDefinition.API_TYPE_GET:
-                    ConsoleHandler.getInstance().log("AJOUT API GET  :" + APIControllerWrapper.getInstance().getAPI_URL(api).toLowerCase());
+                    ConsoleHandler.log("AJOUT API GET  :" + APIControllerWrapper.getInstance().getAPI_URL(api).toLowerCase());
                     app.get(APIControllerWrapper.getInstance().getAPI_URL(api).toLowerCase(), this.createApiRequestHandler(api).bind(this));
                     break;
                 case APIDefinition.API_TYPE_POST:
-                    ConsoleHandler.getInstance().log("AJOUT API POST :" + APIControllerWrapper.getInstance().getAPI_URL(api).toLowerCase());
+                    ConsoleHandler.log("AJOUT API POST :" + APIControllerWrapper.getInstance().getAPI_URL(api).toLowerCase());
                     if (api.csrf_protection) {
                         app.post(APIControllerWrapper.getInstance().getAPI_URL(api).toLowerCase(), ServerBase.getInstance().csrfProtection, this.createApiRequestHandler(api).bind(this));
                     } else {
@@ -48,7 +48,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
                     }
                     break;
                 case APIDefinition.API_TYPE_POST_FOR_GET:
-                    ConsoleHandler.getInstance().log("AJOUT API POST FOR GET :" + APIControllerWrapper.getInstance().getAPI_URL(api).toLowerCase());
+                    ConsoleHandler.log("AJOUT API POST FOR GET :" + APIControllerWrapper.getInstance().getAPI_URL(api).toLowerCase());
                     if (api.csrf_protection) {
                         app.post(APIControllerWrapper.getInstance().getAPI_URL(api).toLowerCase(), ServerBase.getInstance().csrfProtection, this.createApiRequestHandler(api).bind(this));
                     } else {
@@ -64,7 +64,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
 
             if (!!api.access_policy_name) {
                 if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(api.access_policy_name)) {
-                    ConsoleHandler.getInstance().error('Access denied to API:' + api.api_name + ': sessionID' + req.sessionID + ":");
+                    ConsoleHandler.error('Access denied to API:' + api.api_name + ': sessionID' + req.sessionID + ":");
                     this.respond_on_error(api, res);
                     return;
                 }
@@ -82,7 +82,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
                     has_params = ObjectHandler.getInstance().hasAtLeastOneAttribute(req.params);
                     param = api.param_translator.fromREQ(req);
                 } catch (error) {
-                    ConsoleHandler.getInstance().error(error);
+                    ConsoleHandler.error(error);
                     this.respond_on_error(api, res);
                     return;
                 }
@@ -96,11 +96,11 @@ export default class ModuleAPIServer extends ModuleServerBase {
                 } else if (res) {
                     params = [res];
                 }
-                returnvalue = await StackContext.getInstance().runPromise(
-                    ServerExpressController.getInstance().getStackContextFromReq(req, req.session as IServerUserSession),
+                returnvalue = await StackContext.runPromise(
+                    await ServerExpressController.getInstance().getStackContextFromReq(req, req.session as IServerUserSession),
                     async () => await api.SERVER_HANDLER(...params, req));
             } catch (error) {
-                ConsoleHandler.getInstance().error(error);
+                ConsoleHandler.error(error);
                 this.respond_on_error(api, res);
                 return;
             }

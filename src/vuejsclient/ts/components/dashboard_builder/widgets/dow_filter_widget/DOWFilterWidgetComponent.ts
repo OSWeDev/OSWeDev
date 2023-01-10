@@ -96,9 +96,9 @@ export default class DOWFilterWidgetComponent extends VueComponentBase {
             if (!this.selected_dows[i]) {
                 continue;
             }
-            dows_ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(parseInt(i.toString()) + 1, NumSegment.TYPE_INT));
+            dows_ranges.push(RangeHandler.create_single_elt_NumRange(parseInt(i.toString()) + 1, NumSegment.TYPE_INT));
         }
-        dows_ranges = RangeHandler.getInstance().getRangesUnion(dows_ranges);
+        dows_ranges = RangeHandler.getRangesUnion(dows_ranges);
 
         /**
          * Si on a un root_context_filter, on cherche celui qui est du type concerné
@@ -175,7 +175,7 @@ export default class DOWFilterWidgetComponent extends VueComponentBase {
          * Si on a un contextfilter, on check si on doit faire un update et si c'est nécessaire on le fait
          */
         if (!!context_filter) {
-            if (!RangeHandler.getInstance().are_same(context_filter.param_numranges, dows_ranges)) {
+            if (!RangeHandler.are_same(context_filter.param_numranges, dows_ranges)) {
                 context_filter.param_numranges = dows_ranges;
             }
             return;
@@ -219,7 +219,7 @@ export default class DOWFilterWidgetComponent extends VueComponentBase {
 
         // On veut surtout pas changer si ya pas de changement à faire, donc on test la conf actuelle et on verra après
         let need_switch: { [dow: number]: boolean } = Object.assign({}, this.selected_dows);
-        RangeHandler.getInstance().foreach_ranges_sync(context_filter.param_numranges, (isodow: number) => {
+        RangeHandler.foreach_ranges_sync(context_filter.param_numranges, (isodow: number) => {
 
             if (!need_switch[isodow - 1]) {
                 need_switch[isodow - 1] = true;
@@ -271,7 +271,7 @@ export default class DOWFilterWidgetComponent extends VueComponentBase {
                     options.custom_filter_name) : null;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return options;

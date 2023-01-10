@@ -23,11 +23,11 @@ export default class TablesGraphEditFormComponent extends VueComponentBase {
             return null;
         }
 
-        if (!VOsTypesManager.getInstance().moduleTables_by_voType[this.cellData.value.tables_graph_vo_type]) {
+        if (!VOsTypesManager.moduleTables_by_voType[this.cellData.value.tables_graph_vo_type]) {
             return null;
         }
 
-        return VueAppBase.getInstance().vueInstance.t(VOsTypesManager.getInstance().moduleTables_by_voType[this.cellData.value.tables_graph_vo_type].label.code_text);
+        return VueAppBase.getInstance().vueInstance.t(VOsTypesManager.moduleTables_by_voType[this.cellData.value.tables_graph_vo_type].label.code_text);
     }
 
     private delete_cell() {

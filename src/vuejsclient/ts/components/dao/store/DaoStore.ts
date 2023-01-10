@@ -129,7 +129,7 @@ export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
 
             async storeDatas(state: IDAOState, infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) {
 
-                Vue.set(state.storedDatasArray, infos.API_TYPE_ID, VOsTypesManager.getInstance().vosArray_to_vosByIds(infos.vos));
+                Vue.set(state.storedDatasArray, infos.API_TYPE_ID, VOsTypesManager.vosArray_to_vosByIds(infos.vos));
                 if (state.typeWatchers[infos.API_TYPE_ID]) {
                     await callWatchers(state.typeWatchers[infos.API_TYPE_ID]);
                 }

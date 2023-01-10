@@ -72,7 +72,7 @@ export default class ModuleRequestServer extends ModuleServerBase {
                             try {
                                 buffer = JSON.parse(buffer.toString());
                             } catch (e) {
-                                ConsoleHandler.getInstance().error(e);
+                                ConsoleHandler.error(e);
                             }
                         }
                     }

@@ -108,9 +108,9 @@ export default class ModuleMailer extends Module {
             new ModuleTableField('last_up_date', ModuleTableField.FIELD_TYPE_tstz, 'Date de mise à jour', true).set_segmentation_type(TimeSegment.TYPE_SECOND),
         ];
         let datatable = new ModuleTable(this, MailVO.API_TYPE_ID, () => new MailVO(), datatable_fields, label, "Mails");
-        category_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[MailCategoryVO.API_TYPE_ID]);
-        sent_by_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
-        sent_to_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        category_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[MailCategoryVO.API_TYPE_ID]);
+        sent_by_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        sent_to_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 
@@ -134,7 +134,7 @@ export default class ModuleMailer extends Module {
             new ModuleTableField('reason', ModuleTableField.FIELD_TYPE_string, 'Raison', false),
         ];
         let datatable = new ModuleTable(this, MailEventVO.API_TYPE_ID, () => new MailEventVO(), datatable_fields, label, "Evènements de mail");
-        mail_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[MailVO.API_TYPE_ID]);
+        mail_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[MailVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 }

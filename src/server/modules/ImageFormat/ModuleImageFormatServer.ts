@@ -104,7 +104,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
             let format: ImageFormatVO = await query(ImageFormatVO.API_TYPE_ID).filter_by_text_eq('name', format_name, ImageFormatVO.API_TYPE_ID, true).select_vo<ImageFormatVO>();
 
             if (!format) {
-                ConsoleHandler.getInstance().error('Impossible de charger le format d\'image :' + format_name);
+                ConsoleHandler.error('Impossible de charger le format d\'image :' + format_name);
                 return null;
             }
 
@@ -187,7 +187,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
             let base_image_height: number = image.getHeight();
 
             if (!image) {
-                ConsoleHandler.getInstance().error('Impossible de charger l\'image à cette url :' + new_src);
+                ConsoleHandler.error('Impossible de charger l\'image à cette url :' + new_src);
                 return null;
             }
 
@@ -265,7 +265,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
             new_img_formattee.id = res.id;
             return new_img_formattee;
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
             return null;
         }
     }

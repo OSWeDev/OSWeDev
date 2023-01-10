@@ -1,3 +1,4 @@
+import Vue from 'vue';
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
@@ -7,10 +8,10 @@ import UserLogVO from '../../../../shared/modules/AccessPolicy/vos/UserLogVO';
 import UserSessionVO from '../../../../shared/modules/AccessPolicy/vos/UserSessionVO';
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
 import CRUD from '../../../../shared/modules/DAO/vos/CRUD';
-import ComponentDatatableField from '../../../../shared/modules/DAO/vos/datatable/ComponentDatatableField';
+import ComponentDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/ComponentDatatableFieldVO';
 import Datatable from '../../../../shared/modules/DAO/vos/datatable/Datatable';
-import ManyToOneReferenceDatatableField from '../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
-import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import ManyToOneReferenceDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableFieldVO';
+import SimpleDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import ExportLogVO from '../../../../shared/modules/DataExport/vos/apis/ExportLogVO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
@@ -23,9 +24,6 @@ import CRUDComponentManager from '../crud/CRUDComponentManager';
 import TableWidgetController from '../dashboard_builder/widgets/table_widget/TableWidgetController';
 import MenuController from '../menu/MenuController';
 import AccessPolicyVueController from './AccessPolicyVueController';
-import ImpersonateComponent from './user/impersonate/ImpersonateComponent';
-import SendInitPwdComponent from './user/sendinitpwd/SendInitPwdComponent';
-import SendRecaptureComponent from './user/sendrecapture/SendRecaptureComponent';
 
 export default class AccessPolicyAdminVueModule extends VueModuleBase {
 
@@ -54,26 +52,29 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
 
     public initialize() {
 
+        Vue.component('Impersonatecomponent', async () => (await import(/* webpackChunkName: "ImpersonateComponent" */  './user/impersonate/ImpersonateComponent')));
         TableWidgetController.getInstance().register_component(
-            new ComponentDatatableField(
+            ComponentDatatableFieldVO.createNew(
                 'impersonate',
-                ImpersonateComponent,
+                'Impersonatecomponent',
                 'id'
-            ).setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID])
+            ).setModuleTable(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID])
         );
+        Vue.component('Sendinitpwdcomponent', async () => (await import(/* webpackChunkName: "SendInitPwdComponent" */  './user/sendinitpwd/SendInitPwdComponent')));
         TableWidgetController.getInstance().register_component(
-            new ComponentDatatableField(
+            ComponentDatatableFieldVO.createNew(
                 'sendinitpwd',
-                SendInitPwdComponent,
+                'Sendinitpwdcomponent',
                 'id'
-            ).setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID])
+            ).setModuleTable(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID])
         );
+        Vue.component('Sendrecapturecomponent', async () => (await import(/* webpackChunkName: "SendRecaptureComponent" */  './user/sendrecapture/SendRecaptureComponent')));
         TableWidgetController.getInstance().register_component(
-            new ComponentDatatableField(
+            ComponentDatatableFieldVO.createNew(
                 'sendrecapture',
-                SendRecaptureComponent,
+                'Sendrecapturecomponent',
                 'id'
-            ).setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID])
+            ).setModuleTable(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID])
         );
     }
 
@@ -221,56 +222,59 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
     protected async getUserCRUD(): Promise<CRUD<UserVO>> {
         let crud: CRUD<UserVO> = new CRUD<UserVO>(new Datatable<UserVO>(UserVO.API_TYPE_ID));
 
-        crud.readDatatable.pushField(new SimpleDatatableField<any, any>("name"));
-        crud.readDatatable.pushField(new SimpleDatatableField<any, any>("firstname"));
-        crud.readDatatable.pushField(new SimpleDatatableField<any, any>("lastname"));
-        crud.readDatatable.pushField(new SimpleDatatableField<any, any>("email"));
-        crud.readDatatable.pushField(new SimpleDatatableField<any, any>("phone"));
+        crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("name"));
+        crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("firstname"));
+        crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("lastname"));
+        crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("email"));
+        crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("phone"));
 
         if (this.policies_loaded[ModuleAccessPolicy.POLICY_IMPERSONATE]) {
-            crud.readDatatable.pushField(new ComponentDatatableField(
+            Vue.component('Impersonatecomponent', async () => (await import(/* webpackChunkName: "ImpersonateComponent" */  './user/impersonate/ImpersonateComponent')));
+            crud.readDatatable.pushField(ComponentDatatableFieldVO.createNew(
                 'impersonate',
-                ImpersonateComponent,
+                'Impersonatecomponent',
                 'id'
             ));
         }
 
-        crud.readDatatable.pushField(new SimpleDatatableField<any, any>("password"));
+        crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("password"));
         if (this.policies_loaded[ModuleAccessPolicy.POLICY_SENDINITPWD]) {
-            crud.readDatatable.pushField(new ComponentDatatableField(
+            Vue.component('Sendinitpwdcomponent', async () => (await import(/* webpackChunkName: "SendInitPwdComponent" */  './user/sendinitpwd/SendInitPwdComponent')));
+            crud.readDatatable.pushField(ComponentDatatableFieldVO.createNew(
                 'sendinitpwd',
-                SendInitPwdComponent,
+                'Sendinitpwdcomponent',
                 'id'
             ));
         }
         if (this.policies_loaded[ModuleAccessPolicy.POLICY_SENDRECAPTURE]) {
-            crud.readDatatable.pushField(new ComponentDatatableField(
+            Vue.component('Sendrecapturecomponent', async () => (await import(/* webpackChunkName: "SendRecaptureComponent" */  './user/sendrecapture/SendRecaptureComponent')));
+            crud.readDatatable.pushField(ComponentDatatableFieldVO.createNew(
                 'sendrecapture',
-                SendRecaptureComponent,
+                'Sendrecapturecomponent',
                 'id'
             ));
         }
 
-        crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
+        crud.readDatatable.pushField(ManyToOneReferenceDatatableFieldVO.createNew(
             "lang_id",
-            VOsTypesManager.getInstance().moduleTables_by_voType[LangVO.API_TYPE_ID], [
-            new SimpleDatatableField("code_lang")
+            VOsTypesManager.moduleTables_by_voType[LangVO.API_TYPE_ID], [
+            SimpleDatatableFieldVO.createNew("code_lang")
         ]));
 
         if (this.policies_loaded[ModuleAccessPolicy.POLICY_BO_USERS_MANAGMENT_ACCESS]) {
-            crud.readDatatable.pushField(new SimpleDatatableField<any, any>("blocked"));
+            crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("blocked"));
 
-            crud.readDatatable.pushField(new SimpleDatatableField<any, any>("password_change_date"));
-            crud.readDatatable.pushField(new SimpleDatatableField<any, any>("reminded_pwd_1"));
-            crud.readDatatable.pushField(new SimpleDatatableField<any, any>("reminded_pwd_2"));
-            crud.readDatatable.pushField(new SimpleDatatableField<any, any>("invalidated"));
-            crud.readDatatable.pushField(new SimpleDatatableField<any, any>("recovery_challenge"));
-            crud.readDatatable.pushField(new SimpleDatatableField<any, any>("recovery_expiration"));
-            crud.readDatatable.pushField(new SimpleDatatableField<any, any>("creation_date"));
+            crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("password_change_date"));
+            crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("reminded_pwd_1"));
+            crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("reminded_pwd_2"));
+            crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("invalidated"));
+            crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("recovery_challenge"));
+            crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("recovery_expiration"));
+            crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("creation_date"));
         }
 
-        CRUD.addManyToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID], [UserLogVO.API_TYPE_ID, ExportLogVO.API_TYPE_ID]);
-        CRUD.addOneToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID], [UserLogVO.API_TYPE_ID, ExportLogVO.API_TYPE_ID]);
+        CRUD.addManyToManyFields(crud, VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID], [UserLogVO.API_TYPE_ID, ExportLogVO.API_TYPE_ID]);
+        CRUD.addOneToManyFields(crud, VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID], [UserLogVO.API_TYPE_ID, ExportLogVO.API_TYPE_ID]);
 
         crud.readDatatable.removeFields(["ref.module_mailer_mail_sent_by_id"]);
         crud.readDatatable.removeFields(["ref.module_mailer_mail_sent_to_id"]);

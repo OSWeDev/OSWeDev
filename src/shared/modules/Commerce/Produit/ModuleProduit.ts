@@ -111,7 +111,7 @@ export default class ModuleProduit extends Module {
         ];
 
         let dt = new ModuleTable<TypeProduitVO>(this, TypeProduitVO.API_TYPE_ID, () => new TypeProduitVO(), datatable_fields, default_label_field, 'TypeProduit');
-        field_categorie_produit_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[CategorieProduitVO.API_TYPE_ID]);
+        field_categorie_produit_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[CategorieProduitVO.API_TYPE_ID]);
         this.datatables.push(dt);
     }
 
@@ -130,7 +130,7 @@ export default class ModuleProduit extends Module {
             new ModuleTableField('is_complementaire', ModuleTableField.FIELD_TYPE_boolean, 'Complémentaire ?'),
         ];
         let dt = new ModuleTable<ProduitVO>(this, ProduitVO.API_TYPE_ID, () => new ProduitVO(), datatable_fields, default_label_field, 'Produit');
-        field_type_produit_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[TypeProduitVO.API_TYPE_ID]);
+        field_type_produit_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[TypeProduitVO.API_TYPE_ID]);
         this.datatables.push(dt);
     }
 
@@ -157,8 +157,8 @@ export default class ModuleProduit extends Module {
             new ModuleTableField('par_defaut', ModuleTableField.FIELD_TYPE_boolean, 'Par default'),
         ];
         let dt = new ModuleTable<FacturationProduitVO>(this, FacturationProduitVO.API_TYPE_ID, () => new FacturationProduitVO(), datatable_fields, null, 'Facturation Produit');
-        field_produit_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[ProduitVO.API_TYPE_ID]);
-        field_facturation_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[FacturationVO.API_TYPE_ID]);
+        field_produit_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ProduitVO.API_TYPE_ID]);
+        field_facturation_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FacturationVO.API_TYPE_ID]);
         this.datatables.push(dt);
     }
 }

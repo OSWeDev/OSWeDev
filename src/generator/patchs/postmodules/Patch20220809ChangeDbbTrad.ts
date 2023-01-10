@@ -33,7 +33,7 @@ export default class Patch20220809ChangeDbbTrad implements IGeneratorWorker {
     private async update_trad(code: string, text: string) {
         let trad: TranslatableTextVO = await ModuleTranslation.getInstance().getTranslatableText(code);
         if (!trad) {
-            DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
                 'fr-fr': text
             }, code));
         } else {
@@ -41,7 +41,7 @@ export default class Patch20220809ChangeDbbTrad implements IGeneratorWorker {
             if (fr) {
                 let trads_fr: TranslationVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIds<TranslationVO>(TranslationVO.API_TYPE_ID, 'lang_id', [fr.id], 'text_id', [trad.id]);
                 if ((!trads_fr) || (!trads_fr.length)) {
-                    DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+                    DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
                         'fr-fr': text
                     }, code));
                 } else {

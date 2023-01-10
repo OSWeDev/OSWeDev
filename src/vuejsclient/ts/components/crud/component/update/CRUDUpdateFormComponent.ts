@@ -129,7 +129,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
 
         return this.label('crud.read.title', {
             datatable_title:
-                this.t(VOsTypesManager.getInstance().moduleTables_by_voType[this.crud.readDatatable.API_TYPE_ID].label.code_text)
+                this.t(VOsTypesManager.moduleTables_by_voType[this.crud.readDatatable.API_TYPE_ID].label.code_text)
         });
     }
 
@@ -137,6 +137,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
     private updateSelected_vo() {
         if (!this.selected_vo) {
             this.editableVO = null;
+            return;
         }
 
         let self = this;
@@ -255,7 +256,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
 
                     self.updateData(updatedVO);
                 } catch (error) {
-                    ConsoleHandler.getInstance().error(error);
+                    ConsoleHandler.error(error);
                     self.updating_vo = false;
                     reject({
                         body: self.label('crud.update.errors.update_failure') + ": " + error,

@@ -28,11 +28,11 @@ export default class ModulePerfMonServer extends ModuleServerBase {
 
     public async configure() {
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Types de performance' },
             'menu.menuelements.admin.perfmon_line_type.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Performances' },
             'menu.menuelements.admin.PerfMonAdminVueModule.___LABEL___'));
     }

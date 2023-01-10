@@ -22,11 +22,11 @@ export default class UMsRangesDatasourceController extends DataSourceControllerM
     public async get_data(param: ThemeModuleDataRangesVO): Promise<{ [module_id: number]: { [user_id: number]: AnimationUserModuleVO } }> {
 
         // Protection/ Détection Max_ranges
-        let user_ids: number[] = (param.user_id_ranges && RangeHandler.getInstance().getSegmentedMin_from_ranges(param.user_id_ranges) >= 0) ?
-            RangeHandler.getInstance().get_all_segmented_elements_from_ranges(param.user_id_ranges) :
+        let user_ids: number[] = (param.user_id_ranges && RangeHandler.getSegmentedMin_from_ranges(param.user_id_ranges) >= 0) ?
+            RangeHandler.get_all_segmented_elements_from_ranges(param.user_id_ranges) :
             null;
-        let module_ids: number[] = (param.module_id_ranges && RangeHandler.getInstance().getSegmentedMin_from_ranges(param.module_id_ranges) >= 0) ?
-            RangeHandler.getInstance().get_all_segmented_elements_from_ranges(param.module_id_ranges) :
+        let module_ids: number[] = (param.module_id_ranges && RangeHandler.getSegmentedMin_from_ranges(param.module_id_ranges) >= 0) ?
+            RangeHandler.get_all_segmented_elements_from_ranges(param.module_id_ranges) :
             null;
 
         let ums_by_module_user: { [module_id: number]: { [user_id: number]: AnimationUserModuleVO } } = {};

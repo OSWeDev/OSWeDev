@@ -28,10 +28,8 @@
             vertical-align: middle;
             height: 2em;
             width: 2em;
-            background: indianred;
             padding: 0.3em;
             margin-left: 0.5em;
-            color: white;
             cursor: pointer;
             border-radius: 2px;
             display: inline-block;
@@ -45,10 +43,8 @@
             vertical-align: middle;
             height: 2em;
             width: 2em;
-            background: #0d6efd;
             padding: 0.3em;
             margin-left: 0.5em;
-            color: white;
             cursor: pointer;
             border-radius: 2px;
             display: inline-block;
@@ -83,20 +79,14 @@
             vertical-align: middle;
             height: 2em;
             width: 2em;
-            background: #0d6efd;
             padding: 0.3em;
             margin-right: 0.5em;
-            color: white;
             cursor: pointer;
             border-radius: 2px;
             display: inline-block;
             font-size: 1.2em;
 
             transition: all ease-in-out 0.4s;
-
-            &:hover {
-                background-color: goldenrod;
-            }
         }
 
         .page {
@@ -121,10 +111,8 @@
                 vertical-align: middle;
                 height: 2em;
                 width: 2em;
-                background: #0d6efd;
                 padding: 0.3em;
                 margin-right: 0.5em;
-                color: white;
                 cursor: pointer;
                 border-radius: 2px;
                 display: inline-block;
@@ -136,10 +124,6 @@
             .hide_navigation.not_disabled,
             .delete {
                 transition: all ease-in-out 0.4s;
-
-                &:hover {
-                    background-color: goldenrod;
-                }
             }
 
             .group_filters_name,
@@ -197,10 +181,8 @@
                 vertical-align: middle;
                 height: 2em;
                 width: 2em;
-                background: indianred;
                 padding: 0.3em;
                 margin-left: 0.5em;
-                color: white;
                 cursor: pointer;
                 border-radius: 2px;
                 display: inline-block;

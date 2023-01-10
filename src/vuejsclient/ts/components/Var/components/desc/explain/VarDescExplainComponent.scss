@@ -31,6 +31,9 @@
         .var_desc_explaination,
         .var_desc_public_explaination {
 
+            white-space: pre-wrap;
+            color: white;
+
             input,
             textarea {
                 color: black;

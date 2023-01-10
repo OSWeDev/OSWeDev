@@ -127,7 +127,7 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
 
         let valid_last_x_perfs: VarBatchVarPerfVO[] = this.filter_valid_var_perfs_for_perf_name(last_x_perfs, perf_name);
         if ((!valid_last_x_perfs) || (valid_last_x_perfs.length < this.USE_MIN_X_LAST_PERFS)) {
-            ConsoleHandler.getInstance().warn(`Not enough valid perfs for perf_name ${perf_name}:var_id:${last_x_perfs[0].var_id}:initially selected perfs:${last_x_perfs.length}:valid perfs:${valid_last_x_perfs ? valid_last_x_perfs.length : 0}`);
+            ConsoleHandler.warn(`Not enough valid perfs for perf_name ${perf_name}:var_id:${last_x_perfs[0].var_id}:initially selected perfs:${last_x_perfs.length}:valid perfs:${valid_last_x_perfs ? valid_last_x_perfs.length : 0}`);
             return;
         }
 
@@ -140,7 +140,7 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
             return;
         }
 
-        ConsoleHandler.getInstance().log(`Changing estimated_${perf_name}_1k_card from ${varcacheconf['estimated_' + perf_name + '_1k_card']} to ${mean_estimation} for var_id:${last_x_perfs[0].var_id}`);
+        ConsoleHandler.log(`Changing estimated_${perf_name}_1k_card from ${varcacheconf['estimated_' + perf_name + '_1k_card']} to ${mean_estimation} for var_id:${last_x_perfs[0].var_id}`);
 
         varcacheconf['estimated_' + perf_name + '_1k_card'] = mean_estimation;
     }
@@ -163,7 +163,7 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
         }
 
         if (this.debug) {
-            ConsoleHandler.getInstance().log(
+            ConsoleHandler.log(
                 'UpdateEstimationVarPerfHandler.get_ratiod_mean: start for ' + perf_name +
                 ' on [' + last_x_perf.var_id + '] ' + VarsServerController.getInstance().getVarConfById(last_x_perf.var_id).name);
         }
@@ -183,7 +183,7 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
                 all_var_ids_means_sum += (ratio_perf.realised_sum_ms / ratio_perf.realised_nb_card);
 
                 if (this.debug) {
-                    ConsoleHandler.getInstance().log(
+                    ConsoleHandler.log(
                         'UpdateEstimationVarPerfHandler.get_ratiod_mean: all_var_ids_means_sum ' + perf_name +
                         ' on [' + last_x_perf.var_id + '] ' + VarsServerController.getInstance().getVarConfById(last_x_perf.var_id).name +
                         ' : all_var_ids_means_sum += (ratio_perf.realised_sum_ms / ratio_perf.realised_nb_card) : ' + all_var_ids_means_sum + ' : (+' + (ratio_perf.realised_sum_ms / ratio_perf.realised_nb_card) + ') : ' +
@@ -197,7 +197,7 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
         // Le coef est compilé en prenant le temps de la stat ciblée perf_name, ramené au cardinal, divisé par la somme des temps de toutes les stats ratio_perfs_names (composants au final batch_perf_name et dont fait partie la perf_name), ramenées au cardinal également
         let coef = ((perf.realised_sum_ms / perf.realised_nb_card) / all_var_ids_means_sum);
         if (this.debug) {
-            ConsoleHandler.getInstance().log(
+            ConsoleHandler.log(
                 'UpdateEstimationVarPerfHandler.get_ratiod_mean: coef ' + perf_name +
                 ' on [' + last_x_perf.var_id + '] ' + VarsServerController.getInstance().getVarConfById(last_x_perf.var_id).name +
                 ' : coef = ((perf.realised_sum_ms / perf.realised_nb_card) / all_var_ids_means_sum) : ' + coef +
@@ -206,7 +206,7 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
 
         // on applique le coef au temps réel du batch, et on ramène au cardinal
         if (this.debug) {
-            ConsoleHandler.getInstance().log(
+            ConsoleHandler.log(
                 'UpdateEstimationVarPerfHandler.get_ratiod_mean: end for ' + perf_name +
                 ' on [' + last_x_perf.var_id + '] ' + VarsServerController.getInstance().getVarConfById(last_x_perf.var_id).name +
                 ' : res = coef * batch_perf_sum / perf.realised_nb_card : ' + coef * batch_perf_sum / perf.realised_nb_card +
@@ -229,7 +229,7 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
         let means: number[] = [];
 
         if (this.debug) {
-            ConsoleHandler.getInstance().log(
+            ConsoleHandler.log(
                 'UpdateEstimationVarPerfHandler.get_estimation: starting for ' + perf_name +
                 ' on ' + (last_x_var_perfs ? '[' + last_x_var_perfs[0].var_id + '] ' + VarsServerController.getInstance().getVarConfById(last_x_var_perfs[0].var_id).name : 'N/A'));
         }
@@ -243,7 +243,7 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
             }
 
             if (this.debug) {
-                ConsoleHandler.getInstance().log(
+                ConsoleHandler.log(
                     'UpdateEstimationVarPerfHandler.get_estimation: using mean for ' + perf_name +
                     ' on [' + last_x_var_perf.var_id + '] ' + VarsServerController.getInstance().getVarConfById(last_x_var_perf.var_id).name +
                     ' : mean : ' + ratiod_mean + ' : last_x_perf[perf_name].realised_sum_ms : ' + last_x_var_perf[perf_name].realised_sum_ms + ' : realised_nb_card : ' + last_x_var_perf[perf_name].realised_nb_card);
@@ -252,13 +252,13 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
         }
 
         if ((!means) || (!means.length)) {
-            ConsoleHandler.getInstance().warn(
+            ConsoleHandler.warn(
                 'UpdateEstimationVarPerfHandler.get_estimation: no means for ' + perf_name +
                 ' on ' + (last_x_var_perfs ? '[' + last_x_var_perfs[0].var_id + '] ' + VarsServerController.getInstance().getVarConfById(last_x_var_perfs[0].var_id).name : 'N/A'));
         }
 
         if (this.debug) {
-            ConsoleHandler.getInstance().log(
+            ConsoleHandler.log(
                 'UpdateEstimationVarPerfHandler.get_estimation: ending for ' + perf_name +
                 ' on ' + (last_x_var_perfs ? '[' + last_x_var_perfs[0].var_id + '] ' + VarsServerController.getInstance().getVarConfById(last_x_var_perfs[0].var_id).name : 'N/A' +
                     ' : mean : ' + ((means && means.length) ? mean(means) : 'N/A')));
@@ -282,7 +282,7 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
         let batch_ids_ranges = null;
 
         if (batch_ids && batch_ids.length) {
-            batch_ids_ranges = RangeHandler.getInstance().get_ids_ranges_from_list(batch_ids);
+            batch_ids_ranges = RangeHandler.get_ids_ranges_from_list(batch_ids);
             let batchs: VarBatchPerfVO[] = await query(VarBatchPerfVO.API_TYPE_ID)
                 .filter_by_ids(batch_ids_ranges)
                 .select_vos<VarBatchPerfVO>();
@@ -303,7 +303,7 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
         }
 
         if (batch_ids && batch_ids.length) {
-            batch_ids_ranges = RangeHandler.getInstance().get_ids_ranges_from_list(batch_ids);
+            batch_ids_ranges = RangeHandler.get_ids_ranges_from_list(batch_ids);
             let batchs_vars: VarBatchVarPerfVO[] = await query(VarBatchVarPerfVO.API_TYPE_ID)
                 .filter_by_num_x_ranges('var_batch_perf_id', batch_ids_ranges)
                 .select_vos<VarBatchVarPerfVO>();

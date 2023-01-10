@@ -1,4 +1,15 @@
 .month_filter_widget_component_options
+    .field_hide_filter
+        .input_label {{ label('month_filter_widget_component.hide_filter') }}
+        .input_wrapper
+            toggle-button(
+                @change="switch_hide_filter" 
+                :value="hide_filter" 
+                :sync="false"
+                :width="60"
+                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+            )
+
     .is_vo_field_ref 
         .input_label {{ label('month_filter_widget_component.is_vo_field_ref') }}
         .input_wrapper
@@ -53,6 +64,22 @@
                 :sync="false"
                 :width="150"
                 :labels="{checked: label('month_filter_widget_component.auto_select_month_relative_mode.data'), unchecked: label('month_filter_widget_component.auto_select_month_relative_mode.value')}")
+
+    .is_relative_to_other_filter(v-if='auto_select_month_relative_mode') 
+        .input_label {{ label('month_filter_widget_component.is_relative_to_other_filter') }}
+        .input_wrapper
+            toggle-button(
+                @change="switch_is_relative_to_other_filter" 
+                :value="is_relative_to_other_filter" 
+                :sync="false"
+                :width="150"
+                :labels="{checked: label('month_filter_widget_component.is_relative_to_other_filter.filter'), unchecked: label('month_filter_widget_component.is_relative_to_other_filter.now')}")
+
+    .relative_to_other_filter_id(v-if='auto_select_month_relative_mode && is_relative_to_other_filter')
+        .input_label {{ label('month_filter_widget_component.relative_to_other_filter_id') }}
+        .input_wrapper
+            select(v-model="relative_to_other_filter_id")
+                option(v-for="(filter, name) in other_filters_by_name" :value="filter.id") {{ name }}
 
     .auto_select_month_min
         .input_label {{ label('month_filter_widget_component.auto_select_month_min') }}

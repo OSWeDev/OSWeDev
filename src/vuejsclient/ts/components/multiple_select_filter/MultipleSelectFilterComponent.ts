@@ -192,7 +192,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
             this.tmp_filter_active_options = this.filter_active_options;
             this.actual_query = null;
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
     }
 
@@ -222,7 +222,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
 
             return this.$store.state[this.store_module_uid][this.internal_store_filter_state_uid];
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
         return [];
     }
@@ -274,7 +274,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
             }
             // return this.$store.state[this.store_module_uid][this.internal_store_selectables_by_ids_state_uid];
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
         return res;
     }
@@ -303,7 +303,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
             }
             return res;
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
         return {};
     }
@@ -331,7 +331,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
     }
 
     get moduletable(): ModuleTable<any> {
-        return VOsTypesManager.getInstance().moduleTables_by_voType[this.api_type_id];
+        return VOsTypesManager.moduleTables_by_voType[this.api_type_id];
     }
 
     get internal_store_filter_state_uid(): string {

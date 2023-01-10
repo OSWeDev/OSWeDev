@@ -82,7 +82,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     }
 
     private crud_api_type_id_select_label(api_type_id: string): string {
-        return this.t(VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id].label.code_text);
+        return this.t(VOsTypesManager.moduleTables_by_voType[api_type_id].label.code_text);
     }
 
     @Watch('page_widget', { immediate: true })
@@ -252,7 +252,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
     private get_new_column_id() {
         if (!this.widget_options) {
-            ConsoleHandler.getInstance().error('get_new_column_id:failed');
+            ConsoleHandler.error('get_new_column_id:failed');
             return null;
         }
 
@@ -375,7 +375,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         });
 
         if (i < 0) {
-            ConsoleHandler.getInstance().error('update_column failed');
+            ConsoleHandler.error('update_column failed');
             return null;
         }
 
@@ -429,7 +429,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         });
 
         if (i < 0) {
-            ConsoleHandler.getInstance().error('remove_column failed');
+            ConsoleHandler.error('remove_column failed');
             return null;
         }
 
@@ -540,7 +540,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         try {
             this.page_widget.json_options = JSON.stringify(this.next_update_options);
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
         await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
 
@@ -552,7 +552,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         this.set_page_widget(this.page_widget);
         this.$emit('update_layout_widget', this.page_widget);
 
-        let name = VOsTypesManager.getInstance().vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
+        let name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
         let get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
         this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
     }
@@ -605,7 +605,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                 ) : null;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return options;

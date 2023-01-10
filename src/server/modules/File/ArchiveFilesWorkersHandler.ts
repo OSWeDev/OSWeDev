@@ -29,6 +29,6 @@ export default class ArchiveFilesWorkersHandler {
         planCronWorker.type_recurrence = CronWorkerPlanification.TYPE_RECURRENCE_JOURS;
         planCronWorker.worker_uid = ArchiveFilesCronWorker.getInstance().worker_uid;
 
-        ModuleCronServer.getInstance().planCronWorker(planCronWorker).then().catch((error) => ConsoleHandler.getInstance().error(error));
+        ModuleCronServer.getInstance().planCronWorker(planCronWorker).then().catch((error) => ConsoleHandler.error(error));
     }
 }

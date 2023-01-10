@@ -26,7 +26,7 @@ export default class FakeVarControllerDsDistant extends VarServerControllerBase<
     protected static instance: FakeVarControllerDsDistant = null;
 
     protected constructor() {
-        super(new VarConfVO('FakeVarControllerDsDistant', FakeDataVO.API_TYPE_ID, TimeSegment.TYPE_DAY, null, 1), {}, {}, {}, {});
+        super(new VarConfVO('FakeVarControllerDsDistant', FakeDataVO.API_TYPE_ID, null, 1), {}, {}, {}, {});
 
         this.optimization__has_no_imports = true;
     }
@@ -50,7 +50,7 @@ export default class FakeVarControllerDsDistant extends VarServerControllerBase<
             VarDataBaseVO.createNew(
                 this.varConf.name,
                 false,
-                [RangeHandler.getInstance().create_single_elt_TSRange((c_or_d_vo as FakeDistantVO).date, TimeSegment.TYPE_DAY)]
+                [RangeHandler.create_single_elt_TSRange((c_or_d_vo as FakeDistantVO).date, TimeSegment.TYPE_DAY)]
             )
         ];
     }
@@ -68,12 +68,12 @@ export default class FakeVarControllerDsDistant extends VarServerControllerBase<
             VarDataBaseVO.createNew(
                 this.varConf.name,
                 false,
-                [RangeHandler.getInstance().create_single_elt_TSRange((typed.pre_update_vo as FakeDistantVO).date, TimeSegment.TYPE_DAY)]
+                [RangeHandler.create_single_elt_TSRange((typed.pre_update_vo as FakeDistantVO).date, TimeSegment.TYPE_DAY)]
             ),
             VarDataBaseVO.createNew(
                 this.varConf.name,
                 false,
-                [RangeHandler.getInstance().create_single_elt_TSRange((typed.post_update_vo as FakeDistantVO).date, TimeSegment.TYPE_DAY)]
+                [RangeHandler.create_single_elt_TSRange((typed.post_update_vo as FakeDistantVO).date, TimeSegment.TYPE_DAY)]
             )
         ];
     }
@@ -84,11 +84,11 @@ export default class FakeVarControllerDsDistant extends VarServerControllerBase<
 
         let datas: { [date_value: number]: FakeDistantVO } = varDAGNode.datasources[FakeDistantDatasourceController.getInstance().name];
 
-        RangeHandler.getInstance().foreach_ranges_sync((varDAGNode.var_data as FakeDataVO).ts_ranges, (date: number) => {
+        RangeHandler.foreach_ranges_sync((varDAGNode.var_data as FakeDataVO).ts_ranges, (date: number) => {
 
             res += (datas && datas[date]) ? datas[date].value : 0;
 
-        }, this.varConf.ts_ranges_segment_type);
+        }, TimeSegment.TYPE_DAY);
         return res;
     }
 }

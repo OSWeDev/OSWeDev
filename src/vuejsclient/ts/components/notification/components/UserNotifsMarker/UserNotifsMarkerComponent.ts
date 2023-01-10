@@ -42,7 +42,7 @@ export default class UserNotifsMarkerComponent extends VueComponentBase {
         }
 
         this.set_is_updating(true);
-        this.set_notifications_by_ids(VOsTypesManager.getInstance().vosArray_to_vosByIds(
+        this.set_notifications_by_ids(VOsTypesManager.vosArray_to_vosByIds(
             await query(NotificationVO.API_TYPE_ID).filter_by_num_eq('user_id', VueAppController.getInstance().data_user.id).select_vos<NotificationVO>()));
         this.set_is_updating(false);
     }

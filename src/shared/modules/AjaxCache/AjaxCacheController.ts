@@ -26,7 +26,7 @@ export default class AjaxCacheController {
                     return url + (postdatas ? '##___##' + (AjaxCacheController.POST_UID++) : '');
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error('Index impossible à créer:' + url + ':' + postdatas + ':' + error + ':');
+            ConsoleHandler.error('Index impossible à créer:' + url + ':' + postdatas + ':' + error + ':');
         }
     }
 }

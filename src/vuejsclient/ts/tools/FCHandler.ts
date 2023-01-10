@@ -52,7 +52,7 @@ export default class FCHandler {
             return;
         }
 
-        this.setEventObjectInputStart(fcevent, date, RangeHandler.getInstance().getSegmentedMin(hour_range, hour_segment_type));
-        this.setEventObjectInputEnd(fcevent, date, RangeHandler.getInstance().getSegmentedMax(hour_range, hour_segment_type));
+        this.setEventObjectInputStart(fcevent, date, RangeHandler.getSegmentedMin(hour_range, hour_segment_type));
+        this.setEventObjectInputEnd(fcevent, date, RangeHandler.getSegmentedMax(hour_range, hour_segment_type));
     }
 }

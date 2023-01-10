@@ -1,19 +1,15 @@
+import ContextFilterVO, { filter } from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import SortByVO from '../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import ExportHistoricVO from '../../../../shared/modules/DataExport/vos/ExportHistoricVO';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
-import ModuleDAOServer from '../../DAO/ModuleDAOServer';
+import PushDataServerController from '../../PushData/PushDataServerController';
 import DataExportServerController from '../DataExportServerController';
 import IExportableDatas from '../interfaces/IExportableDatas';
-import moment = require('moment');
-import ModulePushDataServer from '../../PushData/ModulePushDataServer';
-import PushDataServerController from '../../PushData/PushDataServerController';
-import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import RangeHandler from '../../../../shared/tools/RangeHandler';
-import ContextFilterVO, { filter } from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import SortByVO from '../../../../shared/modules/ContextFilter/vos/SortByVO';
 
 export default class DataExportBGThread implements IBGThread {
 
@@ -59,17 +55,17 @@ export default class DataExportBGThread implements IBGThread {
             }
 
             if (exhi.state == ExportHistoricVO.EXPORT_STATE_RUNNING) {
-                ConsoleHandler.getInstance().warn('ATTENTION : Un export est relancé :' + exhi.id + ':' + exhi.export_type_id + ':');
+                ConsoleHandler.warn('ATTENTION : Un export est relancé :' + exhi.id + ':' + exhi.export_type_id + ':');
             }
 
             if (!await this.handleHistoric(exhi)) {
-                ConsoleHandler.getInstance().error('ATTENTION : Un export a échoué :' + exhi.id + ':' + exhi.export_type_id + ':');
+                ConsoleHandler.error('ATTENTION : Un export a échoué :' + exhi.id + ':' + exhi.export_type_id + ':');
                 return ModuleBGThreadServer.TIMEOUT_COEF_SLEEP;
             }
-            ConsoleHandler.getInstance().log('Un export est terminé :' + exhi.id + ':' + exhi.export_type_id + ':');
+            ConsoleHandler.log('Un export est terminé :' + exhi.id + ':' + exhi.export_type_id + ':');
             return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return ModuleBGThreadServer.TIMEOUT_COEF_SLEEP;
@@ -86,7 +82,7 @@ export default class DataExportBGThread implements IBGThread {
         await ModuleDAO.getInstance().insertOrUpdateVO(exhi);
 
         if (!DataExportServerController.getInstance().export_handlers[exhi.export_type_id]) {
-            ConsoleHandler.getInstance().error('Impossible de trouver la méthode pour exporter');
+            ConsoleHandler.error('Impossible de trouver la méthode pour exporter');
 
             await this.failExport(exhi);
             return false;
@@ -130,7 +126,7 @@ export default class DataExportBGThread implements IBGThread {
             return true;
 
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
             await this.failExport(exhi);
 
             if (!!exhi.export_to_uid) {

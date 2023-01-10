@@ -65,82 +65,82 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
     public async configure() {
         ModuleBGThreadServer.getInstance().registerBGThread(SupervisionBGThread.getInstance());
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Supervision'
         }, 'menu.menuelements.admin.SupervisionAdminVueModule.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Supervision'
         }, 'menu.menuelements.admin.SupervisionDashboard.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'ERROR'
         }, 'supervision.STATE_ERROR'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'ERROR - READ'
         }, 'supervision.STATE_ERROR_READ'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'OK'
         }, 'supervision.STATE_OK'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'PAUSED'
         }, 'supervision.STATE_PAUSED'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'UNKNOWN'
         }, 'supervision.STATE_UNKOWN'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'WARN'
         }, 'supervision.STATE_WARN'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'WARN - READ'
         }, 'supervision.STATE_WARN_READ'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Tout'
         }, 'supervision.dashboard.all.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Catégories'
         }, 'supervision.dashboard.category.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Catégories'
         }, 'menu.menuelements.admin.SupervisedCategoryVO.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Types de sonde'
         }, 'supervision.dashboard.types_de_sonde.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Recherche par nom de ligne'
         }, 'supervision.filter_text.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Tout sélectionner/désélectionner'
         }, 'supervision.change_state.select_all.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Marquer comme lu(s)'
         }, 'supervision.change_state.to_read.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Marquer comme non lu(s)'
         }, 'supervision.change_state.to_unread.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Fermer'
         }, 'supervision.item_modal.close.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Masquer le graph'
         }, 'supervision.item.graph.on.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Afficher le graph'
         }, 'supervision.item.graph.off.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Erreur'
         }, 'supervision.legend.STATE_ERROR.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Erreur prise en compte'
         }, 'supervision.legend.STATE_ERROR_READ.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Valide'
         }, 'supervision.legend.STATE_OK.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'En pause ou non défini'
         }, 'supervision.legend.STATE_PAUSED_et_STATE_UNKOWN.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Warning'
         }, 'supervision.legend.STATE_WARN.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Warning prise en compte'
         }, 'supervision.legend.STATE_WARN_READ.___LABEL___'));
 
@@ -213,7 +213,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             }
 
             if (has_new_value) {
-                let moduletablefields = VOsTypesManager.getInstance().moduleTables_by_voType[vo_update_handler.post_update_vo._type].get_fields();
+                let moduletablefields = VOsTypesManager.moduleTables_by_voType[vo_update_handler.post_update_vo._type].get_fields();
                 for (let i in moduletablefields) {
                     let moduletablefield = moduletablefields[i];
 
@@ -258,9 +258,9 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             /**
              * On historise
              */
-            let historique: ISupervisedItem = VOsTypesManager.getInstance().moduleTables_by_voType[vo_update_handler.post_update_vo._type].getNewVO() as ISupervisedItem;
+            let historique: ISupervisedItem = VOsTypesManager.moduleTables_by_voType[vo_update_handler.post_update_vo._type].getNewVO() as ISupervisedItem;
 
-            let moduletablefields = VOsTypesManager.getInstance().moduleTables_by_voType[vo_update_handler.post_update_vo._type].get_fields();
+            let moduletablefields = VOsTypesManager.moduleTables_by_voType[vo_update_handler.post_update_vo._type].get_fields();
             for (let i in moduletablefields) {
                 let moduletablefield = moduletablefields[i];
 
@@ -299,7 +299,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             return;
         }
 
-        if (ConfigurationService.getInstance().node_configuration.BLOCK_MAIL_DELIVERY) {
+        if (ConfigurationService.node_configuration.BLOCK_MAIL_DELIVERY) {
             return;
         }
 
@@ -316,14 +316,14 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         message.title = 'Supervision - Nouvelle ERREUR';
         message.summary = 'ERREUR : ' + supervised_item.name;
         message.sections.push(
-            new TeamsWebhookContentSectionVO().set_text('<blockquote>ERREUR : <a href=\"' + ConfigurationService.getInstance().node_configuration.BASE_URL + 'admin/#/supervision/dashboard/item/' + supervised_item._type + '/' + supervised_item.id + '\">' + supervised_item.name + '</a></blockquote>')
-                .set_activityImage(ConfigurationService.getInstance().node_configuration.BASE_URL + "vuejsclient/public/img/error.png"));
+            new TeamsWebhookContentSectionVO().set_text('<blockquote>ERREUR : <a href=\"' + ConfigurationService.node_configuration.BASE_URL + 'admin/#/supervision/dashboard/item/' + supervised_item._type + '/' + supervised_item.id + '\">' + supervised_item.name + '</a></blockquote>')
+                .set_activityImage(ConfigurationService.node_configuration.BASE_URL + "vuejsclient/public/img/error.png"));
 
         // protection contre le cas très spécifique de la création d'une sonde en erreur (qui ne devrait jamais arriver)
         if (!!supervised_item.id) {
             message.potentialAction.push(new TeamsWebhookContentActionCardVO().set_type("OpenUri").set_name('Consulter').set_targets([
                 new TeamsWebhookContentActionCardOpenURITargetVO().set_os('default').set_uri(
-                    ConfigurationService.getInstance().node_configuration.BASE_URL + 'admin/#/supervision/dashboard/item/' + supervised_item._type + '/' + supervised_item.id)]));
+                    ConfigurationService.node_configuration.BASE_URL + 'admin/#/supervision/dashboard/item/' + supervised_item._type + '/' + supervised_item.id)]));
         }
 
         let urls: ISupervisedItemURL[] = SupervisionController.getInstance().registered_controllers[supervised_item._type].get_urls(supervised_item);
@@ -344,7 +344,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             return;
         }
 
-        if (ConfigurationService.getInstance().node_configuration.BLOCK_MAIL_DELIVERY) {
+        if (ConfigurationService.node_configuration.BLOCK_MAIL_DELIVERY) {
             return;
         }
 
@@ -361,11 +361,11 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         message.title = 'Supervision - Retour a la normale';
         message.summary = 'OK : ' + supervised_item.name;
         message.sections.push(
-            new TeamsWebhookContentSectionVO().set_text('<blockquote>Retour a la normale : <a href=\"' + ConfigurationService.getInstance().node_configuration.BASE_URL + 'admin/#/supervision/dashboard/item/' + supervised_item._type + '/' + supervised_item.id + '\">' + supervised_item.name + '</a></blockquote>')
-                .set_activityImage(ConfigurationService.getInstance().node_configuration.BASE_URL + "vuejsclient/public/img/ok.png"));
+            new TeamsWebhookContentSectionVO().set_text('<blockquote>Retour a la normale : <a href=\"' + ConfigurationService.node_configuration.BASE_URL + 'admin/#/supervision/dashboard/item/' + supervised_item._type + '/' + supervised_item.id + '\">' + supervised_item.name + '</a></blockquote>')
+                .set_activityImage(ConfigurationService.node_configuration.BASE_URL + "vuejsclient/public/img/ok.png"));
         message.potentialAction.push(new TeamsWebhookContentActionCardVO().set_type("OpenUri").set_name('Consulter').set_targets([
             new TeamsWebhookContentActionCardOpenURITargetVO().set_os('default').set_uri(
-                ConfigurationService.getInstance().node_configuration.BASE_URL + 'admin/#/supervision/dashboard/item/' + supervised_item._type + '/' + supervised_item.id)]));
+                ConfigurationService.node_configuration.BASE_URL + 'admin/#/supervision/dashboard/item/' + supervised_item._type + '/' + supervised_item.id)]));
 
         let urls: ISupervisedItemURL[] = SupervisionController.getInstance().registered_controllers[supervised_item._type].get_urls(supervised_item);
         for (let i in urls) {

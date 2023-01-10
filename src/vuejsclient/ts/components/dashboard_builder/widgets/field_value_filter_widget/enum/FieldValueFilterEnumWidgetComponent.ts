@@ -20,7 +20,9 @@ import TypesHandler from '../../../../../../../shared/tools/TypesHandler';
 import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
+import ValidationFiltersCallUpdaters from '../../validation_filters_widget/ValidationFiltersCallUpdaters';
 import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
+import FieldValueFilterWidgetController from '../FieldValueFilterWidgetController';
 import FieldValueFilterWidgetOptions from '../options/FieldValueFilterWidgetOptions';
 import './FieldValueFilterEnumWidgetComponent.scss';
 
@@ -89,11 +91,6 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         this.old_widget_options = cloneDeep(this.widget_options);
 
         this.is_init = false;
-        ValidationFiltersWidgetController.getInstance().set_is_init(
-            this.dashboard_page,
-            this.page_widget,
-            false
-        );
         await this.throttled_update_visible_options();
     }
 
@@ -120,7 +117,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             return;
         }
 
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id];
+        let moduletable = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id];
         let field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
         let has_null_value: boolean = false;
 
@@ -188,11 +185,6 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
         if (!old_is_init) {
             if (this.default_values && (this.default_values.length > 0)) {
-                ValidationFiltersWidgetController.getInstance().set_is_init(
-                    this.dashboard_page,
-                    this.page_widget,
-                    true
-                );
 
                 // Si je n'ai pas de filtre actif OU que ma valeur de default values à changée, je prends les valeurs par défaut
                 let has_active_field_filter: boolean = !!(
@@ -204,6 +196,14 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
                 if (!has_active_field_filter || this.default_values_changed) {
                     this.default_values_changed = false;
                     this.tmp_filter_active_options = this.default_values;
+
+                    ValidationFiltersWidgetController.getInstance().throttle_call_updaters(
+                        new ValidationFiltersCallUpdaters(
+                            this.dashboard_page.dashboard_id,
+                            this.dashboard_page.id
+                        )
+                    );
+
                     return;
                 }
             }
@@ -247,7 +247,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
         // Si je suis sur une table segmentée, je vais voir si j'ai un filtre sur mon field qui segmente
         // Si ce n'est pas le cas, je n'envoie pas la requête
-        let base_table: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[query_.base_api_type_id];
+        let base_table: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[query_.base_api_type_id];
 
         if (
             base_table &&
@@ -274,6 +274,8 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             if (!has_filter) {
                 return;
             }
+        } else {
+            query_ = await FieldValueFilterWidgetController.getInstance().check_segmented_dependencies(this.dashboard, query_, true);
         }
 
         tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(
@@ -325,7 +327,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             return true;
         }
 
-        RangeHandler.getInstance().foreach_ranges_sync(filter.param_numranges, (num: number) => {
+        RangeHandler.foreach_ranges_sync(filter.param_numranges, (num: number) => {
 
             let datafilter = new DataFilterOption(
                 DataFilterOption.STATE_SELECTED,
@@ -358,7 +360,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             return null;
         }
 
-        return VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
+        return VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
     }
 
     get placeholder(): string {
@@ -484,6 +486,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
                     options.vo_field_sort,
                     options.can_select_multiple,
                     options.is_checkbox,
+                    options.checkbox_columns,
                     options.max_visible_options,
                     options.show_search_field,
                     options.hide_lvl2_if_lvl1_not_selected,
@@ -510,7 +513,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
                 ) : null;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return options;

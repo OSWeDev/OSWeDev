@@ -59,13 +59,13 @@ export default class HourRange implements IRange {
             return null;
         }
 
-        let range_min_ts: HourSegment = HourSegmentHandler.getInstance().getCorrespondingHourSegment(min, segment_type);
+        let range_min_ts: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(min, segment_type);
 
         if (!min_inclusiv) {
-            HourSegmentHandler.getInstance().incHourSegment(range_min_ts);
+            HourSegmentHandler.incHourSegment(range_min_ts);
         }
 
-        let range_max_ts: HourSegment = HourSegmentHandler.getInstance().getCorrespondingHourSegment(max, segment_type);
+        let range_max_ts: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(max, segment_type);
 
         if (Durations.as(range_min_ts.index, HourSegment.TYPE_SECOND) > Durations.as(range_max_ts.index, HourSegment.TYPE_SECOND)) {
             return null;
@@ -91,13 +91,13 @@ export default class HourRange implements IRange {
             return null;
         }
 
-        let range_max_ts: HourSegment = HourSegmentHandler.getInstance().getCorrespondingHourSegment(max, segment_type);
+        let range_max_ts: HourSegment = HourSegmentHandler.getCorrespondingHourSegment(max, segment_type);
 
-        if ((!max_inclusiv) && HourSegmentHandler.getInstance().isEltInSegment(max, range_max_ts)) {
-            HourSegmentHandler.getInstance().decHourSegment(range_max_ts);
+        if ((!max_inclusiv) && HourSegmentHandler.isEltInSegment(max, range_max_ts)) {
+            HourSegmentHandler.decHourSegment(range_max_ts);
         }
 
-        let range_max_end: number = HourSegmentHandler.getInstance().getEndHourSegment(range_max_ts);
+        let range_max_end: number = HourSegmentHandler.getEndHourSegment(range_max_ts);
 
         if (Durations.as(range_max_end, HourSegment.TYPE_SECOND) < Durations.as(min, HourSegment.TYPE_SECOND)) {
             return null;

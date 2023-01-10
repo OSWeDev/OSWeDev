@@ -98,7 +98,7 @@ export default class MaintenanceBGThread implements IBGThread {
                 await ModuleDAO.getInstance().insertOrUpdateVO(maintenance);
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return ModuleBGThreadServer.TIMEOUT_COEF_SLOWER;

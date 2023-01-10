@@ -2,6 +2,8 @@ import ParameterizedQueryWrapper from '../../../server/modules/ContextFilter/vos
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
+import DatatableField from '../DAO/vos/datatable/DatatableField';
+import TableColumnDescVO from '../DashboardBuilder/vos/TableColumnDescVO';
 import DataFilterOption from '../DataRender/vos/DataFilterOption';
 import IDistantVOBase from '../IDistantVOBase';
 import Module from '../Module';
@@ -11,6 +13,7 @@ import VarConfVO from '../Var/vos/VarConfVO';
 import ContextFilterVO from './vos/ContextFilterVO';
 import ContextQueryFieldVO from './vos/ContextQueryFieldVO';
 import ContextQueryVO from './vos/ContextQueryVO';
+import CountValidSegmentationsParamVO, { CountValidSegmentationsParamVOStatic } from './vos/CountValidSegmentationsParamVO';
 import DeleteVosParamVO, { DeleteVosParamVOStatic } from './vos/DeleteVosParamVO';
 import SelectFilterVisibleOptionsParamVO, { SelectFilterVisibleOptionsParamVOStatic } from './vos/GetOptionsFromContextFiltersParamVO';
 import QueryVOFromUniqueFieldContextFiltersParamVO, { QueryVOFromUniqueFieldContextFiltersParamVOStatic } from './vos/QueryVOFromUniqueFieldContextFiltersParamVO';
@@ -35,6 +38,7 @@ export default class ModuleContextFilter extends Module {
     public static APINAME_delete_vos: string = "delete_vos";
     public static APINAME_update_vos: string = "update_vos";
     public static APINAME_select_vo_from_unique_field: string = "select_vo_from_unique_field";
+    public static APINAME_count_valid_segmentations: string = "count_valid_segmentations";
     public static APINAME_build_select_query: string = "build_select_query";
 
     public static getInstance(): ModuleContextFilter {
@@ -45,6 +49,12 @@ export default class ModuleContextFilter extends Module {
     }
 
     private static instance: ModuleContextFilter = null;
+
+    /**
+     * Compter les segmentations valides à partir des filtres passés en paramètres (pour un type segmenté donné)
+     * @param context_query
+     */
+    public count_valid_segmentations: (api_type_id: string, context_query: ContextQueryVO, ignore_self_filter?: boolean) => Promise<number> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_count_valid_segmentations);
 
     /**
      * Filtrer des infos avec les context filters, en indiquant obligatoirement les champs ciblés, qui peuvent appartenir à des tables différentes
@@ -59,7 +69,9 @@ export default class ModuleContextFilter extends Module {
      * @param context_query le champs fields doit être rempli avec les champs ciblés par la requête (et avec les alias voulus)
      */
     public select_datatable_rows: (
-        context_query: ContextQueryVO
+        context_query: ContextQueryVO,
+        columns_by_field_id: { [datatable_field_uid: string]: TableColumnDescVO },
+        fields: { [datatable_field_uid: number]: DatatableField<any, any> }
     ) => Promise<any[]> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_select_datatable_rows);
 
     /**
@@ -141,6 +153,13 @@ export default class ModuleContextFilter extends Module {
     }
 
     public registerApis() {
+
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<CountValidSegmentationsParamVO, any[]>(
+            null,
+            ModuleContextFilter.APINAME_count_valid_segmentations,
+            null,
+            CountValidSegmentationsParamVOStatic
+        ));
 
         APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<SelectVosParamVO, any[]>(
             null,
@@ -226,15 +245,16 @@ export default class ModuleContextFilter extends Module {
             new ModuleTableField('filter_type', ModuleTableField.FIELD_TYPE_enum, 'Type', true).setEnumValues(ContextFilterVO.TYPE_LABELS),
             new ModuleTableField('param_text', ModuleTableField.FIELD_TYPE_string, 'param_text', false),
             new ModuleTableField('param_numeric', ModuleTableField.FIELD_TYPE_float, 'param_numeric', false),
+            new ModuleTableField('param_numeric_array', ModuleTableField.FIELD_TYPE_int_array, 'param_numeric_array', false),
             new ModuleTableField('param_textarray', ModuleTableField.FIELD_TYPE_string_array, 'param_textarray', false),
             new ModuleTableField('param_tsrange', ModuleTableField.FIELD_TYPE_tstz_array, 'param_tsrange', false),
             new ModuleTableField('param_numranges', ModuleTableField.FIELD_TYPE_numrange_array, 'param_numranges', false),
             new ModuleTableField('param_hourranges', ModuleTableField.FIELD_TYPE_hourrange_array, 'param_hourranges', false),
 
-            new ModuleTableField('left_hook', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'left_hook', false).set_plain_obj_cstr(() => new ContextFilterVO()),
-            new ModuleTableField('right_hook', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'right_hook', false).set_plain_obj_cstr(() => new ContextFilterVO()),
+            new ModuleTableField('left_hook', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'left_hook', false),
+            new ModuleTableField('right_hook', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'right_hook', false),
 
-            new ModuleTableField('sub_query', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'sub_query', false).set_plain_obj_cstr(() => new ContextQueryVO()),
+            new ModuleTableField('sub_query', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'sub_query', false),
         ];
 
         let datatable = new ModuleTable(this, ContextFilterVO.API_TYPE_ID, () => new ContextFilterVO(), datatable_fields, null, "Filtre contextuel");
@@ -258,19 +278,17 @@ export default class ModuleContextFilter extends Module {
 
         let datatable_fields = [
             new ModuleTableField('base_api_type_id', ModuleTableField.FIELD_TYPE_string, 'base_api_type_id', true),
-            new ModuleTableField('fields', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'fields', false).set_plain_obj_cstr(() => new ContextQueryFieldVO()),
-            new ModuleTableField('filters', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'filters', false).set_plain_obj_cstr(() => new ContextFilterVO()),
+            new ModuleTableField('fields', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'fields', false),
+            new ModuleTableField('filters', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'filters', false),
             new ModuleTableField('active_api_type_ids', ModuleTableField.FIELD_TYPE_string_array, 'active_api_type_ids', false),
             new ModuleTableField('query_limit', ModuleTableField.FIELD_TYPE_int, 'query_limit', true, true, 0),
             new ModuleTableField('query_offset', ModuleTableField.FIELD_TYPE_int, 'query_offset', true, true, 0),
-            new ModuleTableField('sort_by', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'sort_by', false).set_plain_obj_cstr(() => new SortByVO()),
+            new ModuleTableField('sort_by', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'sort_by', false),
             new ModuleTableField('query_tables_prefix', ModuleTableField.FIELD_TYPE_string, 'query_tables_prefix', false),
             new ModuleTableField('is_access_hook_def', ModuleTableField.FIELD_TYPE_boolean, 'is_access_hook_def', true, true, false),
             new ModuleTableField('use_technical_field_versioning', ModuleTableField.FIELD_TYPE_boolean, 'use_technical_field_versioning', true, true, false),
             new ModuleTableField('query_distinct', ModuleTableField.FIELD_TYPE_boolean, 'query_distinct', true, true, false),
-            new ModuleTableField('discarded_field_paths', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'discarded_field_paths', false).set_plain_obj_cstr(() => {
-                return {};
-            }),
+            new ModuleTableField('discarded_field_paths', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'discarded_field_paths', false),
         ];
 
         let datatable = new ModuleTable(this, ContextQueryVO.API_TYPE_ID, () => new ContextQueryVO(), datatable_fields, null, "Requête");

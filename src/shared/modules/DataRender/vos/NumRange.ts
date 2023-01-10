@@ -56,7 +56,7 @@ export default class NumRange implements IRange {
             return null;
         }
 
-        let tmp_end = NumSegmentHandler.getInstance().incNum(end_range, segment_type, 1);
+        let tmp_end = NumSegmentHandler.incNum(end_range, segment_type, 1);
 
         end_range = tmp_end;
 
@@ -82,13 +82,13 @@ export default class NumRange implements IRange {
             return null;
         }
 
-        let range_min_ts: NumSegment = NumSegmentHandler.getInstance().getCorrespondingNumSegment(min, segment_type);
+        let range_min_ts: NumSegment = NumSegmentHandler.getCorrespondingNumSegment(min, segment_type);
 
         if (!min_inclusiv) {
-            NumSegmentHandler.getInstance().incNumSegment(range_min_ts);
+            NumSegmentHandler.incNumSegment(range_min_ts);
         }
 
-        let range_max_ts: NumSegment = NumSegmentHandler.getInstance().getCorrespondingNumSegment(max, segment_type);
+        let range_max_ts: NumSegment = NumSegmentHandler.getCorrespondingNumSegment(max, segment_type);
 
         if (range_min_ts.index > range_max_ts.index) {
             return null;
@@ -114,13 +114,13 @@ export default class NumRange implements IRange {
             return null;
         }
 
-        let range_max_segment: NumSegment = NumSegmentHandler.getInstance().getCorrespondingNumSegment(max, segment_type);
+        let range_max_segment: NumSegment = NumSegmentHandler.getCorrespondingNumSegment(max, segment_type);
 
-        if ((!max_inclusiv) && NumSegmentHandler.getInstance().isEltInSegment(max, range_max_segment)) {
-            NumSegmentHandler.getInstance().decNumSegment(range_max_segment);
+        if ((!max_inclusiv) && NumSegmentHandler.isEltInSegment(max, range_max_segment)) {
+            NumSegmentHandler.decNumSegment(range_max_segment);
         }
 
-        let range_max_end: number = NumSegmentHandler.getInstance().getEndNumSegment(range_max_segment);
+        let range_max_end: number = NumSegmentHandler.getEndNumSegment(range_max_segment);
 
         if (range_max_end < min) {
             return null;

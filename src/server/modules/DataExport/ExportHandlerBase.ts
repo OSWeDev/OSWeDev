@@ -44,7 +44,7 @@ export default abstract class ExportHandlerBase implements IExportHandler {
             );
             exhi.exported_file_id = file.id;
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
             return false;
         }
 
@@ -60,11 +60,11 @@ export default abstract class ExportHandlerBase implements IExportHandler {
         try {
 
             if (!exhi.export_to_uid) {
-                ConsoleHandler.getInstance().error('Impossible d\'envoyer par défaut sans choix de langue - Not implemented');
+                ConsoleHandler.error('Impossible d\'envoyer par défaut sans choix de langue - Not implemented');
                 return false;
             }
 
-            let envParam: EnvParam = ConfigurationService.getInstance().node_configuration;
+            let envParam: EnvParam = ConfigurationService.node_configuration;
 
             let user_id: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
             let user: UserVO = null;
@@ -73,7 +73,7 @@ export default abstract class ExportHandlerBase implements IExportHandler {
             } else {
                 user = await query(UserVO.API_TYPE_ID).filter_by_id(exhi.export_to_uid).select_vo<UserVO>();
                 if (!user) {
-                    ConsoleHandler.getInstance().error('Failed loading user');
+                    ConsoleHandler.error('Failed loading user');
                     return false;
                 }
             }
@@ -120,7 +120,7 @@ export default abstract class ExportHandlerBase implements IExportHandler {
                 });
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
             return false;
         }
 

@@ -35,7 +35,7 @@ export default class DroppableVosComponent extends VueComponentBase {
     get api_type_ids(): string[] {
         let res: string[] = [];
 
-        for (let vo_type in VOsTypesManager.getInstance().moduleTables_by_voType) {
+        for (let vo_type in VOsTypesManager.moduleTables_by_voType) {
 
             if (DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids &&
                 (typeof DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids[vo_type] === 'undefined')) {
@@ -55,7 +55,7 @@ export default class DroppableVosComponent extends VueComponentBase {
 
         for (let i in this.api_type_ids) {
             let vo_type = this.api_type_ids[i];
-            res[vo_type] = this.t(VOsTypesManager.getInstance().moduleTables_by_voType[vo_type].label.code_text);
+            res[vo_type] = this.t(VOsTypesManager.moduleTables_by_voType[vo_type].label.code_text);
         }
 
         return res;

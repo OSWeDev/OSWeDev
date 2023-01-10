@@ -12,6 +12,7 @@ import IRange from '../DataRender/interfaces/IRange';
 import NumRange from '../DataRender/vos/NumRange';
 import IMatroid from '../Matroid/interfaces/IMatroid';
 import Module from '../Module';
+import ModuleTable from '../ModuleTable';
 import VOsTypesManager from '../VOsTypesManager';
 import APIDAOApiTypeAndMatroidsParamsVO, { APIDAOApiTypeAndMatroidsParamsVOStatic } from './vos/APIDAOApiTypeAndMatroidsParamsVO';
 import APIDAOIdsRangesParamsVO, { APIDAOIdsRangesParamsVOStatic } from './vos/APIDAOIdsRangesParamsVO';
@@ -23,6 +24,7 @@ import APIDAORefFieldsAndFieldsStringParamsVO, { APIDAORefFieldsAndFieldsStringP
 import APIDAORefFieldsParamsVO, { APIDAORefFieldsParamsVOStatic } from './vos/APIDAORefFieldsParamsVO';
 import APIDAOselectUsersForCheckUnicityVO, { APIDAOselectUsersForCheckUnicityVOStatic } from './vos/APIDAOselectUsersForCheckUnicityVO';
 import APIDAOTypeLimitOffsetVO, { APIDAOTypeLimitOffsetVOStatic } from './vos/APIDAOTypeLimitOffsetVO';
+import ComputedDatatableFieldVO from './vos/datatable/ComputedDatatableFieldVO';
 import InsertOrDeleteQueryResult from './vos/InsertOrDeleteQueryResult';
 
 export default class ModuleDAO extends Module {
@@ -509,11 +511,34 @@ export default class ModuleDAO extends Module {
         this.datatables = [];
     }
 
+    public get_compute_function_uid(vo_type: string) {
+        return vo_type + '__label_function';
+    }
+
+    public async late_configuration() {
+
+        for (let i in VOsTypesManager.moduleTables_by_voType) {
+            let moduleTable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[i];
+            if (!moduleTable) {
+                continue;
+            }
+
+            if (moduleTable.table_label_function) {
+                ComputedDatatableFieldVO.define_compute_function(this.get_compute_function_uid(moduleTable.vo_type), moduleTable.table_label_function);
+            }
+        }
+    }
+
+    public async hook_module_async_client_admin_initialization(): Promise<any> {
+        await this.late_configuration();
+    }
+
+
     public getAccessPolicyName(access_type: string, vo_type: string): string {
         if ((!access_type) || (!vo_type)) {
             return null;
         }
-        let isModulesParams: boolean = VOsTypesManager.getInstance().moduleTables_by_voType[vo_type].isModuleParamTable;
+        let isModulesParams: boolean = VOsTypesManager.moduleTables_by_voType[vo_type].isModuleParamTable;
         return (isModulesParams ? ModuleDAO.POLICY_GROUP_MODULES_CONF : ModuleDAO.POLICY_GROUP_DATAS) + '.' + access_type + "." + vo_type;
     }
 }

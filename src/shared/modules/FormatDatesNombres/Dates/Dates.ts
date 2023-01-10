@@ -13,7 +13,7 @@ export default class Dates {
             }
             return moment(date, format).utc(!localized_src).unix();
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
         return null;
     }

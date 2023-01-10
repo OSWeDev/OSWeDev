@@ -37,7 +37,7 @@ export default class Patch20210804Changebddvarsindexes implements IGeneratorWork
          */
         for (let api_type_id in VarsServerController.getInstance().varcacheconf_by_api_type_ids) {
 
-            let table = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+            let table = VOsTypesManager.moduleTables_by_voType[api_type_id];
 
             if (!table) {
                 continue;

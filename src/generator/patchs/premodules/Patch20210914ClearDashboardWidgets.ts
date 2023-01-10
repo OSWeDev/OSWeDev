@@ -29,7 +29,7 @@ export default class Patch20210914ClearDashboardWidgets implements IGeneratorWor
         try {
             await db.query('DELETE FROM ref.module_dashboardbuilder_dashboard_widget;');
         } catch (error) {
-            ConsoleHandler.getInstance().log('Ignore this error if new project or never used dashboardbuilder: ' + error);
+            ConsoleHandler.log('Ignore this error if new project or never used dashboardbuilder: ' + error);
         }
     }
 }

@@ -257,7 +257,7 @@ export default class VarDescExplainComponent extends VueComponentBase {
                 continue;
             }
             res[VarsController.getInstance().get_card_field_code(matroid_base.field_id)] =
-                RangeHandler.getInstance().getCardinalFromArray(this.var_param[matroid_base.field_id] as IRange[]);
+                RangeHandler.getCardinalFromArray(this.var_param[matroid_base.field_id] as IRange[]);
         }
         for (let var_dep_id in this.vars_deps) {
 

@@ -113,7 +113,7 @@ export default class ModuleNFCConnect extends Module {
             user_id
         ];
         let datatable_user = new ModuleTable(this, NFCTagUserVO.API_TYPE_ID, () => new NFCTagUserVO(), datatable_fields_line, null, "NFC Tag User");
-        user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
         nfc_tag_id.addManyToOneRelation(datatable);
         this.datatables.push(datatable_user);
     }

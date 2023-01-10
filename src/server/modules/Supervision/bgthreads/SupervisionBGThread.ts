@@ -80,7 +80,7 @@ export default class SupervisionBGThread implements IBGThread {
             await all_promises(promises);
 
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return ModuleBGThreadServer.TIMEOUT_COEF_SLOWER;

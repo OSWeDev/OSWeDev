@@ -212,7 +212,7 @@ export default class PushDataServerController {
             delete this.registeredSockets_by_id[socket.id];
             delete this.registereduid_by_socketid[socket.id];
             delete this.registeredclient_tab_id_by_socketid[socket.id];
-            let client_tab_id_ = StackContext.getInstance().get('client_tab_id') ? StackContext.getInstance().get('client_tab_id') : null;
+            let client_tab_id_ = StackContext.get('client_tab_id') ? StackContext.get('client_tab_id') : null;
 
             // No user or session, need to search for the socket by id
             if ((!session) || (!session.id) || (!client_tab_id_)) {
@@ -241,7 +241,7 @@ export default class PushDataServerController {
 
             delete this.registeredSockets[session_uid][client_tab_id_][session.id][socket.id];
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
     }
 
@@ -386,7 +386,7 @@ export default class PushDataServerController {
         }
 
         await this.notify(notification);
-        await ThreadHandler.getInstance().sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
     }
 
     /**
@@ -401,7 +401,7 @@ export default class PushDataServerController {
 
         let notification: NotificationVO = null;
         try {
-            session = session ? session : StackContext.getInstance().get('SESSION');
+            session = session ? session : StackContext.get('SESSION');
             if (!session) {
                 return;
             }
@@ -412,7 +412,7 @@ export default class PushDataServerController {
                     Object.values(this.registeredSockets_by_sessionid[session.id]).map((w) => w.socketId), NotificationVO.TECH_DISCONNECT_AND_REDIRECT_HOME);
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         if (!notification) {
@@ -420,7 +420,7 @@ export default class PushDataServerController {
         }
 
         await this.notify(notification);
-        await ThreadHandler.getInstance().sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
     }
 
     /**
@@ -435,7 +435,7 @@ export default class PushDataServerController {
 
         let notification: NotificationVO = null;
         try {
-            let session: IServerUserSession = StackContext.getInstance().get('SESSION');
+            let session: IServerUserSession = StackContext.get('SESSION');
 
             if (this.registeredSockets_by_sessionid && this.registeredSockets_by_sessionid[session.id]) {
                 notification = this.getTechNotif(
@@ -443,7 +443,7 @@ export default class PushDataServerController {
                     Object.values(this.registeredSockets_by_sessionid[session.id]).map((w) => w.socketId), NotificationVO.TECH_LOGGED_AND_REDIRECT_HOME);
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         if (!notification) {
@@ -451,7 +451,7 @@ export default class PushDataServerController {
         }
 
         await this.notify(notification);
-        await ThreadHandler.getInstance().sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
     }
 
     /**
@@ -470,7 +470,7 @@ export default class PushDataServerController {
                 UID, CLIENT_TAB_ID,
                 null, NotificationVO.TECH_RELOAD);
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         if (!notification) {
@@ -478,7 +478,7 @@ export default class PushDataServerController {
         }
 
         await this.notify(notification);
-        await ThreadHandler.getInstance().sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
     }
 
     // /**
@@ -519,12 +519,12 @@ export default class PushDataServerController {
 
     //     let notification: NotificationVO = null;
     //     try {
-    //         let session: IServerUserSession = StackContext.getInstance().get('SESSION');
+    //         let session: IServerUserSession = StackContext.get('SESSION');
     //         notification = this.getTechNotif(
     //             null, null,
     //             Object.values(this.registeredSockets_by_sessionid[session.id]).map((w) => w.socketId), NotificationVO.TECH_RELOAD);
     //     } catch (error) {
-    //         ConsoleHandler.getInstance().error(error);
+    //         ConsoleHandler.error(error);
     //     }
 
     //     if (!notification) {
@@ -532,7 +532,7 @@ export default class PushDataServerController {
     //     }
 
     //     await this.notify(notification);
-    //     await ThreadHandler.getInstance().sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+    //     await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
     // }
 
     /**
@@ -554,7 +554,7 @@ export default class PushDataServerController {
         }
 
         await this.notify(notification);
-        await ThreadHandler.getInstance().sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
     }
 
     public async notifyVarsDatasBySocket(socket_id: string, vos: VarDataValueResVO[]) {
@@ -574,7 +574,7 @@ export default class PushDataServerController {
         }
 
         await this.notify(notification);
-        await ThreadHandler.getInstance().sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
     }
 
     public async notifyDAOGetVoById(user_id: number, client_tab_id: string, api_type_id: string, vo_id: number) {
@@ -598,7 +598,7 @@ export default class PushDataServerController {
         notification.client_tab_id = client_tab_id;
         notification.auto_read_if_connected = true;
         await this.notify(notification);
-        await ThreadHandler.getInstance().sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
     }
 
     public async notifyDAORemoveId(user_id: number, client_tab_id: string, api_type_id: string, vo_id: number) {
@@ -622,7 +622,7 @@ export default class PushDataServerController {
         notification.client_tab_id = client_tab_id;
         notification.auto_read_if_connected = true;
         await this.notify(notification);
-        await ThreadHandler.getInstance().sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
     }
 
     public async notifyDAOGetVos(user_id: number, client_tab_id: string, api_type_id: string) {
@@ -645,7 +645,7 @@ export default class PushDataServerController {
         notification.client_tab_id = client_tab_id;
         notification.auto_read_if_connected = true;
         await this.notify(notification);
-        await ThreadHandler.getInstance().sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
     }
 
     public async broadcastLoggedSimple(msg_type: number, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null) {
@@ -702,14 +702,14 @@ export default class PushDataServerController {
         try {
             let role: RoleVO = await query(RoleVO.API_TYPE_ID).filter_by_text_eq('translatable_name', role_name).select_vo<RoleVO>();
             if (!role) {
-                ConsoleHandler.getInstance().error('broadcastRoleSimple:Role introuvable:' + role_name + ':');
+                ConsoleHandler.error('broadcastRoleSimple:Role introuvable:' + role_name + ':');
                 return;
             }
 
             let usersRoles: UserRoleVO[] = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('role_id', role.id).select_vos<UserRoleVO>();
 
             if (!usersRoles) {
-                ConsoleHandler.getInstance().error('broadcastRoleSimple:usersRoles introuvables:' + role_name + ':' + role.id);
+                ConsoleHandler.error('broadcastRoleSimple:usersRoles introuvables:' + role_name + ':' + role.id);
                 return;
             }
 
@@ -720,7 +720,7 @@ export default class PushDataServerController {
 
             let users: UserVO[] = await query(UserVO.API_TYPE_ID).filter_by_ids(user_ids).select_vos<UserVO>();
             if (!users) {
-                ConsoleHandler.getInstance().error('broadcastRoleSimple:users introuvables:' + role_name + ':' + role.id);
+                ConsoleHandler.error('broadcastRoleSimple:users introuvables:' + role_name + ':' + role.id);
                 return;
             }
 
@@ -732,7 +732,7 @@ export default class PushDataServerController {
                 })());
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
         await all_promises(promises);
     }
@@ -757,13 +757,13 @@ export default class PushDataServerController {
         try {
             let role: RoleVO = await query(RoleVO.API_TYPE_ID).filter_by_text_eq('translatable_name', role_name).select_vo<RoleVO>();
             if (!role) {
-                ConsoleHandler.getInstance().error('broadcastRoleRedirect:Role introuvable:' + role_name + ':');
+                ConsoleHandler.error('broadcastRoleRedirect:Role introuvable:' + role_name + ':');
                 return;
             }
 
             let usersRoles: UserRoleVO[] = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('role_id', role.id).select_vos<UserRoleVO>();
             if (!usersRoles) {
-                ConsoleHandler.getInstance().error('broadcastRoleRedirect:usersRoles introuvables:' + role_name + ':' + role.id);
+                ConsoleHandler.error('broadcastRoleRedirect:usersRoles introuvables:' + role_name + ':' + role.id);
                 return;
             }
 
@@ -775,7 +775,7 @@ export default class PushDataServerController {
             let users: UserVO[] = await query(UserVO.API_TYPE_ID).filter_by_ids(user_ids).select_vos<UserVO>();
 
             if (!users) {
-                ConsoleHandler.getInstance().error('broadcastRoleRedirect:users introuvables:' + role_name + ':' + role.id);
+                ConsoleHandler.error('broadcastRoleRedirect:users introuvables:' + role_name + ':' + role.id);
                 return;
             }
 
@@ -787,7 +787,7 @@ export default class PushDataServerController {
                 })());
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
         await all_promises(promises);
     }
@@ -800,50 +800,50 @@ export default class PushDataServerController {
         }
 
         try {
-            let session: IServerUserSession = StackContext.getInstance().get('SESSION');
+            let session: IServerUserSession = StackContext.get('SESSION');
             if (this.registeredSockets_by_sessionid && this.registeredSockets_by_sessionid[session.id]) {
                 await this.notifySimple(Object.values(this.registeredSockets_by_sessionid[session.id]).map((w) => w.socketId),
                     null, null, notif_type, code_text, true, simple_notif_json_params);
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
     }
 
-    public async notifySimpleSUCCESS(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null) {
+    public async notifySimpleSUCCESS(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null, simple_downloadable_link: string = null) {
 
-        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySimpleSUCCESS, user_id, client_tab_id, code_text, auto_read_if_connected)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySimpleSUCCESS, user_id, client_tab_id, code_text, auto_read_if_connected, simple_notif_json_params, simple_downloadable_link)) {
             return;
         }
 
-        await this.notifySimple(null, user_id, client_tab_id, NotificationVO.SIMPLE_SUCCESS, code_text, auto_read_if_connected, simple_notif_json_params);
+        await this.notifySimple(null, user_id, client_tab_id, NotificationVO.SIMPLE_SUCCESS, code_text, auto_read_if_connected, simple_notif_json_params, simple_downloadable_link);
     }
 
-    public async notifySimpleINFO(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null) {
+    public async notifySimpleINFO(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null, simple_downloadable_link: string = null) {
 
-        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySimpleINFO, user_id, client_tab_id, code_text, auto_read_if_connected)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySimpleINFO, user_id, client_tab_id, code_text, auto_read_if_connected, simple_notif_json_params, simple_downloadable_link)) {
             return;
         }
 
-        await this.notifySimple(null, user_id, client_tab_id, NotificationVO.SIMPLE_INFO, code_text, auto_read_if_connected, simple_notif_json_params);
+        await this.notifySimple(null, user_id, client_tab_id, NotificationVO.SIMPLE_INFO, code_text, auto_read_if_connected, simple_notif_json_params, simple_downloadable_link);
     }
 
-    public async notifySimpleWARN(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null) {
+    public async notifySimpleWARN(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null, simple_downloadable_link: string = null) {
 
-        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySimpleWARN, user_id, client_tab_id, code_text, auto_read_if_connected)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySimpleWARN, user_id, client_tab_id, code_text, auto_read_if_connected, simple_notif_json_params, simple_downloadable_link)) {
             return;
         }
 
-        await this.notifySimple(null, user_id, client_tab_id, NotificationVO.SIMPLE_WARN, code_text, auto_read_if_connected, simple_notif_json_params);
+        await this.notifySimple(null, user_id, client_tab_id, NotificationVO.SIMPLE_WARN, code_text, auto_read_if_connected, simple_notif_json_params, simple_downloadable_link);
     }
 
-    public async notifySimpleERROR(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null) {
+    public async notifySimpleERROR(user_id: number, client_tab_id: string, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null, simple_downloadable_link: string = null) {
 
-        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySimpleERROR, user_id, client_tab_id, code_text, auto_read_if_connected)) {
+        if (!await ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifySimpleERROR, user_id, client_tab_id, code_text, auto_read_if_connected, simple_notif_json_params, simple_downloadable_link)) {
             return;
         }
 
-        await this.notifySimple(null, user_id, client_tab_id, NotificationVO.SIMPLE_ERROR, code_text, auto_read_if_connected, simple_notif_json_params);
+        await this.notifySimple(null, user_id, client_tab_id, NotificationVO.SIMPLE_ERROR, code_text, auto_read_if_connected, simple_notif_json_params, simple_downloadable_link);
     }
 
     public async notifyPrompt(user_id: number, client_tab_id: string, code_text: string, simple_notif_json_params: string = null): Promise<string> {
@@ -881,9 +881,9 @@ export default class PushDataServerController {
             };
 
             await self.notify(notification);
-            await ThreadHandler.getInstance().sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+            await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
 
-            await ThreadHandler.getInstance().sleep(120000);
+            await ThreadHandler.sleep(120000);
             if (still_waiting) {
                 reject('No Prompt received');
             }
@@ -932,13 +932,14 @@ export default class PushDataServerController {
         notification.notif_route_params_name = notif_route_params_name;
         notification.notif_route_params_values = notif_route_params_values;
         await this.notify(notification);
-        await ThreadHandler.getInstance().sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
     }
 
     private async notifySimple(
         socket_ids: string[], user_id: number, client_tab_id: string,
         msg_type: number, code_text: string, auto_read_if_connected: boolean,
-        simple_notif_json_params: string = null) {
+        simple_notif_json_params: string = null,
+        simple_downloadable_link: string = null) {
 
         if ((msg_type === null) || (typeof msg_type == 'undefined') || (!code_text)) {
             return;
@@ -955,8 +956,9 @@ export default class PushDataServerController {
         notification.user_id = user_id;
         notification.client_tab_id = client_tab_id;
         notification.auto_read_if_connected = auto_read_if_connected;
+        notification.simple_downloadable_link = simple_downloadable_link;
         await this.notify(notification);
-        await ThreadHandler.getInstance().sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
     }
 
 
@@ -1021,7 +1023,7 @@ export default class PushDataServerController {
             }
         } catch (error) {
 
-            ConsoleHandler.getInstance().error('notify:' + notification.user_id + ':' + error);
+            ConsoleHandler.error('notify:' + notification.user_id + ':' + error);
         }
     }
 
