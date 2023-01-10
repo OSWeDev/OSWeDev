@@ -543,6 +543,11 @@ export default class CRUDComponentField extends VueComponentBase
         //     return;
         // }
 
+        if ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
+            ((this.field as SimpleDatatableFieldVO<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html)) {
+            input = input.root.innerHTML;
+        }
+
         let tmp = input ? this.getInputValue(input) : this.field_value;
         if (this.field_value != tmp) {
             this.field_value = tmp;
