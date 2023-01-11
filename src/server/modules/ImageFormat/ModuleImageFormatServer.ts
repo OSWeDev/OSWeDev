@@ -90,16 +90,21 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
         src: string,
         format_name: string,
         width: number,
-        height: number): Promise<FormattedImageVO> {
+        height: number
+    ): Promise<FormattedImageVO> {
 
-        if ((!format_name) || (!height) || (!src) || (!width)) {
+        if ((!format_name) || (!src)) {
+            return null;
+        }
+
+        if (!(/\.(jpg|jpeg|png|webp|avif|gif|svg)$/.test(src))) {
             return null;
         }
 
         try {
 
-            let param_height = parseInt(height.toString());
-            let param_width = parseInt(width.toString());
+            let param_height = height ? parseInt(height.toString()) : 0;
+            let param_width = width ? parseInt(width.toString()) : 0;
 
             let format: ImageFormatVO = await query(ImageFormatVO.API_TYPE_ID).filter_by_text_eq('name', format_name, ImageFormatVO.API_TYPE_ID, true).select_vo<ImageFormatVO>();
 
