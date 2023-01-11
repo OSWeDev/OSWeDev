@@ -1277,7 +1277,9 @@ export default class TableWidgetComponent extends VueComponentBase {
             let field = this.fields[column_id];
 
             if ((field.type == DatatableField.VAR_FIELD_TYPE) ||
+                (field.type == DatatableField.COMPONENT_FIELD_TYPE) ||
                 (field.type == DatatableField.SELECT_BOX_FIELD_TYPE)) {
+
                 continue;
             }
 

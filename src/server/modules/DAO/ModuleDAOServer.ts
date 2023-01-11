@@ -115,7 +115,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     /**
      * Derniere vérif du param throttled_select_query_size
      */
-    private throttled_select_query_size_ms_param_last_update: number = 0;
+    private throttled_select_query_size_ms_param_last_update: number = Dates.now();
 
     private log_db_query_perf_start_by_uid: { [uid: number]: number } = {};
 

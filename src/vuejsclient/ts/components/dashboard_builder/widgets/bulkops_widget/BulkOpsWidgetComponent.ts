@@ -350,6 +350,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             let field = this.fields[i];
 
             if ((field.type == DatatableField.VAR_FIELD_TYPE) ||
+                (field.type == DatatableField.COMPONENT_FIELD_TYPE) ||
                 (field.type == DatatableField.SELECT_BOX_FIELD_TYPE)) {
                 continue;
             }
