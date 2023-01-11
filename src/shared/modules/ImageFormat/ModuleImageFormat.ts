@@ -75,6 +75,12 @@ export default class ModuleImageFormat extends Module {
             new ModuleTableField('height', ModuleTableField.FIELD_TYPE_int, 'Hauteur'),
             new ModuleTableField('width', ModuleTableField.FIELD_TYPE_int, 'Largeur'),
             new ModuleTableField('add_size_rename_name', ModuleTableField.FIELD_TYPE_boolean, 'Ajouter la taille au nom', false, true, true),
+            new ModuleTableField('watermark_txt', ModuleTableField.FIELD_TYPE_string, 'Watermark texte'),
+            new ModuleTableField('watermark_x', ModuleTableField.FIELD_TYPE_int, 'Watermark ecart X'),
+            new ModuleTableField('watermark_y', ModuleTableField.FIELD_TYPE_int, 'Watermark ecart Y'),
+            new ModuleTableField('watermark_horizontal_align', ModuleTableField.FIELD_TYPE_enum, 'Watermark Alignement horizontal').setEnumValues(ImageFormatVO.WATERMARK_HORIZONTAL_ALIGN_LABELS),
+            new ModuleTableField('watermark_vertical_align', ModuleTableField.FIELD_TYPE_enum, 'Watermark Alignement vertical').setEnumValues(ImageFormatVO.WATERMARK_VERTICAL_ALIGN_LABELS),
+            new ModuleTableField('watermark_font', ModuleTableField.FIELD_TYPE_enum, 'Watermark Font').setEnumValues(ImageFormatVO.WATERMARK_FONT_LABELS),
         ];
 
         let table = new ModuleTable(this, ImageFormatVO.API_TYPE_ID, () => new ImageFormatVO(), fields, null, 'Formats d\'image');

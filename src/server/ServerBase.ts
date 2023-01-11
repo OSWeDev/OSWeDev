@@ -684,7 +684,7 @@ export default abstract class ServerBase {
 
             // Génération à la volée des images en fonction du format demandé
             if (req.url.indexOf(ModuleImageFormat.RESIZABLE_IMGS_PATH_BASE.replace('./', '/')) == 0) {
-                let matches: string[] = req.url.match('(' + ModuleImageFormat.RESIZABLE_IMGS_PATH_BASE.replace('./', '/') + ')([A-Z|a-z|0-9]+)/(.*)');
+                let matches: string[] = req.url.match('(' + ModuleImageFormat.RESIZABLE_IMGS_PATH_BASE.replace('./', '/') + ')([^/]+)/(.*)');
 
                 if (!matches || !matches.length) {
                     return res.status(404).send('Not matches');

@@ -18,6 +18,7 @@ export default class RefRangesReferenceDatatableFieldVO<Target extends IDistantV
 
         let res = new RefRangesReferenceDatatableFieldVO();
         res.init_ref_dtf(RefRangesReferenceDatatableFieldVO.API_TYPE_ID, DatatableField.REF_RANGES_FIELD_TYPE, datatable_field_uid, targetModuleTable, sortedTargetFields);
+        res.src_field_id = datatable_field_uid;
         return res;
     }
 

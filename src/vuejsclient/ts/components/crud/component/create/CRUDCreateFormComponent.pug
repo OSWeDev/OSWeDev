@@ -3,8 +3,8 @@ include ../../../../../views/mixins/loading.pug
     +loading()
         form(v-on:submit.prevent="createVO")
             .crud_create_form_header
-                .title.d-ib {{ label('crud.create.modal.title') }}
                 a.btn.close(@click="cancel") &times;
+                .title.d-ib {{ label('crud.create.modal.title') }}
 
             .crud_create_form_body
                 .alert.alert-warning(v-if="is_only_readable") {{ label('crud.create.modal.readonly') }}
