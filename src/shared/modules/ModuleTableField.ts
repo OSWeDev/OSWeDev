@@ -91,6 +91,7 @@ export default class ModuleTableField<T> {
 
     public is_indexed: boolean = false;
     public is_readonly: boolean = false;
+    public replace_if_unique: boolean = false;
 
     public format_localized_time: boolean = false;
 
@@ -268,8 +269,9 @@ export default class ModuleTableField<T> {
         return this;
     }
 
-    public unique(): ModuleTableField<T> {
+    public unique(replace_if_unique: boolean = false): ModuleTableField<T> {
         this.is_unique = true;
+        this.replace_if_unique = replace_if_unique;
         return this;
     }
 

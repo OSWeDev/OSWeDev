@@ -416,6 +416,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Tous/Toutes'
         }, 'numrange.max_range.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Impossible d'enregistrer les données"
+        }, 'dao.check_uniq_indexes.error.___LABEL___'));
     }
 
     public registerCrons(): void {
@@ -1002,7 +1005,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 let vo_id: number = !!vo.id ? vo.id : 0;
 
                 if (!vo_id) {
-                    vo.id = await this.check_uniq_indexes(vo, moduleTable);
+                    try {
+                        vo.id = await this.check_uniq_indexes(vo, moduleTable);
+                    } catch (err) {
+                        return null;
+                    }
+
                     vo_id = vo.id;
                 }
 
@@ -2428,7 +2436,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
                  *  la même valeur de champ unique. si on trouve on passe en update au lieu d'insert
                  */
                 if (!vo.id) {
-                    vo.id = await this.check_uniq_indexes(vo, moduleTable);
+                    try {
+                        vo.id = await this.check_uniq_indexes(vo, moduleTable);
+                    } catch (err) {
+                        return null;
+                    }
                 }
 
                 isUpdates[i] = vo.id ? true : false;
@@ -2525,10 +2537,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
             for (let j in moduleTable.uniq_indexes) {
                 let uniq_index = moduleTable.uniq_indexes[j];
 
+                let replace_if_unique_field_id: { [field_id: string]: boolean } = {};
+
                 let filters = [];
 
                 for (let k in uniq_index) {
                     let field = uniq_index[k];
+
+                    replace_if_unique_field_id[field.field_id] = field.replace_if_unique;
 
                     // Si la valeur est null dans le vo ça sert à rien de tester
                     if (vo[field.field_id] == null) {
@@ -2579,11 +2595,28 @@ export default class ModuleDAOServer extends ModuleServerBase {
                  */
                 query_.ignore_access_hooks();
 
-                let uniquevos = null;
+                let uniquevos: IDistantVOBase[] = null;
                 await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
                     uniquevos = await ModuleContextFilter.getInstance().select_vos(query_);
                 });
+
                 if (uniquevos && uniquevos[0] && uniquevos[0].id) {
+                    for (let field_id in replace_if_unique_field_id) {
+                        // Si on a la même valeur et qu'on ne peut pas remplacer, on throw une erreur
+                        if ((vo[field_id] == uniquevos[0][field_id]) && !replace_if_unique_field_id[field_id]) {
+                            let uid: number = StackContext.getInstance().get('UID');
+                            let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
+
+                            if (uid && CLIENT_TAB_ID) {
+                                await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'dao.check_uniq_indexes.error' + DefaultTranslation.DEFAULT_LABEL_EXTENSION, true);
+                            }
+
+                            let msg: string = "Ajout impossible car un élément existe déjà avec les mêmes valeurs sur le champ : " + field_id + " : " + JSON.stringify(vo);
+                            ConsoleHandler.getInstance().error(msg);
+                            throw new Error(msg);
+                        }
+                    }
+
                     return uniquevos[0].id;
                 }
             }
@@ -2647,7 +2680,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
              *  la même valeur de champ unique. si on trouve on passe en update au lieu d'insert
              */
             if (!vo.id) {
-                vo.id = await this.check_uniq_indexes(vo, moduleTable);
+                try {
+                    vo.id = await this.check_uniq_indexes(vo, moduleTable);
+                } catch (err) {
+                    return null;
+                }
             }
 
             /**

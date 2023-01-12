@@ -431,7 +431,7 @@ export default class ModuleAccessPolicy extends Module {
     }
 
     private initializeUserSession() {
-        let label_field = new ModuleTableField('sid', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': 'SID' })).unique();
+        let label_field = new ModuleTableField('sid', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': 'SID' })).unique(true);
 
         let datatable_fields = [
             label_field,
