@@ -67,7 +67,7 @@
 //                     null,
 //                     VueAppController.getInstance().app_name,
 //                     "AbonnementAdminVueModule",
-//                     "fa-newspaper-o",
+//                     "fa-newspaper",
 //                     30,
 //                     null
 //                 )
@@ -77,7 +77,7 @@
 //             AbonnementVO.API_TYPE_ID,
 //             null,
 //             new menuelt(
-//                 new MenuLeaf("AbonnementVO", 30, "fa-newspaper-o"),
+//                 new MenuLeaf("AbonnementVO", 30, "fa-newspaper"),
 //                 CommerceAdminVueModule.DEFAULT_COMMERCE_MENU_BRANCH,
 //                 menuBranchAbonnement
 //             ),
@@ -87,7 +87,7 @@
 //             PackAbonnementVO.API_TYPE_ID,
 //             null,
 //             new menuelt(
-//                 new MenuLeaf("PackAbonnementVO", 30, "fa-newspaper-o"),
+//                 new MenuLeaf("PackAbonnementVO", 30, "fa-newspaper"),
 //                 CommerceAdminVueModule.DEFAULT_COMMERCE_MENU_BRANCH,
 //                 menuBranchAbonnement
 //             ),
@@ -109,7 +109,7 @@
 //                     null,
 //                     VueAppController.getInstance().app_name,
 //                     "AbonnementAdminVueModule",
-//                     "fa-newspaper-o",
+//                     "fa-newspaper",
 //                     30,
 //                     null
 //                 )

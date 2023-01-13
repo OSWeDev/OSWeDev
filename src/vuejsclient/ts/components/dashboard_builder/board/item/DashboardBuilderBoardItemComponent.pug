@@ -1,7 +1,7 @@
-.dashboard_builder_board_item(@click='select_widget' :class="{'selected':is_selected}")
+.dashboard_builder_board_item(@click='select_widget' :class="{'selected':is_selected}" v-tooltip='(widget && page_widget && is_edit_mode) ? "Widget ID: " + page_widget.id : null')
     template(v-if='widget && page_widget')
         template(v-if='is_edit_mode && is_selected')
-            .delete_button(v-tooltip='page_widget?page_widget.id:null')
+            .delete_button
                 i.fa-solid.fa-trash.fa-fw.btn_icon(aria-hidden="true" @click="delete_widget")  
             .copy_widget 
                 i.fa-solid.fa-duotone.fa-clone(@click="copy_widget")     

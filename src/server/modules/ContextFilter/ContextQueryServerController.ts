@@ -1,19 +1,14 @@
-import { cloneDeep, isArray } from 'lodash';
+import { cloneDeep } from 'lodash';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
-import ContextFilterVO, { filter } from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import DatatableField from '../../../shared/modules/DAO/vos/datatable/DatatableField';
-import ManyToManyReferenceDatatableFieldVO from '../../../shared/modules/DAO/vos/datatable/ManyToManyReferenceDatatableFieldVO';
-import ManyToOneReferenceDatatableFieldVO from '../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableFieldVO';
-import OneToManyReferenceDatatableFieldVO from '../../../shared/modules/DAO/vos/datatable/OneToManyReferenceDatatableFieldVO';
-import RefRangesReferenceDatatableFieldVO from '../../../shared/modules/DAO/vos/datatable/RefRangesReferenceDatatableFieldVO';
-import SimpleDatatableFieldVO from '../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import TableColumnDescVO from '../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
@@ -29,7 +24,6 @@ import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeli
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ConfigurationService from '../../env/ConfigurationService';
-import ServerBase from '../../ServerBase';
 import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -63,9 +57,10 @@ export default class ContextQueryServerController {
 
     /**
      * Filtrer des vos avec les context filters
+     * On peut passer le query_wrapper pour éviter de le reconstruire si ça a été fait avant (pour récupérer la requete construite par exemple pour un cache local)
      * @param context_query le champs fields doit être null pour demander des vos complets
      */
-    public async select_vos<T extends IDistantVOBase>(context_query: ContextQueryVO): Promise<T[]> {
+    public async select_vos<T extends IDistantVOBase>(context_query: ContextQueryVO, query_wrapper: ParameterizedQueryWrapper = null): Promise<T[]> {
 
         if (!context_query) {
             throw new Error('Invalid context_query param');
@@ -73,7 +68,7 @@ export default class ContextQueryServerController {
 
         context_query.query_distinct = false;
 
-        let query_wrapper = await this.build_select_query(context_query);
+        query_wrapper = query_wrapper ? query_wrapper : await this.build_select_query(context_query);
         //Requête
         if ((!query_wrapper) || (!query_wrapper.query)) {
             throw new Error('Invalid query');
@@ -84,8 +79,12 @@ export default class ContextQueryServerController {
             return [];
         }
 
+        /**
+         * à ce stade on a des fields, puisque le build_select_query déploie les fields dans tous les cas
+         */
+
         let query_res = null;
-        if (context_query.throttle_query_select && context_query.fields && context_query.fields.length) {
+        if (context_query.throttle_query_select) {
             query_res = await ModuleDAOServer.getInstance().throttle_select_query(query_wrapper.query, query_wrapper.params, query_wrapper.fields, context_query);
         } else {
             query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
@@ -93,6 +92,13 @@ export default class ContextQueryServerController {
 
         if ((!query_res) || (!query_res.length)) {
             return [];
+        }
+
+        /**
+         * query_res est immutable potentiellement à ce stade, on le copie dans ce cas
+         */
+        if (Object.isFrozen(query_res)) {
+            query_res = cloneDeep(query_res);
         }
 
         let moduletable = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
@@ -104,21 +110,8 @@ export default class ContextQueryServerController {
 
         // Anonymisation
         let uid = await StackContext.get('UID');
-        if (context_query.fields) {
-            await ServerAnonymizationController.getInstance().anonymise_context_filtered_rows(query_res, context_query.fields, uid);
-        } else {
-            for (let j in query_res) {
-                let row = query_res[j];
 
-                let fields = moduletable.get_fields();
-                for (let i in fields) {
-                    let field = fields[i];
-
-                    await ServerAnonymizationController.getInstance().anonymise_row_field(row, moduletable.vo_type, field.field_id, field.field_id, uid);
-                }
-            }
-        }
-
+        await ServerAnonymizationController.getInstance().anonymise_context_filtered_rows(query_res, context_query.fields, uid);
         return moduletable.forceNumerics(query_res);
     }
 
@@ -153,13 +146,13 @@ export default class ContextQueryServerController {
         return c;
     }
 
-    public async select(context_query: ContextQueryVO): Promise<any[]> {
+    public async select(context_query: ContextQueryVO, query_wrapper: ParameterizedQueryWrapper = null): Promise<any[]> {
 
         if (!context_query) {
             throw new Error('Invalid context_query param');
         }
 
-        let query_wrapper = await this.build_select_query(context_query);
+        query_wrapper = query_wrapper ? query_wrapper : await this.build_select_query(context_query);
         if ((!query_wrapper) || (!query_wrapper.query)) {
             throw new Error('Invalid query');
         }
@@ -169,8 +162,12 @@ export default class ContextQueryServerController {
             return [];
         }
 
+        /**
+         * à ce stade on a des fields, puisque le build_select_query déploie les fields dans tous les cas
+         */
+
         let query_res = null;
-        if (context_query.throttle_query_select && context_query.fields && context_query.fields.length) {
+        if (context_query.throttle_query_select) {
             query_res = await ModuleDAOServer.getInstance().throttle_select_query(query_wrapper.query, query_wrapper.params, query_wrapper.fields, context_query);
         } else {
             query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
@@ -180,13 +177,16 @@ export default class ContextQueryServerController {
             return [];
         }
 
+        /**
+         * query_res est immutable potentiellement à ce stade, on le copie dans ce cas
+         */
+        if (Object.isFrozen(query_res)) {
+            query_res = cloneDeep(query_res);
+        }
+
         // Anonymisation
         let uid = await StackContext.get('UID');
-        if (context_query.fields) {
-            await ServerAnonymizationController.getInstance().anonymise_context_filtered_rows(query_res, context_query.fields, uid);
-        } else {
-            throw new Error('Invalid anon');
-        }
+        await ServerAnonymizationController.getInstance().anonymise_context_filtered_rows(query_res, context_query.fields, uid);
 
         return query_res;
     }
@@ -242,8 +242,12 @@ export default class ContextQueryServerController {
             return [];
         }
 
+        /**
+         * à ce stade on a des fields, puisque le build_select_query déploie les fields dans tous les cas
+         */
+
         let query_res = null;
-        if (context_query.throttle_query_select && context_query.fields && context_query.fields.length) {
+        if (context_query.throttle_query_select) {
             query_res = await ModuleDAOServer.getInstance().throttle_select_query(query_wrapper.query, query_wrapper.params, query_wrapper.fields, context_query);
         } else {
             query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
@@ -253,13 +257,16 @@ export default class ContextQueryServerController {
             return [];
         }
 
+        /**
+         * query_res est immutable potentiellement à ce stade, on le copie dans ce cas
+         */
+        if (Object.isFrozen(query_res)) {
+            query_res = cloneDeep(query_res);
+        }
+
         // Anonymisation
         let uid = await StackContext.get('UID');
-        if (context_query.fields) {
-            await ServerAnonymizationController.getInstance().anonymise_context_filtered_rows(query_res, context_query.fields, uid);
-        } else {
-            throw new Error('Invalid anon');
-        }
+        await ServerAnonymizationController.getInstance().anonymise_context_filtered_rows(query_res, context_query.fields, uid);
 
         /**
          * Traitement des champs. on met dans + '__raw' les valeurs brutes, et on met dans le champ lui même la valeur formatée
@@ -1100,12 +1107,17 @@ export default class ContextQueryServerController {
                         );
                     }
 
-                    SELECT += ', ' + (sort_by.sort_asc ? 'MIN' : 'MAX') + '(' +
-                        tables_aliases_by_type[sort_by.vo_type] + '.' + sort_by.field_id
-                        + ') as ' + sort_alias;
-                    let parameterizedQueryWrapperField: ParameterizedQueryWrapperField = new ParameterizedQueryWrapperField(
-                        sort_by.vo_type, sort_by.field_id, (sort_by.sort_asc ? VarConfVO.MIN_AGGREGATOR : VarConfVO.MAX_AGGREGATOR), sort_alias);
-                    parameterizedQueryWrapperFields.push(parameterizedQueryWrapperField);
+                    /**
+                     * Si on a aucun lien avec la requête, on ne peut pas faire de sort
+                     */
+                    if (!!tables_aliases_by_type[sort_by.vo_type]) {
+                        SELECT += ', ' + (sort_by.sort_asc ? 'MIN' : 'MAX') + '(' +
+                            tables_aliases_by_type[sort_by.vo_type] + '.' + sort_by.field_id
+                            + ') as ' + sort_alias;
+                        let parameterizedQueryWrapperField: ParameterizedQueryWrapperField = new ParameterizedQueryWrapperField(
+                            sort_by.vo_type, sort_by.field_id, (sort_by.sort_asc ? VarConfVO.MIN_AGGREGATOR : VarConfVO.MAX_AGGREGATOR), sort_alias);
+                        parameterizedQueryWrapperFields.push(parameterizedQueryWrapperField);
+                    }
                 }
             }
         }

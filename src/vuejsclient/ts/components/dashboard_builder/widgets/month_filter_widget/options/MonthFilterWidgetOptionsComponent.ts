@@ -92,7 +92,7 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
                     continue;
                 }
 
-                let name = other_filter_options.vo_field_ref.api_type_id + '.' + other_filter_options.vo_field_ref.field_id;
+                let name = 'Widget ID:' + get_page_widget.id + ' : ' + other_filter_options.vo_field_ref.api_type_id + '.' + other_filter_options.vo_field_ref.field_id;
                 if (!!res[name]) {
                     continue;
                 }
@@ -102,10 +102,11 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
                     continue;
                 }
 
-                if (!!res[other_filter_options.custom_filter_name]) {
+                let name = 'Widget ID:' + get_page_widget.id + ' : ' + other_filter_options.custom_filter_name;
+                if (!!res[name]) {
                     continue;
                 }
-                res[other_filter_options.custom_filter_name] = get_page_widget;
+                res[name] = get_page_widget;
             }
         }
 

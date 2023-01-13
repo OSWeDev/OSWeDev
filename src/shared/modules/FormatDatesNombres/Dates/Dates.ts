@@ -576,6 +576,9 @@ export default class Dates {
 
     private static p = (() => {
         try {
+            if (typeof performance === 'undefined') {
+                return null;
+            }
             return performance;
         } catch (e) {
             return null;

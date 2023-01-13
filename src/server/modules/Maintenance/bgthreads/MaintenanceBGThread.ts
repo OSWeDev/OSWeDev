@@ -24,7 +24,7 @@ export default class MaintenanceBGThread implements IBGThread {
     private static instance: MaintenanceBGThread = null;
 
     public current_timeout: number = 1000;
-    public MAX_timeout: number = 5000;
+    public MAX_timeout: number = 60000;
     public MIN_timeout: number = 1000;
 
     private constructor() {

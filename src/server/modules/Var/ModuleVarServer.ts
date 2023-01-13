@@ -46,6 +46,7 @@ import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import ContextQueryServerController from '../ContextFilter/ContextQueryServerController';
 import ModuleContextFilterServer from '../ContextFilter/ModuleContextFilterServer';
+import ParameterizedQueryWrapper from '../ContextFilter/vos/ParameterizedQueryWrapper';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
 import DAOPostDeleteTriggerHook from '../DAO/triggers/DAOPostDeleteTriggerHook';
@@ -108,8 +109,8 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     private throttled_get_var_data_by_index_params: ThrottleGetVarDatasByIndex[] = [];
 
-    private throttle_get_var_data_by_index: () => void = ThrottleHelper.getInstance().declare_throttle_without_args(this.throttled_get_var_data_by_index.bind(this), 1, { leading: false, trailing: true });
-    private throttle_getVarParamFromContextFilters = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(this.throttled_getVarParamsFromContextFilters.bind(this), 10, { leading: false, trailing: true });
+    private throttle_get_var_data_by_index: () => void = ThrottleHelper.getInstance().declare_throttle_without_args(this.throttled_get_var_data_by_index.bind(this), 50, { leading: true, trailing: true });
+    private throttle_getVarParamFromContextFilters = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(this.throttled_getVarParamsFromContextFilters.bind(this), 200, { leading: true, trailing: true });
 
     private limit_nb_ts_ranges_on_param_by_context_filter: number = null;
     private limit_nb_ts_ranges_on_param_by_context_filter_last_update: number = null;
@@ -1421,18 +1422,23 @@ export default class ModuleVarServer extends ModuleServerBase {
     private async throttled_getVarParamsFromContextFilters(params: GetVarParamFromContextFiltersParam[]) {
         let max_concurrent_promises: number = ConfigurationService.node_configuration.MAX_POOL / 2;
 
+        /**
+         * On fait un cache local pour les requêtes de cet appel
+         */
+        let cache_local: { [full_request: string]: Promise<any> } = {};
+
         let promise_pipeline = new PromisePipeline(max_concurrent_promises);
         for (let i in params) {
 
             await promise_pipeline.push(async () => {
-                await this.throttled_getVarParamFromContextFilters(params[i]);
+                await this.throttled_getVarParamFromContextFilters(params[i], cache_local);
             });
         }
 
         await promise_pipeline.end();
     }
 
-    private async throttled_getVarParamFromContextFilters(param: GetVarParamFromContextFiltersParam) {
+    private async throttled_getVarParamFromContextFilters(param: GetVarParamFromContextFiltersParam, cache_local: { [full_request: string]: Promise<any> }) {
 
         let var_name = param.var_name;
         let get_active_field_filters = param.get_active_field_filters;
@@ -1472,7 +1478,20 @@ export default class ModuleVarServer extends ModuleServerBase {
                             if (ConfigurationService.node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
                                 ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':select_vos:IN');
                             }
-                            let ids_db: Array<{ id: number }> = refuse_param ? null : await ModuleContextFilterServer.getInstance().select_vos(context_query);
+
+                            let ids_db: Array<{ id: number }> = null;
+                            if (!refuse_param) {
+
+                                /**
+                                 * Utilisation du cache local
+                                 */
+                                let query_wrapper: ParameterizedQueryWrapper = await ModuleContextFilterServer.getInstance().build_select_query(context_query);
+                                if (!cache_local[query_wrapper.query]) {
+                                    cache_local[query_wrapper.query] = ContextQueryServerController.getInstance().select_vos(context_query, query_wrapper);
+                                }
+
+                                ids_db = await cache_local[query_wrapper.query];
+                            }
                             if (ConfigurationService.node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
                                 ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':select_vos:OUT');
                             }

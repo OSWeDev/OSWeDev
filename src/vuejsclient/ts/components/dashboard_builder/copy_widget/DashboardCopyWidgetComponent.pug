@@ -13,10 +13,10 @@
                             template(v-for='(page_, pagei) in pages')
                                 .page 
                                     .btn-success.selected(v-if='page_.id == page_to_copy_in_id')
-                                        i.fa-solid.fa-check-circle.fa-fw(aria-hidden="true")
+                                        i.fa-duotone.fa-check-circle.fa-fw(aria-hidden="true")
                                         //- Page selectionnée.
                                     .btn-primary.select(v-else)
-                                        i.fa-solid.fa-hand-point-down.fa-fw.btn_icon(aria-hidden="true" @click="select_page_to_copy_in(page_)")
+                                        i.fa-duotone.fa-grid-horizontal.fa-fw.btn_icon(aria-hidden="true" @click="select_page_to_copy_in(page_)")
 
                                     .name
                                         Inlinetranslatabletext(:code_text="pages_name_code_text[pagei]" :is_editable="false")

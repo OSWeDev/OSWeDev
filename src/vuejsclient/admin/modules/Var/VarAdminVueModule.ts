@@ -58,7 +58,7 @@ export default class VarAdminVueModule extends VueModuleBase {
                     ModuleVar.POLICY_BO_VARCONF_ACCESS,
                     VueAppController.getInstance().app_name,
                     "SlowVarVO",
-                    "fa-clock-o",
+                    "fa-clock",
                     10 + 2,
                     null,
                     null,

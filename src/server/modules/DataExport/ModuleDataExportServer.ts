@@ -113,7 +113,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         }, 'DataExportBGThread.handleHistoric.failed'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Export en cours... vous recevrez un lien pour télécarger le fichier une fois l\'export terminé.'
+            'fr-fr': 'Export en cours... vous recevrez un lien dans les notifications et par mail pour télécharger le fichier une fois l\'export terminé.'
         }, 'exportContextQueryToXLSX.starting.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Export terminé'

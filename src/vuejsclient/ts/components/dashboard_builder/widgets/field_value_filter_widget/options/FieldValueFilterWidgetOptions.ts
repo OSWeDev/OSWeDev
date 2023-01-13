@@ -2,8 +2,9 @@ import DashboardPageWidgetVO from "../../../../../../../shared/modules/Dashboard
 import VOFieldRefVO from "../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO";
 import DataFilterOption from "../../../../../../../shared/modules/DataRender/vos/DataFilterOption";
 import TSRange from "../../../../../../../shared/modules/DataRender/vos/TSRange";
+import IExportableWidgetOptions from "../../IExportableWidgetOptions";
 
-export default class FieldValueFilterWidgetOptions {
+export default class FieldValueFilterWidgetOptions implements IExportableWidgetOptions {
 
     public static VO_FIELD_REF_PLACEHOLDER_CODE_PREFIX: string = "FieldValueFilterWidgetOptions.vo_field_ref.placeholder.";
     public static VO_FIELD_REF_ADVANCED_MODE_PLACEHOLDER_CODE_PREFIX: string = "FieldValueFilterWidgetOptions.vo_field_ref.advanced_mode_placeholder.";
@@ -128,5 +129,28 @@ export default class FieldValueFilterWidgetOptions {
             return null;
         }
         return FieldValueFilterWidgetOptions.VO_FIELD_REF_ADVANCED_MODE_PLACEHOLDER_CODE_PREFIX + page_widget_id + '.' + this.vo_field_ref.api_type_id + '.' + this.vo_field_ref.field_id;
+    }
+
+    public async get_all_exportable_name_code_and_translation(page_id: number, page_widget_id: number): Promise<{ [current_code_text: string]: string }> {
+        let res: { [exportable_code_text: string]: string } = {};
+
+        let placeholder_name_code_text: string = this.get_placeholder_name_code_text(page_widget_id);
+        if (placeholder_name_code_text) {
+
+            res[placeholder_name_code_text] =
+                FieldValueFilterWidgetOptions.VO_FIELD_REF_PLACEHOLDER_CODE_PREFIX +
+                '{{IMPORT:' + DashboardPageWidgetVO.API_TYPE_ID + ':' + page_widget_id + '}}' +
+                '.' + this.vo_field_ref.api_type_id + '.' + this.vo_field_ref.field_id;
+        }
+
+        let advanced_mode_placeholder_code_text: string = this.get_advanced_mode_placeholder_code_text(page_widget_id);
+        if (advanced_mode_placeholder_code_text) {
+
+            res[advanced_mode_placeholder_code_text] =
+                FieldValueFilterWidgetOptions.VO_FIELD_REF_ADVANCED_MODE_PLACEHOLDER_CODE_PREFIX +
+                '{{IMPORT:' + DashboardPageWidgetVO.API_TYPE_ID + ':' + page_widget_id + '}}' +
+                '.' + this.vo_field_ref.api_type_id + '.' + this.vo_field_ref.field_id;
+        }
+        return res;
     }
 }

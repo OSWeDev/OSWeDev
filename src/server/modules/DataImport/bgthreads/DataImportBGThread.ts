@@ -39,8 +39,8 @@ export default class DataImportBGThread implements IBGThread {
     private static wait_for_empty_vars_vos_cud_param_name: string = 'DataImportBGThread.wait_for_empty_vars_vos_cud';
     private static wait_for_empty_cache_vars_waiting_for_compute_param_name: string = 'DataImportBGThread.wait_for_empty_cache_vars_waiting_for_compute';
 
-    public current_timeout: number = 5000;
-    public MAX_timeout: number = 5000;
+    public current_timeout: number = 10000;
+    public MAX_timeout: number = 60000;
     public MIN_timeout: number = 100;
 
     private waiting_for_empty_vars_vos_cud: boolean = false;
@@ -86,7 +86,7 @@ export default class DataImportBGThread implements IBGThread {
             // Objectif, on prend l'import en attente le plus ancien, et on l'importe tout simplement.
             //  en fin d'import, si on voit qu'il y en a un autre à importer, on demande d'aller plus vite.
 
-            // Si un import est en cours et doit être continuer, on le récupère et on continue, sinon on en cherche un autre
+            // Si un import est en cours et doit être continué, on le récupère et on continue, sinon on en cherche un autre
             let importing_dih_id_param: string = await ModuleParams.getInstance().getParamValue(DataImportBGThread.importing_dih_id_param_name);
             let importing_dih_id: number = null;
             let dih: DataImportHistoricVO = null;

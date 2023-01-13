@@ -863,7 +863,6 @@ export default class ContextQueryVO implements IDistantVOBase {
      * @returns les vos issus de la requête
      */
     public async select_vos<T extends IDistantVOBase>(): Promise<T[]> {
-        this.fields = null;
         return await ModuleContextFilter.getInstance().select_vos(this);
     }
 
@@ -873,7 +872,6 @@ export default class ContextQueryVO implements IDistantVOBase {
      * @returns le vo issu de la requête => Throws si on a + de 1 résultat
      */
     public async select_vo<T extends IDistantVOBase>(): Promise<T> {
-        this.fields = null;
         let res: T[] = await ModuleContextFilter.getInstance().select_vos(this);
         if (res && (res.length > 1)) {
             throw new Error('Multiple results on select_vo is not allowed');
