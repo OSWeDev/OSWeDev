@@ -1599,7 +1599,7 @@ export default class ModuleVarServer extends ModuleServerBase {
          * On recharge toutes les 5 minutes
          */
         if ((this.limit_nb_ts_ranges_on_param_by_context_filter == null) || (this.limit_nb_ts_ranges_on_param_by_context_filter_last_update < (Dates.now() - 300))) {
-            this.limit_nb_ts_ranges_on_param_by_context_filter = await ModuleParams.getInstance().getParamValueAsInt(ModuleVarServer.PARAM_NAME_limit_nb_ts_ranges_on_param_by_context_filter, 100);
+            this.limit_nb_ts_ranges_on_param_by_context_filter = await ModuleParams.getInstance().getParamValueAsInt(ModuleVarServer.PARAM_NAME_limit_nb_ts_ranges_on_param_by_context_filter, 100, 180000);
             this.limit_nb_ts_ranges_on_param_by_context_filter_last_update = Dates.now();
         }
         return this.limit_nb_ts_ranges_on_param_by_context_filter;

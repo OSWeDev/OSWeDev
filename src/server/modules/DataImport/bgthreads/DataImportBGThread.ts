@@ -60,7 +60,7 @@ export default class DataImportBGThread implements IBGThread {
             /**
              * Pour éviter de surcharger le système, on attend que le vos_cud des vars soit vidé (donc on a vraiment fini de traiter les imports précédents et rien de complexe en cours)
              */
-            let wait_for_empty_vars_vos_cud: boolean = await ModuleParams.getInstance().getParamValueAsBoolean(DataImportBGThread.wait_for_empty_vars_vos_cud_param_name, true);
+            let wait_for_empty_vars_vos_cud: boolean = await ModuleParams.getInstance().getParamValueAsBoolean(DataImportBGThread.wait_for_empty_vars_vos_cud_param_name, true, 180000);
             try {
                 if (wait_for_empty_vars_vos_cud) {
                     if (await VarsDatasVoUpdateHandler.getInstance().has_vos_cud()) {
@@ -87,7 +87,7 @@ export default class DataImportBGThread implements IBGThread {
             //  en fin d'import, si on voit qu'il y en a un autre à importer, on demande d'aller plus vite.
 
             // Si un import est en cours et doit être continué, on le récupère et on continue, sinon on en cherche un autre
-            let importing_dih_id_param: string = await ModuleParams.getInstance().getParamValue(DataImportBGThread.importing_dih_id_param_name);
+            let importing_dih_id_param: string = await ModuleParams.getInstance().getParamValueAsString(DataImportBGThread.importing_dih_id_param_name);
             let importing_dih_id: number = null;
             let dih: DataImportHistoricVO = null;
             if (!!importing_dih_id_param) {
@@ -151,7 +151,7 @@ export default class DataImportBGThread implements IBGThread {
                  *  - no import references this one in reimport_of_dih_id
                  *  - last_up_date is older than 5 mninutes
                  */
-                let can_retry = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleDataImport.PARAM_CAN_RETRY_FAILED, false);
+                let can_retry = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleDataImport.PARAM_CAN_RETRY_FAILED, false, 180000);
                 if (can_retry) {
                     dih = await this.try_getting_failed_retryable_import();
                 }
@@ -327,7 +327,7 @@ export default class DataImportBGThread implements IBGThread {
                 /**
                  * Pour éviter de surcharger le système, on attend qu'il n'y ai plus de vars en cours de calcul pour le client pour passer à la dernière étape des imports
                  */
-                let wait_for_empty_cache_vars_waiting_for_compute: boolean = await ModuleParams.getInstance().getParamValueAsBoolean(DataImportBGThread.wait_for_empty_cache_vars_waiting_for_compute_param_name, true);
+                let wait_for_empty_cache_vars_waiting_for_compute: boolean = await ModuleParams.getInstance().getParamValueAsBoolean(DataImportBGThread.wait_for_empty_cache_vars_waiting_for_compute_param_name, true, 180000);
                 try {
                     if (wait_for_empty_cache_vars_waiting_for_compute) {
                         if (await VarsDatasProxy.getInstance().has_cached_vars_waiting_for_compute()) {

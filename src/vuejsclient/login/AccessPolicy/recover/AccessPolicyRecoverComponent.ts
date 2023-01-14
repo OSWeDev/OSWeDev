@@ -45,7 +45,7 @@ export default class AccessPolicyRecoverComponent extends VueComponentBase {
     }
 
     private async load_logo_url() {
-        this.logo_url = await ModuleParams.getInstance().getParamValue(ModuleSASSSkinConfigurator.MODULE_NAME + '.logo_url');
+        this.logo_url = await ModuleParams.getInstance().getParamValueAsString(ModuleSASSSkinConfigurator.MODULE_NAME + '.logo_url');
         if (this.logo_url && (this.logo_url != '""') && (this.logo_url != '')) {
             return;
         }

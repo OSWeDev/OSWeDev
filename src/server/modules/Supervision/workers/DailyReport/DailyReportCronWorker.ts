@@ -62,7 +62,7 @@ export default class DailyReportCronWorker implements ICronWorker {
     }
 
     private async send_teams(ordered_supervised_items_by_state: { [state: number]: ISupervisedItem[] }) {
-        let TEAMS_WEBHOOK_PARAM_NAME: string = await ModuleParams.getInstance().getParamValue(DailyReportCronWorker.TEAMS_WEBHOOK_PARAM_NAME);
+        let TEAMS_WEBHOOK_PARAM_NAME: string = await ModuleParams.getInstance().getParamValueAsString(DailyReportCronWorker.TEAMS_WEBHOOK_PARAM_NAME);
 
         if (ConfigurationService.node_configuration.BLOCK_MAIL_DELIVERY) {
             return;
@@ -136,11 +136,11 @@ export default class DailyReportCronWorker implements ICronWorker {
             return;
         }
 
-        let SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValue(DailyReportCronWorker.SENDINBLUE_TEMPLATEID_PARAM_NAME);
+        let SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValueAsString(DailyReportCronWorker.SENDINBLUE_TEMPLATEID_PARAM_NAME);
         let SEND_IN_BLUE_TEMPLATE_ID: number = SEND_IN_BLUE_TEMPLATE_ID_s ? parseInt(SEND_IN_BLUE_TEMPLATE_ID_s) : null;
 
-        let SEND_IN_BLUE_TONAME: string = await ModuleParams.getInstance().getParamValue(DailyReportCronWorker.SENDINBLUE_TONAME_PARAM_NAME);
-        let SEND_IN_BLUE_TOMAIL: string = await ModuleParams.getInstance().getParamValue(DailyReportCronWorker.SENDINBLUE_TOMAIL_PARAM_NAME);
+        let SEND_IN_BLUE_TONAME: string = await ModuleParams.getInstance().getParamValueAsString(DailyReportCronWorker.SENDINBLUE_TONAME_PARAM_NAME);
+        let SEND_IN_BLUE_TOMAIL: string = await ModuleParams.getInstance().getParamValueAsString(DailyReportCronWorker.SENDINBLUE_TOMAIL_PARAM_NAME);
 
         if ((!!SEND_IN_BLUE_TEMPLATE_ID) && (!!SEND_IN_BLUE_TOMAIL) && (!!SEND_IN_BLUE_TONAME)) {
 

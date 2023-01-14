@@ -52,8 +52,8 @@ export default class SupervisionBGThread implements IBGThread {
             if (!this.loaded_param) {
                 this.loaded_param = true;
 
-                this.MAX_timeout = await ModuleParams.getInstance().getParamValueAsInt(SupervisionBGThread.MAX_timeout_PARAM_NAME, 5000);
-                this.MIN_timeout = await ModuleParams.getInstance().getParamValueAsInt(SupervisionBGThread.MIN_timeout_PARAM_NAME, 100);
+                this.MAX_timeout = await ModuleParams.getInstance().getParamValueAsInt(SupervisionBGThread.MAX_timeout_PARAM_NAME, 5000, 180000);
+                this.MIN_timeout = await ModuleParams.getInstance().getParamValueAsInt(SupervisionBGThread.MIN_timeout_PARAM_NAME, 100, 180000);
             }
 
             let registered_api_types = SupervisionController.getInstance().registered_controllers;

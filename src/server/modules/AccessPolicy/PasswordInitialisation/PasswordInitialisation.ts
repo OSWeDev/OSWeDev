@@ -75,7 +75,7 @@ export default class PasswordInitialisation {
 
             await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
 
-            let SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValue(PasswordInitialisation.PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID);
+            let SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValueAsString(PasswordInitialisation.PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID);
             let SEND_IN_BLUE_TEMPLATE_ID: number = SEND_IN_BLUE_TEMPLATE_ID_s ? parseInt(SEND_IN_BLUE_TEMPLATE_ID_s) : null;
 
             // Send mail

@@ -293,7 +293,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
     }
 
     private async on_new_unread_error(supervised_item: ISupervisedItem) {
-        let webhook: string = await ModuleParams.getInstance().getParamValue(ModuleSupervisionServer.ON_NEW_UNREAD_ERROR_TEAMS_WEBHOOK_PARAM_NAME);
+        let webhook: string = await ModuleParams.getInstance().getParamValueAsString(ModuleSupervisionServer.ON_NEW_UNREAD_ERROR_TEAMS_WEBHOOK_PARAM_NAME);
 
         if (!webhook) {
             return;
@@ -338,7 +338,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
     }
 
     private async on_back_to_normal(supervised_item: ISupervisedItem) {
-        let webhook: string = await ModuleParams.getInstance().getParamValue(ModuleSupervisionServer.ON_BACK_TO_NORMAL_TEAMS_WEBHOOK_PARAM_NAME);
+        let webhook: string = await ModuleParams.getInstance().getParamValueAsString(ModuleSupervisionServer.ON_BACK_TO_NORMAL_TEAMS_WEBHOOK_PARAM_NAME);
 
         if (!webhook) {
             return;

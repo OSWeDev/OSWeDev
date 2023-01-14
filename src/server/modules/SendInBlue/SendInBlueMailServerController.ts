@@ -132,8 +132,8 @@ export default class SendInBlueMailServerController {
          *  PARAM_NAME_TEMPLATE_CC_PREFIX + template_id
          *  PARAM_NAME_TEMPLATE_BCC_PREFIX + template_id
          */
-        let param_cc = await ModuleParams.getInstance().getParamValue(ModuleSendInBlue.PARAM_NAME_TEMPLATE_CC_PREFIX + templateId);
-        let param_bcc = await ModuleParams.getInstance().getParamValue(ModuleSendInBlue.PARAM_NAME_TEMPLATE_BCC_PREFIX + templateId);
+        let param_cc = await ModuleParams.getInstance().getParamValueAsString(ModuleSendInBlue.PARAM_NAME_TEMPLATE_CC_PREFIX + templateId);
+        let param_bcc = await ModuleParams.getInstance().getParamValueAsString(ModuleSendInBlue.PARAM_NAME_TEMPLATE_BCC_PREFIX + templateId);
         if (param_cc && param_cc.length) {
             if (!postParams.cc) {
                 postParams.cc = [];

@@ -980,7 +980,7 @@ export default abstract class ServerBase {
             // await ThreadHandler.sleep(1000);
             // res.redirect('/');
 
-            let PARAM_TECH_DISCONNECT_URL: string = await ModuleParams.getInstance().getParamValue(ModulePushData.PARAM_TECH_DISCONNECT_URL);
+            let PARAM_TECH_DISCONNECT_URL: string = await ModuleParams.getInstance().getParamValueAsString(ModulePushData.PARAM_TECH_DISCONNECT_URL);
             res.redirect(PARAM_TECH_DISCONNECT_URL);
         });
 

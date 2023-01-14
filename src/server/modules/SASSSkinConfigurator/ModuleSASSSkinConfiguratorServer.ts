@@ -2,6 +2,8 @@ import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapp
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ModuleSASSSkinConfigurator from '../../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
+import ConfigurationService from '../../env/ConfigurationService';
 import ModuleFileServer from '../File/ModuleFileServer';
 import ModuleServerBase from '../ModuleServerBase';
 
@@ -34,16 +36,22 @@ export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
 
             try {
 
+                let max = ConfigurationService.node_configuration.MAX_POOL / 2;
+                let promise_pipeline = new PromisePipeline(max);
                 for (let param_name in ModuleSASSSkinConfigurator.SASS_PARAMS_VALUES) {
                     let default_value: string = ModuleSASSSkinConfigurator.SASS_PARAMS_VALUES[param_name];
 
-                    let param_value: string = await ModuleParams.getInstance().getParamValue(ModuleSASSSkinConfigurator.MODULE_NAME + '.' + param_name);
-                    if ((!param_value) && (!!default_value)) {
-                        await ModuleParams.getInstance().setParamValue(ModuleSASSSkinConfigurator.MODULE_NAME + '.' + param_name, default_value);
-                    } else {
-                        ModuleSASSSkinConfigurator.SASS_PARAMS_VALUES[param_name] = param_value;
-                    }
+                    await promise_pipeline.push(async () => {
+                        let param_value: string = await ModuleParams.getInstance().getParamValueAsString(ModuleSASSSkinConfigurator.MODULE_NAME + '.' + param_name);
+                        if ((!param_value) && (!!default_value)) {
+                            await ModuleParams.getInstance().setParamValue(ModuleSASSSkinConfigurator.MODULE_NAME + '.' + param_name, default_value);
+                        } else {
+                            ModuleSASSSkinConfigurator.SASS_PARAMS_VALUES[param_name] = param_value;
+                        }
+                    });
                 }
+
+                await promise_pipeline.end();
 
                 let fileContent = this.getFileContent();
                 await ModuleFileServer.getInstance().makeSureThisFolderExists('./src/vuejsclient/scss/generated/');
