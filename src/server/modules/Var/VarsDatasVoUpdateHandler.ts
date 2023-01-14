@@ -337,6 +337,7 @@ export default class VarsDatasVoUpdateHandler {
                 }
                 let conf_id = this.get_validator_config_id(invalidator, true, intersector.index);
                 if (solved_invalidators_by_index[conf_id]) {
+                    delete intersectors_by_index[i];
                     continue;
                 }
                 solved_invalidators_by_index[conf_id] = new VarDataInvalidatorVO(
