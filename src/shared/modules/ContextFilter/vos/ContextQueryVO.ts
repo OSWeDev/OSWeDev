@@ -119,6 +119,11 @@ export default class ContextQueryVO implements IDistantVOBase {
      */
     public discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
 
+    public set_query_distinct() {
+        this.query_distinct = true;
+        return this;
+    }
+
     public discard_field_path(vo_type: string, field_id: string): ContextQueryVO {
         if (!this.discarded_field_paths) {
             this.discarded_field_paths = {};

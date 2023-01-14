@@ -110,7 +110,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         BulkOps.default_height = 35;
         BulkOps.default_width = 12;
-        BulkOps.name = 'bulkops';
+        BulkOps.name = DashboardWidgetVO.WIDGET_NAME_bulkops;
         BulkOps.widget_component = 'Bulkopswidgetcomponent';
         BulkOps.options_component = 'Bulkopswidgetoptionscomponent';
         BulkOps.weight = 40;
@@ -129,7 +129,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         Checklist.default_height = 35;
         Checklist.default_width = 12;
-        Checklist.name = 'checklist';
+        Checklist.name = DashboardWidgetVO.WIDGET_NAME_checklist;
         Checklist.widget_component = 'Checklistwidgetcomponent';
         Checklist.options_component = 'Checklistwidgetoptionscomponent';
         Checklist.weight = 30;
@@ -148,7 +148,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         Table.default_height = 35;
         Table.default_width = 12;
-        Table.name = 'datatable';
+        Table.name = DashboardWidgetVO.WIDGET_NAME_datatable;
         Table.widget_component = 'Tablewidgetcomponent';
         Table.options_component = 'Tablewidgetoptionscomponent';
         Table.weight = 21;
@@ -167,7 +167,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         Table.default_height = 35;
         Table.default_width = 12;
-        Table.name = 'valuetable';
+        Table.name = DashboardWidgetVO.WIDGET_NAME_valuetable;
         Table.widget_component = 'Tablewidgetcomponent';
         Table.options_component = 'Tablewidgetoptionscomponent';
         Table.weight = 20;
@@ -186,7 +186,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         fieldValueFilter.default_height = 5;
         fieldValueFilter.default_width = 3;
-        fieldValueFilter.name = 'fieldvaluefilter';
+        fieldValueFilter.name = DashboardWidgetVO.WIDGET_NAME_fieldvaluefilter;
         fieldValueFilter.widget_component = 'Fieldvaluefilterwidgetcomponent';
         fieldValueFilter.options_component = 'Fieldvaluefilterwidgetoptionscomponent';
         fieldValueFilter.weight = 0;
@@ -206,7 +206,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         DOWFilter.default_height = 5;
         DOWFilter.default_width = 3;
-        DOWFilter.name = 'dowfilter';
+        DOWFilter.name = DashboardWidgetVO.WIDGET_NAME_dowfilter;
         DOWFilter.widget_component = 'Dowfilterwidgetcomponent';
         DOWFilter.options_component = 'Dowfilterwidgetoptionscomponent';
         DOWFilter.weight = 1;
@@ -225,7 +225,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         MonthFilter.default_height = 5;
         MonthFilter.default_width = 4;
-        MonthFilter.name = 'monthfilter';
+        MonthFilter.name = DashboardWidgetVO.WIDGET_NAME_monthfilter;
         MonthFilter.widget_component = 'Monthfilterwidgetcomponent';
         MonthFilter.options_component = 'Monthfilterwidgetoptionscomponent';
         MonthFilter.weight = 2;
@@ -244,7 +244,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         AdvancedDateFilter.default_height = 5;
         AdvancedDateFilter.default_width = 3;
-        AdvancedDateFilter.name = 'advanceddatefilter';
+        AdvancedDateFilter.name = DashboardWidgetVO.WIDGET_NAME_advanceddatefilter;
         AdvancedDateFilter.widget_component = 'Advanceddatefilterwidgetcomponent';
         AdvancedDateFilter.options_component = 'Advanceddatefilterwidgetoptionscomponent';
         AdvancedDateFilter.weight = 4;
@@ -263,7 +263,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         YearFilter.default_height = 5;
         YearFilter.default_width = 2;
-        YearFilter.name = 'yearfilter';
+        YearFilter.name = DashboardWidgetVO.WIDGET_NAME_yearfilter;
         YearFilter.widget_component = 'Yearfilterwidgetcomponent';
         YearFilter.options_component = 'Yearfilterwidgetoptionscomponent';
         YearFilter.weight = 3;
@@ -282,7 +282,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         ValidationFilters.default_height = 5;
         ValidationFilters.default_width = 2;
-        ValidationFilters.name = 'validationfilters';
+        ValidationFilters.name = DashboardWidgetVO.WIDGET_NAME_validationfilters;
         ValidationFilters.widget_component = 'Validationfilterswidgetcomponent';
         ValidationFilters.options_component = 'Validationfilterswidgetoptionscomponent';
         ValidationFilters.weight = 3;
@@ -303,7 +303,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         var_widget.default_height = 10;
         var_widget.default_width = 1;
-        var_widget.name = 'var';
+        var_widget.name = DashboardWidgetVO.WIDGET_NAME_var;
         var_widget.widget_component = 'Varwidgetcomponent';
         var_widget.options_component = 'Varwidgetoptionscomponent';
         var_widget.weight = 10;
@@ -322,7 +322,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         pageswitch_widget.default_height = 5;
         pageswitch_widget.default_width = 2;
-        pageswitch_widget.name = 'pageswitch';
+        pageswitch_widget.name = DashboardWidgetVO.WIDGET_NAME_pageswitch;
         pageswitch_widget.widget_component = 'Pageswitchwidgetcomponent';
         pageswitch_widget.options_component = 'Pageswitchwidgetoptionscomponent';
         pageswitch_widget.weight = 5;

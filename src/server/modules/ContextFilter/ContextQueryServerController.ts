@@ -66,7 +66,12 @@ export default class ContextQueryServerController {
             throw new Error('Invalid context_query param');
         }
 
-        context_query.query_distinct = false;
+        if ((!context_query.fields) || (!context_query.fields.length)) {
+            /**
+             * Si on a pas de fields, on demande des vos complets et le distinct n'a pas de sens (a priori ?)
+             */
+            context_query.query_distinct = false;
+        }
 
         query_wrapper = query_wrapper ? query_wrapper : await this.build_select_query(context_query);
         //Requête
@@ -562,7 +567,7 @@ export default class ContextQueryServerController {
                     throw new Error('Invalid segmentation_moduletable');
                 }
 
-                let ids_map: IDistantVOBase[] = await this.configure_query_for_segmented_table_segment_listing(query(segmentation_field.manyToOne_target_moduletable.vo_type).field('id'), moduletable, context_query.filters).select_vos();
+                let ids_map: IDistantVOBase[] = await this.configure_query_for_segmented_table_segment_listing(query(segmentation_field.manyToOne_target_moduletable.vo_type).field('id').set_query_distinct(), moduletable, context_query.filters).select_vos();
                 let ids: number[] = ids_map ? ids_map.map((id_map) => id_map.id) : null;
 
                 if (!ids || !ids.length) {
@@ -619,7 +624,7 @@ export default class ContextQueryServerController {
                     throw new Error('Invalid segmentation_moduletable');
                 }
 
-                return await this.configure_query_for_segmented_table_segment_listing(query(segmentation_field.manyToOne_target_moduletable.vo_type).field('id'), moduletable, context_query.filters).select_count();
+                return await this.configure_query_for_segmented_table_segment_listing(query(segmentation_field.manyToOne_target_moduletable.vo_type).field('id').set_query_distinct(), moduletable, context_query.filters).select_count();
             default:
                 throw new Error('Invalid segmentation_moduletable');
         }
@@ -1344,7 +1349,7 @@ export default class ContextQueryServerController {
                     if (!context_access_hooks[alias]) {
                         context_access_hooks[alias] = [];
                     }
-                    context_access_hooks[alias].push(query_);
+                    context_access_hooks[alias].push(query_.set_query_distinct());
                 })());
             }
 
@@ -1369,7 +1374,7 @@ export default class ContextQueryServerController {
             for (let j in querys) {
                 let query_ = querys[j];
 
-                let query_wrapper = await this.build_select_query(query_);
+                let query_wrapper = await this.build_select_query(query_.set_query_distinct());
                 if ((!query_wrapper) || (!query_wrapper.query)) {
                     throw new Error('Invalid query');
                 }

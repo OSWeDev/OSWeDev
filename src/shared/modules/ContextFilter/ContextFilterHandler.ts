@@ -469,7 +469,7 @@ export default class ContextFilterHandler {
         filter_none.field_id = 'id';
         filter_none.vo_type = api_type_id;
 
-        return query(api_type_id).field('id').add_filters([filter_none]).ignore_access_hooks();
+        return query(api_type_id).field('id').set_query_distinct().add_filters([filter_none]).ignore_access_hooks();
     }
 
     public add_context_filters_exclude_values(

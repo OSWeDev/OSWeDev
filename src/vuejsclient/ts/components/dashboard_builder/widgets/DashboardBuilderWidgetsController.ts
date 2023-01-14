@@ -19,6 +19,7 @@ export default class DashboardBuilderWidgetsController {
 
     public add_widget_to_page_handler: (widget: DashboardWidgetVO) => Promise<DashboardPageWidgetVO> = null;
     public sorted_widgets: DashboardWidgetVO[] = [];
+    public widgets_options_constructor_by_widget_id: { [widget_id: number]: () => any } = {};
     public widgets_options_constructor: { [name: string]: () => any } = {};
     public widgets_get_selected_fields: { [name: string]: (page_widget: DashboardPageWidgetVO) => { [api_type_id: string]: { [field_id: string]: boolean } } } = {};
     public initialized: boolean = false;
@@ -36,6 +37,7 @@ export default class DashboardBuilderWidgetsController {
         if (!this.sorted_widgets) {
             this.sorted_widgets = [];
         }
+
         WeightHandler.getInstance().sortByWeight(this.sorted_widgets);
         this.initialized = true;
     }
@@ -47,6 +49,7 @@ export default class DashboardBuilderWidgetsController {
 
         if (!!options_constructor) {
             this.widgets_options_constructor[widget.name] = options_constructor;
+            this.widgets_options_constructor_by_widget_id[widget.id] = options_constructor;
         }
 
         if (!!get_selected_fields) {

@@ -261,9 +261,14 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         for (let i in page_widgets) {
             let page_widget = page_widgets[i];
 
-            let this_page_widget_options = page_widget.json_options ? JSON.parse(page_widget.json_options) : null;
-            if (this_page_widget_options) {
-                page_widgets_options[page_widget.id] = this_page_widget_options as IExportableWidgetOptions;
+            if (DashboardBuilderWidgetsController.getInstance().widgets_options_constructor_by_widget_id[page_widget.widget_id]) {
+                let options = Object.assign(
+                    DashboardBuilderWidgetsController.getInstance().widgets_options_constructor_by_widget_id[page_widget.widget_id](),
+                    page_widget.json_options ? JSON.parse(page_widget.json_options) : null
+                );
+                if (options) {
+                    page_widgets_options[page_widget.id] = options as IExportableWidgetOptions;
+                }
             }
         }
 
