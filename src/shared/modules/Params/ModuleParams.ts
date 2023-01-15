@@ -128,7 +128,7 @@ export default class ModuleParams extends Module {
         this.fields = [];
         this.datatables = [];
 
-        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true).unique();
         let datatable_fields = [
             label_field,
             new ModuleTableField('value', ModuleTableField.FIELD_TYPE_string, 'Valeur', false),

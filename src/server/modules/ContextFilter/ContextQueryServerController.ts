@@ -66,12 +66,13 @@ export default class ContextQueryServerController {
             throw new Error('Invalid context_query param');
         }
 
-        if ((!context_query.fields) || (!context_query.fields.length)) {
-            /**
-             * Si on a pas de fields, on demande des vos complets et le distinct n'a pas de sens (a priori ?)
-             */
-            context_query.query_distinct = false;
-        }
+        context_query.query_distinct = true;
+        // if ((!context_query.fields) || (!context_query.fields.length)) {
+        //     /**
+        //      * Si on a pas de fields, on demande des vos complets et le distinct n'a pas de sens (a priori ?)
+        //      */
+        //     context_query.query_distinct = false;
+        // }
 
         query_wrapper = query_wrapper ? query_wrapper : await this.build_select_query(context_query);
         //Requête
@@ -797,12 +798,12 @@ export default class ContextQueryServerController {
 
         if (!context_query.fields) {
 
-            if (context_query.query_distinct) {
-                /**
-                 * Aucun sens en fait de sélectionner des vos distincts
-                 */
-                throw new Error('Incompatible options:distinct & !fields');
-            }
+            // if (context_query.query_distinct) {
+            //     /**
+            //      * Aucun sens en fait de sélectionner des vos distincts
+            //      */
+            //     throw new Error('Incompatible options:distinct & !fields');
+            // }
 
             context_query.field('id');
 

@@ -1470,6 +1470,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                             let context_query: ContextQueryVO = query(matroid_field.manyToOne_target_moduletable.vo_type)
                                 .using(active_api_type_ids)
                                 .add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(cleaned_active_field_filters))
+                                .set_query_distinct()
                                 .add_fields([
                                     new ContextQueryFieldVO(matroid_field.manyToOne_target_moduletable.vo_type, matroid_field.target_field, 'id')
                                 ]);
