@@ -1467,12 +1467,13 @@ export default class ModuleVarServer extends ModuleServerBase {
                     case ModuleTableField.FIELD_TYPE_refrange_array:
                         if (matroid_field.has_relation) {
 
+                            let alias = matroid_field.manyToOne_target_moduletable.vo_type + '__id';
                             let context_query: ContextQueryVO = query(matroid_field.manyToOne_target_moduletable.vo_type)
                                 .using(active_api_type_ids)
                                 .add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(cleaned_active_field_filters))
                                 .set_query_distinct()
                                 .add_fields([
-                                    new ContextQueryFieldVO(matroid_field.manyToOne_target_moduletable.vo_type, matroid_field.target_field, 'id')
+                                    new ContextQueryFieldVO(matroid_field.manyToOne_target_moduletable.vo_type, matroid_field.target_field, alias)
                                 ]);
                             context_query.discarded_field_paths = discarded_field_paths;
 
@@ -1513,7 +1514,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                             }
 
                             let ids: number[] = [];
-                            ids_db.forEach((id_db) => ids.push(id_db.id));
+                            ids_db.forEach((id_db) => id_db[alias] ? ids.push(parseInt(id_db[alias])) : {});
 
                             var_param[matroid_field.field_id] = RangeHandler.get_ids_ranges_from_list(ids);
                         } else {
