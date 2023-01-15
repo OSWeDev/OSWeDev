@@ -194,7 +194,7 @@ export default class ContextQueryVO implements IDistantVOBase {
      * @param field_id l'id du field à ajouter.
      */
     public field(
-        field_id: string, alias: string = field_id, api_type_id: string = null,
+        field_id: string, alias: string = null, api_type_id: string = null,
         aggregator: number = VarConfVO.NO_AGGREGATOR, modifier: number = ContextQueryFieldVO.FIELD_MODIFIER_NONE): ContextQueryVO {
 
         let field = new ContextQueryFieldVO(api_type_id ? api_type_id : this.base_api_type_id, field_id, alias, aggregator, modifier);

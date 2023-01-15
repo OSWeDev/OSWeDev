@@ -2,6 +2,7 @@ import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import ModuleDAO from '../DAO/ModuleDAO';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
@@ -83,25 +84,25 @@ export default class ModuleParams extends Module {
         //     [ParamVO.API_TYPE_ID],
         //     GetParamParamVOStatic
         // ));
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<GetParamParamAsStringVO, string>(
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<GetParamParamAsStringVO, string>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, ParamVO.API_TYPE_ID),
             ModuleParams.APINAME_getParamValueAsString,
             [ParamVO.API_TYPE_ID],
             GetParamParamAsStringVOStatic
         ));
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<GetParamParamAsNumberVO, number>(
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<GetParamParamAsNumberVO, number>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, ParamVO.API_TYPE_ID),
             ModuleParams.APINAME_getParamValueAsInt,
             [ParamVO.API_TYPE_ID],
             GetParamParamAsNumberVOStatic
         ));
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<GetParamParamAsBooleanVO, boolean>(
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<GetParamParamAsBooleanVO, boolean>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, ParamVO.API_TYPE_ID),
             ModuleParams.APINAME_getParamValueAsBoolean,
             [ParamVO.API_TYPE_ID],
             GetParamParamAsBooleanVOStatic
         ));
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<GetParamParamAsNumberVO, number>(
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<GetParamParamAsNumberVO, number>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, ParamVO.API_TYPE_ID),
             ModuleParams.APINAME_getParamValueAsFloat,
             [ParamVO.API_TYPE_ID],
