@@ -115,7 +115,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     /**
      * Derniere vérif du param throttled_select_query_size
      */
-    private throttled_select_query_size_ms_param_last_update: number = 0;
+    private throttled_select_query_size_ms_param_last_update: number = Dates.now();
 
     private log_db_query_perf_start_by_uid: { [uid: number]: number } = {};
 
@@ -1312,7 +1312,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
         let table_name: string = moduleTable.is_segmented ? moduleTable.get_segmented_full_name(segmented_value) : moduleTable.full_name;
 
-        let debug_insert_without_triggers_using_COPY = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleDAOServer.PARAM_NAME_insert_without_triggers_using_COPY, false);
+        let debug_insert_without_triggers_using_COPY = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleDAOServer.PARAM_NAME_insert_without_triggers_using_COPY, false, 180000);
 
         if (debug_insert_without_triggers_using_COPY) {
             ConsoleHandler.log('insert_without_triggers_using_COPY:start');
@@ -1839,6 +1839,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     /**
      * Throttle select queries group every 10ms (parametrable)
+     * ATTENTION : le résultat de cette méthode peut être immutable ! donc toujours prévoir une copie de la data si elle a vocation à être modifiée par la suite
+     * @returns {Promise<any>} résultat potentiellement freeze à tester avec Object.isFrozen
      */
     public async throttle_select_query(query_: string = null, values: any = null, parameterizedQueryWrapperFields: ParameterizedQueryWrapperField[], context_query: ContextQueryVO): Promise<any> {
         await this.check_throttled_select_query_size_ms();
@@ -5081,7 +5083,16 @@ export default class ModuleDAOServer extends ModuleServerBase {
             for (let cbi in param.cbs) {
                 let cb = param.cbs[cbi];
 
-                promises.push(cb(results_of_index ? cloneDeep(results_of_index) : null));
+                /**
+                 * Si on utilise plusieurs fois les mêmes datas résultantes de la query,
+                 *  on clonait les résultats pour chaque cb, mais c'est très lourd.
+                 *  Dont on va préférer les rendre non mutable, et on clone plus puisque la donnée ne peut plus changer
+                 */
+                if (results_of_index && (param.cbs.length > 1)) {
+                    Object.freeze(results_of_index);
+                }
+
+                promises.push(cb(results_of_index ? results_of_index : null));
             }
         }
         await all_promises(promises);

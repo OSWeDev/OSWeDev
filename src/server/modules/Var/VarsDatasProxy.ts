@@ -466,7 +466,7 @@ export default class VarsDatasProxy {
         let vars_by_type: { [type: string]: VarDataBaseVO[] } = {};
 
         // A priori la limite à pas à être de 2700, le champ est compressé par la suite, mais ça permet d'être sûr
-        let limit = await ModuleParams.getInstance().getParamValueAsInt(VarsDatasProxy.PARAM_NAME_filter_var_datas_by_index_size_limit, 2700);
+        let limit = await ModuleParams.getInstance().getParamValueAsInt(VarsDatasProxy.PARAM_NAME_filter_var_datas_by_index_size_limit, 2700, 180000);
 
         for (let i in vardatas) {
             let var_data = vardatas[i];

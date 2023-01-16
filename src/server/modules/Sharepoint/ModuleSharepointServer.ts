@@ -77,10 +77,10 @@ export default class ModuleSharepointServer extends ModuleServerBase {
     public async save_to_sharepoint(coreOptions: ICoreOptions, fileOptions: FileOptions) {
         return new Promise(async (resolve, reject) => {
 
-            let clientId = await ModuleParams.getInstance().getParamValue(ModuleSharepoint.PARAM_NAME_clientId);
-            let clientSecret = await ModuleParams.getInstance().getParamValue(ModuleSharepoint.PARAM_NAME_clientSecret);
+            let clientId = await ModuleParams.getInstance().getParamValueAsString(ModuleSharepoint.PARAM_NAME_clientId);
+            let clientSecret = await ModuleParams.getInstance().getParamValueAsString(ModuleSharepoint.PARAM_NAME_clientSecret);
             // realm == tenant
-            let realm = await ModuleParams.getInstance().getParamValue(ModuleSharepoint.PARAM_NAME_realm);
+            let realm = await ModuleParams.getInstance().getParamValueAsString(ModuleSharepoint.PARAM_NAME_realm);
 
             if ((!clientId) || (!clientSecret)) {
                 /**

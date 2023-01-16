@@ -54,8 +54,8 @@ export default class SlowVarKiHandler {
      */
     public async computationBatchSupervisor(batch_id: number) {
 
-        let timeout_ms = await ModuleParams.getInstance().getParamValueAsInt(SlowVarKiHandler.PARAM_timeout_ms, 600000);
-        let logout_ms = await ModuleParams.getInstance().getParamValueAsInt(SlowVarKiHandler.PARAM_logout_ms, 20000);
+        let timeout_ms = await ModuleParams.getInstance().getParamValueAsInt(SlowVarKiHandler.PARAM_timeout_ms, 600000, 180000);
+        let logout_ms = await ModuleParams.getInstance().getParamValueAsInt(SlowVarKiHandler.PARAM_logout_ms, 20000, 180000);
 
         setTimeout(async () => {
             if (VarsdatasComputerBGThread.getInstance().is_computing && (VarsdatasComputerBGThread.getInstance().current_batch_id == batch_id)) {

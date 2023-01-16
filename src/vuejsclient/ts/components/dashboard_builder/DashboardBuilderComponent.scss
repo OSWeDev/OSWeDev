@@ -4,6 +4,14 @@
 
     margin-bottom: 500px;
 
+    .is_loading,
+    .loading_failed {
+        width: auto;
+        text-align: center;
+        font-size: x-large;
+        padding: 10%;
+    }
+
     >.row>.col-sm-12>.header {
 
         margin-bottom: 1em;

@@ -24,8 +24,8 @@ export default class DataExportBGThread implements IBGThread {
 
     private static request: string = ' where state in ($1, $2) order by creation_date asc limit 1;';
 
-    public current_timeout: number = 2000;
-    public MAX_timeout: number = 2000;
+    public current_timeout: number = 60000;
+    public MAX_timeout: number = 60000;
     public MIN_timeout: number = 100;
 
     private constructor() {

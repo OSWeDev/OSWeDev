@@ -952,6 +952,31 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'field_value_filter_widget_component.checkbox_columns.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "1" },
+            'FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS.1'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "2" },
+            'FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS.2'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "3" },
+            'FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS.3'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "4" },
+            'FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS.4'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "6" },
+            'FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS.6'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "12" },
+            'FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS.12'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Afficher le champ de recherche" },
             'field_value_filter_widget_component.show_search_field.___LABEL___'
         ));

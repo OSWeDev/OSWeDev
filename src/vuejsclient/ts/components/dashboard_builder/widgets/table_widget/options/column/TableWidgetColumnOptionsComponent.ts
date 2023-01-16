@@ -278,7 +278,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         let self = this;
 
         promises.push(((async () => {
-            let all_ids = await query(DashboardWidgetVO.API_TYPE_ID).field('id').filter_is_true('is_filter').select_vos<DashboardWidgetVO>();
+            let all_ids = await query(DashboardWidgetVO.API_TYPE_ID).field('id').set_query_distinct().filter_is_true('is_filter').select_vos<DashboardWidgetVO>();
             self.all_filter_widgets_ids = all_ids ? all_ids.map((e) => e.id) : [];
         })()));
         promises.push(((async () => {

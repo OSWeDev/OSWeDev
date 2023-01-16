@@ -72,7 +72,7 @@ export default class PasswordInvalidationCronWorker implements ICronWorker {
             user.reminded_pwd_1 = true;
             await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
 
-            let REMIND1_SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValue(PasswordInvalidationCronWorker.PARAM_NAME_REMIND1_SEND_IN_BLUE_TEMPLATE_ID);
+            let REMIND1_SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValueAsString(PasswordInvalidationCronWorker.PARAM_NAME_REMIND1_SEND_IN_BLUE_TEMPLATE_ID);
             let REMIND1_SEND_IN_BLUE_TEMPLATE_ID: number = REMIND1_SEND_IN_BLUE_TEMPLATE_ID_s ? parseInt(REMIND1_SEND_IN_BLUE_TEMPLATE_ID_s) : null;
 
             // Send mail
@@ -115,7 +115,7 @@ export default class PasswordInvalidationCronWorker implements ICronWorker {
             user.reminded_pwd_2 = true;
             await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
 
-            let REMIND2_SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValue(PasswordInvalidationCronWorker.PARAM_NAME_REMIND2_SEND_IN_BLUE_TEMPLATE_ID);
+            let REMIND2_SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValueAsString(PasswordInvalidationCronWorker.PARAM_NAME_REMIND2_SEND_IN_BLUE_TEMPLATE_ID);
             let REMIND2_SEND_IN_BLUE_TEMPLATE_ID: number = REMIND2_SEND_IN_BLUE_TEMPLATE_ID_s ? parseInt(REMIND2_SEND_IN_BLUE_TEMPLATE_ID_s) : null;
 
             // Send mail
@@ -160,7 +160,7 @@ export default class PasswordInvalidationCronWorker implements ICronWorker {
             user.reminded_pwd_2 = true;
             await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
 
-            let INVALIDATE_SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValue(PasswordInvalidationCronWorker.PARAM_NAME_INVALIDATE_SEND_IN_BLUE_TEMPLATE_ID);
+            let INVALIDATE_SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValueAsString(PasswordInvalidationCronWorker.PARAM_NAME_INVALIDATE_SEND_IN_BLUE_TEMPLATE_ID);
             let INVALIDATE_SEND_IN_BLUE_TEMPLATE_ID: number = INVALIDATE_SEND_IN_BLUE_TEMPLATE_ID_s ? parseInt(INVALIDATE_SEND_IN_BLUE_TEMPLATE_ID_s) : null;
 
             // Send mail

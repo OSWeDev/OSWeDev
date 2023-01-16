@@ -24,7 +24,7 @@ export default class MaintenanceBGThread implements IBGThread {
     private static instance: MaintenanceBGThread = null;
 
     public current_timeout: number = 1000;
-    public MAX_timeout: number = 5000;
+    public MAX_timeout: number = 60000;
     public MIN_timeout: number = 1000;
 
     private constructor() {
@@ -57,9 +57,9 @@ export default class MaintenanceBGThread implements IBGThread {
                 return ModuleBGThreadServer.TIMEOUT_COEF_SLOWER;
             }
 
-            let timeout_minutes_msg1: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG1_WHEN_SHORTER_THAN_MINUTES, 120);
-            let timeout_minutes_msg2: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG2_WHEN_SHORTER_THAN_MINUTES, 15);
-            let timeout_minutes_msg3: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG3_WHEN_SHORTER_THAN_MINUTES, 5);
+            let timeout_minutes_msg1: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG1_WHEN_SHORTER_THAN_MINUTES, 120, 180000);
+            let timeout_minutes_msg2: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG2_WHEN_SHORTER_THAN_MINUTES, 15, 180000);
+            let timeout_minutes_msg3: number = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_SEND_MSG3_WHEN_SHORTER_THAN_MINUTES, 5, 180000);
 
             let changed: boolean = false;
 

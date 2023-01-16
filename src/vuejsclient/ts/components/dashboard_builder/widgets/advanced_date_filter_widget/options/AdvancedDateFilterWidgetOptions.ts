@@ -1,8 +1,13 @@
+import { query } from "../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
+import AdvancedDateFilterOptDescVO from "../../../../../../../shared/modules/DashboardBuilder/vos/AdvancedDateFilterOptDescVO";
 import DashboardPageWidgetVO from "../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
 import VOFieldRefVO from "../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO";
-import AdvancedDateFilterOptDescVO from "../../../../../../../shared/modules/DashboardBuilder/vos/AdvancedDateFilterOptDescVO";
+import TranslatableTextVO from "../../../../../../../shared/modules/Translation/vos/TranslatableTextVO";
+import TranslationVO from "../../../../../../../shared/modules/Translation/vos/TranslationVO";
+import VueAppBase from "../../../../../../VueAppBase";
+import IExportableWidgetOptions from "../../IExportableWidgetOptions";
 
-export default class AdvancedDateFilterWidgetOptions {
+export default class AdvancedDateFilterWidgetOptions implements IExportableWidgetOptions {
 
     public static VO_FIELD_REF_PLACEHOLDER_CODE_PREFIX: string = "AdvancedDateFilterWidgetOptions.vo_field_ref.placeholder.";
 
@@ -39,5 +44,19 @@ export default class AdvancedDateFilterWidgetOptions {
             return null;
         }
         return AdvancedDateFilterWidgetOptions.VO_FIELD_REF_PLACEHOLDER_CODE_PREFIX + page_widget_id + '.' + this.vo_field_ref.api_type_id + '.' + this.vo_field_ref.field_id;
+    }
+
+    public async get_all_exportable_name_code_and_translation(page_id: number, page_widget_id: number): Promise<{ [current_code_text: string]: string }> {
+        let res: { [exportable_code_text: string]: string } = {};
+
+        let placeholder_name_code_text: string = this.get_placeholder_name_code_text(page_widget_id);
+        if (placeholder_name_code_text) {
+
+            res[placeholder_name_code_text] =
+                AdvancedDateFilterWidgetOptions.VO_FIELD_REF_PLACEHOLDER_CODE_PREFIX +
+                '{{IMPORT:' + DashboardPageWidgetVO.API_TYPE_ID + ':' + page_widget_id + '}}' +
+                '.' + this.vo_field_ref.api_type_id + '.' + this.vo_field_ref.field_id;
+        }
+        return res;
     }
 }

@@ -38,8 +38,8 @@ export default class ModuleTrelloAPIServer extends ModuleServerBase {
             return this.trello;
         }
 
-        let TRELLO_API_KEY: string = await ModuleParams.getInstance().getParamValue(ModuleTrelloAPIServer.TRELLO_API_KEY_PARAM_NAME);
-        let TRELLO_TOKEN: string = await ModuleParams.getInstance().getParamValue(ModuleTrelloAPIServer.TRELLO_TOKEN_PARAM_NAME);
+        let TRELLO_API_KEY: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTrelloAPIServer.TRELLO_API_KEY_PARAM_NAME);
+        let TRELLO_TOKEN: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTrelloAPIServer.TRELLO_TOKEN_PARAM_NAME);
 
         if ((!!TRELLO_API_KEY) && (!!TRELLO_TOKEN)) {
             this.trello = new TrelloNodeApi();

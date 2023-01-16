@@ -52,10 +52,10 @@ export default class UpdateEstimatedDurationsCronWorker implements ICronWorker {
      */
     public async work() {
 
-        this.USE_MAX_X_LAST_PERFS = await ModuleParams.getInstance().getParamValueAsInt(UpdateEstimatedDurationsCronWorker.USE_MAX_X_LAST_PERFS_PARAM_NAME, 100);
-        this.USE_MIN_X_LAST_PERFS = await ModuleParams.getInstance().getParamValueAsInt(UpdateEstimatedDurationsCronWorker.USE_MIN_X_LAST_PERFS_PARAM_NAME, 10);
+        this.USE_MAX_X_LAST_PERFS = await ModuleParams.getInstance().getParamValueAsInt(UpdateEstimatedDurationsCronWorker.USE_MAX_X_LAST_PERFS_PARAM_NAME, 100, 180000);
+        this.USE_MIN_X_LAST_PERFS = await ModuleParams.getInstance().getParamValueAsInt(UpdateEstimatedDurationsCronWorker.USE_MIN_X_LAST_PERFS_PARAM_NAME, 10, 180000);
 
-        this.debug = await ModuleParams.getInstance().getParamValueAsBoolean(UpdateEstimatedDurationsCronWorker.DEBUG_PARAM_NAME, false);
+        this.debug = await ModuleParams.getInstance().getParamValueAsBoolean(UpdateEstimatedDurationsCronWorker.DEBUG_PARAM_NAME, false, 180000);
 
         this.batchs_cache = {};
         this.batchs_vars_cache = {};

@@ -27,6 +27,9 @@ export default class ModuleParamsServer extends ModuleServerBase {
 
     private static instance: ModuleParamsServer = null;
 
+    private throttled_param_cache_value: { [param_name: string]: any } = {};
+    private throttled_param_cache_lastupdate_ms: { [param_name: string]: number } = {};
+
     private constructor() {
         super(ModuleParams.getInstance().name);
     }
@@ -44,7 +47,11 @@ export default class ModuleParamsServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleParams.APINAME_getParamValue, this.getParamValue.bind(this));
+        // APIControllerWrapper.getInstance().registerServerApiHandler(ModuleParams.APINAME_getParamValue, this.getParamValue.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleParams.APINAME_getParamValueAsString, this.getParamValueAsString.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleParams.APINAME_getParamValueAsInt, this.getParamValueAsInt.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleParams.APINAME_getParamValueAsBoolean, this.getParamValueAsBoolean.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleParams.APINAME_getParamValueAsFloat, this.getParamValueAsFloat.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleParams.APINAME_setParamValue, this.setParamValue.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleParams.APINAME_setParamValue_if_not_exists, this.setParamValue_if_not_exists.bind(this));
     }
@@ -99,8 +106,56 @@ export default class ModuleParamsServer extends ModuleServerBase {
         await ModuleDAO.getInstance().insertOrUpdateVO(param);
     }
 
-    public async getParamValue(text: string): Promise<string> {
+    public async getParamValueAsString(param_name: string, default_if_undefined: string = null, max_cache_age_ms: number = null): Promise<string> {
+        return await this.getParamValue(
+            param_name,
+            (param_value: string) => (param_value != null) ? param_value : default_if_undefined,
+            default_if_undefined,
+            max_cache_age_ms);
+    }
+
+    public async getParamValueAsInt(param_name: string, default_if_undefined: number = null, max_cache_age_ms: number = null): Promise<number> {
+        return await this.getParamValue(
+            param_name,
+            (param_value: string) => (param_value != null) ? parseInt(param_value) : default_if_undefined,
+            default_if_undefined,
+            max_cache_age_ms);
+    }
+
+    public async getParamValueAsBoolean(param_name: string, default_if_undefined: boolean = false, max_cache_age_ms: number = null): Promise<boolean> {
+        return await this.getParamValue(
+            param_name,
+            (param_value: string) => (param_value != null) ? (parseInt(param_value) != 0) : default_if_undefined,
+            default_if_undefined,
+            max_cache_age_ms);
+    }
+
+    public async getParamValueAsFloat(param_name: string, default_if_undefined: number = null, max_cache_age_ms: number = null): Promise<number> {
+        return await this.getParamValue(
+            param_name,
+            (param_value: string) => (param_value != null) ? parseFloat(param_value) : default_if_undefined,
+            default_if_undefined,
+            max_cache_age_ms);
+    }
+
+    private async getParamValue(
+        text: string,
+        transformer: (param_value: string) => any,
+        default_if_undefined: string | number | boolean,
+        max_cache_age_ms: number): Promise<any> {
+
+        if (max_cache_age_ms) {
+            if (this.throttled_param_cache_lastupdate_ms[text] && (this.throttled_param_cache_lastupdate_ms[text] + max_cache_age_ms > Dates.now_ms())) {
+                return this.throttled_param_cache_value[text];
+            }
+        }
+
         let param: ParamVO = await query(ParamVO.API_TYPE_ID).filter_by_text_eq('name', text, ParamVO.API_TYPE_ID, true).select_vo<ParamVO>();
-        return param ? param.value : null;
+        let res = param ? transformer(param.value) : default_if_undefined;
+
+        this.throttled_param_cache_lastupdate_ms[text] = Dates.now_ms();
+        this.throttled_param_cache_value[text] = res;
+
+        return res;
     }
 }

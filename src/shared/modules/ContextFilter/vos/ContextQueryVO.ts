@@ -119,6 +119,11 @@ export default class ContextQueryVO implements IDistantVOBase {
      */
     public discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
 
+    public set_query_distinct() {
+        this.query_distinct = true;
+        return this;
+    }
+
     public discard_field_path(vo_type: string, field_id: string): ContextQueryVO {
         if (!this.discarded_field_paths) {
             this.discarded_field_paths = {};
@@ -189,7 +194,7 @@ export default class ContextQueryVO implements IDistantVOBase {
      * @param field_id l'id du field à ajouter.
      */
     public field(
-        field_id: string, alias: string = field_id, api_type_id: string = null,
+        field_id: string, alias: string = null, api_type_id: string = null,
         aggregator: number = VarConfVO.NO_AGGREGATOR, modifier: number = ContextQueryFieldVO.FIELD_MODIFIER_NONE): ContextQueryVO {
 
         let field = new ContextQueryFieldVO(api_type_id ? api_type_id : this.base_api_type_id, field_id, alias, aggregator, modifier);
@@ -863,7 +868,6 @@ export default class ContextQueryVO implements IDistantVOBase {
      * @returns les vos issus de la requête
      */
     public async select_vos<T extends IDistantVOBase>(): Promise<T[]> {
-        this.fields = null;
         return await ModuleContextFilter.getInstance().select_vos(this);
     }
 
@@ -873,7 +877,6 @@ export default class ContextQueryVO implements IDistantVOBase {
      * @returns le vo issu de la requête => Throws si on a + de 1 résultat
      */
     public async select_vo<T extends IDistantVOBase>(): Promise<T> {
-        this.fields = null;
         let res: T[] = await ModuleContextFilter.getInstance().select_vos(this);
         if (res && (res.length > 1)) {
             throw new Error('Multiple results on select_vo is not allowed');

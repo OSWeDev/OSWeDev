@@ -10,6 +10,7 @@ import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VarConfVO from '../Var/vos/VarConfVO';
+import BuildSelectQueryParamVO, { BuildSelectQueryParamVOStatic } from './vos/BuildSelectQueryParamVO';
 import ContextFilterVO from './vos/ContextFilterVO';
 import ContextQueryFieldVO from './vos/ContextQueryFieldVO';
 import ContextQueryVO from './vos/ContextQueryVO';
@@ -196,11 +197,11 @@ export default class ModuleContextFilter extends Module {
             QueryVOFromUniqueFieldContextFiltersParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<SelectVosParamVO, ParameterizedQueryWrapper>(
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<BuildSelectQueryParamVO, ParameterizedQueryWrapper>(
             null,
             ModuleContextFilter.APINAME_build_select_query,
             null,
-            SelectVosParamVOStatic
+            BuildSelectQueryParamVOStatic
         ));
 
         APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<SelectVosParamVO, IDistantVOBase[]>(

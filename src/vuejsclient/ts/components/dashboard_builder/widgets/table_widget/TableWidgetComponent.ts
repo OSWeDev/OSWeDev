@@ -654,20 +654,20 @@ export default class TableWidgetComponent extends VueComponentBase {
         if ((this.order_asc_on_id != column.id) && (this.order_desc_on_id != column.id)) {
             this.order_asc_on_id = column.id;
             this.order_desc_on_id = null;
-            await this.throttled_update_visible_options();
+            await this.throttled_update_visible_options(true);
             return;
         }
 
         if (this.order_asc_on_id != column.id) {
             this.order_asc_on_id = column.id;
             this.order_desc_on_id = null;
-            await this.throttled_update_visible_options();
+            await this.throttled_update_visible_options(true);
             return;
         }
 
         this.order_desc_on_id = column.id;
         this.order_asc_on_id = null;
-        await this.throttled_update_visible_options();
+        await this.throttled_update_visible_options(true);
         return;
     }
 
@@ -1103,10 +1103,10 @@ export default class TableWidgetComponent extends VueComponentBase {
         await this.throttle_update_visible_options();
     }
 
-    private async throttled_update_visible_options() {
+    private async throttled_update_visible_options(force: boolean = false) {
 
         // Si j'ai mon bouton de validation des filtres qui est actif, j'attends que ce soit lui qui m'appelle
-        if (this.has_widget_validation_filtres()) {
+        if ((!force) && this.has_widget_validation_filtres()) {
             return;
         }
 
@@ -1277,7 +1277,9 @@ export default class TableWidgetComponent extends VueComponentBase {
             let field = this.fields[column_id];
 
             if ((field.type == DatatableField.VAR_FIELD_TYPE) ||
+                (field.type == DatatableField.COMPONENT_FIELD_TYPE) ||
                 (field.type == DatatableField.SELECT_BOX_FIELD_TYPE)) {
+
                 continue;
             }
 

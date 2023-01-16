@@ -1,5 +1,6 @@
 import INamedVO from '../interfaces/INamedVO';
 import ObjectHandler from '../tools/ObjectHandler';
+import Dates from './FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from './IDistantVOBase';
 import ModuleTable from './ModuleTable';
 import ModuleTableField from './ModuleTableField';
@@ -144,18 +145,25 @@ export default class VOsTypesManager {
         return isManyToMany;
     }
 
+    /**
+     * ça ne devrait pas changer, du moins pour le moment, après un boot du serveur
+     */
     public static get_manyToManyModuleTables(): Array<ModuleTable<any>> {
-        let res: Array<ModuleTable<any>> = [];
 
-        for (let i in VOsTypesManager.moduleTables_by_voType) {
-            let moduleTable = VOsTypesManager.moduleTables_by_voType[i];
+        if ((!VOsTypesManager.manyToManyModuleTables) || (VOsTypesManager.init_date >= Dates.now() - 60)) {
+            let res: Array<ModuleTable<any>> = [];
 
-            if (VOsTypesManager.isManyToManyModuleTable(moduleTable)) {
-                res.push(moduleTable);
+            for (let i in VOsTypesManager.moduleTables_by_voType) {
+                let moduleTable = VOsTypesManager.moduleTables_by_voType[i];
+
+                if (VOsTypesManager.isManyToManyModuleTable(moduleTable)) {
+                    res.push(moduleTable);
+                }
             }
-        }
 
-        return res;
+            VOsTypesManager.manyToManyModuleTables = res;
+        }
+        return VOsTypesManager.manyToManyModuleTables;
     }
 
     public static getManyToOneFields(api_type_id: string, ignore_target_types: string[]): Array<ModuleTableField<any>> {
@@ -254,6 +262,14 @@ export default class VOsTypesManager {
      * Local thread cache -----
      */
     private static types_references: { [api_type_id: string]: Array<ModuleTableField<any>> } = {};
+    private static manyToManyModuleTables: Array<ModuleTable<any>> = null;
+
+    /**
+     * on voudrait utiliser BGThreadServerController.getInstance().server_ready mais on peut pas import ça bloc
+     *  donc on passe par un pis-aller pour le moment avec juste un délai de 1 minute après le boot du serveur pour accepter de cacher les résultas du get_manyToManyModuleTables
+     */
+    private static init_date: number = Dates.now();
+
     /**
      * ----- Local thread cache
      */

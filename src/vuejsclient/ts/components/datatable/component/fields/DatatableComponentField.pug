@@ -42,6 +42,8 @@
                     .custom_read_field_component(:is="custom_field_types.read_component" :row='vo' :value='field_value')
                 template(v-else-if="field.moduleTableField.field_type == 'textarea'")
                     pre {{ field_value }}
+                template(v-else-if="field.moduleTableField.field_type == 'translatable_text'")
+                    span {{ t(field_value) }}
                 template(v-else)
                     span {{ field_value }}
             template(v-else-if="field.type == 'ManyToOne'")

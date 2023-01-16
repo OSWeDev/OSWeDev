@@ -1,7 +1,8 @@
 import DashboardPageWidgetVO from "../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
 import VOFieldRefVO from "../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO";
+import IExportableWidgetOptions from "../../IExportableWidgetOptions";
 
-export default class YearFilterWidgetOptions {
+export default class YearFilterWidgetOptions implements IExportableWidgetOptions {
 
     public static VO_FIELD_REF_PLACEHOLDER_CODE_PREFIX: string = "YearFilterWidgetOptions.vo_field_ref.placeholder.";
 
@@ -52,5 +53,19 @@ export default class YearFilterWidgetOptions {
             return null;
         }
         return YearFilterWidgetOptions.VO_FIELD_REF_PLACEHOLDER_CODE_PREFIX + page_widget_id + '.' + this.vo_field_ref.api_type_id + '.' + this.vo_field_ref.field_id;
+    }
+
+    public async get_all_exportable_name_code_and_translation(page_id: number, page_widget_id: number): Promise<{ [current_code_text: string]: string }> {
+        let res: { [exportable_code_text: string]: string } = {};
+
+        let placeholder_name_code_text: string = this.get_placeholder_name_code_text(page_widget_id);
+        if (placeholder_name_code_text) {
+
+            res[placeholder_name_code_text] =
+                YearFilterWidgetOptions.VO_FIELD_REF_PLACEHOLDER_CODE_PREFIX +
+                '{{IMPORT:' + DashboardPageWidgetVO.API_TYPE_ID + ':' + page_widget_id + '}}' +
+                '.' + this.vo_field_ref.api_type_id + '.' + this.vo_field_ref.field_id;
+        }
+        return res;
     }
 }

@@ -199,7 +199,7 @@ export default class VarsDatasVoUpdateHandler {
         this.last_call_handled_something = false;
 
         if (!this.has_retrieved_vos_cud) {
-            this.set_ordered_vos_cud_from_JSON(await ModuleParams.getInstance().getParamValue(
+            this.set_ordered_vos_cud_from_JSON(await ModuleParams.getInstance().getParamValueAsString(
                 VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_ordered_vos_cud_PARAM_NAME));
 
             this.has_retrieved_vos_cud = true;
@@ -211,7 +211,7 @@ export default class VarsDatasVoUpdateHandler {
 
         // if ((!this.ordered_vos_cud) || (!this.ordered_vos_cud.length)) {
 
-        //     this.set_ordered_vos_cud_from_JSON(await ModuleParams.getInstance().getParamValue(
+        //     this.set_ordered_vos_cud_from_JSON(await ModuleParams.getInstance().getParamValueAsString(
         //         VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_ordered_vos_cud_PARAM_NAME));
 
         //     return false; // je vois pas pourquoi .... this.last_registration && Dates.now() .add(-500, 'ms').isBefore(this.last_registration);
@@ -337,6 +337,7 @@ export default class VarsDatasVoUpdateHandler {
                 }
                 let conf_id = this.get_validator_config_id(invalidator, true, intersector.index);
                 if (solved_invalidators_by_index[conf_id]) {
+                    delete intersectors_by_index[i];
                     continue;
                 }
                 solved_invalidators_by_index[conf_id] = new VarDataInvalidatorVO(
@@ -957,7 +958,7 @@ export default class VarsDatasVoUpdateHandler {
 
         let unregistered_var_datas: VarDataBaseVO[] = VarsController.getInstance().substract_vars_datas(var_datas_no_denied_and_no_import, registered_var_datas);
 
-        let delete_instead_of_invalidating_unregistered_var_datas = await ModuleParams.getInstance().getParamValueAsBoolean(VarsDatasVoUpdateHandler.delete_instead_of_invalidating_unregistered_var_datas_PARAM_NAME, true);
+        let delete_instead_of_invalidating_unregistered_var_datas = await ModuleParams.getInstance().getParamValueAsBoolean(VarsDatasVoUpdateHandler.delete_instead_of_invalidating_unregistered_var_datas_PARAM_NAME, true, 180000);
 
         if (registered_var_datas && registered_var_datas.length) {
             if (env.DEBUG_VARS) {
