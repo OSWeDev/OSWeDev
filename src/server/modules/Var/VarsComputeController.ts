@@ -961,7 +961,7 @@ export default class VarsComputeController {
 
             let vars_datas_to_deploy_by_controller_height = await this.get_vars_datas_by_controller_height(var_dag);
             let step = 1;
-            while (Object.keys(vars_datas_to_deploy_by_controller_height).length && ((!var_dag.timed_out) || (!var_dag.nb_nodes))) {
+            while (Object.keys(vars_datas_to_deploy_by_controller_height).length /* TODO FIXME gérer le cas du time out correctement && ((!var_dag.timed_out) || (!var_dag.nb_nodes))*/) {
 
                 // On sélectionne les vars à déployer
                 let vars_to_deploy: { [index: string]: VarDataBaseVO } = this.get_vars_to_deploy(vars_datas_to_deploy_by_controller_height);
@@ -1183,9 +1183,12 @@ export default class VarsComputeController {
                 await this.load_caches_and_imports_on_var_to_deploy(var_to_deploy, var_dag);
             });
 
-            if (var_dag.timed_out && !!var_dag.nb_nodes) {
-                return;
-            }
+            /**
+             * TODO FIXME très compliqué ici de savoir si on veut continuer à déployer ou pas, on doit déployer tout ce qui est nécessaire et abandonner le superflu
+             */
+            // if (var_dag.timed_out && !!var_dag.nb_nodes) {
+            //     return;
+            // }
         }
 
         await promise_pipeline.end();

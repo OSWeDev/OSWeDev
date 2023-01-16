@@ -1767,8 +1767,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 return null;
             }
 
-            segmented_vo['_type'] = moduleTable.vo_type;
-            segmented_vo = moduleTable.forceNumeric(segmented_vo);
+            if (!!segmented_vo) {
+
+                segmented_vo['_type'] = moduleTable.vo_type;
+                segmented_vo = moduleTable.forceNumeric(segmented_vo);
+            }
 
             // On filtre les vo suivant les droits d'accès
             vo = segmented_vo;
@@ -1777,8 +1780,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let query_uid = this.log_db_query_perf_start('selectOne', query_string, '!is_segmented');
             vo = await ModuleServiceBase.getInstance().db.oneOrNone(query_string + ";", queryParams ? queryParams : []) as T;
             this.log_db_query_perf_end(query_uid, 'selectOne', query_string, '!is_segmented');
-            vo['_type'] = moduleTable.vo_type;
-            vo = moduleTable.forceNumeric(vo);
+            if (!!vo) {
+                vo['_type'] = moduleTable.vo_type;
+                vo = moduleTable.forceNumeric(vo);
+            }
         }
 
         // On filtre suivant les droits d'accès
@@ -2021,8 +2026,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
             this.log_db_query_perf_end(query_uid, 'selectOneUser', query_string);
 
             vo = (vo && vo.id) ? vo : null;
-            vo['_type'] = UserVO.API_TYPE_ID;
-            vo = datatable.forceNumeric(vo);
+            if (!!vo) {
+                vo['_type'] = UserVO.API_TYPE_ID;
+                vo = datatable.forceNumeric(vo);
+            }
             return vo;
         } catch (error) {
             ConsoleHandler.error(error);
@@ -2046,8 +2053,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
             this.log_db_query_perf_end(query_uid, 'selectUsersForCheckUnicity', query_string);
 
             vo = (vo && vo.id) ? vo : null;
-            vo['_type'] = UserVO.API_TYPE_ID;
-            vo = datatable.forceNumeric(vo);
+            if (!!vo) {
+                vo['_type'] = UserVO.API_TYPE_ID;
+                vo = datatable.forceNumeric(vo);
+            }
 
             if (!vo) {
                 return true;
@@ -2072,8 +2081,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE (TRIM(LOWER(name)) = $1 OR TRIM(LOWER(email)) = $1 or TRIM(LOWER(phone)) = $1) and blocked = false", [login.toLowerCase().trim()]) as UserVO;
             this.log_db_query_perf_end(query_uid, 'selectOneUserForRecovery', query_string);
 
-            vo['_type'] = UserVO.API_TYPE_ID;
-            vo = datatable.forceNumeric(vo);
+            if (!!vo) {
+                vo['_type'] = UserVO.API_TYPE_ID;
+                vo = datatable.forceNumeric(vo);
+            }
             return vo;
         } catch (error) {
             ConsoleHandler.error(error);
@@ -2092,8 +2103,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE id = $1 and blocked = false", [uid]) as UserVO;
         this.log_db_query_perf_end(query_uid, 'selectOneUserForRecoveryUID', query_string);
 
-        vo['_type'] = UserVO.API_TYPE_ID;
-        vo = datatable.forceNumeric(vo);
+        if (!!vo) {
+            vo['_type'] = UserVO.API_TYPE_ID;
+            vo = datatable.forceNumeric(vo);
+        }
         return vo;
     }
 
@@ -3117,8 +3130,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
             this.log_db_query_perf_end(query_uid, 'getVoById', "SELECT t.* FROM " + moduleTable.full_name + " t WHERE id=" + id, '!is_segmented');
         }
 
-        vo['_type'] = moduleTable.vo_type;
-        vo = moduleTable.forceNumeric(vo);
+        if (!!vo) {
+            vo['_type'] = moduleTable.vo_type;
+            vo = moduleTable.forceNumeric(vo);
+        }
 
         if (!vo) {
             return vo;

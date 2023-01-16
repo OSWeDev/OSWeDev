@@ -1,6 +1,7 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import SortByVO from '../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import DashboardBuilderController from '../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
@@ -150,7 +151,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
                     let imported_datas = await ModuleDataImport.getInstance().importJSON(text, import_on_vo);
 
                     self.loading = true;
-                    self.dashboards = await query(DashboardVO.API_TYPE_ID).select_vos<DashboardVO>();
+                    self.dashboards = await query(DashboardVO.API_TYPE_ID).set_sorts([new SortByVO(DashboardVO.API_TYPE_ID, 'weight', true), new SortByVO(DashboardVO.API_TYPE_ID, 'id', true)]).select_vos<DashboardVO>();
                     await self.throttle_on_load_dashboard();
                     // On crée des trads, on les recharge
                     await VueAppController.getInstance().initializeFlatLocales();
@@ -236,7 +237,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         let db = this.dashboard;
         export_vos.push(ModuleTable.default_get_api_version(db));
 
-        let pages = await query(DashboardPageVO.API_TYPE_ID).filter_by_num_eq('dashboard_id', this.dashboard.id).select_vos<DashboardPageVO>();
+        let pages = await query(DashboardPageVO.API_TYPE_ID).filter_by_num_eq('dashboard_id', this.dashboard.id).set_sorts([new SortByVO(DashboardVO.API_TYPE_ID, 'weight', true), new SortByVO(DashboardVO.API_TYPE_ID, 'id', true)]).select_vos<DashboardPageVO>();
         if (pages && pages.length) {
             export_vos = export_vos.concat(pages.map((p) => ModuleTable.default_get_api_version(p)));
         }

@@ -8,12 +8,14 @@
 .btn-primary:visited {
     background-color: $button_primary_bg_color !important;
     color: $button_text_color !important;
+    border-color: $button_primary_bg_color !important;
 }
 
 .btn-danger,
 .btn-danger:visited {
     background-color: $danger_color !important;
     color: $button_text_color !important;
+    border-color: $danger_color !important;
 }
 
 .bg-danger {
@@ -24,6 +26,7 @@
 .btn-success:visited {
     background-color: $success_color !important;
     color: $button_text_color !important;
+    border-color: $success_color !important;
 }
 
 .bg-success {
@@ -34,6 +37,7 @@
 .btn-warning:visited {
     background-color: $button_warning_color !important;
     color: $button_text_color !important;
+    border-color: $button_warning_color !important;
 }
 
 .bg-warning {
@@ -48,6 +52,7 @@
 .btn-primary:active {
     background-color: $button_primary_active_bg_color !important;
     color: $button_text_color !important;
+    border-color: $button_primary_active_bg_color !important;
 }
 
 .text-primary,
