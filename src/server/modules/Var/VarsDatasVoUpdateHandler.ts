@@ -40,6 +40,7 @@ import VarsTabsSubsController from './VarsTabsSubsController';
 export default class VarsDatasVoUpdateHandler {
 
     public static VarsDatasVoUpdateHandler_ordered_vos_cud_PARAM_NAME = 'VarsDatasVoUpdateHandler.ordered_vos_cud';
+    public static VarsDatasVoUpdateHandler_block_ordered_vos_cud_PARAM_NAME = 'VarsDatasVoUpdateHandler.block_ordered_vos_cud';
     public static delete_instead_of_invalidating_unregistered_var_datas_PARAM_NAME = 'VarsDatasVoUpdateHandler.delete_instead_of_invalidating_unregistered_var_datas';
 
     public static TASK_NAME_has_vos_cud: string = 'VarsDatasVoUpdateHandler.has_vos_cud';
@@ -1624,6 +1625,16 @@ export default class VarsDatasVoUpdateHandler {
     private async register_vo_cud_throttled(vos_cud: Array<DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase>) {
 
         if (!await ForkedTasksController.getInstance().exec_self_on_bgthread(VarsdatasComputerBGThread.getInstance().name, VarsDatasVoUpdateHandler.TASK_NAME_register_vo_cud, vos_cud)) {
+            return;
+        }
+
+        let block_ordered_vos_cud: boolean = await ModuleParams.getInstance().getParamValueAsBoolean(
+            VarsDatasVoUpdateHandler.VarsDatasVoUpdateHandler_block_ordered_vos_cud_PARAM_NAME,
+            false,
+            180000, // 3 minutes
+        );
+
+        if (block_ordered_vos_cud) {
             return;
         }
 
