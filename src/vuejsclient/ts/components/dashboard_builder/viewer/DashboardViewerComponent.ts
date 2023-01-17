@@ -17,6 +17,7 @@ import DashboardBuilderBoardComponent from '../board/DashboardBuilderBoardCompon
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../page/DashboardPageStore';
 import ContextFilterVO from '../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import './DashboardViewerComponent.scss';
+import SortByVO from '../../../../../shared/modules/ContextFilter/vos/SortByVO';
 
 @Component({
     template: require('./DashboardViewerComponent.pug'),
@@ -114,7 +115,7 @@ export default class DashboardViewerComponent extends VueComponentBase {
 
         this.clear_active_field_filters();
 
-        this.pages = await query(DashboardPageVO.API_TYPE_ID).filter_by_num_eq('dashboard_id', this.dashboard.id).select_vos<DashboardPageVO>();
+        this.pages = await query(DashboardPageVO.API_TYPE_ID).filter_by_num_eq('dashboard_id', this.dashboard.id).set_sorts([new SortByVO(DashboardPageVO.API_TYPE_ID, 'weight', true), new SortByVO(DashboardPageVO.API_TYPE_ID, 'id', true)]).select_vos<DashboardPageVO>();
 
         if (!this.pages) {
             this.isLoading = false;

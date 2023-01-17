@@ -1381,6 +1381,13 @@ export default class ModuleVarServer extends ModuleServerBase {
         return datasources_values;
     }
 
+    /**
+     * FIXME TODO WARNING gros risque de perte de contexte client sur le throttle à TESTER / DEBUG
+     * Virer le throttle ?
+     *             await StackContext.runPromise({
+     * IS_CLIENT: true, UID: target_user_id
+     * }, async () => {
+     */
     private async getVarParamFromContextFilters(
         var_name: string,
         get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },

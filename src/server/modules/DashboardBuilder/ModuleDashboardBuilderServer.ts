@@ -47,6 +47,15 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Cacher'
         }, 'table_widget_column_conf.editable_column.hide_from_table.___LABEL___'));
 
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Modification en cours...'
+        }, 'move_page.start.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Modification terminée'
+        }, 'move_page.ok.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Echec de la modification. Rechargez la page et réessayez'
+        }, 'move_page.failed.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Filtrer par cette ligne'

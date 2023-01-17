@@ -83,6 +83,12 @@
                                     i.fa-duotone.fa-arrow-circle-left.fa-fw.btn_icon(aria-hidden="true" @click="select_previous_page" v-tooltip.top='label("dashboard_builder.pages.tooltip_select_previous_page")')
                         template(v-for='(page_, pagei) in pages')
                             .page
+                                
+                                .btn-secondary.move_page(v-if='pagei > 0')
+                                    i.fa-duotone.fa-square-left.fa-fw.btn_icon(aria-hidden="true" @click="move_page_left(page_, pagei)")
+                                .btn-secondary.move_page(v-if='pagei < (pages.length-1)')
+                                    i.fa-duotone.fa-square-right.fa-fw.btn_icon(aria-hidden="true" @click="move_page_right(page_, pagei)")
+                                
                                 .btn-primary.select(v-if='page && (page_.id != page.id)')
                                     i.fa-duotone.fa-grid-horizontal.fa-fw.btn_icon(aria-hidden="true" @click="select_page_clear_navigation(page_)" v-tooltip.top='label("dashboard_builder.pages.tooltip_select_page")')
                                 .btn-success.selected(v-else)
@@ -111,7 +117,7 @@
 
                                 .btn-danger.delete 
                                     i.fa-duotone.fa-trash.fa-fw.btn_icon(aria-hidden="true" @click="confirm_delete_page(page_)" v-tooltip.top='label("dashboard_builder.pages.tooltip_delete_page")')
-
+                                
                         .btn-primary.create_dashboard_page
                             i.fa-duotone.fa-plus.fa-fw.btn_icon(aria-hidden="true" @click="create_dashboard_page" v-tooltip.top='label("dashboard_builder.pages.tooltip_create_dashboard_page")')
 

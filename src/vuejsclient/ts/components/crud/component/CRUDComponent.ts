@@ -13,6 +13,7 @@ import ReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datat
 import RefRangesReferenceDatatableFieldVO from '../../../../../shared/modules/DAO/vos/datatable/RefRangesReferenceDatatableFieldVO';
 import SimpleDatatableFieldVO from '../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import NumSegment from '../../../../../shared/modules/DataRender/vos/NumSegment';
 import FileVO from '../../../../../shared/modules/File/vos/FileVO';
 import ModuleFormatDatesNombres from '../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
@@ -23,6 +24,7 @@ import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../../shared/tools/DateHandler';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
+import RangeHandler from '../../../../../shared/tools/RangeHandler';
 import AjaxCacheClientController from '../../../modules/AjaxCache/AjaxCacheClientController';
 import { ModuleAlertAction } from '../../alert/AlertStore';
 import { ModuleCRUDAction, ModuleCRUDGetter } from '../../crud/store/CRUDStore';
@@ -782,7 +784,27 @@ export default class CRUDComponent extends VueComponentBase {
                 }
 
                 let field: OneToManyReferenceDatatableFieldVO<any> = datatable.fields[i] as OneToManyReferenceDatatableFieldVO<any>;
-                let actual_links: IDistantVOBase[] = await query(field.targetModuleTable.vo_type).filter_by_num_eq(field.destField.field_id, db_vo.id).select_vos<IDistantVOBase>();
+
+                let q = query(field.targetModuleTable.vo_type);
+
+                switch (field.destField.field_type) {
+                    case ModuleTableField.FIELD_TYPE_foreign_key:
+                    case ModuleTableField.FIELD_TYPE_file_ref:
+                    case ModuleTableField.FIELD_TYPE_image_ref:
+                        q.filter_by_num_eq(
+                            field.destField.field_id,
+                            db_vo.id);
+                        break;
+                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                        q.filter_by_num_x_ranges(
+                            field.destField.field_id,
+                            [RangeHandler.create_single_elt_NumRange(db_vo.id, NumSegment.TYPE_INT)]);
+                        break;
+                    default:
+                        throw new Error('Type de champ non géré');
+                }
+
+                let actual_links: IDistantVOBase[] = await q.select_vos<IDistantVOBase>();
                 let new_links_target_ids: number[] = datatable_vo[field.module_table_field_id];
 
                 let need_update_links: IDistantVOBase[] = [];
@@ -1016,7 +1038,7 @@ export default class CRUDComponent extends VueComponentBase {
                         return;
                     }
 
-                    updatedVO = await ModuleDAO.getInstance().getVoById<any>(self.selectedVO._type, self.selectedVO.id);
+                    updatedVO = await query(self.selectedVO._type).filter_by_id(self.selectedVO.id).select_vo();
                     if ((!updatedVO) || (updatedVO.id !== self.selectedVO.id) || (updatedVO._type !== self.selectedVO._type)) {
                         self.updating_vo = false;
                         reject({
@@ -1109,7 +1131,7 @@ export default class CRUDComponent extends VueComponentBase {
                     // On invalide le cache pour éviter de récupérer le même vo depuis le cache
                     AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([this.selectedVO._type]);
 
-                    deletedVO = await ModuleDAO.getInstance().getVoById<any>(this.selectedVO._type, this.selectedVO.id);
+                    deletedVO = await query(this.selectedVO._type).filter_by_id(this.selectedVO.id).select_vo();
                     if (deletedVO && deletedVO.id) {
                         this.deleting_vo = false;
                         reject({

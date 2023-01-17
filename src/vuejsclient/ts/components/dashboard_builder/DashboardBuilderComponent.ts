@@ -223,6 +223,74 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         );
     }
 
+    private async move_page_left(page: DashboardPageVO, page_i: number): Promise<void> {
+        if ((!this.pages) || (!page_i) || (!this.pages[page_i - 1])) {
+            return;
+        }
+
+        this.pages[page_i] = this.pages[page_i - 1];
+        this.pages[page_i - 1] = page;
+
+        for (let i in this.pages) {
+            this.pages[i].weight = parseInt(i);
+        }
+
+        await this.save_page_move();
+    }
+
+    private async move_page_right(page: DashboardPageVO, page_i: number): Promise<void> {
+        if ((!this.pages) || (page_i >= (this.pages.length - 1)) || (!this.pages[page_i + 1])) {
+            return;
+        }
+
+        this.pages[page_i] = this.pages[page_i + 1];
+        this.pages[page_i + 1] = page;
+
+        for (let i in this.pages) {
+            this.pages[i].weight = parseInt(i);
+        }
+
+        await this.save_page_move();
+    }
+
+    private async save_page_move() {
+        let self = this;
+        self.snotify.async(self.label('move_page.start'), () =>
+            new Promise(async (resolve, reject) => {
+
+                try {
+                    await ModuleDAO.getInstance().insertOrUpdateVOs(self.pages);
+                    self.pages = await query(DashboardPageVO.API_TYPE_ID).filter_by_num_eq('dashboard_id', self.dashboard.id).set_sorts([new SortByVO(DashboardPageVO.API_TYPE_ID, 'weight', true), new SortByVO(DashboardPageVO.API_TYPE_ID, 'id', true)]).select_vos<DashboardPageVO>();
+
+                    resolve({
+                        body: self.label('move_page.ok'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                } catch (error) {
+                    ConsoleHandler.error(error);
+                    reject({
+                        body: self.label('move_page.failed'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                }
+            })
+        );
+    }
+
+    private sort_pages(page_a: DashboardPageVO, page_b: DashboardPageVO): number {
+        return (page_a.weight == page_b.weight) ? page_a.id - page_b.id : page_a.weight - page_b.weight;
+    }
+
     private async do_copy_dashboard() {
 
         if (!this.dashboard) {
@@ -237,7 +305,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         let db = this.dashboard;
         export_vos.push(ModuleTable.default_get_api_version(db));
 
-        let pages = await query(DashboardPageVO.API_TYPE_ID).filter_by_num_eq('dashboard_id', this.dashboard.id).set_sorts([new SortByVO(DashboardVO.API_TYPE_ID, 'weight', true), new SortByVO(DashboardVO.API_TYPE_ID, 'id', true)]).select_vos<DashboardPageVO>();
+        let pages = await query(DashboardPageVO.API_TYPE_ID).filter_by_num_eq('dashboard_id', this.dashboard.id).set_sorts([new SortByVO(DashboardPageVO.API_TYPE_ID, 'weight', true), new SortByVO(DashboardPageVO.API_TYPE_ID, 'id', true)]).select_vos<DashboardPageVO>();
         if (pages && pages.length) {
             export_vos = export_vos.concat(pages.map((p) => ModuleTable.default_get_api_version(p)));
         }
@@ -486,7 +554,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
         this.set_page_widgets_components_by_pwid({});
 
-        this.pages = await query(DashboardPageVO.API_TYPE_ID).filter_by_num_eq('dashboard_id', this.dashboard.id).select_vos<DashboardPageVO>();
+        this.pages = await query(DashboardPageVO.API_TYPE_ID).filter_by_num_eq('dashboard_id', this.dashboard.id).set_sorts([new SortByVO(DashboardPageVO.API_TYPE_ID, 'weight', true), new SortByVO(DashboardPageVO.API_TYPE_ID, 'id', true)]).select_vos<DashboardPageVO>();
         if (!this.pages) {
             await this.create_dashboard_page();
         }
@@ -559,7 +627,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
         page.id = insertOrDeleteQueryResult.id;
 
-        this.pages = await query(DashboardPageVO.API_TYPE_ID).filter_by_num_eq('dashboard_id', this.dashboard.id).select_vos<DashboardPageVO>();
+        this.pages = await query(DashboardPageVO.API_TYPE_ID).filter_by_num_eq('dashboard_id', this.dashboard.id).set_sorts([new SortByVO(DashboardPageVO.API_TYPE_ID, 'weight', true), new SortByVO(DashboardPageVO.API_TYPE_ID, 'id', true)]).select_vos<DashboardPageVO>();
 
         WeightHandler.getInstance().sortByWeight(this.pages);
         this.page = page;
@@ -575,7 +643,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
 
         this.dashboard = this.dashboards[0];
 
-        this.pages = await query(DashboardPageVO.API_TYPE_ID).filter_by_num_eq('dashboard_id', this.dashboard.id).select_vos<DashboardPageVO>();
+        this.pages = await query(DashboardPageVO.API_TYPE_ID).filter_by_num_eq('dashboard_id', this.dashboard.id).set_sorts([new SortByVO(DashboardPageVO.API_TYPE_ID, 'weight', true), new SortByVO(DashboardPageVO.API_TYPE_ID, 'id', true)]).select_vos<DashboardPageVO>();
         if (!this.pages) {
             await this.create_dashboard_page();
         } else {

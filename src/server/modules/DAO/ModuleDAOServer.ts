@@ -176,6 +176,16 @@ export default class ModuleDAOServer extends ModuleServerBase {
         promises = [];
 
         promises.push((async () => {
+            let POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS: AccessPolicyVO = new AccessPolicyVO();
+            POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS.group_id = group_overall.id;
+            POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS.translatable_name = ModuleDAO.POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS;
+            POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS = await ModuleAccessPolicyServer.getInstance().registerPolicy(POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS, new DefaultTranslation({
+                'fr-fr': 'Configurer les champs masqués des CRUD'
+            }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        })());
+
+        promises.push((async () => {
             // On déclare un droit permettant de faire appel à la fonction query du module dao server
             let query_access: AccessPolicyVO = new AccessPolicyVO();
             query_access.group_id = group_overall.id;
@@ -424,6 +434,73 @@ export default class ModuleDAOServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': "Impossible d'enregistrer les données"
         }, 'dao.check_uniq_indexes.error.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Gérer les champs cachés"
+        }, 'crud_update_form_body.edit_removed_crud_fields.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Masquer les champs cachés"
+        }, 'crud_update_form_body.donot_edit_removed_crud_fields.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Afficher le champs {field_id}"
+        }, 'crud_update_form_body.delete_removed_crud_field_id.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Masquer le champs {field_id}"
+        }, 'crud_update_form_body.add_removed_crud_field_id.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Modification en cours..."
+        }, 'crud_update_form_body_delete_removed_crud_field_id.start.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Modification terminée. Recharger pour voir les changements"
+        }, 'crud_update_form_body_delete_removed_crud_field_id.ok.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Modification échouée. Veuillez réessayer"
+        }, 'crud_update_form_body_delete_removed_crud_field_id.failed.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Modification en cours..."
+        }, 'crud_update_form_body_add_removed_crud_field_id.start.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Modification terminée"
+        }, 'crud_update_form_body_add_removed_crud_field_id.ok.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Modification échouée. Veuillez réessayer"
+        }, 'crud_update_form_body_add_removed_crud_field_id.failed.___LABEL___'));
+
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Gérer les champs cachés"
+        }, 'crud__create_form_body.edit_removed_crud_fields.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Masquer les champs cachés"
+        }, 'crud__create_form_body.donot_edit_removed_crud_fields.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Afficher le champs {field_id}"
+        }, 'crud__create_form_body.delete_removed_crud_field_id.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Masquer le champs {field_id}"
+        }, 'crud__create_form_body.add_removed_crud_field_id.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Modification en cours..."
+        }, 'crud_create_form_body_delete_removed_crud_field_id.start.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Modification terminée. Recharger pour voir les changements"
+        }, 'crud_create_form_body_delete_removed_crud_field_id.ok.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Modification échouée. Veuillez réessayer"
+        }, 'crud_create_form_body_delete_removed_crud_field_id.failed.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Modification en cours..."
+        }, 'crud_create_form_body_add_removed_crud_field_id.start.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Modification terminée"
+        }, 'crud_create_form_body_add_removed_crud_field_id.ok.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Modification échouée. Veuillez réessayer"
+        }, 'crud_create_form_body_add_removed_crud_field_id.failed.___LABEL___'));
     }
 
     public registerCrons(): void {

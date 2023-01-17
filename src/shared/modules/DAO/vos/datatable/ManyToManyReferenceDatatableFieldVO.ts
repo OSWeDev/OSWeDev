@@ -43,13 +43,13 @@ export default class ManyToManyReferenceDatatableFieldVO<Target extends IDistant
     }
 
     get translatable_title(): string {
-        if ((!this.vo_type_full_name) || (!this.moduleTable)) {
+        if ((!this.vo_type_full_name) || (!this.targetModuleTable)) {
             return null;
         }
 
-        let e = this.moduleTable.label.code_text;
+        let e = this.targetModuleTable.label.code_text;
         if (this.module_table_field_id != this.datatable_field_uid) {
-            return e.substr(0, e.indexOf(DefaultTranslation.DEFAULT_LABEL_EXTENSION)) + "." + this.datatable_field_uid + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+            return e.substring(0, e.indexOf(DefaultTranslation.DEFAULT_LABEL_EXTENSION)) + "." + this.datatable_field_uid + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
         } else {
             return e;
         }

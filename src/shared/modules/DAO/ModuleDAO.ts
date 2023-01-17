@@ -13,6 +13,7 @@ import NumRange from '../DataRender/vos/NumRange';
 import IMatroid from '../Matroid/interfaces/IMatroid';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
+import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VOsTypesManager';
 import APIDAOApiTypeAndMatroidsParamsVO, { APIDAOApiTypeAndMatroidsParamsVOStatic } from './vos/APIDAOApiTypeAndMatroidsParamsVO';
 import APIDAOIdsRangesParamsVO, { APIDAOIdsRangesParamsVOStatic } from './vos/APIDAOIdsRangesParamsVO';
@@ -24,6 +25,7 @@ import APIDAORefFieldsAndFieldsStringParamsVO, { APIDAORefFieldsAndFieldsStringP
 import APIDAORefFieldsParamsVO, { APIDAORefFieldsParamsVOStatic } from './vos/APIDAORefFieldsParamsVO';
 import APIDAOselectUsersForCheckUnicityVO, { APIDAOselectUsersForCheckUnicityVOStatic } from './vos/APIDAOselectUsersForCheckUnicityVO';
 import APIDAOTypeLimitOffsetVO, { APIDAOTypeLimitOffsetVOStatic } from './vos/APIDAOTypeLimitOffsetVO';
+import CRUDFieldRemoverConfVO from './vos/CRUDFieldRemoverConfVO';
 import ComputedDatatableFieldVO from './vos/datatable/ComputedDatatableFieldVO';
 import InsertOrDeleteQueryResult from './vos/InsertOrDeleteQueryResult';
 
@@ -34,6 +36,8 @@ export default class ModuleDAO extends Module {
     public static POLICY_GROUP_OVERALL: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleDAO.MODULE_NAME + '_OVERALL';
     public static POLICY_GROUP_DATAS: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleDAO.MODULE_NAME + '_DATAS';
     public static POLICY_GROUP_MODULES_CONF: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleDAO.MODULE_NAME + '_MODULES_CONF';
+
+    public static POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDAO.MODULE_NAME + ".CAN_EDIT_REMOVED_CRUD_FIELDS_ACCESS";
 
     public static APINAME_selectUsersForCheckUnicity = "selectUsersForCheckUnicity";
 
@@ -509,6 +513,8 @@ export default class ModuleDAO extends Module {
     public initialize() {
         this.fields = [];
         this.datatables = [];
+
+        this.init_CRUDFieldRemoverConfVO();
     }
 
     public get_compute_function_uid(vo_type: string) {
@@ -540,5 +546,18 @@ export default class ModuleDAO extends Module {
         }
         let isModulesParams: boolean = VOsTypesManager.moduleTables_by_voType[vo_type].isModuleParamTable;
         return (isModulesParams ? ModuleDAO.POLICY_GROUP_MODULES_CONF : ModuleDAO.POLICY_GROUP_DATAS) + '.' + access_type + "." + vo_type;
+    }
+
+    private init_CRUDFieldRemoverConfVO(): ModuleTable<any> {
+
+        let datatable_fields = [
+            new ModuleTableField('module_table_vo_type', ModuleTableField.FIELD_TYPE_string, 'Vo Type', true, false),
+            new ModuleTableField('module_table_field_ids', ModuleTableField.FIELD_TYPE_string_array, 'Types', false),
+            new ModuleTableField('is_update', ModuleTableField.FIELD_TYPE_boolean, 'CRUD update ?', true, true, true),
+        ];
+
+        let res = new ModuleTable(this, CRUDFieldRemoverConfVO.API_TYPE_ID, () => new CRUDFieldRemoverConfVO(), datatable_fields, null, "Champs supprimés du CRUD");
+        this.datatables.push(res);
+        return res;
     }
 }
