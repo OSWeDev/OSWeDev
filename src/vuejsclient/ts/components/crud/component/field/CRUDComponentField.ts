@@ -194,6 +194,9 @@ export default class CRUDComponentField extends VueComponentBase
     @Prop({ default: false })
     private show_pencil_btn: boolean;
 
+    @Prop({ default: false })
+    private hide_text_cliquable: boolean;
+
     private this_CRUDComp_UID: number = null;
 
     private auto_validate_start: number = null;
@@ -232,7 +235,7 @@ export default class CRUDComponentField extends VueComponentBase
         this.inline_input_is_editing = this.force_input_is_editing;
         if (this.inline_input_mode && this.force_input_is_editing && this.$refs.input_elt && !!this.$refs.input_elt['focus']) {
             let self = this;
-            this.$nextTick(() => self.$refs.input_elt['focus']());
+            //this.$nextTick(() => self.$refs.input_elt['focus']()); -> Autofocus du curseur lors du changement de page - voir ticket focus_auto
         }
 
         this.select_options_enabled_by_id = this.get_check_field_options_enabled(this.field);
@@ -435,7 +438,7 @@ export default class CRUDComponentField extends VueComponentBase
 
         if ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
             ((this.field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html)) {
-            input_value = input.root.innerHTML;
+            input_value = input;
         } else {
             input_value = input.value;
         }

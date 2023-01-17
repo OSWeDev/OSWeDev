@@ -1,7 +1,7 @@
 .row.import_header
     .col-sm-12
         button.btn.btn-sm.btn-secondary.pull-right(@click='reload_datas()')
-            i.fa.fa-refresh.fa-lg.btn_icon(aria-hidden="true")
+            i.fa-solid.fa-refresh.fa-lg.btn_icon(aria-hidden="true")
             | {{ label('crud.actions.refresh') }}
         toggle-button.pull-left(
             v-if='show_autovalidate'

@@ -6,6 +6,8 @@ import CacheInvalidationRulesVO from '../shared/modules/AjaxCache/vos/CacheInval
 import { query } from '../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
 import ModuleFeedback from '../shared/modules/Feedback/ModuleFeedback';
+import ModuleSurvey from '../shared/modules/Survey/ModuleSurvey';
+
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
 import LangVO from '../shared/modules/Translation/vos/LangVO';
 import LocaleManager from '../shared/tools/LocaleManager';
@@ -50,6 +52,8 @@ export default abstract class VueAppController {
      */
     public has_access_to_onpage_translation: boolean = false;
     public has_access_to_feedback: boolean = false;
+    public has_access_to_survey: boolean = false;
+
 
     protected constructor(public app_name: "client" | "admin" | "login") {
         VueAppController.instance_ = this;
@@ -86,8 +90,15 @@ export default abstract class VueAppController {
         }
 
         if (ModuleFeedback.getInstance().actif) {
+
             promises.push((async () => {
                 self.has_access_to_feedback = await ModuleAccessPolicy.getInstance().testAccess(ModuleFeedback.POLICY_FO_ACCESS);
+            })());
+        }
+
+        if (ModuleSurvey.getInstance().actif) {
+            promises.push((async () => {
+                self.has_access_to_survey = await ModuleAccessPolicy.getInstance().testAccess(ModuleSurvey.POLICY_FO_ACCESS);
             })());
         }
 

@@ -21,7 +21,7 @@
                     @keyup.13="import_translations" )
             .col-sm-3
                 button.btn.btn-success(v-if="(!!imported_translations) && (imported_translations != '')" type="button" @click='import_translations')
-                    i.fa.fa-check.btn_icon(aria-hidden="true")
+                    i.fa-solid.fa-check.btn_icon(aria-hidden="true")
                     | {{ label('on_page_translation.import_translations_action') }}
 
         template(v-for='editable_translation in editable_translations')
@@ -47,10 +47,10 @@
                                 :width="120"
                                 :labels="{checked: label('on_page_translation.show_other_langs'), unchecked: label('on_page_translation.hide_other_langs')}")
                             button.btn.btn-secondary(v-if="updated_translation(editable_translation)" type="button" @click='rollback_translation(editable_translation)')
-                                i.fa.fa-undo.btn_icon(aria-hidden="true")
+                                i.fa-solid.fa-undo.btn_icon(aria-hidden="true")
                                 | {{ label('on_page_translation.rollback_button') }}
                             button.btn.btn-success(v-if="updated_translation(editable_translation)" type="button" @click='save_translation(editable_translation)')
-                                i.fa.fa-check.btn_icon(aria-hidden="true")
+                                i.fa-solid.fa-check.btn_icon(aria-hidden="true")
                                 | {{ label('on_page_translation.save_button') }}
                     template(v-if="show_other_langs[editable_translation.translation_code]")
                         template(v-for="lang in other_langs")
@@ -60,7 +60,7 @@
                                         .lang {{ lang.code_lang }}
                                     .col-sm-5.translated-col
                                         .translated
-                                            i.fa.fa-spinner.fa-spin
+                                            i.fa-solid.fa-spinner.fa-spin
                                     .col-sm-3
                             template(v-else)
                                 .row.other_langs(v-if="(!!translations[lang.code_lang][editable_translation.translation_code])")

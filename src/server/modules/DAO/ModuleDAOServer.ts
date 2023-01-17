@@ -416,6 +416,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Tous/Toutes'
         }, 'numrange.max_range.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Impossible d'enregistrer les données"
+        }, 'dao.check_uniq_indexes.error.___LABEL___'));
     }
 
     public registerCrons(): void {
@@ -1002,7 +1005,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 let vo_id: number = !!vo.id ? vo.id : 0;
 
                 if (!vo_id) {
-                    vo.id = await this.check_uniq_indexes(vo, moduleTable);
+                    try {
+                        vo.id = await this.check_uniq_indexes(vo, moduleTable);
+                    } catch (err) {
+                        return null;
+                    }
+
                     vo_id = vo.id;
                 }
 
@@ -1314,7 +1322,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         for (let api_type in check_pixel_update_vos_by_type) {
             let check_pixel_update_vos = check_pixel_update_vos_by_type[api_type];
-            let db_check_pixel_update_vos: VarDataBaseVO[] = await query(api_type).filter_by_ids(update_vos.map((vo) => vo.id)).select_vos();
+
+            if ((!check_pixel_update_vos) || (!check_pixel_update_vos.length)) {
+                continue;
+            }
+
+            let db_check_pixel_update_vos: VarDataBaseVO[] = await query(api_type).filter_by_ids(check_pixel_update_vos.map((vo) => vo.id)).select_vos();
 
             let db_check_pixel_update_vos_by_id: { [id: number]: VarDataBaseVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(db_check_pixel_update_vos);
 
@@ -1677,9 +1690,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 return null;
             }
 
-            let segmented_res: T[] = [];
-
-            // TODO MDE - UNION ALL et vérifier si plus rapide sur PSA
             let segmentations_tables: { [table_name: string]: number } = {};
 
             RangeHandler.getInstance().foreach_ranges_sync(ranges, (segment_value) => {
@@ -1694,6 +1704,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             let request: string = null;
 
+            let fields_select: string = 't.id';
+            let fields = moduleTable.get_fields();
+            for (let i in fields) {
+                let field = fields[i];
+
+                fields_select += ',t.' + field.field_id;
+            }
+
             for (let segmentation_table in segmentations_tables) {
 
                 if (!request) {
@@ -1702,7 +1720,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     request += ' UNION ALL ';
                 }
 
-                request += "SELECT " + (distinct ? 'distinct' : '') + " t.* ";
+                request += "SELECT " + (distinct ? 'distinct' : '') + " " + fields_select + " ";
                 request += " FROM " + segmentation_table + ' t ';
                 request += (query_ ? query_.replace(/;/g, '') : '');
             }
@@ -2418,7 +2436,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
                  *  la même valeur de champ unique. si on trouve on passe en update au lieu d'insert
                  */
                 if (!vo.id) {
-                    vo.id = await this.check_uniq_indexes(vo, moduleTable);
+                    try {
+                        vo.id = await this.check_uniq_indexes(vo, moduleTable);
+                    } catch (err) {
+                        return null;
+                    }
                 }
 
                 isUpdates[i] = vo.id ? true : false;
@@ -2436,6 +2458,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             query_.filter_by_num_eq(moduleTable.table_segmented_field.field_id, moduleTable.get_segmented_field_value_from_vo(vo));
                         }
                         preUpdates[i] = await query_.select_vo();
+
+                        if (!preUpdates[i]) {
+                            // Cas d'un objet en cache server ou client mais qui n'existe plus sur la BDD => on doit insérer du coup un nouveau
+                            isUpdates[i] = false;
+                            vo.id = null;
+                        }
                     }
                 }
 
@@ -2509,10 +2537,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
             for (let j in moduleTable.uniq_indexes) {
                 let uniq_index = moduleTable.uniq_indexes[j];
 
+                let replace_if_unique_field_id: { [field_id: string]: boolean } = {};
+
                 let filters = [];
 
                 for (let k in uniq_index) {
                     let field = uniq_index[k];
+
+                    replace_if_unique_field_id[field.field_id] = field.replace_if_unique;
 
                     // Si la valeur est null dans le vo ça sert à rien de tester
                     if (vo[field.field_id] == null) {
@@ -2563,11 +2595,28 @@ export default class ModuleDAOServer extends ModuleServerBase {
                  */
                 query_.ignore_access_hooks();
 
-                let uniquevos = null;
+                let uniquevos: IDistantVOBase[] = null;
                 await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
                     uniquevos = await ModuleContextFilter.getInstance().select_vos(query_);
                 });
+
                 if (uniquevos && uniquevos[0] && uniquevos[0].id) {
+                    for (let field_id in replace_if_unique_field_id) {
+                        // Si on a la même valeur et qu'on ne peut pas remplacer, on throw une erreur
+                        if ((vo[field_id] == uniquevos[0][field_id]) && !replace_if_unique_field_id[field_id]) {
+                            let uid: number = StackContext.getInstance().get('UID');
+                            let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
+
+                            if (uid && CLIENT_TAB_ID) {
+                                await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'dao.check_uniq_indexes.error' + DefaultTranslation.DEFAULT_LABEL_EXTENSION, true);
+                            }
+
+                            let msg: string = "Ajout impossible car un élément existe déjà avec les mêmes valeurs sur le champ : " + field_id + " : " + JSON.stringify(vo);
+                            ConsoleHandler.getInstance().error(msg);
+                            throw new Error(msg);
+                        }
+                    }
+
                     return uniquevos[0].id;
                 }
             }
@@ -2631,7 +2680,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
              *  la même valeur de champ unique. si on trouve on passe en update au lieu d'insert
              */
             if (!vo.id) {
-                vo.id = await this.check_uniq_indexes(vo, moduleTable);
+                try {
+                    vo.id = await this.check_uniq_indexes(vo, moduleTable);
+                } catch (err) {
+                    return null;
+                }
             }
 
             /**
@@ -2896,11 +2949,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         if (vo.id) {
 
-            // Ajout des triggers, avant et après modification.
-            //  Attention si un des output est false avant modification, on annule la modification
-            let res: boolean[] = await DAOServerController.getInstance().pre_update_trigger_hook.trigger(vo._type, new DAOUpdateVOHolder(pre_update_vo, vo));
-            if (!BooleanHandler.getInstance().AND(res, true)) {
-                return null;
+            if (DAOServerController.getInstance().pre_update_trigger_hook.has_trigger(vo._type)) {
+
+                // Ajout des triggers, avant et après modification.
+                //  Attention si un des output est false avant modification, on annule la modification
+                let res: boolean[] = await DAOServerController.getInstance().pre_update_trigger_hook.trigger(vo._type, new DAOUpdateVOHolder(pre_update_vo, vo));
+                if (!BooleanHandler.getInstance().AND(res, true)) {
+                    return null;
+                }
             }
 
             const setters = [];
@@ -2947,11 +3003,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         } else {
 
-            // Ajout des triggers, avant et après modification.
-            //  Attention si un des output est false avant modification, on annule la modification
-            let res: boolean[] = await DAOServerController.getInstance().pre_create_trigger_hook.trigger(vo._type, vo);
-            if (!BooleanHandler.getInstance().AND(res, true)) {
-                return null;
+            if (DAOServerController.getInstance().pre_create_trigger_hook.has_trigger(vo._type)) {
+
+                // Ajout des triggers, avant et après modification.
+                //  Attention si un des output est false avant modification, on annule la modification
+                let res: boolean[] = await DAOServerController.getInstance().pre_create_trigger_hook.trigger(vo._type, vo);
+                if (!BooleanHandler.getInstance().AND(res, true)) {
+                    return null;
+                }
             }
 
             const tableFields = [];
@@ -3100,6 +3159,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 segmentations = DAOServerController.getInstance().segmented_known_databases[moduleTable.database];
             }
 
+            let fields_select: string = 't.id';
+            let fields = moduleTable.get_fields();
+            for (let i in fields) {
+                let field = fields[i];
+
+                fields_select += ',t.' + field.field_id;
+            }
+
             for (let segmentation_table in segmentations) {
 
                 if (!request) {
@@ -3107,7 +3174,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 } else {
                     request += ' UNION ALL ';
                 }
-                request += 'select * from ' + moduleTable.database + '.' + segmentation_table + ' t where id = ' + id + ' ';
+                request += 'select ' + fields_select + ' from ' + moduleTable.database + '.' + segmentation_table + ' t where id = ' + id + ' ';
             }
 
             /**
@@ -3557,6 +3624,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let segmentations: { [table_name: string]: number } = DAOServerController.getInstance().segmented_known_databases[moduleTable.database];
             let request = null;
 
+            let fields_select: string = 't.id';
+            let fields = moduleTable.get_fields();
+            for (let i in fields) {
+                let field = fields[i];
+
+                fields_select += ',t.' + field.field_id;
+            }
+
             for (let segmentation_table in segmentations) {
 
                 if (!request) {
@@ -3564,7 +3639,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 } else {
                     request += ' UNION ALL ';
                 }
-                request += 'select * from ' + moduleTable.database + '.' + segmentation_table + ' t WHERE id in (' + ids + ') ';
+                request += 'select ' + fields_select + ' from ' + moduleTable.database + '.' + segmentation_table + ' t WHERE id in (' + ids + ') ';
             }
 
             /**
@@ -3873,6 +3948,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 });
             }
 
+            let fields_select: string = 't.id';
+            let fields = moduleTable.get_fields();
+            for (let i in fields) {
+                let field = fields[i];
+
+                fields_select += ',t.' + field.field_id;
+            }
+
             for (let segmentation_table in segmentations_tables) {
 
                 if (!request) {
@@ -3889,7 +3972,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     return null;
                 }
 
-                request += 'select * from ' + db_full_name + ' t where ' + filter_by_matroid_clause + (additional_condition ? additional_condition : '');
+                request += 'select ' + fields_select + ' from ' + db_full_name + ' t where ' + filter_by_matroid_clause + (additional_condition ? additional_condition : '');
             }
 
             if (!request) {
@@ -4034,6 +4117,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     segmentations_tables = DAOServerController.getInstance().segmented_known_databases[moduleTable.database];
                 }
 
+                let fields_select: string = 't.id';
+                let fields = moduleTable.get_fields();
+                for (let j in fields) {
+                    let field = fields[j];
+
+                    fields_select += ',t.' + field.field_id;
+                }
+
                 for (let segmentation_table in segmentations_tables) {
 
                     if (!request) {
@@ -4048,7 +4139,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         ConsoleHandler.getInstance().error('filterVosByMatroidsIntersections:Where clause invalid :api_type_id:' + (fields_ids_mapper ? JSON.stringify(fields_ids_mapper) : fields_ids_mapper));
                         throw new Error('Where clause invalid');
                     }
-                    request += 'select * from ' + moduleTable.database + '.' + segmentation_table + ' t where ' + clause + ' ';
+                    request += 'select ' + fields_select + ' from ' + moduleTable.database + '.' + segmentation_table + ' t where ' + clause + ' ';
                 }
 
                 /**
@@ -4287,6 +4378,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     throw new Error('Not Implemented');
                 }
 
+                let fields_select: string = 't.id';
+                let fields = moduleTable.get_fields();
+                for (let j in fields) {
+                    let field = fields[j];
+
+                    fields_select += ',t.' + field.field_id;
+                }
+
                 for (let segmentation_table in segmentations_tables) {
 
                     if (!request) {
@@ -4294,7 +4393,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     } else {
                         request += ' UNION ALL ';
                     }
-                    request += 'select * from ' + moduleTable.database + '.' + segmentation_table + ' t where ' + where_clause + ' ';
+                    request += 'select ' + fields_select + ' from ' + moduleTable.database + '.' + segmentation_table + ' t where ' + where_clause + ' ';
                 }
 
                 /**

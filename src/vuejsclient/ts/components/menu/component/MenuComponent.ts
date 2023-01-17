@@ -1,3 +1,4 @@
+import { indexOf } from 'lodash';
 import { Component, Prop } from 'vue-property-decorator';
 import MenuElementVO from '../../../../../shared/modules/Menu/vos/MenuElementVO';
 import WeightHandler from '../../../../../shared/tools/WeightHandler';
@@ -40,8 +41,25 @@ export default class MenuComponent extends VueComponentBase {
 
     private callback_reload_menus() {
         this.menuElements = MenuController.getInstance().menus_by_parent_id ? MenuController.getInstance().menus_by_parent_id[0] : null;
+
+        //Removing duplicates :
+        const result: MenuElementVO[] = [];
+        let menuElements_label: string[] = [];
+        for (const item of this.menuElements) {
+            if (!menuElements_label.includes(this.t(item.translatable_title))) {
+                result.push(item);
+                menuElements_label.push(this.t(item.translatable_title));
+            }
+        }
+        this.menuElements = result;
+
+
         this.childrenElementsById = MenuController.getInstance().menus_by_parent_id;
         this.access_by_name = MenuController.getInstance().access_by_name;
+    }
+
+    private get_name_menus(menuElement: MenuElementVO) {
+        return this.t(menuElement.translatable_title);
     }
 
     private has_no_children_or_at_least_one_visible(menuElement: MenuElementVO): boolean {

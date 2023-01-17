@@ -16,9 +16,9 @@
         .col-sm-12
             .row.dragsize_handle(:id='"dragsize_handle_" + uid')
                 .col-sm-12  
-                    i.fa.fa-minus.fa-fw.pull-right(aria-hidden="true" v-show="opened" @click="opened = !opened")
-                    i.fa.fa-plus.fa-fw.pull-right(aria-hidden="true" v-show="!opened" @click="opened = !opened")
-                    i.fa.fa-arrows.fa-fw.pull-right(aria-hidden="true")
+                    i.fa-solid.fa-minus.fa-fw.pull-right(aria-hidden="true" v-show="opened" @click="opened = !opened")
+                    i.fa-solid.fa-plus.fa-fw.pull-right(aria-hidden="true" v-show="!opened" @click="opened = !opened")
+                    i.fa-solid.fa-arrows.fa-fw.pull-right(aria-hidden="true")
 
                     slot(name="icons")
             .row.dragsize_content

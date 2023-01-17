@@ -226,6 +226,11 @@ export default class MatroidIndexHandler {
         let pieces: string[] = index.split('|');
         let var_id: number = this.base_76_txt_to_base_10_num(pieces[0]);
         let var_conf = VarsController.getInstance().var_conf_by_id[var_id];
+
+        if (!var_conf) {
+            return null;
+        }
+
         let res: VarDataBaseVO = VOsTypesManager.getInstance().moduleTables_by_voType[var_conf.var_data_vo_type].voConstructor();
 
         res.var_id = var_id;

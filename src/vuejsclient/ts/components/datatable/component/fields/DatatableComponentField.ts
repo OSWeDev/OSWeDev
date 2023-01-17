@@ -42,7 +42,7 @@ export default class DatatableComponentField extends VueComponentBase {
     @Prop({ default: false })
     private is_dashboard_builder: boolean;
 
-    @Prop({ default: true })
+    @Prop({ default: false })
     private show_tooltip: boolean;
 
     @Prop({ default: false })

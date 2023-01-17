@@ -195,8 +195,12 @@ export default class ModuleVarServer extends ModuleServerBase {
         }, 'VarDataRefComponent.var_data_value_import_tooltip.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Index + Entrée'
+            'fr-fr': 'Index + Entrée - Validez à vide pour réinitialiser.'
         }, 'vars_datas_explorer_visualization.param_from_index.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Index de la variable sélectionnée'
+        }, 'vars_datas_explorer_visualization.chosen_index.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': '</ul>'

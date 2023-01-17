@@ -402,10 +402,35 @@ export default class DatatableRowController {
 
                     // On va chercher la valeur du champs depuis la valeur de la donnée liée
                     if (!!raw_data[src_module_table_field_id]) {
-                        let ref_data: IDistantVOBase = await ModuleDAO.getInstance().getVoById(manyToOneField.targetModuleTable.vo_type, raw_data[src_module_table_field_id]);
-                        resData[field.datatable_field_uid] = manyToOneField.dataToHumanReadable(ref_data);
-                        resData[field.datatable_field_uid + "___id___"] = raw_data[src_module_table_field_id];
-                        resData[field.datatable_field_uid + "___type___"] = manyToOneField.targetModuleTable.vo_type;
+                        let vo_ids: any[] = raw_data[src_module_table_field_id];
+
+                        if (!isArray(vo_ids)) {
+                            vo_ids = [vo_ids];
+                        }
+
+                        let promises = [];
+
+                        resData[field.datatable_field_uid] = [];
+                        resData[field.datatable_field_uid + "___id___"] = [];
+                        resData[field.datatable_field_uid + "___type___"] = [];
+
+                        for (let i in vo_ids) {
+                            promises.push((async () => {
+                                let ref_data: IDistantVOBase = await ModuleDAO.getInstance().getVoById(manyToOneField.targetModuleTable.vo_type, vo_ids[i]);
+
+                                if (vo_ids.length == 1) {
+                                    resData[field.datatable_field_uid] = manyToOneField.dataToHumanReadable(ref_data);
+                                    resData[field.datatable_field_uid + "___id___"] = raw_data[src_module_table_field_id];
+                                    resData[field.datatable_field_uid + "___type___"] = manyToOneField.targetModuleTable.vo_type;
+                                } else {
+                                    resData[field.datatable_field_uid].push(manyToOneField.dataToHumanReadable(ref_data));
+                                    resData[field.datatable_field_uid + "___id___"].push(raw_data[src_module_table_field_id]);
+                                    resData[field.datatable_field_uid + "___type___"].push(manyToOneField.targetModuleTable.vo_type);
+                                }
+                            })());
+                        }
+
+                        await all_promises(promises);
                     }
                     break;
 

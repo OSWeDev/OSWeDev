@@ -65,6 +65,7 @@ export default class ContextQueryServerController {
         context_query.query_distinct = false;
 
         let query_wrapper = await this.build_select_query(context_query);
+        //Requête
         if ((!query_wrapper) || (!query_wrapper.query)) {
             throw new Error('Invalid query');
         }

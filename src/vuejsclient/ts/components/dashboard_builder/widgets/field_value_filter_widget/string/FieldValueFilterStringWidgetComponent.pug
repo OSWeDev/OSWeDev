@@ -45,16 +45,16 @@
                                 input(v-model='advanced_string_filter.filter_content' :placeholder='advanced_mode_placeholder' @change="onchange_advanced_string_filter_content")
                             template(v-if='parseInt(i.toString()) == (advanced_string_filters.length - 1)')
                                 //- .advanced_string_filter_add_filter(v-tooltip.top='label("advanced_filters.add")' @click='add_advanced_string_filter')
-                                //-     i.fa.fa-plus-circle.fa-lg.btn_icon
+                                //-     i.fa-solid.fa-plus-circle.fa-lg.btn_icon
                                 template(v-if="!autovalidate_advanced_filter")
                                     .advanced_string_filter_validate_filter(v-tooltip.top='label("advanced_filters.validate")' @click='validate_advanced_string_filter' :class='{"disabled": !is_advanced_filter_valid}')
-                                        i.fa.fa-check-circle.fa-lg.btn_icon
+                                        i.fa-solid.fa-check-circle.fa-lg.btn_icon
                             template(v-else)
                                 .advanced_string_filter_link_type(v-tooltip.top='label("advanced_filters.link_type")' @click='switch_link_type(advanced_string_filter)')
-                                    i.fa.fa-circle.fa-lg.btn_icon
+                                    i.fa-solid.fa-circle.fa-lg.btn_icon
                                     .link_type {{ t(link_type_labels[advanced_string_filter.link_type]) }}
                                 .advanced_string_filter_delete_filter(v-tooltip.top='label("advanced_filters.delete")' @click='delete_advanced_string_filter(parseInt(i.toString()))')
-                                    i.fa.fa-trash.fa-lg.btn_icon
+                                    i.fa-solid.fa-trash.fa-lg.btn_icon
 
 
         template(v-else)
@@ -101,7 +101,7 @@
                                     span.option__tag {{ label(props.option.label) }}
                                 template(v-else)
                                     span.option__tag {{ props.option.label }}
-                                i.fa.fa-times(@click='props.remove(props.option)')
+                                i.fa-solid.fa-times(@click='props.remove(props.option)')
                 
                 template(v-else)
                     template(v-if="show_search_field")

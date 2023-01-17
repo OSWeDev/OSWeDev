@@ -2,10 +2,10 @@
     template(v-if="!dashboard")
         template(v-if="loading")
             .is_loading
-                i.fa.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
+                i.fa-solid.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
         template(v-else)
             .loading_failed 
-                i.fa.fa-exclamation-triangle.fa-fw.icon_error(aria-hidden="true")
+                i.fa-solid.fa-exclamation-triangle.fa-fw.icon_error(aria-hidden="true")
                 | {{ label('dashboard_viewer.loading_failed') }}
     template(v-else)
         .row 
@@ -15,16 +15,16 @@
                         Inlinetranslatabletext(:code_text="dashboard_name_code_text" :is_editable="false")
                     .edit.display_inline_block.ml-3(v-if='can_edit')
                         router-link.btn.btn-primary(:to="{ name: 'DashboardBuilder_id', params: { dashboard_id : dashboard.id }}")
-                            i.fa.fa-pencil.btn-primary
+                            i.fa-solid.fa-pencil.btn-primary
         .row 
             .col-sm-12
                 template(v-if='!pages')
                     template(v-if="loading")
                         .is_loading
-                            i.fa.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
+                            i.fa-solid.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
                     template(v-else)
                         .loading_failed 
-                            i.fa.fa-exclamation-triangle.fa-fw.icon_error(aria-hidden="true")
+                            i.fa-solid.fa-exclamation-triangle.fa-fw.icon_error(aria-hidden="true")
                             | {{ label('dashboard_viewer.loading_failed') }}
 
                 template(v-else-if='(visible_pages && (visible_pages.length > 1)) || (has_navigation_history)')
@@ -32,15 +32,15 @@
                         template(v-if='has_navigation_history')
                             .page
                                 .back
-                                    i.fa.fa-arrow-circle-left.fa-fw.btn_icon(aria-hidden="true" @click="select_previous_page" v-tooltip.top='label("dashboard_builder.pages.tooltip_select_previous_page")')
+                                    i.fa-solid.fa-arrow-circle-left.fa-fw.btn_icon(aria-hidden="true" @click="select_previous_page" v-tooltip.top='label("dashboard_builder.pages.tooltip_select_previous_page")')
 
                         template(v-if='(visible_pages && (visible_pages.length > 1))')
                             template(v-for='(page_, pagei) in visible_pages')
                                 .page(@click="select_page(page_)")
                                     .select(v-if='page && (page_.id != page.id)')
-                                        i.fa.fa-hand-o-down.fa-fw.btn_icon(aria-hidden="true")
+                                        i.fa-solid.fa-hand-point-down.fa-fw.btn_icon(aria-hidden="true")
                                     .selected(v-else)
-                                        i.fa.fa-check-circle.fa-fw(aria-hidden="true")
+                                        i.fa-solid.fa-check-circle.fa-fw(aria-hidden="true")
                                     .name
                                         Inlinetranslatabletext(:code_text="pages_name_code_text[pagei]" :is_editable="false")
 
@@ -49,10 +49,10 @@
                 .col-sm-12
                     template(v-if="loading")
                         .is_loading
-                            i.fa.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
+                            i.fa-solid.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
                     template(v-else)
                         .loading_failed 
-                            i.fa.fa-exclamation-triangle.fa-fw.icon_error(aria-hidden="true")
+                            i.fa-solid.fa-exclamation-triangle.fa-fw.icon_error(aria-hidden="true")
                             | {{ label('dashboard_viewer.loading_failed') }}
 
         template(v-else)

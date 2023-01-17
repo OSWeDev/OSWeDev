@@ -8,10 +8,10 @@ include ../../../../views/mixins/loading.pug
             .row.justify-content-between
                 .col-sm-1
                     button.btn.btn-primary.pull-left(@click="previous_segments")
-                        i.fa.fa-arrow-left(aria-hidden="true")
+                        i.fa-solid.fa-arrow-left(aria-hidden="true")
                 .col-sm-1
                     button.btn.btn-primary.pull-right(@click="next_segments")
-                        i.fa.fa-arrow-right(aria-hidden="true")
+                        i.fa-solid.fa-arrow-right(aria-hidden="true")
             .row.justify-content-between.segments_overviews
                 template(v-for='segment in getsegments')
                     template(v-if="segment_states && segment && segment_states[segment.index]")
@@ -30,15 +30,15 @@ include ../../../../views/mixins/loading.pug
 
                             .row
                                 .col-sm
-                                    i.fa.fa-info-circle.fa-5x(aria-hidden="true" @click='openModal(segment)')
+                                    i.fa-solid.fa-info-circle.fa-5x(aria-hidden="true" @click='openModal(segment)')
                             .row
                                 .col-sm
-                                    i.fa.fa-step-backward.fa-2x(aria-hidden="true" @click='is_valid_lower[segment.index] ? define_lower_selection(segment) : {}' :class='{"invalid_selection": !is_valid_lower[segment.index], "valid_selection": is_valid_lower[segment.index]}')
+                                    i.fa-solid.fa-step-backward.fa-2x(aria-hidden="true" @click='is_valid_lower[segment.index] ? define_lower_selection(segment) : {}' :class='{"invalid_selection": !is_valid_lower[segment.index], "valid_selection": is_valid_lower[segment.index]}')
                                 .col-sm
-                                    i.fa.fa-step-forward.fa-2x(aria-hidden="true" @click='is_valid_upper[segment.index] ? define_upper_selection(segment) : {}' :class='{"invalid_selection": !is_valid_upper[segment.index], "valid_selection": is_valid_upper[segment.index]}')
+                                    i.fa-solid.fa-step-forward.fa-2x(aria-hidden="true" @click='is_valid_upper[segment.index] ? define_upper_selection(segment) : {}' :class='{"invalid_selection": !is_valid_upper[segment.index], "valid_selection": is_valid_upper[segment.index]}')
                             .row
                                 .col-sm
-                                    i.fa.fa-refresh(aria-hidden="true" @click='planif_reimport(segment)' class="valid_selection")
+                                    i.fa-solid.fa-refresh(aria-hidden="true" @click='planif_reimport(segment)' class="valid_selection")
 
                             fileinput(:key="'fileinput_'+segment.index" :muted="true" :options="dropzoneOptions[segment.index]" @uploaded="uploadedFile(segment.index, ...arguments)")
             .row.justify-content-between.multiple_segments(v-if="show_multiple_segments")

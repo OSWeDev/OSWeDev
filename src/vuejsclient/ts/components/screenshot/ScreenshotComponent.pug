@@ -3,10 +3,10 @@
         .col-sm-12        
             template(v-if='(!has_valid_file_linked) && (!is_taking)')
                 .screenshot_placeholder_not_taken(@click='take_screenshot')
-                    i.fa.fa-camera.fa-3x(aria-hidden="true")
+                    i.fa-solid.fa-camera.fa-3x(aria-hidden="true")
             template(v-if='(!has_valid_file_linked) && (!!is_taking)')
                 .screenshot_placeholder_taking
-                    i.fa.fa-camera.fa-3x(aria-hidden="true")
+                    i.fa-solid.fa-camera.fa-3x(aria-hidden="true")
             template(v-if='!!has_valid_file_linked')
                 .screenshot_placeholder_taken
                     img(:src="'/' + filevo.path")
