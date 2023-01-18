@@ -505,7 +505,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     private async onchange_dashboard_id() {
         this.loading = true;
 
-        this.dashboards = await query(DashboardVO.API_TYPE_ID).select_vos<DashboardVO>();
+        this.dashboards = await query(DashboardVO.API_TYPE_ID).set_sorts([new SortByVO(DashboardVO.API_TYPE_ID, 'weight', true), new SortByVO(DashboardVO.API_TYPE_ID, 'id', true)]).select_vos<DashboardVO>();
         if (!this.dashboard_id) {
             await this.init_dashboard();
             this.can_build_page = !!(this.dashboard.api_type_ids && this.dashboard.api_type_ids.length);
