@@ -595,7 +595,7 @@ export default class TablesGraphComponent extends VueComponentBase {
         let node_v1: string = cell.vo_type; //Nom de la cellule source
 
         let is_link_unccepted: boolean; //Si la flèche construite n'est pas censurée
-        let does_exist: boolean; //Si la flèche construite ne l'a pas déjà été.
+        let does_exist: boolean = false; //Si la flèche construite ne l'a pas déjà été.
         //First Update : target -> source
         model.beginUpdate();
         try {
@@ -615,18 +615,21 @@ export default class TablesGraphComponent extends VueComponentBase {
                 if (reference_cell) {
                     //Il est possible que la flèche existe déjà dans l'autre sens, dans ce cas , on ne la réaffiche pas.
                     try {
-                        let number_arrows: number = this.cells[reference.module_table.vo_type].edges.length;
-                        if (number_arrows > 0) {
-                            for (let cellules of this.cells[reference.module_table.vo_type].edges) {
-                                if (cellules.target.value.tables_graph_vo_type == node_v1 && cellules.value == this.t(reference.field_label.code_text)) {
-                                    does_exist = true; //On retire cette flèche.
+                        if (this.cells && this.cells[reference.module_table.vo_type] && this.cells[reference.module_table.vo_type].edges) {
+
+                            let number_arrows: number = this.cells[reference.module_table.vo_type].edges.length;
+                            if (number_arrows > 0) {
+                                for (let cellules of this.cells[reference.module_table.vo_type].edges) {
+                                    if (cellules.target.value.tables_graph_vo_type == node_v1 && cellules.value == this.t(reference.field_label.code_text)) {
+                                        does_exist = true; //On retire cette flèche.
+                                    }
                                 }
                             }
                         }
                     } catch (error) {
                         does_exist = false; //La flèche n'existe pas.
                     }
-                    if (does_exist == false) {
+                    if (!does_exist) {
                         graph.insertEdge(parent, null, this.t(reference.field_label.code_text), reference_cell, v1);
                         graph_layout.addEdge(reference.module_table.vo_type, node_v1); //Nom des deux cellules sous chaîne de caratère.
                     }

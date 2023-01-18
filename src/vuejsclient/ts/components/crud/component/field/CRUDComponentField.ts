@@ -98,6 +98,12 @@ export default class CRUDComponentField extends VueComponentBase
     // @Prop({ default: null })
     // private field_select_options_enabled: number[];
 
+    @Prop({ default: null })
+    private filter: () => any;
+
+    @Prop({ default: null })
+    private filter_additional_params: any[];
+
     @Prop({ default: false })
     private auto_update_field_value: boolean;
 
@@ -1510,6 +1516,25 @@ export default class CRUDComponentField extends VueComponentBase
 
         this.update_input_field_value_from_vo_field_value();
         this.inline_input_is_editing = false;
+    }
+
+    get filtered_value() {
+
+        if (this.field_value == null) {
+            return null;
+        }
+
+        if (!this.filter) {
+            return this.field_value;
+        }
+
+        let params = [this.field_value];
+
+        if (!!this.filter_additional_params) {
+            params = params.concat(this.filter_additional_params);
+        }
+
+        return this.filter.apply(null, params);
     }
 
     get is_auto_validating() {

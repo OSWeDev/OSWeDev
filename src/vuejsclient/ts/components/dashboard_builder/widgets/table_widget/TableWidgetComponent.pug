@@ -177,6 +177,8 @@ include ../../../../../views/mixins/loading.pug
                                                         :auto_validate_inline_input='true'
                                                         :force_input_is_editing='true'
                                                         :inline_input_mode_input_only='true'
+                                                        :filter='get_column_filter(column)'
+                                                        :filter_additional_params='get_column_filter_additional_params(column)'
                                                     )
 
                                         template.table_col(

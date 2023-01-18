@@ -2542,7 +2542,7 @@ export default class ContextFilterServerController {
 
                 let qr_TYPE_IN = await ContextQueryServerController.getInstance().build_select_query(active_field_filter.sub_query);
 
-                if ((!qr_TYPE_IN) || (!qr_TYPE_IN.query)) {
+                if (((!qr_TYPE_IN) || (!qr_TYPE_IN.query)) && (!qr_TYPE_IN.is_segmented_non_existing_table)) {
                     throw new Error('Invalid query');
                 }
 
@@ -2607,7 +2607,7 @@ export default class ContextFilterServerController {
 
                 let qr_TYPE_NOT_IN = await ContextQueryServerController.getInstance().build_select_query(active_field_filter.sub_query);
 
-                if ((!qr_TYPE_NOT_IN) || (!qr_TYPE_NOT_IN.query)) {
+                if (((!qr_TYPE_NOT_IN) || (!qr_TYPE_NOT_IN.query)) && (!qr_TYPE_NOT_IN.is_segmented_non_existing_table)) {
                     throw new Error('Invalid query');
                 }
 
@@ -2631,7 +2631,7 @@ export default class ContextFilterServerController {
 
                 let qr_TYPE_NOT_EXISTS = await ContextQueryServerController.getInstance().build_select_query(active_field_filter.sub_query);
 
-                if ((!qr_TYPE_NOT_EXISTS) || (!qr_TYPE_NOT_EXISTS.query)) {
+                if (((!qr_TYPE_NOT_EXISTS) || (!qr_TYPE_NOT_EXISTS.query)) && (!qr_TYPE_NOT_EXISTS.is_segmented_non_existing_table)) {
                     throw new Error('Invalid query');
                 }
 
@@ -2655,7 +2655,7 @@ export default class ContextFilterServerController {
 
                 let qr_TYPE_EXISTS = await ContextQueryServerController.getInstance().build_select_query(active_field_filter.sub_query);
 
-                if ((!qr_TYPE_EXISTS) || (!qr_TYPE_EXISTS.query)) {
+                if (((!qr_TYPE_EXISTS) || (!qr_TYPE_EXISTS.query)) && (!qr_TYPE_EXISTS.is_segmented_non_existing_table)) {
                     throw new Error('Invalid query');
                 }
 

@@ -47,7 +47,7 @@ import DatatableRowController from '../../../datatable/component/DatatableRowCon
 import DatatableComponentField from '../../../datatable/component/fields/DatatableComponentField';
 import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
-import VueComponentBase from '../../../VueComponentBase';
+import VueComponentBase, { FiltersHandler } from '../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsController';
 import FieldValueFilterWidgetOptions from '../field_value_filter_widget/options/FieldValueFilterWidgetOptions';
@@ -295,6 +295,30 @@ export default class TableWidgetComponent extends VueComponentBase {
         });
 
         this.filtering_by_active_field_filter = filtering_by_active_field_filter;
+    }
+
+    private get_column_filter(column: TableColumnDescVO): any {
+        if (!column) {
+            return null;
+        }
+
+        if (!column.filter_type) {
+            return null;
+        }
+
+        if (!this.const_filters[column.filter_type]) {
+            return null;
+        }
+
+        return this.const_filters[column.filter_type].read;
+    }
+
+    private get_column_filter_additional_params(column: TableColumnDescVO): any {
+        if (!column) {
+            return null;
+        }
+
+        return column.filter_additional_params ? JSON.parse(column.filter_additional_params) : undefined;
     }
 
     private is_row_filter_ok(row: any): boolean {
