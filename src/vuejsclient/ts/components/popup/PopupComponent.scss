@@ -14,5 +14,9 @@
     .modal-header,
     .modal-body {
         padding: 15px 40px;
+
+        img {
+            max-width: 100%;
+        }
     }
 }
