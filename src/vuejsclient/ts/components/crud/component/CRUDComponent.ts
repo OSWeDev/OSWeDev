@@ -33,6 +33,7 @@ import DatatableComponent from '../../datatable/component/DatatableComponent';
 import VueComponentBase from '../../VueComponentBase';
 import CRUDComponentManager from '../CRUDComponentManager';
 import "./CRUDComponent.scss";
+import CRUDFormServices from './CRUDFormServices';
 
 @Component({
     template: require('./CRUDComponent.pug'),
@@ -644,7 +645,7 @@ export default class CRUDComponent extends VueComponentBase {
 
                 try {
 
-                    if (!self.checkForm(self.newVO, self.crud.createDatatable)) {
+                    if (!CRUDFormServices.getInstance().checkForm(self.newVO, self.crud.createDatatable, self.clear_alerts, self.register_alerts)) {
                         self.creating_vo = false;
                         reject({
                             body: self.label('crud.check_form.field_required'),
@@ -928,40 +929,6 @@ export default class CRUDComponent extends VueComponentBase {
         }
     }
 
-    private checkForm(vo: IDistantVOBase, datatable: Datatable<IDistantVOBase>): boolean {
-        this.clear_alerts();
-
-        let alerts: Alert[] = [];
-
-
-        // On check que tous les champs obligatoire soient bien remplis
-        for (let i in datatable.fields) {
-            let field: DatatableField<any, any> = datatable.fields[i];
-
-            if (field.is_readonly) {
-                continue;
-            }
-
-            // Si c'est required et que j'ai pas de valeur, j'affiche une erreur
-            if (!field.is_required) {
-                continue;
-            }
-
-            if ((vo[field.datatable_field_uid] !== null && vo[field.datatable_field_uid] !== undefined) && vo[field.datatable_field_uid].toString().length > 0) {
-                continue;
-            }
-
-            alerts.push(new Alert(field.alert_path, 'crud.field_required', Alert.TYPE_ERROR));
-        }
-
-        if (alerts.length > 0) {
-            this.register_alerts(alerts);
-            return false;
-        }
-
-        return true;
-    }
-
     private async updateVO() {
         let self = this;
         self.snotify.async(self.label('crud.update.starting'), () =>
@@ -986,7 +953,7 @@ export default class CRUDComponent extends VueComponentBase {
 
                 try {
 
-                    if (!self.checkForm(self.editableVO, self.crud.updateDatatable)) {
+                    if (!CRUDFormServices.getInstance().checkForm(self.editableVO, self.crud.updateDatatable, self.clear_alerts, self.register_alerts)) {
                         self.updating_vo = false;
                         reject({
                             body: self.label('crud.check_form.field_required'),

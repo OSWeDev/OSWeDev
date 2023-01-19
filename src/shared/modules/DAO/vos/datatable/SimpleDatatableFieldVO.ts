@@ -40,6 +40,9 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
 
         try {
             switch (moduleTableField.field_type) {
+                case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+                    return field_value;
+
                 case ModuleTableField.FIELD_TYPE_prct:
                     return percentFilter.read(field_value, 2);
 
@@ -293,6 +296,9 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
         try {
             switch (moduleTableField.field_type) {
 
+                case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+                    return field_value;
+
                 case ModuleTableField.FIELD_TYPE_translatable_text:
                     return field_value;
 
@@ -344,6 +350,9 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                         return true;
                     }
                     return false;
+
+                case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+                    return value;
 
                 case ModuleTableField.FIELD_TYPE_prct:
                     return percentFilter.write(value);
@@ -487,6 +496,9 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
         try {
 
             switch (moduleTableField.field_type) {
+
+                case ModuleTableField.FIELD_TYPE_plain_vo_obj:
+                    return value;
 
                 case ModuleTableField.FIELD_TYPE_enum:
                     return value;

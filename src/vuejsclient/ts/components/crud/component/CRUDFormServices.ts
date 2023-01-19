@@ -507,7 +507,7 @@ export default class CRUDFormServices {
             }
 
             // Si c'est required et que j'ai pas de valeur, j'affiche une erreur - si c'est pas un onetomany
-            if ((!field.is_required) || (field.type == ReferenceDatatableField.ONE_TO_MANY_FIELD_TYPE)) {
+            if ((!field.is_required) || (field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE)) {
                 continue;
             }
 
