@@ -18,13 +18,7 @@ import SurveyParamVO from '../../../../shared/modules/Survey/vos/SurveyParamVO';
 import { on } from 'process';
 
 const { parse, stringify } = require('flatted/cjs');
-/*
-TODO survey ouvert ou pas en fonction du route_name ok
-    combien de temps, ok
-    detection de sortie
-    smiley
 
-*/
 @Component({
     template: require('./SurveyComponent.pug'),
     components: {
