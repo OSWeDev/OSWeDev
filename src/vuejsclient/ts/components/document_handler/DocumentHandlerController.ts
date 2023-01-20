@@ -40,16 +40,16 @@ export default class DocumentHandlerController {
         let tmp_dts_by_dtg_ids: { [dtg_id: number]: DocumentTagVO[] } = {};
 
         promises.push((async () => {
-            res.all_d_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDocument.getInstance().get_ds_by_user_lang());
+            res.all_d_by_ids = VOsTypesManager.vosArray_to_vosByIds(await ModuleDocument.getInstance().get_ds_by_user_lang());
         })());
         promises.push((async () => {
-            res.all_dt_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDocument.getInstance().get_dts_by_user_lang());
+            res.all_dt_by_ids = VOsTypesManager.vosArray_to_vosByIds(await ModuleDocument.getInstance().get_dts_by_user_lang());
         })());
 
         let tmp_dtgs_by_weight: DocumentTagGroupVO[] = [];
         promises.push((async () => {
             tmp_dtgs_by_weight = await ModuleDocument.getInstance().get_dtgs_by_user_lang();
-            tmp_dtg_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(tmp_dtgs_by_weight);
+            tmp_dtg_by_ids = VOsTypesManager.vosArray_to_vosByIds(tmp_dtgs_by_weight);
         })());
 
         await all_promises(promises);

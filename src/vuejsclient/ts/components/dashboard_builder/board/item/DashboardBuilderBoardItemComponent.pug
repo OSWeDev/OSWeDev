@@ -1,4 +1,4 @@
-.dashboard_builder_board_item(@click='select_widget' :class="{'selected':is_selected}")
+.dashboard_builder_board_item(@click='select_widget' :class="{'selected':is_selected}" v-tooltip='(widget && page_widget && is_edit_mode) ? "Widget ID: " + page_widget.id : null')
     template(v-if='widget && page_widget')
         template(v-if='is_edit_mode && is_selected')
             .delete_button
@@ -7,11 +7,13 @@
                 i.fa-solid.fa-duotone.fa-clone(@click="copy_widget")     
         .widget_component_wrapper
             .widget_component(
+                ref='widget_component_ref'
                 :is='widget.widget_component' 
                 :page_widget='page_widget'
                 :all_page_widget='all_page_widget'
                 :dashboard_page='dashboard_page'
                 :dashboard_pages='dashboard_pages'
                 :dashboard='dashboard'
+                :is_edit_mode='is_edit_mode'
                 @select_page='select_page'
             )

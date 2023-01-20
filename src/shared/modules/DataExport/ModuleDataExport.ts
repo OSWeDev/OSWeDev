@@ -6,6 +6,8 @@ import APIDefinition from '../API/vos/APIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import ContextFilterVO from '../ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO from '../ContextFilter/vos/ContextQueryVO';
+import DatatableField from '../DAO/vos/datatable/DatatableField';
+import TableColumnDescVO from '../DashboardBuilder/vos/TableColumnDescVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import FileVO from '../File/vos/FileVO';
 import Module from '../Module';
@@ -27,7 +29,6 @@ export default class ModuleDataExport extends Module {
     public static APINAME_ExportDataToMultiSheetsXLSXParamVO: string = 'ExportDataToMultiSheetsXLSXParamVO';
     public static APINAME_ExportDataToMultiSheetsXLSXParamVOFile: string = 'ExportDataToMultiSheetsXLSXParamVOFile';
     public static APINAME_ExportContextQueryToXLSXParamVO: string = 'ExportContextQueryToXLSXParamVO';
-    public static APINAME_ExportContextQueryToXLSXParamVOFile: string = 'ExportContextQueryToXLSXParamVOFile';
 
     public static getInstance(): ModuleDataExport {
         if (!ModuleDataExport.instance) {
@@ -44,21 +45,19 @@ export default class ModuleDataExport extends Module {
         ordered_column_list: string[],
         column_labels: { [field_name: string]: string },
         exportable_datatable_custom_field_columns?: { [datatable_field_uid: string]: string },
+
+        columns?: TableColumnDescVO[],
+        fields?: { [datatable_field_uid: number]: DatatableField<any, any> },
         varcolumn_conf?: { [datatable_field_uid: string]: ExportVarcolumnConf },
+        active_field_filters?: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
         custom_filters?: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } },
+        active_api_type_ids?: string[],
+        discarded_field_paths?: { [vo_type: string]: { [field_id: string]: boolean } },
+
         is_secured?: boolean,
-        file_access_policy_name?: string
+        file_access_policy_name?: string,
+        target_user_id?: number
     ) => Promise<string> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVO);
-    public exportContextQueryToXLSXFile: (
-        filename: string,
-        context_query: ContextQueryVO,
-        ordered_column_list: string[],
-        column_labels: { [field_name: string]: string },
-        exportable_datatable_custom_field_columns?: { [datatable_field_uid: string]: string },
-        varcolumn_conf?: { [datatable_field_uid: string]: ExportVarcolumnConf },
-        custom_filters?: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } },
-        is_secured?: boolean,
-        file_access_policy_name?: string) => Promise<FileVO> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVOFile);
 
     public exportDataToXLSX: (
         filename: string,
@@ -112,12 +111,6 @@ export default class ModuleDataExport extends Module {
             ExportContextQueryToXLSXParamVOStatic,
             APIDefinition.API_RETURN_TYPE_FILE
         ));
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<ExportContextQueryToXLSXParamVO, FileVO>(
-            ModuleAccessPolicy.POLICY_FO_ACCESS,
-            ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVOFile,
-            [FileVO.API_TYPE_ID],
-            ExportContextQueryToXLSXParamVOStatic
-        ));
 
         APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<ExportDataToXLSXParamVO, string>(
             ModuleAccessPolicy.POLICY_FO_ACCESS,
@@ -168,8 +161,8 @@ export default class ModuleDataExport extends Module {
 
         let moduleTable: ModuleTable<ExportHistoricVO> = new ModuleTable<ExportHistoricVO>(this, ExportHistoricVO.API_TYPE_ID, () => new ExportHistoricVO(), datatable_fields, null);
 
-        export_to_uid.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
-        exported_file_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);
+        export_to_uid.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        exported_file_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
 
         this.datatables.push(moduleTable);
     }
@@ -186,7 +179,7 @@ export default class ModuleDataExport extends Module {
 
         let moduleTable: ModuleTable<ExportLogVO> = new ModuleTable<ExportLogVO>(this, ExportLogVO.API_TYPE_ID, () => new ExportLogVO(), datatable_fields, field_name);
 
-        field_user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        field_user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
 
         this.datatables.push(moduleTable);
     }

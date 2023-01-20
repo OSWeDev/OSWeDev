@@ -597,7 +597,7 @@ export default class ContextFilterVO implements IDistantVOBase {
      */
     public by_date_before(date: number, segmentation_type: number = TimeSegment.TYPE_SECOND): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_DATE_INTERSECTS;
-        this.param_tsranges = [RangeHandler.getInstance().createNew(TSRange.RANGE_TYPE, RangeHandler.MIN_TS, date, true, false, segmentation_type)];
+        this.param_tsranges = [RangeHandler.createNew(TSRange.RANGE_TYPE, RangeHandler.MIN_TS, date, true, false, segmentation_type)];
         return this;
     }
 
@@ -608,7 +608,7 @@ export default class ContextFilterVO implements IDistantVOBase {
      */
     public by_date_same_or_before(date: number, segmentation_type: number = TimeSegment.TYPE_SECOND): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_DATE_INTERSECTS;
-        this.param_tsranges = [RangeHandler.getInstance().createNew(TSRange.RANGE_TYPE, RangeHandler.MIN_TS, date, true, true, segmentation_type)];
+        this.param_tsranges = [RangeHandler.createNew(TSRange.RANGE_TYPE, RangeHandler.MIN_TS, date, true, true, segmentation_type)];
         return this;
     }
 
@@ -619,7 +619,7 @@ export default class ContextFilterVO implements IDistantVOBase {
      */
     public by_date_after(date: number, segmentation_type: number = TimeSegment.TYPE_SECOND): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_DATE_INTERSECTS;
-        this.param_tsranges = [RangeHandler.getInstance().createNew(TSRange.RANGE_TYPE, date, RangeHandler.MAX_TS, false, false, segmentation_type)];
+        this.param_tsranges = [RangeHandler.createNew(TSRange.RANGE_TYPE, date, RangeHandler.MAX_TS, false, false, segmentation_type)];
         return this;
     }
 
@@ -630,7 +630,7 @@ export default class ContextFilterVO implements IDistantVOBase {
      */
     public by_date_same_or_after(date: number, segmentation_type: number = TimeSegment.TYPE_SECOND): ContextFilterVO {
         this.filter_type = ContextFilterVO.TYPE_DATE_INTERSECTS;
-        this.param_tsranges = [RangeHandler.getInstance().createNew(TSRange.RANGE_TYPE, date, RangeHandler.MAX_TS, true, false, segmentation_type)];
+        this.param_tsranges = [RangeHandler.createNew(TSRange.RANGE_TYPE, date, RangeHandler.MAX_TS, true, false, segmentation_type)];
         return this;
     }
 
@@ -838,6 +838,14 @@ export default class ContextFilterVO implements IDistantVOBase {
      * @param id_ranges les ids qu'on filtre
      */
     public by_ids(id_ranges: NumRange[] | number[]): ContextFilterVO {
+
+        if ((!id_ranges) || (!id_ranges.length) || (!id_ranges[0])) {
+            /**
+             * On filtre par ids, mais sans ids, donc c'est pas valide comme demande
+             */
+            throw new Error('ContextFilterVO.by_ids: no ids provided');
+        }
+
         this.field_id = 'id';
 
         if (Array.isArray(id_ranges) && (id_ranges.length > 0) && (typeof id_ranges[0] === 'number')) {

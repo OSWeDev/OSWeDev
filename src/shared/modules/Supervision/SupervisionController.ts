@@ -59,7 +59,7 @@ export default class SupervisionController {
         moduleTable.push_field(name.setModuleTable(moduleTable));
 
         let category_id_field = new ModuleTableField('category_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Catégorie').addManyToOneRelation(
-            VOsTypesManager.getInstance().moduleTables_by_voType[SupervisedCategoryVO.API_TYPE_ID]
+            VOsTypesManager.moduleTables_by_voType[SupervisedCategoryVO.API_TYPE_ID]
         );
 
         // rajoute les champs des sondes/controllers dans la moduletable

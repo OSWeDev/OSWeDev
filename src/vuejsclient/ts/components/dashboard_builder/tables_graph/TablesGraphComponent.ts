@@ -102,7 +102,7 @@ export default class TablesGraphComponent extends VueComponentBase {
                             .select_vos<DashboardGraphVORefVO>();
 
                         if ((!db_cells_source) || (!db_cells_source.length)) {
-                            ConsoleHandler.getInstance().error('mxEvent.MOVE_END:no db cell');
+                            ConsoleHandler.error('mxEvent.MOVE_END:no db cell');
                             return;
                         }
 
@@ -169,7 +169,7 @@ export default class TablesGraphComponent extends VueComponentBase {
             .select_vos<DashboardGraphVORefVO>();
 
         if ((!db_cells_source) || (!db_cells_source.length)) {
-            ConsoleHandler.getInstance().error('mxEvent.MOVE_END:no db cell');
+            ConsoleHandler.error('mxEvent.MOVE_END:no db cell');
             return;
         }
 
@@ -243,7 +243,7 @@ export default class TablesGraphComponent extends VueComponentBase {
                 .select_vos<DashboardGraphVORefVO>();
 
             if ((!db_cells) || (!db_cells.length)) {
-                ConsoleHandler.getInstance().error('mxEvent.MOVE_END:no db cell');
+                ConsoleHandler.error('mxEvent.MOVE_END:no db cell');
                 return;
             }
             let db_cell = db_cells[0];
@@ -371,9 +371,9 @@ export default class TablesGraphComponent extends VueComponentBase {
             editor.graph.setAllowDanglingEdges(false);
 
             editor.graph.getSelectionModel().addListener(mxEvent.CHANGE, () => {
-                this.selectionChanged().then().catch((error) => { ConsoleHandler.getInstance().error(error); });
+                this.selectionChanged().then().catch((error) => { ConsoleHandler.error(error); });
             });
-            this.selectionChanged().then().catch((error) => { ConsoleHandler.getInstance().error(error); });
+            this.selectionChanged().then().catch((error) => { ConsoleHandler.error(error); });
             editor.graph.addListener('moveCells', async () => {
                 let cell = editor.graph.getSelectionCell();
                 let db_cells = await query(DashboardGraphVORefVO.API_TYPE_ID)
@@ -382,7 +382,7 @@ export default class TablesGraphComponent extends VueComponentBase {
                     .select_vos<DashboardGraphVORefVO>();
 
                 if ((!db_cells) || (!db_cells.length)) {
-                    ConsoleHandler.getInstance().error('mxEvent.MOVE_END:no db cell');
+                    ConsoleHandler.error('mxEvent.MOVE_END:no db cell');
                     return;
                 }
                 let db_cell = db_cells[0];
@@ -436,7 +436,7 @@ export default class TablesGraphComponent extends VueComponentBase {
                     // label += '<div id="tables_graph_vo_type__' + cell.value.tables_graph_vo_type + '">' +
                     //     '</div>';
                     label += '<div class="tables_graph_item table_name">' +
-                        VueAppBase.getInstance().vueInstance.t(VOsTypesManager.getInstance().moduleTables_by_voType[cell.value.tables_graph_vo_type].label.code_text) +
+                        VueAppBase.getInstance().vueInstance.t(VOsTypesManager.moduleTables_by_voType[cell.value.tables_graph_vo_type].label.code_text) +
                         '</div>';
 
                     return label;
@@ -558,7 +558,7 @@ export default class TablesGraphComponent extends VueComponentBase {
             //Table associée, on souhaite désactiver par défau certains chemins.
             switch (red_by_default) {
                 case true:
-                    let table = VOsTypesManager.getInstance().moduleTables_by_voType[cellule];
+                    let table = VOsTypesManager.moduleTables_by_voType[cellule];
                     let is_versioned: boolean = table.is_versioned;
                     this.initcell(cells[compteur], v1, is_versioned);
                     break;
@@ -595,7 +595,7 @@ export default class TablesGraphComponent extends VueComponentBase {
         let node_v1: string = cell.vo_type; //Nom de la cellule source
 
         let is_link_unccepted: boolean; //Si la flèche construite n'est pas censurée
-        let does_exist: boolean; //Si la flèche construite ne l'a pas déjà été.
+        let does_exist: boolean = false; //Si la flèche construite ne l'a pas déjà été.
         //First Update : target -> source
         model.beginUpdate();
         try {
@@ -606,7 +606,7 @@ export default class TablesGraphComponent extends VueComponentBase {
             graph.setCellStyles('strokeColor', '#555', [v1]);
             graph.setCellStyles('fillColor', '#444', [v1]);
             // On rajoute les liaisons depuis les autres vos
-            let references: Array<ModuleTableField<any>> = VOsTypesManager.getInstance().get_type_references(cell.vo_type);
+            let references: Array<ModuleTableField<any>> = VOsTypesManager.get_type_references(cell.vo_type);
             for (let i in references) {
                 let reference = references[i];
                 let reference_cell = this.graphic_cells[reference.module_table.vo_type]; //Cellule reliée à v1 partageant la colonne "reference"
@@ -615,26 +615,29 @@ export default class TablesGraphComponent extends VueComponentBase {
                 if (reference_cell) {
                     //Il est possible que la flèche existe déjà dans l'autre sens, dans ce cas , on ne la réaffiche pas.
                     try {
-                        let number_arrows: number = this.cells[reference.module_table.vo_type].edges.length;
-                        if (number_arrows > 0) {
-                            for (let cellules of this.cells[reference.module_table.vo_type].edges) {
-                                if (cellules.target.value.tables_graph_vo_type == node_v1 && cellules.value == this.t(reference.field_label.code_text)) {
-                                    does_exist = true; //On retire cette flèche.
+                        if (this.cells && this.cells[reference.module_table.vo_type] && this.cells[reference.module_table.vo_type].edges) {
+
+                            let number_arrows: number = this.cells[reference.module_table.vo_type].edges.length;
+                            if (number_arrows > 0) {
+                                for (let cellules of this.cells[reference.module_table.vo_type].edges) {
+                                    if (cellules.target.value.tables_graph_vo_type == node_v1 && cellules.value == this.t(reference.field_label.code_text)) {
+                                        does_exist = true; //On retire cette flèche.
+                                    }
                                 }
                             }
                         }
                     } catch (error) {
                         does_exist = false; //La flèche n'existe pas.
                     }
-                    if (does_exist == false) {
+                    if (!does_exist) {
                         graph.insertEdge(parent, null, this.t(reference.field_label.code_text), reference_cell, v1);
                         graph_layout.addEdge(reference.module_table.vo_type, node_v1); //Nom des deux cellules sous chaîne de caratère.
                     }
                     //chemin n/n , intervient si la cellule reliée n'est pas sur le dashboard. Ce chemin indique qu'il existe une cellule intermédiaire reliant v1 et une autre cellule.
                 } else if (!reference_cell) { //Si la cellule intermédiaire n'est pas là ,le chemin n/n  sera affiché.
                     //TODO-Rajouter dans la matrice d'adjacence les liaisons n/n
-                    if (VOsTypesManager.getInstance().isManyToManyModuleTable(reference.module_table)) {
-                        let nn_fields = VOsTypesManager.getInstance().getManyToOneFields(reference.module_table.vo_type, []);
+                    if (VOsTypesManager.isManyToManyModuleTable(reference.module_table)) {
+                        let nn_fields = VOsTypesManager.getManyToOneFields(reference.module_table.vo_type, []);
                         for (let j in nn_fields) {
                             let nn_field = nn_fields[j];
 
@@ -683,7 +686,7 @@ export default class TablesGraphComponent extends VueComponentBase {
 
         try {
             // On rajoute les liaisons vers les autres vos
-            let fields = VOsTypesManager.getInstance().getManyToOneFields(cell.vo_type, []);
+            let fields = VOsTypesManager.getManyToOneFields(cell.vo_type, []);
             for (let i in fields) {
                 let field = fields[i];
                 let reference_cell = this.graphic_cells[field.manyToOne_target_moduletable.vo_type];
@@ -696,7 +699,7 @@ export default class TablesGraphComponent extends VueComponentBase {
                                 values_to_exclude.push(field.field_id);
                                 cell.values_to_exclude = values_to_exclude;
                                 is_link_unccepted = true;
-                                ModuleDAO.getInstance().insertOrUpdateVO(cell).then().catch((error) => { ConsoleHandler.getInstance().error(error); });
+                                ModuleDAO.getInstance().insertOrUpdateVO(cell).then().catch((error) => { ConsoleHandler.error(error); });
 
                             }
                         } catch {

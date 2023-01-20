@@ -87,7 +87,7 @@ export default class ForkServerController {
         /**
          * On met en place un thread sur le master qui check le status régulièrement des forked (en tentant d'envoyer un alive)
          */
-        this.checkForksAvailability().then().catch((error) => ConsoleHandler.getInstance().error(error));
+        this.checkForksAvailability().then().catch((error) => ConsoleHandler.error(error));
     }
 
     public async reload_unavailable_threads() {
@@ -102,7 +102,7 @@ export default class ForkServerController {
 
             ForkServerController.getInstance().forks_availability[i] = Dates.now();
 
-            if (ConfigurationService.getInstance().node_configuration.DEBUG_FORKS && (process.debugPort != null) && (typeof process.debugPort !== 'undefined')) {
+            if (ConfigurationService.node_configuration.DEBUG_FORKS && (process.debugPort != null) && (typeof process.debugPort !== 'undefined')) {
                 forked.child_process = fork('./dist/server/ForkedProcessWrapper.js', ForkServerController.getInstance().get_argv(forked), {
                     execArgv: ['--inspect=' + (process.debugPort + forked.uid + 1), '--max-old-space-size=4096'],
                     serialization: "advanced"
@@ -134,18 +134,18 @@ export default class ForkServerController {
              */
             let max_timeout = 300;
             while (!ForkServerController.getInstance().forks_alive[i]) {
-                await ThreadHandler.getInstance().sleep(1000);
+                await ThreadHandler.sleep(1000);
                 max_timeout--;
                 if (!(max_timeout % 10)) {
-                    ConsoleHandler.getInstance().log('Waiting for ALIVE SIGNAL from fork ' + forked.uid);
+                    ConsoleHandler.log('Waiting for ALIVE SIGNAL from fork ' + forked.uid);
                 }
 
                 if (max_timeout == 60) {
-                    ConsoleHandler.getInstance().warn('60 secs until timeout while waiting for ALIVE SIGNAL from fork ' + forked.uid);
+                    ConsoleHandler.warn('60 secs until timeout while waiting for ALIVE SIGNAL from fork ' + forked.uid);
                 }
 
                 if (max_timeout <= 0) {
-                    ConsoleHandler.getInstance().error('Timeout while waiting for ALIVE SIGNAL from fork ' + forked.uid);
+                    ConsoleHandler.error('Timeout while waiting for ALIVE SIGNAL from fork ' + forked.uid);
                     break;
                 }
             }
@@ -229,7 +229,7 @@ export default class ForkServerController {
 
         while (true) {
 
-            await ThreadHandler.getInstance().sleep(10000);
+            await ThreadHandler.sleep(10000);
 
             for (let i in this.forks) {
                 let forked: IFork = this.forks[i];

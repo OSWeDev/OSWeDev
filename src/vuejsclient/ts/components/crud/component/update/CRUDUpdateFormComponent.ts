@@ -1,7 +1,10 @@
 import { Component, Prop, Watch } from 'vue-property-decorator';
+import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import Alert from '../../../../../../shared/modules/Alert/vos/Alert';
+import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import CRUD from '../../../../../../shared/modules/DAO/vos/CRUD';
+import CRUDFieldRemoverConfVO from '../../../../../../shared/modules/DAO/vos/CRUDFieldRemoverConfVO';
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
@@ -65,10 +68,104 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
     private dao_store_loaded: boolean = false;
     private crud: CRUD<any> = null;
 
+    private crud_field_remover_conf_edit: boolean = false;
+    private crud_field_remover_conf: CRUDFieldRemoverConfVO = null;
+    private POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS: boolean = false;
+
     public update_key() {
         if (this.crud && (this.crud_updateDatatable_key != this.crud.updateDatatable.key)) {
             this.crud_updateDatatable_key = this.crud.updateDatatable.key;
         }
+    }
+
+    private async delete_removed_crud_field_id(module_table_field_id: string) {
+        if ((!this.crud_field_remover_conf) || (!this.crud_field_remover_conf.module_table_field_ids) || (this.crud_field_remover_conf.module_table_field_ids.indexOf(module_table_field_id) < 0)) {
+            return;
+        }
+
+        this.crud_field_remover_conf.module_table_field_ids = this.crud_field_remover_conf.module_table_field_ids.filter((id) => id != module_table_field_id);
+
+        let self = this;
+        self.snotify.async(self.label('crud_update_form_body_delete_removed_crud_field_id.start'), () =>
+            new Promise(async (resolve, reject) => {
+
+                try {
+                    await ModuleDAO.getInstance().insertOrUpdateVO(self.crud_field_remover_conf);
+
+                    resolve({
+                        body: self.label('crud_update_form_body_delete_removed_crud_field_id.ok'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                } catch (error) {
+                    ConsoleHandler.error(error);
+                    reject({
+                        body: self.label('crud_update_form_body_delete_removed_crud_field_id.failed'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                }
+            })
+        );
+    }
+
+    private async add_removed_crud_field_id(module_table_field_id: string) {
+        let crud_field_remover_conf = this.crud_field_remover_conf;
+
+        if (!crud_field_remover_conf) {
+            crud_field_remover_conf = new CRUDFieldRemoverConfVO();
+            crud_field_remover_conf.module_table_field_ids = [];
+            crud_field_remover_conf.module_table_vo_type = this.crud.api_type_id;
+            crud_field_remover_conf.is_update = true;
+        }
+
+        crud_field_remover_conf.module_table_field_ids.push(module_table_field_id);
+        let self = this;
+        self.crud_field_remover_conf = crud_field_remover_conf;
+
+        self.snotify.async(self.label('crud_update_form_body_add_removed_crud_field_id.start'), () =>
+            new Promise(async (resolve, reject) => {
+
+                try {
+                    await ModuleDAO.getInstance().insertOrUpdateVO(self.crud_field_remover_conf);
+
+                    this.crud.updateDatatable.removeFields([module_table_field_id]);
+
+                    resolve({
+                        body: self.label('crud_update_form_body_add_removed_crud_field_id.ok'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                } catch (error) {
+                    ConsoleHandler.error(error);
+                    reject({
+                        body: self.label('crud_update_form_body_add_removed_crud_field_id.failed'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                }
+            })
+        );
+    }
+
+    private async mounted() {
+        this.POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS = await ModuleAccessPolicy.getInstance().testAccess(ModuleDAO.POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS);
     }
 
     @Watch("api_type_id", { immediate: true })
@@ -91,6 +188,14 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
 
         if ((!this.crud) || (this.crud.api_type_id != this.api_type_id)) {
             this.crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.api_type_id];
+
+            this.crud_field_remover_conf = await query(CRUDFieldRemoverConfVO.API_TYPE_ID)
+                .filter_by_text_eq('module_table_vo_type', this.api_type_id)
+                .filter_is_true('is_update')
+                .select_vo<CRUDFieldRemoverConfVO>();
+            if (this.crud_field_remover_conf && this.crud_field_remover_conf.module_table_field_ids && this.crud_field_remover_conf.module_table_field_ids.length) {
+                this.crud.updateDatatable.removeFields(this.crud_field_remover_conf.module_table_field_ids);
+            }
         }
     }
 
@@ -129,7 +234,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
 
         return this.label('crud.read.title', {
             datatable_title:
-                this.t(VOsTypesManager.getInstance().moduleTables_by_voType[this.crud.readDatatable.API_TYPE_ID].label.code_text)
+                this.t(VOsTypesManager.moduleTables_by_voType[this.crud.readDatatable.API_TYPE_ID].label.code_text)
         });
     }
 
@@ -137,6 +242,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
     private updateSelected_vo() {
         if (!this.selected_vo) {
             this.editableVO = null;
+            return;
         }
 
         let self = this;
@@ -255,7 +361,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
 
                     self.updateData(updatedVO);
                 } catch (error) {
-                    ConsoleHandler.getInstance().error(error);
+                    ConsoleHandler.error(error);
                     self.updating_vo = false;
                     reject({
                         body: self.label('crud.update.errors.update_failure') + ": " + error,

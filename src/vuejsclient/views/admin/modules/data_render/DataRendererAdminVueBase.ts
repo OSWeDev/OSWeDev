@@ -33,10 +33,10 @@ export default class DataRendererAdminVueBase extends VueComponentBase {
 
         this.dataRenderer = await ModuleDataRender.getInstance().getDataRenderer(this.renderer_name);
 
-        let segment_correspondant: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(Dates.now(), this.time_segment_type);
+        let segment_correspondant: TimeSegment = TimeSegmentHandler.getCorrespondingTimeSegment(Dates.now(), this.time_segment_type);
         // ????
         // this.segment_start_date =
-        //     new Date(TimeSegmentHandler.getInstance().getPreviousTimeSegment(segment_correspondant).index * 1000);
+        //     new Date(TimeSegmentHandler.getPreviousTimeSegment(segment_correspondant).index * 1000);
         this.segment_start_date = new Date(Dates.add(Dates.startOf(Dates.now(), TimeSegment.TYPE_MONTH), -1, TimeSegment.TYPE_MONTH) * 1000);
         this.segment_end_date = new Date(segment_correspondant.index * 1000);
 
@@ -47,7 +47,7 @@ export default class DataRendererAdminVueBase extends VueComponentBase {
         try {
 
             var formData = new FormData();
-            formData.append('render_time_segments_json', JSON.stringify(TimeSegmentHandler.getInstance().getAllDataTimeSegments(this.segment_start_date.getTime() / 1000, this.segment_end_date.getTime() / 1000, this.time_segment_type)));
+            formData.append('render_time_segments_json', JSON.stringify(TimeSegmentHandler.getAllDataTimeSegments(this.segment_start_date.getTime() / 1000, this.segment_end_date.getTime() / 1000, this.time_segment_type)));
 
             let $ = await import(/* webpackChunkName: "jquery" */ 'jquery');
             await $.ajax({
@@ -62,7 +62,7 @@ export default class DataRendererAdminVueBase extends VueComponentBase {
             return true;
         } catch (error) {
             this.snotify.error(error);
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
         return false;
     }

@@ -25,7 +25,7 @@ export default class MaintenanceCronWorkersHandler {
         planCronWorker.planification_uid = StartMaintenanceCronWorker.getInstance().worker_uid;
         planCronWorker.type_recurrence = CronWorkerPlanification.TYPE_RECURRENCE_AUCUNE;
         planCronWorker.worker_uid = StartMaintenanceCronWorker.getInstance().worker_uid;
-        ModuleCronServer.getInstance().planCronWorker(planCronWorker).then().catch((error) => ConsoleHandler.getInstance().error(error));
+        ModuleCronServer.getInstance().planCronWorker(planCronWorker).then().catch((error) => ConsoleHandler.error(error));
 
         ModuleCronServer.getInstance().registerCronWorker(EndPlannedMaintenanceCronWorker.getInstance());
 
@@ -36,6 +36,6 @@ export default class MaintenanceCronWorkersHandler {
         planCronWorker.planification_uid = EndPlannedMaintenanceCronWorker.getInstance().worker_uid;
         planCronWorker.type_recurrence = CronWorkerPlanification.TYPE_RECURRENCE_AUCUNE;
         planCronWorker.worker_uid = EndPlannedMaintenanceCronWorker.getInstance().worker_uid;
-        ModuleCronServer.getInstance().planCronWorker(planCronWorker).then().catch((error) => ConsoleHandler.getInstance().error(error));
+        ModuleCronServer.getInstance().planCronWorker(planCronWorker).then().catch((error) => ConsoleHandler.error(error));
     }
 }

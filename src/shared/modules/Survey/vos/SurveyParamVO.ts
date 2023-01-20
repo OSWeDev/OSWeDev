@@ -9,6 +9,7 @@ export default class SurveyParamVO implements IVersionedVO {
     public route_name: string;
     public pop_up: boolean;
     public time_before_pop_up: number;
+    public content: string;
 
     public parent_id: number;
     public trashed: boolean;

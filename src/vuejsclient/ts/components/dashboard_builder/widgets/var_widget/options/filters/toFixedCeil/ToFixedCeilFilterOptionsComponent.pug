@@ -1,0 +1,33 @@
+.to_fixed_ceil_filter_options
+    .fractionalDigits
+        .label {{ label('to_fixed_ceil_filter_options.fractionalDigits') }}
+        .input
+            input(type='number' v-model='fractionalDigits' min="0" max="3" @change='onchange_inputs')
+    .arrondi
+        .label {{ label('to_fixed_ceil_filter_options.arrondi') }}
+        .input
+            toggle-button(
+                @change="switch_arrondi" 
+                :value="arrondi" 
+                :sync="false"
+                :width="60"
+                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}")
+    .dot_decimal_marker
+        .label {{ label('to_fixed_ceil_filter_options.dot_decimal_marker') }}
+        .input
+            toggle-button(
+                @change="switch_dot_decimal_marker" 
+                :value="dot_decimal_marker" 
+                :sync="false"
+                :width="60"
+                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}")
+    .onlyPositive
+        .label {{ label('to_fixed_ceil_filter_options.onlyPositive') }}
+        .input
+            toggle-button(
+                @change="switch_onlyPositive" 
+                :value="onlyPositive" 
+                :sync="false"
+                :width="60"
+                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}")
+

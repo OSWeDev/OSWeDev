@@ -23,7 +23,7 @@ include ../../../../../views/mixins/loading.pug
                                 span {{ label('crud.field.boolean.n_a') }}
 
                         template(v-else)
-                            span {{ field_value }}
+                            span {{ filtered_value }}
                     template(v-else)
                         span {{ field.voIdToHumanReadable(field_value) }}
 

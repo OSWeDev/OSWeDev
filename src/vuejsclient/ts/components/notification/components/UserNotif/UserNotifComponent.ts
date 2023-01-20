@@ -19,6 +19,13 @@ export default class UserNotifComponent extends VueComponentBase {
     @Prop()
     private notification: NotificationVO;
 
+    private download_file(): void {
+        if (!this.notification || !this.notification.simple_downloadable_link) {
+            return null;
+        }
+
+        window.open(this.notification.simple_downloadable_link, '_blank');
+    }
 
     private redirect_notification(): void {
         if (!this.notification || !this.notification.notif_route) {

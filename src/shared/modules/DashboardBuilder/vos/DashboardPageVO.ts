@@ -1,5 +1,6 @@
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
 import IWeightedItem from "../../../tools/interfaces/IWeightedItem";
+import DefaultTranslation from "../../Translation/vos/DefaultTranslation";
 import DashboardBuilderController from "../DashboardBuilderController";
 import IDashboardPageVO from "../interfaces/IDashboardPageVO";
 
@@ -19,7 +20,7 @@ export default class DashboardPageVO implements IDashboardPageVO, IDistantVOBase
         if (!this.id) {
             return null;
         }
-        return DashboardBuilderController.PAGE_NAME_CODE_PREFIX + this.id + "_group_filters";
+        return DashboardBuilderController.PAGE_NAME_CODE_PREFIX + this.id + ".group_filters" + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     }
 
     get translatable_name_code_text(): string {
@@ -27,6 +28,6 @@ export default class DashboardPageVO implements IDashboardPageVO, IDistantVOBase
         if (!this.id) {
             return null;
         }
-        return DashboardBuilderController.PAGE_NAME_CODE_PREFIX + this.id;
+        return DashboardBuilderController.PAGE_NAME_CODE_PREFIX + this.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     }
 }

@@ -1,7 +1,7 @@
 
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import SimpleDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import HourRange from '../../../../shared/modules/DataRender/vos/HourRange';
 import HourSegment from '../../../../shared/modules/DataRender/vos/HourSegment';
 import Durations from '../../../../shared/modules/FormatDatesNombres/Dates/Durations';
@@ -38,7 +38,7 @@ export default class HourrangeInputComponent extends VueComponentBase {
     private value: HourRange;
 
     @Prop({ default: null })
-    private field: SimpleDatatableField<any, any>;
+    private field: SimpleDatatableFieldVO<any, any>;
 
     @Prop({ default: null })
     private vo: IDistantVOBase;
@@ -71,8 +71,8 @@ export default class HourrangeInputComponent extends VueComponentBase {
             this.hourrange_end = null;
             return;
         }
-        this.hourrange_start = HourHandler.getInstance().formatHourForIHM(RangeHandler.getInstance().getSegmentedMin(this.value, this.segmentation_type_value), this.segmentation_type_value);
-        this.hourrange_end = HourHandler.getInstance().formatHourForIHM(RangeHandler.getInstance().getSegmentedMax(this.value, this.segmentation_type_value, 1), this.segmentation_type_value);
+        this.hourrange_start = HourHandler.getInstance().formatHourForIHM(RangeHandler.getSegmentedMin(this.value, this.segmentation_type_value), this.segmentation_type_value);
+        this.hourrange_end = HourHandler.getInstance().formatHourForIHM(RangeHandler.getSegmentedMax(this.value, this.segmentation_type_value, 1), this.segmentation_type_value);
     }
 
     @Watch('hourrange_start')
@@ -92,7 +92,7 @@ export default class HourrangeInputComponent extends VueComponentBase {
         }
 
         if (hourstart && hourend) {
-            new_value = RangeHandler.getInstance().createNew(HourRange.RANGE_TYPE, hourstart, hourend, true, false, this.segmentation_type_value);
+            new_value = RangeHandler.createNew(HourRange.RANGE_TYPE, hourstart, hourend, true, false, this.segmentation_type_value);
         } else {
             new_value = null;
         }
@@ -102,7 +102,7 @@ export default class HourrangeInputComponent extends VueComponentBase {
          */
         let old_value = this.vo ? this.vo[this.field.datatable_field_uid] : null;
         if ((old_value == new_value) ||
-            (RangeHandler.getInstance().is_same(old_value, new_value))) {
+            (RangeHandler.is_same(old_value, new_value))) {
             return;
         }
         this.new_value = new_value;

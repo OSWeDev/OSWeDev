@@ -53,14 +53,14 @@ export default class VarDataBaseVO implements IMatroid {
     public static createNew<T extends VarDataBaseVO>(var_name: string, clone_fields: boolean = true, ...fields_ordered_as_in_moduletable_definition: IRange[][]): T {
 
         let varConf = VarsController.getInstance().var_conf_by_name[var_name];
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[varConf.var_data_vo_type];
+        let moduletable = VOsTypesManager.moduleTables_by_voType[varConf.var_data_vo_type];
 
         let res: T = moduletable.voConstructor();
         res._type = varConf.var_data_vo_type;
         res.var_id = varConf.id;
 
         if (!res.var_id) {
-            ConsoleHandler.getInstance().error("VarDataBaseVO.createNew var_name :: " + var_name);
+            ConsoleHandler.error("VarDataBaseVO.createNew var_name :: " + var_name);
         }
 
         let fields = MatroidController.getInstance().getMatroidFields(varConf.var_data_vo_type);
@@ -69,22 +69,22 @@ export default class VarDataBaseVO implements IMatroid {
             let field = fields[i];
 
             if ((!fields_ordered_as_in_moduletable_definition[param_i]) || (fields_ordered_as_in_moduletable_definition[param_i].indexOf(null) >= 0)) {
-                // ConsoleHandler.getInstance().warn('createNew:field null:' + var_name + ':' + field.field_id + ':');
+                // ConsoleHandler.warn('createNew:field null:' + var_name + ':' + field.field_id + ':');
                 switch (field.field_type) {
                     case ModuleTableField.FIELD_TYPE_numrange_array:
-                        res[field.field_id] = [RangeHandler.getInstance().getMaxNumRange()];
+                        res[field.field_id] = [RangeHandler.getMaxNumRange()];
                         break;
                     case ModuleTableField.FIELD_TYPE_hourrange_array:
-                        res[field.field_id] = [RangeHandler.getInstance().getMaxHourRange()];
+                        res[field.field_id] = [RangeHandler.getMaxHourRange()];
                         break;
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                        res[field.field_id] = [RangeHandler.getInstance().getMaxTSRange()];
+                        res[field.field_id] = [RangeHandler.getMaxTSRange()];
                         break;
                     default:
                         break;
                 }
             } else {
-                res[field.field_id] = clone_fields ? RangeHandler.getInstance().cloneArrayFrom(fields_ordered_as_in_moduletable_definition[param_i]) : fields_ordered_as_in_moduletable_definition[param_i];
+                res[field.field_id] = clone_fields ? RangeHandler.cloneArrayFrom(fields_ordered_as_in_moduletable_definition[param_i]) : fields_ordered_as_in_moduletable_definition[param_i];
             }
             param_i++;
         }
@@ -107,7 +107,7 @@ export default class VarDataBaseVO implements IMatroid {
             let ranges = vardata[field_id];
 
             if (ranges && (segmentation_cible != null)) {
-                vardata[field_id] = RangeHandler.getInstance().get_ranges_according_to_segment_type(
+                vardata[field_id] = RangeHandler.get_ranges_according_to_segment_type(
                     ranges, field_segmentations[field_id], true);
             }
         }
@@ -115,31 +115,21 @@ export default class VarDataBaseVO implements IMatroid {
 
     public static get_varconf_segmentations(varConf: VarConfVO): { [field_id: string]: number } {
         let res: { [field_id: string]: number } = {};
+
+        if (!varConf) {
+            return res;
+        }
+
         let fields = MatroidController.getInstance().getMatroidFields(varConf.var_data_vo_type);
 
-        if (varConf) {
-            if (varConf.segment_types) {
-                for (let i in fields) {
-                    let field = fields[i];
-                    let segmentation_cible = varConf.segment_types[field.field_id];
-                    segmentation_cible = (segmentation_cible != null) ?
-                        segmentation_cible :
-                        RangeHandler.getInstance().get_smallest_segment_type_for_range_type(RangeHandler.getInstance().getRangeType(field));
-                    res[field.field_id] = segmentation_cible;
-                }
-            } else {
-                /**
-                 * @deprecated delete this as soon as varConf.ts_ranges_segment_type is removed
-                 */
-                for (let i in fields) {
-                    let field = fields[i];
-                    let segmentation_cible =
-                        ((varConf.ts_ranges_segment_type != null) && (field.field_id == varConf.ts_ranges_field_name)) ?
-                            varConf.ts_ranges_segment_type :
-                            RangeHandler.getInstance().get_smallest_segment_type_for_range_type(RangeHandler.getInstance().getRangeType(field));
-
-                    res[field.field_id] = segmentation_cible;
-                }
+        if (varConf.segment_types) {
+            for (let i in fields) {
+                let field = fields[i];
+                let segmentation_cible = varConf.segment_types[field.field_id];
+                segmentation_cible = (segmentation_cible != null) ?
+                    segmentation_cible :
+                    RangeHandler.get_smallest_segment_type_for_range_type(RangeHandler.getRangeType(field));
+                res[field.field_id] = segmentation_cible;
             }
         }
 
@@ -253,8 +243,8 @@ export default class VarDataBaseVO implements IMatroid {
         res.var_id = varConf ? varConf.id : param_to_clone.var_id;
 
         if (!res.var_id) {
-            ConsoleHandler.getInstance().error("VarDataBaseVO.cloneFieldsFromVarConf varConf :: " + JSON.stringify(varConf));
-            ConsoleHandler.getInstance().error("VarDataBaseVO.cloneFieldsFromVarConf param_to_clone:: " + JSON.stringify(param_to_clone));
+            ConsoleHandler.error("VarDataBaseVO.cloneFieldsFromVarConf varConf :: " + JSON.stringify(varConf));
+            ConsoleHandler.error("VarDataBaseVO.cloneFieldsFromVarConf param_to_clone:: " + JSON.stringify(param_to_clone));
         }
 
         return res;

@@ -30,7 +30,7 @@ export default class VarDayPrctAvancementAnimationController extends VarServerCo
 
     protected constructor() {
         super(
-            new VarConfVO(AnimationController.VarDayPrctAvancementAnimationController_VAR_NAME, ThemeModuleDataRangesVO.API_TYPE_ID, TimeSegment.TYPE_DAY),
+            new VarConfVO(AnimationController.VarDayPrctAvancementAnimationController_VAR_NAME, ThemeModuleDataRangesVO.API_TYPE_ID),
             { 'fr-fr': 'Prct avancement animation' },
             {
                 'fr-fr': 'Prctage d\'avancement de l\'animation.'
@@ -82,9 +82,9 @@ export default class VarDayPrctAvancementAnimationController extends VarServerCo
                 return ThemeModuleDataRangesVO.createNew(
                     var_name,
                     false,
-                    [RangeHandler.getInstance().getMaxNumRange()],
-                    [RangeHandler.getInstance().getMaxNumRange()],
-                    [RangeHandler.getInstance().getMaxNumRange()]
+                    [RangeHandler.getMaxNumRange()],
+                    [RangeHandler.getMaxNumRange()],
+                    [RangeHandler.getMaxNumRange()]
                     // TODO FIXME Améliorer ce matroid point de vue métier
                 );
         }

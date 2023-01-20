@@ -3,7 +3,7 @@ import * as moment from 'moment';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import * as lang from "vuejs-datepicker/src/locale";
-import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import SimpleDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import TSRange from '../../../../shared/modules/DataRender/vos/TSRange';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -36,7 +36,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
     private value: TSRange;
 
     @Prop({ default: null })
-    private field: SimpleDatatableField<any, any>;
+    private field: SimpleDatatableFieldVO<any, any>;
 
     @Prop({ default: null })
     private segmentation_type: number;
@@ -92,7 +92,9 @@ export default class TSRangeInputComponent extends VueComponentBase {
     private onchange_field() {
         if (!!this.field) {
             if (this.segmentation_type == null) {
-                this.segmentation_type_ = this.field.moduleTableField.segmentation_type;
+                if (this.field.moduleTableField) {
+                    this.segmentation_type_ = this.field.moduleTableField.segmentation_type;
+                }
                 return;
             }
         }
@@ -114,8 +116,8 @@ export default class TSRangeInputComponent extends VueComponentBase {
             return;
         }
 
-        let min: number = RangeHandler.getInstance().is_left_open(this.value) ? null : RangeHandler.getInstance().getSegmentedMin(this.value, this.segmentation_type_);
-        let max: number = RangeHandler.getInstance().is_right_open(this.value) ? null : RangeHandler.getInstance().getSegmentedMax(this.value, this.segmentation_type_);
+        let min: number = RangeHandler.is_left_open(this.value) ? null : RangeHandler.getSegmentedMin(this.value, this.segmentation_type_);
+        let max: number = RangeHandler.is_right_open(this.value) ? null : RangeHandler.getSegmentedMax(this.value, this.segmentation_type_);
 
         if (min) {
             this.tsrange_start = new Date(min * 1000);
@@ -143,7 +145,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
     @Watch('tsrange_start')
     @Watch('tsrange_end')
     private emitInput(): void {
-        let new_value = RangeHandler.getInstance().createNew(
+        let new_value = RangeHandler.createNew(
             TSRange.RANGE_TYPE,
             this.ts_start ? this.ts_start : RangeHandler.MIN_TS,
             this.ts_end ? this.ts_end : RangeHandler.MAX_TS,
@@ -154,7 +156,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
          */
         let old_value = this.vo ? this.vo[this.field.datatable_field_uid] : null;
         if ((old_value == new_value) ||
-            (RangeHandler.getInstance().is_same(old_value, new_value))) {
+            (RangeHandler.is_same(old_value, new_value))) {
             return;
         }
         this.new_value = new_value;
@@ -263,7 +265,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
 
     get format_localized_time(): boolean {
         if (this.field.type == 'Simple') {
-            return (this.field as SimpleDatatableField<any, any>).moduleTableField.format_localized_time;
+            return (this.field as SimpleDatatableFieldVO<any, any>).moduleTableField.format_localized_time;
         }
 
         return null;

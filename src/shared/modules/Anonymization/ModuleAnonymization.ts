@@ -51,6 +51,6 @@ export default class ModuleAnonymization extends Module {
         let datatable2 = new ModuleTable(this, AnonymizationUserConfVO.API_TYPE_ID, () => new AnonymizationUserConfVO(), datatable_fields, null, "Lien anonymisation/utilisateur");
         this.datatables.push(datatable2);
         anon_field_id.addManyToOneRelation(datatable);
-        user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
     }
 }

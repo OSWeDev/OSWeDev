@@ -264,7 +264,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
 
         if ((!this.checklists) || (!this.checklists.length)) {
             this.checklists = await query(CheckListVO.API_TYPE_ID).select_vos<CheckListVO>();
-            this.checklists_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(this.checklists);
+            this.checklists_by_ids = VOsTypesManager.vosArray_to_vosByIds(this.checklists);
         }
 
         await this.update_visible_options();
@@ -282,7 +282,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
         let e = await this.checklist_controller.getCheckListItemNewInstance();
         let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(e);
         if ((!res) || !res.id) {
-            ConsoleHandler.getInstance().error('CheckListComponent:createNew:failed');
+            ConsoleHandler.error('CheckListComponent:createNew:failed');
             this.throttled_update_visible_options();
             return;
         }
@@ -454,12 +454,12 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
                 return;
             }
 
-            checklistitems = (items && items.length) ? VOsTypesManager.getInstance().vosArray_to_vosByIds(items) : [];
+            checklistitems = (items && items.length) ? VOsTypesManager.vosArray_to_vosByIds(items) : [];
         })());
 
         let checkpoints: { [id: number]: ICheckPoint } = {};
         promises.push((async () => {
-            checkpoints = VOsTypesManager.getInstance().vosArray_to_vosByIds(
+            checkpoints = VOsTypesManager.vosArray_to_vosByIds(
                 await query(self.checklist_shared_module.checkpoint_type_id).filter_by_num_eq('checklist_id', self.checklist.id).select_vos<ICheckPoint>());
         })());
 
@@ -537,7 +537,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
                     options.delete_all_button, options.create_button, options.refresh_button, options.export_button) : null;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return options;

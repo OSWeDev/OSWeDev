@@ -22,7 +22,7 @@
 
 //     private constructor() {
 //         ForkMessageController.getInstance().register_message_handler(UpdatePerfConfsForkMessage.FORK_MESSAGE_TYPE, this.update_cached_perf_conf.bind(this));
-//         this.update_cached_perf_conf().then().catch((error) => ConsoleHandler.getInstance().error(error));
+//         this.update_cached_perf_conf().then().catch((error) => ConsoleHandler.error(error));
 //     }
 
 //     public async registerPerformanceType(perf_type_by_name: string): Promise<PerfMonLineTypeVO> {

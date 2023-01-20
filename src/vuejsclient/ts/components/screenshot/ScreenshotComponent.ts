@@ -87,12 +87,12 @@ export default class ScreenshotComponent extends VueComponentBase {
                             }, 'image/png');
 
                         } catch (error) {
-                            ConsoleHandler.getInstance().error(error);
+                            ConsoleHandler.error(error);
                             self.is_taking = false;
                         }
                     });
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
             this.is_taking = false;
         }
     }

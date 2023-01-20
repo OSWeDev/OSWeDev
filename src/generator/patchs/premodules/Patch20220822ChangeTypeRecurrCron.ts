@@ -34,7 +34,7 @@ export default class Patch20220822ChangeTypeRecurrCron implements IGeneratorWork
             await db.none("update ref.module_cron_cronworkplan set type_recurrence = 5 where type_recurrence = 50;");
             await db.none("update ref.module_cron_cronworkplan set type_recurrence = 6 where type_recurrence = 60;");
         } catch (error) {
-            ConsoleHandler.getInstance().log('Ignore this error if new project: ' + error);
+            ConsoleHandler.log('Ignore this error if new project: ' + error);
         }
     }
 }

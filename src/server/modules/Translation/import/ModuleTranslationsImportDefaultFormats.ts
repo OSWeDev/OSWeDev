@@ -44,7 +44,7 @@ export default class ModuleTranslationsImportDefaultFormats {
         import_base_data_import_file = await ModuleDataImport.getInstance().getDataImportFile(default_import_format_name);
 
         if (!import_base_data_import_file) {
-            ConsoleHandler.getInstance().error('La création du format d\'import a échoué');
+            ConsoleHandler.error('La création du format d\'import a échoué');
             return;
         }
 

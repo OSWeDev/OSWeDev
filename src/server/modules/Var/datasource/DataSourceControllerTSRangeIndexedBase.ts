@@ -38,7 +38,7 @@ export default abstract class DataSourceControllerTSRangeIndexedBase extends Dat
             VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name] = {};
         }
 
-        await RangeHandler.getInstance().foreach_ranges(data_index, async (date: number) => {
+        await RangeHandler.foreach_ranges(data_index, async (date: number) => {
 
             let ms_i = date;
             if (typeof VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][ms_i] === 'undefined') {

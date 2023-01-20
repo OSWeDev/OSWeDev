@@ -115,7 +115,7 @@ export default class DashboardMenuConfComponent extends VueComponentBase {
                     translatable_text_menu.code_text = db_menu.translatable_title;
                     let insertOrDeleteQueryResulttt: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(translatable_text_menu);
                     if ((!insertOrDeleteQueryResulttt) || (!insertOrDeleteQueryResulttt.id)) {
-                        ConsoleHandler.getInstance().error('Failed switch_menu_app create translatable text');
+                        ConsoleHandler.error('Failed switch_menu_app create translatable text');
                         this.is_loading = false;
                         return;
                     }
@@ -152,7 +152,7 @@ export default class DashboardMenuConfComponent extends VueComponentBase {
 
                 let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(this.get_menu(app_name));
                 if ((!insertOrDeleteQueryResult) || !insertOrDeleteQueryResult.id) {
-                    ConsoleHandler.getInstance().error('Failed switch_menu_app create');
+                    ConsoleHandler.error('Failed switch_menu_app create');
                     this.is_loading = false;
                     return;
                 }

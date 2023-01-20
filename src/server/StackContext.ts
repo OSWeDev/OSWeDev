@@ -4,41 +4,29 @@ import cls from './CLSHooked';
 
 export default class StackContext {
 
-    public static getInstance(): StackContext {
-        if (!StackContext.instance) {
-            StackContext.instance = new StackContext();
-        }
-        return StackContext.instance;
-    }
-
-    private static instance: StackContext = null;
-
-    public nsid: string = 'oswedev-stack-context';
-    public ns = cls.createNamespace(this.nsid);
-
-    private constructor() {
-    }
+    // public static nsid: string = 'oswedev-stack-context';
+    public static ns = cls.createNamespace('oswedev-stack-context');
 
     /**
      * Express.js middleware that is responsible for initializing the context for each request.
      */
-    public middleware(req, res, next) {
-        StackContext.getInstance().ns.run(() => next());
+    public static middleware(req, res, next) {
+        StackContext.ns.run(() => next());
     }
 
-    public async runPromise(scope_overloads: { [scope_key: string]: any }, callback: (...params: any) => Promise<any>): Promise<any> {
+    public static async runPromise(scope_overloads: { [scope_key: string]: any }, callback: (...params: any) => Promise<any>): Promise<any> {
 
         let result = null;
 
         let old_context_values = {};
 
-        await StackContext.getInstance().ns.runPromise(async () => {
+        await StackContext.ns.runPromise(async () => {
 
             for (let field_id in scope_overloads) {
                 let field_value = scope_overloads[field_id];
 
-                old_context_values[field_id] = StackContext.getInstance().get(field_id);
-                StackContext.getInstance().set(field_id, field_value);
+                old_context_values[field_id] = StackContext.get(field_id);
+                StackContext.set(field_id, field_value);
             }
 
             try {
@@ -46,7 +34,7 @@ export default class StackContext {
             } catch (error) { }
 
             for (let field_id in scope_overloads) {
-                StackContext.getInstance().set(field_id, old_context_values[field_id]);
+                StackContext.set(field_id, old_context_values[field_id]);
             }
         });
 
@@ -57,9 +45,9 @@ export default class StackContext {
      * Gets a value from the context by key.  Will return undefined if the context has not yet been initialized for this request or if a value is not found for the specified key.
      * @param {string} key
      */
-    public get(key: string) {
-        if (StackContext.getInstance().ns && StackContext.getInstance().ns.active) {
-            return StackContext.getInstance().ns.get(key);
+    public static get(key: string) {
+        if (StackContext.ns && StackContext.ns.active) {
+            return StackContext.ns.get(key);
         }
         return null;
     }
@@ -69,9 +57,9 @@ export default class StackContext {
      * @param {string} key
      * @param {*} value
      */
-    private set(key: string, value) {
-        if (StackContext.getInstance().ns && StackContext.getInstance().ns.active) {
-            return StackContext.getInstance().ns.set(key, value);
+    private static set(key: string, value) {
+        if (StackContext.ns && StackContext.ns.active) {
+            return StackContext.ns.set(key, value);
         }
         return null;
     }

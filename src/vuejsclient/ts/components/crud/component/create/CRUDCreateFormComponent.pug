@@ -1,66 +1,49 @@
 include ../../../../../views/mixins/loading.pug
 .crud_create_form
+    +loading()
+        form(v-on:submit.prevent="createVO")
+            .crud_create_form_header
+                a.btn.close(@click="cancel") &times;
+                .title.d-ib {{ label('crud.create.modal.title') }}
 
-    template(v-if= "copy_widget")
-        
-            .modal-dialog
-                .modal-content
-                    .modal-header
-                        h5#exampleModalLabel.modal-title Copier/déplacer le widget
-                        a.btn.close(@click="cancel") &times;
+            .crud_create_form_body
+                .alert.alert-warning(v-if="is_only_readable") {{ label('crud.create.modal.readonly') }}
+                template(v-if="newVO")
+
+                    template(v-if='POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS')
+                        .edit_removed_crud_fields
+                            .btn.btn-primary.btn-block.btn-flat(@click="crud_field_remover_conf_edit = true" v-if='!crud_field_remover_conf_edit') {{ label('crud_create_form_body.edit_removed_crud_fields') }}
+                            .btn.btn-primary.btn-block.btn-flat(@click="crud_field_remover_conf_edit = false" v-if='!!crud_field_remover_conf_edit') {{ label('crud_create_form_body.donot_edit_removed_crud_fields') }}
                         
-                    .modal-body
-                        .pages
-                            template(v-for='(page_, pagei) in pages')
-                                .page 
-                                    .selected(v-if='page_.id == page_to_copy_in_id')
-                                        i.fa-solid.fa-check-circle.fa-fw(aria-hidden="true")
-                                        //- Page selectionnée.
-                                    .select(v-else)
-                                        i.fa-solid.fa-hand-point-down.fa-fw.btn_icon(aria-hidden="true" @click="select_page_to_copy_in(page_)")
+                        template(v-if='crud_field_remover_conf_edit && crud_field_remover_conf && crud_field_remover_conf.module_table_field_ids && (crud_field_remover_conf.module_table_field_ids.length > 0)')
+                            template(v-for='(module_table_field_id, edit_removed_crud_field_i) in crud_field_remover_conf.module_table_field_ids')
+                                .delete_removed_crud_field_id
+                                    .btn.btn-warning.btn-block.btn-flat(@click="delete_removed_crud_field_id(module_table_field_id)") {{ label('crud_create_form_body.delete_removed_crud_field_id', {field_id: module_table_field_id}) }}
 
-                                    .name
-                                        Inlinetranslatabletext(:code_text="pages_name_code_text[pagei]" :is_editable="false")
-                    .modal-footer
-                        .hide_navigation(:class='{"disabled" : page_to_copy_in_id == page_id , "not_disabled": page_to_copy_in_id != page_id}')
-                            //-On grise le button "déplacer" si jamais la page vers laquelle on souhaite effectuer des modifications est celle sur laquelle on est.
-                            template(v-if='page_to_copy_in_id == page_id')
-                                button.btn.btn-primary(type='button' data-bs-dismiss='modal' @click = "do_copy_widget") Copier
-                                button.btn.btn-primary.disabled(type='button') Déplacer
-                            template(v-else)
-                                button.btn.btn-primary(type='button' data-bs-dismiss='modal' @click = "do_copy_widget") Copier
-                                button.btn.btn-primary(type='button' @click = "do_transfert_widget(false)") Déplacer
 
-    template(v-else)
-        .crud_create_form
-            +loading()
-                form(v-on:submit.prevent="createVO")
-                    .crud_create_form_header
-                        .title.d-ib {{ label('crud.create.modal.title') }}
-                        a.btn.close(@click="cancel") &times;
+                    template(v-if="has_createDatatable", v-for="field in crud.createDatatable.fields")
+                        Crudcomponentfield(
+                            v-show="!field.hidden",
+                            :key="newVO._type + '_createDatatable_' + field.datatable_field_uid + '_' + crud_createDatatable_key",
+                            :field="field",
+                            :vo="newVO",
+                            :datatable="crud.createDatatable",
+                            :auto_update_field_value="true",
+                            :show_placeholder="show_placeholder",
+                            @uploadedfile="uploadedFile_",
+                            @onchangevo="onChangeVO",
+                            :show_insert_or_update_target='show_insert_or_update_target'
+                            :is_dashboard_builder="true"
+                        )
+                        template(v-if='POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS && crud_field_remover_conf_edit')
+                            .add_removed_crud_field_id
+                                    .btn.btn-danger.btn-block.btn-flat(@click="add_removed_crud_field_id(field.module_table_field_id)") {{ label('crud_create_form_body.add_removed_crud_field_id', {field_id: field.module_table_field_id}) }}
 
-                    .crud_create_form_body
-                        .alert.alert-warning(v-if="is_only_readable") {{ label('crud.create.modal.readonly') }}
-                        template(v-if="newVO")
-                            template(v-if="has_createDatatable", v-for="field in crud.createDatatable.fields")
-                                Crudcomponentfield(
-                                    v-show="!field.hidden",
-                                    :key="newVO._type + '_createDatatable_' + field.datatable_field_uid + '_' + crud_createDatatable_key",
-                                    :field="field",
-                                    :vo="newVO",
-                                    :datatable="crud.createDatatable",
-                                    :auto_update_field_value="true",
-                                    :show_placeholder="show_placeholder",
-                                    @uploadedfile="uploadedFile_",
-                                    @onchangevo="onChangeVO",
-                                    :show_insert_or_update_target='show_insert_or_update_target'
-                                    :is_dashboard_builder="true"
-                                )
 
-                        template(v-else)
-                            p {{ label('crud.create.modal.content.newvo_failure') }}
+                template(v-else)
+                    p {{ label('crud.create.modal.content.newvo_failure') }}
 
-                    .crud_create_form_footer
-                        a.btn.btn-default(v-if="!creating_vo", @click="cancel") {{ label('crud.create.modal.cancel') }}
-                        template(v-if="newVO && !creating_vo && !is_only_readable")
-                            input.btn.btn-primary(type="submit" :value="label('crud.create.modal.add')")
+            .crud_create_form_footer
+                a.btn.btn-default(v-if="!creating_vo", @click="cancel") {{ label('crud.create.modal.cancel') }}
+                template(v-if="newVO && !creating_vo && !is_only_readable")
+                    input.btn.btn-primary(type="submit" :value="label('crud.create.modal.add')")

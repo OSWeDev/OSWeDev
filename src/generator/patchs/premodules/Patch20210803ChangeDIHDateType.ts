@@ -29,7 +29,7 @@ export default class Patch20210803ChangeDIHDateType implements IGeneratorWorker 
         try {
             await this.change_type_column_date_to_tstz(db, 'ref.module_data_import_dih', 'segment_date_index');
         } catch (error) {
-            ConsoleHandler.getInstance().log('Ignore this error if new project: ' + error);
+            ConsoleHandler.log('Ignore this error if new project: ' + error);
         }
     }
 

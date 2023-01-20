@@ -1,6 +1,7 @@
 import { throttle } from 'lodash';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
+import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import ISupervisedItem from '../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import ISupervisedItemController from '../../../../shared/modules/Supervision/interfaces/ISupervisedItemController';
 import SupervisionController from '../../../../shared/modules/Supervision/SupervisionController';
@@ -13,6 +14,9 @@ import SupervisionServerController from '../SupervisionServerController';
 
 export default class SupervisionBGThread implements IBGThread {
 
+    public static MAX_timeout_PARAM_NAME: string = 'SupervisionBGThread.MAX_timeout';
+    public static MIN_timeout_PARAM_NAME: string = 'SupervisionBGThread.MIN_timeout';
+
     public static getInstance() {
         if (!SupervisionBGThread.instance) {
             SupervisionBGThread.instance = new SupervisionBGThread();
@@ -24,7 +28,9 @@ export default class SupervisionBGThread implements IBGThread {
 
     public current_timeout: number = 1000;
     public MAX_timeout: number = 5000;
-    public MIN_timeout: number = 1000;
+    public MIN_timeout: number = 100;
+
+    private loaded_param: boolean = false;
 
     private throttle_by_api_type_id: { [api_type_id: string]: () => Promise<boolean> } = {};
 
@@ -42,6 +48,14 @@ export default class SupervisionBGThread implements IBGThread {
     public async work(): Promise<number> {
 
         try {
+
+            if (!this.loaded_param) {
+                this.loaded_param = true;
+
+                this.MAX_timeout = await ModuleParams.getInstance().getParamValueAsInt(SupervisionBGThread.MAX_timeout_PARAM_NAME, 5000, 180000);
+                this.MIN_timeout = await ModuleParams.getInstance().getParamValueAsInt(SupervisionBGThread.MIN_timeout_PARAM_NAME, 100, 180000);
+            }
+
             let registered_api_types = SupervisionController.getInstance().registered_controllers;
 
             let promises = [];
@@ -80,7 +94,7 @@ export default class SupervisionBGThread implements IBGThread {
             await all_promises(promises);
 
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return ModuleBGThreadServer.TIMEOUT_COEF_SLOWER;

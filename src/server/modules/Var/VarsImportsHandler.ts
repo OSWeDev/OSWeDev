@@ -116,7 +116,7 @@ export default class VarsImportsHandler {
 
             if (actual_time > (start_time + 60)) {
                 start_time = actual_time;
-                ConsoleHandler.getInstance().warn('VarsImportsHandler:get_selection_imports:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
+                ConsoleHandler.warn('VarsImportsHandler:get_selection_imports:Risque de boucle infinie:' + real_start_time + ':' + actual_time);
             }
 
             tested_import = ordered_imports[i];

@@ -39,11 +39,12 @@ export default class NotificationVO implements IDistantVOBase {
     public client_tab_id: string;
     public socket_ids: string[];
 
-
     // For Simple Notification
     public simple_notif_type: number;
     public simple_notif_label: string;
     public simple_notif_json_params: string;
+
+    public simple_downloadable_link: string;
 
     public prompt_uid: number;
     public prompt_result: string;

@@ -65,7 +65,7 @@ export default class VarsClientController {
         this.prepare_next_check();
 
         // On lance aussi un process pour update les subs côté serveur et pas les perdre sur un timeout
-        this.update_params_registration().then().catch((err) => ConsoleHandler.getInstance().error(err));
+        this.update_params_registration().then().catch((err) => ConsoleHandler.error(err));
     }
 
     /**
@@ -188,13 +188,13 @@ export default class VarsClientController {
 
             if (!this.registered_var_params[var_param.index]) {
                 continue;
-                // ConsoleHandler.getInstance().error('unRegisterParams on unregistered param... ' + var_param.index);
+                // ConsoleHandler.error('unRegisterParams on unregistered param... ' + var_param.index);
             }
 
             this.registered_var_params[var_param.index].nb_registrations--;
             if (this.registered_var_params[var_param.index].nb_registrations < 0) {
                 continue;
-                // ConsoleHandler.getInstance().error('unRegisterParams on unregistered param... ' + var_param.index);
+                // ConsoleHandler.error('unRegisterParams on unregistered param... ' + var_param.index);
             }
 
             if (this.registered_var_params[var_param.index].nb_registrations <= 0) {
@@ -263,7 +263,7 @@ export default class VarsClientController {
              *  on sait qu'il est en train de nous répondre, donc on attend
              */
             if ((Dates.now() - VarsClientController.getInstance().last_notif_received) < 10) {
-                ConsoleHandler.getInstance().log('check_invalid_valued_params_registration : server is calculating, waiting:' + VarsClientController.getInstance().last_notif_received);
+                ConsoleHandler.log('check_invalid_valued_params_registration : server is calculating, waiting:' + VarsClientController.getInstance().last_notif_received);
                 this.prepare_next_check();
                 return;
             }
@@ -329,7 +329,7 @@ export default class VarsClientController {
             }
             await ModuleVar.getInstance().update_params_registration(vars.map((v) => v.var_param));
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         // On lance un process parrallèle qui check en permanence que les vars pour lesquels on a pas de valeurs sont bien enregistrées côté serveur

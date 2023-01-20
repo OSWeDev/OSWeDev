@@ -106,7 +106,7 @@ export default class ObjectHandler {
             try {
                 res.push(parseInt(i.toString()));
             } catch (error) {
-                ConsoleHandler.getInstance().error(error);
+                ConsoleHandler.error(error);
             }
         }
         return res;
@@ -204,7 +204,7 @@ export default class ObjectHandler {
         for (let id in elts_by_id) {
             let elt = elts_by_id[id];
 
-            if (RangeHandler.getInstance().elt_intersects_range(parseInt(id.toString()), range)) {
+            if (RangeHandler.elt_intersects_range(parseInt(id.toString()), range)) {
                 if (typeof elt != 'undefined') {
                     res[id] = elt;
                 }
@@ -220,7 +220,7 @@ export default class ObjectHandler {
         for (let id in elts_by_id) {
             let elt = elts_by_id[id];
 
-            if (RangeHandler.getInstance().elt_intersects_any_range(parseInt(id.toString()), ranges)) {
+            if (RangeHandler.elt_intersects_any_range(parseInt(id.toString()), ranges)) {
                 res[id] = elt;
             }
         }

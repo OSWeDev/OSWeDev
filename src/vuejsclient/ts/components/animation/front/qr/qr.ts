@@ -5,7 +5,7 @@ import AnimationReponseVO from "../../../../../../shared/modules/Animation/field
 import AnimationQRVO from "../../../../../../shared/modules/Animation/vos/AnimationQRVO";
 import AnimationUserQRVO from "../../../../../../shared/modules/Animation/vos/AnimationUserQRVO";
 import ModuleDAO from "../../../../../../shared/modules/DAO/ModuleDAO";
-import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import Dates from "../../../../../../shared/modules/FormatDatesNombres/Dates/Dates";
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
@@ -143,7 +143,7 @@ export default class VueAnimationQrComponent extends VueComponentBase {
         return (file) && (file.path) && (file.path.match(/\.(mp4)$/) != null);
     }
 
-    private async on_edit_reponse_name(vo: AnimationReponseVO, field: SimpleDatatableField<any, any>, data: any): Promise<void> {
+    private async on_edit_reponse_name(vo: AnimationReponseVO, field: SimpleDatatableFieldVO<any, any>, data: any): Promise<void> {
         vo.name = data;
 
         this.qr.reponses = JSON.stringify(this.reponses);
@@ -184,14 +184,14 @@ export default class VueAnimationQrComponent extends VueComponentBase {
     }
 
     get name_editable_field() {
-        return new SimpleDatatableField('name').setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[AnimationQRVO.API_TYPE_ID]);
+        return SimpleDatatableFieldVO.createNew('name').setModuleTable(VOsTypesManager.moduleTables_by_voType[AnimationQRVO.API_TYPE_ID]);
     }
 
     get description_editable_field() {
-        return new SimpleDatatableField('description').setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[AnimationQRVO.API_TYPE_ID]);
+        return SimpleDatatableFieldVO.createNew('description').setModuleTable(VOsTypesManager.moduleTables_by_voType[AnimationQRVO.API_TYPE_ID]);
     }
 
     get explicatif_editable_field() {
-        return new SimpleDatatableField('explicatif').setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[AnimationQRVO.API_TYPE_ID]);
+        return SimpleDatatableFieldVO.createNew('explicatif').setModuleTable(VOsTypesManager.moduleTables_by_voType[AnimationQRVO.API_TYPE_ID]);
     }
 }

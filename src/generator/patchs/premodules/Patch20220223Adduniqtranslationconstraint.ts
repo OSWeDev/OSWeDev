@@ -25,7 +25,7 @@ export default class Patch20220223Adduniqtranslationconstraint implements IGener
         try {
             await db.query('ALTER TABLE ref.module_translation_translation ADD CONSTRAINT uniq_translation UNIQUE (lang_id, text_id);');
         } catch (error) {
-            ConsoleHandler.getInstance().log('Ignore this error if new project: ' + error);
+            ConsoleHandler.log('Ignore this error if new project: ' + error);
         }
     }
 }

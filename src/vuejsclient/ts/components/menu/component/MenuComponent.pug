@@ -6,16 +6,16 @@
                     //Composants récursif ???? : menu_element(:menu-element="menuElement", :lvl="1")
                     template(v-if='(!childrenElementsById[menuElement.id]) || (childrenElementsById[menuElement.id].length <= 0)')
                         template(v-if='menuElement.target && menuElement.target_is_routename')
-                            router-link.nav-link(:to="{ name: menuElement.target, params: menuElement.target_route_params ? JSON.parse(menuElement.target_route_params) : undefined }")
-                                i.fa-solid.fa-fw(:class="menuElement.fa_class")
+                            router-link.text-primary.nav-link(:to="{ name: menuElement.target, params: menuElement.target_route_params ? JSON.parse(menuElement.target_route_params) : undefined }")
+                                i.fa-duotone.fa-fw(:class="menuElement.fa_class")
                                 span.nav-link-text {{t(menuElement.translatable_title)}}
                         template(v-else-if='menuElement.target && !menuElement.target_is_routename')
-                            a.nav-link(:href='menuElement.target', :target="menuElement.target_blank ? '_blank' : ''")
-                                i.fa-solid.fa-fw(:class="menuElement.fa_class")
+                            a.text-primary.nav-link(:href='menuElement.target', :target="menuElement.target_blank ? '_blank' : ''")
+                                i.fa-duotone.fa-fw(:class="menuElement.fa_class")
                                 span.nav-link-text {{t(menuElement.translatable_title)}}
                     template(v-else)
-                        a.nav-link.nav-link-collapse.collapsed(data-toggle='collapse', :href="'#'+menuElement.name", data-parent='#mainmenu', :id="'mainmenu_'+menuElement.name")
-                            i.fa-solid.fa-fw(:class="menuElement.fa_class")
+                        a.text-primary.nav-link.nav-link-collapse.collapsed(data-toggle='collapse', :href="'#'+menuElement.name", data-parent='#mainmenu', :id="'mainmenu_'+menuElement.name")
+                            i.fa-duotone.fa-fw(:class="menuElement.fa_class")
                             span.nav-link-text
                                 | {{t(menuElement.translatable_title)}}
                         ul.sidenav-second-level.collapse(v-if='childrenElementsById[menuElement.id] && (childrenElementsById[menuElement.id].length > 0)', :id="menuElement.name")
@@ -23,16 +23,16 @@
                                 template(v-if='!child.hidden && (!child.access_policy_name || access_by_name[child.access_policy_name])')
                                     template(v-if='(!childrenElementsById[child.id]) || (childrenElementsById[child.id].length <= 0)')
                                         template(v-if='child.target && child.target_is_routename')
-                                            router-link(:to="{ name: child.target, params: child.target_route_params ? JSON.parse(child.target_route_params) : undefined }")
-                                                i.fa.fa-fw(:class="child.fa_class")
+                                            router-link.text-primary(:to="{ name: child.target, params: child.target_route_params ? JSON.parse(child.target_route_params) : undefined }")
+                                                i.fa-duotone.fa-fw(:class="child.fa_class")
                                                 span.nav-link-text {{t(child.translatable_title)}}
                                         template(v-else-if="child.target && !child.target_is_routename")
-                                            a(:href='child.target')
-                                                i.fa.fa-fw(:class="child.fa_class")
+                                            a.text-primary(:href='child.target')
+                                                i.fa-duotone.fa-fw(:class="child.fa_class")
                                                 span.nav-link-text {{t(child.translatable_title)}}
                                     template(v-else)
-                                        a.nav-link-collapse.collapsed(data-toggle='collapse', :href="'#'+child.name", :data-parent="'#mainmenu_'+menuElement.name", :id="'mainmenu_2_'+child.name")
-                                            i.fa-solid.fa-fw(:class="child.fa_class")
+                                        a.text-primary.nav-link-collapse.collapsed(data-toggle='collapse', :href="'#'+child.name", :data-parent="'#mainmenu_'+menuElement.name", :id="'mainmenu_2_'+child.name")
+                                            i.fa-duotone.fa-fw(:class="child.fa_class")
                                             span.nav-link-text
                                                 | {{t(child.translatable_title)}}
                                         ul.sidenav-third-level.collapse(v-if='childrenElementsById[child.id] && (childrenElementsById[child.id].length > 0)', :id="child.name")
@@ -40,19 +40,19 @@
                                                 template(v-if='!child2.hidden && (!child2.access_policy_name || access_by_name[child2.access_policy_name])')
                                                     template(v-if='(!childrenElementsById[child2.id]) || (childrenElementsById[child2.id].length <= 0)')
                                                         template(v-if="child2.target && child2.target_is_routename")
-                                                            router-link(:to="{ name: child2.target, params: child2.target_route_params ? JSON.parse(child2.target_route_params) : undefined }")
-                                                                i.fa.fa-fw(:class="child2.fa_class")
+                                                            router-link.text-primary(:to="{ name: child2.target, params: child2.target_route_params ? JSON.parse(child2.target_route_params) : undefined }")
+                                                                i.fa-duotone.fa-fw(:class="child2.fa_class")
                                                                 span.nav-link-text {{t(child2.translatable_title)}}
                                                         template(v-else-if="child2.target && !child2.target_is_routename")
-                                                            a(:href='child2.target')
-                                                                i.fa.fa-fw(:class="child2.fa_class")
+                                                            a.text-primary(:href='child2.target')
+                                                                i.fa-duotone.fa-fw(:class="child2.fa_class")
                                                                 span.nav-link-text {{t(child2.translatable_title)}}
                                                     template(v-else)
-                                                        a.nav-link-collapse.collapsed(data-toggle='collapse', :href="'#'+child2.name")
-                                                            i.fa-solid.fa-fw(:class="child2.fa_class")
+                                                        a.text-primary.nav-link-collapse.collapsed(data-toggle='collapse', :href="'#'+child2.name")
+                                                            i.fa-duotone.fa-fw(:class="child2.fa_class")
                                                             span.nav-link-text
                                                                 | {{t(child2.translatable_title)}}
         //- ul.navbar-nav.sidenav-toggler
         //-     li.nav-item
         //-         a#sidenavToggler.nav-link.text-center
-        //-             i.fa-solid.fa-fw.fa-angle-left
+        //-             i.fa-duotone.fa-fw.fa-angle-left

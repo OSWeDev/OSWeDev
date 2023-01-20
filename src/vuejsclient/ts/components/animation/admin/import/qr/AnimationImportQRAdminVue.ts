@@ -71,7 +71,7 @@ export default class AnimationImportQRAdminVue extends VueComponentBase {
         this.reinitStoreValues();
         this.setsegment_type(TimeSegment.TYPE_YEAR);
         this.setsegment_offset(1);
-        this.setlower_segment(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(Dates.now(), TimeSegment.TYPE_YEAR));
+        this.setlower_segment(TimeSegmentHandler.getCorrespondingTimeSegment(Dates.now(), TimeSegment.TYPE_YEAR));
         this.setsegment_number(1);
 
 

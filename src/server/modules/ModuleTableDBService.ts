@@ -90,7 +90,12 @@ export default class ModuleTableDBService {
                     let segmentation_bdd_values: IDistantVOBase[] = null;
 
                     try {
-                        segmentation_bdd_values = moduleTable.forceNumerics(await this.db.query("SELECT * FROM ref." + moduleTable.name + ";"));
+                        let datas: IDistantVOBase[] = await this.db.query("SELECT * FROM ref." + moduleTable.name + ";");
+                        for (let i in datas) {
+                            let data = datas[i];
+                            data._type = moduleTable.vo_type;
+                        }
+                        segmentation_bdd_values = moduleTable.forceNumerics(datas);
                     } catch (error) {
                     }
 
@@ -108,7 +113,7 @@ export default class ModuleTableDBService {
 
                         if (!segments_by_segmented_value[segmented]) {
                             segments_by_segmented_value[segmented] = "ok";
-                            segments.push(RangeHandler.getInstance().create_single_elt_NumRange(segmented, moduleTable.table_segmented_field_segment_type));
+                            segments.push(RangeHandler.create_single_elt_NumRange(segmented, moduleTable.table_segmented_field_segment_type));
                         }
                     }
                     // On laisse créer les tables et on stocke l'info qu'on devra migrer les datas ensuite.
@@ -121,7 +126,7 @@ export default class ModuleTableDBService {
                         let splits = table_name.split('_');
                         let segmented = parseInt(splits[splits.length - 1]);
 
-                        segments.push(RangeHandler.getInstance().create_single_elt_NumRange(segmented, moduleTable.table_segmented_field_segment_type));
+                        segments.push(RangeHandler.create_single_elt_NumRange(segmented, moduleTable.table_segmented_field_segment_type));
                     }
                 }
             }
@@ -137,7 +142,7 @@ export default class ModuleTableDBService {
              */
             let segment_test = null;
             let has_changes = true;
-            if (!ConfigurationService.getInstance().nodeInstallFullSegments) {
+            if (!ConfigurationService.nodeInstallFullSegments) {
                 segment_test = segments[0].min;
 
                 has_changes = await this.handle_check_segment(moduleTable, segment_test, common_id_seq_name, migration_todo);
@@ -146,7 +151,7 @@ export default class ModuleTableDBService {
             // Création / update des structures
             if (has_changes) {
 
-                await RangeHandler.getInstance().foreach_ranges_batch_await(segments, async (segmented_value) => {
+                await RangeHandler.foreach_ranges_batch_await(segments, async (segmented_value) => {
 
                     if ((segment_test != null) && (segment_test == segmented_value)) {
                         return;
@@ -169,14 +174,14 @@ export default class ModuleTableDBService {
                 let column_names = column_names_list.join(',');
 
                 // Si on est en création => on migre les datas et on compte les datas migrées
-                await RangeHandler.getInstance().foreach_ranges(segments, async (segmented_value) => {
+                await RangeHandler.foreach_ranges(segments, async (segmented_value) => {
 
                     let table_name = moduleTable.get_segmented_name(segmented_value);
 
                     // Une fois la création de la table terminée, on peut faire la migration des datas si on attendait de le faire.
                     let field_where_clause = ModuleDAOServer.getInstance().getClauseWhereRangeIntersectsField(
                         moduleTable.table_segmented_field.field_type, moduleTable.table_segmented_field.field_id,
-                        RangeHandler.getInstance().create_single_elt_NumRange(segmented_value, moduleTable.table_segmented_field_segment_type));
+                        RangeHandler.create_single_elt_NumRange(segmented_value, moduleTable.table_segmented_field_segment_type));
 
                     await this.db.query('INSERT INTO ' + database_name + '.' + table_name + ' (' + column_names + ') SELECT ' + column_names + ' FROM ref.' + database_name + ' WHERE ' + field_where_clause + ';');
 
@@ -195,7 +200,7 @@ export default class ModuleTableDBService {
                     '  CACHE 1;');
 
                 // Si on est en création => on change la séquence des tables créées
-                await RangeHandler.getInstance().foreach_ranges(segments, async (segmented_value) => {
+                await RangeHandler.foreach_ranges(segments, async (segmented_value) => {
 
                     let table_name = moduleTable.get_segmented_name(segmented_value);
 
@@ -353,7 +358,7 @@ export default class ModuleTableDBService {
 
                         try {
                             await this.db.none('ALTER TABLE ' + full_name + ' DROP CONSTRAINT ' + actual_constraint_name + ';');
-                            ConsoleHandler.getInstance().warn('SUPRRESION d\'une contrainte incohérente en base VS code :' + full_name + ':' + actual_constraint_name + ':');
+                            ConsoleHandler.warn('SUPRRESION d\'une contrainte incohérente en base VS code :' + full_name + ':' + actual_constraint_name + ':');
                             res = true;
                         } catch (error) {
                         }
@@ -614,7 +619,7 @@ export default class ModuleTableDBService {
                 continue;
             }
 
-            ConsoleHandler.getInstance().log('ADDING INDEX:' + database_name + '.' + table_name + '.' + field.get_index_name(table_name) + ':');
+            ConsoleHandler.log('ADDING INDEX:' + database_name + '.' + table_name + '.' + field.get_index_name(table_name) + ':');
             await this.db.query(index_str);
             res_ = true;
         }

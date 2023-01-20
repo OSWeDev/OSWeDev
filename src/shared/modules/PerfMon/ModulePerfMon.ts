@@ -57,7 +57,7 @@ export default class ModulePerfMon extends Module {
             new ModuleTableField('uid', ModuleTableField.FIELD_TYPE_int, 'UID', true),
         ];
         let datatable_line = new ModuleTable(this, PerfMonLineVO.API_TYPE_ID, () => new PerfMonLineVO(), datatable_fields_line, null, "Performance");
-        user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
         line_type_id.addManyToOneRelation(datatable);
         parent_id.addManyToOneRelation(datatable_line);
         this.datatables.push(datatable_line);
@@ -73,7 +73,7 @@ export default class ModulePerfMon extends Module {
         fields.unshift(perf_line_id);
 
         let datatable = new ModuleTable(module, api_type_id, constructor, fields, null);
-        perf_line_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[PerfMonLineVO.API_TYPE_ID]);
+        perf_line_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[PerfMonLineVO.API_TYPE_ID]);
         if (!!module) {
             module.datatables.push(datatable);
         }

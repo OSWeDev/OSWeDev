@@ -33,7 +33,7 @@ export default class VueFieldComponent extends VueComponentBase {
     private istextarea: boolean;
 
     private on_update_field(value) {
-        ConsoleHandler.getInstance().log('EVENT - FIELD - ' + value);
+        ConsoleHandler.log('EVENT - FIELD - ' + value);
         this.$emit('updated_field', value);
     }
 }

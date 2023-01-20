@@ -4,7 +4,7 @@ import ConsoleHandler from '../../tools/ConsoleHandler';
 import TypesHandler from '../../tools/TypesHandler';
 import IRange from '../DataRender/interfaces/IRange';
 import IDistantVOBase from '../IDistantVOBase';
-import VOsTypesManager from '../VOsTypesManager';
+import ModuleTable from '../ModuleTable';
 import IAPIController from './interfaces/IAPIController';
 import IAPIParamTranslator from './interfaces/IAPIParamTranslator';
 import IDateAPI from './interfaces/IDateAPI';
@@ -16,6 +16,14 @@ export default class APIControllerWrapper {
 
     public static BASE_API_URL: string = "/api_handler/";
     public static API_CONTROLLER: IAPIController = null;
+
+    /**
+     * Local thread cache -----
+     */
+    public static registered_apis: { [api_name: string]: APIDefinition<any, any> } = {};
+    /**
+     * ----- Local thread cache
+     */
 
     public static getInstance(): APIControllerWrapper {
         if (!APIControllerWrapper.instance) {
@@ -38,30 +46,22 @@ export default class APIControllerWrapper {
         precondition_default_value: any = null,
         sanitize_result: (res: any, ...params) => any = null,
     ): (...params) => Promise<U> {
-        return APIControllerWrapper.API_CONTROLLER.get_shared_api_handler(api_name, sanitize_params, precondition, precondition_default_value, APIControllerWrapper.getInstance().registered_apis, sanitize_result);
+        return APIControllerWrapper.API_CONTROLLER.get_shared_api_handler(api_name, sanitize_params, precondition, precondition_default_value, APIControllerWrapper.registered_apis, sanitize_result);
     }
 
     private static instance: APIControllerWrapper = null;
 
-    /**
-     * Local thread cache -----
-     */
-    public registered_apis: { [api_name: string]: APIDefinition<any, any> } = {};
-    /**
-     * ----- Local thread cache
-     */
-
     private constructor() { }
 
     public registerApi<T, U>(apiDefinition: APIDefinition<T, U>) {
-        APIControllerWrapper.getInstance().registered_apis[apiDefinition.api_name] = apiDefinition;
+        APIControllerWrapper.registered_apis[apiDefinition.api_name] = apiDefinition;
     }
 
     public registerServerApiHandler<T, U>(api_name: string, SERVER_HANDLER: (translated_param: T) => Promise<U>) {
-        if (!APIControllerWrapper.getInstance().registered_apis[api_name]) {
+        if (!APIControllerWrapper.registered_apis[api_name]) {
             throw new Error("Registering server API Handler on unknown API:" + api_name);
         }
-        APIControllerWrapper.getInstance().registered_apis[api_name].SERVER_HANDLER = SERVER_HANDLER;
+        APIControllerWrapper.registered_apis[api_name].SERVER_HANDLER = SERVER_HANDLER;
     }
 
     public translate_param<T, U>(apiDefinition: APIDefinition<T, U>, ...api_params): IAPIParamTranslator<T> {
@@ -73,7 +73,7 @@ export default class APIControllerWrapper {
             if (apiDefinition.param_translator && apiDefinition.param_translator.fromParams) {
                 translated_param = apiDefinition.param_translator.fromParams(...api_params);
             } else {
-                ConsoleHandler.getInstance().error("PARAMTRANSLATOR manquant pour l'API " + apiDefinition.api_name);
+                ConsoleHandler.error("PARAMTRANSLATOR manquant pour l'API " + apiDefinition.api_name);
                 return null;
             }
         } else {
@@ -138,7 +138,7 @@ export default class APIControllerWrapper {
         while (apiMember) {
 
             if ((!urlMembers[i]) || (!apiMember[1])) {
-                // ConsoleHandler.getInstance().error('Incohérence getFakeRequestParamsFromUrl :' + urlMembers[i] + ":" + apiMember[1] + ":");
+                // ConsoleHandler.error('Incohérence getFakeRequestParamsFromUrl :' + urlMembers[i] + ":" + apiMember[1] + ":");
                 return res;
             }
 
@@ -191,12 +191,7 @@ export default class APIControllerWrapper {
             return e;
         }
 
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[elt._type];
-        if (!moduletable) {
-            return elt;
-        }
-
-        return moduletable.from_api_version(elt);
+        return ModuleTable.default_from_api_version(elt);
     }
 
     public try_translate_vo_to_api(e: any): any {
@@ -240,12 +235,7 @@ export default class APIControllerWrapper {
             return e;
         }
 
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[elt._type];
-        if (!moduletable) {
-            return elt;
-        }
-
-        return moduletable.get_api_version(elt);
+        return ModuleTable.default_get_api_version(elt);
     }
 
     public try_translate_vos_from_api(e: any): any {

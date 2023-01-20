@@ -36,7 +36,7 @@ export default class FakeEmpDayDataHandler {
         let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 1;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().createNew(
+            RangeHandler.createNew(
                 TSRange.RANGE_TYPE,
                 FakeEmpDayDataHandler.moins_deux,
                 FakeEmpDayDataHandler.zero_cinq,
@@ -51,7 +51,7 @@ export default class FakeEmpDayDataHandler {
         let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 1;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().createNew(
+            RangeHandler.createNew(
                 TSRange.RANGE_TYPE,
                 FakeEmpDayDataHandler.moins_zero_cinq,
                 FakeEmpDayDataHandler.zero_cinq,
@@ -66,7 +66,7 @@ export default class FakeEmpDayDataHandler {
         let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 2;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_MONTH)
+            RangeHandler.create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_MONTH)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT)];
         let a = var_data.index;
@@ -77,7 +77,7 @@ export default class FakeEmpDayDataHandler {
         let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 3;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_MONTH)
+            RangeHandler.create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_MONTH)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT)];
         let a = var_data.index;
@@ -88,7 +88,7 @@ export default class FakeEmpDayDataHandler {
         let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 1;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().createNew(
+            RangeHandler.createNew(
                 TSRange.RANGE_TYPE,
                 FakeEmpDayDataHandler.moins_deux,
                 FakeEmpDayDataHandler.moins_un,
@@ -103,7 +103,7 @@ export default class FakeEmpDayDataHandler {
         let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 1;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().createNew(
+            RangeHandler.createNew(
                 TSRange.RANGE_TYPE,
                 FakeEmpDayDataHandler.moins_deux,
                 FakeEmpDayDataHandler.moins_un,
@@ -118,7 +118,7 @@ export default class FakeEmpDayDataHandler {
         let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 1;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().createNew(
+            RangeHandler.createNew(
                 TSRange.RANGE_TYPE,
                 FakeEmpDayDataHandler.moins_un,
                 FakeEmpDayDataHandler.zero,
@@ -133,7 +133,7 @@ export default class FakeEmpDayDataHandler {
         let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 1;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().createNew(
+            RangeHandler.createNew(
                 TSRange.RANGE_TYPE,
                 FakeEmpDayDataHandler.zero,
                 FakeEmpDayDataHandler.un,
@@ -149,7 +149,7 @@ export default class FakeEmpDayDataHandler {
         let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 1;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().createNew(
+            RangeHandler.createNew(
                 TSRange.RANGE_TYPE,
                 FakeEmpDayDataHandler.moins_zero_cinq,
                 FakeEmpDayDataHandler.zero_cinq,
@@ -164,7 +164,7 @@ export default class FakeEmpDayDataHandler {
         let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 1;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().createNew(
+            RangeHandler.createNew(
                 TSRange.RANGE_TYPE,
                 FakeEmpDayDataHandler.moins_deux,
                 FakeEmpDayDataHandler.moins_un,
@@ -179,7 +179,7 @@ export default class FakeEmpDayDataHandler {
         let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 1;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().createNew(
+            RangeHandler.createNew(
                 TSRange.RANGE_TYPE,
                 FakeEmpDayDataHandler.zero,
                 FakeEmpDayDataHandler.un,
@@ -194,7 +194,7 @@ export default class FakeEmpDayDataHandler {
         let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 1;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().createNew(
+            RangeHandler.createNew(
                 TSRange.RANGE_TYPE,
                 FakeEmpDayDataHandler.un,
                 FakeEmpDayDataHandler.deux,
@@ -209,7 +209,7 @@ export default class FakeEmpDayDataHandler {
         let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 1;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().createNew(
+            RangeHandler.createNew(
                 TSRange.RANGE_TYPE,
                 FakeEmpDayDataHandler.moins_deux,
                 FakeEmpDayDataHandler.moins_un,
@@ -224,7 +224,7 @@ export default class FakeEmpDayDataHandler {
         let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 1;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().createNew(
+            RangeHandler.createNew(
                 TSRange.RANGE_TYPE,
                 FakeEmpDayDataHandler.moins_un,
                 FakeEmpDayDataHandler.zero,
@@ -240,7 +240,7 @@ export default class FakeEmpDayDataHandler {
         let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 1;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().createNew(
+            RangeHandler.createNew(
                 TSRange.RANGE_TYPE,
                 1527804, 1559253,
                 true, true, TimeSegment.TYPE_DAY)
@@ -254,7 +254,7 @@ export default class FakeEmpDayDataHandler {
         let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 1;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().createNew(
+            RangeHandler.createNew(
                 TSRange.RANGE_TYPE,
                 1527804,
                 1559253,
@@ -269,7 +269,7 @@ export default class FakeEmpDayDataHandler {
         let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 1;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().createNew(
+            RangeHandler.createNew(
                 TSRange.RANGE_TYPE,
                 1527804,
                 1559253,
@@ -284,7 +284,7 @@ export default class FakeEmpDayDataHandler {
         let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 1;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().createNew(
+            RangeHandler.createNew(
                 TSRange.RANGE_TYPE,
                 FakeEmpDayDataHandler.moins_deux,
                 FakeEmpDayDataHandler.zero_cinq,
@@ -299,7 +299,7 @@ export default class FakeEmpDayDataHandler {
         let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 1;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().createNew(
+            RangeHandler.createNew(
                 TSRange.RANGE_TYPE,
                 FakeEmpDayDataHandler.moins_zero_cinq,
                 FakeEmpDayDataHandler.zero_cinq,
@@ -314,7 +314,7 @@ export default class FakeEmpDayDataHandler {
         let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 1;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().createNew(
+            RangeHandler.createNew(
                 TSRange.RANGE_TYPE,
                 FakeEmpDayDataHandler.moins_deux,
                 FakeEmpDayDataHandler.moins_un,
@@ -329,7 +329,7 @@ export default class FakeEmpDayDataHandler {
         let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 1;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().createNew(
+            RangeHandler.createNew(
                 TSRange.RANGE_TYPE,
                 FakeEmpDayDataHandler.moins_zero_cinq,
                 FakeEmpDayDataHandler.zero_cinq,
@@ -344,7 +344,7 @@ export default class FakeEmpDayDataHandler {
         let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 1;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().createNew(
+            RangeHandler.createNew(
                 TSRange.RANGE_TYPE,
                 FakeEmpDayDataHandler.moins_deux,
                 FakeEmpDayDataHandler.moins_un,
@@ -360,7 +360,7 @@ export default class FakeEmpDayDataHandler {
         let a: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         a.var_id = 1;
         a.ts_ranges = [
-            RangeHandler.getInstance().createNew(
+            RangeHandler.createNew(
                 TSRange.RANGE_TYPE,
                 FakeEmpDayDataHandler.moins_deux,
                 FakeEmpDayDataHandler.zero_cinq,
@@ -371,7 +371,7 @@ export default class FakeEmpDayDataHandler {
         let b: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         b.var_id = 1;
         b.ts_ranges = [
-            RangeHandler.getInstance().createNew(
+            RangeHandler.createNew(
                 TSRange.RANGE_TYPE,
                 FakeEmpDayDataHandler.moins_deux,
                 FakeEmpDayDataHandler.moins_zero_cinq,
@@ -382,8 +382,8 @@ export default class FakeEmpDayDataHandler {
         let f = new MatroidCutResult<FakeEmpDayDataVO>(
             [FakeEmpDayDataHandler.matroid_1_zero_()],
             [a, b]);
-        f.chopped_items.forEach((e) => ConsoleHandler.getInstance().log(e.index));
-        f.remaining_items.forEach((e) => ConsoleHandler.getInstance().log(e.index));
+        f.chopped_items.forEach((e) => ConsoleHandler.log(e.index));
+        f.remaining_items.forEach((e) => ConsoleHandler.log(e.index));
         return f;
     }
 
@@ -392,7 +392,7 @@ export default class FakeEmpDayDataHandler {
         let a: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         a.var_id = 1;
         a.ts_ranges = [
-            RangeHandler.getInstance().createNew(
+            RangeHandler.createNew(
                 TSRange.RANGE_TYPE,
                 FakeEmpDayDataHandler.moins_deux,
                 FakeEmpDayDataHandler.zero_cinq,
@@ -403,7 +403,7 @@ export default class FakeEmpDayDataHandler {
         let b: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         b.var_id = 1;
         b.ts_ranges = [
-            RangeHandler.getInstance().createNew(
+            RangeHandler.createNew(
                 TSRange.RANGE_TYPE,
                 FakeEmpDayDataHandler.moins_un,
                 FakeEmpDayDataHandler.zero_cinq,
@@ -414,8 +414,8 @@ export default class FakeEmpDayDataHandler {
         let f = new MatroidCutResult<FakeEmpDayDataVO>(
             [FakeEmpDayDataHandler.matroid_1_moins1_()],
             [a, b]);
-        f.chopped_items.forEach((e) => ConsoleHandler.getInstance().log(e.index));
-        f.remaining_items.forEach((e) => ConsoleHandler.getInstance().log(e.index));
+        f.chopped_items.forEach((e) => ConsoleHandler.log(e.index));
+        f.remaining_items.forEach((e) => ConsoleHandler.log(e.index));
         return f;
     }
 
@@ -424,7 +424,7 @@ export default class FakeEmpDayDataHandler {
         let a: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         a.var_id = 1;
         a.ts_ranges = [
-            RangeHandler.getInstance().createNew(
+            RangeHandler.createNew(
                 TSRange.RANGE_TYPE,
                 FakeEmpDayDataHandler.moins_deux,
                 FakeEmpDayDataHandler.zero_cinq,
@@ -435,7 +435,7 @@ export default class FakeEmpDayDataHandler {
         let b: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         b.var_id = 1;
         b.ts_ranges = [
-            RangeHandler.getInstance().createNew(
+            RangeHandler.createNew(
                 TSRange.RANGE_TYPE,
                 FakeEmpDayDataHandler.moins_un,
                 FakeEmpDayDataHandler.zero_cinq,
@@ -446,8 +446,8 @@ export default class FakeEmpDayDataHandler {
         let f = new MatroidCutResult<FakeEmpDayDataVO>(
             [FakeEmpDayDataHandler.matroid_2_moins1_()],
             [a, b]);
-        f.chopped_items.forEach((e) => ConsoleHandler.getInstance().log(e.index));
-        f.remaining_items.forEach((e) => ConsoleHandler.getInstance().log(e.index));
+        f.chopped_items.forEach((e) => ConsoleHandler.log(e.index));
+        f.remaining_items.forEach((e) => ConsoleHandler.log(e.index));
         return f;
     }
 
@@ -456,7 +456,7 @@ export default class FakeEmpDayDataHandler {
         let a: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         a.var_id = 1;
         a.ts_ranges = [
-            RangeHandler.getInstance().createNew(
+            RangeHandler.createNew(
                 TSRange.RANGE_TYPE,
                 FakeEmpDayDataHandler.moins_deux,
                 FakeEmpDayDataHandler.zero_cinq,
@@ -467,7 +467,7 @@ export default class FakeEmpDayDataHandler {
         let b: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         b.var_id = 1;
         b.ts_ranges = [
-            RangeHandler.getInstance().createNew(
+            RangeHandler.createNew(
                 TSRange.RANGE_TYPE,
                 FakeEmpDayDataHandler.moins_deux,
                 FakeEmpDayDataHandler.moins_zero_cinq,
@@ -478,8 +478,8 @@ export default class FakeEmpDayDataHandler {
         let f = new MatroidCutResult<FakeEmpDayDataVO>(
             [FakeEmpDayDataHandler.matroid_2_zero_()],
             [a, b]);
-        f.chopped_items.forEach((e) => ConsoleHandler.getInstance().log(e.index));
-        f.remaining_items.forEach((e) => ConsoleHandler.getInstance().log(e.index));
+        f.chopped_items.forEach((e) => ConsoleHandler.log(e.index));
+        f.remaining_items.forEach((e) => ConsoleHandler.log(e.index));
         return f;
     }
 }

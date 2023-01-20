@@ -210,6 +210,30 @@
                     )
 
             template(v-if="is_checkbox")
+                .checkbox_columns
+                    .input_label {{ label('field_value_filter_widget_component.checkbox_columns') }}
+                    .input_wrapper
+                        multiselect(
+                            :preselect-first="true"
+                            :multiple="false"
+                            :close-on-select="true"
+                            v-model="checkbox_columns"
+                            :options="checkbox_columns_options"
+                            :custom-label="checkbox_columns_label"
+                            autocomplete="off"
+
+                            :show-labels="false"
+                            :searchable="false"
+                            :internal-search="false"
+                            :hide-selected="false"
+                            
+                            :select-label='label("multiselect.selectLabel")'
+                            :select-group-label='label("multiselect.selectGroupLabel")'
+                            :selected-label='label("multiselect.selectedLabel")'
+                            :deselect-label='label("multiselect.deselectLabel")'
+                            :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                        )
+
                 .show_search_field 
                     .input_label {{ label('field_value_filter_widget_component.show_search_field') }}
                     .input_wrapper

@@ -3,9 +3,10 @@ import { Component, Prop } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
-import ManyToOneReferenceDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
-import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import ManyToOneReferenceDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableFieldVO';
+import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import DashboardBuilderController from '../../../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
+import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import TableFieldTypesManager from '../../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
@@ -42,7 +43,7 @@ export default class DatatableComponentField extends VueComponentBase {
     @Prop({ default: false })
     private is_dashboard_builder: boolean;
 
-    @Prop({ default: true })
+    @Prop({ default: false })
     private show_tooltip: boolean;
 
     @Prop({ default: false })
@@ -51,13 +52,19 @@ export default class DatatableComponentField extends VueComponentBase {
     @Prop({ default: null })
     private filter_custom_field_filters: { [field_id: string]: string };
 
+    @Prop({ default: null })
+    private all_page_widget: DashboardPageWidgetVO[];
+
+    @Prop({ default: null })
+    private page_widget: DashboardPageWidgetVO;
+
     private has_access_DAO_ACCESS_TYPE_INSERT_OR_UPDATE: boolean = false;
     private is_load: boolean = false;
 
     public async mounted() {
-        if ((this.field as ManyToOneReferenceDatatableField<any>).targetModuleTable) {
+        if ((this.field as ManyToOneReferenceDatatableFieldVO<any>).targetModuleTable) {
             this.has_access_DAO_ACCESS_TYPE_INSERT_OR_UPDATE = await ModuleAccessPolicy.getInstance().testAccess(
-                ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, (this.field as ManyToOneReferenceDatatableField<any>).targetModuleTable.vo_type)
+                ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, (this.field as ManyToOneReferenceDatatableFieldVO<any>).targetModuleTable.vo_type)
             );
         }
 
@@ -95,8 +102,8 @@ export default class DatatableComponentField extends VueComponentBase {
         return this.getCRUDUpdateLink(api_type_id, vo_id);
     }
 
-    get simple_field(): SimpleDatatableField<any, any> {
-        return (this.field as SimpleDatatableField<any, any>);
+    get simple_field(): SimpleDatatableFieldVO<any, any> {
+        return (this.field as SimpleDatatableFieldVO<any, any>);
     }
 
     get field_value(): any {

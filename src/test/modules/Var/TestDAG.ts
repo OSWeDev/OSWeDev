@@ -21,7 +21,7 @@ describe('DAG', () => {
         let dag: VarDAG = new VarDAG();
 
         let var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
-        let dagnodeA: VarDAGNode = VarDAGNode.getInstance(dag, var_data_A, VarsComputeController, true);
+        let dagnodeA: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_A, VarsComputeController, true);
 
         expect(dagnodeA.var_data.index).to.equal("1_[[1577836800,1577923200)]");
         expect(dagnodeA.aggregated_datas).to.deep.equal({});
@@ -39,7 +39,7 @@ describe('DAG', () => {
         expect(dag.roots).to.deep.equal({ "1_[[1577836800,1577923200)]": dagnodeA });
 
         let var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B();
-        let dagnodeB: VarDAGNode = VarDAGNode.getInstance(dag, var_data_B, VarsComputeController, true);
+        let dagnodeB: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_B, VarsComputeController, true);
 
         expect(dagnodeB.var_data.index).to.equal("2_[[1580515200,1583020800)]");
         expect(dagnodeB.aggregated_datas).to.deep.equal({});
@@ -56,7 +56,7 @@ describe('DAG', () => {
         expect(dag.leafs).to.deep.equal({ "1_[[1577836800,1577923200)]": dagnodeA, "2_[[1580515200,1583020800)]": dagnodeB });
         expect(dag.roots).to.deep.equal({ "1_[[1577836800,1577923200)]": dagnodeA, "2_[[1580515200,1583020800)]": dagnodeB });
 
-        let dagnodeA_bis: VarDAGNode = VarDAGNode.getInstance(dag, var_data_A, VarsComputeController, true);
+        let dagnodeA_bis: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_A, VarsComputeController, true);
 
         expect(dagnodeA_bis).to.equal(dagnodeA);
 
@@ -73,11 +73,11 @@ describe('DAG', () => {
 
         let var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
 
-        let dagnodeA: VarDAGNode = VarDAGNode.getInstance(dag, var_data_A, VarsComputeController, true);
+        let dagnodeA: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_A, VarsComputeController, true);
 
         let var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B();
 
-        let dagnodeB: VarDAGNode = VarDAGNode.getInstance(dag, var_data_B, VarsComputeController, true);
+        let dagnodeB: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_B, VarsComputeController, true);
 
         expect(dag.nb_nodes).to.equal(2);
         expect(dag.nodes).to.deep.equal({ [var_data_A.index]: dagnodeA, [var_data_B.index]: dagnodeB });
@@ -142,7 +142,7 @@ describe('DAG', () => {
          * bottom->up to node B => [E, F, B]
          */
 
-        let dag: VarDAG = FakeDataHandler.get_fake_triangular_dag();
+        let dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
         let node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
 
         let visit_res: string = null;
@@ -169,7 +169,7 @@ describe('DAG', () => {
          * top->bottom from node B => [B, E, F]
          */
 
-        let dag: VarDAG = FakeDataHandler.get_fake_triangular_dag();
+        let dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
         let node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
 
         let visit_res: string = null;
@@ -196,7 +196,7 @@ describe('DAG', () => {
          * bottom->up from node B => [B, A]
          */
 
-        let dag: VarDAG = FakeDataHandler.get_fake_triangular_dag();
+        let dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
         let node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
 
         let visit_res: string = null;
@@ -222,7 +222,7 @@ describe('DAG', () => {
          * top->bottom to node B => [A, B]
          */
 
-        let dag: VarDAG = FakeDataHandler.get_fake_triangular_dag();
+        let dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
         let node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
 
         let visit_res: string = null;
@@ -248,7 +248,7 @@ describe('DAG', () => {
          * bottom->up through node B => [E, F, B, A]
          */
 
-        let dag: VarDAG = FakeDataHandler.get_fake_triangular_dag();
+        let dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
         let node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
 
         let visit_res: string = null;
@@ -276,7 +276,7 @@ describe('DAG', () => {
          * top->bottom through node B => [A, B, E, F]
          */
 
-        let dag: VarDAG = FakeDataHandler.get_fake_triangular_dag();
+        let dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
         let node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
 
         let visit_res: string = null;
@@ -308,7 +308,7 @@ describe('DAG', () => {
          * bottom->up to node B => [F, B]
          */
 
-        let dag: VarDAG = FakeDataHandler.get_fake_triangular_dag();
+        let dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
         let node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
 
         let visit_res: string = null;
@@ -338,7 +338,7 @@ describe('DAG', () => {
          * top->bottom from node B => [B, F]
          */
 
-        let dag: VarDAG = FakeDataHandler.get_fake_triangular_dag();
+        let dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
         let node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
 
         let visit_res: string = null;
@@ -368,7 +368,7 @@ describe('DAG', () => {
          * bottom->up from node B => [B]
          */
 
-        let dag: VarDAG = FakeDataHandler.get_fake_triangular_dag();
+        let dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
         let node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
 
         let visit_res: string = null;
@@ -397,7 +397,7 @@ describe('DAG', () => {
          * top->bottom to node B => [A, B]
          */
 
-        let dag: VarDAG = FakeDataHandler.get_fake_triangular_dag();
+        let dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
         let node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
 
         let visit_res: string = null;
@@ -426,7 +426,7 @@ describe('DAG', () => {
          * bottom->up through node B => [F, B, A]
          */
 
-        let dag: VarDAG = FakeDataHandler.get_fake_triangular_dag();
+        let dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
         let node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
 
         let visit_res: string = null;
@@ -457,7 +457,7 @@ describe('DAG', () => {
          * top->bottom through node B => [A, B, F]
          */
 
-        let dag: VarDAG = FakeDataHandler.get_fake_triangular_dag();
+        let dag: VarDAG = await FakeDataHandler.get_fake_triangular_dag();
         let node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
 
         let visit_res: string = null;

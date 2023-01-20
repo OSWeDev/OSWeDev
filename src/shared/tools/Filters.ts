@@ -39,7 +39,9 @@ export default class FilterObj<T, U> {
     // )
     // readToFixedCeilFilter = (value: number, fractionalDigits: number, arrondi: number | boolean = false)
     // readToFixedFloorFilter = (value: number, fractionalDigits: number, arrondi: number | boolean = false)
-    public static FILTER_TYPE_fixed = 'fixed';
+    public static FILTER_TYPE_toFixed = 'toFixed';
+    public static FILTER_TYPE_toFixedCeil = 'toFixedCeil';
+    public static FILTER_TYPE_toFixedFloor = 'toFixedFloor';
 
 
     // readToBooleanFilter = (value: boolean)
@@ -475,8 +477,8 @@ export let toFixedFilter = FilterObj.createNew(
 // };
 
 
-let readToFixedCeilFilter = (value: number, fractionalDigits: number, arrondi: number | boolean = false): string => {
-    return readToFixed(value, fractionalDigits, arrondi, ARRONDI_TYPE_CEIL);
+let readToFixedCeilFilter = (value: number, fractionalDigits: number, arrondi: number | boolean = false, onlyPositive: boolean = false, dot_decimal_marker: boolean = false): string => {
+    return readToFixed(value, fractionalDigits, arrondi, ARRONDI_TYPE_CEIL, onlyPositive, dot_decimal_marker);
 };
 
 export let toFixedCeilFilter = FilterObj.createNew(
@@ -484,8 +486,8 @@ export let toFixedCeilFilter = FilterObj.createNew(
     writeToFixed
 );
 
-let readToFixedFloorFilter = (value: number, fractionalDigits: number, arrondi: number | boolean = false): string => {
-    return readToFixed(value, fractionalDigits, arrondi, ARRONDI_TYPE_FLOOR);
+let readToFixedFloorFilter = (value: number, fractionalDigits: number, arrondi: number | boolean = false, onlyPositive: boolean = false, dot_decimal_marker: boolean = false): string => {
+    return readToFixed(value, fractionalDigits, arrondi, ARRONDI_TYPE_FLOOR, onlyPositive, dot_decimal_marker);
 };
 
 export let toFixedFloorFilter = FilterObj.createNew(

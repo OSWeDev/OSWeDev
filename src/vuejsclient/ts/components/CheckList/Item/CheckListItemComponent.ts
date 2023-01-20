@@ -5,7 +5,7 @@ import ICheckPoint from '../../../../../shared/modules/CheckList/interfaces/IChe
 import CheckPointVO from '../../../../../shared/modules/CheckList/vos/CheckPointVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
-import SimpleDatatableField from '../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import SimpleDatatableFieldVO from '../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
@@ -77,7 +77,7 @@ export default class CheckListItemComponent extends VueComponentBase {
             return null;
         }
 
-        if ((field.type == SimpleDatatableField.SIMPLE_FIELD_TYPE) && (table_field.field_type == ModuleTableField.FIELD_TYPE_boolean)) {
+        if ((field.type == SimpleDatatableFieldVO.SIMPLE_FIELD_TYPE) && (table_field.field_type == ModuleTableField.FIELD_TYPE_boolean)) {
             if (res == null) {
                 res = '';
             } else if (res && res == "true") {
@@ -110,7 +110,7 @@ export default class CheckListItemComponent extends VueComponentBase {
             return null;
         }
 
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.checklist_item._type];
+        let moduletable = VOsTypesManager.moduleTables_by_voType[this.checklist_item._type];
 
         let checkpoint_description: string = '<ul>';
         for (let j in this.all_editable_fields) {
@@ -218,7 +218,7 @@ export default class CheckListItemComponent extends VueComponentBase {
         }
 
         let res: { [step_id: number]: string } = {};
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.checklist_item._type];
+        let moduletable = VOsTypesManager.moduleTables_by_voType[this.checklist_item._type];
 
         for (let i in this.ordered_checkpoints) {
             let checkpoint = this.ordered_checkpoints[i];

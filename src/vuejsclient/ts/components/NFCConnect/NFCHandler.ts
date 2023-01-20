@@ -34,7 +34,7 @@ export default class NFCHandler {
             let NDEFReader = window['NDEFReader'];
 
             if (!NDEFReader) {
-                ConsoleHandler.getInstance().log("NFCReader is not available");
+                ConsoleHandler.log("NFCReader is not available");
 
                 return false;
             }
@@ -43,11 +43,11 @@ export default class NFCHandler {
 
             await this.ndef.scan();
 
-            ConsoleHandler.getInstance().log("> NFC Reader ready");
+            ConsoleHandler.log("> NFC Reader ready");
 
             this.ndef.addEventListener("readingerror", () => {
                 VueAppBase.getInstance().vueInstance.snotify.error(VueAppBase.getInstance().vueInstance.label('NFCHandler.readingerror.readingerror'));
-                ConsoleHandler.getInstance().log("Argh! Cannot read data from the NFC tag. Try another one?");
+                ConsoleHandler.log("Argh! Cannot read data from the NFC tag. Try another one?");
             });
 
             let self = this;
@@ -60,7 +60,7 @@ export default class NFCHandler {
 
                 if (!serialNumber) {
                     VueAppBase.getInstance().vueInstance.snotify.error(VueAppBase.getInstance().vueInstance.label('NFCHandler.readingerror.serialNumber'));
-                    ConsoleHandler.getInstance().log("Empty serial number on NFC tag reading...");
+                    ConsoleHandler.log("Empty serial number on NFC tag reading...");
                     return;
                 }
 
@@ -74,7 +74,7 @@ export default class NFCHandler {
                     let connected = await ModuleNFCConnect.getInstance().connect(serialNumber);
                     if (!connected) {
                         VueAppBase.getInstance().vueInstance.snotify.info(VueAppBase.getInstance().vueInstance.label('NFCHandler.readinginfo.tag_not_registered'));
-                        ConsoleHandler.getInstance().log("NFC tag is not registered and needs to be linked to connected user first...");
+                        ConsoleHandler.log("NFC tag is not registered and needs to be linked to connected user first...");
                         return;
                     }
                     // location.href = '/';
@@ -132,7 +132,7 @@ export default class NFCHandler {
             this.ndef_active = true;
             return true;
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
             this.ndef = null;
         }
 
@@ -141,7 +141,7 @@ export default class NFCHandler {
 
     public has_nfc_support(): boolean {
         if (!("NDEFReader" in window)) {
-            ConsoleHandler.getInstance().log("Web NFC is not available.");
+            ConsoleHandler.log("Web NFC is not available.");
             return false;
         }
 
@@ -166,7 +166,7 @@ export default class NFCHandler {
 
                         if (!await ModuleNFCConnect.getInstance().add_tag(serialNumber)) {
                             VueAppBase.getInstance().vueInstance.snotify.error(VueAppBase.getInstance().vueInstance.label('NFCHandler.addconfirmation.failed_add_tag'));
-                            ConsoleHandler.getInstance().error("Impossible de créer le nouveau tag. Abandon.");
+                            ConsoleHandler.error("Impossible de créer le nouveau tag. Abandon.");
                             return;
                         }
 
@@ -213,7 +213,7 @@ export default class NFCHandler {
                         }).catch((error) => {
                             VueAppBase.getInstance().vueInstance.snotify.error(VueAppBase.getInstance().vueInstance.label('NFCHandler.writeurlconfirmation.failed'));
                             self.is_waiting_to_write = false;
-                            ConsoleHandler.getInstance().error("Impossible de créer le nouveau tag. Abandon. " + error);
+                            ConsoleHandler.error("Impossible de créer le nouveau tag. Abandon. " + error);
                         });
                     },
                     bold: false

@@ -13,4 +13,9 @@
     .notif_date(@click='redirect_notification()')  {{ date_notification }}
     .notif_content(@click='redirect_notification()')  {{ notification.simple_notif_json_params ? t(notification.simple_notif_label, JSON.parse(notification.simple_notif_json_params)) : t(notification.simple_notif_label) }}
 
+    .notif_downloadable_link(v-if='notification.simple_downloadable_link')
+        button.btn.btn-sm.btn-primary.m-1(@click='download_file' v-tooltip='notification.simple_downloadable_link')
+            i.fa.fa-download.fa-lg.btn_icon(aria-hidden="true")
+            | {{ label('notification.simple_downloadable_link.download') }}
+
     .notif_mark_as_read(@click='read_notification(notification)') {{ label('UserNotifComponent.mark_as_read') }}

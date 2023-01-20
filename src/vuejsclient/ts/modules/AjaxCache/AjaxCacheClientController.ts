@@ -157,7 +157,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             let light_weight = new LightWeightSendableRequestVO(null);
             light_weight.url = url;
             light_weight.contentType = contentType;
-            light_weight.postdatas = (!EnvHandler.getInstance().MSGPCK) ? postdatas : Object.assign({}, postdatas);
+            light_weight.postdatas = (!EnvHandler.MSGPCK) ? postdatas : Object.assign({}, postdatas);
             light_weight.dataType = dataType;
             light_weight.processData = processData;
             light_weight.type = post_for_get ? LightWeightSendableRequestVO.API_TYPE_POST_FOR_GET : LightWeightSendableRequestVO.API_TYPE_POST;
@@ -262,7 +262,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                         .fail(async (err) => {
                             await self.traitementFailRequest(err, cache);
 
-                            ConsoleHandler.getInstance().log("post failed :" + url + ":" + postdatas + ":" + err);
+                            ConsoleHandler.log("post failed :" + url + ":" + postdatas + ":" + err);
                         });
                 } else {
                     await self.resolve_request(cache, null);
@@ -434,7 +434,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 self.addToWaitingRequestsStack(request);
             }, 2000);
         } else {
-            ConsoleHandler.getInstance().log("request failed :" + request + ":" + err);
+            ConsoleHandler.log("request failed :" + request + ":" + err);
             if ((503 == err.status) || (502 == err.status) || ('timeout' == err.statusText)) {
                 (window as any).alert('Loading failure - Please reload your page');
             }
@@ -480,7 +480,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
         try {
             await this.processRequests();
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         this.processRequestsSemaphore = false;
@@ -529,9 +529,9 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             let results: RequestsWrapperResult = await this.post(
                 null,
                 "/api_handler/requests_wrapper", [],
-                (!EnvHandler.getInstance().MSGPCK) ? JSON.stringify(sendable_objects) : sendable_objects,
+                (!EnvHandler.MSGPCK) ? JSON.stringify(sendable_objects) : sendable_objects,
                 null,
-                (!EnvHandler.getInstance().MSGPCK) ? 'application/json; charset=utf-8' : AjaxCacheController.MSGPACK_REQUEST_TYPE,
+                (!EnvHandler.MSGPCK) ? 'application/json; charset=utf-8' : AjaxCacheController.MSGPACK_REQUEST_TYPE,
                 null, null, false, true) as RequestsWrapperResult;
 
             if ((!results) || (!results.requests_results)) {
@@ -550,7 +550,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 await this.resolve_request(wrapped_request, results.requests_results[i]);
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error("Echec de requête groupée : " + error);
+            ConsoleHandler.error("Echec de requête groupée : " + error);
 
             // Si ça échoue, on relance avec une logique de dichotomie, si il reste plus d'une requête à traiter. On demande minimum 2 requêtes par wrap
             let left_wrappable_requests: RequestResponseCacheVO[] = [];
@@ -658,7 +658,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                     break;
 
                 case RequestResponseCacheVO.API_TYPE_POST:
-                    ConsoleHandler.getInstance().error('Should never happen :processRequests:TYPE == POST:');
+                    ConsoleHandler.error('Should never happen :processRequests:TYPE == POST:');
                     break;
 
                 case RequestResponseCacheVO.API_TYPE_POST_FOR_GET:
