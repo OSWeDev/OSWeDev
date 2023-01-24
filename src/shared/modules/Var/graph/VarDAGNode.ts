@@ -1,4 +1,5 @@
 import ConsoleHandler from '../../../tools/ConsoleHandler';
+import EnvHandler from '../../../tools/EnvHandler';
 import ObjectHandler from '../../../tools/ObjectHandler';
 import SemaphoreHandler from '../../../tools/SemaphoreHandler';
 import MatroidController from '../../Matroid/MatroidController';
@@ -32,7 +33,7 @@ export default class VarDAGNode extends DAGNodeBase {
                 // Le but est de savoir si on était un batch var ne serait-ce qu'une fois parmi les demandes de calcul de cette var
                 if (is_batch_var && !res.is_batch_var) {
 
-                    if (ConfigurationService.node_configuration.DEBUG_VARS) {
+                    if (EnvHandler.DEBUG_VARS) {
                         ConsoleHandler.warn('Pour ma culture G: on demande un noeud dans l\'arbre qui existe déjà :' +
                             var_data.index + ': et qui n\'était pas un batch var, mais qui le devient');
                     }
@@ -68,7 +69,7 @@ export default class VarDAGNode extends DAGNodeBase {
             if (!var_dag.timed_out) {
 
                 if (await VarDAG.dag_is_in_timeout_with_elpased_time(var_dag)) {
-                    if (ConfigurationService.node_configuration.DEBUG_VARS) {
+                    if (EnvHandler.DEBUG_VARS) {
                         ConsoleHandler.error('BATCH estimated work time + elapsed > limit - STEP 1 Identifying roots to remove and mark as timed_out');
                     }
                     var_dag.timed_out = true;

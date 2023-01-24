@@ -134,11 +134,14 @@ export default abstract class ServerBase {
         EnvHandler.BASE_URL = this.envParam.BASE_URL;
         EnvHandler.NODE_VERBOSE = !!this.envParam.NODE_VERBOSE;
         EnvHandler.IS_DEV = !!this.envParam.ISDEV;
+        EnvHandler.DEBUG_PROMISE_PIPELINE = !!this.envParam.DEBUG_PROMISE_PIPELINE;
+        EnvHandler.MAX_POOL = this.envParam.MAX_POOL;
         EnvHandler.MSGPCK = !!this.envParam.MSGPCK;
         EnvHandler.COMPRESS = !!this.envParam.COMPRESS;
         EnvHandler.CODE_GOOGLE_ANALYTICS = this.envParam.CODE_GOOGLE_ANALYTICS;
         EnvHandler.VERSION = this.version;
         EnvHandler.ACTIVATE_PWA = !!this.envParam.ACTIVATE_PWA;
+        EnvHandler.DEBUG_VARS = !!this.envParam.DEBUG_VARS;
 
         this.connectionString = this.envParam.CONNECTION_STRING;
         this.uiDebug = null; // JNE MODIF FLK process.env.UI_DEBUG;

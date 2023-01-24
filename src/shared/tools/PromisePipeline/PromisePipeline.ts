@@ -1,4 +1,5 @@
 import ConsoleHandler from "../ConsoleHandler";
+import EnvHandler from "../EnvHandler";
 
 export default class PromisePipeline {
 
@@ -25,13 +26,13 @@ export default class PromisePipeline {
      */
     public async push(cb: () => Promise<any>): Promise<void> {
 
-        if (ConfigurationService.node_configuration.DEBUG_PROMISE_PIPELINE) {
+        if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
             ConsoleHandler.log('PromisePipeline.push():PREPUSH:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
 
         if (this.has_free_slot()) {
 
-            if (ConfigurationService.node_configuration.DEBUG_PROMISE_PIPELINE) {
+            if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
                 ConsoleHandler.log('PromisePipeline.check_wrapped_cbs():has_free_slot:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
             }
 
@@ -40,11 +41,11 @@ export default class PromisePipeline {
             this.all_waiting_and_running_promises_by_cb_uid[cb_uid] = this.do_cb(cb, cb_uid);
         } else {
 
-            if (ConfigurationService.node_configuration.DEBUG_PROMISE_PIPELINE) {
+            if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
                 ConsoleHandler.log('PromisePipeline.check_wrapped_cbs():!has_free_slot:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
             }
             await Promise.race(Object.values(this.all_waiting_and_running_promises_by_cb_uid));
-            if (ConfigurationService.node_configuration.DEBUG_PROMISE_PIPELINE) {
+            if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
                 ConsoleHandler.log('PromisePipeline.check_wrapped_cbs():RACE END:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
             }
 
@@ -53,7 +54,7 @@ export default class PromisePipeline {
             this.all_waiting_and_running_promises_by_cb_uid[cb_uid] = this.do_cb(cb, cb_uid);
         }
 
-        if (ConfigurationService.node_configuration.DEBUG_PROMISE_PIPELINE) {
+        if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
             ConsoleHandler.log('PromisePipeline.push():POSTPUSH:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
     }
@@ -64,32 +65,32 @@ export default class PromisePipeline {
      */
     public async end(): Promise<void> {
 
-        if (ConfigurationService.node_configuration.DEBUG_PROMISE_PIPELINE) {
+        if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
             ConsoleHandler.log('PromisePipeline.end():START:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
 
         if (this.nb_running_promises === 0) {
-            if (ConfigurationService.node_configuration.DEBUG_PROMISE_PIPELINE) {
+            if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
                 ConsoleHandler.log('PromisePipeline.end():END:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
             }
             return;
         }
 
-        if (ConfigurationService.node_configuration.DEBUG_PROMISE_PIPELINE) {
+        if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
             ConsoleHandler.log('PromisePipeline.end():WAIT:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
         let self = this;
         await new Promise<void>((resolve, reject) => {
             self.end_promise_resolve = resolve;
         });
-        if (ConfigurationService.node_configuration.DEBUG_PROMISE_PIPELINE) {
+        if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
             ConsoleHandler.log('PromisePipeline.end():WAIT END:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
     }
 
     private async do_cb(cb: () => Promise<any>, cb_uid: number): Promise<void> {
         this.nb_running_promises++;
-        if (ConfigurationService.node_configuration.DEBUG_PROMISE_PIPELINE) {
+        if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
             ConsoleHandler.log('PromisePipeline.do_cb():BEFORECB:' + this.uid + ':' + cb_uid + ':' + ' [' + this.nb_running_promises + ']');
         }
         try {
@@ -97,7 +98,7 @@ export default class PromisePipeline {
         } catch (error) {
             ConsoleHandler.error('PromisePipeline.do_cb():ERROR:' + error + ':' + cb_uid + ':' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
         }
-        if (ConfigurationService.node_configuration.DEBUG_PROMISE_PIPELINE) {
+        if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
             ConsoleHandler.log('PromisePipeline.do_cb():AFTERCB:' + this.uid + ':' + cb_uid + ':' + ' [' + this.nb_running_promises + ']');
         }
         this.nb_running_promises--;
@@ -105,7 +106,7 @@ export default class PromisePipeline {
         delete this.all_waiting_and_running_promises_by_cb_uid[cb_uid];
 
         if ((this.nb_running_promises === 0) && this.end_promise_resolve) {
-            if (ConfigurationService.node_configuration.DEBUG_PROMISE_PIPELINE) {
+            if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
                 ConsoleHandler.log('PromisePipeline.do_cb():END PROMISE:' + this.uid + ':' + cb_uid + ':' + ' [' + this.nb_running_promises + ']');
             }
             await this.end_promise_resolve();
