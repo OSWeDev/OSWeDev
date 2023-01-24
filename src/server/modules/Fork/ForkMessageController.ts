@@ -6,6 +6,8 @@ import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapp
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
+import ConfigurationService from '../../env/ConfigurationService';
 import ForkServerController from './ForkServerController';
 import IFork from './interfaces/IFork';
 import IForkMessage from './interfaces/IForkMessage';
@@ -34,7 +36,9 @@ export default class ForkMessageController {
 
     private last_log_msg_error: number = 0;
 
-    private throttled_retry = throttle(this.retry.bind(this), 1000, { leading: false });
+    private throttled_retry = throttle(this.retry.bind(this), 1000);
+    private throttled_log_send_stats = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(this.log_send_stats.bind(this), 60000);
+    private throttled_log_receive_stats = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(this.log_receive_stats.bind(this), 60000);
 
     private constructor() { }
 
@@ -45,6 +49,10 @@ export default class ForkMessageController {
     public async message_handler(msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess = null): Promise<boolean> {
         if ((!msg) || (!this.registered_messages_handlers[msg.message_type])) {
             return false;
+        }
+
+        if (ConfigurationService.node_configuration.DEBUG_FORK_MESSAGE_RECEIVED_NB) {
+            this.throttled_log_receive_stats(msg);
         }
 
         return await this.registered_messages_handlers[msg.message_type](msg, sendHandle);
@@ -74,6 +82,10 @@ export default class ForkMessageController {
     }
 
     public async send(msg: IForkMessage, child_process: ChildProcess = null, forked_target: IFork = null): Promise<boolean> {
+
+        if (ConfigurationService.node_configuration.DEBUG_FORK_MESSAGE_SENT_NB) {
+            this.throttled_log_send_stats(msg);
+        }
 
         return new Promise((resolve, reject) => {
 
@@ -173,6 +185,18 @@ export default class ForkMessageController {
                     ForkServerController.getInstance().throttled_reload_unavailable_threads();
                 }
             }
+        }
+    }
+
+    private log_send_stats(messages: IForkMessage[]) {
+        if (messages && (messages.length > 0)) {
+            ConsoleHandler.log('ForkMessageController.log_send_stats: ' + messages.length + ' messages sent in last 60 seconds');
+        }
+    }
+
+    private log_receive_stats(messages: IForkMessage[]) {
+        if (messages && (messages.length > 0)) {
+            ConsoleHandler.log('ForkMessageController.log_receive_stats: ' + messages.length + ' messages received in last 60 seconds');
         }
     }
 }

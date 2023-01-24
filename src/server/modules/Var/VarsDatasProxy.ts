@@ -337,6 +337,8 @@ export default class VarsDatasProxy {
                     do_insert = true;
                 } else if ((!conf.pixel_activated) || (!conf.pixel_never_delete)) {
 
+                    // Si on timeout (hors pixel) et qu'on a pas de read depuis le dernier insert, on supprime du cache
+                    // Sinon on insert les nouvelles données de read
                     if (!wrapper.nb_reads_since_last_insert_or_update) {
                         if (Dates.now() > wrapper.timeout) {
                             do_delete_from_cache_indexes[index] = true;
@@ -347,10 +349,16 @@ export default class VarsDatasProxy {
                         }
                     }
 
-                    if ((!do_delete_from_cache_indexes[index]) && (!do_insert) && (wrapper.nb_reads_since_last_check)) {
-                        wrapper.nb_reads_since_last_check = 0;
-                        wrapper.update_timeout();
-                    }
+                    // Bizarre ça : pour moi ça empeche de mettre en base les infos de read.
+                    // if ((!do_delete_from_cache_indexes[index]) && (!do_insert) && (wrapper.nb_reads_since_last_check)) {
+                    //     wrapper.nb_reads_since_last_check = 0;
+                    //     wrapper.update_timeout();
+                    // }
+                }
+
+                if (conf.pixel_activated) {
+                    // Si c'est un pixel, on peut le supprimer du cache (en mémoire pas en base évidemment)
+                    do_delete_from_cache_indexes[index] = true;
                 }
 
                 if (do_insert && VarsCacheController.getInstance().BDD_do_cache_param_data(handle_var, controller, (!!wrapper.is_server_request) || (!!wrapper.client_tab_id))) {
@@ -440,12 +448,12 @@ export default class VarsDatasProxy {
                         wrapper.var_data_origin_type = wrapper.var_data.value_type;
                         wrapper.last_insert_or_update = Dates.now();
                         wrapper.update_timeout();
-
-                        if (do_delete_from_cache_indexes[index]) {
-                            delete self.vars_datas_buffer_wrapped_indexes[index];
-                        }
                     }
                 }
+            }
+
+            for (let index in do_delete_from_cache_indexes) {
+                delete self.vars_datas_buffer_wrapped_indexes[index];
             }
 
         } catch (error) {
@@ -651,23 +659,31 @@ export default class VarsDatasProxy {
     private async prepare_current_batch_ordered_pick_list() {
         VarsdatasComputerBGThread.getInstance().current_batch_ordered_pick_list = [];
 
-        let vars_datas_wrapper = Object.values(this.vars_datas_buffer_wrapped_indexes);
+        let vars_datas_buffer = Object.values(this.vars_datas_buffer_wrapped_indexes);
+        let vars_datas_wrapper = vars_datas_buffer ? vars_datas_buffer.filter((v) => !VarsServerController.getInstance().has_valid_value(v.var_data)) : [];
         let vars_datas: VarDataBaseVO[] = vars_datas_wrapper.map((v) => v.var_data);
 
         if ((!vars_datas) || (!vars_datas.length)) {
             VarsdatasComputerBGThread.getInstance().current_batch_ordered_pick_list = [];
+            // if (ConfigurationService.node_configuration.DEBUG_VARS) {
+            ConsoleHandler.log('VarsDatasProxy:prepare_current_batch_ordered_pick_list:filtered !has_valid_value:' + (vars_datas_buffer ? vars_datas_buffer.length : 0) + ' => 0');
+            // }
             return;
         }
         let nb_vars_in_buffer = vars_datas.length;
 
-        if (ConfigurationService.node_configuration.DEBUG_VARS) {
-            ConsoleHandler.log('VarsDatasProxy:prepare_current_batch_ordered_pick_list:filter_by_subs:START:' + nb_vars_in_buffer);
-        }
+        // if (ConfigurationService.node_configuration.DEBUG_VARS) {
+        ConsoleHandler.log('VarsDatasProxy:prepare_current_batch_ordered_pick_list:filtered !has_valid_value:' + vars_datas_buffer.length + ' => ' + nb_vars_in_buffer);
+        // }
+
+        // if (ConfigurationService.node_configuration.DEBUG_VARS) {
+        ConsoleHandler.log('VarsDatasProxy:prepare_current_batch_ordered_pick_list:filter_by_subs:START:' + nb_vars_in_buffer);
+        // }
         let registered_var_datas_indexes: string[] = await VarsTabsSubsController.getInstance().filter_by_subs(vars_datas.map((v) => v.index));
         registered_var_datas_indexes = registered_var_datas_indexes ? registered_var_datas_indexes : [];
-        if (ConfigurationService.node_configuration.DEBUG_VARS) {
-            ConsoleHandler.log('VarsDatasProxy:prepare_current_batch_ordered_pick_list:filter_by_subs:END:' + nb_vars_in_buffer);
-        }
+        // if (ConfigurationService.node_configuration.DEBUG_VARS) {
+        ConsoleHandler.log('VarsDatasProxy:prepare_current_batch_ordered_pick_list:filter_by_subs:END:' + nb_vars_in_buffer);
+        // }
 
         let registered_var_datas_indexes_map: { [index: string]: boolean } = {};
         for (let i in registered_var_datas_indexes) {

@@ -8,16 +8,26 @@ import VarDAGNode from "./VarDAGNode";
 
 export default class VarDAG extends DAG<VarDAGNode> {
 
+    public static injection_performance = null;
+
     public static async dag_is_in_timeout_with_elpased_time(var_dag: VarDAG): Promise<boolean> {
+        if (!VarDAG.injection_performance) {
+            return false;
+        }
+
         let estimated_tree_computation_time_limit = await ModuleParams.getInstance().getParamValueAsInt(ModuleVar.PARAM_NAME_estimated_tree_computation_time_limit, 300000, 180000);
 
         let batchperf_computation_wrapper_total_estimated_remaining_time = var_dag.perfs ? Math.round(VarDAG.get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.computation_wrapper)) : 0;
-        let current_computation_wrapper_total_elapsed_time = var_dag.perfs ? performance.now() - var_dag.perfs.computation_wrapper.start_time : 0;
+        let current_computation_wrapper_total_elapsed_time = var_dag.perfs ? VarDAG.injection_performance.now() - var_dag.perfs.computation_wrapper.start_time : 0;
 
         return (batchperf_computation_wrapper_total_estimated_remaining_time && current_computation_wrapper_total_elapsed_time && ((batchperf_computation_wrapper_total_estimated_remaining_time + current_computation_wrapper_total_elapsed_time) > estimated_tree_computation_time_limit));
     }
 
     public static async dag_is_in_timeout_without_elpased_time(var_dag: VarDAG): Promise<boolean> {
+        if (!VarDAG.injection_performance) {
+            return false;
+        }
+
         let estimated_tree_computation_time_limit = await ModuleParams.getInstance().getParamValueAsInt(ModuleVar.PARAM_NAME_estimated_tree_computation_time_limit, 300000, 180000);
 
         let batchperf_computation_wrapper_total_estimated_remaining_time = var_dag.perfs ? Math.round(VarDAG.get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.computation_wrapper)) : 0;
@@ -32,6 +42,10 @@ export default class VarDAG extends DAG<VarDAGNode> {
      */
     public static get_nodeperfelement_estimated_remaining_work_time(nodeperfelement: VarNodePerfElementVO): number {
 
+        if (!VarDAG.injection_performance) {
+            return 0;
+        }
+
         if (!nodeperfelement) {
             return 0;
         }
@@ -40,7 +54,7 @@ export default class VarDAG extends DAG<VarDAGNode> {
             return (
                 Math.max(
                     0,
-                    (nodeperfelement.start_time_global - nodeperfelement.nb_started_global * performance.now()) +
+                    (nodeperfelement.start_time_global - nodeperfelement.nb_started_global * VarDAG.injection_performance.now()) +
                     ((nodeperfelement.updated_estimated_work_time_global / nodeperfelement.nb_noeuds_global) * nodeperfelement.nb_started_global))
             ) + (
                     (nodeperfelement.updated_estimated_work_time_global / nodeperfelement.nb_noeuds_global) * (nodeperfelement.nb_noeuds_global - nodeperfelement.nb_started_global)
@@ -49,7 +63,7 @@ export default class VarDAG extends DAG<VarDAGNode> {
 
         return Math.max(0, (
             ((!!nodeperfelement.updated_estimated_work_time) && !!nodeperfelement.start_time) ?
-                (nodeperfelement.start_time + nodeperfelement.updated_estimated_work_time) - performance.now() :
+                (nodeperfelement.start_time + nodeperfelement.updated_estimated_work_time) - VarDAG.injection_performance.now() :
                 ((!!nodeperfelement.updated_estimated_work_time) ? nodeperfelement.updated_estimated_work_time : 0)));
     }
 

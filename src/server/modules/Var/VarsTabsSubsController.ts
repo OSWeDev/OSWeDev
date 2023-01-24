@@ -252,6 +252,8 @@ export default class VarsTabsSubsController {
         }
         this.last_subs_clean = now;
 
+        ConsoleHandler.log('VarsTabsSubsController:clean_old_subs:IN:nb_subs:' + Object.keys(this._tabs_subs).length + ':');
+
         let indexs_to_delete = [];
         for (let index in this._tabs_subs) {
             let subs = this._tabs_subs[index];
@@ -300,5 +302,7 @@ export default class VarsTabsSubsController {
         for (let i in indexs_to_delete) {
             delete this._tabs_subs[indexs_to_delete[i]];
         }
+
+        ConsoleHandler.log('VarsTabsSubsController:clean_old_subs:OUT:nb_subs:' + Object.keys(this._tabs_subs).length + ':');
     }
 }

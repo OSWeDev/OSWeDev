@@ -1,4 +1,5 @@
 
+import { performance } from 'perf_hooks';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
@@ -120,6 +121,8 @@ export default class ModuleVarServer extends ModuleServerBase {
     }
 
     public async configure() {
+
+        VarDAG.injection_performance = performance;
 
         VarsTabsSubsController.getInstance();
         VarsServerCallBackSubsController.getInstance();
