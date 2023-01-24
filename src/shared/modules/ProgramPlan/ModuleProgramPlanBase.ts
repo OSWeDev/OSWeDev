@@ -450,7 +450,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
         additional_fields.unshift(
             new ModuleTableField('firstname', ModuleTableField.FIELD_TYPE_string, 'Prénom', false),
             label_field,
-            new ModuleTableField('activated', ModuleTableField.FIELD_TYPE_boolean, 'Actif', true, true, true)
+            new ModuleTableField('activated', ModuleTableField.FIELD_TYPE_boolean, 'Actif', true, true, true).index()
         );
 
         let datatable = new ModuleTable(this, this.facilitator_type_id, constructor, additional_fields, label_field, "Animateurs");
@@ -492,7 +492,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
         additional_fields.unshift(
             new ModuleTableField('firstname', ModuleTableField.FIELD_TYPE_string, 'Prénom', false),
             label_field,
-            new ModuleTableField('activated', ModuleTableField.FIELD_TYPE_boolean, 'Actif', true, true, true)
+            new ModuleTableField('activated', ModuleTableField.FIELD_TYPE_boolean, 'Actif', true, true, true).index()
         );
 
         let datatable = new ModuleTable(this, this.manager_type_id, constructor, additional_fields, label_field, "Managers");
@@ -604,7 +604,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
             new ModuleTableField('country', ModuleTableField.FIELD_TYPE_string, 'Pays', false),
 
             new ModuleTableField('infos_horaires', ModuleTableField.FIELD_TYPE_string, 'Infos horaires', false),
-            new ModuleTableField('activated', ModuleTableField.FIELD_TYPE_boolean, 'Actif', true, true, true)
+            new ModuleTableField('activated', ModuleTableField.FIELD_TYPE_boolean, 'Actif', true, true, true).index()
         );
 
         let datatable = new ModuleTable(this, this.target_type_id, constructor, additional_fields, label_field, "Etablissements");
