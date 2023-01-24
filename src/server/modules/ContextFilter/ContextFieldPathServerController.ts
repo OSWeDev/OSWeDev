@@ -1,8 +1,7 @@
-import ContextQueryVO from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import FieldPathWrapper from '../../../shared/modules/ContextFilter/vos/FieldPathWrapper';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
-import FieldPathWrapper from './vos/FieldPathWrapper';
 
 export default class ContextFieldPathServerController {
 

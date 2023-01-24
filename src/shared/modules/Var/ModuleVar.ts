@@ -82,6 +82,10 @@ export default class ModuleVar extends Module {
     // public static MANUAL_TASK_NAME_switch_force_1_by_1_computation = 'switch_force_1_by_1_computation';
     public static MANUAL_TASK_NAME_switch_add_computation_time_to_learning_base = 'switch_add_computation_time_to_learning_base';
 
+    public static PARAM_NAME_estimated_tree_computation_time_target: string = 'VarsComputeController.estimated_tree_computation_time_target';
+    public static PARAM_NAME_estimated_tree_computation_time_limit: string = 'VarsComputeController.estimated_tree_computation_time_limit';
+    public static PARAM_NAME_var_selection_pack_size: string = 'VarsComputeController.var_selection_pack_size';
+
     public static getInstance(): ModuleVar {
         if (!ModuleVar.instance) {
             ModuleVar.instance = new ModuleVar();

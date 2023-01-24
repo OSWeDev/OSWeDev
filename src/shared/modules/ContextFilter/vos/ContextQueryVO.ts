@@ -1,5 +1,4 @@
 import { isArray } from "lodash";
-import ParameterizedQueryWrapper from "../../../../server/modules/ContextFilter/vos/ParameterizedQueryWrapper";
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
 import DatatableField from "../../DAO/vos/datatable/DatatableField";
 import TableColumnDescVO from "../../DashboardBuilder/vos/TableColumnDescVO";
@@ -14,6 +13,7 @@ import VOsTypesManager from "../../VOsTypesManager";
 import ModuleContextFilter from "../ModuleContextFilter";
 import ContextFilterVO, { filter } from "./ContextFilterVO";
 import ContextQueryFieldVO from "./ContextQueryFieldVO";
+import ParameterizedQueryWrapper from "./ParameterizedQueryWrapper";
 import SortByVO from "./SortByVO";
 
 /**

@@ -7,6 +7,7 @@ import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextF
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ParameterizedQueryWrapper from '../../../shared/modules/ContextFilter/vos/ParameterizedQueryWrapper';
 import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
 import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
@@ -46,7 +47,6 @@ import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import ContextQueryServerController from '../ContextFilter/ContextQueryServerController';
 import ModuleContextFilterServer from '../ContextFilter/ModuleContextFilterServer';
-import ParameterizedQueryWrapper from '../ContextFilter/vos/ParameterizedQueryWrapper';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
 import DAOPostDeleteTriggerHook from '../DAO/triggers/DAOPostDeleteTriggerHook';

@@ -1,6 +1,7 @@
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import ContextQueryInjectionCheckHandler from '../../../shared/modules/ContextFilter/ContextQueryInjectionCheckHandler';
 import { IContextHookFilterVos } from '../../../shared/modules/DAO/interface/IContextHookFilterVos';
 import { IHookFilterVos } from '../../../shared/modules/DAO/interface/IHookFilterVos';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
@@ -9,7 +10,6 @@ import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import DateHandler from '../../../shared/tools/DateHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
-import ContextQueryInjectionCheckHandler from '../ContextFilter/ContextQueryInjectionCheckHandler';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import DAOPostCreateTriggerHook from './triggers/DAOPostCreateTriggerHook';
 import DAOPostDeleteTriggerHook from './triggers/DAOPostDeleteTriggerHook';

@@ -1,12 +1,11 @@
 import { Express, Request, Response } from 'express';
-import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import IServerUserSession from '../../../shared/modules/AccessPolicy/vos/IServerUserSession';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import IAPIParamTranslator from '../../../shared/modules/API/interfaces/IAPIParamTranslator';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import APIDefinition from '../../../shared/modules/API/vos/APIDefinition';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
-import IServerUserSession from '../../IServerUserSession';
 import ServerBase from '../../ServerBase';
 import ServerExpressController from '../../ServerExpressController';
 import StackContext from '../../StackContext';

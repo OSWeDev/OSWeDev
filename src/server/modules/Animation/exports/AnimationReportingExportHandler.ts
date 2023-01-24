@@ -8,7 +8,7 @@ import AnimationThemeVO from '../../../../shared/modules/Animation/vos/Animation
 import AnimationUserModuleVO from '../../../../shared/modules/Animation/vos/AnimationUserModuleVO';
 import APIControllerWrapper from '../../../../shared/modules/API/APIControllerWrapper';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
+import IExportableDatas from '../../../../shared/modules/DataExport/interfaces/IExportableDatas';
 import ExportHistoricVO from '../../../../shared/modules/DataExport/vos/ExportHistoricVO';
 import NumRange from '../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../../shared/modules/DataRender/vos/NumSegment';
@@ -20,7 +20,6 @@ import { hourFilter, percentFilter } from '../../../../shared/tools/Filters';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
 import StackContext from '../../../StackContext';
 import ExportHandlerBase from '../../DataExport/ExportHandlerBase';
-import IExportableDatas from '../../DataExport/interfaces/IExportableDatas';
 import VarsServerCallBackSubsController from '../../Var/VarsServerCallBackSubsController';
 import VarDayPrctReussiteAnimationController from '../vars/VarDayPrctReussiteAnimationController';
 import VarDayTempsPasseAnimationController from '../vars/VarDayTempsPasseAnimationController';

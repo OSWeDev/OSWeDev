@@ -1,6 +1,5 @@
 import { isArray } from 'lodash';
 import * as moment from 'moment';
-import ContextQueryInjectionCheckHandler from '../../server/modules/ContextFilter/ContextQueryInjectionCheckHandler';
 import ConsoleHandler from '../tools/ConsoleHandler';
 import ConversionHandler from '../tools/ConversionHandler';
 import DateHandler from '../tools/DateHandler';
@@ -24,6 +23,7 @@ import DefaultTranslation from './Translation/vos/DefaultTranslation';
 import VarDataBaseVO from './Var/vos/VarDataBaseVO';
 import VOsTypesManager from './VOsTypesManager';
 import cloneDeep = require('lodash/cloneDeep');
+import ContextQueryInjectionCheckHandler from './ContextFilter/ContextQueryInjectionCheckHandler';
 
 
 export default class ModuleTable<T extends IDistantVOBase> {

@@ -1,9 +1,9 @@
 /* istanbul ignore file: only one method, and not willing to test it right now*/
 
 import { Request } from 'express';
+import IServerUserSession from '../shared/modules/AccessPolicy/vos/IServerUserSession';
 import UserVO from '../shared/modules/AccessPolicy/vos/UserVO';
 import { query } from '../shared/modules/ContextFilter/vos/ContextQueryVO';
-import IServerUserSession from './IServerUserSession';
 
 export default class ServerExpressController {
 

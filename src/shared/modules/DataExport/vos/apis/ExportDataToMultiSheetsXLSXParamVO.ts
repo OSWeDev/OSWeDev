@@ -1,7 +1,7 @@
-import IExportableMultiSheetsDatas from '../../../../../server/modules/DataExport/interfaces/IExportableMultiSheetsDatas';
-import IExportableSheet from '../../../../../server/modules/DataExport/interfaces/IExportableSheet';
 import IAPIParamTranslator from '../../../API/interfaces/IAPIParamTranslator';
 import IAPIParamTranslatorStatic from '../../../API/interfaces/IAPIParamTranslatorStatic';
+import IExportableMultiSheetsDatas from '../../interfaces/IExportableMultiSheetsDatas';
+import IExportableSheet from '../../interfaces/IExportableSheet';
 
 export default class ExportDataToMultiSheetsXLSXParamVO implements IExportableMultiSheetsDatas, IAPIParamTranslator<ExportDataToMultiSheetsXLSXParamVO> {
 

@@ -9,6 +9,7 @@ import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
 import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
+import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
@@ -18,7 +19,6 @@ import VarPixelFieldConfVO from '../../../shared/modules/Var/vos/VarPixelFieldCo
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
-import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
@@ -37,32 +37,6 @@ import VarsTabsSubsController from './VarsTabsSubsController';
 
 export default class VarsComputeController {
 
-    public static PARAM_NAME_estimated_tree_computation_time_target: string = 'VarsComputeController.estimated_tree_computation_time_target';
-    public static PARAM_NAME_estimated_tree_computation_time_limit: string = 'VarsComputeController.estimated_tree_computation_time_limit';
-    public static PARAM_NAME_var_selection_pack_size: string = 'VarsComputeController.var_selection_pack_size';
-
-    public static cached_estimated_tree_computation_time_target: number = null;
-    public static cached_estimated_tree_computation_time_limit: number = null;
-    public static cached_var_selection_pack_size: number = null;
-
-    /**
-     * On demande de recharge le estimated_tree_computation_time_limit toutes les minutes au max
-     */
-    public static async get_estimated_tree_computation_time_target(): Promise<number> {
-        await VarsComputeController.check_computation_params();
-        return VarsComputeController.cached_estimated_tree_computation_time_target;
-    }
-
-    public static async get_estimated_tree_computation_time_limit(): Promise<number> {
-        await VarsComputeController.check_computation_params();
-        return VarsComputeController.cached_estimated_tree_computation_time_limit;
-    }
-
-    public static async get_var_selection_pack_size(): Promise<number> {
-        await VarsComputeController.check_computation_params();
-        return VarsComputeController.cached_var_selection_pack_size;
-    }
-
     /**
      * Multithreading notes :
      *  - There's only one bgthread doing all the computations, and separated from the other threads if the project decides to do so
@@ -76,30 +50,6 @@ export default class VarsComputeController {
     }
 
     private static instance: VarsComputeController = null;
-
-    private static last_update_estimated_tree_computation_time: number = null;
-
-    private static async check_computation_params(): Promise<void> {
-        if ((!this.last_update_estimated_tree_computation_time) || (this.last_update_estimated_tree_computation_time < (Dates.now() - 60))) {
-
-            let promises = [];
-            let self = this;
-
-
-            promises.push((async () => {
-                self.cached_var_selection_pack_size = await ModuleParams.getInstance().getParamValueAsInt(VarsComputeController.PARAM_NAME_var_selection_pack_size, 50, 180000);
-            })());
-            promises.push((async () => {
-                self.cached_estimated_tree_computation_time_limit = await ModuleParams.getInstance().getParamValueAsInt(VarsComputeController.PARAM_NAME_estimated_tree_computation_time_limit, 300000, 180000);
-            })());
-            promises.push((async () => {
-                self.cached_estimated_tree_computation_time_target = await ModuleParams.getInstance().getParamValueAsInt(VarsComputeController.PARAM_NAME_estimated_tree_computation_time_target, 3000, 180000);
-            })());
-            this.last_update_estimated_tree_computation_time = Dates.now();
-
-            await all_promises(promises);
-        }
-    }
 
     protected constructor() {
     }
@@ -810,15 +760,15 @@ export default class VarsComputeController {
 
         let var_dag: VarDAG = VarsdatasComputerBGThread.getInstance().current_batch_vardag;
 
-        let estimated_tree_computation_time_target = await VarsComputeController.get_estimated_tree_computation_time_target();
-        let var_selection_pack_size = await VarsComputeController.get_var_selection_pack_size();
+        let estimated_tree_computation_time_target = await ModuleParams.getInstance().getParamValueAsInt(ModuleVar.PARAM_NAME_estimated_tree_computation_time_target, 3000, 180000);
+        let var_selection_pack_size = await ModuleParams.getInstance().getParamValueAsInt(ModuleVar.PARAM_NAME_var_selection_pack_size, 50, 180000);
 
         let all_selected_var_datas = [];
 
         /**
          * Tant que le temps estimé restant global + le temps déjà écoulé reste < à la limite principale (3 secondes par défaut) on continue de rajouter à l'arbre
          */
-        let batchperf_computation_wrapper_total_estimated_remaining_time = var_dag.perfs ? Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.computation_wrapper)) : 0;
+        let batchperf_computation_wrapper_total_estimated_remaining_time = var_dag.perfs ? Math.round(VarDAG.get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.computation_wrapper)) : 0;
         let current_total_elapsed_time = var_dag.perfs ? performance.now() - var_dag.perfs.computation_wrapper.start_time : 0;
         while ((!batchperf_computation_wrapper_total_estimated_remaining_time) || (!current_total_elapsed_time) || ((batchperf_computation_wrapper_total_estimated_remaining_time + current_total_elapsed_time) < estimated_tree_computation_time_target)) {
 
@@ -873,7 +823,7 @@ export default class VarsComputeController {
                 // Si on a des slow vars ici, on continue la boucle, on devrait pouvoir dépiler immédiatement la première
                 if (await this.check_tree_for_slow_vars(var_dag, all_selected_var_datas)) {
                     all_selected_var_datas = [];
-                    batchperf_computation_wrapper_total_estimated_remaining_time = var_dag.perfs ? Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.computation_wrapper)) : 0;
+                    batchperf_computation_wrapper_total_estimated_remaining_time = var_dag.perfs ? Math.round(VarDAG.get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.computation_wrapper)) : 0;
                     current_total_elapsed_time = var_dag.perfs ? performance.now() - var_dag.perfs.computation_wrapper.start_time : 0;
                     continue;
                 }
@@ -885,7 +835,7 @@ export default class VarsComputeController {
             for (let i in selected_var_datas) {
                 let selected_var_data = selected_var_datas[i];
 
-                batchperf_computation_wrapper_total_estimated_remaining_time = var_dag.perfs ? Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.computation_wrapper)) : 0;
+                batchperf_computation_wrapper_total_estimated_remaining_time = var_dag.perfs ? Math.round(VarDAG.get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.computation_wrapper)) : 0;
                 current_total_elapsed_time = var_dag.perfs ? performance.now() - var_dag.perfs.computation_wrapper.start_time : 0;
 
                 /**
@@ -897,11 +847,11 @@ export default class VarsComputeController {
                 }
 
                 all_selected_var_datas.push(selected_var_data);
-                batchperf_computation_wrapper_total_estimated_remaining_time = var_dag.perfs ? Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.computation_wrapper)) : 0;
+                batchperf_computation_wrapper_total_estimated_remaining_time = var_dag.perfs ? Math.round(VarDAG.get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.computation_wrapper)) : 0;
 
-                let batchperf_create_tree_total_estimated_remaining_time = var_dag.perfs ? Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.create_tree)) : 0;
-                let batchperf_load_nodes_datas_total_estimated_remaining_time = var_dag.perfs ? Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.load_nodes_datas)) : 0;
-                let batchperf_compute_node_wrapper_total_estimated_remaining_time = var_dag.perfs ? Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.compute_node_wrapper)) : 0;
+                let batchperf_create_tree_total_estimated_remaining_time = var_dag.perfs ? Math.round(VarDAG.get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.create_tree)) : 0;
+                let batchperf_load_nodes_datas_total_estimated_remaining_time = var_dag.perfs ? Math.round(VarDAG.get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.load_nodes_datas)) : 0;
+                let batchperf_compute_node_wrapper_total_estimated_remaining_time = var_dag.perfs ? Math.round(VarDAG.get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.compute_node_wrapper)) : 0;
                 ConsoleHandler.log('SELECTED VAR:' + selected_var_data.index + ':Total computation estimated time before adding this node:[' +
                     (var_dag.perfs && Math.round(var_dag.perfs.computation_wrapper.updated_estimated_work_time) ? var_dag.perfs.computation_wrapper.updated_estimated_work_time : 0) +
                     ']:' +
@@ -935,11 +885,11 @@ export default class VarsComputeController {
                 }
 
                 if (DEBUG_VARS && !!var_dag.perfs) {
-                    batchperf_computation_wrapper_total_estimated_remaining_time = VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.computation_wrapper);
+                    batchperf_computation_wrapper_total_estimated_remaining_time = VarDAG.get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.computation_wrapper);
 
-                    batchperf_create_tree_total_estimated_remaining_time = Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.create_tree));
-                    batchperf_load_nodes_datas_total_estimated_remaining_time = Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.load_nodes_datas));
-                    batchperf_compute_node_wrapper_total_estimated_remaining_time = Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.compute_node_wrapper));
+                    batchperf_create_tree_total_estimated_remaining_time = Math.round(VarDAG.get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.create_tree));
+                    batchperf_load_nodes_datas_total_estimated_remaining_time = Math.round(VarDAG.get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.load_nodes_datas));
+                    batchperf_compute_node_wrapper_total_estimated_remaining_time = Math.round(VarDAG.get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.compute_node_wrapper));
                     ConsoleHandler.log('POST SELECT :' + selected_var_data.index + ':Total computation estimated time after adding this node:[' +
                         Math.round(var_dag.perfs.computation_wrapper.updated_estimated_work_time ? var_dag.perfs.computation_wrapper.updated_estimated_work_time : 0) +
                         ']:' +
@@ -1003,7 +953,7 @@ export default class VarsComputeController {
                 step++;
             }
 
-            batchperf_computation_wrapper_total_estimated_remaining_time = var_dag.perfs ? Math.round(VarDagPerfsServerController.getInstance().get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.computation_wrapper)) : 0;
+            batchperf_computation_wrapper_total_estimated_remaining_time = var_dag.perfs ? Math.round(VarDAG.get_nodeperfelement_estimated_remaining_work_time(var_dag.perfs.computation_wrapper)) : 0;
             current_total_elapsed_time = var_dag.perfs ? (performance.now() - var_dag.perfs.computation_wrapper.start_time) : 0;
         }
 
@@ -1388,7 +1338,7 @@ export default class VarsComputeController {
      * @param var_dag
      */
     private async clean_timedout_tree(var_dag: VarDAG) {
-        while (await VarDagPerfsServerController.dag_is_in_timeout_without_elpased_time(var_dag) && this.has_node_to_compute_or_deploy(var_dag)) {
+        while (await VarDAG.dag_is_in_timeout_without_elpased_time(var_dag) && this.has_node_to_compute_or_deploy(var_dag)) {
 
             let node = null;
 

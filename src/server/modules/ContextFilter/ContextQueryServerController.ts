@@ -2,9 +2,13 @@ import { cloneDeep } from 'lodash';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
+import ContextQueryInjectionCheckHandler from '../../../shared/modules/ContextFilter/ContextQueryInjectionCheckHandler';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import FieldPathWrapper from '../../../shared/modules/ContextFilter/vos/FieldPathWrapper';
+import ParameterizedQueryWrapper from '../../../shared/modules/ContextFilter/vos/ParameterizedQueryWrapper';
+import ParameterizedQueryWrapperField from '../../../shared/modules/ContextFilter/vos/ParameterizedQueryWrapperField';
 import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
@@ -34,10 +38,6 @@ import ContextAccessServerController from './ContextAccessServerController';
 import ContextFieldPathServerController from './ContextFieldPathServerController';
 import ContextFilterServerController from './ContextFilterServerController';
 import ContextQueryFieldServerController from './ContextQueryFieldServerController';
-import ContextQueryInjectionCheckHandler from './ContextQueryInjectionCheckHandler';
-import FieldPathWrapper from './vos/FieldPathWrapper';
-import ParameterizedQueryWrapper from './vos/ParameterizedQueryWrapper';
-import ParameterizedQueryWrapperField from './vos/ParameterizedQueryWrapperField';
 
 export default class ContextQueryServerController {
 

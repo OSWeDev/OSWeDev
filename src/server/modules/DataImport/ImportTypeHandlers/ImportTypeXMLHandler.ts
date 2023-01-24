@@ -1,7 +1,7 @@
 
 
 import { readFileSync } from 'fs';
-import ModuleDAOServer from '../../../../server/modules/DAO/ModuleDAOServer';
+import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import IImportedData from '../../../../shared/modules/DataImport/interfaces/IImportedData';

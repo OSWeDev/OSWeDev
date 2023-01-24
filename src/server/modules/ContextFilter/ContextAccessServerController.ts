@@ -1,10 +1,10 @@
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
+import FieldPathWrapper from '../../../shared/modules/ContextFilter/vos/FieldPathWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
-import FieldPathWrapper from './vos/FieldPathWrapper';
 
 export default class ContextAccessServerController {
 

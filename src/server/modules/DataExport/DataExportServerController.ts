@@ -1,4 +1,4 @@
-import IExportHandler from './interfaces/IExportHandler';
+import IExportHandler from "../../../shared/modules/DataExport/interfaces/IExportHandler";
 
 export default class DataExportServerController {
 

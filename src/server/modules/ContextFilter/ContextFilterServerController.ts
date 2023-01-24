@@ -1,7 +1,10 @@
 import pgPromise = require('pg-promise');
 import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
+import ContextQueryInjectionCheckHandler from '../../../shared/modules/ContextFilter/ContextQueryInjectionCheckHandler';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import FieldPathWrapper from '../../../shared/modules/ContextFilter/vos/FieldPathWrapper';
+import ParameterizedQueryWrapper from '../../../shared/modules/ContextFilter/vos/ParameterizedQueryWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -14,10 +17,7 @@ import StackContext from '../../StackContext';
 import ServerAnonymizationController from '../Anonymization/ServerAnonymizationController';
 import DAOServerController from '../DAO/DAOServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
-import ContextQueryInjectionCheckHandler from './ContextQueryInjectionCheckHandler';
 import ContextQueryServerController from './ContextQueryServerController';
-import FieldPathWrapper from './vos/FieldPathWrapper';
-import ParameterizedQueryWrapper from './vos/ParameterizedQueryWrapper';
 
 export default class ContextFilterServerController {
 

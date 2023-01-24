@@ -13,7 +13,7 @@ import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import AnonymizationUserConfVO from '../../../shared/modules/Anonymization/vos/AnonymizationUserConfVO';
 import AnonymizationFieldConfVO from '../../../shared/modules/Anonymization/vos/AnonymizationFieldConfVO';
-import FieldPathWrapper from '../../../server/modules/ContextFilter/vos/FieldPathWrapper';
+import FieldPathWrapper from '../../../shared/modules/ContextFilter/vos/FieldPathWrapper';
 
 describe('ContextFieldPathServerController', () => {
 

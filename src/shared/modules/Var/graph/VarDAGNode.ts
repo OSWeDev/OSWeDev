@@ -1,5 +1,3 @@
-import ConfigurationService from '../../../../server/env/ConfigurationService';
-import VarDagPerfsServerController from '../../../../server/modules/Var/VarDagPerfsServerController';
 import ConsoleHandler from '../../../tools/ConsoleHandler';
 import ObjectHandler from '../../../tools/ObjectHandler';
 import SemaphoreHandler from '../../../tools/SemaphoreHandler';
@@ -69,7 +67,7 @@ export default class VarDAGNode extends DAGNodeBase {
              */
             if (!var_dag.timed_out) {
 
-                if (await VarDagPerfsServerController.dag_is_in_timeout_with_elpased_time(var_dag)) {
+                if (await VarDAG.dag_is_in_timeout_with_elpased_time(var_dag)) {
                     if (ConfigurationService.node_configuration.DEBUG_VARS) {
                         ConsoleHandler.error('BATCH estimated work time + elapsed > limit - STEP 1 Identifying roots to remove and mark as timed_out');
                     }
@@ -96,7 +94,7 @@ export default class VarDAGNode extends DAGNodeBase {
                             /***
                              * Si on est plus en timeout on arrête de faire du ménage
                              */
-                            if (!await VarDagPerfsServerController.dag_is_in_timeout_with_elpased_time(var_dag)) {
+                            if (!await VarDAG.dag_is_in_timeout_with_elpased_time(var_dag)) {
                                 break;
                             }
                         }

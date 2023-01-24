@@ -1,4 +1,3 @@
-import ConfigurationService from "../../../server/env/ConfigurationService";
 import ConsoleHandler from "../ConsoleHandler";
 
 export default class PromisePipeline {

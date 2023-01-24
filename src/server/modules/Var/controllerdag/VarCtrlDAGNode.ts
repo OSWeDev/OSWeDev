@@ -1,4 +1,4 @@
-import VarServerControllerBase from '../../../../server/modules/Var/VarServerControllerBase';
+import VarServerControllerBase from '../VarServerControllerBase';
 import DAG from '../../../../shared/modules/Var/graph/dagbase/DAG';
 import DAGNodeBase from '../../../../shared/modules/Var/graph/dagbase/DAGNodeBase';
 import DAGNodeDep from '../../../../shared/modules/Var/graph/dagbase/DAGNodeDep';

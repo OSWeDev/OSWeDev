@@ -1,4 +1,3 @@
-import { cloneDeep } from 'lodash';
 import { DatabaseError, Pool } from 'pg';
 import { from as copyFrom } from 'pg-copy-streams';
 import { Readable } from 'stream';
@@ -51,12 +50,9 @@ import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import ConfigurationService from '../../env/ConfigurationService';
-import ServerBase from '../../ServerBase';
 import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ServerAnonymizationController from '../Anonymization/ServerAnonymizationController';
-import ContextQueryInjectionCheckHandler from '../ContextFilter/ContextQueryInjectionCheckHandler';
-import ParameterizedQueryWrapperField from '../ContextFilter/vos/ParameterizedQueryWrapperField';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
@@ -75,8 +71,9 @@ import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
 import ThrottledSelectQueryParam from './vos/ThrottledSelectQueryParam';
 import pgPromise = require('pg-promise');
 import VarsController from '../../../shared/modules/Var/VarsController';
-import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
+import ContextQueryInjectionCheckHandler from '../../../shared/modules/ContextFilter/ContextQueryInjectionCheckHandler';
+import ParameterizedQueryWrapperField from '../../../shared/modules/ContextFilter/vos/ParameterizedQueryWrapperField';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 

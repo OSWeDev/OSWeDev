@@ -2,6 +2,7 @@ import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapp
 import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO, { filter } from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ParameterizedQueryWrapper from '../../../shared/modules/ContextFilter/vos/ParameterizedQueryWrapper';
 import DatatableField from '../../../shared/modules/DAO/vos/datatable/DatatableField';
 import TableColumnDescVO from '../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
@@ -10,7 +11,6 @@ import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ModuleServerBase from '../ModuleServerBase';
 import ContextQueryServerController from './ContextQueryServerController';
-import ParameterizedQueryWrapper from './vos/ParameterizedQueryWrapper';
 
 export default class ModuleContextFilterServer extends ModuleServerBase {
 

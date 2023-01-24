@@ -1,7 +1,7 @@
 
 
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
-import ModuleDAOServer from '../../../../server/modules/DAO/ModuleDAOServer';
+import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import IImportedData from '../../../../shared/modules/DataImport/interfaces/IImportedData';
 import ModuleDataImport from '../../../../shared/modules/DataImport/ModuleDataImport';
 import DataImportColumnVO from '../../../../shared/modules/DataImport/vos/DataImportColumnVO';

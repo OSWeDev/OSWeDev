@@ -1,4 +1,3 @@
-import ParameterizedQueryWrapper from '../../../server/modules/ContextFilter/vos/ParameterizedQueryWrapper';
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
@@ -17,6 +16,7 @@ import ContextQueryVO from './vos/ContextQueryVO';
 import CountValidSegmentationsParamVO, { CountValidSegmentationsParamVOStatic } from './vos/CountValidSegmentationsParamVO';
 import DeleteVosParamVO, { DeleteVosParamVOStatic } from './vos/DeleteVosParamVO';
 import SelectFilterVisibleOptionsParamVO, { SelectFilterVisibleOptionsParamVOStatic } from './vos/GetOptionsFromContextFiltersParamVO';
+import ParameterizedQueryWrapper from './vos/ParameterizedQueryWrapper';
 import QueryVOFromUniqueFieldContextFiltersParamVO, { QueryVOFromUniqueFieldContextFiltersParamVOStatic } from './vos/QueryVOFromUniqueFieldContextFiltersParamVO';
 import SelectCountParamVO, { SelectCountParamVOStatic } from './vos/SelectCountParamVO';
 import SelectDatatableRowsParamVO, { SelectDatatableRowsParamVOStatic } from './vos/SelectDatatableRowsParamVO';

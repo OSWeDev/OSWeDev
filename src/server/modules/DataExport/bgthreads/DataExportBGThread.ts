@@ -2,6 +2,7 @@ import ContextFilterVO, { filter } from '../../../../shared/modules/ContextFilte
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
+import IExportableDatas from '../../../../shared/modules/DataExport/interfaces/IExportableDatas';
 import ExportHistoricVO from '../../../../shared/modules/DataExport/vos/ExportHistoricVO';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
@@ -9,7 +10,6 @@ import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import PushDataServerController from '../../PushData/PushDataServerController';
 import DataExportServerController from '../DataExportServerController';
-import IExportableDatas from '../interfaces/IExportableDatas';
 
 export default class DataExportBGThread implements IBGThread {
 

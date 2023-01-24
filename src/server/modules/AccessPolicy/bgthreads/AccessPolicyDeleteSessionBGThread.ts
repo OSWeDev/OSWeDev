@@ -1,4 +1,5 @@
 import { cloneDeep } from 'lodash';
+import IServerUserSession from '../../../../shared/modules/AccessPolicy/vos/IServerUserSession';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
@@ -7,7 +8,6 @@ import TeamsWebhookContentVO from '../../../../shared/modules/TeamsAPI/vos/Teams
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import ConfigurationService from '../../../env/ConfigurationService';
-import IServerUserSession from '../../../IServerUserSession';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ForkedTasksController from '../../Fork/ForkedTasksController';
