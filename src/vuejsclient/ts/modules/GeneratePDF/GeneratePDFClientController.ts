@@ -29,7 +29,7 @@ export default class GeneratePDFClientController {
         return res;
     }
 
-    private saveToDisk(fileURL: string, fileName: string) {
+    public saveToDisk(fileURL: string, fileName: string) {
         // for non-IE
         if (!window['ActiveXObject']) {
             var save = document.createElement('a');
