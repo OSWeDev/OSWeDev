@@ -1,5 +1,6 @@
 import { isArray } from "lodash";
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
+import ConsoleHandler from "../../../tools/ConsoleHandler";
 import RangeHandler from "../../../tools/RangeHandler";
 import HourRange from "../../DataRender/vos/HourRange";
 import NumRange from "../../DataRender/vos/NumRange";
@@ -931,6 +932,30 @@ export default class ContextFilterVO implements IDistantVOBase {
 
         sub_query.query_tables_prefix = '_' + (this_query.query_tables_prefix ? this_query.query_tables_prefix : '');
         return this;
+    }
+
+    public log(is_error: boolean = false) {
+        let log_func = ConsoleHandler.log;
+
+        if (is_error) {
+            log_func = ConsoleHandler.error;
+        }
+
+        log_func('ContextQueryFilterVO - vo_type:' + this.vo_type);
+        log_func('                     - field_id:' + this.field_id);
+        log_func('                     - filter_type:' + this.filter_type + ':' + ContextFilterVO.TYPE_LABELS[this.filter_type]);
+        log_func('                     - param_text:' + this.param_text);
+        log_func('                     - param_numeric:' + this.param_numeric);
+        log_func('                     - param_numeric_array:' + (this.param_numeric_array ? JSON.stringify(this.param_numeric_array) : 'null'));
+        log_func('                     - param_textarray:' + (this.param_textarray ? JSON.stringify(this.param_textarray) : 'null'));
+        log_func('                     - param_tsranges:' + (this.param_tsranges ? RangeHandler.translate_to_bdd(this.param_tsranges) : 'null'));
+        log_func('                     - param_numranges:' + (this.param_numranges ? RangeHandler.translate_to_bdd(this.param_numranges) : 'null'));
+        log_func('                     - param_hourranges:' + (this.param_hourranges ? RangeHandler.translate_to_bdd(this.param_hourranges) : 'null'));
+        log_func('                     - text_ignore_case:' + this.text_ignore_case);
+        log_func('                     - left_hook:' + (this.left_hook ? this.left_hook.log(is_error) : 'null'));
+        log_func('                     - right_hook:' + (this.right_hook ? this.right_hook.log(is_error) : 'null'));
+        log_func('                     - param_alias:' + this.param_alias);
+        log_func('                     - sub_query:' + (this.sub_query ? this.sub_query.log(is_error) : 'null'));
     }
 }
 

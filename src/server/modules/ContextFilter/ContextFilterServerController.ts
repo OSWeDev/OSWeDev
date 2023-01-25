@@ -11,6 +11,7 @@ import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import MatroidIndexHandler from '../../../shared/tools/MatroidIndexHandler';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import StackContext from '../../StackContext';
@@ -2543,7 +2544,9 @@ export default class ContextFilterServerController {
                 let qr_TYPE_IN = await ContextQueryServerController.getInstance().build_select_query(active_field_filter.sub_query);
 
                 if (((!qr_TYPE_IN) || (!qr_TYPE_IN.query)) && (!qr_TYPE_IN.is_segmented_non_existing_table)) {
-                    throw new Error('Invalid query');
+                    ConsoleHandler.error('Invalid query:TYPE_IN:INFOS context_query:' + (qr_TYPE_IN ? (qr_TYPE_IN.query ? qr_TYPE_IN.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
+                    context_query.log(true);
+                    throw new Error('Invalid query:TYPE_IN');
                 }
 
                 if (qr_TYPE_IN.is_segmented_non_existing_table) {
@@ -2608,7 +2611,9 @@ export default class ContextFilterServerController {
                 let qr_TYPE_NOT_IN = await ContextQueryServerController.getInstance().build_select_query(active_field_filter.sub_query);
 
                 if (((!qr_TYPE_NOT_IN) || (!qr_TYPE_NOT_IN.query)) && (!qr_TYPE_NOT_IN.is_segmented_non_existing_table)) {
-                    throw new Error('Invalid query');
+                    ConsoleHandler.error('Invalid query:TYPE_NOT_IN:INFOS context_query:' + (qr_TYPE_NOT_IN ? (qr_TYPE_NOT_IN.query ? qr_TYPE_NOT_IN.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
+                    context_query.log(true);
+                    throw new Error('Invalid query:TYPE_NOT_IN');
                 }
 
                 if (qr_TYPE_NOT_IN.is_segmented_non_existing_table) {
@@ -2632,7 +2637,9 @@ export default class ContextFilterServerController {
                 let qr_TYPE_NOT_EXISTS = await ContextQueryServerController.getInstance().build_select_query(active_field_filter.sub_query);
 
                 if (((!qr_TYPE_NOT_EXISTS) || (!qr_TYPE_NOT_EXISTS.query)) && (!qr_TYPE_NOT_EXISTS.is_segmented_non_existing_table)) {
-                    throw new Error('Invalid query');
+                    ConsoleHandler.error('Invalid query:TYPE_NOT_EXISTS:INFOS context_query:' + (qr_TYPE_NOT_EXISTS ? (qr_TYPE_NOT_EXISTS.query ? qr_TYPE_NOT_EXISTS.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
+                    context_query.log(true);
+                    throw new Error('Invalid query:TYPE_NOT_EXISTS');
                 }
 
                 if (qr_TYPE_NOT_EXISTS.is_segmented_non_existing_table) {
@@ -2656,7 +2663,9 @@ export default class ContextFilterServerController {
                 let qr_TYPE_EXISTS = await ContextQueryServerController.getInstance().build_select_query(active_field_filter.sub_query);
 
                 if (((!qr_TYPE_EXISTS) || (!qr_TYPE_EXISTS.query)) && (!qr_TYPE_EXISTS.is_segmented_non_existing_table)) {
-                    throw new Error('Invalid query');
+                    ConsoleHandler.error('Invalid query:TYPE_EXISTS:INFOS context_query:' + (qr_TYPE_EXISTS ? (qr_TYPE_EXISTS.query ? qr_TYPE_EXISTS.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
+                    context_query.log(true);
+                    throw new Error('Invalid query:TYPE_EXISTS');
                 }
 
                 if (qr_TYPE_EXISTS.is_segmented_non_existing_table) {

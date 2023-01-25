@@ -1,5 +1,6 @@
 import { isArray } from "lodash";
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
+import ConsoleHandler from "../../../tools/ConsoleHandler";
 import DatatableField from "../../DAO/vos/datatable/DatatableField";
 import TableColumnDescVO from "../../DashboardBuilder/vos/TableColumnDescVO";
 import NumRange from "../../DataRender/vos/NumRange";
@@ -894,6 +895,35 @@ export default class ContextQueryVO implements IDistantVOBase {
     public count_results(): ContextQueryVO {
         this.do_count_results = true;
         return this;
+    }
+
+    public log(is_error: boolean = false) {
+        let log_func = ConsoleHandler.log;
+
+        if (is_error) {
+            log_func = ConsoleHandler.error;
+        }
+
+        log_func('ContextQueryVO - base_api_type_id:' + this.base_api_type_id);
+        log_func('               - active_api_type_ids: ' + this.active_api_type_ids);
+
+        let fields_num = (this.fields ? this.fields.length : 0);
+        if (fields_num) {
+            for (let i in this.fields) {
+                let field = this.fields[i];
+                log_func('               - field:' + i + '/' + fields_num);
+                field.log(is_error);
+            }
+        }
+
+        let filters_num = (this.filters ? this.filters.length : 0);
+        if (filters_num) {
+            for (let i in this.filters) {
+                let filter_ = this.filters[i];
+                log_func('               - filter:' + i + '/' + filters_num);
+                filter_.log(is_error);
+            }
+        }
     }
 
     /**

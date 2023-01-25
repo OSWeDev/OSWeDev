@@ -1,4 +1,5 @@
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
+import ConsoleHandler from "../../../tools/ConsoleHandler";
 import VarConfVO from "../../Var/vos/VarConfVO";
 
 export default class ContextQueryFieldVO implements IDistantVOBase {
@@ -48,5 +49,19 @@ export default class ContextQueryFieldVO implements IDistantVOBase {
         this.alias = alias;
         this.aggregator = aggregator;
         this.modifier = modifier;
+    }
+
+    public log(is_error: boolean = false) {
+        let log_func = ConsoleHandler.log;
+
+        if (is_error) {
+            log_func = ConsoleHandler.error;
+        }
+
+        log_func('ContextQueryFieldVO - api_type_id:' + this.api_type_id);
+        log_func('                    - field_id: ' + this.field_id);
+        log_func('                    - alias:' + this.alias);
+        log_func('                    - aggregator:' + this.aggregator);
+        log_func('                    - modifier:' + this.modifier);
     }
 }

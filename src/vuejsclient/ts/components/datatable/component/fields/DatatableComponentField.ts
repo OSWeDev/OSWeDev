@@ -58,6 +58,12 @@ export default class DatatableComponentField extends VueComponentBase {
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
 
+    @Prop({ default: null })
+    private filter: () => any;
+
+    @Prop({ default: null })
+    private filter_additional_params: any[];
+
     private has_access_DAO_ACCESS_TYPE_INSERT_OR_UPDATE: boolean = false;
     private is_load: boolean = false;
 
@@ -124,5 +130,24 @@ export default class DatatableComponentField extends VueComponentBase {
         }
 
         return null;
+    }
+
+    private get_filtered_value(val) {
+
+        if (val == null) {
+            return null;
+        }
+
+        if (!this.filter) {
+            return val;
+        }
+
+        let params = [val];
+
+        if (!!this.filter_additional_params) {
+            params = params.concat(this.filter_additional_params);
+        }
+
+        return this.filter.apply(null, params);
     }
 }
