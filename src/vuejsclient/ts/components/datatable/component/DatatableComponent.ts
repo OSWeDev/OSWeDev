@@ -1145,17 +1145,34 @@ export default class DatatableComponent extends VueComponentBase {
 
                                     let is_ok: boolean = false;
 
-                                    if (query.start && query.start.length > 0) {
-                                        if (RangeHandler.getInstance().elt_intersects_range(moment(query.start).utc(true).unix(), tsrange)) {
+                                    let has_start: boolean = query.start && (query.start.length > 0);
+                                    let has_end: boolean = query.end && (query.end.length > 0);
+
+                                    let filter_tsrange: TSRange = TSRange.createNew(
+                                        has_start ? moment(query.start).utc(true).unix() : RangeHandler.MIN_TS,
+                                        has_end ? moment(query.end).utc(true).unix() : RangeHandler.MAX_TS,
+                                        true,
+                                        true,
+                                        tsrange.segment_type
+                                    );
+
+                                    if (!!filter_tsrange) {
+                                        if (RangeHandler.getInstance().range_intersects_range(filter_tsrange, tsrange)) {
                                             is_ok = true;
                                         }
                                     }
 
-                                    if (query.end && query.end.length > 0) {
-                                        if (RangeHandler.getInstance().elt_intersects_range(moment(query.end).utc(true).unix(), tsrange)) {
-                                            is_ok = true;
-                                        }
-                                    }
+                                    // if (has_start) {
+                                    //     if (RangeHandler.getInstance().elt_intersects_range(moment(query.start).utc(true).unix(), tsrange)) {
+                                    //         is_ok = true;
+                                    //     }
+                                    // }
+
+                                    // if (has_end) {
+                                    //     if (RangeHandler.getInstance().elt_intersects_range(moment(query.end).utc(true).unix(), tsrange)) {
+                                    //         is_ok = true;
+                                    //     }
+                                    // }
 
                                     return is_ok;
 
