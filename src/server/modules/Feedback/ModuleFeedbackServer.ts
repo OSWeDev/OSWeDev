@@ -209,6 +209,11 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Une erreur est survenue. Veuillez contacter l\'équipe technique par mail pour faire votre commentaire.' },
             'error_sending_feedback.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': 'Le nom du fichier n\'est pas conforme, pas d\'espace ou de caractères spéciaux' },
+            'file_format_error.___LABEL___'));
+
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Nous contacter', 'es-es': 'Contáctenos' },
             'feedback_handler.btn.title.___LABEL___')

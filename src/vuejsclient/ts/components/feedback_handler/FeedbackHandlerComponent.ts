@@ -163,6 +163,8 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
         feedback.wish_be_called = this.tmp_wish_be_called;
 
         if (!await ModuleFeedback.getInstance().feedback(feedback)) {
+            this.set_hidden(true);
+
             this.snotify.error(this.label('FeedbackHandlerComponent.error_sending_feedback'));
             this.is_already_sending_feedback = false;
             return;
@@ -174,15 +176,54 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
     }
 
     private async uploadedFile1(fileVo: FileVO) {
-        this.tmp_attachment_1_vo = fileVo;
+        //On vérifie que le format est valide afin de pouvoir être consulté sur le trello.
+        if (fileVo) {
+            if (!this.check_for_valid_format(fileVo.path)) {
+                return;
+            }
+            this.set_hidden(false);
+            this.tmp_attachment_1_vo = fileVo;
+        } else {
+            this.tmp_attachment_1_vo = fileVo;
+        }
     }
 
     private async uploadedFile2(fileVo: FileVO) {
-        this.tmp_attachment_2_vo = fileVo;
+        if (fileVo) {
+            if (!this.check_for_valid_format(fileVo.path)) {
+                return;
+            }
+            this.tmp_attachment_2_vo = fileVo;
+
+        } else {
+            this.tmp_attachment_2_vo = fileVo;
+        }
     }
 
     private async uploadedFile3(fileVo: FileVO) {
-        this.tmp_attachment_3_vo = fileVo;
+        if (fileVo) {
+
+            if (!this.check_for_valid_format(fileVo.path)) {
+                return;
+            }
+            this.tmp_attachment_3_vo = fileVo;
+        } else {
+            this.tmp_attachment_3_vo = fileVo;
+        }
+    }
+
+    private check_for_valid_format(path: string) {
+        let file_name_begin = path.lastIndexOf('/');
+        let file_name_end = path.lastIndexOf('.');
+        let file_name = path.slice(file_name_begin + 1, file_name_end);
+        let format = /[!@#$%^&*()+\=\[\]{};':"\\|,.<>\/?]+/;
+
+        if (format.test(file_name) || (file_name.indexOf(' ') >= 0)) {
+            this.set_hidden(true);
+            this.snotify.error(this.label('FeedbackHandlerComponent.file_format_error'));
+            return false;
+        }
+        return true;
     }
 
     private async uploadedCapture1(fileVo: FileVO) {
