@@ -30,7 +30,7 @@ export default class FeedbackConfirmationMail {
     public async sendConfirmationEmail(feedback: FeedbackVO): Promise<void> {
 
         // On doit se comporter comme un server à ce stade
-        await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
+        await StackContext.runPromise({ IS_CLIENT: false }, async () => {
 
             // Si on est en impersonate, on envoie pas le mail au compte client mais au compte admin
             let user_id: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();

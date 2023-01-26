@@ -7,7 +7,7 @@
         template(v-if='!is_editable')
             .translated_text {{ parameterized_text }}
         template(v-else)
-            form(v-on:submit.prevent="update_trad")
+            form(v-on:submit.prevent="update_trad(code_lang, code_text, text)")
                 template(v-if='textarea')
                     textarea.editable_text(v-model="text" :disabled="!semaphore" v-tooltip='parameterized_text')
                 template(v-else)
@@ -18,4 +18,4 @@
                 template(v-else)
                     template(v-if='has_modif')
                         .update_trad
-                            i.fa-solid.fa-floppy-disks.fa-fw(aria-hidden="true" @click="update_trad")
+                            i.fa-solid.fa-floppy-disks.fa-fw(aria-hidden="true" @click="update_trad(code_lang, code_text, text)")

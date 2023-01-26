@@ -30,7 +30,7 @@ export default class Patch20220111LocalizeCRONDate implements IGeneratorWorker {
         try {
             await this.localize_tstz(db, 'ref.module_cron_cronworkplan', 'date_heure_planifiee');
         } catch (error) {
-            ConsoleHandler.getInstance().log('Patch20220111LocalizeCRONDate error ' + error);
+            ConsoleHandler.log('Patch20220111LocalizeCRONDate error ' + error);
         }
     }
 

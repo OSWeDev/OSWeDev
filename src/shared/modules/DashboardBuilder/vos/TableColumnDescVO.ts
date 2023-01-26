@@ -36,6 +36,11 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
     public default_sort_field: number;
 
     /**
+     * Paramétrage permettant de rendre visible une colonne uniquement si l'un des filtres est actif
+     */
+    public show_if_any_filter_active: number[];
+
+    /**
      * On filtre par un droit d'accès (le nom du droit en l'occurrence)
      */
     public filter_by_access: string;
@@ -139,7 +144,7 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
             return false;
         }
 
-        let field = VOsTypesManager.getInstance().moduleTables_by_voType[this.api_type_id].getFieldFromId(this.field_id);
+        let field = VOsTypesManager.moduleTables_by_voType[this.api_type_id].getFieldFromId(this.field_id);
         if (!field) {
             return false;
         }

@@ -87,7 +87,7 @@ export default class ModuleAnimationImportQRServer extends DataImportModuleBase<
             res = res && await this.merge_imported_datas(QRDatas);
 
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
             await ImportLogger.getInstance().log(historic, format, "Erreur de posttraitement : " + error, DataImportLogVO.LOG_LEVEL_FATAL);
             res = false;
         }

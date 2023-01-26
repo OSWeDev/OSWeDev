@@ -152,11 +152,11 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
         let promises = [];
 
         promises.push((async () =>
-            all_anim_theme_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>())
+            all_anim_theme_by_ids = VOsTypesManager.vosArray_to_vosByIds(await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>())
         )());
 
         promises.push((async () =>
-            all_anim_module_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>())
+            all_anim_module_by_ids = VOsTypesManager.vosArray_to_vosByIds(await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>())
         )());
 
         await all_promises(promises);
@@ -193,17 +193,17 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
             }
 
             if (module.role_id_ranges && module.role_id_ranges.length > 0) {
-                role_ids = role_ids.concat(RangeHandler.getInstance().get_all_segmented_elements_from_ranges(module.role_id_ranges));
+                role_ids = role_ids.concat(RangeHandler.get_all_segmented_elements_from_ranges(module.role_id_ranges));
             }
         }
 
         if (user_ids.length > 0) {
-            all_user_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(
+            all_user_by_ids = VOsTypesManager.vosArray_to_vosByIds(
                 await query(UserVO.API_TYPE_ID).filter_by_ids(user_ids).select_vos<UserVO>());
         }
 
         if (role_ids.length > 0) {
-            all_role_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(
+            all_role_by_ids = VOsTypesManager.vosArray_to_vosByIds(
                 await query(RoleVO.API_TYPE_ID).filter_by_ids(role_ids).select_vos<RoleVO>());
         }
 
@@ -290,8 +290,8 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
             AnimationController.VarDayPrctReussiteAnimationController_VAR_NAME,
             true,
             this.get_anim_theme_id_ranges,
-            [RangeHandler.getInstance().create_single_elt_NumRange(aum.module_id, NumSegment.TYPE_INT)],
-            [RangeHandler.getInstance().create_single_elt_NumRange(aum.user_id, NumSegment.TYPE_INT)],
+            [RangeHandler.create_single_elt_NumRange(aum.module_id, NumSegment.TYPE_INT)],
+            [RangeHandler.create_single_elt_NumRange(aum.user_id, NumSegment.TYPE_INT)],
         );
     }
 
@@ -300,8 +300,8 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
             AnimationController.VarDayTempsPasseAnimationController_VAR_NAME,
             true,
             this.get_anim_theme_id_ranges,
-            [RangeHandler.getInstance().create_single_elt_NumRange(aum.module_id, NumSegment.TYPE_INT)],
-            [RangeHandler.getInstance().create_single_elt_NumRange(aum.user_id, NumSegment.TYPE_INT)],
+            [RangeHandler.create_single_elt_NumRange(aum.module_id, NumSegment.TYPE_INT)],
+            [RangeHandler.create_single_elt_NumRange(aum.user_id, NumSegment.TYPE_INT)],
         );
     }
 
@@ -309,7 +309,7 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
         let res: string[] = [];
 
         if (anim_module && anim_module.role_id_ranges && anim_module.role_id_ranges.length > 0) {
-            RangeHandler.getInstance().foreach_ranges_sync(anim_module.role_id_ranges, (role_id: number) => {
+            RangeHandler.foreach_ranges_sync(anim_module.role_id_ranges, (role_id: number) => {
                 let role: RoleVO = this.get_all_role_by_ids[role_id];
 
                 if (!role) {

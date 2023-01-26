@@ -1,0 +1,31 @@
+
+.modal_copy_widget_form
+    .modal#modal_copy_widget
+        template(v-if="show_modal")
+            .modal-dialog
+                .modal-content
+                    .modal-header
+                        h5.modal-title Copier/déplacer le widget
+                        a.btn.close(@click="cancel") &times;
+                        
+                    .modal-body
+                        .pages
+                            template(v-for='(page_, pagei) in pages')
+                                .page 
+                                    .btn-success.selected(v-if='page_.id == page_to_copy_in_id')
+                                        i.fa-duotone.fa-check-circle.fa-fw(aria-hidden="true")
+                                        //- Page selectionnée.
+                                    .btn-primary.select(v-else)
+                                        i.fa-duotone.fa-grid-horizontal.fa-fw.btn_icon(aria-hidden="true" @click="select_page_to_copy_in(page_)")
+
+                                    .name
+                                        Inlinetranslatabletext(:code_text="pages_name_code_text[pagei]" :is_editable="false")
+                    .modal-footer
+                        .hide_navigation(:class='{"disabled" : page_to_copy_in_id == page_id , "not_disabled": page_to_copy_in_id != page_id}')
+                            //-On grise le button "déplacer" si jamais la page vers laquelle on souhaite effectuer des modifications est celle sur laquelle on est.
+                            template(v-if='page_to_copy_in_id == page_id')
+                                button.btn.btn-primary(type='button' data-bs-dismiss='modal' @click = "do_copy_widget") Copier
+                                button.btn.btn-primary.disabled(type='button') Déplacer
+                            template(v-else)
+                                button.btn.btn-primary(type='button' data-bs-dismiss='modal' @click = "do_copy_widget") Copier
+                                button.btn.btn-primary(type='button' @click = "do_transfert_widget(false)") Déplacer

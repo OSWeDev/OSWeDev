@@ -123,7 +123,7 @@ export default class AnimationReportingStoreModule implements IStoreModule<IAnim
                         }
                     }
 
-                    res.push(RangeHandler.getInstance().create_single_elt_NumRange(parseInt(anim_theme_id), NumSegment.TYPE_INT));
+                    res.push(RangeHandler.create_single_elt_NumRange(parseInt(anim_theme_id), NumSegment.TYPE_INT));
                 }
 
                 state.anim_theme_id_ranges = res;
@@ -159,12 +159,12 @@ export default class AnimationReportingStoreModule implements IStoreModule<IAnim
                                 continue;
                             }
 
-                            if (!RangeHandler.getInstance().elt_intersects_any_range(anim_theme.id, state.anim_theme_id_ranges)) {
+                            if (!RangeHandler.elt_intersects_any_range(anim_theme.id, state.anim_theme_id_ranges)) {
                                 continue;
                             }
                         }
 
-                        res.push(RangeHandler.getInstance().create_single_elt_NumRange(module_id, NumSegment.TYPE_INT));
+                        res.push(RangeHandler.create_single_elt_NumRange(module_id, NumSegment.TYPE_INT));
                     }
                 }
 
@@ -188,7 +188,7 @@ export default class AnimationReportingStoreModule implements IStoreModule<IAnim
                         }
 
                         if (anim_module.role_id_ranges && anim_module.role_id_ranges.length > 0) {
-                            RangeHandler.getInstance().foreach_ranges_sync(anim_module.role_id_ranges, (role_id: number) => {
+                            RangeHandler.foreach_ranges_sync(anim_module.role_id_ranges, (role_id: number) => {
                                 if (role_id_add[role_id]) {
                                     return;
                                 }
@@ -199,7 +199,7 @@ export default class AnimationReportingStoreModule implements IStoreModule<IAnim
 
                                 role_id_add[role_id] = true;
 
-                                res.push(RangeHandler.getInstance().create_single_elt_NumRange(role_id, NumSegment.TYPE_INT));
+                                res.push(RangeHandler.create_single_elt_NumRange(role_id, NumSegment.TYPE_INT));
                             });
                         }
                     }
@@ -230,7 +230,7 @@ export default class AnimationReportingStoreModule implements IStoreModule<IAnim
                             }
 
                             user_id_add[user_id] = true;
-                            res.push(RangeHandler.getInstance().create_single_elt_NumRange(parseInt(user_id), NumSegment.TYPE_INT));
+                            res.push(RangeHandler.create_single_elt_NumRange(parseInt(user_id), NumSegment.TYPE_INT));
                         }
                     }
                 }

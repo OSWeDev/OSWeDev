@@ -39,10 +39,10 @@ export default class VersionedVOController implements IVOController {
         this.registeredModuleTables.push(moduleTable);
 
         let version_edit_author_id = new ModuleTableField('version_edit_author_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Modificateur', false).hide_from_datatable();
-        version_edit_author_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        version_edit_author_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
         version_edit_author_id.setModuleTable(moduleTable);
         let version_author_id = new ModuleTableField('version_author_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Créateur', false).hide_from_datatable();
-        version_author_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        version_author_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
         version_author_id.setModuleTable(moduleTable);
 
         moduleTable.push_field(version_edit_author_id);
@@ -155,15 +155,4 @@ export default class VersionedVOController implements IVOController {
     public getTrashedVersionedVoType(original_vo_type: string): string {
         return '__' + VersionedVOController.VERSIONED_TRASHED_DATABASE + '__' + original_vo_type;
     }
-
-    public get_registeredModuleTables_by_vo_type(vo_type: string): ModuleTable<any> {
-        let result: Array<ModuleTable<any>> = this.registeredModuleTables.filter((obj) => {
-            return obj.vo_type === vo_type;
-        });
-        if (result.length > 1) {
-            console.log("Attention , il y a deux tables de même vo_type !");
-        }
-        return result[0];
-    }
-
 }

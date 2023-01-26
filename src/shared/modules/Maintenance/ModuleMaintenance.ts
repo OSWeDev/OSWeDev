@@ -93,7 +93,7 @@ export default class ModuleMaintenance extends Module {
             author_id,
         ];
 
-        author_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        author_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
 
         let table = new ModuleTable(this, MaintenanceVO.API_TYPE_ID, () => new MaintenanceVO(), fields, null, 'Maintenances');
         this.datatables.push(table);

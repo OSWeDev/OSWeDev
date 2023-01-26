@@ -97,7 +97,7 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
             res = res && await this.merge_imported_datas_in_translations(datas, historic);
 
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
             await ImportLogger.getInstance().log(historic, format, "Erreur de posttraitement : " + error, DataImportLogVO.LOG_LEVEL_FATAL);
             res = false;
         }
@@ -172,7 +172,7 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
                 let insertRes: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(translatable);
 
                 if ((!insertRes) || (!insertRes.id)) {
-                    ConsoleHandler.getInstance().error('Erreur d\'insertion d\'un nouveau translatable en base :' + data.code_lang + ':' + data.code_text + ':' + data.translated + ':');
+                    ConsoleHandler.error('Erreur d\'insertion d\'un nouveau translatable en base :' + data.code_lang + ':' + data.code_text + ':' + data.translated + ':');
                     continue;
                 }
 

@@ -28,6 +28,6 @@ export default class PushDataCronWorkersHandler {
         planCronWorker.type_recurrence = CronWorkerPlanification.TYPE_RECURRENCE_JOURS;
         planCronWorker.worker_uid = CleanOldNotifsCronWorker.getInstance().worker_uid;
         // Pas besoin d'être dans un contexte synchrone
-        ModuleCronServer.getInstance().planCronWorker(planCronWorker).then().catch((error) => ConsoleHandler.getInstance().error(error));
+        ModuleCronServer.getInstance().planCronWorker(planCronWorker).then().catch((error) => ConsoleHandler.error(error));
     }
 }

@@ -59,11 +59,11 @@ export default class VueAnimationThemeComponent extends VueComponentBase {
         let promises = [];
 
         for (let i in this.modules) {
-            this.module_id_ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(this.modules[i].id, NumSegment.TYPE_INT));
+            this.module_id_ranges.push(RangeHandler.create_single_elt_NumRange(this.modules[i].id, NumSegment.TYPE_INT));
         }
 
         for (let i in this.themes) {
-            this.theme_id_ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(this.themes[i].id, NumSegment.TYPE_INT));
+            this.theme_id_ranges.push(RangeHandler.create_single_elt_NumRange(this.themes[i].id, NumSegment.TYPE_INT));
         }
 
         for (let i in this.modules) {
@@ -102,9 +102,9 @@ export default class VueAnimationThemeComponent extends VueComponentBase {
         this.prct_atteinte_seuil_theme_param = ThemeModuleDataRangesVO.createNew(
             AnimationController.VarDayPrctAtteinteSeuilAnimationController_VAR_NAME,
             true,
-            [RangeHandler.getInstance().create_single_elt_NumRange(this.theme.id, NumSegment.TYPE_INT)],
+            [RangeHandler.create_single_elt_NumRange(this.theme.id, NumSegment.TYPE_INT)],
             this.module_id_ranges,
-            [RangeHandler.getInstance().create_single_elt_NumRange(this.logged_user_id, NumSegment.TYPE_INT)],
+            [RangeHandler.create_single_elt_NumRange(this.logged_user_id, NumSegment.TYPE_INT)],
         );
 
         this.is_ready = true;
@@ -147,8 +147,8 @@ export default class VueAnimationThemeComponent extends VueComponentBase {
             AnimationController.VarDayPrctAtteinteSeuilAnimationController_VAR_NAME,
             true,
             this.theme_id_ranges,
-            [RangeHandler.getInstance().create_single_elt_NumRange(module_id, NumSegment.TYPE_INT)],
-            [RangeHandler.getInstance().create_single_elt_NumRange(this.logged_user_id, NumSegment.TYPE_INT)],
+            [RangeHandler.create_single_elt_NumRange(module_id, NumSegment.TYPE_INT)],
+            [RangeHandler.create_single_elt_NumRange(this.logged_user_id, NumSegment.TYPE_INT)],
         );
     }
 

@@ -29,7 +29,7 @@ export default class VarsPerfMonController {
             [
                 var_id
             ], var_module);
-        var_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
+        var_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
     }
 
     public initialize_DSControllerPMLInfosVO(var_module: Module) {

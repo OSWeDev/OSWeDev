@@ -185,9 +185,9 @@
 
 //         VarDAGDefineNodeDeps.add_node_deps(null, null, null, null);
 
-//         let param1: FakeDataVO = VarDataBaseVO.createNew('fake_type', 1, true, [RangeHandler.getInstance().create_single_elt_TSRange(moment("2019-01-01").utc(true), TimeSegment.TYPE_DAY)]);
-//         let param2: FakeDataVO = VarDataBaseVO.createNew('fake_type', 1, true, [RangeHandler.getInstance().create_single_elt_TSRange(moment("2019-01-02").utc(true), TimeSegment.TYPE_DAY)]);
-//         let param3: FakeDataVO = VarDataBaseVO.createNew('fake_type', 1, true, [RangeHandler.getInstance().create_single_elt_TSRange(moment("2019-01-03").utc(true), TimeSegment.TYPE_DAY)]);
+//         let param1: FakeDataVO = VarDataBaseVO.createNew('fake_type', 1, true, [RangeHandler.create_single_elt_TSRange(moment("2019-01-01").utc(true), TimeSegment.TYPE_DAY)]);
+//         let param2: FakeDataVO = VarDataBaseVO.createNew('fake_type', 1, true, [RangeHandler.create_single_elt_TSRange(moment("2019-01-02").utc(true), TimeSegment.TYPE_DAY)]);
+//         let param3: FakeDataVO = VarDataBaseVO.createNew('fake_type', 1, true, [RangeHandler.create_single_elt_TSRange(moment("2019-01-03").utc(true), TimeSegment.TYPE_DAY)]);
 
 //         let dag = new VarDAG((name: string, d: VarDAG, param: IVarDataVOBase) => new VarDAGNode(name, d, param), null);
 

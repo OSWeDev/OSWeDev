@@ -23,7 +23,7 @@ export default abstract class DataSourceControllerBase {
          */
         public vo_api_type_ids: string[],
 
-        public ds_name_default_translations: { [code_lang: string]: string }
+        public ds_name_default_translations: { [code_lang: string]: string } = null
     ) { }
 
     /**

@@ -138,7 +138,7 @@ export default class ImportTypeXMLHandler {
                 return;
             } catch (error) {
                 if (!muted) {
-                    ConsoleHandler.getInstance().error(error);
+                    ConsoleHandler.error(error);
                     await ImportLogger.getInstance().log(importHistoric, dataImportFormat, error, DataImportLogVO.LOG_LEVEL_ERROR);
                 }
                 resolve(null);
@@ -195,7 +195,7 @@ export default class ImportTypeXMLHandler {
         let datas: IImportedData[] = [];
         let row_index: number = 1;
 
-        let moduletable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[dataImportFormat.api_type_id];
+        let moduletable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[dataImportFormat.api_type_id];
 
         if (!xml_datas || !xml_datas.children || !xml_datas.children.length) {
             return null;
@@ -290,7 +290,7 @@ export default class ImportTypeXMLHandler {
                     rowData.not_validated_msg = "Champ obligatoire manquant : Column error:" + dataImportColumn.title;
                 }
             } catch (error) {
-                ConsoleHandler.getInstance().error(error);
+                ConsoleHandler.error(error);
                 rowData.importation_state = ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED;
                 rowData.not_validated_msg = (rowData.not_validated_msg ? rowData.not_validated_msg + ', ' : '') + "Column error:" + dataImportColumn.title;
             }

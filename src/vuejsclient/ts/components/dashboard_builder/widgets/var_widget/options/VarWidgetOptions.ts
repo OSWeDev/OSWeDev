@@ -1,7 +1,9 @@
 import DashboardPageWidgetVO from "../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
 import DefaultTranslation from "../../../../../../../shared/modules/Translation/vos/DefaultTranslation";
+import VarConfVO from "../../../../../../../shared/modules/Var/vos/VarConfVO";
+import IExportableWidgetOptions from "../../IExportableWidgetOptions";
 
-export default class VarWidgetOptions {
+export default class VarWidgetOptions implements IExportableWidgetOptions {
 
     public static TITLE_CODE_PREFIX: string = "VarWidgetOptions.title.";
 
@@ -13,7 +15,10 @@ export default class VarWidgetOptions {
         public var_id: number,
         public filter_type: string,
         public filter_custom_field_filters: { [field_id: string]: string },
-        public filter_additional_params: string
+        public filter_additional_params: string,
+        public bg_color: string,
+        public fg_color_value: string,
+        public fg_color_text: string,
     ) { }
 
     public get_title_name_code_text(page_widget_id: number): string {
@@ -22,5 +27,21 @@ export default class VarWidgetOptions {
             return null;
         }
         return VarWidgetOptions.TITLE_CODE_PREFIX + this.var_id + '.' + page_widget_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+    }
+
+    public async get_all_exportable_name_code_and_translation(page_id: number, page_widget_id: number): Promise<{ [current_code_text: string]: string }> {
+        let res: { [exportable_code_text: string]: string } = {};
+
+        let placeholder_name_code_text: string = this.get_title_name_code_text(page_widget_id);
+        if (placeholder_name_code_text) {
+
+            res[placeholder_name_code_text] =
+                VarWidgetOptions.TITLE_CODE_PREFIX +
+                '{{IMPORT:' + VarConfVO.API_TYPE_ID + ':' + this.var_id + '}}' +
+                '.' +
+                '{{IMPORT:' + DashboardPageWidgetVO.API_TYPE_ID + ':' + page_widget_id + '}}' +
+                DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        }
+        return res;
     }
 }

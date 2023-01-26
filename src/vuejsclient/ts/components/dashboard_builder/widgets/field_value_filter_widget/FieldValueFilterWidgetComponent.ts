@@ -48,7 +48,7 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
             return false;
         }
 
-        let field = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
+        let field = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
 
         if (!field) {
             return false;
@@ -69,7 +69,7 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
             return false;
         }
 
-        let field = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
+        let field = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
 
         if (!field) {
             return false;
@@ -90,7 +90,7 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
             return false;
         }
 
-        let field = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
+        let field = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
 
         if (!field) {
             return false;
@@ -98,6 +98,9 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
 
         switch (field.field_type) {
             case ModuleTableField.FIELD_TYPE_tstz:
+            case ModuleTableField.FIELD_TYPE_tsrange:
+            case ModuleTableField.FIELD_TYPE_tstzrange_array:
+            case ModuleTableField.FIELD_TYPE_tstz_array:
                 return true;
 
             default:
@@ -111,7 +114,7 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
             return false;
         }
 
-        let field = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
+        let field = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
 
         if (!field) {
             return false;
@@ -173,7 +176,7 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
             return false;
         }
 
-        let field = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
+        let field = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
 
         if (!field) {
 
@@ -223,6 +226,7 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
                     options.vo_field_sort,
                     options.can_select_multiple,
                     options.is_checkbox,
+                    options.checkbox_columns,
                     options.max_visible_options,
                     options.show_search_field,
                     options.hide_lvl2_if_lvl1_not_selected,
@@ -249,7 +253,7 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
                 ) : null;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return options;

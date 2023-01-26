@@ -63,11 +63,11 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
         )());
 
         promises.push((async () =>
-            this.pdf_info = await ModuleParams.getInstance().getParamValue(ModuleAccessPolicy.PARAM_NAME_LOGIN_INFOS)
+            this.pdf_info = await ModuleParams.getInstance().getParamValueAsString(ModuleAccessPolicy.PARAM_NAME_LOGIN_INFOS)
         )());
 
         promises.push((async () =>
-            this.pdf_cgu = await ModuleParams.getInstance().getParamValue(ModuleAccessPolicy.PARAM_NAME_LOGIN_CGU)
+            this.pdf_cgu = await ModuleParams.getInstance().getParamValueAsString(ModuleAccessPolicy.PARAM_NAME_LOGIN_CGU)
         )());
 
         await all_promises(promises);
@@ -78,7 +78,7 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
     }
 
     private async load_logo_url() {
-        this.logo_url = await ModuleParams.getInstance().getParamValue(ModuleSASSSkinConfigurator.MODULE_NAME + '.logo_url');
+        this.logo_url = await ModuleParams.getInstance().getParamValueAsString(ModuleSASSSkinConfigurator.MODULE_NAME + '.logo_url');
         if (this.logo_url && (this.logo_url != '""') && (this.logo_url != '')) {
             return;
         }

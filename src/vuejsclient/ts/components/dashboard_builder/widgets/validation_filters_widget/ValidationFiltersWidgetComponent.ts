@@ -1,12 +1,12 @@
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Prop } from 'vue-property-decorator';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
-import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import VueComponentBase from '../../../VueComponentBase';
 import ValidationFiltersWidgetOptions from './options/ValidationFiltersWidgetOptions';
+import ValidationFiltersCallUpdaters from './ValidationFiltersCallUpdaters';
 import './ValidationFiltersWidgetComponent.scss';
 import ValidationFiltersWidgetController from './ValidationFiltersWidgetController';
 
@@ -34,22 +34,7 @@ export default class ValidationFiltersWidgetComponent extends VueComponentBase {
 
         this.start_update = true;
 
-        let updaters: { [page_widget_id: number]: () => Promise<void> } = {};
-
-        if (
-            ValidationFiltersWidgetController.getInstance().updaters &&
-            ValidationFiltersWidgetController.getInstance().updaters[this.dashboard_page.dashboard_id]
-        ) {
-            updaters = ValidationFiltersWidgetController.getInstance().updaters[this.dashboard_page.dashboard_id][this.dashboard_page.id];
-        }
-
-        let promises = [];
-
-        for (let page_widget_id in updaters) {
-            promises.push(updaters[page_widget_id]());
-        }
-
-        await all_promises(promises);
+        await ValidationFiltersWidgetController.getInstance().throttle_call_updaters(new ValidationFiltersCallUpdaters(this.dashboard_page.dashboard_id, this.dashboard_page.id));
 
         this.start_update = false;
     }
@@ -66,7 +51,7 @@ export default class ValidationFiltersWidgetComponent extends VueComponentBase {
                 options = options ? new ValidationFiltersWidgetOptions() : null;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return options;

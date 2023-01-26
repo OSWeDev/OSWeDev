@@ -23,11 +23,11 @@ export default class TablesGraphItemComponent extends VueComponentBase {
             return null;
         }
 
-        return this.t(VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_type].label.code_text);
+        return this.t(VOsTypesManager.moduleTables_by_voType[this.vo_type].label.code_text);
     }
 
     get fields(): Array<ModuleTableField<any>> {
 
-        return VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_type].get_fields();
+        return VOsTypesManager.moduleTables_by_voType[this.vo_type].get_fields();
     }
 }

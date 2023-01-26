@@ -38,12 +38,12 @@ export default class VarsPerfMonServerController {
                 let range = matroid_base.ranges[j];
                 let pmlinfo = new MatroidBasePMLInfoVO();
 
-                pmlinfo.cardinal = RangeHandler.getInstance().getCardinal(range);
+                pmlinfo.cardinal = RangeHandler.getCardinal(range);
                 pmlinfo.field_id = matroid_base.field_id;
                 pmlinfo.vo_type = matroid_base.api_type_id;
                 pmlinfo.range_type = range.range_type;
                 pmlinfo.segment_type = range.segment_type;
-                pmlinfo.is_max_range = RangeHandler.getInstance().is_max_range(range);
+                pmlinfo.is_max_range = RangeHandler.is_max_range(range);
 
                 pmlinfo.min_as_number = range.min;
                 pmlinfo.max_as_number = range.max;

@@ -1,45 +1,32 @@
 import INamedVO from '../interfaces/INamedVO';
 import ObjectHandler from '../tools/ObjectHandler';
+import Dates from './FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from './IDistantVOBase';
 import ModuleTable from './ModuleTable';
 import ModuleTableField from './ModuleTableField';
 
 export default class VOsTypesManager {
-    public static getInstance() {
-        if (!VOsTypesManager.instance) {
-            VOsTypesManager.instance = new VOsTypesManager();
-        }
-        return VOsTypesManager.instance;
-    }
-
-    private static instance: VOsTypesManager = null;
 
     /**
      * Local thread cache -----
      */
-
-    public moduleTables_by_voType: { [voType: string]: ModuleTable<any> } = {};
-
-    private types_references: { [api_type_id: string]: Array<ModuleTableField<any>> } = {};
-    private types_dependencies: { [api_type_id: string]: Array<ModuleTableField<any>> } = {};
-
+    public static moduleTables_by_voType: { [voType: string]: ModuleTable<any> } = {};
     /**
      * ----- Local thread cache
      */
-    private constructor() { }
 
     /**
      * Renvoie tous les champs qui font référence à ce type
      * @param to_api_type_id
      */
-    public get_type_references(to_api_type_id: string): Array<ModuleTableField<any>> {
+    public static get_type_references(to_api_type_id: string): Array<ModuleTableField<any>> {
 
-        if (!this.types_references[to_api_type_id]) {
+        if (!VOsTypesManager.types_references[to_api_type_id]) {
 
-            this.types_references[to_api_type_id] = [];
+            VOsTypesManager.types_references[to_api_type_id] = [];
 
-            for (let api_type_id_i in this.moduleTables_by_voType) {
-                let table = this.moduleTables_by_voType[api_type_id_i];
+            for (let api_type_id_i in VOsTypesManager.moduleTables_by_voType) {
+                let table = VOsTypesManager.moduleTables_by_voType[api_type_id_i];
 
                 if (api_type_id_i == to_api_type_id) {
                     continue;
@@ -54,27 +41,27 @@ export default class VOsTypesManager {
                     }
 
                     if (field.manyToOne_target_moduletable.vo_type == to_api_type_id) {
-                        this.types_references[to_api_type_id].push(field);
+                        VOsTypesManager.types_references[to_api_type_id].push(field);
                     }
                 }
             }
         }
 
-        return this.types_references[to_api_type_id];
+        return VOsTypesManager.types_references[to_api_type_id];
     }
 
-    public addAlias(api_type_id_alias: string, vo_type: string) {
-        this.moduleTables_by_voType[api_type_id_alias] = this.moduleTables_by_voType[vo_type];
+    public static addAlias(api_type_id_alias: string, vo_type: string) {
+        VOsTypesManager.moduleTables_by_voType[api_type_id_alias] = VOsTypesManager.moduleTables_by_voType[vo_type];
     }
 
-    public registerModuleTable(module_table: ModuleTable<any>) {
+    public static registerModuleTable(module_table: ModuleTable<any>) {
         if (module_table && module_table.vo_type) {
 
-            this.moduleTables_by_voType[module_table.vo_type] = module_table;
+            VOsTypesManager.moduleTables_by_voType[module_table.vo_type] = module_table;
         }
     }
 
-    public namedvosArray_to_vosByNames<T extends INamedVO>(vos: T[]): { [name: string]: T } {
+    public static namedvosArray_to_vosByNames<T extends INamedVO>(vos: T[]): { [name: string]: T } {
         let res: { [name: string]: T } = {};
 
         for (let i in vos) {
@@ -86,7 +73,7 @@ export default class VOsTypesManager {
         return res;
     }
 
-    public vosArray_to_vosByIds<T extends IDistantVOBase>(vos: T[]): { [id: number]: T } {
+    public static vosArray_to_vosByIds<T extends IDistantVOBase>(vos: T[]): { [id: number]: T } {
         let res: { [id: number]: T } = {};
 
         for (let i in vos) {
@@ -98,7 +85,7 @@ export default class VOsTypesManager {
         return res;
     }
 
-    public isManyToManyModuleTable(moduleTable: ModuleTable<any>): boolean {
+    public static isManyToManyModuleTable(moduleTable: ModuleTable<any>): boolean {
 
         let manyToOne1: ModuleTable<any> = null;
         let field_num: number = 0;
@@ -158,24 +145,31 @@ export default class VOsTypesManager {
         return isManyToMany;
     }
 
-    public get_manyToManyModuleTables(): Array<ModuleTable<any>> {
-        let res: Array<ModuleTable<any>> = [];
+    /**
+     * ça ne devrait pas changer, du moins pour le moment, après un boot du serveur
+     */
+    public static get_manyToManyModuleTables(): Array<ModuleTable<any>> {
 
-        for (let i in this.moduleTables_by_voType) {
-            let moduleTable = this.moduleTables_by_voType[i];
+        if ((!VOsTypesManager.manyToManyModuleTables) || (VOsTypesManager.init_date >= Dates.now() - 60)) {
+            let res: Array<ModuleTable<any>> = [];
 
-            if (this.isManyToManyModuleTable(moduleTable)) {
-                res.push(moduleTable);
+            for (let i in VOsTypesManager.moduleTables_by_voType) {
+                let moduleTable = VOsTypesManager.moduleTables_by_voType[i];
+
+                if (VOsTypesManager.isManyToManyModuleTable(moduleTable)) {
+                    res.push(moduleTable);
+                }
             }
-        }
 
-        return res;
+            VOsTypesManager.manyToManyModuleTables = res;
+        }
+        return VOsTypesManager.manyToManyModuleTables;
     }
 
-    public getManyToOneFields(api_type_id: string, ignore_target_types: string[]): Array<ModuleTableField<any>> {
+    public static getManyToOneFields(api_type_id: string, ignore_target_types: string[]): Array<ModuleTableField<any>> {
 
         let res: Array<ModuleTableField<any>> = [];
-        let table = this.moduleTables_by_voType[api_type_id];
+        let table = VOsTypesManager.moduleTables_by_voType[api_type_id];
         let fields = table.get_fields();
 
         for (let j in fields) {
@@ -202,7 +196,7 @@ export default class VOsTypesManager {
         return res;
     }
 
-    public getManyToManyOtherField(manyToManyModuleTable: ModuleTable<any>, firstField: ModuleTableField<any>): ModuleTableField<any> {
+    public static getManyToManyOtherField(manyToManyModuleTable: ModuleTable<any>, firstField: ModuleTableField<any>): ModuleTableField<any> {
 
         for (let j in manyToManyModuleTable.get_fields()) {
             let field: ModuleTableField<any> = manyToManyModuleTable.get_fields()[j];
@@ -236,7 +230,7 @@ export default class VOsTypesManager {
      * @param new_fields Un tableau passé en param et que l'on rempli dans la fonction pour indiquer les champs qui apparaissent dans la cible
      * @param deleted_fields Un tableau passé en param et que l'on rempli dans la fonction pour indiquer les champs qui disparaissent dans la cible
      */
-    public getChangingFieldsFromDifferentApiTypes(
+    public static getChangingFieldsFromDifferentApiTypes(
         type_src: ModuleTable<any>,
         type_dest: ModuleTable<any>,
         common_fields: Array<ModuleTableField<any>>,
@@ -263,4 +257,20 @@ export default class VOsTypesManager {
             }
         }
     }
+
+    /**
+     * Local thread cache -----
+     */
+    private static types_references: { [api_type_id: string]: Array<ModuleTableField<any>> } = {};
+    private static manyToManyModuleTables: Array<ModuleTable<any>> = null;
+
+    /**
+     * on voudrait utiliser BGThreadServerController.getInstance().server_ready mais on peut pas import ça bloc
+     *  donc on passe par un pis-aller pour le moment avec juste un délai de 1 minute après le boot du serveur pour accepter de cacher les résultas du get_manyToManyModuleTables
+     */
+    private static init_date: number = Dates.now();
+
+    /**
+     * ----- Local thread cache
+     */
 }

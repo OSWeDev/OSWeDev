@@ -65,97 +65,97 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
     }
 
     public async configure() {
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Erreur à la lecture du Tag NFC. Réessayer.'
         }, 'NFCHandler.readingerror.readingerror.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Le numéro de série du Tag NFC est illisible. Réessayer.'
         }, 'NFCHandler.readingerror.serialNumber.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Le tag NFC est inconnu, connectez-vous d\'abord à votre compte pour le lier.'
         }, 'NFCHandler.readinginfo.tag_not_registered.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Voulez-vous changer de compte connecté ?'
         }, 'NFCHandler.switchconfirmation.body.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Connexion par Tag NFC à un autre compte'
         }, 'NFCHandler.switchconfirmation.title.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Connexion en cours...'
         }, 'NFCHandler.switchconfirmation.start.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Tag déjà lié au compte'
         }, 'NFCHandler.tag_already_added.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Voulez-vous lier ce Tag NFC à votre compte ?'
         }, 'NFCHandler.addconfirmation.body.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Lier le Tag à votre compte'
         }, 'NFCHandler.addconfirmation.title.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Ajout du Tag NFC en cours...'
         }, 'NFCHandler.addconfirmation.start.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Echec lors de l\'ajout du Tag. Réessayer.'
         }, 'NFCHandler.addconfirmation.failed_add_tag.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Echec lors de l\'ajout du Tag. Réessayer.'
         }, 'NFCHandler.addconfirmation.failed_add_tag_user.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Le Tag NFC est lié à votre compte. Vous pouvez l\'utiliser pour vous connecter.'
         }, 'NFCHandler.addconfirmation.ended.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'NFC activé, passer le Tag pour continuer'
         }, 'login.nfcconnect.on.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Lecture NFC impossible'
         }, 'login.nfcconnect.off.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Activer NFC Connect'
         }, 'login.nfcconnect.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'NFC Connect activé'
         }, 'login.nfcconnected.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Actualiser'
         }, 'nfcconnect_user_tag_list.update_list.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'NFC'
         }, 'nfcconnect_user_tag_list.nfc_header.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Ecrire le lien de connexion sur le Tag NFC ?'
         }, 'NFCHandler.writeurlconfirmation.body.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Lien de connexion automatique'
         }, 'NFCHandler.writeurlconfirmation.title.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Passer le Tag NFC pour le mettre à jour...'
         }, 'NFCHandler.writeurlconfirmation.start.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Echec ecriture du Tag NFC.'
         }, 'NFCHandler.writeurlconfirmation.failed.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Tag mis à jour'
         }, 'NFCHandler.writeurlconfirmation.ended.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'NFC'
         }, 'menu.menuelements.admin.NFCConnectAdminVueModule.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'NFC Tags'
         }, 'menu.menuelements.admin.nfc_tag.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'NFC Tags User'
         }, 'menu.menuelements.admin.nfc_tag_user.___LABEL___'));
     }
@@ -173,7 +173,7 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
         let user_id = await ModuleAccessPolicyServer.getInstance().getLoggedUserId();
 
         if (!user_id) {
-            ConsoleHandler.getInstance().error("Impossible de lister les tags. Pas de user_id:" + user_id);
+            ConsoleHandler.error("Impossible de lister les tags. Pas de user_id:" + user_id);
             return null;
         }
 
@@ -186,7 +186,7 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
             let tags_ids: number[] = user_tags.map((tag: NFCTagUserVO) => tag.nfc_tag_id);
             return await query(NFCTagVO.API_TYPE_ID).filter_by_ids(tags_ids).select_vos<NFCTagVO>();
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
         return null;
     }
@@ -203,23 +203,23 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
 
     private async connect(serial_number: string): Promise<boolean> {
 
-        return await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
+        return await StackContext.runPromise({ IS_CLIENT: false }, async () => {
 
             let tag = await ModuleDAO.getInstance().getNamedVoByName<NFCTagVO>(NFCTagVO.API_TYPE_ID, serial_number);
             if (!tag) {
-                ConsoleHandler.getInstance().error('TAG inconnu:' + serial_number);
+                ConsoleHandler.error('TAG inconnu:' + serial_number);
                 return false;
             }
 
             let tags_user: NFCTagUserVO[] = await query(NFCTagUserVO.API_TYPE_ID).filter_by_num_eq('nfc_tag_id', tag.id).select_vos<NFCTagUserVO>();
             if ((!tags_user) || (tags_user.length != 1)) {
-                ConsoleHandler.getInstance().error('TAG pas lié à un utilisateur ou pas un seul:' + serial_number);
+                ConsoleHandler.error('TAG pas lié à un utilisateur ou pas un seul:' + serial_number);
                 return false;
             }
 
             let tag_user = tags_user[0];
             if (!tag_user.user_id) {
-                ConsoleHandler.getInstance().error('TAG pas lié à un utilisateur ou pas un seul:' + serial_number);
+                ConsoleHandler.error('TAG pas lié à un utilisateur ou pas un seul:' + serial_number);
                 return false;
             }
 
@@ -235,7 +235,7 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
      */
     private async checktag_user(serial_number: string, user_id: number): Promise<boolean> {
 
-        return await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
+        return await StackContext.runPromise({ IS_CLIENT: false }, async () => {
 
             let tag = await ModuleDAO.getInstance().getNamedVoByName<NFCTagVO>(NFCTagVO.API_TYPE_ID, serial_number);
             if (!tag) {
@@ -261,11 +261,11 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
         let user_id = await ModuleAccessPolicyServer.getInstance().getLoggedUserId();
 
         if (!user_id) {
-            ConsoleHandler.getInstance().error("Impossible de créer le nouveau tag. Pas de user_id:" + user_id);
+            ConsoleHandler.error("Impossible de créer le nouveau tag. Pas de user_id:" + user_id);
             return false;
         }
 
-        return await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
+        return await StackContext.runPromise({ IS_CLIENT: false }, async () => {
 
             let insertOrDeleteQueryResult = null;
             let tag = await ModuleDAO.getInstance().getNamedVoByName<NFCTagVO>(NFCTagVO.API_TYPE_ID, serial_number);
@@ -277,7 +277,7 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
                 insertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(tag);
                 if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
 
-                    ConsoleHandler.getInstance().error("Impossible de créer le nouveau tag. Abandon.");
+                    ConsoleHandler.error("Impossible de créer le nouveau tag. Abandon.");
                     return false;
                 }
                 tag.id = insertOrDeleteQueryResult.id;
@@ -290,7 +290,7 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
                     // Tag déjà lié à cet utilisateur
                     return true;
                 }
-                ConsoleHandler.getInstance().error('TAG déjà lié à un utilisateur:' + serial_number);
+                ConsoleHandler.error('TAG déjà lié à un utilisateur:' + serial_number);
                 return false;
             }
 
@@ -300,7 +300,7 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
             insertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(add_tag_user);
             if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
 
-                ConsoleHandler.getInstance().error("Impossible de créer le nouveau tag user. Abandon.");
+                ConsoleHandler.error("Impossible de créer le nouveau tag user. Abandon.");
                 return false;
             }
 
@@ -313,23 +313,23 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
         let user_id = await ModuleAccessPolicyServer.getInstance().getLoggedUserId();
 
         if (!user_id) {
-            ConsoleHandler.getInstance().error("Impossible de supprimer le tag. Pas de user_id:" + user_id);
+            ConsoleHandler.error("Impossible de supprimer le tag. Pas de user_id:" + user_id);
             return false;
         }
 
-        return await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
+        return await StackContext.runPromise({ IS_CLIENT: false }, async () => {
 
             let insertOrDeleteQueryResult = null;
             let tag = await ModuleDAO.getInstance().getNamedVoByName<NFCTagVO>(NFCTagVO.API_TYPE_ID, serial_number);
             if (!tag) {
 
-                ConsoleHandler.getInstance().error("Impossible de supprimer le tag. Tag Introuvable.");
+                ConsoleHandler.error("Impossible de supprimer le tag. Tag Introuvable.");
                 return false;
             }
 
             insertOrDeleteQueryResult = await ModuleDAO.getInstance().deleteVOs([tag]);
             if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
-                ConsoleHandler.getInstance().error("Impossible de supprimer le tag user. Abandon.");
+                ConsoleHandler.error("Impossible de supprimer le tag user. Abandon.");
                 return false;
             }
 

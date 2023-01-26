@@ -12,7 +12,7 @@ import AnimationUserModuleVO from "../../../../../../shared/modules/Animation/vo
 import AnimationUserQRVO from "../../../../../../shared/modules/Animation/vos/AnimationUserQRVO";
 import { query } from "../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import ModuleDAO from "../../../../../../shared/modules/DAO/ModuleDAO";
-import SimpleDatatableField from "../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField";
+import SimpleDatatableFieldVO from "../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO";
 import NumRange from "../../../../../../shared/modules/DataRender/vos/NumRange";
 import NumSegment from "../../../../../../shared/modules/DataRender/vos/NumSegment";
 import DocumentVO from "../../../../../../shared/modules/Document/vos/DocumentVO";
@@ -93,23 +93,23 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
         await all_promises(promises);
 
         for (let i in this.themes) {
-            this.theme_id_ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(this.themes[i].id, NumSegment.TYPE_INT));
+            this.theme_id_ranges.push(RangeHandler.create_single_elt_NumRange(this.themes[i].id, NumSegment.TYPE_INT));
         }
 
         this.prct_atteinte_seuil_module_param = ThemeModuleDataRangesVO.createNew(
             AnimationController.VarDayPrctAtteinteSeuilAnimationController_VAR_NAME,
             true,
             this.theme_id_ranges,
-            [RangeHandler.getInstance().create_single_elt_NumRange(this.anim_module.id, NumSegment.TYPE_INT)],
-            [RangeHandler.getInstance().create_single_elt_NumRange(this.logged_user_id, NumSegment.TYPE_INT)],
+            [RangeHandler.create_single_elt_NumRange(this.anim_module.id, NumSegment.TYPE_INT)],
+            [RangeHandler.create_single_elt_NumRange(this.logged_user_id, NumSegment.TYPE_INT)],
         );
 
         this.prct_reussite_module_param = ThemeModuleDataRangesVO.createNew(
             AnimationController.VarDayPrctReussiteAnimationController_VAR_NAME,
             true,
             this.theme_id_ranges,
-            [RangeHandler.getInstance().create_single_elt_NumRange(this.anim_module.id, NumSegment.TYPE_INT)],
-            [RangeHandler.getInstance().create_single_elt_NumRange(this.logged_user_id, NumSegment.TYPE_INT)],
+            [RangeHandler.create_single_elt_NumRange(this.anim_module.id, NumSegment.TYPE_INT)],
+            [RangeHandler.create_single_elt_NumRange(this.logged_user_id, NumSegment.TYPE_INT)],
         );
 
         promises = [];
@@ -158,7 +158,7 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
 
         let promises = [];
 
-        promises.push((async () => this.file_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(
+        promises.push((async () => this.file_by_ids = VOsTypesManager.vosArray_to_vosByIds(
             await query(FileVO.API_TYPE_ID).filter_by_ids(file_ids).select_vos<FileVO>()
         ))());
 
@@ -278,11 +278,11 @@ export default class VueAnimationModuleComponent extends VueComponentBase {
     }
 
     get name_theme_editable_field() {
-        return new SimpleDatatableField('name').setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[AnimationThemeVO.API_TYPE_ID]);
+        return SimpleDatatableFieldVO.createNew('name').setModuleTable(VOsTypesManager.moduleTables_by_voType[AnimationThemeVO.API_TYPE_ID]);
     }
 
     get name_module_editable_field() {
-        return new SimpleDatatableField('name').setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[AnimationModuleVO.API_TYPE_ID]);
+        return SimpleDatatableFieldVO.createNew('name').setModuleTable(VOsTypesManager.moduleTables_by_voType[AnimationModuleVO.API_TYPE_ID]);
     }
 
     get ordered_qrs(): AnimationQRVO[] {

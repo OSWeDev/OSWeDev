@@ -1,0 +1,41 @@
+.percent_filter_options
+    .fractionalDigits
+        .label {{ label('percent_filter_options.fractionalDigits') }}
+        .input
+            input(type='number' v-model='fractionalDigits' min="0" max="3" @change='onchange_inputs')
+    .pts
+        .label {{ label('percent_filter_options.pts') }}
+        .input
+            toggle-button(
+                @change="switch_pts" 
+                :value="pts" 
+                :sync="false"
+                :width="60"
+                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}")
+    .explicit_sign
+        .label {{ label('percent_filter_options.explicit_sign') }}
+        .input
+            toggle-button(
+                @change="switch_explicit_sign" 
+                :value="explicit_sign" 
+                :sync="false"
+                :width="60"
+                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}")
+    .evol_from_prct
+        .label {{ label('percent_filter_options.evol_from_prct') }}
+        .input
+            toggle-button(
+                @change="switch_evol_from_prct" 
+                :value="evol_from_prct" 
+                :sync="false"
+                :width="60"
+                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}")
+    .treat_999_as_infinite
+        .label {{ label('percent_filter_options.treat_999_as_infinite') }}
+        .input
+            toggle-button(
+                @change="switch_treat_999_as_infinite" 
+                :value="treat_999_as_infinite" 
+                :sync="false"
+                :width="60"
+                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}")

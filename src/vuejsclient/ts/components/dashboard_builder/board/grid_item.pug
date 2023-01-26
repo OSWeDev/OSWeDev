@@ -1,6 +1,6 @@
 .grid_item_wrapper(
     @click="select_widget(item)"
-    :class="{'selected': selected_widget && (item.i == selected_widget.i), ['widget_name__' + widgets_by_id[item.widget_id].name]: true, ['item__' + item.id]: true, hide: isHide(item) }"
+    :class="{'selected': selected_widget && (item.i == selected_widget.i), ['widget_name__' + widgets_by_id[item.widget_id].name]: true, ['item__' + item.id]: true, hide: isHide(item) && !editable, shaded: isHide(item) && editable}"
 )
     Griditem(
         :static="(!editable) || item.static"

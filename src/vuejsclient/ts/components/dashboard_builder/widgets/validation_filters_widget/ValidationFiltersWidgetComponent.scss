@@ -1,13 +1,11 @@
-.validation_filters_widget_component {
+.dashboard_builder_board_item .widget_component.validation_filters_widget_component {
 
     height: 100%;
+    padding: 0.5em;
 
     button {
         height: 100%;
         width: 100%;
-        background-color: dodgerblue;
-        color: white;
-        border: dodgerblue;
-        border-radius: 2%;
+        border: 0;
     }
 }

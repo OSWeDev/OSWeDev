@@ -7,71 +7,62 @@ export default class ConsoleHandler {
 
     public static SEPARATOR: string = ' - ';
 
-    public static getInstance(): ConsoleHandler {
-        if (!ConsoleHandler.instance) {
-            ConsoleHandler.instance = new ConsoleHandler();
-        }
-        return ConsoleHandler.instance;
-    }
+    public static logger_handler: ILoggerHandler = null;
 
-    private static instance: ConsoleHandler = null;
-
-    public logger_handler: ILoggerHandler = null;
-
-    private old_console_log: (message?: any, ...optionalParams: any[]) => void = null;
-    private old_console_warn: (message?: any, ...optionalParams: any[]) => void = null;
-    private old_console_error: (message?: any, ...optionalParams: any[]) => void = null;
-
-    private constructor() {
-        this.old_console_log = console.log;
+    public static init() {
+        ConsoleHandler.old_console_log = console.log;
         console.log = function (msg, ...params) {
-            ConsoleHandler.getInstance().log(msg, ...params);
+            ConsoleHandler.log(msg, ...params);
         };
 
-        this.old_console_warn = console.warn;
+        ConsoleHandler.old_console_warn = console.warn;
         console.warn = function (msg, ...params) {
-            ConsoleHandler.getInstance().warn(msg, ...params);
+            ConsoleHandler.warn(msg, ...params);
         };
 
-        this.old_console_error = console.error;
+        ConsoleHandler.old_console_error = console.error;
         console.error = function (msg, ...params) {
-            ConsoleHandler.getInstance().error(msg, ...params);
+            ConsoleHandler.error(msg, ...params);
         };
     }
 
-    public error(error: string | Error, ...params): void {
+    public static error(error: string | Error, ...params): void {
 
-        let msg = this.get_text_msg(error);
+        let msg = ConsoleHandler.get_text_msg(error);
 
-        if (!!this.logger_handler) {
-            this.logger_handler.log("ERROR -- " + msg, ...params);
+        if (!!ConsoleHandler.logger_handler) {
+            ConsoleHandler.logger_handler.log("ERROR -- " + msg, ...params);
         }
-        this.old_console_error(msg, ...params);
+        ConsoleHandler.old_console_error(msg, ...params);
     }
 
-    public warn(error: string | Error, ...params): void {
-        let msg = this.get_text_msg(error);
+    public static warn(error: string | Error, ...params): void {
+        let msg = ConsoleHandler.get_text_msg(error);
 
-        if (!!this.logger_handler) {
-            this.logger_handler.log("WARN  -- " + msg, ...params);
+        if (!!ConsoleHandler.logger_handler) {
+            ConsoleHandler.logger_handler.log("WARN  -- " + msg, ...params);
         }
-        this.old_console_warn(msg, ...params);
+        ConsoleHandler.old_console_warn(msg, ...params);
     }
 
-    public log(error: string | Error, ...params): void {
-        let msg = this.get_text_msg(error);
+    public static log(error: string | Error, ...params): void {
+        let msg = ConsoleHandler.get_text_msg(error);
 
-        if (!!this.logger_handler) {
-            this.logger_handler.log("DEBUG -- " + msg, ...params);
+        if (!!ConsoleHandler.logger_handler) {
+            ConsoleHandler.logger_handler.log("DEBUG -- " + msg, ...params);
         }
-        this.old_console_log(msg, ...params);
+        ConsoleHandler.old_console_log(msg, ...params);
     }
 
-    private get_text_msg(error: string | Error): string {
-        return ((process && process.pid) ? process.pid + ':' : '') + this.get_timestamp() + ConsoleHandler.SEPARATOR + (error ? ((error as Error).message ? ((error as Error).message + ':' + (error as Error).stack) : error) : error);
+    private static old_console_log: (message?: any, ...optionalParams: any[]) => void = null;
+    private static old_console_warn: (message?: any, ...optionalParams: any[]) => void = null;
+    private static old_console_error: (message?: any, ...optionalParams: any[]) => void = null;
+
+    private static get_text_msg(error: string | Error): string {
+        return ((process && process.pid) ? process.pid + ':' : '') + ConsoleHandler.get_timestamp() + ConsoleHandler.SEPARATOR + (error ? ((error as Error).message ? ((error as Error).message + ':' + (error as Error).stack) : error) : error);
     }
 
-    private get_timestamp(): string {
+    private static get_timestamp(): string {
         let ms = Math.floor(Dates.now_ms());
         let seconds = Math.floor(ms / 1000);
         ms = ms % 1000;

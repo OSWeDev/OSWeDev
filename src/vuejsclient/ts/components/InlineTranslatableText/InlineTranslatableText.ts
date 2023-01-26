@@ -1,6 +1,7 @@
 import { Component, Prop, Watch } from "vue-property-decorator";
 import ModuleTranslation from "../../../../shared/modules/Translation/ModuleTranslation";
 import LocaleManager from '../../../../shared/tools/LocaleManager';
+import ThrottleHelper from "../../../../shared/tools/ThrottleHelper";
 import VueAppController from '../../../VueAppController';
 import VueComponentBase from "../VueComponentBase";
 import './InlineTranslatableText.scss';
@@ -52,6 +53,8 @@ export default class InlineTranslatableText extends VueComponentBase {
     private parameterized_text: string = null;
     private semaphore: boolean = false;
 
+    private thottled_check_existing_bdd_translation = ThrottleHelper.getInstance().declare_throttle_without_args(this.check_existing_bdd_translation.bind(this), 500);
+
     @Watch("code_text", { immediate: true })
     private async onchange_code_text() {
 
@@ -66,29 +69,41 @@ export default class InlineTranslatableText extends VueComponentBase {
             return;
         }
 
-        await this.check_existing_bdd_translation();
+        await this.thottled_check_existing_bdd_translation();
     }
 
     private async check_existing_bdd_translation() {
-        if (!this.translation) {
+
+        if (!this.code_text) {
+            return;
+        }
+
+        let code_text = this.code_text;
+        let known_translation = this.translation;
+        let default_translation = this.default_translation;
+        let code_lang = this.code_lang;
+
+        if (!known_translation) {
 
             // On a pas la trad pour le moment, mais elle existe peut-etre quand même côté serveur et on a juste pas l'info dans le store
-            let lang = await ModuleTranslation.getInstance().getLang(this.code_lang);
+            let lang = await ModuleTranslation.getInstance().getLang(code_lang);
             if (!lang) {
                 // Bon faut pas abuser non plus
                 return;
             }
 
-            if (!this.get_flat_locale_translations[this.code_text]) {
-                let text = await ModuleTranslation.getInstance().getTranslatableText(this.code_text);
+            if (!this.get_flat_locale_translations[code_text]) {
+                let text = await ModuleTranslation.getInstance().getTranslatableText(code_text);
                 if (!text) {
                     // le translatable existe pas on le crée si on a une trad par défaut
-                    if (this.default_translation) {
+                    if (default_translation) {
                         /**
                          * On a une trad par défaut, on la crée
                          */
-                        this.text = this.default_translation;
-                        await this.update_trad(true);
+                        if (this.code_text == code_text) {
+                            this.text = default_translation;
+                        }
+                        await this.update_trad(code_lang, code_text, default_translation, true);
                     }
 
                     return;
@@ -96,16 +111,18 @@ export default class InlineTranslatableText extends VueComponentBase {
 
                 let translation = await ModuleTranslation.getInstance().getTranslation(lang.id, text.id);
                 if (translation) {
-                    this.set_flat_locale_translation({ code_text: this.code_text, value: translation.translated });
+                    this.set_flat_locale_translation({ code_text: code_text, value: known_translation });
                     return;
                 }
 
-                if (this.default_translation) {
+                if (default_translation) {
                     /**
                      * On a une trad par défaut, on la crée
                      */
-                    this.text = this.default_translation;
-                    await this.update_trad(true);
+                    if (this.code_text == code_text) {
+                        this.text = default_translation;
+                    }
+                    await this.update_trad(code_lang, code_text, default_translation, true);
                 }
             }
         }
@@ -117,7 +134,8 @@ export default class InlineTranslatableText extends VueComponentBase {
             this.set_initializing(true);
 
             this.set_flat_locale_translations(VueAppController.getInstance().ALL_FLAT_LOCALE_TRANSLATIONS);
-            await this.check_existing_bdd_translation();
+            this.text = this.translation;
+            await this.thottled_check_existing_bdd_translation();
 
             this.set_initializing(false);
             this.set_initialized(true);
@@ -178,8 +196,8 @@ export default class InlineTranslatableText extends VueComponentBase {
         return res;
     }
 
-    private async update_trad(muted: boolean = false) {
-        await this.save_translation(this.code_lang, this.code_text, this.text, muted);
+    private async update_trad(code_lang: string, code_text: string, translation: string, muted: boolean = false) {
+        await this.save_translation(code_lang, code_text, translation, muted);
     }
 
     private async save_translation(code_lang: string, code_text: string, translation: string, muted: boolean = false) {

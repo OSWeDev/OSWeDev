@@ -37,28 +37,28 @@ export default class ModuleVocusServer extends ModuleServerBase {
     }
 
     public async configure() {
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Vocus'
         }, 'menu.menuelements.admin.Vocus.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Vocus'
         }, 'menu.menuelements.admin.VocusAdminVueModule.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'CRUD'
         }, 'vocus.crud.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'ID'
         }, 'vocus.id.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Label'
         }, 'vocus.label.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Type'
         }, 'vocus.vo_type.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Limité à 1000 lignes...'
         }, 'vocus.limit1000.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Vocus'
         }, 'vocus.vocus.___LABEL___'));
     }
@@ -105,7 +105,7 @@ export default class ModuleVocusServer extends ModuleServerBase {
         let res_map: { [type: string]: { [id: number]: VocusInfoVO } } = {};
 
         // On va aller chercher tous les module table fields qui sont des refs de cette table
-        let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID];
+        let moduleTable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[API_TYPE_ID];
 
         if (!moduleTable) {
             return null;
@@ -113,8 +113,8 @@ export default class ModuleVocusServer extends ModuleServerBase {
 
         let refFields: Array<ModuleTableField<any>> = [];
 
-        for (let i in VOsTypesManager.getInstance().moduleTables_by_voType) {
-            let table = VOsTypesManager.getInstance().moduleTables_by_voType[i];
+        for (let i in VOsTypesManager.moduleTables_by_voType) {
+            let table = VOsTypesManager.moduleTables_by_voType[i];
 
             if (table.vo_type == moduleTable.vo_type) {
                 continue;
@@ -150,41 +150,44 @@ export default class ModuleVocusServer extends ModuleServerBase {
             }
         }
 
+        let promises = [];
         for (let i in refFields) {
             let refField = refFields[i];
 
-            let refvos: IDistantVOBase[] = await query(refField.module_table.vo_type)
-                .filter_by_num_x_ranges(refField.field_id, [RangeHandler.getInstance().create_single_elt_NumRange(id, NumSegment.TYPE_INT)])
-                .select_vos<IDistantVOBase>();
+            promises.push((async () => {
+                let refvos: IDistantVOBase[] = await query(refField.module_table.vo_type)
+                    .filter_by_num_x_ranges(refField.field_id, [RangeHandler.create_single_elt_NumRange(id, NumSegment.TYPE_INT)])
+                    .select_vos<IDistantVOBase>();
 
-            for (let j in refvos) {
-                let refvo: IDistantVOBase = refvos[j];
+                for (let j in refvos) {
+                    let refvo: IDistantVOBase = refvos[j];
 
-                if (!res_map[refvo._type]) {
-                    res_map[refvo._type] = {};
-                }
+                    if (!res_map[refvo._type]) {
+                        res_map[refvo._type] = {};
+                    }
 
-                let tmp: VocusInfoVO = res_map[refvo._type][refvo.id] ? res_map[refvo._type][refvo.id] : new VocusInfoVO();
-                tmp.is_cascade = tmp.is_cascade || refField.cascade_on_delete;
-                tmp.linked_id = refvo.id;
-                tmp.linked_type = refvo._type;
+                    let tmp: VocusInfoVO = res_map[refvo._type][refvo.id] ? res_map[refvo._type][refvo.id] : new VocusInfoVO();
+                    tmp.is_cascade = tmp.is_cascade || refField.cascade_on_delete;
+                    tmp.linked_id = refvo.id;
+                    tmp.linked_type = refvo._type;
 
-                let table = refField.module_table;
-                if (table && table.default_label_field) {
-                    tmp.linked_label = refvo[table.default_label_field.field_id];
-                } else if (table && table.table_label_function) {
-                    tmp.linked_label = table.table_label_function(refvo);
-                }
+                    let table = refField.module_table;
+                    if (table && table.default_label_field) {
+                        tmp.linked_label = refvo[table.default_label_field.field_id];
+                    } else if (table && table.table_label_function) {
+                        tmp.linked_label = table.table_label_function(refvo);
+                    }
 
-                res_map[refvo._type][refvo.id] = tmp;
+                    res_map[refvo._type][refvo.id] = tmp;
 
-                if (!!limit) {
-                    limit--;
-                    if (limit <= 0) {
-                        break;
+                    if (!!limit) {
+                        limit--;
+                        if (limit <= 0) {
+                            break;
+                        }
                     }
                 }
-            }
+            })());
             if ((limit != null) && (limit <= 0)) {
                 break;
             }

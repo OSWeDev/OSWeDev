@@ -131,7 +131,7 @@ export default class AccessPolicyServerController {
         }
 
         if (!this.registered_policies[policy_name.toLowerCase()]) {
-            ConsoleHandler.getInstance().error('has_access_by_name:Failed find policy by name:' + policy_name);
+            ConsoleHandler.error('has_access_by_name:Failed find policy by name:' + policy_name);
             return false;
         }
 
@@ -142,7 +142,7 @@ export default class AccessPolicyServerController {
             let role_name = roles_names[i];
 
             if (!this.registered_roles[role_name.toLowerCase()]) {
-                ConsoleHandler.getInstance().error('has_access_by_name:Failed find role by name:' + role_name);
+                ConsoleHandler.error('has_access_by_name:Failed find role by name:' + role_name);
                 return false;
             }
 
@@ -155,7 +155,7 @@ export default class AccessPolicyServerController {
     public has_access_by_ids(policy_id: number, roles_ids: number[]): boolean {
 
         if (!this.access_matrix[policy_id]) {
-            ConsoleHandler.getInstance().error('has_access_by_ids:Failed find policy by id in matrix:' + policy_id);
+            ConsoleHandler.error('has_access_by_ids:Failed find policy by id in matrix:' + policy_id);
             return false;
         }
 
@@ -170,7 +170,7 @@ export default class AccessPolicyServerController {
             let role_id = roles_ids[i];
 
             if (this.access_matrix[policy_id][role_id] == null) {
-                ConsoleHandler.getInstance().error('has_access_by_ids:Failed find role by id for policy in matrix:' + role_id + ':' + policy_id);
+                ConsoleHandler.error('has_access_by_ids:Failed find role by id for policy in matrix:' + role_id + ':' + policy_id);
                 return false;
             }
 
@@ -195,7 +195,7 @@ export default class AccessPolicyServerController {
      * On passe en SERVER pour refaire les matrices
      */
     public async reload_access_matrix_computation() {
-        await StackContext.getInstance().runPromise({ IS_CLIENT: false, UID: null }, async () => {
+        await StackContext.runPromise({ IS_CLIENT: false, UID: null }, async () => {
 
             /**
              * Le changement de access_matrix et validity sont fait directement en générant la matrice
@@ -670,7 +670,7 @@ export default class AccessPolicyServerController {
 
         if (default_translation) {
             default_translation.code_text = role.translatable_name + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
-            DefaultTranslationManager.getInstance().registerDefaultTranslation(default_translation);
+            DefaultTranslationManager.registerDefaultTranslation(default_translation);
         }
 
         // Un nouveau rôle a forcément un parent :
@@ -697,7 +697,7 @@ export default class AccessPolicyServerController {
         } catch (error) {
             if (error.message == 'Multiple results on select_vo is not allowed') {
                 // Gestion cas duplication qui n'a aucun impact au fond faut juste vider et recréer
-                ConsoleHandler.getInstance().error('Duplicate role ' + role.translatable_name + ' detected, deleting it');
+                ConsoleHandler.error('Duplicate role ' + role.translatable_name + ' detected, deleting it');
                 let vos = await query(RoleVO.API_TYPE_ID).filter_by_text_eq('translatable_name', role.translatable_name).select_vos<RoleVO>();
                 await ModuleDAO.getInstance().deleteVOs(vos);
                 roleFromBDD = null;
@@ -714,14 +714,14 @@ export default class AccessPolicyServerController {
 
         let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(role);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
-            ConsoleHandler.getInstance().error('Ajout de role échoué:' + role.translatable_name + ':');
+            ConsoleHandler.error('Ajout de role échoué:' + role.translatable_name + ':');
             return null;
         }
 
         role.id = insertOrDeleteQueryResult.id;
         this.registered_roles[role.translatable_name.toLowerCase()] = role;
         this.registered_roles_by_ids[role.id] = role;
-        ConsoleHandler.getInstance().error('Ajout du role OK:' + role.translatable_name + ':');
+        ConsoleHandler.error('Ajout du role OK:' + role.translatable_name + ':');
         return role;
     }
 
@@ -746,7 +746,7 @@ export default class AccessPolicyServerController {
 
         if (default_translation) {
             default_translation.code_text = group.translatable_name + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
-            DefaultTranslationManager.getInstance().registerDefaultTranslation(default_translation);
+            DefaultTranslationManager.registerDefaultTranslation(default_translation);
         }
 
         let groupFromBDD: AccessPolicyGroupVO = null;
@@ -755,7 +755,7 @@ export default class AccessPolicyServerController {
         } catch (error) {
             if (error.message == 'Multiple results on select_vo is not allowed') {
                 // Gestion cas duplication qui n'a aucun impact au fond faut juste vider et recréer
-                ConsoleHandler.getInstance().error('Duplicate group ' + group.translatable_name + ' detected, deleting it');
+                ConsoleHandler.error('Duplicate group ' + group.translatable_name + ' detected, deleting it');
                 let vos = await query(AccessPolicyGroupVO.API_TYPE_ID).filter_by_text_eq('translatable_name', group.translatable_name).select_vos<AccessPolicyGroupVO>();
                 await ModuleDAO.getInstance().deleteVOs(vos);
                 groupFromBDD = null;
@@ -770,13 +770,13 @@ export default class AccessPolicyServerController {
 
         let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(group);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
-            ConsoleHandler.getInstance().error('Ajout de groupe échoué :' + group.translatable_name + ':');
+            ConsoleHandler.error('Ajout de groupe échoué :' + group.translatable_name + ':');
             return null;
         }
 
         group.id = insertOrDeleteQueryResult.id;
         this.registered_policy_groups[translatable_name.toLowerCase()] = group;
-        ConsoleHandler.getInstance().error('Ajout du groupe OK :' + group.translatable_name + ':');
+        ConsoleHandler.error('Ajout du groupe OK :' + group.translatable_name + ':');
         return group;
     }
 
@@ -807,7 +807,7 @@ export default class AccessPolicyServerController {
 
         if (default_translation) {
             default_translation.code_text = policy.translatable_name + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
-            DefaultTranslationManager.getInstance().registerDefaultTranslation(default_translation);
+            DefaultTranslationManager.registerDefaultTranslation(default_translation);
         }
 
         let policyFromBDD: AccessPolicyVO = null;
@@ -816,10 +816,10 @@ export default class AccessPolicyServerController {
         } catch (error) {
             if (error.message == 'Multiple results on select_vo is not allowed') {
                 // Gestion cas duplication qui n'a aucun impact au fond faut juste vider et recréer
-                ConsoleHandler.getInstance().error('Duplicate policy ' + policy.translatable_name + ' detected, deleting it');
+                ConsoleHandler.error('Duplicate policy ' + policy.translatable_name + ' detected, deleting it');
                 let vos = await query(AccessPolicyVO.API_TYPE_ID).filter_by_text_eq('translatable_name', policy.translatable_name).select_vos<AccessPolicyVO>();
                 await ModuleDAO.getInstance().deleteVOs(vos);
-                ConsoleHandler.getInstance().error('Duplicate policy ' + policy.translatable_name + ' detected, deleted');
+                ConsoleHandler.error('Duplicate policy ' + policy.translatable_name + ' detected, deleted');
                 policyFromBDD = null;
             } else {
                 throw error;
@@ -840,10 +840,10 @@ export default class AccessPolicyServerController {
                 policyFromBDD.group_id = policy.group_id;
                 let insertOrDeleteQueryResult_modif: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(policyFromBDD);
                 if ((!insertOrDeleteQueryResult_modif) || (!insertOrDeleteQueryResult_modif.id)) {
-                    ConsoleHandler.getInstance().error('Modification de droit échoué :' + policyFromBDD.translatable_name + ':');
+                    ConsoleHandler.error('Modification de droit échoué :' + policyFromBDD.translatable_name + ':');
                     return null;
                 }
-                ConsoleHandler.getInstance().error('Modification du droit :' + policyFromBDD.translatable_name + ': OK');
+                ConsoleHandler.error('Modification du droit :' + policyFromBDD.translatable_name + ': OK');
             }
 
             this.registered_policies[translatable_name.toLowerCase()] = policyFromBDD;
@@ -853,14 +853,14 @@ export default class AccessPolicyServerController {
 
         let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(policy);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
-            ConsoleHandler.getInstance().error('Ajout de droit échoué :' + policy.translatable_name + ':');
+            ConsoleHandler.error('Ajout de droit échoué :' + policy.translatable_name + ':');
             return null;
         }
 
         policy.id = insertOrDeleteQueryResult.id;
         this.registered_policies[translatable_name.toLowerCase()] = policy;
         this.registered_policies_by_ids[policy.id] = policy;
-        ConsoleHandler.getInstance().error('Ajout du droit OK :' + policy.translatable_name + ':');
+        ConsoleHandler.error('Ajout du droit OK :' + policy.translatable_name + ':');
         return policy;
     }
 
@@ -892,7 +892,7 @@ export default class AccessPolicyServerController {
         } catch (error) {
             if (error.message == 'Multiple results on select_vo is not allowed') {
                 // Gestion cas duplication de dépendance qui n'a aucun impact au fond faut juste vider et recréer
-                ConsoleHandler.getInstance().error('Duplicate policy dependency ' + dependency.src_pol_id + ' -> ' + dependency.depends_on_pol_id + ' detected, deleting it');
+                ConsoleHandler.error('Duplicate policy dependency ' + dependency.src_pol_id + ' -> ' + dependency.depends_on_pol_id + ' detected, deleting it');
                 let vos = await query(PolicyDependencyVO.API_TYPE_ID).filter_by_num_eq('src_pol_id', dependency.src_pol_id).filter_by_num_eq('depends_on_pol_id', dependency.depends_on_pol_id).select_vos<PolicyDependencyVO>();
                 await ModuleDAO.getInstance().deleteVOs(vos);
                 dependencyFromBDD = null;
@@ -908,13 +908,13 @@ export default class AccessPolicyServerController {
 
         let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(dependency);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
-            ConsoleHandler.getInstance().error('Ajout de dépendance échouée :' + dependency.src_pol_id + ':' + dependency.depends_on_pol_id + ":");
+            ConsoleHandler.error('Ajout de dépendance échouée :' + dependency.src_pol_id + ':' + dependency.depends_on_pol_id + ":");
             return null;
         }
 
         dependency.id = insertOrDeleteQueryResult.id;
         this.registered_dependencies[dependency.src_pol_id].push(dependency);
-        ConsoleHandler.getInstance().error('Ajout de dépendance OK :' + dependency.src_pol_id + ':' + dependency.depends_on_pol_id + ":");
+        ConsoleHandler.error('Ajout de dépendance OK :' + dependency.src_pol_id + ':' + dependency.depends_on_pol_id + ":");
         return dependency;
     }
 
@@ -1039,7 +1039,7 @@ export default class AccessPolicyServerController {
 
         if ((!target_policy) || (!user_roles) || (!all_roles)) {
             if (!is_recur_test_call) {
-                ConsoleHandler.getInstance().warn('checkAccessTo:!target_policy');
+                ConsoleHandler.warn('checkAccessTo:!target_policy');
             }
             return false;
         }
@@ -1152,9 +1152,9 @@ export default class AccessPolicyServerController {
         }
 
         if (!is_recur_test_call) {
-            ConsoleHandler.getInstance().warn('checkAccessTo:refused:' +
+            ConsoleHandler.warn('checkAccessTo:refused:' +
                 'target_policy:' + (target_policy ? target_policy.translatable_name : 'N/A') + ':' +
-                'uid:' + StackContext.getInstance().get('UID') + ':' +
+                'uid:' + StackContext.get('UID') + ':' +
                 'user_roles:' + (user_roles ? Object.values(user_roles).map(function (role) { return role.translatable_name; }).join(',') : 'N/A') + ':' +
                 'all_roles:' + (all_roles ? 'LOADED' : 'N/A') + ':' +
                 'role_policies:' + (role_policies ? 'LOADED' : 'N/A') + ':' +
@@ -1164,13 +1164,13 @@ export default class AccessPolicyServerController {
             );
 
             // On ajoute la session au bgthread d'invalidation si on a un sid
-            let session: IServerUserSession = StackContext.getInstance().get('SESSION');
+            let session: IServerUserSession = StackContext.get('SESSION');
             if (session && session.sid) {
                 ForkedTasksController.getInstance().exec_self_on_bgthread(
                     AccessPolicyDeleteSessionBGThread.getInstance().name,
                     AccessPolicyDeleteSessionBGThread.TASK_NAME_set_session_to_delete_by_sids,
                     session
-                ).then().catch((error) => ConsoleHandler.getInstance().error(error));
+                ).then().catch((error) => ConsoleHandler.error(error));
             }
         }
         return false;

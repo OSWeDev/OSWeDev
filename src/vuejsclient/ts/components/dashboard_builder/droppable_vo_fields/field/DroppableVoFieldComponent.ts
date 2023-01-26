@@ -38,7 +38,7 @@ export default class DroppableVoFieldComponent extends VueComponentBase {
             return null;
         }
 
-        let field = VOsTypesManager.getInstance().moduleTables_by_voType[this.api_type_id].get_field_by_id(this.field_id);
+        let field = VOsTypesManager.moduleTables_by_voType[this.api_type_id].get_field_by_id(this.field_id);
         return field ? this.t(field.field_label.code_text) : this.field_id;
     }
 

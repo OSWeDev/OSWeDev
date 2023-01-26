@@ -1,5 +1,5 @@
 import Datatable from '../../../DAO/vos/datatable/Datatable';
-import SimpleDatatableField from '../../../DAO/vos/datatable/SimpleDatatableField';
+import SimpleDatatableFieldVO from '../../../DAO/vos/datatable/SimpleDatatableFieldVO';
 import IDistantVOBase from '../../../IDistantVOBase';
 import ModuleTableField from '../../../ModuleTableField';
 import TableFieldTypeControllerBase from '../../../TableFieldTypes/vos/TableFieldTypeControllerBase';
@@ -32,14 +32,14 @@ export default class MessageModuleTableFieldTypeController extends TableFieldTyp
         return null;
     }
 
-    public dataToIHM(vo: IDistantVOBase, field: SimpleDatatableField<any, any>, res: IDistantVOBase, datatable: Datatable<any>, isUpdate: boolean) {
+    public dataToIHM(vo: IDistantVOBase, field: SimpleDatatableFieldVO<any, any>, res: IDistantVOBase, datatable: Datatable<any>, isUpdate: boolean) {
         res[field.datatable_field_uid] = vo[field.module_table_field_id];
     }
-    public IHMToData(vo: IDistantVOBase, field: SimpleDatatableField<any, any>, res: IDistantVOBase, datatable: Datatable<any>, isUpdate: boolean) {
+    public IHMToData(vo: IDistantVOBase, field: SimpleDatatableFieldVO<any, any>, res: IDistantVOBase, datatable: Datatable<any>, isUpdate: boolean) {
         res[field.module_table_field_id] = vo[field.datatable_field_uid];
     }
 
-    public getIHMToExportString(vo: IDistantVOBase, field: SimpleDatatableField<any, any>, datatable: Datatable<any>) {
+    public getIHMToExportString(vo: IDistantVOBase, field: SimpleDatatableFieldVO<any, any>, datatable: Datatable<any>) {
         let res: string = '';
         let messages: AnimationMessageModuleVO[] = vo[field.datatable_field_uid] ? JSON.parse(vo[field.datatable_field_uid]) : null;
 

@@ -1,10 +1,13 @@
-import { cloneDeep } from 'lodash';
+import { cloneDeep, debounce } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterVO, { filter } from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
+import DashboardBuilderController from '../../../../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
+import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import TableColumnDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import NumSegment from '../../../../../../../shared/modules/DataRender/vos/NumSegment';
 import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
@@ -17,6 +20,8 @@ import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import { ModuleDashboardPageGetter } from '../../../../dashboard_builder/page/DashboardPageStore';
+import DashboardBuilderWidgetsController from '../../../../dashboard_builder/widgets/DashboardBuilderWidgetsController';
+import ValidationFiltersWidgetController from '../../../../dashboard_builder/widgets/validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../../../../dashboard_builder/widgets/var_widget/VarWidgetComponent';
 import VueComponentBase from '../../../../VueComponentBase';
 import './db_var_datatable_field.scss';
@@ -48,16 +53,24 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
     @Prop({ default: null })
     private columns: TableColumnDescVO[];
 
+    @Prop({ default: null })
+    private all_page_widget: DashboardPageWidgetVO[];
+
+    @Prop({ default: null })
+    private page_widget: DashboardPageWidgetVO;
+
     @ModuleDashboardPageGetter
     private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
 
     @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
 
-    private throttled_init_param = ThrottleHelper.getInstance().declare_throttle_without_args(this.init_param.bind(this), 300, { leading: false, trailing: true });
+    private throttle_init_param = debounce(this.throttled_init_param.bind(this), 500);
+    private throttle_do_init_param = debounce(this.throttled_do_init_param.bind(this), 500);
 
     private var_param: VarDataBaseVO = null;
     private dashboard: DashboardVO = null;
+    private is_loading: boolean = true;
 
     get var_custom_filters(): { [var_param_field_name: string]: string } {
 
@@ -69,61 +82,75 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
     @Watch('filter_type', { immediate: true })
     @Watch('filter_additional_params', { immediate: true })
     @Watch('get_active_field_filters', { immediate: true })
-    @Watch('row_value', { immediate: true })
     @Watch('columns', { immediate: true })
     private async onchange_dashboard_id() {
-        await this.throttled_init_param();
+        await this.throttle_init_param();
 
     }
 
-    private async init_param() {
+    private mounted() {
+        ValidationFiltersWidgetController.getInstance().register_updater(
+            this.dashboard_id,
+            this.page_widget.page_id,
+            this.page_widget.id,
+            this.throttle_do_init_param.bind(this),
+        );
+    }
 
-        this.isLoading = true;
+    private async throttled_init_param() {
+
+        // Si j'ai mon bouton de validation des filtres qui est actif, j'attends que ce soit lui qui m'appelle
+        if (this.has_widget_validation_filtres()) {
+            return;
+        }
+
+        await this.throttle_do_init_param();
+    }
+
+    @Watch('row_value', { immediate: true })
+    private async onchange_row() {
+        await this.throttle_do_init_param();
+    }
+
+    get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
+        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
+    }
+
+    private has_widget_validation_filtres(): boolean {
+
+        if (!this.all_page_widget) {
+            return false;
+        }
+
+        for (let i in this.all_page_widget) {
+            let widget: DashboardWidgetVO = this.widgets_by_id[this.all_page_widget[i].widget_id];
+
+            if (!widget) {
+                continue;
+            }
+
+            if (widget.is_validation_filters) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private async throttled_do_init_param() {
+
+        this.is_loading = true;
 
         if ((!this.dashboard_id) || (!this.var_id)) {
             this.dashboard = null;
             this.var_param = null;
-            this.isLoading = false;
+            this.is_loading = false;
             return;
         }
 
         this.dashboard = await query(DashboardVO.API_TYPE_ID).filter_by_id(this.dashboard_id).select_vo<DashboardVO>();
 
-        /**
-         * Si on a des colonnes qui sont des colonnes de données sur la row, on doit amender les filtres pour ajouter le "contexte" de la ligne
-         */
-        let context = cloneDeep(this.get_active_field_filters);
-        if (!context) {
-            context = {};
-        }
-
-        for (let i in this.columns) {
-            let column = this.columns[i];
-
-            if (column.type != TableColumnDescVO.TYPE_vo_field_ref) {
-                continue;
-            }
-
-            if (!context[column.api_type_id]) {
-                context[column.api_type_id] = {};
-            }
-
-            let field_filter = this.get_ContextFilterVO_add_Column_context(column);
-
-            if (!context[column.api_type_id][column.field_id]) {
-                context[column.api_type_id][column.field_id] = field_filter;
-            } else {
-
-                let existing_filter = context[column.api_type_id][column.field_id];
-                let and_filter = new ContextFilterVO();
-                and_filter.field_id = column.field_id;
-                and_filter.vo_type = column.api_type_id;
-                and_filter.filter_type = ContextFilterVO.TYPE_FILTER_AND;
-                and_filter.left_hook = existing_filter;
-                and_filter.right_hook = field_filter;
-                context[column.api_type_id][column.field_id] = and_filter;
-            }
-        }
+        let context = DashboardBuilderController.getInstance().add_table_row_context(cloneDeep(this.get_active_field_filters), this.columns, this.row_value);
 
         /**
          * On crée le custom_filters
@@ -137,106 +164,7 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
             this.dashboard.api_type_ids,
             this.get_discarded_field_paths);
 
-        this.isLoading = false;
-    }
-
-
-    private get_ContextFilterVO_add_Column_context(column: TableColumnDescVO): ContextFilterVO {
-        let translated_active_options = null;
-
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[column.api_type_id];
-        let field = moduletable.get_field_by_id(column.field_id);
-
-        if (this.row_value[column.datatable_field_uid] == null) {
-            translated_active_options = filter(column.api_type_id, column.field_id).is_null();
-        } else {
-            switch (field.field_type) {
-                case ModuleTableField.FIELD_TYPE_file_ref:
-                case ModuleTableField.FIELD_TYPE_image_field:
-                case ModuleTableField.FIELD_TYPE_image_ref:
-                case ModuleTableField.FIELD_TYPE_enum:
-                case ModuleTableField.FIELD_TYPE_int:
-                case ModuleTableField.FIELD_TYPE_geopoint:
-                case ModuleTableField.FIELD_TYPE_float:
-                case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-                case ModuleTableField.FIELD_TYPE_amount:
-                case ModuleTableField.FIELD_TYPE_foreign_key:
-                case ModuleTableField.FIELD_TYPE_isoweekdays:
-                case ModuleTableField.FIELD_TYPE_prct:
-                case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                case ModuleTableField.FIELD_TYPE_hour:
-                    translated_active_options = filter(column.api_type_id, column.field_id).by_num_eq(this.row_value[column.datatable_field_uid]);
-                    break;
-
-                case ModuleTableField.FIELD_TYPE_tstz:
-                    translated_active_options = filter(column.api_type_id, column.field_id).by_date_eq(this.row_value[column.datatable_field_uid]);
-                    break;
-
-                case ModuleTableField.FIELD_TYPE_html:
-                case ModuleTableField.FIELD_TYPE_password:
-                case ModuleTableField.FIELD_TYPE_email:
-                case ModuleTableField.FIELD_TYPE_file_field:
-                case ModuleTableField.FIELD_TYPE_string:
-                case ModuleTableField.FIELD_TYPE_textarea:
-                case ModuleTableField.FIELD_TYPE_translatable_text:
-                    translated_active_options = filter(column.api_type_id, column.field_id).by_text_eq(this.row_value[column.datatable_field_uid]);
-                    break;
-
-                case ModuleTableField.FIELD_TYPE_plain_vo_obj:
-                case ModuleTableField.FIELD_TYPE_html_array:
-                    throw new Error('Not Implemented');
-
-                case ModuleTableField.FIELD_TYPE_boolean:
-                    if (!!this.row_value[column.datatable_field_uid]) {
-                        translated_active_options = filter(column.api_type_id, column.field_id).is_true();
-                    } else {
-                        translated_active_options = filter(column.api_type_id, column.field_id).is_false();
-                    }
-                    break;
-
-                case ModuleTableField.FIELD_TYPE_numrange:
-                    throw new Error('Not Implemented');
-
-                case ModuleTableField.FIELD_TYPE_numrange_array:
-                case ModuleTableField.FIELD_TYPE_refrange_array:
-                    throw new Error('Not Implemented');
-
-                case ModuleTableField.FIELD_TYPE_daterange:
-                    throw new Error('Not Implemented');
-
-                case ModuleTableField.FIELD_TYPE_hourrange:
-                    throw new Error('Not Implemented');
-
-                case ModuleTableField.FIELD_TYPE_tsrange:
-                    throw new Error('Not Implemented');
-
-                case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    throw new Error('Not Implemented');
-
-                case ModuleTableField.FIELD_TYPE_hourrange_array:
-                    throw new Error('Not Implemented');
-
-                case ModuleTableField.FIELD_TYPE_int_array:
-                case ModuleTableField.FIELD_TYPE_float_array:
-                case ModuleTableField.FIELD_TYPE_tstz_array:
-                    throw new Error('Not Implemented');
-
-                case ModuleTableField.FIELD_TYPE_string_array:
-                    throw new Error('Not Implemented');
-
-                case ModuleTableField.FIELD_TYPE_date:
-                case ModuleTableField.FIELD_TYPE_day:
-                case ModuleTableField.FIELD_TYPE_month:
-                    translated_active_options = filter(column.api_type_id, column.field_id).by_date_eq(this.row_value[column.datatable_field_uid]);
-                    break;
-
-                case ModuleTableField.FIELD_TYPE_timewithouttimezone:
-                    throw new Error('Not Implemented');
-            }
-        }
-
-        return translated_active_options;
+        this.is_loading = false;
     }
 
     get var_filter(): string {

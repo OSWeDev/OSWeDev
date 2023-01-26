@@ -84,8 +84,8 @@ export default class VarsServerController {
         VarsController.getInstance().var_conf_by_id[id] = conf;
         VarsController.getInstance().var_conf_by_name[conf.name] = conf;
 
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
-            ConsoleHandler.getInstance().log('update_registered_varconf:UPDATED VARCConf VAR_ID:' + conf.id + ':' + JSON.stringify(conf));
+        if (ConfigurationService.node_configuration.DEBUG_VARS) {
+            ConsoleHandler.log('update_registered_varconf:UPDATED VARCConf VAR_ID:' + conf.id + ':' + JSON.stringify(conf));
         }
     }
 
@@ -94,8 +94,8 @@ export default class VarsServerController {
         delete VarsController.getInstance().var_conf_by_id[id];
         delete VarsController.getInstance().var_conf_by_name[name];
 
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
-            ConsoleHandler.getInstance().log('delete_registered_varconf:DELETED VARCConf VAR_ID:' + id + ':' + name);
+        if (ConfigurationService.node_configuration.DEBUG_VARS) {
+            ConsoleHandler.log('delete_registered_varconf:DELETED VARCConf VAR_ID:' + id + ':' + name);
         }
     }
 
@@ -112,8 +112,8 @@ export default class VarsServerController {
         }
         this.varcacheconf_by_api_type_ids[conf.var_data_vo_type][cacheconf.var_id] = cacheconf;
 
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
-            ConsoleHandler.getInstance().log('update_registered_varcacheconf:UPDATED VARCacheConf VAR_ID:' + cacheconf.var_id + ':' + JSON.stringify(cacheconf));
+        if (ConfigurationService.node_configuration.DEBUG_VARS) {
+            ConsoleHandler.log('update_registered_varcacheconf:UPDATED VARCacheConf VAR_ID:' + cacheconf.var_id + ':' + JSON.stringify(cacheconf));
         }
     }
 
@@ -131,8 +131,8 @@ export default class VarsServerController {
         }
         delete this.varcacheconf_by_api_type_ids[conf.var_data_vo_type][cacheconf.var_id];
 
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
-            ConsoleHandler.getInstance().log('delete_registered_varcacheconf:DELETED VARCacheConf VAR_ID:' + cacheconf.var_id + ':' + JSON.stringify(cacheconf));
+        if (ConfigurationService.node_configuration.DEBUG_VARS) {
+            ConsoleHandler.log('delete_registered_varcacheconf:DELETED VARCacheConf VAR_ID:' + cacheconf.var_id + ':' + JSON.stringify(cacheconf));
         }
     }
 
@@ -167,13 +167,13 @@ export default class VarsServerController {
 
                 if ((!did_something) && needs_again) {
                     if (!last_not_full) {
-                        ConsoleHandler.getInstance().error('!last_not_full on !did_something in init_varcontrollers_dag_depths');
+                        ConsoleHandler.error('!last_not_full on !did_something in init_varcontrollers_dag_depths');
                         throw new Error('!last_not_full on !did_something in init_varcontrollers_dag_depths');
                     }
 
                     let depth = this.get_max_depth(last_not_full, true);
                     if (depth === null) {
-                        ConsoleHandler.getInstance().error('depth===null on !did_something in init_varcontrollers_dag_depths');
+                        ConsoleHandler.error('depth===null on !did_something in init_varcontrollers_dag_depths');
                         throw new Error('depth===null on !did_something in init_varcontrollers_dag_depths');
                     }
 
@@ -376,7 +376,7 @@ export default class VarsServerController {
         let insert_or_update_result: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(var_cache_conf);
 
         if ((!insert_or_update_result) || (!insert_or_update_result.id)) {
-            ConsoleHandler.getInstance().error('Impossible de configurer le cache de la var :' + var_conf.id + ':');
+            ConsoleHandler.error('Impossible de configurer le cache de la var :' + var_conf.id + ':');
             return null;
         }
 
@@ -428,6 +428,40 @@ export default class VarsServerController {
         return res;
     }
 
+    /**
+     * On fait un && des deps dont le nopm débute par le filtre en param.
+     * @param varDAGNode Noeud dont on somme les deps
+     * @param dep_name_starts_with Le filtre sur le nom des deps (dep_name.startsWith(dep_name_starts_with) ? and : ignore)
+     * @param start_value 0 par défaut, mais peut être null aussi dans certains cas ?
+     */
+    public get_outgoing_deps_and(varDAGNode: VarDAGNode, dep_name_starts_with: string, start_value: number = 1) {
+        let res: number = start_value;
+
+        if (!res) {
+            return 0;
+        }
+
+        for (let i in varDAGNode.outgoing_deps) {
+            let outgoing = varDAGNode.outgoing_deps[i];
+
+            if (dep_name_starts_with && !outgoing.dep_name.startsWith(dep_name_starts_with)) {
+                continue;
+            }
+
+            let var_data = (outgoing.outgoing_node as VarDAGNode).var_data;
+            let value = var_data ? var_data.value : null;
+            if ((!var_data) || (isNaN(value))) {
+                return 0;
+            }
+
+            if (!value) {
+                return 0;
+            }
+        }
+
+        return 1;
+    }
+
     private setVar(varConf: VarConfVO, controller: VarServerControllerBase<any>) {
         VarsController.getInstance().var_conf_by_name[varConf.name] = varConf;
         this._registered_vars_controller[varConf.name] = controller;
@@ -466,19 +500,19 @@ export default class VarsServerController {
 
     private register_var_default_translations(varConf_name: string, controller: VarServerControllerBase<any>) {
         if (!!controller.var_name_default_translations) {
-            DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
                 controller.var_name_default_translations,
                 VarsController.getInstance().get_translatable_name_code(varConf_name)));
         }
 
         if (!!controller.var_description_default_translations) {
-            DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
                 controller.var_description_default_translations,
                 VarsController.getInstance().get_translatable_description_code(varConf_name)));
         }
 
         if (!!controller.var_explaination_default_translations) {
-            DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
                 controller.var_explaination_default_translations,
                 VarsController.getInstance().get_translatable_explaination(varConf_name)));
         }
@@ -492,7 +526,7 @@ export default class VarsServerController {
                 if (!controller.var_deps_names_default_translations[i]) {
                     continue;
                 }
-                DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+                DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
                     controller.var_deps_names_default_translations[i],
                     VarsController.getInstance().get_translatable_dep_name(i)));
             }

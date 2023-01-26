@@ -1,5 +1,5 @@
 import DatatableField from '../../../../DAO/vos/datatable/DatatableField';
-import SimpleDatatableField from '../../../../DAO/vos/datatable/SimpleDatatableField';
+import SimpleDatatableFieldVO from '../../../../DAO/vos/datatable/SimpleDatatableFieldVO';
 import ModuleTable from '../../../../ModuleTable';
 import ModuleTableField from '../../../../ModuleTableField';
 import ModuleAnimation from '../../../ModuleAnimation';
@@ -25,9 +25,7 @@ export default class AnimationReponseVO {
         if (moduleTable_fields) {
             for (let i in moduleTable_fields) {
                 let field: ModuleTableField<any> = moduleTable_fields[i];
-                let data_field: SimpleDatatableField<any, any> = new SimpleDatatableField(field.field_id, field.field_label.code_text);
-                data_field.setModuleTable(moduleTable);
-                fields.push(data_field);
+                fields.push(SimpleDatatableFieldVO.createNew(field.field_id).setModuleTable(moduleTable));
             }
         }
 

@@ -27,7 +27,7 @@ export default class ModuleTeamsAPIServer extends ModuleServerBase {
 
     public async send_to_teams_webhook(webhook: string, message: TeamsWebhookContentVO) {
 
-        let TEAMS_HOST: string = await ModuleParams.getInstance().getParamValue(ModuleTeamsAPIServer.TEAMS_HOST_PARAM_NAME);
+        let TEAMS_HOST: string = await ModuleParams.getInstance().getParamValueAsString(ModuleTeamsAPIServer.TEAMS_HOST_PARAM_NAME);
         let msg = TextHandler.getInstance().sanityze_object(message);
 
         await ModuleRequest.getInstance().sendRequestFromApp(
