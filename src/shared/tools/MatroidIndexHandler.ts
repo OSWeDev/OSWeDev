@@ -171,7 +171,16 @@ export default class MatroidIndexHandler {
         }
 
         let ranges = [];
-        let splitted_index = index.split('$');
+        let splitted_index = [];
+        try {
+            splitted_index = index.split('$');
+        } catch (error) {
+            console.error('from_normalized_ranges ; index : ' + index
+                + ' ; range_type : ' + range_type + ' ; is_matroid_index : ' + is_matroid_index
+                + ' ; matroid_segmentations : ' + (!!matroid_segmentations ? JSON.stringify(matroid_segmentations) : '')
+                + ' ; field_id : ' + field_id);
+            console.error(error);
+        }
 
         splitted_index.forEach((e) => {
             ranges.push(this.from_normalized_range(e, range_type, is_matroid_index, matroid_segmentations, field_id));
@@ -223,7 +232,15 @@ export default class MatroidIndexHandler {
             return null;
         }
 
-        let pieces: string[] = index.split('|');
+        let pieces: string[] = [];
+
+        try {
+            pieces = index.split('|');
+        } catch (error) {
+            console.error('from_normalized_vardata ; index : ' + index);
+            console.error(error);
+        }
+
         let var_id: number = this.base_76_txt_to_base_10_num(pieces[0]);
         let var_conf = VarsController.getInstance().var_conf_by_id[var_id];
         let res: VarDataBaseVO = VOsTypesManager.getInstance().moduleTables_by_voType[var_conf.var_data_vo_type].voConstructor();
