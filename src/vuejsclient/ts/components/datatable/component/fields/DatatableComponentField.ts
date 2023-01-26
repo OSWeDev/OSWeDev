@@ -9,6 +9,7 @@ import DashboardBuilderController from '../../../../../../shared/modules/Dashboa
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
+import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
 import TableFieldTypesManager from '../../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import TableFieldTypeControllerBase from '../../../../../../shared/modules/TableFieldTypes/vos/TableFieldTypeControllerBase';
 import VueComponentBase from '../../../VueComponentBase';
@@ -113,7 +114,26 @@ export default class DatatableComponentField extends VueComponentBase {
     }
 
     get field_value(): any {
-        return this.vo[this.field.datatable_field_uid];
+
+        if (this.vo[this.field.datatable_field_uid] == null) {
+            return this.vo[this.field.datatable_field_uid];
+        }
+
+        switch (this.field.type) {
+            case DatatableField.SIMPLE_FIELD_TYPE:
+
+                switch (this.simple_field.moduleTableField.field_type) {
+                    case ModuleTableField.FIELD_TYPE_enum:
+
+                        let enum_val = this.vo[this.field.datatable_field_uid];
+                        return this.t(this.simple_field.moduleTableField.enum_values[enum_val]);
+
+                    default:
+                        return this.vo[this.field.datatable_field_uid];
+                }
+            default:
+                return this.vo[this.field.datatable_field_uid];
+        }
     }
 
     get transliterate_enum_value_to_class_name(): string {
