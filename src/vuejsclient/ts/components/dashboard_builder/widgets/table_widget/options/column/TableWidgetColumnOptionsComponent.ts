@@ -83,6 +83,45 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
 
     private all_filter_widgets_ids: number[] = [];
 
+    private kanban_use_weight: boolean = false;
+    private kanban_column: boolean = false;
+
+    private async switch_kanban_use_weight() {
+        this.kanban_use_weight = !this.kanban_use_weight;
+        this.column.kanban_use_weight = this.kanban_use_weight;
+        this.$emit('update_column', this.column);
+    }
+
+    private async switch_kanban_column() {
+        if (!this.kanban_column) {
+            // On doit vérifier et retirer le param des autres colonnes si une autre était déjà active
+            for (let i in this.widget_options.columns) {
+                let column: TableColumnDescVO = this.widget_options.columns[i];
+                if (column.kanban_column) {
+                    column.kanban_column = false;
+                    this.$emit('update_column', column);
+                    break;
+                }
+            }
+        }
+        this.kanban_column = !this.kanban_column;
+        this.column.kanban_column = this.kanban_column;
+        this.$emit('update_column', this.column);
+    }
+
+    get column_type_has_weight(): boolean {
+        if (!this.column) {
+            return false;
+        }
+
+        let table = VOsTypesManager.moduleTables_by_voType[this.column.api_type_id];
+        if (!table) {
+            return false;
+        }
+
+        return table.getFieldFromId('weight') != null;
+    }
+
     get page_widget_by_id(): { [pwid: number]: DashboardPageWidgetVO } {
         return VOsTypesManager.vosArray_to_vosByIds(this.get_page_widgets);
     }
@@ -451,7 +490,8 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
                     options.has_table_total_footer,
                     options.hide_pagination_bottom,
                     options.default_export_option,
-                    options.has_default_export_option
+                    options.has_default_export_option,
+                    options.use_kanban_by_default_if_exists,
                 ) : null;
             }
         } catch (error) {
@@ -494,6 +534,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.column_width = 0;
         new_column.default_sort_field = null;
         new_column.filter_custom_field_filters = {};
+        new_column.kanban_column = false;
 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
         this.$emit('add_column', new_column);
@@ -525,6 +566,8 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.column_width = 0;
         new_column.default_sort_field = null;
         new_column.filter_custom_field_filters = {};
+        new_column.kanban_column = false;
+
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
         this.$emit('add_column', new_column);
 
@@ -573,6 +616,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.column_width = 0;
         new_column.default_sort_field = null;
         new_column.filter_custom_field_filters = {};
+        new_column.kanban_column = false;
 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
         this.$emit('add_column', new_column);
@@ -616,6 +660,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.column_width = 0;
         new_column.default_sort_field = null;
         new_column.filter_custom_field_filters = {};
+        new_column.kanban_column = false;
 
         // Reste le weight à configurer, enregistrer la colonne en base, et recharger les colonnes sur le client pour mettre à jour l'affichage du widget
         this.$emit('add_column', new_column);

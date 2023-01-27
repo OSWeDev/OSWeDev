@@ -33,6 +33,42 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
     public async configure() {
 
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Affichage Kanban par défaut si il est configuré'
+        }, 'table_widget_options_component.use_kanban_by_default_if_exists.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Oui'
+        }, 'table_widget_options_component.use_kanban_by_default_if_exists.true.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Non'
+        }, 'table_widget_options_component.use_kanban_by_default_if_exists.false.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Colonne Kanban'
+        }, 'table_widget_options_component.kanban_column.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Oui'
+        }, 'table_widget_options_component.kanban_column.true.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Non'
+        }, 'table_widget_options_component.kanban_column.false.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Kanban - Utiliser le champs weight'
+        }, 'table_widget_options_component.kanban_use_weight.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Oui'
+        }, 'table_widget_options_component.kanban_use_weight.true.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Non'
+        }, 'table_widget_options_component.kanban_use_weight.false.___LABEL___'));
+
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Exportable'

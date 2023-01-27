@@ -1,0 +1,109 @@
+include ../../../../../../views/mixins/loading.pug
+
+.table_widget_kanban_component
+    +loading()
+        template(v-if='table_columns')
+
+            template(v-if='loaded_once && is_busy')
+                .is_busy 
+                    i.fa-duotone.fa-refresh.fa-spin(aria-hidden="true")
+
+            template(v-if='!!crud_activated_api_type')
+                .crud_actions.btn-group.d-print-none
+                    button.btn.btn-sm.btn-secondary(v-if='can_getquerystr', @click='getquerystr')
+                        i.fa.fa-copy.fa-lg.btn_icon(aria-hidden="true")
+                        | {{ label('crud.actions.getquerystr') }}
+                    button.btn.btn-sm.btn-danger(v-if='can_delete_all', @click='confirm_delete_all')
+                        i.fa-duotone.fa-trash.fa-lg.btn_icon(aria-hidden="true")
+                        | {{ label('crud.actions.delete_all') }}
+                    button.btn.btn-sm.btn-secondary(v-if='can_refresh', @click='refresh')
+                        i.fa-duotone.fa-refresh.fa-lg.btn_icon(aria-hidden="true")
+                        | {{ label('crud.actions.refresh') }}
+                    button.btn.btn-sm.btn-outline-dark(v-if='can_export' @click="choose_export_type")
+                        i.fa-duotone.fa-download.fa-lg.btn_icon
+                        | {{ label('crud.actions.export') }}
+                    button.btn.btn-sm.btn-success(v-if='can_create' @click="open_create")
+                        i.fa-duotone.fa-plus-circle.fa-lg.btn_icon
+                        | {{ label('crud.actions.create') }}
+
+            .kanban_header {{ table_header_title }}
+
+            .kanban_wrapper 
+                .kanban_columns_wrapper 
+                    template(v-for="(kanban_column_value, kanban_column_value_index) in kanban_column_values")
+                        .kanban_column 
+                            .kanban_column_header
+                                .kanban_column_header_title
+                                    template(v-if="kanban_column.type == 0")
+                                    template(v-else-if="kanban_column.type == 3")
+                                    template(v-else-if="kanban_column.type == 4")
+                                    template(v-else-if="kanban_column.type == 5")
+                                    template(v-else)
+                                        template(v-if='kanban_column.is_enum')
+                                            Datatablecomponentfield.is_enum(
+                                                :field="fields[kanban_column.id]"
+                                                :vo="kanban_column_vos[kanban_column_value_index]"
+                                                :columns="table_columns"
+                                                :all_page_widget="all_page_widget"
+                                                :page_widget="page_widget"
+                                                :style="{width: (kanban_column.column_width ? kanban_column.column_width + 'rem' : null), background: (kanban_column.enum_bg_colors ? kanban_column.enum_bg_colors[kanban_column_vos[kanban_column_value_index][kanban_column.datatable_field_uid + '__raw']] : ''), color: (kanban_column.enum_fg_colors ? kanban_column.enum_fg_colors[kanban_column_vos[kanban_column_value_index][kanban_column.datatable_field_uid + '__raw']] : '') }"
+                                            )
+                                        template(v-else)
+                                            template(v-if="kanban_column.type != 5")
+                                                Datatablecomponentfield(
+                                                    :filter_custom_field_filters="kanban_column.filter_custom_field_filters"
+                                                    :field="fields[kanban_column.id]"
+                                                    :vo="kanban_column_vos[kanban_column_value_index]"
+                                                    :columns="table_columns"
+                                                    :style="'width: ' + (kanban_column.column_width ? kanban_column.column_width + 'rem' : null)"
+                                                    :is_dashboard_builder="true"
+                                                    :show_tooltip="kanban_column.show_tooltip"
+                                                    :disabled_many_to_one_link="kanban_column.disabled_many_to_one_link"
+                                                    :all_page_widget="all_page_widget"
+                                                    :page_widget="page_widget"
+                                                    :filter='get_column_filter(kanban_column)'
+                                                    :filter_additional_params='get_column_filter_additional_params(kanban_column)'
+                                                )
+
+                                .kanban_column_header_count {{ kanban_column_counts[kanban_column_value_index] }}
+                                //- TODO ajouter les colonnes de somme et de moyenne des vars
+                            .kanban_column_content
+                                template(v-for='row in data_rows[kanban_column_value_index]')
+                                    .card.kanban_row
+                                        .card-body
+                                            .card-text
+                                                template(v-for='(column, column_index) in table_columns')
+                                                    template(v-if='kanban_column && (kanban_column.datatable_field_uid != column.datatable_field_uid)')
+                                                        template(v-if="!column.hide_from_table")
+                                                            template(v-if="column.type == 0")
+                                                            template(v-else-if="column.type == 3")
+                                                            template(v-else-if="column.type == 4")
+                                                            template(v-else-if="column.type == 5")
+                                                            template(v-else)
+                                                                .kanban_row_column
+                                                                    .kanban_row_column_field {{ row[column.datatable_field_uid] }}
+                                                                        template(v-if='column.is_enum')
+                                                                            Datatablecomponentfield.is_enum(
+                                                                                :field="fields[column.id]"
+                                                                                :vo="row"
+                                                                                :columns="table_columns"
+                                                                                :all_page_widget="all_page_widget"
+                                                                                :page_widget="page_widget"
+                                                                                :style="{width: (column.column_width ? column.column_width + 'rem' : null), background: (column.enum_bg_colors ? column.enum_bg_colors[row[column.datatable_field_uid + '__raw']] : ''), color: (column.enum_fg_colors ? column.enum_fg_colors[row[column.datatable_field_uid + '__raw']] : '') }"
+                                                                            )
+                                                                        template(v-else)
+                                                                            template(v-if="column.type != 5")
+                                                                                Datatablecomponentfield(
+                                                                                    :filter_custom_field_filters="column.filter_custom_field_filters"
+                                                                                    :field="fields[column.id]"
+                                                                                    :vo="row"
+                                                                                    :columns="table_columns"
+                                                                                    :style="'width: ' + (column.column_width ? column.column_width + 'rem' : null)"
+                                                                                    :is_dashboard_builder="true"
+                                                                                    :show_tooltip="column.show_tooltip"
+                                                                                    :disabled_many_to_one_link="column.disabled_many_to_one_link"
+                                                                                    :all_page_widget="all_page_widget"
+                                                                                    :page_widget="page_widget"
+                                                                                    :filter='get_column_filter(column)'
+                                                                                    :filter_additional_params='get_column_filter_additional_params(column)'
+                                                                                )

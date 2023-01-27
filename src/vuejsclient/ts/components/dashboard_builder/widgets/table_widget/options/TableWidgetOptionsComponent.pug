@@ -43,6 +43,15 @@
                 v-model="limit"
             )
 
+    .use_kanban_by_default_if_exists
+        .input_label {{ label('table_widget_options_component.use_kanban_by_default_if_exists') }}
+        toggle-button(
+            @change="switch_use_kanban_by_default_if_exists" 
+            :value="use_kanban_by_default_if_exists" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('table_widget_options_component.use_kanban_by_default_if_exists.true'), unchecked: label('table_widget_options_component.use_kanban_by_default_if_exists.false')}")
+
     .show_pagination_resumee
         .input_label {{ label('table_widget_options_component.show_pagination_resumee') }}
         toggle-button(

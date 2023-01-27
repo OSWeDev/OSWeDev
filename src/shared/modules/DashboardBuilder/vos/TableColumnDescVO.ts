@@ -131,6 +131,16 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
     public disabled_many_to_one_link: boolean;
 
     /**
+     * Kanban conf : permet de définir la colonne kanban
+     */
+    public kanban_column: boolean;
+
+    /**
+     * Kanban conf : permet d'indiquer qu'on utilise le champs weight du type kanban pour ordonner les colonnes kanban
+     */
+    public kanban_use_weight: boolean;
+
+    /**
      * Filtrage des champs ts et (hour)
      */
     public filter_custom_field_filters: { [field_id: string]: string };

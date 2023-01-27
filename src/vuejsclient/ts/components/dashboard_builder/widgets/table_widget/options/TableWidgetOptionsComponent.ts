@@ -77,6 +77,14 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private editable_columns: TableColumnDescVO[] = null;
     private current_column: TableColumnDescVO = null;
 
+    private use_kanban_by_default_if_exists: boolean = true;
+
+    private async switch_use_kanban_by_default_if_exists() {
+        this.use_kanban_by_default_if_exists = !this.use_kanban_by_default_if_exists;
+        this.widget_options.use_kanban_by_default_if_exists = this.use_kanban_by_default_if_exists;
+        this.update_options();
+    }
+
     get crud_api_type_id_select_options(): string[] {
         return this.dashboard.api_type_ids;
     }
@@ -302,6 +310,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                 crud_actions_column.font_color_header = null;
                 crud_actions_column.can_filter_by = true;
                 crud_actions_column.column_width = 0;
+                crud_actions_column.kanban_column = false;
                 await this.add_column(crud_actions_column);
                 return;
             } else if (!!this.crud_api_type_id_selected) {
@@ -443,7 +452,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     }
 
     private get_default_options(): TableWidgetOptions {
-        return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, false, false, null, false);
+        return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, false, false, null, false, true);
     }
     private async add_column(add_column: TableColumnDescVO) {
 
@@ -602,6 +611,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                     options.hide_pagination_bottom,
                     options.default_export_option,
                     options.has_default_export_option,
+                    options.use_kanban_by_default_if_exists,
                 ) : null;
             }
         } catch (error) {

@@ -1,0 +1,67 @@
+.table_widget_kanban_component {
+    height: -webkit-fill-available;
+
+    .crud_actions {
+        float: right;
+    }
+
+    >.row {
+        height: -webkit-fill-available;
+
+        >.col-sm-12 {
+            height: -webkit-fill-available;
+
+            >div {
+                height: -webkit-fill-available;
+
+                >.kanban_wrapper {
+                    overflow-x: auto;
+                    height: calc(100% - 2em);
+                    clear: both;
+
+                    .kanban_columns_wrapper {
+                        width: max-content;
+                        display: flex;
+                        flex-flow: row;
+                        height: -webkit-fill-available;
+
+                        .kanban_column {
+                            width: 320px;
+                            display: inline-block;
+                            height: -webkit-fill-available;
+                            margin: 1em;
+                            padding: 1em;
+                            background: #EEE;
+                            border-radius: 5px;
+                            vertical-align: top;
+                            overflow: hidden;
+
+                            .kanban_column_content {
+                                overflow-y: auto;
+                                height: -webkit-fill-available;
+                                margin-bottom: 3em;
+                                overflow-x: hidden;
+
+                                .card.kanban_row {
+                                    margin-bottom: 1em;
+                                    max-width: calc(100% - 1em);
+                                    overflow: hidden;
+                                }
+                            }
+                        }
+                    }
+
+                    .is_enum {
+                        padding: 2px 4px;
+                        border-radius: 4px;
+                        text-align: center;
+                    }
+                }
+            }
+        }
+    }
+}
+
+.dashboard_builder_board .grid_item_wrapper.widget_name__datatable .vue-grid-item {
+    overflow-y: hidden !important;
+}

@@ -206,6 +206,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             label_col.id = 1;
             label_col.readonly = true;
             label_col.column_width = 0;
+            label_col.kanban_column = false;
             res.push(label_col);
         }
 
@@ -216,6 +217,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
         selected_col.id = 2;
         selected_col.readonly = true;
         selected_col.column_width = 0;
+        selected_col.kanban_column = false;
         res.push(selected_col);
 
         return res;

@@ -168,6 +168,26 @@
                             :width="160"
                             :labels="{checked: label('table_widget_column_conf.editable_column.show_tooltip.show'), unchecked: label('table_widget_column_conf.editable_column.show_tooltip.hide')}")
 
+                    template(v-if='column.type == 1')
+                        .kanban_column
+                            .input_label {{ label('table_widget_options_component.kanban_column') }}
+                            toggle-button(
+                                @change="switch_kanban_column" 
+                                :value="kanban_column" 
+                                :sync="true"
+                                :width="100"
+                                :labels="{checked: label('table_widget_options_component.kanban_column.true'), unchecked: label('table_widget_options_component.kanban_column.false')}")
+
+                        template(v-if='kanban_column && column_type_has_weight')
+                            .kanban_use_weight
+                                .input_label {{ label('table_widget_options_component.kanban_use_weight') }}
+                                toggle-button(
+                                    @change="switch_kanban_use_weight" 
+                                    :value="kanban_use_weight" 
+                                    :sync="true"
+                                    :width="100"
+                                    :labels="{checked: label('table_widget_options_component.kanban_use_weight.true'), unchecked: label('table_widget_options_component.kanban_use_weight.false')}")
+
                     .show_if_any_filter_active(v-tooltip='label("table_widget_column_conf.show_if_any_filter_active")')
                         multiselect(
                             :preselect-first="false"
