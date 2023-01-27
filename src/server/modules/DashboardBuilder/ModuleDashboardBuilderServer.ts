@@ -1168,6 +1168,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'field_value_filter_widget_component.autovalidate_advanced_filter.___LABEL___'
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Validation manuelle avec validation automatique du filtre avancé" },
+            'field_value_filter_widget_component.active_field_on_autovalidate_advanced_filter.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Ajouter l'option 'Non renseigné' dans la liste déroulante" },
             'field_value_filter_widget_component.add_is_null_selectable.___LABEL___'
         ));

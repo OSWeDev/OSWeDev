@@ -507,6 +507,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
                     options.vo_field_sort_lvl2,
                     options.autovalidate_advanced_filter,
                     options.add_is_null_selectable,
+                    options.active_field_on_autovalidate_advanced_filter,
                 ) : null;
             }
         } catch (error) {

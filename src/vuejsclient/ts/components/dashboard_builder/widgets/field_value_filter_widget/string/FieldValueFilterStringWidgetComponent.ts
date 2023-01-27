@@ -1551,6 +1551,15 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         return !!this.widget_options.autovalidate_advanced_filter;
     }
 
+    get active_field_on_autovalidate_advanced_filter(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.active_field_on_autovalidate_advanced_filter;
+    }
+
     get widget_options() {
         if (!this.page_widget) {
             return null;
@@ -1589,6 +1598,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                     options.vo_field_sort_lvl2,
                     options.autovalidate_advanced_filter,
                     options.add_is_null_selectable,
+                    options.active_field_on_autovalidate_advanced_filter,
                 ) : null;
             }
         } catch (error) {
