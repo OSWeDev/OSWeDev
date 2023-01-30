@@ -1,4 +1,4 @@
-import { cloneDeep, debounce, isEqual } from 'lodash';
+import { cloneDeep, debounce, findLastIndex, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
@@ -54,6 +54,7 @@ import CRUDUpdateModalComponent from './../crud_modals/update/CRUDUpdateModalCom
 import TableWidgetOptions from './../options/TableWidgetOptions';
 import TableWidgetController from './../TableWidgetController';
 import './TableWidgetKanbanComponent.scss';
+import * as draggable from 'vuedraggable';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -63,7 +64,8 @@ import './TableWidgetKanbanComponent.scss';
         Inlinetranslatabletext: InlineTranslatableText,
         Datatablecomponentfield: DatatableComponentField,
         Crudupdatemodalcomponent: CRUDUpdateModalComponent,
-        Crudcreatemodalcomponent: CRUDCreateModalComponent
+        Crudcreatemodalcomponent: CRUDCreateModalComponent,
+        draggable: draggable
     }
 })
 export default class TableWidgetKanbanComponent extends VueComponentBase {
@@ -158,14 +160,12 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     private old_widget_options: TableWidgetOptions = null;
 
     private table_columns: TableColumnDescVO[] = [];
+    private drag: boolean = false;
 
-    get all_page_widget_by_id(): { [id: number]: DashboardPageWidgetVO } {
-        return VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
-    }
-
-    get can_getquerystr() {
-        return this.is_edit_mode;
-    }
+    private drag_options = {
+        animation: 200,
+        disabled: false
+    };
 
     public async getquerystr() {
         if (!this.actual_rows_query) {
@@ -174,6 +174,116 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         let query_string = await this.actual_rows_query.get_select_query_str();
         await navigator.clipboard.writeText(query_string.query);
         await this.$snotify.success(this.label('copied_to_clipboard'));
+    }
+
+    get kanban_column_field(): ModuleTableField<any> {
+        if (!this.kanban_column) {
+            return null;
+        }
+
+        return VOsTypesManager.moduleTables_by_voType[this.kanban_column.api_type_id].get_field_by_id(this.kanban_column.field_id);
+    }
+
+    private async on_move_kanban_element(evt, originalEvent) {
+
+        let kanban_element_id: number = (evt && evt.item && evt.item.getAttribute('draggable_row_index')) ? parseInt(evt.item.getAttribute('draggable_row_index')) : null;
+
+        if (!kanban_element_id) {
+            throw new Error('No kanban element id');
+        }
+
+        /**
+         * un kanban, on édite soit un enum au sein du api_type_id, soit le lien vers un autre api_type_id
+         */
+        let row_api_type_id = this.widget_options.crud_api_type_id;
+        let kanban_column_api_type_id = this.kanban_column.api_type_id;
+        let data_field_id = this.kanban_column.field_id;
+
+        if (kanban_column_api_type_id == row_api_type_id) {
+            // On doit être sur un enum en théorie
+            if ((!this.kanban_column_field) || (this.kanban_column_field.field_type != ModuleTableField.FIELD_TYPE_enum)) {
+                throw new Error('Kanban column is not an enum but same API_TYPE_ID');
+            }
+        } else {
+            // on doit être sur un lien vers un autre api_type_id => le champs doit être unique
+            if ((!this.kanban_column_field) || (!this.kanban_column_field.is_unique)) {
+                throw new Error('Kanban column is not a unique field but different API_TYPE_ID');
+            }
+
+            // On ne doit trouver qu'une seule liaison possible entre les 2 api_type_ids
+            let crud_table = VOsTypesManager.moduleTables_by_voType[this.widget_options.crud_api_type_id];
+            let fields = crud_table.get_fields();
+
+            let data_field: ModuleTableField<any> = null;
+            for (let i in fields) {
+                let field = fields[i];
+
+                if (field.manyToOne_target_moduletable && (field.manyToOne_target_moduletable.vo_type == this.kanban_column.api_type_id)) {
+                    if (!data_field) {
+                        data_field = field;
+                    } else {
+                        throw new Error('Kanban column is not a unique link field but using different API_TYPE_ID needs unique link field between crud_api_type_id and kanban_column.api_type_id');
+                    }
+                }
+            }
+
+            data_field_id = data_field.field_id;
+        }
+
+        let db_element = await query(row_api_type_id).filter_by_id(kanban_element_id).select_vo();
+        if (!db_element) {
+            throw new Error('Kanban element not found');
+        }
+
+        let old_column_value = db_element[data_field_id];
+        let new_column_value = (evt.relatedContext && evt.relatedContext.element) ? evt.relatedContext.element : null;
+
+        let old_index = this.kanban_column.kanban_use_weight ? db_element['weight'] : null;
+        let new_index = evt.newIndex;
+
+        let diff_list = (new_column_value != null) && (new_column_value != old_column_value);
+        let diff_index = (new_index != null) && (old_index != new_index);
+
+        if (!diff_index && !diff_list) {
+            // aucune modification
+            return true;
+        }
+
+        if (diff_list) {
+            db_element[data_field_id] = new_column_value;
+        }
+
+        if (diff_index) {
+            // changement d'index : si on a un poids ok sinon on refuse tout simplement le changement de poids (mais on peut accepter le changement de liste)
+            if (this.kanban_column.kanban_use_weight) {
+                db_element['weight'] = evt.newIndex;
+            } else {
+                if (!diff_list) {
+                    return false;
+                }
+            }
+        }
+
+        try {
+            let insert_res = await ModuleDAO.getInstance().insertOrUpdateVO(db_element);
+            if (!insert_res) {
+                throw new Error('Erreur lors de l\'insertion du kanban_element');
+            }
+
+        } catch (error) {
+            ConsoleHandler.error('on_move_kanban_element:' + error);
+            return false;
+        }
+
+        return true;
+    }
+
+    get all_page_widget_by_id(): { [id: number]: DashboardPageWidgetVO } {
+        return VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
+    }
+
+    get can_getquerystr() {
+        return this.is_edit_mode;
     }
 
     @Watch('columns')

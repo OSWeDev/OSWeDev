@@ -226,6 +226,7 @@
         "oswedev-trello-node-api": "0.0.11",
         "screenfull": "3.3.2",
         "socket.io": "2.1.1",
+        "sortablejs": "1.9.0",
         "vue": "2.6.11",
         "vue-draggable-resizable": "1.7.2",
         "vue-full-calendar": "2.7.0",

@@ -27,7 +27,6 @@ include ../../../../../../views/mixins/loading.pug
                         | {{ label('crud.actions.create') }}
 
             .kanban_header {{ table_header_title }}
-
             .kanban_wrapper 
                 .kanban_columns_wrapper 
                     template(v-for="(kanban_column_value, kanban_column_value_index) in kanban_column_values")
@@ -68,8 +67,8 @@ include ../../../../../../views/mixins/loading.pug
                                 .kanban_column_header_count {{ kanban_column_counts[kanban_column_value_index] }}
                                 //- TODO ajouter les colonnes de somme et de moyenne des vars
                             .kanban_column_content
-                                template(v-for='row in data_rows[kanban_column_value_index]')
-                                    .card.kanban_row
+                                draggable(v-model="data_rows" v-bind="drag_options" :group="{ name: kanban_column_value }" @start="drag=true" @end="drag=false" @update='on_move_kanban_element' @add='on_move_kanban_element')
+                                    .card.kanban_row(v-for='row in data_rows[kanban_column_value_index]' :key='"kanban_column___" + (row["id"] || row["__crud_actions"])' :draggable_row_index='row["id"] || row["__crud_actions"]')
                                         .card-body
                                             .card-text
                                                 template(v-for='(column, column_index) in table_columns')
