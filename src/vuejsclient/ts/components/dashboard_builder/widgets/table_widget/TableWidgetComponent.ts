@@ -51,6 +51,7 @@ import VueComponentBase from '../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsController';
 import FieldValueFilterWidgetOptions from '../field_value_filter_widget/options/FieldValueFilterWidgetOptions';
+import ResetFiltersWidgetController from '../reset_filters_widget/ResetFiltersWidgetController';
 import ValidationFiltersWidgetController from '../validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../var_widget/VarWidgetComponent';
 import CRUDCreateModalComponent from './crud_modals/create/CRUDCreateModalComponent';
@@ -87,6 +88,8 @@ export default class TableWidgetComponent extends VueComponentBase {
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
     @ModuleDashboardPageAction
     private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
+    @ModuleDashboardPageAction
+    private clear_active_field_filters: () => void;
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
@@ -116,6 +119,8 @@ export default class TableWidgetComponent extends VueComponentBase {
 
     private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
     private debounced_onchange_dashboard_vo_route_param = debounce(this.onchange_dashboard_vo_route_param, 100);
+
+    private throttled_reset_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.reset_visible_options.bind(this), 300, { leading: false, trailing: true });
 
     private pagination_count: number = 0;
     private pagination_offset: number = 0;
@@ -450,6 +455,12 @@ export default class TableWidgetComponent extends VueComponentBase {
             this.dashboard_page,
             this.page_widget,
             this.do_update_visible_options.bind(this),
+        );
+
+        ResetFiltersWidgetController.getInstance().register_updater(
+            this.dashboard_page,
+            this.page_widget,
+            this.reset_visible_options.bind(this),
         );
         this.stopLoading();
     }
@@ -1044,6 +1055,14 @@ export default class TableWidgetComponent extends VueComponentBase {
     @Watch('get_active_field_filters', { deep: true })
     private async onchange_active_field_filters() {
         await this.throttled_update_visible_options();
+    }
+
+    private async reset_visible_options() {
+        // Reset des filtres
+        this.clear_active_field_filters();
+
+        // On update le visuel de tout le monde suite au reset
+        await this.do_update_visible_options();
     }
 
     private async update_visible_options() {

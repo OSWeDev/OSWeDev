@@ -21,6 +21,7 @@ import TypesHandler from '../../../../../../../shared/tools/TypesHandler';
 import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
+import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFiltersWidgetController';
 import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
 import FieldValueFilterWidgetOptions from '../options/FieldValueFilterWidgetOptions';
 import AdvancedNumberFilter from './AdvancedNumberFilter';
@@ -39,6 +40,8 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
     @ModuleDashboardPageAction
     private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
+    @ModuleDashboardPageAction
+    private clear_active_field_filters: () => void;
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
@@ -71,6 +74,8 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
     private last_calculation_cpt: number = 0;
 
     private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
+
+    private throttled_reset_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.reset_visible_options.bind(this), 300, { leading: false, trailing: true });
 
     private filter_type_options: number[] = [
         AdvancedNumberFilter.FILTER_TYPE_INF,
@@ -109,6 +114,14 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
             false
         );
         await this.throttled_update_visible_options();
+    }
+
+    private async mounted() {
+        ResetFiltersWidgetController.getInstance().register_updater(
+            this.dashboard_page,
+            this.page_widget,
+            this.reset_visible_options.bind(this),
+        );
     }
 
     @Watch('tmp_filter_active_options')
@@ -281,6 +294,14 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
     private async query_update_visible_options(queryStr: string) {
         this.actual_query = queryStr;
         await this.throttled_update_visible_options();
+    }
+
+    private async reset_visible_options() {
+        // Reset des filtres
+        this.clear_active_field_filters();
+
+        // On update le visuel de tout le monde suite au reset
+        await this.update_visible_options();
     }
 
     private async update_visible_options() {

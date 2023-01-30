@@ -652,6 +652,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'dashboards.widgets.icons_tooltips.validationfilters.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Bouton de remise à zéro des filtres'
+        }, 'dashboards.widgets.icons_tooltips.resetfilters.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Nom du filtre personnalisé'
         }, 'dow_filter_widget_component.custom_filter_name.___LABEL___'));
 
@@ -1186,6 +1190,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Valider" },
             'dashboard_viewer.block_widgets_updates.___LABEL___'
+        ));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Réinitialiser" },
+            'dashboard_viewer.block_widgets_reset.___LABEL___'
         ));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Masquer la pagination du bas" },

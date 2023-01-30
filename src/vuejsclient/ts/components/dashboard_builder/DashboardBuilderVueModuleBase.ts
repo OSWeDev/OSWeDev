@@ -103,6 +103,8 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_PageSwitch();
 
         await this.initializeWidget_ValidationFilters();
+
+        await this.initializeWidget_ResetFilters();
     }
 
     private async initializeWidget_BulkOps() {
@@ -296,6 +298,26 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('Validationfilterswidgetcomponent', () => import(/* webpackChunkName: "ValidationFiltersWidgetComponent" */ './widgets/validation_filters_widget/ValidationFiltersWidgetComponent'));
         Vue.component('Validationfilterswidgetoptionscomponent', () => import(/* webpackChunkName: "ValidationFiltersWidgetOptionsComponent" */ './widgets/validation_filters_widget/options/ValidationFiltersWidgetOptionsComponent'));
         Vue.component('Validationfilterswidgeticoncomponent', () => import(/* webpackChunkName: "ValidationFiltersWidgetIconComponent" */ './widgets/validation_filters_widget/icon/ValidationFiltersWidgetIconComponent'));
+    }
+
+    private async initializeWidget_ResetFilters() {
+        let ResetFilters = new DashboardWidgetVO();
+
+        ResetFilters.default_height = 5;
+        ResetFilters.default_width = 2;
+        ResetFilters.name = 'resetfilters';
+        ResetFilters.widget_component = 'Resetfilterswidgetcomponent';
+        ResetFilters.options_component = 'Resetfilterswidgetoptionscomponent';
+        ResetFilters.weight = 3;
+        ResetFilters.default_background = '#f5f5f5';
+        ResetFilters.icon_component = 'Resetfilterswidgeticoncomponent';
+        ResetFilters.is_filter = true;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(ResetFilters, null, null);
+
+        Vue.component('Resetfilterswidgetcomponent', () => import(/* webpackChunkName: "ResetFiltersWidgetComponent" */ './widgets/reset_filters_widget/ResetFiltersWidgetComponent'));
+        Vue.component('Resetfilterswidgetoptionscomponent', () => import(/* webpackChunkName: "ResetFiltersWidgetOptionsComponent" */ './widgets/reset_filters_widget/options/ResetFiltersWidgetOptionsComponent'));
+        Vue.component('Resetfilterswidgeticoncomponent', () => import(/* webpackChunkName: "ResetFiltersWidgetIconComponent" */ './widgets/reset_filters_widget/icon/ResetFiltersWidgetIconComponent'));
     }
 
     private async initializeWidget_Var() {
