@@ -23,6 +23,7 @@ export default class SortableListComponent extends VueComponentBase {
 
     private this_uid: number = SortableListComponent.UID++;
     private initialized: boolean = false;
+    private is_mounted: boolean = false;
 
     get this_id(): string {
         if (!this.this_uid) {
@@ -30,6 +31,11 @@ export default class SortableListComponent extends VueComponentBase {
         }
 
         return 'sortable_list_' + this.this_uid;
+    }
+
+    private mounted() {
+        this.is_mounted = true;
+        this.watch_drag_options();
     }
 
     @Watch('drag_options', { immediate: true })
@@ -42,6 +48,10 @@ export default class SortableListComponent extends VueComponentBase {
             return;
         }
 
+        if (!this.is_mounted) {
+            return;
+        }
+
         if (this.initialized) {
             ConsoleHandler.error('SortableListComponent: drag_options already initialized. Changing drag_options is not supported.');
             return;
@@ -49,7 +59,7 @@ export default class SortableListComponent extends VueComponentBase {
         this.initialized = true;
 
         Sortable.create(
-            this.this_id,
+            this.$el as any,
             this.drag_options
         );
     }

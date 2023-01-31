@@ -71,41 +71,42 @@ include ../../../../../../views/mixins/loading.pug
                                 //- draggable.kanban_column_receiver(v-bind="dragOptions" v-model="data_rows[kanban_column_value_index]" group='kanban_columns' @start="drag=true" @end="drag=false" :move='on_change_kanban_element')
                                 //- draggable.kanban_column_receiver(:key='"kanban_columns___" + kanban_column_value_index' :list="data_rows[kanban_column_value_index]" group='kanban_columns' @start="drag=true" @end="drag=false" :move='on_change_kanban_element')
                                 Sortablelistcomponent(:key='"kanban_columns___" + kanban_column_value_index' :elts="data_rows[kanban_column_value_index]" :drag_options="drag_options")
-                                    .card.kanban_row(slot-scope="row")
-                                        .card-body(@click='open_update(crud_activated_api_type, row.__crud_actions?parseInt(row.__crud_actions):row.id)')
-                                            .card-text
-                                                template(v-for='(column, column_index) in table_columns')
-                                                    template(v-if='kanban_column && (kanban_column.datatable_field_uid != column.datatable_field_uid)')
-                                                        template(v-if="!column.hide_from_table")
-                                                            template(v-if="column.type == 0")
-                                                            template(v-else-if="column.type == 3")
-                                                            template(v-else-if="column.type == 4")
-                                                            template(v-else-if="column.type == 5")
-                                                            template(v-else)
-                                                                .kanban_row_column
-                                                                    .kanban_row_column_field {{ row[column.datatable_field_uid] }}
-                                                                        template(v-if='column.is_enum')
-                                                                            Datatablecomponentfield.is_enum(
-                                                                                :field="fields[column.id]"
-                                                                                :vo="row"
-                                                                                :columns="table_columns"
-                                                                                :all_page_widget="all_page_widget"
-                                                                                :page_widget="page_widget"
-                                                                                :style="{width: (column.column_width ? column.column_width + 'rem' : null), background: (column.enum_bg_colors ? column.enum_bg_colors[row[column.datatable_field_uid + '__raw']] : ''), color: (column.enum_fg_colors ? column.enum_fg_colors[row[column.datatable_field_uid + '__raw']] : '') }"
-                                                                            )
-                                                                        template(v-else)
-                                                                            template(v-if="column.type != 5")
-                                                                                Datatablecomponentfield(
-                                                                                    :filter_custom_field_filters="column.filter_custom_field_filters"
+                                    template(slot-scope="slot_props")
+                                        .card.kanban_row
+                                            .card-body(@click='open_update(crud_activated_api_type, slot_props.sortable_list_item.__crud_actions?parseInt(slot_props.sortable_list_item.__crud_actions):slot_props.sortable_list_item.id)')
+                                                .card-text
+                                                    template(v-for='(column, column_index) in table_columns')
+                                                        template(v-if='kanban_column && (kanban_column.datatable_field_uid != column.datatable_field_uid)')
+                                                            template(v-if="!column.hide_from_table")
+                                                                template(v-if="column.type == 0")
+                                                                template(v-else-if="column.type == 3")
+                                                                template(v-else-if="column.type == 4")
+                                                                template(v-else-if="column.type == 5")
+                                                                template(v-else)
+                                                                    .kanban_row_column
+                                                                        .kanban_row_column_field {{ slot_props.sortable_list_item[column.datatable_field_uid] }}
+                                                                            template(v-if='column.is_enum')
+                                                                                Datatablecomponentfield.is_enum(
                                                                                     :field="fields[column.id]"
-                                                                                    :vo="row"
+                                                                                    :vo="slot_props.sortable_list_item"
                                                                                     :columns="table_columns"
-                                                                                    :style="'width: ' + (column.column_width ? column.column_width + 'rem' : null)"
-                                                                                    :is_dashboard_builder="true"
-                                                                                    :show_tooltip="column.show_tooltip"
-                                                                                    :disabled_many_to_one_link="column.disabled_many_to_one_link"
                                                                                     :all_page_widget="all_page_widget"
                                                                                     :page_widget="page_widget"
-                                                                                    :filter='get_column_filter(column)'
-                                                                                    :filter_additional_params='get_column_filter_additional_params(column)'
+                                                                                    :style="{width: (column.column_width ? column.column_width + 'rem' : null), background: (column.enum_bg_colors ? column.enum_bg_colors[slot_props.sortable_list_item[column.datatable_field_uid + '__raw']] : ''), color: (column.enum_fg_colors ? column.enum_fg_colors[slot_props.sortable_list_item[column.datatable_field_uid + '__raw']] : '') }"
                                                                                 )
+                                                                            template(v-else)
+                                                                                template(v-if="column.type != 5")
+                                                                                    Datatablecomponentfield(
+                                                                                        :filter_custom_field_filters="column.filter_custom_field_filters"
+                                                                                        :field="fields[column.id]"
+                                                                                        :vo="slot_props.sortable_list_item"
+                                                                                        :columns="table_columns"
+                                                                                        :style="'width: ' + (column.column_width ? column.column_width + 'rem' : null)"
+                                                                                        :is_dashboard_builder="true"
+                                                                                        :show_tooltip="column.show_tooltip"
+                                                                                        :disabled_many_to_one_link="column.disabled_many_to_one_link"
+                                                                                        :all_page_widget="all_page_widget"
+                                                                                        :page_widget="page_widget"
+                                                                                        :filter='get_column_filter(column)'
+                                                                                        :filter_additional_params='get_column_filter_additional_params(column)'
+                                                                                    )

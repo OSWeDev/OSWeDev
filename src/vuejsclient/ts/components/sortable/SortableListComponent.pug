@@ -1,4 +1,3 @@
-.sortable_list_component
-    .sortable_list(:id='this_id')
-        .sortable_list_item(v-for='e in elts')
-            slot(v-bind:sortable_list_item="e")
+.sortable_list_component(:id='this_id')
+    .sortable_list_item(v-for='e in elts')
+        slot(:sortable_list_item="e")
