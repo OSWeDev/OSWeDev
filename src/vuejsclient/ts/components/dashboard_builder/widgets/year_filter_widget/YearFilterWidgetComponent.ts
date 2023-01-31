@@ -1,5 +1,5 @@
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Prop, Vue, Watch } from 'vue-property-decorator';
 import ContextFilterHandler from '../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
@@ -46,7 +46,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
     private old_widget_options: YearFilterWidgetOptions = null;
 
     private switch_selection(i: string) {
-        this.selected_years[i] = !this.selected_years[i];
+        Vue.set(this.selected_years, i, !this.selected_years[i]);
     }
 
     get vo_field_ref_label(): string {
@@ -193,7 +193,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
         if (!context_filter) {
             for (let i in this.selected_years) {
                 if (!!this.selected_years[i]) {
-                    this.selected_years[i] = false;
+                    Vue.set(this.selected_years, i, false);
                 }
             }
             return;

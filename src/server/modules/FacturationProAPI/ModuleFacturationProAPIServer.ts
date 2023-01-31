@@ -2,12 +2,18 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleFacturationProAPI from '../../../shared/modules/FacturationProAPI/ModuleFacturationProAPI';
+import ModuleRequest from '../../../shared/modules/Request/ModuleRequest';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import * as fs from 'fs';
+import ModuleFile from '../../../shared/modules/File/ModuleFile';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import ConfigurationService from '../../env/ConfigurationService';
 
 export default class ModuleFacturationProAPIServer extends ModuleServerBase {
 
@@ -56,9 +62,47 @@ export default class ModuleFacturationProAPIServer extends ModuleServerBase {
     public async configure() {
     }
 
-    public registerServerApiHandlers() { }
+    public registerServerApiHandlers() {
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleFacturationProAPI.APINAME_download_invoice, this.download_invoice.bind(this));
+    }
 
+    private async download_invoice(firm_id: number, invoice_id: string, original: boolean): Promise<string> {
+        // Je récupère le pdf de la facture
+        let invoice_pdf = await ModuleRequest.getInstance().sendRequestFromApp(
+            ModuleRequest.METHOD_GET,
+            "www.facturation.pro",
+            "/firms/" + firm_id + "/invoices/" + invoice_id + ".pdf" + (original ? "?original=1" : ""),
+            null,
+            await ModuleFacturationProAPI.getInstance().getHeadersRequest(),
+            true,
+            null,
+            true
+        );
 
+        if (!invoice_pdf) {
+            return null;
+        }
+
+        let file_name: string = ModuleFile.SECURED_FILES_ROOT + 'invoices/';
+
+        // Si le dossier n'existe pas, je le crée
+        if (!fs.existsSync(file_name)) {
+            fs.mkdirSync(file_name);
+        }
+
+        file_name += invoice_id + '.pdf';
+
+        try {
+            // On va écrire le résultat dans le fichier
+            fs.appendFileSync(file_name, invoice_pdf);
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+            return null;
+        }
+
+        // On retourne l'URL du fichier créé en supprimant les 2 premiers caractères (./)
+        return ConfigurationService.getInstance().node_configuration.BASE_URL + file_name.substring(2);
+    }
     // X-Pagination: { "current_page": 1, "total_pages": 10, "per_page": 30, "total_entries": 300 }
     // Vous pouvez accéder aux différentes pages d’une liste en utilisant le paramètre “page = N” dans vos requêtes, ou N est le numéro de page souhaité.
 

@@ -33,6 +33,7 @@ import FieldValueFilterWidgetOptions from '../options/FieldValueFilterWidgetOpti
 import AdvancedStringFilter from './AdvancedStringFilter';
 import './FieldValueFilterStringWidgetComponent.scss';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
+import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFiltersWidgetController';
 
 @Component({
     template: require('./FieldValueFilterStringWidgetComponent.pug'),
@@ -141,6 +142,14 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             false
         );
         await this.throttled_update_visible_options();
+    }
+
+    private async mounted() {
+        ResetFiltersWidgetController.getInstance().register_updater(
+            this.dashboard_page,
+            this.page_widget,
+            this.reset_visible_options.bind(this),
+        );
     }
 
     @Watch('get_active_field_filters', { deep: true })
@@ -545,6 +554,17 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         await this.throttled_update_visible_options();
     }
 
+    private async reset_visible_options() {
+        // Reset des filtres
+        this.tmp_filter_active_options = []; // Reset le niveau 1
+        this.active_option_lvl1 = {};
+        this.tmp_filter_active_options_lvl2 = {}; //Reset le niveau 2
+        this.filter_visible_options_lvl2 = {};
+        this.advanced_string_filters = [new AdvancedStringFilter()]; // Reset les champs saisie libre
+
+        // On update le visuel de tout le monde suite au reset
+        await this.throttled_update_visible_options();
+    }
 
     private async update_visible_options() {
 
@@ -1551,6 +1571,15 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         return !!this.widget_options.autovalidate_advanced_filter;
     }
 
+    get active_field_on_autovalidate_advanced_filter(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.active_field_on_autovalidate_advanced_filter;
+    }
+
     get widget_options() {
         if (!this.page_widget) {
             return null;
@@ -1589,6 +1618,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                     options.vo_field_sort_lvl2,
                     options.autovalidate_advanced_filter,
                     options.add_is_null_selectable,
+                    options.active_field_on_autovalidate_advanced_filter,
                 ) : null;
             }
         } catch (error) {
