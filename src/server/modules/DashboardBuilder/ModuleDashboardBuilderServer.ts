@@ -34,6 +34,23 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
     public async configure() {
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Des données ont été modifiées par ailleurs, rechargement automatique...'
+        }, 'update_kanban_data_rows.needs_refresh.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Enregistrement...'
+        }, 'update_kanban_data_rows.start.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Erreur lors de l\'enregistrement'
+        }, 'update_kanban_data_rows.error.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Modifications enregistrées'
+        }, 'update_kanban_data_rows.ok.___LABEL___'));
+
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Affichage Kanban par défaut si il est configuré'
         }, 'table_widget_options_component.use_kanban_by_default_if_exists.___LABEL___'));
 

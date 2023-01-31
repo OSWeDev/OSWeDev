@@ -54,7 +54,8 @@ import CRUDUpdateModalComponent from './../crud_modals/update/CRUDUpdateModalCom
 import TableWidgetOptions from './../options/TableWidgetOptions';
 import TableWidgetController from './../TableWidgetController';
 import './TableWidgetKanbanComponent.scss';
-import * as draggable from 'vuedraggable';
+import IDistantVOBase from '../../../../../../../shared/modules/IDistantVOBase';
+import SortableListComponent from '../../../../sortable/SortableListComponent';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -65,7 +66,7 @@ import * as draggable from 'vuedraggable';
         Datatablecomponentfield: DatatableComponentField,
         Crudupdatemodalcomponent: CRUDUpdateModalComponent,
         Crudcreatemodalcomponent: CRUDCreateModalComponent,
-        draggable: draggable
+        Sortablelistcomponent: SortableListComponent
     }
 })
 export default class TableWidgetKanbanComponent extends VueComponentBase {
@@ -108,12 +109,12 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     @Prop({ default: null })
     private dashboard_page: DashboardPageVO;
 
-    private data_rows: any[][] = null;
+    private data_rows: { [kanban_index: number]: any[] } = {};
     private kanban_column_values_to_index: { [value: string]: number } = {};
     private kanban_column_values: any[] = null;
     // private kanban_column_labels: string[] = null;
     private kanban_column_is_enum: boolean = true;
-    private kanban_column_counts: number[] = null;
+    private kanban_column_counts: { [kanban_index: number]: number } = {};
     private kanban_column_vos: any[] = null;
 
     private selected_rows: any[] = [];
@@ -162,11 +163,6 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     private table_columns: TableColumnDescVO[] = [];
     private drag: boolean = false;
 
-    private drag_options = {
-        animation: 200,
-        disabled: false
-    };
-
     public async getquerystr() {
         if (!this.actual_rows_query) {
             return null;
@@ -184,7 +180,24 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         return VOsTypesManager.moduleTables_by_voType[this.kanban_column.api_type_id].get_field_by_id(this.kanban_column.field_id);
     }
 
+    private async on_change_kanban_element(evt, originalEvent) {
+        ConsoleHandler.log('on_change_kanban_element', evt, originalEvent);
+        return true;
+    }
+
+    get drag_options() {
+        return {
+            animation: 200,
+            group: "TableWidgetKanbanComponent",
+
+            onAdd: this.on_move_kanban_element.bind(this),
+            onUpdate: this.on_move_kanban_element.bind(this),
+        };
+    }
+
     private async on_move_kanban_element(evt, originalEvent) {
+
+        let self = this;
 
         let kanban_element_id: number = (evt && evt.item && evt.item.getAttribute('draggable_row_index')) ? parseInt(evt.item.getAttribute('draggable_row_index')) : null;
 
@@ -195,30 +208,30 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         /**
          * un kanban, on édite soit un enum au sein du api_type_id, soit le lien vers un autre api_type_id
          */
-        let row_api_type_id = this.widget_options.crud_api_type_id;
-        let kanban_column_api_type_id = this.kanban_column.api_type_id;
-        let data_field_id = this.kanban_column.field_id;
+        let row_api_type_id = self.crud_activated_api_type;
+        let kanban_column_api_type_id = self.kanban_column.api_type_id;
+        let data_field_id = self.kanban_column.field_id;
 
         if (kanban_column_api_type_id == row_api_type_id) {
             // On doit être sur un enum en théorie
-            if ((!this.kanban_column_field) || (this.kanban_column_field.field_type != ModuleTableField.FIELD_TYPE_enum)) {
+            if ((!self.kanban_column_field) || (self.kanban_column_field.field_type != ModuleTableField.FIELD_TYPE_enum)) {
                 throw new Error('Kanban column is not an enum but same API_TYPE_ID');
             }
         } else {
             // on doit être sur un lien vers un autre api_type_id => le champs doit être unique
-            if ((!this.kanban_column_field) || (!this.kanban_column_field.is_unique)) {
+            if ((!self.kanban_column_field) || (!self.kanban_column_field.is_unique)) {
                 throw new Error('Kanban column is not a unique field but different API_TYPE_ID');
             }
 
             // On ne doit trouver qu'une seule liaison possible entre les 2 api_type_ids
-            let crud_table = VOsTypesManager.moduleTables_by_voType[this.widget_options.crud_api_type_id];
+            let crud_table = VOsTypesManager.moduleTables_by_voType[self.crud_activated_api_type];
             let fields = crud_table.get_fields();
 
             let data_field: ModuleTableField<any> = null;
             for (let i in fields) {
                 let field = fields[i];
 
-                if (field.manyToOne_target_moduletable && (field.manyToOne_target_moduletable.vo_type == this.kanban_column.api_type_id)) {
+                if (field.manyToOne_target_moduletable && (field.manyToOne_target_moduletable.vo_type == self.kanban_column.api_type_id)) {
                     if (!data_field) {
                         data_field = field;
                     } else {
@@ -230,52 +243,169 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             data_field_id = data_field.field_id;
         }
 
-        let db_element = await query(row_api_type_id).filter_by_id(kanban_element_id).select_vo();
-        if (!db_element) {
-            throw new Error('Kanban element not found');
-        }
+        // let old_column_value = db_element[data_field_id];
+        // let new_column_value = (evt.relatedContext && evt.relatedContext.element) ? evt.relatedContext.element : null;
 
-        let old_column_value = db_element[data_field_id];
-        let new_column_value = (evt.relatedContext && evt.relatedContext.element) ? evt.relatedContext.element : null;
+        let old_column_value = evt.from ? evt.from.getAttribute('kanban_column_value') : null;
+        let new_column_value = evt.to ? evt.to.getAttribute('kanban_column_value') : null;
 
-        let old_index = this.kanban_column.kanban_use_weight ? db_element['weight'] : null;
+        let old_column_index = old_column_value ? this.kanban_column_values_to_index[old_column_value.toString()] : null;
+        let new_column_index = new_column_value ? this.kanban_column_values_to_index[new_column_value.toString()] : null;
+
+        let old_index = self.kanban_column.kanban_use_weight ? evt.oldIndex : null;
         let new_index = evt.newIndex;
 
-        let diff_list = (new_column_value != null) && (new_column_value != old_column_value);
+        let diff_list = (new_column_index != null) && (new_column_index != old_column_index);
         let diff_index = (new_index != null) && (old_index != new_index);
 
         if (!diff_index && !diff_list) {
-            // aucune modification
-            return true;
+            // aucune modification - on devrait pas vraiment arriver ici, ya peut-etre une désynchronisation, on reload les datas
+            ConsoleHandler.warn('No diff found on kanban move - refreshing');
+            await this.refresh();
+            return false;
         }
 
+        // On clone les données pour pouvoir les réinjecter si besoin
+        let data_rows_copy = cloneDeep(self.data_rows);
+
+        // On stocke les lignes qu'on modifie pour les insérer en base
+        let updated_data_rows_by_id: { [id: number]: IDistantVOBase } = {};
+        let promises = [];
+        let errors: string[] = [];
+
         if (diff_list) {
-            db_element[data_field_id] = new_column_value;
+
+            let mv_elts = self.data_rows[old_column_index].splice(old_index, 1);
+            self.data_rows[new_column_index].splice(new_index, 0, mv_elts[0]);
+            promises.push(self.update_weights(old_column_index, updated_data_rows_by_id, errors, data_field_id, kanban_element_id));
+            // On update forcément le kanban_element_id
+            promises.push(self.update_weights(new_column_index, updated_data_rows_by_id, errors, data_field_id, null, kanban_element_id, new_column_value));
         }
 
         if (diff_index) {
             // changement d'index : si on a un poids ok sinon on refuse tout simplement le changement de poids (mais on peut accepter le changement de liste)
-            if (this.kanban_column.kanban_use_weight) {
-                db_element['weight'] = evt.newIndex;
+            if (self.kanban_column.kanban_use_weight) {
+                if (!diff_list) {
+                    // Si on a diff_list, c'est déjà fait
+                    let mv_elts = self.data_rows[old_column_index].splice(old_index, 1);
+                    self.data_rows[old_column_index].splice(new_index, 0, mv_elts[0]);
+                    promises.push(self.update_weights(old_column_index, updated_data_rows_by_id, errors, data_field_id));
+                }
             } else {
                 if (!diff_list) {
+                    self.data_rows = data_rows_copy;
                     return false;
                 }
+                ConsoleHandler.warn('Kanban column does not use weight, cannot change index');
             }
         }
 
-        try {
-            let insert_res = await ModuleDAO.getInstance().insertOrUpdateVO(db_element);
-            if (!insert_res) {
-                throw new Error('Erreur lors de l\'insertion du kanban_element');
-            }
+        await all_promises(promises);
 
-        } catch (error) {
-            ConsoleHandler.error('on_move_kanban_element:' + error);
+        if (errors && (errors.length > 0)) {
+            self.data_rows = data_rows_copy;
+            this.$snotify.error(this.label('update_kanban_data_rows.needs_refresh'));
+            await this.refresh();
             return false;
         }
 
-        return true;
+        return await this.$snotify.async(this.label('update_kanban_data_rows.start'), () => new Promise(async (resolve, reject) => {
+
+            try {
+
+                let updated_data_rows = Object.values(updated_data_rows_by_id);
+                if (updated_data_rows.length >= 0) {
+                    let insert_res = await ModuleDAO.getInstance().insertOrUpdateVOs(updated_data_rows);
+                    if (!insert_res) {
+                        throw new Error('Erreur lors de l\'insertion du kanban_element');
+                    }
+                }
+
+            } catch (error) {
+
+                ConsoleHandler.error('on_move_kanban_element:' + error);
+                self.data_rows = data_rows_copy;
+
+                reject({
+                    title: this.label('update_kanban_data_rows.error'),
+                    body: '',
+                    config: {
+                        timeout: 2000,
+                    }
+                });
+                return false;
+            }
+
+            resolve({
+                title: this.label('update_kanban_data_rows.ok'),
+                body: '',
+                config: {
+                    timeout: 2000,
+                }
+            });
+
+            return true;
+        }));
+    }
+
+    /**
+     * On identifie les lignes à modifier dans data_rows en fonction du weight réel de la ligne (son index actuel dans la liste ou son ordre)
+     * ya un algo à creuser ici par ce que si on filtre, on va pas avoir tous les éléments et on assigne des poids incompatibles avec
+     * la liste globale...
+     * @param column_index L'index de la colonne kanban
+     * @param updated_data_rows_by_id Les lignes actuellement identifiées à mettre à jour
+     * @param errors Les erreurs rencontrées
+     * @param ignore_id L'id à ignorer - on ne change pas le poids de cet item
+     * @param force_id L'id à forcer - on change le poids dans tous les cas, et on change aussi la colonne si elle est différente
+     * @param column_value La valeur de la colonne kanban
+     */
+    private async update_weights(
+        column_index: number,
+        updated_data_rows_by_id: { [id: number]: IDistantVOBase },
+        errors: string[],
+        data_field_id: string,
+        ignore_id: number = null,
+        force_id: number = null,
+        column_value: any = null) {
+
+        // on doit récup les datas depuis la base pour chaque vo à modifier
+        let promises = [];
+        let self = this;
+
+        for (let i in this.data_rows[column_index]) {
+            let new_weight = parseInt(i);
+            let data_row = this.data_rows[column_index][i];
+            let data_row_id = data_row.id || data_row['__crud_actions'];
+
+            if (ignore_id && (data_row_id == ignore_id)) {
+                continue;
+            }
+
+            if ((data_row['weight'] != new_weight) || (force_id && (data_row_id == force_id))) {
+
+                promises.push((async () => {
+
+                    let db_element = await query(self.crud_activated_api_type).filter_by_id(data_row_id).select_vo();
+                    if ((!db_element) || (db_element['weight'] == new_weight)) {
+                        ConsoleHandler.warn('Kanban element not found or weight already ok - skipping but probably needs to refresh datas');
+                        errors.push('Kanban element not found or weight already ok - skipping but probably needs to refresh datas');
+                        return;
+                    }
+                    db_element['weight'] = new_weight;
+
+                    if (updated_data_rows_by_id[data_row_id]) {
+                        ConsoleHandler.error('Kanban element already updated - probable data loss');
+                    }
+
+                    if (force_id && (data_row_id == force_id)) {
+                        db_element[data_field_id] = column_value;
+                    }
+                    updated_data_rows_by_id[data_row_id] = db_element;
+                })());
+            }
+        }
+
+        await all_promises(promises);
     }
 
     get all_page_widget_by_id(): { [id: number]: DashboardPageWidgetVO } {
@@ -702,7 +832,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         }
 
         if ((this.dashboard_vo_action == DashboardBuilderController.DASHBOARD_VO_ACTION_EDIT) && (!!this.dashboard_vo_id)) {
-            let api_type_id: string = this.api_type_id_action ? this.api_type_id_action : (this.widget_options ? this.widget_options.crud_api_type_id : null);
+            let api_type_id: string = this.api_type_id_action ? this.api_type_id_action : this.crud_activated_api_type;
 
             if (api_type_id) {
                 await this.open_update(api_type_id, parseInt(this.dashboard_vo_id));
@@ -712,7 +842,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         }
 
         if ((this.dashboard_vo_action == DashboardBuilderController.DASHBOARD_VO_ACTION_DELETE) && (!!this.dashboard_vo_id)) {
-            let api_type_id: string = this.api_type_id_action ? this.api_type_id_action : (this.widget_options ? this.widget_options.crud_api_type_id : null);
+            let api_type_id: string = this.api_type_id_action ? this.api_type_id_action : this.crud_activated_api_type;
 
             if (api_type_id) {
                 await this.confirm_delete(api_type_id, parseInt(this.dashboard_vo_id));
@@ -722,7 +852,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         }
 
         if ((this.dashboard_vo_action == DashboardBuilderController.DASHBOARD_VO_ACTION_VOCUS) && (!!this.dashboard_vo_id)) {
-            let api_type_id: string = this.api_type_id_action ? this.api_type_id_action : (this.widget_options ? this.widget_options.crud_api_type_id : null);
+            let api_type_id: string = this.api_type_id_action ? this.api_type_id_action : this.crud_activated_api_type;
 
             if (api_type_id) {
                 this.open_vocus(api_type_id, parseInt(this.dashboard_vo_id));
@@ -1229,7 +1359,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             }
         }
 
-        let crud_api_type_id = this.widget_options.crud_api_type_id ? this.widget_options.crud_api_type_id : null;
+        let crud_api_type_id = this.crud_activated_api_type;
         if (!crud_api_type_id) {
             for (let column_id in this.fields) {
                 let field = this.fields[column_id];
@@ -1307,13 +1437,18 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 (f.param_text != this.filtering_by_active_field_filter.param_text));
         }
 
-        if (this.fields && (
-            ((this.order_asc_on_id != null) && this.fields[this.order_asc_on_id]) ||
-            ((this.order_desc_on_id != null) && this.fields[this.order_desc_on_id]))) {
+        // Si on est sur un kanban, on ordonne par weight si c'est activé
+        if (this.kanban_column && this.kanban_column.kanban_use_weight) {
+            query_.set_sort(new SortByVO(this.kanban_column.api_type_id, 'weight', true));
+        } else {
+            if (this.fields && (
+                ((this.order_asc_on_id != null) && this.fields[this.order_asc_on_id]) ||
+                ((this.order_desc_on_id != null) && this.fields[this.order_desc_on_id]))) {
 
-            let field = (this.order_asc_on_id != null) ? this.fields[this.order_asc_on_id] : this.fields[this.order_desc_on_id];
+                let field = (this.order_asc_on_id != null) ? this.fields[this.order_asc_on_id] : this.fields[this.order_desc_on_id];
 
-            query_.set_sort(new SortByVO(field.vo_type_id, field.module_table_field_id, (this.order_asc_on_id != null)));
+                query_.set_sort(new SortByVO(field.vo_type_id, field.module_table_field_id, (this.order_asc_on_id != null)));
+            }
         }
 
         let clone = cloneDeep(this.columns_by_field_id);
@@ -1459,7 +1594,6 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         }
 
         query_.query_distinct = true;
-        let rows = await ModuleContextFilter.getInstance().select_datatable_rows(query_, this.columns_by_field_id, fields);
 
         // Si je ne suis pas sur la dernière demande, je me casse
         if (this.last_calculation_cpt != launch_cpt) {
@@ -1502,42 +1636,65 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             // this.kanban_column_labels = this.kanban_column_values;
         }
 
+        /**
+         * On fait une requête par kanban_value pour que la limite s'applique bien à chaque colonne
+         */
+        let rows_by_kanban_index: { [kanban_index: number]: any[] } = {};
+
         this.kanban_column_values_to_index = {};
+        let promises = [];
         for (let i in this.kanban_column_values) {
             let kanban_column_value = this.kanban_column_values[i];
+            let kanban_index = parseInt(i);
 
-            this.kanban_column_values_to_index[kanban_column_value.toString()] = parseInt(i);
+            promises.push((async () => {
+
+                let cloned_query = cloneDeep(query_);
+                switch (kanban_column_field.field_type) {
+                    case ModuleTableField.FIELD_TYPE_enum:
+                        rows_by_kanban_index[kanban_index] = await ModuleContextFilter.getInstance().select_datatable_rows(
+                            cloned_query.filter_by_num_eq(this.kanban_column_field.field_id, parseInt(kanban_column_value)),
+                            this.columns_by_field_id,
+                            fields);
+                        break;
+                    default:
+
+                        switch (this.kanban_column_field.field_type) {
+                            case ModuleTableField.FIELD_TYPE_string:
+                                rows_by_kanban_index[kanban_index] = await ModuleContextFilter.getInstance().select_datatable_rows(
+                                    cloned_query.filter_by_text_eq(this.kanban_column.field_id, kanban_column_value, this.kanban_column.api_type_id),
+                                    this.columns_by_field_id,
+                                    fields);
+                                break;
+
+                            default:
+                                throw new Error('Kanban non géré pour le type de champ ' + this.kanban_column_field.field_type);
+                        }
+                }
+            })());
+
+            this.kanban_column_values_to_index[kanban_column_value.toString()] = kanban_index;
+
             this.kanban_column_vos.push({
                 [this.kanban_column.datatable_field_uid]: kanban_column_value,
                 [this.kanban_column.datatable_field_uid + '__raw']: kanban_column_value,
             });
         }
+        await all_promises(promises);
 
         /**
          * On regroupe par la colonne kanban
          */
-        this.data_rows = [];
-        this.kanban_column_counts = [];
-        for (let i in rows) {
-            let row: any = rows[i];
+        let kanban_column_counts = {};
+        for (let kanban_index_str in rows_by_kanban_index) {
+            let rows = rows_by_kanban_index[kanban_index_str];
+            let kanban_column_index = parseInt(kanban_index_str);
 
-            let kanban_column_value = row[this.kanban_column.datatable_field_uid];
-            if ((!row) || (!kanban_column_value)) {
-                continue;
-            }
-
-            let kanban_column_index = this.kanban_column_values_to_index[kanban_column_value.toString()];
-            if (!this.data_rows[kanban_column_index]) {
-                this.data_rows[kanban_column_index] = [];
-            }
-            this.data_rows[kanban_column_index].push(row);
-
-            if (!this.kanban_column_counts[kanban_column_index]) {
-                this.kanban_column_counts[kanban_column_index] = 0;
-            }
-            this.kanban_column_counts[kanban_column_index]++;
+            kanban_column_counts[kanban_column_index] = rows ? rows.length : 0;
         }
 
+        this.data_rows = rows_by_kanban_index;
+        this.kanban_column_counts = kanban_column_counts;
         let context_query: ContextQueryVO = cloneDeep(query_);
         context_query.set_limit(0, 0);
         context_query.set_sort(null);

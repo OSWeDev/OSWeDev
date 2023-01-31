@@ -149,7 +149,17 @@ export default class ModuleDAO extends Module {
     public deleteVOsMulticonnections: (vos: IDistantVOBase[]) => Promise<any[]> = APIControllerWrapper.sah(ModuleDAO.APINAME_DELETE_VOS_MULTICONNECTIONS);
     public deleteVOs: (vos: IDistantVOBase[]) => Promise<any[]> = APIControllerWrapper.sah(ModuleDAO.APINAME_DELETE_VOS);
     public insertOrUpdateVOs: (vos: IDistantVOBase[]) => Promise<InsertOrDeleteQueryResult[]> = APIControllerWrapper.sah(ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS);
-    public insertOrUpdateVOsMulticonnections: (vos: IDistantVOBase[]) => Promise<InsertOrDeleteQueryResult[]> = APIControllerWrapper.sah(ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS_MULTICONNECTIONS);
+    // public insertOrUpdateVOsMulticonnections: (vos: IDistantVOBase[], max_connections_to_use?: number) => Promise<InsertOrDeleteQueryResult[]> =
+    //     APIControllerWrapper.sah(ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS_MULTICONNECTIONS, null, (vos: IDistantVOBase[], max_connections_to_use?: number) => {
+    //         if ((!vos) || (!vos.length)) {
+    //             return false;
+    //         }
+    //         return true;
+    //     }, (vos: IDistantVOBase[], max_connections_to_use?: number) => {
+    //         if (max_connections_to_use == null) {
+    //             max_connections_to_use = 0;
+    //         }
+    //     });
 
     public insertOrUpdateVO: (vo: IDistantVOBase) => Promise<InsertOrDeleteQueryResult> = APIControllerWrapper.sah(ModuleDAO.APINAME_INSERT_OR_UPDATE_VO);
     /**
@@ -316,34 +326,30 @@ export default class ModuleDAO extends Module {
             null,
             ModuleDAO.APINAME_DELETE_VOS_MULTICONNECTIONS,
             (params: IDistantVOBase[]) => {
-                let res: string[] = [];
+                let res: { [type: string]: boolean } = {};
 
                 for (let i in params) {
                     let param = params[i];
 
-                    if (res.indexOf(param._type) < 0) {
-                        res.push(param._type);
-                    }
+                    res[param._type] = true;
                 }
 
-                return res;
+                return Object.keys(res);
             }
         ));
         APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<IDistantVOBase[], any[]>(
             null,
             ModuleDAO.APINAME_DELETE_VOS,
             (params: IDistantVOBase[]) => {
-                let res: string[] = [];
+                let res: { [type: string]: boolean } = {};
 
                 for (let i in params) {
                     let param = params[i];
 
-                    if (res.indexOf(param._type) < 0) {
-                        res.push(param._type);
-                    }
+                    res[param._type] = true;
                 }
 
-                return res;
+                return Object.keys(res);
             }
         ));
         APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<APIDAOParamsVO, any[]>(
@@ -356,36 +362,32 @@ export default class ModuleDAO extends Module {
             null,
             ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS,
             (params: IDistantVOBase[]) => {
-                let res: string[] = [];
+                let res: { [type: string]: boolean } = {};
 
                 for (let i in params) {
                     let param = params[i];
 
-                    if (res.indexOf(param._type) < 0) {
-                        res.push(param._type);
-                    }
+                    res[param._type] = true;
                 }
 
-                return res;
+                return Object.keys(res);
             }
         ));
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<IDistantVOBase[], InsertOrDeleteQueryResult[]>(
-            null,
-            ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS_MULTICONNECTIONS,
-            (params: IDistantVOBase[]) => {
-                let res: string[] = [];
+        // APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<IDistantVOBase[], InsertOrDeleteQueryResult[]>(
+        //     null,
+        //     ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS_MULTICONNECTIONS,
+        //     (params: IDistantVOBase[]) => {
+        //         let res: { [type: string]: boolean } = {};
 
-                for (let i in params) {
-                    let param = params[i];
+        //         for (let i in params) {
+        //             let param = params[i];
 
-                    if (res.indexOf(param._type) < 0) {
-                        res.push(param._type);
-                    }
-                }
+        //             res[param._type] = true;
+        //         }
 
-                return res;
-            }
-        ));
+        //         return Object.keys(res);
+        //     }
+        // ));
         APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<IDistantVOBase, InsertOrDeleteQueryResult>(
             null,
             ModuleDAO.APINAME_INSERT_OR_UPDATE_VO,

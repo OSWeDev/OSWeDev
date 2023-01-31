@@ -1,7 +1,6 @@
 import { VueConstructor } from 'vue';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import * as draggable from 'vuedraggable';
 import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import IInstantiatedPageComponent from '../../../../../shared/modules/CMS/interfaces/IInstantiatedPageComponent';
 import ModuleCMS from '../../../../../shared/modules/CMS/ModuleCMS';
@@ -27,7 +26,6 @@ import CMSDroppableTemplateComponent from './droppable_template/CMSDroppableTemp
     components: {
         'image-view-component': ImageViewComponent,
         'cms_droppable_template_component': CMSDroppableTemplateComponent,
-        'draggable': draggable
     }
 })
 export default class CMSPageComponent extends VueComponentBase {

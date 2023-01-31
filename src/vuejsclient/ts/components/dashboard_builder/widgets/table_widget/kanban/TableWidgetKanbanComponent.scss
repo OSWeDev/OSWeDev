@@ -42,10 +42,24 @@
                                 margin-bottom: 3em;
                                 overflow-x: hidden;
 
-                                .card.kanban_row {
-                                    margin-bottom: 1em;
-                                    max-width: calc(100% - 1em);
-                                    overflow: hidden;
+                                .kanban_column_receiver {
+
+                                    height: -webkit-fill-available;
+
+                                    .card.kanban_row {
+                                        margin-bottom: 1em;
+                                        max-width: calc(100% - 1em);
+                                        overflow: hidden;
+
+                                        .card-body {
+                                            cursor: pointer;
+                                            transition: all 0.2s ease-in-out;
+
+                                            &:hover {
+                                                transform: scale(1.05);
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }

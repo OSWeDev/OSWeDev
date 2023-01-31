@@ -174,6 +174,7 @@ export default abstract class VueAppBase {
                     missing: true
                 });
             },
+            silentTranslationWarn: true
         });
         Vue.config['lang'] = default_locale;
 
