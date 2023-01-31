@@ -48,8 +48,6 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
     @ModuleDashboardPageAction
     private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
-    @ModuleDashboardPageAction
-    private clear_active_field_filters: () => void;
 
     @ModuleDashboardPageGetter
     private get_widgets_invisibility: { [w_id: number]: boolean };
@@ -108,8 +106,6 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
     private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
     private debounced_query_update_visible_options_checkbox = debounce(this.query_update_visible_options_checkbox.bind(this), 300);
-
-    private throttled_reset_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.reset_visible_options.bind(this), 300, { leading: false, trailing: true });
 
     private filter_type_options: number[] = [
         AdvancedStringFilter.FILTER_TYPE_COMMENCE,
@@ -560,19 +556,14 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
     private async reset_visible_options() {
         // Reset des filtres
-        this.clear_active_field_filters();
-        // this.tmp_filter_active_options = null; // N'a aucune influence
-        // this.active_option_lvl1 = {}; // Bloque les cases à cocher
-        // this.tmp_filter_active_options_lvl2 = {}; // N'a aucune influence
-        this.advanced_string_filters = [new AdvancedStringFilter()]; // N'empêche pas le reset, mais fait n'imp avec les case cochées (tout se décale)
-        // et ne rajoute pas toutes les cases MAIS ne n'a pas d'influence si filter_visible_options_lvl2 est reset
-        this.actual_query = this.search_field_checkbox; // N'a aucune influence
-        this.filter_visible_options = [];
-        this.filter_visible_options_lvl2 = {}; //Reset bien le 2ème niveau
-        // l'ensemble des 4 reset tout sauf le niveau 1 des checkbox
+        this.tmp_filter_active_options = []; // Reset le niveau 1
+        this.active_option_lvl1 = {};
+        this.tmp_filter_active_options_lvl2 = {}; //Reset le niveau 2
+        this.filter_visible_options_lvl2 = {};
+        this.advanced_string_filters = [new AdvancedStringFilter()]; // Reset les champs saisie libre
 
         // On update le visuel de tout le monde suite au reset
-        await this.update_visible_options();
+        await this.throttled_update_visible_options();
     }
 
     private async update_visible_options() {

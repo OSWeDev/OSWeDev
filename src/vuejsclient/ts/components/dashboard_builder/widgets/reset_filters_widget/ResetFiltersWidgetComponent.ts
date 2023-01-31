@@ -6,6 +6,7 @@ import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/D
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import VueComponentBase from '../../../VueComponentBase';
+import { ModuleDashboardPageAction } from '../../page/DashboardPageStore';
 import ResetFiltersWidgetOptions from './options/ResetFiltersWidgetOptions';
 import './ResetFiltersWidgetComponent.scss';
 import ResetFiltersWidgetController from './ResetFiltersWidgetController';
@@ -24,6 +25,9 @@ export default class ResetFiltersWidgetComponent extends VueComponentBase {
 
     @Prop({ default: null })
     private dashboard_page: DashboardPageVO;
+
+    @ModuleDashboardPageAction
+    private clear_active_field_filters: () => void;
 
     private start_update: boolean = false;
 
@@ -50,6 +54,8 @@ export default class ResetFiltersWidgetComponent extends VueComponentBase {
         }
 
         await all_promises(promises);
+
+        this.clear_active_field_filters();
 
         this.start_update = false;
     }

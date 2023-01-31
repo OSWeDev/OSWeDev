@@ -40,8 +40,6 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
     @ModuleDashboardPageAction
     private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
-    @ModuleDashboardPageAction
-    private clear_active_field_filters: () => void;
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
@@ -297,11 +295,11 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
     }
 
     private async reset_visible_options() {
-        // Reset des filtres
-        this.clear_active_field_filters();
-
+        this.tmp_filter_active_options = [];
+        this.filter_visible_options = [];
+        this.advanced_number_filters = [new AdvancedNumberFilter()];
         // On update le visuel de tout le monde suite au reset
-        await this.update_visible_options();
+        await this.throttled_update_visible_options();
     }
 
     private async update_visible_options() {
