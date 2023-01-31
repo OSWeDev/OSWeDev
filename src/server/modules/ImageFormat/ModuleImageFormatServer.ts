@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as jimp from 'jimp';
+import { isEqual } from 'lodash';
 import * as path from 'path';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
@@ -65,6 +66,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
 
         // Quand on change un fichier on check si on doit changer l'url d'une image formattee au passage.
         postUpdateTrigger.registerHandler(FileVO.API_TYPE_ID, this, this.force_formatted_image_path_from_file_changed);
+        postUpdateTrigger.registerHandler(ImageFormatVO.API_TYPE_ID, this, this.handleTriggerPostUpdateImageFormat);
     }
 
     public registerServerApiHandlers() {
@@ -83,6 +85,26 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
 
             fimg.formatted_src = vo_update_handler.post_update_vo.path;
             await ModuleDAO.getInstance().insertOrUpdateVO(fimg);
+        }
+    }
+
+    private async handleTriggerPostUpdateImageFormat(update: DAOUpdateVOHolder<ImageFormatVO>) {
+        if (!update || !update.pre_update_vo || !update.post_update_vo) {
+            return;
+        }
+
+        // Si c'est les mêmes, je passe
+        if (isEqual(update.pre_update_vo, update.post_update_vo)) {
+            return;
+        }
+
+        // Sinon je vais vider le répertoire pour que les images soient recréées
+        let rep: string = ModuleImageFormat.RESIZABLE_IMGS_PATH_BASE + update.post_update_vo.name + "/";
+
+        try {
+            fs.rmdirSync(rep);
+        } catch (e) {
+            ConsoleHandler.getInstance().error(e);
         }
     }
 
