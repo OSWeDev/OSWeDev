@@ -1,0 +1,11 @@
+.supervision_type_widget_component
+    label(v-if="title_name_code_text") {{ t(title_name_code_text) }}
+    .available_api_type_ids(v-if="available_api_type_ids && (available_api_type_ids.length > 0)")
+        .btn.btn-info.button_opacity.mr-1(
+            @click="select_api_type_id(null)"
+        ) {{ label('supervision_widget_component.all') }}
+        template(v-for="api_type_id in available_api_type_ids")
+            .btn.btn-info.button_opacity.mr-1(
+                @click="select_api_type_id(api_type_id)"
+                :class="{'active': selected_api_type_id == api_type_id}"
+            ) {{ label('supervision_widget_component.' + api_type_id) }}

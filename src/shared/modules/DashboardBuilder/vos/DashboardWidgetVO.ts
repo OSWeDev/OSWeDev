@@ -9,6 +9,8 @@ export default class DashboardWidgetVO implements IDistantVOBase, IWeightedItem,
 
     public static WIDGET_NAME_bulkops: string = 'bulkops';
     public static WIDGET_NAME_checklist: string = 'checklist';
+    public static WIDGET_NAME_supervision: string = 'supervision';
+    public static WIDGET_NAME_supervision_type: string = 'supervision_type';
     public static WIDGET_NAME_datatable: string = 'datatable';
     public static WIDGET_NAME_valuetable: string = 'valuetable';
     public static WIDGET_NAME_fieldvaluefilter: string = 'fieldvaluefilter';

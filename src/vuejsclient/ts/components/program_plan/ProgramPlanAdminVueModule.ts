@@ -291,7 +291,8 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
                     null,
                     this.menuBranch.id
                 ),
-                this.routes);
+                this.routes
+            );
         }
 
         if (!!this.programplan_shared_module.task_type_id) {

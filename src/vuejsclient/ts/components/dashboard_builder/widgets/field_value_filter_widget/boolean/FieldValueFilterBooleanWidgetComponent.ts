@@ -12,6 +12,7 @@ import TypesHandler from '../../../../../../../shared/tools/TypesHandler';
 import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
+import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFiltersWidgetController';
 import FieldValueFilterWidgetOptions from '../options/FieldValueFilterWidgetOptions';
 import BooleanFilter from './BooleanFilter';
 import './FieldValueFilterBooleanWidgetComponent.scss';
@@ -72,6 +73,14 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
         return this.get_flat_locale_translations[this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id)];
     }
 
+    private async mounted() {
+        ResetFiltersWidgetController.getInstance().register_updater(
+            this.dashboard_page,
+            this.page_widget,
+            this.reset_visible_options.bind(this),
+        );
+    }
+
     private filter_type_label(filter_type: number): string {
         if (filter_type != null) {
             return this.t(BooleanFilter.FILTER_TYPE_LABELS[filter_type]);
@@ -81,6 +90,12 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
 
     @Watch('get_active_field_filters', { deep: true })
     private async onchange_active_field_filters() {
+        await this.throttled_update_visible_options();
+    }
+
+    private async reset_visible_options() {
+        this.boolean_filter_types = [];
+        // On update le visuel de tout le monde suite au reset
         await this.throttled_update_visible_options();
     }
 
@@ -237,6 +252,11 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
                     options.vo_field_sort_lvl2,
                     options.autovalidate_advanced_filter,
                     options.add_is_null_selectable,
+                    options.is_button,
+                    options.enum_bg_colors,
+                    options.enum_fg_colors,
+                    options.show_count_value,
+                    options.active_field_on_autovalidate_advanced_filter,
                 ) : null;
             }
         } catch (error) {

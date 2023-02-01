@@ -1,0 +1,202 @@
+.supervision_widget_component {
+    table.has_sticky_cols {
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
+    }
+
+    .table_header {
+        font-size: 1.2em;
+        margin-bottom: 0.4em;
+        line-height: 1em;
+    }
+
+    >.row {
+        height: -webkit-fill-available;
+
+        >.col-sm-12 {
+            height: -webkit-fill-available;
+
+            >div {
+                display: flex;
+                flex-direction: column;
+                height: -webkit-fill-available;
+            }
+        }
+    }
+
+    .is_busy {
+        display: block;
+        position: absolute;
+        top: -1em;
+        left: 0;
+        width: -webkit-fill-available;
+        height: -webkit-fill-available;
+        background: rgba(0, 0, 0, 0.2);
+        text-align: center;
+        z-index: 1000;
+        padding-top: 9em;
+        cursor: wait;
+
+        i {
+            font-size: xx-large;
+        }
+    }
+
+    .upper_pagination {
+        display: flex;
+
+        .table_pagination {
+            flex: 1;
+        }
+    }
+
+    .table_wrapper {
+        max-width: -webkit-fill-available;
+        overflow-x: auto;
+        flex-grow: 100;
+
+        table {
+
+            position: relative;
+            width: -webkit-fill-available;
+            clear: both;
+
+            thead {
+                th {
+                    border: solid 1px #EEE;
+                    padding: .2em;
+                    background: white;
+                    font-size: 1em;
+                    font-weight: 700;
+                    color: #555;
+                    cursor: pointer;
+
+                    position: sticky;
+                    top: 0;
+                    z-index: 2;
+                    border-top: none;
+
+                    .order_by {
+                        float: left;
+                    }
+
+                }
+
+                th.position-sticky {
+                    z-index: 10;
+                }
+            }
+
+            tfoot {
+                border: solid 1px #EEE;
+                padding: .2em;
+                position: sticky;
+                background-color: white;
+                bottom: 0;
+                z-index: 2;
+                font-size: 1em;
+                font-weight: 700;
+                color: #555;
+                text-decoration: underline;
+            }
+
+            tr {
+                color: white;
+
+                &.STATE_0 {
+                    background-color: red;
+                }
+
+                &.STATE_1 {
+                    background-color: orangered;
+                }
+
+                &.STATE_2 {
+                    background-color: orange;
+                }
+
+                &.STATE_3 {
+                    background-color: #ffd400;
+                }
+
+                &.STATE_4 {
+                    background-color: green;
+                }
+
+                &.STATE_5 {
+                    background-color: blue;
+                }
+
+                &.STATE_6 {
+                    background-color: grey;
+                }
+
+                &.filtered_value {
+                    opacity: 0.2;
+
+                    &:hover {
+                        opacity: 0.9;
+                    }
+                }
+
+                td {
+                    border: solid 1px #EEE;
+                    padding: .2em;
+
+                    &.type_0 {
+                        width: 0;
+                    }
+
+                    &.can_filter {
+
+                        &.is_filtering_by {
+                            background: #F2F2F2 !important;
+
+                            &:hover {
+                                cursor: zoom-out;
+                            }
+                        }
+
+                        &:hover {
+                            background: #F2F2F2 !important;
+                            cursor: zoom-in;
+                        }
+                    }
+
+                    .btn-group.d-print-none {
+                        opacity: 0.5;
+                        transition: opacity 300ms ease-in-out;
+
+                        &:hover {
+                            opacity: 1;
+                        }
+                    }
+
+                    .is_enum {
+                        padding: 2px 4px;
+                        border-radius: 4px;
+                        text-align: center;
+                    }
+
+                }
+
+                td.position-sticky {
+                    background: rgb(245, 245, 245);
+                    z-index: 5;
+                }
+            }
+
+            tr:nth-of-type(odd) {
+                td.position-sticky {
+                    background: rgb(232, 232, 232);
+                }
+            }
+        }
+    }
+
+    @media (max-width: 767px) {
+        .upper_pagination {
+            flex-direction: column;
+        }
+    }
+}

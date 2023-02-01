@@ -60,6 +60,10 @@ export default class CRUD<T extends IDistantVOBase> {
                 continue;
             }
 
+            if (field.do_not_add_to_crud) {
+                continue;
+            }
+
             if (field.field_type == ReferenceDatatableField.ONE_TO_MANY_FIELD_TYPE) {
                 continue;
             }

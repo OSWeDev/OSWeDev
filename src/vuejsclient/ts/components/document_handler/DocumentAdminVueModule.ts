@@ -1,3 +1,4 @@
+import CRUD from '../../../../shared/modules/DAO/vos/CRUD';
 import ModuleDocument from '../../../../shared/modules/Document/ModuleDocument';
 import DocumentTagGroupVO from '../../../../shared/modules/Document/vos/DocumentTagGroupVO';
 import DocumentTagVO from '../../../../shared/modules/Document/vos/DocumentTagVO';

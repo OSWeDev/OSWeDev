@@ -85,6 +85,7 @@ export default class ModuleTableField<T> {
     public manyToOne_target_moduletable: ModuleTable<any> = null;
 
     public cascade_on_delete: boolean = true;
+    public do_not_add_to_crud: boolean = false;
 
     public min_values: number = 0;
     public max_values: number = 999;
@@ -110,6 +111,7 @@ export default class ModuleTableField<T> {
 
     public enum_values: { [value: number]: string } = {};
     public enum_image_values: { [value: number]: string } = {};
+    public enum_color_values: { [value: number]: string } = {};
 
     public hidden_print: boolean = false;
 
@@ -268,6 +270,11 @@ export default class ModuleTableField<T> {
         return this;
     }
 
+    public not_add_to_crud(): ModuleTableField<T> {
+        this.do_not_add_to_crud = true;
+        return this;
+    }
+
     public index(): ModuleTableField<T> {
         this.is_indexed = true;
         return this;
@@ -387,6 +394,16 @@ export default class ModuleTableField<T> {
     public setEnumImageValues(enum_image_values: { [value: number]: string }): ModuleTableField<T> {
         this.field_type = ModuleTableField.FIELD_TYPE_enum;
         this.enum_image_values = enum_image_values;
+
+        return this;
+    }
+
+    /**
+     * @param enum_color_values An obj which for each key has as a value the code_text used for translation
+     */
+    public setEnumColorValues(enum_color_values: { [value: number]: string }): ModuleTableField<T> {
+        this.field_type = ModuleTableField.FIELD_TYPE_enum;
+        this.enum_color_values = enum_color_values;
 
         return this;
     }

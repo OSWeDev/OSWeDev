@@ -45,8 +45,8 @@
                                 input(v-model='advanced_string_filter.filter_content' :placeholder='advanced_mode_placeholder' @change="onchange_advanced_string_filter_content")
                             template(v-if='parseInt(i.toString()) == (advanced_string_filters.length - 1)')
                                 //- .advanced_string_filter_add_filter(v-tooltip.top='label("advanced_filters.add")' @click='add_advanced_string_filter')
-                                //-     i.fa-duotone.fa-plus-circle.fa-lg.btn_icon
-                                template(v-if="!autovalidate_advanced_filter")
+                                //-     i.fa-solid.fa-plus-circle.fa-lg.btn_icon
+                                template(v-if="!autovalidate_advanced_filter || active_field_on_autovalidate_advanced_filter")
                                     .advanced_string_filter_validate_filter(v-tooltip.top='label("advanced_filters.validate")' @click='validate_advanced_string_filter' :class='{"disabled": !is_advanced_filter_valid}')
                                         i.fa-duotone.fa-check-circle.fa-lg.btn_icon
                             template(v-else)
@@ -58,8 +58,59 @@
 
 
         template(v-else)
-            .vo_field_ref_filter
-                template(v-if="!is_checkbox")
+            .vo_field_ref_filter                
+                template(v-if="is_checkbox")
+                    template(v-if="show_search_field")
+                        .search_field.mb-2
+                            input.form-control(type="text" v-model="search_field_checkbox" @input="debounced_query_update_visible_options_checkbox")
+                    .container_filter_opt(:class="{has_search_field: show_search_field, has_vo_field_ref_label: vo_field_ref_label}")
+                        template(v-if="separation_active_filter")
+                            .row
+                                template(v-for="(active_options, column_index) in tmp_filter_active_options_by_column")
+                                    div(:class='div_column_class')
+                                        template(v-for="(opt, index) in active_options")
+                                            .filter_opt
+                                                input(:type="(can_select_multiple) ? 'checkbox' : 'radio'" :id="opt.label + '_' + column_index + '_' + index" name="filter_opt" :key="opt.label" :checked="true" @change="onchange_filter_opt_input($event.target, opt)")                            
+                                                template(v-if='is_translatable_type')
+                                                    label.option__title.ml-2(:for="opt.label + '_' + column_index + '_' + index") {{ label(opt.label) }}
+                                                template(v-else)
+                                                    label.option__title.ml-2(:for="opt.label + '_' + column_index + '_' + index") {{ opt.label }}
+                            hr(v-if="tmp_filter_active_options && (tmp_filter_active_options.length > 0)")
+                        
+                        .row
+                            template(v-for="(visible_options, column_index) in filter_visible_options_by_column")
+                                div(:class='div_column_class')
+                                    template(v-for="(opt, index) in visible_options")
+                                        .filter_opt
+                                            input(:checked="tmp_filter_active_options.findIndex((e) => e.label == opt.label) >= 0" :type="(can_select_multiple) ? 'checkbox' : 'radio'" :id="base_filter + '_' + column_index + '_' + index" name="filter_opt" :key="opt.label" @change="onchange_filter_opt_input($event.target, opt)")                            
+                                            template(v-if='is_translatable_type')
+                                                label.option__title.ml-2(:for="base_filter + '_' + column_index + '_' + index") {{ label(opt.label) }}
+                                            template(v-else)
+                                                label.option__title.ml-2(:for="base_filter + '_' + column_index + '_' + index") {{ opt.label }}
+                                            
+                                            template(v-if="!hide_lvl2_if_lvl1_not_selected || (active_option_lvl1[opt.label])")
+                                                template(v-if="filter_visible_options_lvl2 && filter_visible_options_lvl2[opt.label]")
+                                                    .container_filter_opt_lvl2.ml-3
+                                                        template(v-for="(opt_lvl2, index_lvl2) in filter_visible_options_lvl2[opt.label]")
+                                                            .filter_opt_lvl2
+                                                                input(:type="(can_select_multiple) ? 'checkbox' : 'radio'" :id="base_filter + '_' + column_index + '_' + index + '_lvl2_' + index_lvl2" name="filter_opt" @change="onchange_filter_opt_lvl2_input($event.target, opt_lvl2, opt)")
+                                                                template(v-if='is_translatable_type')
+                                                                    label.option__title.ml-2(:for="base_filter + '_' + column_index + '_' + index + '_lvl2_' + index_lvl2") {{ label(opt_lvl2.label) }}
+                                                                template(v-else)
+                                                                    label.option__title.ml-2(:for="base_filter + '_' + column_index + '_' + index + '_lvl2_' + index_lvl2") {{ opt_lvl2.label }}
+
+                template(v-else-if="is_button")
+                    template(v-for="filter_visible_opt in filter_visible_options")
+                        .btn.btn-info.button_opacity.mr-1(
+                            @click="select_option(filter_visible_opt)"
+                            :class="{'active': (tmp_filter_active_options && tmp_filter_active_options.find((e) => e.label == filter_visible_opt.label))}"
+                        ) 
+                            template(v-if='is_translatable_type')
+                                span.option__title {{ label(filter_visible_opt.label) }}
+                            template(v-else)
+                                span.option__title {{ filter_visible_opt.label }}
+
+                template(v-else)
                     multiselect(
                         :preselect-first="false"
                         :multiple="can_select_multiple"
@@ -102,44 +153,3 @@
                                 template(v-else)
                                     span.option__tag {{ props.option.label }}
                                 i.fa-duotone.fa-times(@click='props.remove(props.option)')
-                
-                template(v-else)
-                    template(v-if="show_search_field")
-                        .search_field.mb-2
-                            input.form-control(type="text" v-model="search_field_checkbox" @input="debounced_query_update_visible_options_checkbox")
-                    .container_filter_opt(:class="{has_search_field: show_search_field, has_vo_field_ref_label: vo_field_ref_label}")
-                        template(v-if="separation_active_filter")
-                            .row
-                                template(v-for="(active_options, column_index) in tmp_filter_active_options_by_column")
-                                    div(:class='div_column_class')
-                                        template(v-for="(opt, index) in active_options")
-                                            .filter_opt
-                                                input(:type="(can_select_multiple) ? 'checkbox' : 'radio'" :id="opt.label + '_' + column_index + '_' + index" name="filter_opt" :key="opt.label" :checked="true" @change="onchange_filter_opt_input($event.target, opt)")                            
-                                                template(v-if='is_translatable_type')
-                                                    label.option__title.ml-2(:for="opt.label + '_' + column_index + '_' + index") {{ label(opt.label) }}
-                                                template(v-else)
-                                                    label.option__title.ml-2(:for="opt.label + '_' + column_index + '_' + index") {{ opt.label }}
-                            hr(v-if="tmp_filter_active_options && (tmp_filter_active_options.length > 0)")
-                        
-                        .row
-                            template(v-for="(visible_options, column_index) in filter_visible_options_by_column")
-                                div(:class='div_column_class')
-                                    template(v-for="(opt, index) in visible_options")
-                                        .filter_opt
-                                            input(:checked="tmp_filter_active_options.findIndex((e) => e.label == opt.label) >= 0" :type="(can_select_multiple) ? 'checkbox' : 'radio'" :id="base_filter + '_' + column_index + '_' + index" name="filter_opt" :key="opt.label" @change="onchange_filter_opt_input($event.target, opt)")                            
-                                            template(v-if='is_translatable_type')
-                                                label.option__title.ml-2(:for="base_filter + '_' + column_index + '_' + index") {{ label(opt.label) }}
-                                            template(v-else)
-                                                label.option__title.ml-2(:for="base_filter + '_' + column_index + '_' + index") {{ opt.label }}
-                                            
-                                            template(v-if="!hide_lvl2_if_lvl1_not_selected || (active_option_lvl1[opt.label])")
-                                                template(v-if="filter_visible_options_lvl2 && filter_visible_options_lvl2[opt.label]")
-                                                    .container_filter_opt_lvl2.ml-3
-                                                        template(v-for="(opt_lvl2, index_lvl2) in filter_visible_options_lvl2[opt.label]")
-                                                            .filter_opt_lvl2
-                                                                input(:type="(can_select_multiple) ? 'checkbox' : 'radio'" :id="base_filter + '_' + column_index + '_' + index + '_lvl2_' + index_lvl2" name="filter_opt" @change="onchange_filter_opt_lvl2_input($event.target, opt_lvl2, opt)")
-                                                                template(v-if='is_translatable_type')
-                                                                    label.option__title.ml-2(:for="base_filter + '_' + column_index + '_' + index + '_lvl2_' + index_lvl2") {{ label(opt_lvl2.label) }}
-                                                                template(v-else)
-                                                                    label.option__title.ml-2(:for="base_filter + '_' + column_index + '_' + index + '_lvl2_' + index_lvl2") {{ opt_lvl2.label }}
-

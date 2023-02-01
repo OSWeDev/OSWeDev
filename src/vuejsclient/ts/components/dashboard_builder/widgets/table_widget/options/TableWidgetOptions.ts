@@ -72,7 +72,8 @@ export default class TableWidgetOptions implements IExportableWidgetOptions {
         public hide_pagination_bottom: boolean,
         public default_export_option: number,
         public has_default_export_option: boolean,
-        public use_kanban_by_default_if_exists: boolean
+        public use_kanban_by_default_if_exists: boolean,
+        public use_for_count: boolean, // Seulement pour enum pour l'instant
     ) { }
 
     public get_title_name_code_text(page_widget_id: number): string {

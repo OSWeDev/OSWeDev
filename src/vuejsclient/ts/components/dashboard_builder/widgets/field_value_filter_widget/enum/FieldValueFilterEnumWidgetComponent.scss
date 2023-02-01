@@ -11,4 +11,28 @@
     .multiselect__content-wrapper {
         z-index: 0;
     }
+
+    .multiselect {
+        .multiselect__option {
+            padding: 0;
+
+            .option__title {
+                padding: 12px;
+            }
+        }
+
+        .pill_wrapper {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-size: smaller;
+            margin-right: 0.5rem;
+            color: white;
+
+            i.fa-solid.fa-times {
+                cursor: pointer;
+                margin-left: 8px;
+            }
+        }
+    }
 }

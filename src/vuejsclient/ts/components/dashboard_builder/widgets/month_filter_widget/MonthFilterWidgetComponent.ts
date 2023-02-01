@@ -1,5 +1,5 @@
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Prop, Vue, Watch } from 'vue-property-decorator';
 import ContextFilterHandler from '../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
@@ -67,7 +67,7 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
     }
 
     private switch_selection(i: string) {
-        this.selected_months[i] = !this.selected_months[i];
+        Vue.set(this.selected_months, i, !this.selected_months[i]);
     }
 
     get vo_field_ref_label(): string {
@@ -264,7 +264,7 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
         if (!context_filter) {
             for (let i in this.selected_months) {
                 if (!!this.selected_months[i]) {
-                    this.selected_months[i] = false;
+                    Vue.set(this.selected_months, i, false);
                 }
             }
             return;

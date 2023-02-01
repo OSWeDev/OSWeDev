@@ -113,6 +113,11 @@ export default class FieldValueFilterWidgetOptions implements IExportableWidgetO
         public vo_field_sort_lvl2: VOFieldRefVO,
         public autovalidate_advanced_filter: boolean,
         public add_is_null_selectable: boolean,
+        public is_button: boolean,
+        public enum_bg_colors: { [enum_value: number]: string },
+        public enum_fg_colors: { [enum_value: number]: string },
+        public show_count_value: boolean, // Seulement pour enum pour l'instant
+        public active_field_on_autovalidate_advanced_filter: boolean,
     ) { }
 
     public get_placeholder_name_code_text(page_widget_id: number): string {

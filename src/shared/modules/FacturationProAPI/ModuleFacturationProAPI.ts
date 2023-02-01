@@ -1,22 +1,27 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import APIControllerWrapper from '../API/APIControllerWrapper';
+import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import IDistantVOBase from '../IDistantVOBase';
 import Module from '../Module';
 import ModuleParams from '../Params/ModuleParams';
 import ModuleRequest from '../Request/ModuleRequest';
+import { FactuProInvoiceVOStatic } from './vos/apis/FactuProInvoiceVO';
 import FactuProCategoriesLISTParams from './vos/categories/FactuProCategoriesLISTParams';
 import FactuProCategoryVO from './vos/categories/FactuProCategoryVO';
 import FactuProCustomersLISTParams from './vos/customers/FactuProCustomersLISTParams';
 import FactuProCustomerVO from './vos/customers/FactuProCustomerVO';
 import FactuProInvoicesLISTParams from './vos/invoices/FactuProInvoicesLISTParams';
+import FactuProInvoiceVO from './vos/invoices/FactuProInvoiceVO';
 import FactuProProductsLISTParams from './vos/products/FactuProProductsLISTParams';
 import FactuProProductVO from './vos/products/FactuProProductVO';
-import FactuProInvoiceVO from './vos/invoices/FactuProInvoiceVO';
 
 export default class ModuleFacturationProAPI extends Module {
 
     public static FacturationProAPI_AUTH_PARAM_NAME: string = 'FacturationProAPI.FacturationProAPI_AUTH';
     public static FacturationProAPI_Login_API_PARAM_NAME: string = 'FacturationProAPI.FacturationProAPI_Login_API';
     public static FacturationProAPI_Cle_API_PARAM_NAME: string = 'FacturationProAPI.FacturationProAPI_Cle_API';
+
+    public static APINAME_download_invoice: string = "download_invoice";
 
     public static MODULE_NAME: string = 'FacturationProAPI';
 
@@ -33,12 +38,20 @@ export default class ModuleFacturationProAPI extends Module {
 
     private static instance: ModuleFacturationProAPI = null;
 
+    public download_invoice: (firm_id: number, invoice_id: string, original: boolean) => Promise<string> = APIControllerWrapper.sah(ModuleFacturationProAPI.APINAME_download_invoice);
+
     private constructor() {
 
         super("factuproapi", ModuleFacturationProAPI.MODULE_NAME);
     }
 
     public registerApis() {
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<FactuProInvoiceVO, string>(
+            null,
+            ModuleFacturationProAPI.APINAME_download_invoice,
+            [],
+            FactuProInvoiceVOStatic
+        ));
     }
 
     public initialize() {
@@ -82,6 +95,22 @@ export default class ModuleFacturationProAPI extends Module {
         return categories;
     }
 
+    public async getHeadersRequest(): Promise<any> {
+
+        let auth = await ModuleParams.getInstance().getParamValueAsString(ModuleFacturationProAPI.FacturationProAPI_AUTH_PARAM_NAME);
+        let cle = await ModuleParams.getInstance().getParamValueAsString(ModuleFacturationProAPI.FacturationProAPI_Cle_API_PARAM_NAME);
+        let login = await ModuleParams.getInstance().getParamValueAsString(ModuleFacturationProAPI.FacturationProAPI_Login_API_PARAM_NAME);
+
+        let authorization = 'Basic ' + Buffer.from(login + ':' + cle).toString('base64');
+
+        return {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-User-Agent': auth,
+            'Authorization': authorization
+        };
+    }
+
     private async get_all_pages(url: string, params: { [i: string]: string }) {
         let res: IDistantVOBase[] = [];
         let has_more: boolean = true;
@@ -113,21 +142,5 @@ export default class ModuleFacturationProAPI extends Module {
         }
 
         return res;
-    }
-
-    private async getHeadersRequest(): Promise<any> {
-
-        let auth = await ModuleParams.getInstance().getParamValueAsString(ModuleFacturationProAPI.FacturationProAPI_AUTH_PARAM_NAME);
-        let cle = await ModuleParams.getInstance().getParamValueAsString(ModuleFacturationProAPI.FacturationProAPI_Cle_API_PARAM_NAME);
-        let login = await ModuleParams.getInstance().getParamValueAsString(ModuleFacturationProAPI.FacturationProAPI_Login_API_PARAM_NAME);
-
-        let authorization = 'Basic ' + Buffer.from(login + ':' + cle).toString('base64');
-
-        return {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'X-User-Agent': auth,
-            'Authorization': authorization
-        };
     }
 }

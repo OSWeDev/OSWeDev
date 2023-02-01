@@ -1,10 +1,12 @@
 import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ContextFilterHandler from '../../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
@@ -14,6 +16,8 @@ import ModuleTable from '../../../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
+import EnvHandler from '../../../../../../../shared/tools/EnvHandler';
+import PromisePipeline from '../../../../../../../shared/tools/PromisePipeline/PromisePipeline';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import TypesHandler from '../../../../../../../shared/tools/TypesHandler';
@@ -21,6 +25,7 @@ import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import ValidationFiltersCallUpdaters from '../../validation_filters_widget/ValidationFiltersCallUpdaters';
+import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFiltersWidgetController';
 import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
 import FieldValueFilterWidgetController from '../FieldValueFilterWidgetController';
 import FieldValueFilterWidgetOptions from '../options/FieldValueFilterWidgetOptions';
@@ -35,6 +40,12 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
     @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+    @ModuleDashboardPageGetter
+    private get_active_api_type_ids: string[];
+    @ModuleDashboardPageGetter
+    private get_query_api_type_ids: string[];
+    @ModuleDashboardPageGetter
+    private get_force_filter_all_api_type_ids: boolean;
     @ModuleDashboardPageAction
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
     @ModuleDashboardPageAction
@@ -62,6 +73,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     private warn_existing_external_filters: boolean = false;
 
     private excludes_values_labels: { [label: string]: boolean } = {};
+    private count_by_filter_visible_opt_id: { [id: number]: number } = {};
 
     private is_init: boolean = false;
 
@@ -71,7 +83,11 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
     private last_calculation_cpt: number = 0;
 
+    private throttled_reset_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.reset_visible_options.bind(this), 300, { leading: false, trailing: true });
+
     @Watch('get_active_field_filters', { deep: true })
+    @Watch('get_active_api_type_ids')
+    @Watch('get_query_api_type_ids')
     private async onchange_active_field_filters() {
         await this.throttled_update_visible_options();
     }
@@ -92,6 +108,14 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
         this.is_init = false;
         await this.throttled_update_visible_options();
+    }
+
+    private async mounted() {
+        ResetFiltersWidgetController.getInstance().register_updater(
+            this.dashboard_page,
+            this.page_widget,
+            this.reset_visible_options.bind(this),
+        );
     }
 
     @Watch('tmp_filter_active_options')
@@ -164,6 +188,13 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
     private async query_update_visible_options(queryStr: string) {
         this.actual_query = queryStr;
+        await this.throttled_update_visible_options();
+    }
+
+    private async reset_visible_options() {
+        this.tmp_filter_active_options = [];
+        this.filter_visible_options = [];
+        // On update le visuel de tout le monde suite au reset
         await this.throttled_update_visible_options();
     }
 
@@ -283,7 +314,6 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             this.actual_query
         );
 
-
         // Si je ne suis pas sur la dernière demande, je me casse
         if (this.last_calculation_cpt != launch_cpt) {
             return;
@@ -306,7 +336,128 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             ));
         }
 
+        tmp.sort((a, b) => {
+            return a.numeric_value - b.numeric_value;
+        });
+
         this.filter_visible_options = tmp;
+
+        // Si on doit afficher le compteur, on fait les requêtes nécessaires
+        await this.set_count_value();
+    }
+
+    /**
+     *
+     * @returns TODO vérifier car pas certains que ça fonctionnent dans tous les cas...
+     */
+    private async set_count_value() {
+        if (!this.show_count_value) {
+            this.count_by_filter_visible_opt_id = {};
+            return;
+        }
+
+        let limit = EnvHandler.MAX_POOL / 2;
+        let promise_pipeline = new PromisePipeline(limit);
+
+        let custom_active_field_filters_by_api_type_id: { [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } } = {};
+        let context_filters_for_request: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters);
+
+        let available_api_type_ids: string[] = [];
+
+        if (this.get_active_api_type_ids && (this.get_active_api_type_ids.length > 0)) {
+            available_api_type_ids = this.get_active_api_type_ids;
+        } else {
+            available_api_type_ids = this.get_query_api_type_ids;
+        }
+
+        for (let api_type_id in context_filters_for_request) {
+
+            for (let i in available_api_type_ids) {
+                let api_type_id_sup: string = available_api_type_ids[i];
+
+                if (!custom_active_field_filters_by_api_type_id[api_type_id_sup]) {
+                    custom_active_field_filters_by_api_type_id[api_type_id_sup] = {};
+                }
+
+                if (!this.get_query_api_type_ids.includes(api_type_id)) {
+                    custom_active_field_filters_by_api_type_id[api_type_id_sup][api_type_id] = context_filters_for_request[api_type_id];
+                    continue;
+                }
+
+                let new_api_type_id: string = api_type_id_sup;
+
+                if (this.get_force_filter_all_api_type_ids) {
+                    new_api_type_id = api_type_id;
+                }
+
+                custom_active_field_filters_by_api_type_id[api_type_id_sup][new_api_type_id] = cloneDeep(context_filters_for_request[api_type_id]);
+
+                for (let field_id in custom_active_field_filters_by_api_type_id[api_type_id_sup][new_api_type_id]) {
+                    // Si je suis sur le field de la requête, je ne le prend pas en compte, il sera fait plus loin
+                    if (field_id == this.vo_field_ref.field_id) {
+                        custom_active_field_filters_by_api_type_id[api_type_id_sup][new_api_type_id][field_id] = null;
+                        continue;
+                    }
+
+                    if (!custom_active_field_filters_by_api_type_id[api_type_id_sup][new_api_type_id][field_id]) {
+                        continue;
+                    }
+
+                    custom_active_field_filters_by_api_type_id[api_type_id_sup][new_api_type_id][field_id].vo_type = api_type_id_sup;
+                }
+            }
+        }
+
+        let count_by_filter_visible_opt_id: { [id: number]: number } = {};
+
+        for (let j in this.filter_visible_options) {
+            let filter_opt: DataFilterOption = this.filter_visible_options[j];
+
+            // On RAZ le champ
+            count_by_filter_visible_opt_id[filter_opt.numeric_value] = 0;
+
+            for (let i in available_api_type_ids) {
+                let api_type_id: string = available_api_type_ids[i];
+
+                let filters: ContextFilterVO[] = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
+                    custom_active_field_filters_by_api_type_id[api_type_id]
+                );
+
+                let enum_filter = ContextFilterHandler.getInstance().get_ContextFilterVO_from_DataFilterOption(
+                    filter_opt,
+                    null,
+                    this.field,
+                    this.vo_field_ref,
+                );
+
+                if (this.get_force_filter_all_api_type_ids) {
+                    enum_filter.vo_type = api_type_id;
+                }
+
+                filters = filters.concat(enum_filter);
+
+                await promise_pipeline.push(async () => {
+
+                    if (!await ModuleAccessPolicy.getInstance().testAccess(ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id))) {
+                        return;
+                    }
+
+                    // pour éviter de récuperer le cache
+                    let items_c: number = await query(api_type_id)
+                        .using(this.dashboard.api_type_ids)
+                        .add_filters(filters)
+                        .select_count();
+
+                    if (items_c >= 0) {
+                        count_by_filter_visible_opt_id[filter_opt.numeric_value] += items_c;
+                    }
+                });
+            }
+        }
+
+        await promise_pipeline.end();
+
+        this.count_by_filter_visible_opt_id = count_by_filter_visible_opt_id;
     }
 
     private try_apply_actual_active_filters(filter: ContextFilterVO): boolean {
@@ -345,6 +496,41 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
     private filter_visible_label(dfo: DataFilterOption): string {
         return dfo.label;
+    }
+
+    private select_option(dfo: DataFilterOption) {
+        if (!dfo) {
+            return;
+        }
+
+        let index: number = this.tmp_filter_active_options.findIndex((e) => e.numeric_value == dfo.numeric_value);
+
+        if (index >= 0) {
+            this.tmp_filter_active_options.splice(index, 1);
+        } else {
+            this.tmp_filter_active_options.push(dfo);
+        }
+    }
+
+    private getStyle(dfo: DataFilterOption) {
+        if (!dfo) {
+            return null;
+        }
+
+        let dfo_id: number = dfo.numeric_value;
+
+        let bg_color: string = this.widget_options.enum_bg_colors && this.widget_options.enum_bg_colors[dfo_id] ? this.widget_options.enum_bg_colors[dfo_id] : null;
+        let fg_color: string = this.widget_options.enum_fg_colors && this.widget_options.enum_fg_colors[dfo_id] ? this.widget_options.enum_fg_colors[dfo_id] : 'white';
+
+        if (!!bg_color) {
+            return {
+                backgroundColor: bg_color + ' !important',
+                borderColor: bg_color + ' !important',
+                color: fg_color + ' !important'
+            };
+        }
+
+        return null;
     }
 
     get vo_field_ref_label(): string {
@@ -409,6 +595,14 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
     get other_ref_api_type_id(): string {
         return this.widget_options.other_ref_api_type_id;
+    }
+
+    get is_button(): boolean {
+        return this.widget_options.is_button;
+    }
+
+    get show_count_value(): boolean {
+        return this.widget_options.show_count_value;
     }
 
     get default_values(): DataFilterOption[] {
@@ -510,6 +704,11 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
                     options.vo_field_sort_lvl2,
                     options.autovalidate_advanced_filter,
                     options.add_is_null_selectable,
+                    options.is_button,
+                    options.enum_bg_colors,
+                    options.enum_fg_colors,
+                    options.show_count_value,
+                    options.active_field_on_autovalidate_advanced_filter,
                 ) : null;
             }
         } catch (error) {

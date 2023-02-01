@@ -1,0 +1,16 @@
+.supervision_item_modal
+    #supervision_item_modal.modal.fade.in(ref="supervision_item_modal", tabindex='-1', role='dialog')
+        .modal-dialog.modal-lg(role='document')
+            .modal-content(v-if="selected_item")
+                .modal-header
+                    h4.modal-title {{ selected_item.name }}
+                    a.btn.close(@click="closemodal") &times;
+
+                .modal-body
+                    Superviseditemcomponent(
+                        :supervised_item_id='selected_item.id'
+                        :supervised_item_vo_type='selected_item._type'
+                    )
+
+                .modal-footer
+                    .btn.btn-info(@click="closemodal") {{ label('supervision.supervision_item_modal.close') }}

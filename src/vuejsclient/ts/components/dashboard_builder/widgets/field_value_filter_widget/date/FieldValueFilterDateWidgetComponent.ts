@@ -162,6 +162,11 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
                     options.vo_field_sort_lvl2,
                     options.autovalidate_advanced_filter,
                     options.add_is_null_selectable,
+                    options.is_button,
+                    options.enum_bg_colors,
+                    options.enum_fg_colors,
+                    options.show_count_value,
+                    options.active_field_on_autovalidate_advanced_filter,
                 ) : null;
             }
         } catch (error) {

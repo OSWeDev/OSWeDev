@@ -23,6 +23,7 @@ import CRUDUpdateModalComponent from '../widgets/table_widget/crud_modals/update
 import './DashboardBuilderBoardComponent.scss';
 import DashboardBuilderBoardItemComponent from './item/DashboardBuilderBoardItemComponent';
 import DashboardCopyWidgetComponent from '../copy_widget/DashboardCopyWidgetComponent';
+import SupervisionItemModalComponent from '../widgets/supervision_widget/supervision_item_modal/SupervisionItemModalComponent';
 
 @Component({
     template: require('./DashboardBuilderBoardComponent.pug'),
@@ -34,6 +35,7 @@ import DashboardCopyWidgetComponent from '../copy_widget/DashboardCopyWidgetComp
         Crudcreatemodalcomponent: CRUDCreateModalComponent,
         Dashboardcopywidgetcomponent: DashboardCopyWidgetComponent,
         Checklistitemmodalcomponent: ChecklistItemModalComponent,
+        Supervisionitemmodal: SupervisionItemModalComponent,
         Inlinetranslatabletext: InlineTranslatableText,
     }
 })
@@ -54,6 +56,9 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
 
     @ModuleDashboardPageAction
     private set_Checklistitemmodalcomponent: (Checklistitemmodalcomponent: ChecklistItemModalComponent) => void;
+
+    @ModuleDashboardPageAction
+    private set_Supervisionitemmodal: (Supervisionitemmodal: SupervisionItemModalComponent) => void;
 
     @ModuleDashboardPageAction
     private set_Crudupdatemodalcomponent: (Crudupdatemodalcomponent: CRUDUpdateModalComponent) => void;
@@ -156,6 +161,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     private mounted() {
         DashboardBuilderWidgetsController.getInstance().add_widget_to_page_handler = this.add_widget_to_page.bind(this);
         this.set_Checklistitemmodalcomponent(this.$refs['Checklistitemmodalcomponent'] as ChecklistItemModalComponent);
+        this.set_Supervisionitemmodal(this.$refs['Supervisionitemmodal'] as SupervisionItemModalComponent);
         this.set_Crudupdatemodalcomponent(this.$refs['Crudupdatemodalcomponent'] as CRUDUpdateModalComponent);
         this.set_Crudcreatemodalcomponent(this.$refs['Crudcreatemodalcomponent'] as CRUDCreateModalComponent);
         this.set_Dashboardcopywidgetcomponent(this.$refs['Dashboardcopywidgetcomponent'] as DashboardCopyWidgetComponent);
