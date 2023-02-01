@@ -629,7 +629,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
         }
 
         let rdv_id;
-        let prep_file_id = new ModuleTableField('prep_file_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Fichier Préparation', false);
+        let prep_file_id = new ModuleTableField('prep_file_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Fichier Préparation', false).not_add_to_crud();
         let author_id = new ModuleTableField('author_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Auteur', false);
 
         if (!!this.rdv_type_id) {
@@ -660,7 +660,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
         }
 
         let rdv_id;
-        let cr_file_id = new ModuleTableField('cr_file_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Fichier CR', false);
+        let cr_file_id = new ModuleTableField('cr_file_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Fichier CR', false).not_add_to_crud();
         let author_id = new ModuleTableField('author_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Auteur', false);
 
         if (!!this.rdv_type_id) {

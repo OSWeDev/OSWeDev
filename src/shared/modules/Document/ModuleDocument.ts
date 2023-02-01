@@ -89,7 +89,7 @@ export default class ModuleDocument extends Module {
 
     private initializeDocumentVO() {
         let name = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Titre', true);
-        let file_id = new ModuleTableField('file_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Fichier', false);
+        let file_id = new ModuleTableField('file_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Fichier', false).not_add_to_crud();
 
         let fields = [
             name,

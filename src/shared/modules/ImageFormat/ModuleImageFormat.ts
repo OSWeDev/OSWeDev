@@ -90,7 +90,7 @@ export default class ModuleImageFormat extends Module {
     }
 
     private initializeFormattedImageVO() {
-        let file_id = new ModuleTableField('file_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Image - fichier formatté', true);
+        let file_id = new ModuleTableField('file_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Image - fichier formatté', true).not_add_to_crud();
         let image_format_id = new ModuleTableField('image_format_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Format d\'image', true);
 
         let fields = [

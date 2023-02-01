@@ -85,6 +85,7 @@ export default class ModuleTableField<T> {
     public manyToOne_target_moduletable: ModuleTable<any> = null;
 
     public cascade_on_delete: boolean = true;
+    public do_not_add_to_crud: boolean = false;
 
     public min_values: number = 0;
     public max_values: number = 999;
@@ -266,6 +267,11 @@ export default class ModuleTableField<T> {
     public unique(replace_if_unique: boolean = false): ModuleTableField<T> {
         this.is_unique = true;
         this.replace_if_unique = replace_if_unique;
+        return this;
+    }
+
+    public not_add_to_crud(): ModuleTableField<T> {
+        this.do_not_add_to_crud = true;
         return this;
     }
 

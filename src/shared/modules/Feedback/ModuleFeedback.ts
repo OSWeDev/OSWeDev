@@ -59,12 +59,12 @@ export default class ModuleFeedback extends Module {
     private initializeFeedbackVO() {
         let user_id = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', true);
         let impersonated_from_user_id = new ModuleTableField('impersonated_from_user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Si LogAs: Admin', false);
-        let screen_capture_1_id = new ModuleTableField('screen_capture_1_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Capture écran 1', true);
-        let screen_capture_2_id = new ModuleTableField('screen_capture_2_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Capture écran 2', false);
-        let screen_capture_3_id = new ModuleTableField('screen_capture_3_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Capture écran 3', false);
-        let file_attachment_1_id = new ModuleTableField('file_attachment_1_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Pièce jointe 1', false);
-        let file_attachment_2_id = new ModuleTableField('file_attachment_2_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Pièce jointe 2', false);
-        let file_attachment_3_id = new ModuleTableField('file_attachment_3_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Pièce jointe 3', false);
+        let screen_capture_1_id = new ModuleTableField('screen_capture_1_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Capture écran 1', true).not_add_to_crud();
+        let screen_capture_2_id = new ModuleTableField('screen_capture_2_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Capture écran 2', false).not_add_to_crud();
+        let screen_capture_3_id = new ModuleTableField('screen_capture_3_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Capture écran 3', false).not_add_to_crud();
+        let file_attachment_1_id = new ModuleTableField('file_attachment_1_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Pièce jointe 1', false).not_add_to_crud();
+        let file_attachment_2_id = new ModuleTableField('file_attachment_2_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Pièce jointe 2', false).not_add_to_crud();
+        let file_attachment_3_id = new ModuleTableField('file_attachment_3_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Pièce jointe 3', false).not_add_to_crud();
 
         let fields = [
             user_id,

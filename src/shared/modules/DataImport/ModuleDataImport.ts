@@ -233,7 +233,7 @@ export default class ModuleDataImport extends Module {
         this.datatables = [];
 
         // Création de la table dataimportfile
-        let field_file_id: ModuleTableField<number> = new ModuleTableField('file_id', ModuleTableField.FIELD_TYPE_file_ref, 'Fichier importé', false);
+        let field_file_id: ModuleTableField<any> = new ModuleTableField('file_id', ModuleTableField.FIELD_TYPE_file_ref, 'Fichier importé', false).not_add_to_crud();
         let field_post_exec_module_id: ModuleTableField<number> = new ModuleTableField('post_exec_module_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Module de post-traitement', false);
         let label_field = new ModuleTableField('import_uid', ModuleTableField.FIELD_TYPE_string, 'Nom du fichier d\'import', true);
         let datatable_fields = [
@@ -296,7 +296,7 @@ export default class ModuleDataImport extends Module {
         label_field = new ModuleTableField('historic_uid', ModuleTableField.FIELD_TYPE_string, 'ID unique', false);
         field_data_import_format_id = new ModuleTableField('data_import_format_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Format d\'import', false);
         let field_user_id = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Auteur', false);
-        field_file_id = new ModuleTableField('file_id', ModuleTableField.FIELD_TYPE_file_ref, 'Fichier importé', false);
+        field_file_id = new ModuleTableField('file_id', ModuleTableField.FIELD_TYPE_file_ref, 'Fichier importé', false).not_add_to_crud();
         let reimport_of_dih_id = new ModuleTableField('reimport_of_dih_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Réimport de ...', false);
         datatable_fields = [
             field_data_import_format_id,
