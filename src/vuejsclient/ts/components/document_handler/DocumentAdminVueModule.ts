@@ -1,3 +1,4 @@
+import CRUD from '../../../../shared/modules/DAO/vos/CRUD';
 import ModuleDocument from '../../../../shared/modules/Document/ModuleDocument';
 import DocumentTagGroupVO from '../../../../shared/modules/Document/vos/DocumentTagGroupVO';
 import DocumentTagVO from '../../../../shared/modules/Document/vos/DocumentTagVO';
@@ -86,6 +87,8 @@ export default class DocumentAdminVueModule extends VueModuleBase {
                     menuBranch.id
                 ),
                 this.routes);
+
+            this.set_document_crud();
         }
     }
 
@@ -95,5 +98,16 @@ export default class DocumentAdminVueModule extends VueModuleBase {
             name: 'documents',
             component: () => import(/* webpackChunkName: "DocumentHandlerComponent" */ './DocumentHandlerComponent')
         });
+    }
+
+    private set_document_crud() {
+        let document_crud: CRUD<DocumentVO> = CRUDComponentManager.getInstance().cruds_by_api_type_id[DocumentVO.API_TYPE_ID];
+
+        document_crud.updateDatatable.removeFields([
+            'file_id'
+        ]);
+        document_crud.createDatatable.removeFields([
+            'file_id'
+        ]);
     }
 }
