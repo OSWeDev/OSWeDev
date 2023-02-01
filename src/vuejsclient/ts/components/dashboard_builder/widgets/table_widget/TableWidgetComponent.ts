@@ -28,7 +28,6 @@ import ModuleDataExport from '../../../../../../shared/modules/DataExport/Module
 import ExportContextQueryToXLSXParamVO from '../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
 import ExportVarcolumnConf from '../../../../../../shared/modules/DataExport/vos/ExportVarcolumnConf';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
 import VarConfVO from '../../../../../../shared/modules/Var/vos/VarConfVO';
@@ -37,7 +36,6 @@ import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../shared/tools/PromiseTools';
-import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import WeightHandler from '../../../../../../shared/tools/WeightHandler';
 import VueAppBase from '../../../../../VueAppBase';
 import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
@@ -87,6 +85,8 @@ export default class TableWidgetComponent extends VueComponentBase {
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
     @ModuleDashboardPageAction
     private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
+    @ModuleDashboardPageAction
+    private set_query_api_type_ids: (query_api_type_ids: string[]) => void;
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
@@ -1477,6 +1477,10 @@ export default class TableWidgetComponent extends VueComponentBase {
 
         this.old_widget_options = cloneDeep(this.widget_options);
 
+        if (this.widget_options.use_for_count) {
+            this.set_query_api_type_ids([this.widget_options.crud_api_type_id]);
+        }
+
         // Si j'ai un tri par defaut, je l'applique au tableau
         if (this.columns) {
             this.order_asc_on_id = null;
@@ -1568,6 +1572,7 @@ export default class TableWidgetComponent extends VueComponentBase {
                     options.hide_pagination_bottom,
                     options.default_export_option,
                     options.has_default_export_option,
+                    options.use_for_count,
                 ) : null;
             }
         } catch (error) {

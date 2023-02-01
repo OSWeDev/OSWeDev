@@ -1368,6 +1368,20 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         }
     }
 
+    private select_option(dfo: DataFilterOption) {
+        if (!dfo) {
+            return;
+        }
+
+        let index: number = this.tmp_filter_active_options.findIndex((e) => e.label == dfo.label);
+
+        if (index >= 0) {
+            this.tmp_filter_active_options.splice(index, 1);
+        } else {
+            this.tmp_filter_active_options.push(dfo);
+        }
+    }
+
     get has_content_filter_type(): { [filter_type: number]: boolean } {
         let res: { [filter_type: number]: boolean } = {
             [AdvancedStringFilter.FILTER_TYPE_COMMENCE]: true,
@@ -1480,6 +1494,15 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         }
 
         return !!this.widget_options.is_checkbox;
+    }
+
+    get is_button(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.is_button;
     }
 
     get hide_lvl2_if_lvl1_not_selected(): boolean {
@@ -1698,6 +1721,10 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                     options.vo_field_sort_lvl2,
                     options.autovalidate_advanced_filter,
                     options.add_is_null_selectable,
+                    options.is_button,
+                    options.enum_bg_colors,
+                    options.enum_fg_colors,
+                    options.show_count_value,
                 ) : null;
             }
         } catch (error) {

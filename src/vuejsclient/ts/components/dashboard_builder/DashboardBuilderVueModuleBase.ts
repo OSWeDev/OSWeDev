@@ -12,6 +12,8 @@ import FieldValueFilterWidgetOptions from './widgets/field_value_filter_widget/o
 import AdvancedStringFilter from './widgets/field_value_filter_widget/string/AdvancedStringFilter';
 import MonthFilterWidgetOptions from './widgets/month_filter_widget/options/MonthFilterWidgetOptions';
 import PageSwitchWidgetOptions from './widgets/page_switch_widget/options/PageSwitchWidgetOptions';
+import SupervisionTypeWidgetOptions from './widgets/supervision_type_widget/options/SupervisionTypeWidgetOptions';
+import SupervisionWidgetOptions from './widgets/supervision_widget/options/SupervisionWidgetOptions';
 import TableWidgetOptions from './widgets/table_widget/options/TableWidgetOptions';
 import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
 import YearFilterWidgetOptions from './widgets/year_filter_widget/options/YearFilterWidgetOptions';
@@ -92,6 +94,8 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_AdvancedDateFilter();
 
         await this.initializeWidget_Checklist();
+        await this.initializeWidget_Supervision();
+        await this.initializeWidget_SupervisionType();
 
         await this.initializeWidget_BulkOps();
 
@@ -143,6 +147,44 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('Checklistwidgeticoncomponent', () => import(/* webpackChunkName: "ChecklistWidgetIconComponent" */ './widgets/checklist_widget/icon/ChecklistWidgetIconComponent'));
     }
 
+    private async initializeWidget_Supervision() {
+        let supervision = new DashboardWidgetVO();
+
+        supervision.default_height = 35;
+        supervision.default_width = 12;
+        supervision.name = DashboardWidgetVO.WIDGET_NAME_supervision;
+        supervision.widget_component = 'Supervisionwidgetcomponent';
+        supervision.options_component = 'Supervisionwidgetoptionscomponent';
+        supervision.weight = 31;
+        supervision.default_background = '#f5f5f5';
+        supervision.icon_component = 'Supervisionwidgeticoncomponent';
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(supervision, () => new SupervisionWidgetOptions(100, [], true, true, 30, true), SupervisionWidgetOptions.get_selected_fields);
+
+        Vue.component('Supervisionwidgetcomponent', () => import(/* webpackChunkName: "SupervisionWidgetComponent" */ './widgets/supervision_widget/SupervisionWidgetComponent'));
+        Vue.component('Supervisionwidgetoptionscomponent', () => import(/* webpackChunkName: "SupervisionWidgetOptionsComponent" */ './widgets/supervision_widget/options/SupervisionWidgetOptionsComponent'));
+        Vue.component('Supervisionwidgeticoncomponent', () => import(/* webpackChunkName: "SupervisionWidgetIconComponent" */ './widgets/supervision_widget/icon/SupervisionWidgetIconComponent'));
+    }
+
+    private async initializeWidget_SupervisionType() {
+        let supervision_type = new DashboardWidgetVO();
+
+        supervision_type.default_height = 5;
+        supervision_type.default_width = 3;
+        supervision_type.name = DashboardWidgetVO.WIDGET_NAME_supervision_type;
+        supervision_type.widget_component = 'Supervisiontypewidgetcomponent';
+        supervision_type.options_component = 'Supervisiontypewidgetoptionscomponent';
+        supervision_type.weight = 32;
+        supervision_type.default_background = '#f5f5f5';
+        supervision_type.icon_component = 'Supervisiontypewidgeticoncomponent';
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(supervision_type, () => new SupervisionTypeWidgetOptions([]), SupervisionTypeWidgetOptions.get_selected_fields);
+
+        Vue.component('Supervisiontypewidgetcomponent', () => import(/* webpackChunkName: "SupervisionTypeWidgetComponent" */ './widgets/supervision_type_widget/SupervisionTypeWidgetComponent'));
+        Vue.component('Supervisiontypewidgetoptionscomponent', () => import(/* webpackChunkName: "SupervisionTypeWidgetOptionsComponent" */ './widgets/supervision_type_widget/options/SupervisionTypeWidgetOptionsComponent'));
+        Vue.component('Supervisiontypewidgeticoncomponent', () => import(/* webpackChunkName: "SupervisionTypeWidgetIconComponent" */ './widgets/supervision_type_widget/icon/SupervisionTypeWidgetIconComponent'));
+    }
+
     private async initializeWidget_DataTable() {
         let Table = new DashboardWidgetVO();
 
@@ -155,7 +197,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Table.default_background = '#f5f5f5';
         Table.icon_component = 'Tablewidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptions(null, true, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, false, false, null, false), TableWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptions(null, true, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, false, false, null, false, false), TableWidgetOptions.get_selected_fields);
 
         Vue.component('Tablewidgetcomponent', () => import(/* webpackChunkName: "TableWidgetComponent" */ './widgets/table_widget/TableWidgetComponent'));
         Vue.component('Tablewidgetoptionscomponent', () => import(/* webpackChunkName: "TableWidgetOptionsComponent" */ './widgets/table_widget/options/TableWidgetOptionsComponent'));
@@ -174,7 +216,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Table.default_background = '#f5f5f5';
         Table.icon_component = 'Tablewidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptions(null, false, 100, null, false, false, false, false, false, true, true, true, true, true, true, false, null, false, 5, false, false, null, false), TableWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptions(null, false, 100, null, false, false, false, false, false, true, true, true, true, true, true, false, null, false, 5, false, false, null, false, false), TableWidgetOptions.get_selected_fields);
 
         Vue.component('Tablewidgetcomponent', () => import(/* webpackChunkName: "TableWidgetComponent" */ './widgets/table_widget/TableWidgetComponent'));
         Vue.component('Tablewidgetoptionscomponent', () => import(/* webpackChunkName: "TableWidgetOptionsComponent" */ './widgets/table_widget/options/TableWidgetOptionsComponent'));
@@ -194,7 +236,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         fieldValueFilter.icon_component = 'Fieldvaluefilterwidgeticoncomponent';
         fieldValueFilter.is_filter = true;
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(fieldValueFilter, () => new FieldValueFilterWidgetOptions(null, null, null, true, false, FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_1, 50, false, false, null, false, AdvancedStringFilter.FILTER_TYPE_CONTIENT, false, false, null, null, null, null, false, false, false, null, null, null, null, false, null, false, false), FieldValueFilterWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(fieldValueFilter, () => new FieldValueFilterWidgetOptions(null, null, null, true, false, FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_1, 50, false, false, null, false, AdvancedStringFilter.FILTER_TYPE_CONTIENT, false, false, null, null, null, null, false, false, false, null, null, null, null, false, null, false, false, false, null, null, false), FieldValueFilterWidgetOptions.get_selected_fields);
 
         Vue.component('Fieldvaluefilterwidgetcomponent', () => import(/* webpackChunkName: "FieldValueFilterWidgetComponent" */ './widgets/field_value_filter_widget/FieldValueFilterWidgetComponent'));
         Vue.component('Fieldvaluefilterwidgetoptionscomponent', () => import(/* webpackChunkName: "FieldValueFilterWidgetOptionsComponent" */ './widgets/field_value_filter_widget/options/FieldValueFilterWidgetOptionsComponent'));

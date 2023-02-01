@@ -15,8 +15,16 @@
             border-radius: 2px;
 
             &.multiselect__input {
-                border:none;
+                border: none;
             }
         }
+    }
+
+    .enum_bg_color,
+    .enum_fg_color,
+    .enum_preview {
+        display: inline-block;
+        vertical-align: middle;
+        margin-right: 5px;
     }
 }

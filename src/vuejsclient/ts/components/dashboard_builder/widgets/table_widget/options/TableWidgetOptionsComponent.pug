@@ -40,7 +40,7 @@
         .input_wrapper
             input(
                 type="number"
-                v-model="limit"
+                v-model.number="limit"
             )
 
     .show_pagination_resumee
@@ -85,7 +85,7 @@
             .input_wrapper
                 input(
                     type="number"
-                    v-model="tmp_nbpages_pagination_list"
+                    v-model.number="tmp_nbpages_pagination_list"
                 )
 
     .hide_pagination_bottom
@@ -242,6 +242,16 @@
             :sync="true"
             :width="100"
             :labels="{checked: label('table_widget_options_component.can_filter_by.visible'), unchecked: label('table_widget_options_component.can_filter_by.hidden')}")
+
+    .use_for_count
+        .input_label {{ label('table_widget_options_component.use_for_count') }}
+        toggle-button(
+            @change="switch_use_for_count" 
+            :value="use_for_count" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+        )
 
     .field_refs
         .input_label {{ label('table_widget_options_component.columns') }}

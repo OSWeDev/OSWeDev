@@ -1,0 +1,27 @@
+.supervision_type_widget_component
+    .supervision_api_type_ids
+        .input_label {{ label('supervision_type_widget_component.supervision_api_type_ids') }}
+
+        .supervision_api_type_ids_select
+            .input_wrapper
+                multiselect(
+                    :preselect-first="false"
+                    :multiple="true"
+                    v-model="supervision_api_type_ids"
+                    :placeholder="label('supervision_type_widget_component.supervision_api_type_ids_select')"
+                    :options="supervision_select_options"
+                    :custom-label="supervision_select_label"
+                    :allow-empty="true",
+                    autocomplete="off"
+
+                    :searchable="true"
+                    :internal-search="true"
+
+                    id="supervision_api_type_ids_select"
+
+                    :select-label='label("multiselect.selectLabel")'
+                    :select-group-label='label("multiselect.selectGroupLabel")'
+                    :selected-label='label("multiselect.selectedLabel")'
+                    :deselect-label='label("multiselect.deselectLabel")'
+                    :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                )

@@ -652,7 +652,7 @@ export default class ContextQueryServerController {
     public async build_select_query_not_count(context_query: ContextQueryVO): Promise<ParameterizedQueryWrapper> {
 
         if (!context_query) {
-            ConsoleHandler.error('Invalid query:build_select_query_not_count:INFOS context_query:' + (query_wrapper ? (query_wrapper.query ? query_wrapper.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
+            ConsoleHandler.error('Invalid query:build_select_query_not_count:INFOS context_query');
             context_query.log(true);
             throw new Error('Invalid query param:build_select_query_not_count');
         }

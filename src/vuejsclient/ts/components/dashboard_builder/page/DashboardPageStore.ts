@@ -12,6 +12,7 @@ import DashboardPageVO from "../../../../../shared/modules/DashboardBuilder/vos/
 import ChecklistItemModalComponent from "../widgets/checklist_widget/checklist_item_modal/ChecklistItemModalComponent";
 import VueComponentBase from "../../VueComponentBase";
 import DashboardCopyWidgetComponent from "../copy_widget/DashboardCopyWidgetComponent";
+import SupervisionItemModalComponent from "../widgets/supervision_widget/supervision_item_modal/SupervisionItemModalComponent";
 
 export type DashboardPageContext = ActionContext<IDashboardPageState, any>;
 
@@ -29,6 +30,7 @@ export interface IDashboardPageState {
     active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
 
     Checklistitemmodalcomponent: ChecklistItemModalComponent;
+    Supervisionitemmodal: SupervisionItemModalComponent;
     Crudupdatemodalcomponent: CRUDUpdateModalComponent;
     Crudcreatemodalcomponent: CRUDCreateModalComponent;
     Dashboardcopywidgetcomponent: DashboardCopyWidgetComponent;
@@ -37,6 +39,9 @@ export interface IDashboardPageState {
     page_history: DashboardPageVO[];
 
     custom_filters: string[];
+    active_api_type_ids: string[];
+    query_api_type_ids: string[];
+    force_filter_all_api_type_ids: boolean;
 
     widgets_invisibility: { [w_id: number]: boolean };
 
@@ -71,11 +76,15 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             page_widgets_components_by_pwid: {},
             active_field_filters: {},
             Checklistitemmodalcomponent: null,
+            Supervisionitemmodal: null,
             Crudupdatemodalcomponent: null,
             Crudcreatemodalcomponent: null,
             Dashboardcopywidgetcomponent: null,
             page_history: [],
             custom_filters: [],
+            active_api_type_ids: [],
+            query_api_type_ids: [],
+            force_filter_all_api_type_ids: false,
             widgets_invisibility: {},
             discarded_field_paths: {}
         };
@@ -95,6 +104,18 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
                 return state.custom_filters;
             },
 
+            get_active_api_type_ids(state: IDashboardPageState): string[] {
+                return state.active_api_type_ids;
+            },
+
+            get_query_api_type_ids(state: IDashboardPageState): string[] {
+                return state.query_api_type_ids;
+            },
+
+            get_force_filter_all_api_type_ids(state: IDashboardPageState): boolean {
+                return state.force_filter_all_api_type_ids;
+            },
+
             get_page_history(state: IDashboardPageState): DashboardPageVO[] {
                 return state.page_history;
             },
@@ -105,6 +126,10 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
             get_Checklistitemmodalcomponent(state: IDashboardPageState): ChecklistItemModalComponent {
                 return state.Checklistitemmodalcomponent;
+            },
+
+            get_Supervisionitemmodal(state: IDashboardPageState): SupervisionItemModalComponent {
+                return state.Supervisionitemmodal;
             },
 
             get_Crudupdatemodalcomponent(state: IDashboardPageState): CRUDUpdateModalComponent {
@@ -161,6 +186,18 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
                 state.custom_filters = custom_filters;
             },
 
+            set_active_api_type_ids(state: IDashboardPageState, active_api_type_ids: string[]) {
+                state.active_api_type_ids = active_api_type_ids;
+            },
+
+            set_query_api_type_ids(state: IDashboardPageState, query_api_type_ids: string[]) {
+                state.query_api_type_ids = query_api_type_ids;
+            },
+
+            set_force_filter_all_api_type_ids(state: IDashboardPageState, force_filter_all_api_type_ids: boolean) {
+                state.force_filter_all_api_type_ids = force_filter_all_api_type_ids;
+            },
+
             set_page_history(state: IDashboardPageState, page_history: DashboardPageVO[]) {
                 state.page_history = page_history;
             },
@@ -175,6 +212,10 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
             set_Checklistitemmodalcomponent(state: IDashboardPageState, Checklistitemmodalcomponent: ChecklistItemModalComponent) {
                 state.Checklistitemmodalcomponent = Checklistitemmodalcomponent;
+            },
+
+            set_Supervisionitemmodal(state: IDashboardPageState, Supervisionitemmodal: SupervisionItemModalComponent) {
+                state.Supervisionitemmodal = Supervisionitemmodal;
             },
 
             set_Crudupdatemodalcomponent(state: IDashboardPageState, Crudupdatemodalcomponent: CRUDUpdateModalComponent) {
@@ -290,6 +331,15 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             set_custom_filters(context: DashboardPageContext, custom_filters: string[]) {
                 commit_set_custom_filters(context, custom_filters);
             },
+            set_active_api_type_ids(context: DashboardPageContext, active_api_type_ids: string[]) {
+                commit_set_active_api_type_ids(context, active_api_type_ids);
+            },
+            set_query_api_type_ids(context: DashboardPageContext, query_api_type_ids: string[]) {
+                commit_set_query_api_type_ids(context, query_api_type_ids);
+            },
+            set_force_filter_all_api_type_ids(context: DashboardPageContext, force_filter_all_api_type_ids: boolean) {
+                commit_set_force_filter_all_api_type_ids(context, force_filter_all_api_type_ids);
+            },
             set_page_history(context: DashboardPageContext, page_history: DashboardPageVO[]) {
                 commit_set_page_history(context, page_history);
             },
@@ -304,6 +354,9 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             },
             set_Checklistitemmodalcomponent(context: DashboardPageContext, Checklistitemmodalcomponent: ChecklistItemModalComponent) {
                 commit_set_Checklistitemmodalcomponent(context, Checklistitemmodalcomponent);
+            },
+            set_Supervisionitemmodal(context: DashboardPageContext, Supervisionitemmodal: SupervisionItemModalComponent) {
+                commit_set_Supervisionitemmodal(context, Supervisionitemmodal);
             },
 
             set_Crudcreatemodalcomponent(context: DashboardPageContext, Crudcreatemodalcomponent: CRUDCreateModalComponent) {
@@ -366,6 +419,7 @@ export const commit_set_active_field_filters = commit(DashboardPageStoreInstance
 export const commit_set_active_field_filter = commit(DashboardPageStoreInstance.mutations.set_active_field_filter);
 export const commit_remove_active_field_filter = commit(DashboardPageStoreInstance.mutations.remove_active_field_filter);
 export const commit_set_Checklistitemmodalcomponent = commit(DashboardPageStoreInstance.mutations.set_Checklistitemmodalcomponent);
+export const commit_set_Supervisionitemmodal = commit(DashboardPageStoreInstance.mutations.set_Supervisionitemmodal);
 export const commit_set_Crudupdatemodalcomponent = commit(DashboardPageStoreInstance.mutations.set_Crudupdatemodalcomponent);
 export const commit_set_Crudcreatemodalcomponent = commit(DashboardPageStoreInstance.mutations.set_Crudcreatemodalcomponent);
 export const commit_set_Dashboardcopywidgetcomponent = commit(DashboardPageStoreInstance.mutations.set_Dashboardcopywidgetcomponent);
@@ -373,6 +427,9 @@ export const commit_set_page_history = commit(DashboardPageStoreInstance.mutatio
 export const commit_add_page_history = commit(DashboardPageStoreInstance.mutations.add_page_history);
 export const commit_pop_page_history = commit(DashboardPageStoreInstance.mutations.pop_page_history);
 export const commit_set_custom_filters = commit(DashboardPageStoreInstance.mutations.set_custom_filters);
+export const commit_set_active_api_type_ids = commit(DashboardPageStoreInstance.mutations.set_active_api_type_ids);
+export const commit_set_query_api_type_ids = commit(DashboardPageStoreInstance.mutations.set_query_api_type_ids);
+export const commit_set_force_filter_all_api_type_ids = commit(DashboardPageStoreInstance.mutations.set_force_filter_all_api_type_ids);
 export const commit_clear_active_field_filters = commit(DashboardPageStoreInstance.mutations.clear_active_field_filters);
 export const commit_set_widgets_invisibility = commit(DashboardPageStoreInstance.mutations.set_widgets_invisibility);
 export const commit_set_widget_invisibility = commit(DashboardPageStoreInstance.mutations.set_widget_invisibility);

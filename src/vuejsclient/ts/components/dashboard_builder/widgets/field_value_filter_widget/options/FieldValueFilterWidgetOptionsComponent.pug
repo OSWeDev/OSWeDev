@@ -22,7 +22,7 @@
             .input_wrapper
                 input(
                     type="number"
-                    v-model="max_visible_options"
+                    v-model.number="max_visible_options"
                 )
         .field_ref 
             .input_label {{ label('field_value_filter_widget_component.vo_field_ref') }}
@@ -109,6 +109,17 @@
                 toggle-button(
                     @change="switch_add_is_null_selectable" 
                     :value="add_is_null_selectable" 
+                    :sync="false"
+                    :width="60"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                )
+
+        .is_button
+            .input_label {{ label('field_value_filter_widget_component.is_button') }}
+            .input_wrapper
+                toggle-button(
+                    @change="switch_is_button" 
+                    :value="is_button" 
                     :sync="false"
                     :width="60"
                     :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
@@ -407,3 +418,27 @@
                         :field="field"
                         :segmentation_type="segmentation_type"
                     )
+
+        template(v-if="is_type_enum")
+            .show_count_value 
+                .input_label {{ label('field_value_filter_widget_component.show_count_value') }}
+                .input_wrapper
+                    toggle-button(
+                        @change="switch_show_count_value" 
+                        :value="show_count_value" 
+                        :sync="false"
+                        :width="60"
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                    )
+
+            .btn.btn-primary(@click="set_show_hide_enum_color_options") {{ label('field_value_filter_widget_component.show_hide_enum_color_options') }}
+
+            template(v-if="show_hide_enum_color_options")
+                .enum_color_options
+                    template(v-for='visible_option in filter_visible_options')
+                        .enum_color_option.mb-2.mt-2
+                            .enum_bg_color
+                                color-picker(v-model="enum_bg_colors[visible_option.numeric_value]")
+                            .enum_fg_color
+                                color-picker(v-model="enum_fg_colors[visible_option.numeric_value]")
+                            .enum_preview.btn.btn-primary(:style='getStyle(visible_option)') {{ filter_visible_label(visible_option) }}

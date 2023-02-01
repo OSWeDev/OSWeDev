@@ -110,6 +110,7 @@ export default class ModuleTableField<T> {
 
     public enum_values: { [value: number]: string } = {};
     public enum_image_values: { [value: number]: string } = {};
+    public enum_color_values: { [value: number]: string } = {};
 
     public hidden_print: boolean = false;
 
@@ -387,6 +388,16 @@ export default class ModuleTableField<T> {
     public setEnumImageValues(enum_image_values: { [value: number]: string }): ModuleTableField<T> {
         this.field_type = ModuleTableField.FIELD_TYPE_enum;
         this.enum_image_values = enum_image_values;
+
+        return this;
+    }
+
+    /**
+     * @param enum_color_values An obj which for each key has as a value the code_text used for translation
+     */
+    public setEnumColorValues(enum_color_values: { [value: number]: string }): ModuleTableField<T> {
+        this.field_type = ModuleTableField.FIELD_TYPE_enum;
+        this.enum_color_values = enum_color_values;
 
         return this;
     }

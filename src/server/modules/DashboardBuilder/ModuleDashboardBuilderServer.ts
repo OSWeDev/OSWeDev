@@ -1413,6 +1413,102 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "La colonne est filtrable en cliquant directement sur la donnée" },
             'table_widget_column_conf.can_filter_by_column.___LABEL___'
         ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Supervision" },
+            'dashboards.widgets.icons_tooltips.supervision.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Type de supervision (api_type_id)" },
+            'dashboards.widgets.icons_tooltips.supervision_type.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher le filtre sous forme de bouton" },
+            'field_value_filter_widget_component.is_button.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Types de supervision" },
+            'supervision_type_widget_component.supervision_api_type_ids.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Sélectionner les types de supervision" },
+            'supervision_type_widget_component.supervision_api_type_ids_select.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Tout" },
+            'supervision_widget_component.all.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Dernière MAJ" },
+            'supervision_widget_component.table.last_update.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Valeur" },
+            'supervision_widget_component.table.last_value.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Sonde" },
+            'supervision_widget_component.table.name.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher le détail" },
+            'supervision_widget_component.table.show_detail.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Rechargement automatique" },
+            'supervision_widget_options_component.auto_refresh.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Non" },
+            'supervision_widget_options_component.auto_refresh.hidden.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Oui" },
+            'supervision_widget_options_component.auto_refresh.visible.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Recharger toutes les (en secondes)" },
+            'supervision_widget_options_component.auto_refresh_seconds.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Nombre d'éléments à afficher" },
+            'supervision_widget_options_component.limit.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher le bouton de rechargement manuel" },
+            'supervision_widget_options_component.refresh_button.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Non" },
+            'supervision_widget_options_component.refresh_button.hidden.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Oui" },
+            'supervision_widget_options_component.refresh_button.visible.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Types de supervision" },
+            'supervision_widget_options_component.supervision_api_type_ids.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Sélectionner les types de supervision" },
+            'supervision_widget_options_component.supervision_api_type_ids_select.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Nom" },
+            'supervision_widget_options_component.widget_title.title_name_code_text.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Fermer" },
+            'supervision.supervision_item_modal.close.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher le compteur par valeurs" },
+            'field_value_filter_widget_component.show_count_value.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher / Masquer la modification du style des options" },
+            'field_value_filter_widget_component.show_hide_enum_color_options.___LABEL___'
+        ));
 
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.onCDashboardPageWidgetVO);

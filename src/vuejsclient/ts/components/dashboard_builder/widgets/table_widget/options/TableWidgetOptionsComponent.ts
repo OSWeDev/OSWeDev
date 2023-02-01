@@ -61,6 +61,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private show_pagination_list: boolean = false;
     private hide_pagination_bottom: boolean = false;
     private has_table_total_footer: boolean = false;
+    private use_for_count: boolean = false;
     private can_filter_by: boolean = true;
     private is_sticky: boolean = false;
     private limit: string = TableWidgetOptions.DEFAULT_LIMIT.toString();
@@ -443,7 +444,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     }
 
     private get_default_options(): TableWidgetOptions {
-        return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, false, false, null, false);
+        return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, false, false, null, false, false);
     }
     private async add_column(add_column: TableColumnDescVO) {
 
@@ -602,6 +603,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                     options.hide_pagination_bottom,
                     options.default_export_option,
                     options.has_default_export_option,
+                    options.use_for_count,
                 ) : null;
             }
         } catch (error) {
@@ -870,6 +872,21 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
         if (this.next_update_options.has_table_total_footer != this.has_table_total_footer) {
             this.next_update_options.has_table_total_footer = this.has_table_total_footer;
+            await this.throttled_update_options();
+        }
+    }
+
+    private async switch_use_for_count() {
+        this.use_for_count = !this.use_for_count;
+
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.next_update_options.use_for_count != this.use_for_count) {
+            this.next_update_options.use_for_count = this.use_for_count;
             await this.throttled_update_options();
         }
     }

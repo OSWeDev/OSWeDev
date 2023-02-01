@@ -2487,7 +2487,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     try {
                         vo.id = await this.check_uniq_indexes(vo, moduleTable);
                     } catch (err) {
-                        return null;
+                        continue;
                     }
                 }
 
