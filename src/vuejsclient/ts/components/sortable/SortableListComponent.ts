@@ -21,6 +21,12 @@ export default class SortableListComponent extends VueComponentBase {
     @Prop({ default: null })
     private elts: any[];
 
+    @Prop()
+    private get_elt_id: (elt: any) => number;
+
+    @Prop({ default: null })
+    private list_id: string;
+
     private this_uid: number = SortableListComponent.UID++;
     private initialized: boolean = false;
     private is_mounted: boolean = false;

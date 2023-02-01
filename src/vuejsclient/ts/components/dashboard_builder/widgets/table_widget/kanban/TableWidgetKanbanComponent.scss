@@ -42,21 +42,51 @@
                                 margin-bottom: 3em;
                                 overflow-x: hidden;
 
+                                &::-webkit-scrollbar-track {
+                                    -webkit-box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.2);
+                                    border-radius: 10px;
+                                    background-color: #F5F5F5;
+                                }
+
+                                &::-webkit-scrollbar {
+                                    width: 6px;
+                                    background-color: #F5F5F5;
+                                }
+
+                                &::-webkit-scrollbar-thumb {
+                                    border-radius: 5px;
+                                    -webkit-box-shadow: inset 0 0 3px rgba(0, 0, 0, .2);
+                                    background-color: #555;
+                                }
+
                                 .kanban_column_receiver {
 
                                     height: -webkit-fill-available;
 
                                     .card.kanban_row {
-                                        margin-bottom: 1em;
-                                        max-width: calc(100% - 1em);
+
                                         overflow: hidden;
+                                        margin-bottom: .5em;
+                                        margin-right: .3em;
+                                        border: none;
 
                                         .card-body {
                                             cursor: pointer;
                                             transition: all 0.2s ease-in-out;
+                                            overflow-x: auto;
 
-                                            &:hover {
-                                                transform: scale(1.05);
+                                            .kanban_row_column_field {
+                                                margin-bottom: 0.6em;
+                                                border-bottom: solid 1px #F5F5F5;
+
+                                                .kanban_row_column_field_label {
+                                                    font-weight: bold;
+                                                    color: #333;
+                                                }
+
+                                                .kanban_row_column_field_value {
+                                                    font-size: smaller;
+                                                }
                                             }
                                         }
                                     }

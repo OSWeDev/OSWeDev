@@ -39,6 +39,7 @@ import ModulePushData from '../shared/modules/PushData/ModulePushData';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
 import ConsoleHandler from '../shared/tools/ConsoleHandler';
 import EnvHandler from '../shared/tools/EnvHandler';
+import LocaleManager from '../shared/tools/LocaleManager';
 import ThreadHandler from '../shared/tools/ThreadHandler';
 import ConfigurationService from './env/ConfigurationService';
 import EnvParam from './env/EnvParam';
@@ -823,7 +824,19 @@ export default abstract class ServerBase {
         if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:i18nextInit:getALL_LOCALES:START');
         }
-        let i18nextInit = I18nextInit.getInstance(await ModuleTranslation.getInstance().getALL_LOCALES());
+        // Avant de supprimer i18next... on corrige pour que ça fonctionne coté serveur aussi les locales
+        let locales = await ModuleTranslation.getInstance().getALL_LOCALES();
+        let locales_corrected = {};
+        for (let lang in locales) {
+            if (lang && lang.indexOf('-') >= 0) {
+                let lang_parts = lang.split('-');
+                if (lang_parts.length == 2) {
+                    locales_corrected[lang_parts[0] + '-' + lang_parts[1].toUpperCase()] = locales[lang];
+                }
+            }
+        }
+        let i18nextInit = I18nextInit.getInstance(locales_corrected);
+        LocaleManager.getInstance().i18n = i18nextInit.i18next;
         this.app.use(i18nextInit.i18nextMiddleware.handle(i18nextInit.i18next, {
             ignoreRoutes: ["/public"]
         }));

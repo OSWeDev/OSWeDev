@@ -195,6 +195,10 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         };
     }
 
+    private get_elt_id(elt) {
+        return elt.id || elt['__crud_actions'];
+    }
+
     private async on_move_kanban_element(evt, originalEvent) {
 
         let self = this;
@@ -246,8 +250,8 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         // let old_column_value = db_element[data_field_id];
         // let new_column_value = (evt.relatedContext && evt.relatedContext.element) ? evt.relatedContext.element : null;
 
-        let old_column_value = evt.from ? evt.from.getAttribute('kanban_column_value') : null;
-        let new_column_value = evt.to ? evt.to.getAttribute('kanban_column_value') : null;
+        let old_column_value = evt.from ? evt.from.getAttribute('draggable_list_id') : null;
+        let new_column_value = evt.to ? evt.to.getAttribute('draggable_list_id') : null;
 
         let old_column_index = old_column_value ? this.kanban_column_values_to_index[old_column_value.toString()] : null;
         let new_column_index = new_column_value ? this.kanban_column_values_to_index[new_column_value.toString()] : null;
@@ -381,14 +385,26 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 continue;
             }
 
-            if ((data_row['weight'] != new_weight) || (force_id && (data_row_id == force_id))) {
+            let needs_data = force_id && (data_row_id == force_id);
+            if (self.kanban_column.kanban_use_weight) {
+                // TODO FIXME si on utilise le poids, la colonne weight est pas forcément sélectionnée, et ne s'appellera pas weight (dih___weight)
+                //  donc à voir pour optimiser et limiter les chargements de données. Est-ce qu'on charge pas les vos dès le départ en plus des datatables pour un kanban ?
+                needs_data = true;
+            }
+
+            if (needs_data) {
 
                 promises.push((async () => {
 
                     let db_element = await query(self.crud_activated_api_type).filter_by_id(data_row_id).select_vo();
-                    if ((!db_element) || (db_element['weight'] == new_weight)) {
-                        ConsoleHandler.warn('Kanban element not found or weight already ok - skipping but probably needs to refresh datas');
-                        errors.push('Kanban element not found or weight already ok - skipping but probably needs to refresh datas');
+                    if ((!db_element) || ((db_element['weight'] == new_weight) &&
+                        ((!force_id) || (db_element[data_field_id] == column_value)))) {
+                        // ConsoleHandler.warn('Kanban element not found or weight already ok - skipping but probably needs to refresh datas');
+                        // errors.push('Kanban element not found or weight already ok - skipping but probably needs to refresh datas');
+                        // return;
+
+                        // Si on doit charger l'élément en base pour identifier une diff de poids
+                        //  alors on peut plus dire que c'est une erreur quand on a déjà la bonne valeur en base
                         return;
                     }
                     db_element['weight'] = new_weight;

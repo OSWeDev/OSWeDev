@@ -34,6 +34,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
     public async configure() {
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Cliquer pour éditer'
+        }, 'table_widget_kanban_component.edit_card.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Des données ont été modifiées par ailleurs, rechargement automatique...'
         }, 'update_kanban_data_rows.needs_refresh.___LABEL___'));
 

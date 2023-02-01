@@ -10,6 +10,7 @@ import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VersionedVOController from '../Versioned/VersionedVOController';
 import VOsTypesManager from '../VOsTypesManager';
+import FeedbackStateVO from './vos/FeedbackStateVO';
 import FeedbackVO from './vos/FeedbackVO';
 
 export default class ModuleFeedback extends Module {
@@ -53,11 +54,24 @@ export default class ModuleFeedback extends Module {
         this.fields = [];
         this.datatables = [];
 
+        this.initializeFeedbackStateVO();
         this.initializeFeedbackVO();
+    }
+
+    private initializeFeedbackStateVO() {
+        let name = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true).unique();
+
+        let fields = [
+            name,
+        ];
+
+        let table = new ModuleTable(this, FeedbackStateVO.API_TYPE_ID, () => new FeedbackStateVO(), fields, name, 'Feedbacks - Etats');
+        this.datatables.push(table);
     }
 
     private initializeFeedbackVO() {
         let user_id = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', true);
+        let state_id = new ModuleTableField('state_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Etat', false);
         let impersonated_from_user_id = new ModuleTableField('impersonated_from_user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Si LogAs: Admin', false);
         let screen_capture_1_id = new ModuleTableField('screen_capture_1_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Capture écran 1', true);
         let screen_capture_2_id = new ModuleTableField('screen_capture_2_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Capture écran 2', false);
@@ -69,6 +83,7 @@ export default class ModuleFeedback extends Module {
         let fields = [
             user_id,
             impersonated_from_user_id,
+            state_id,
             screen_capture_1_id,
             screen_capture_2_id,
             screen_capture_3_id,
@@ -118,6 +133,7 @@ export default class ModuleFeedback extends Module {
         file_attachment_1_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
         file_attachment_2_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
         file_attachment_3_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
+        state_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FeedbackStateVO.API_TYPE_ID]);
 
         VersionedVOController.getInstance().registerModuleTable(table);
     }

@@ -2,10 +2,13 @@ import * as pg_promise from 'pg-promise';
 import { IDatabase } from 'pg-promise';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModulesManager from '../../../shared/modules/ModulesManager';
+import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import LocaleManager from '../../../shared/tools/LocaleManager';
 import ConfigurationService from '../../env/ConfigurationService';
 import EnvParam from '../../env/EnvParam';
 import FileLoggerHandler from '../../FileLoggerHandler';
+import I18nextInit from '../../I18nextInit';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ServerAPIController from '../API/ServerAPIController';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
@@ -125,6 +128,26 @@ export default abstract class ForkedProcessWrapperBase {
 
         // Derniers chargements
         await this.modulesService.late_server_modules_configurations();
+
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.log('ServerExpressController:i18nextInit:getALL_LOCALES:START');
+        }
+        // Avant de supprimer i18next... on corrige pour que ça fonctionne coté serveur aussi les locales
+        let locales = await ModuleTranslation.getInstance().getALL_LOCALES();
+        let locales_corrected = {};
+        for (let lang in locales) {
+            if (lang && lang.indexOf('-') >= 0) {
+                let lang_parts = lang.split('-');
+                if (lang_parts.length == 2) {
+                    locales_corrected[lang_parts[0] + '-' + lang_parts[1].toUpperCase()] = locales[lang];
+                }
+            }
+        }
+        let i18nextInit = I18nextInit.getInstance(locales_corrected);
+        LocaleManager.getInstance().i18n = i18nextInit.i18next;
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.log('ServerExpressController:i18nextInit:getALL_LOCALES:END');
+        }
 
         BGThreadServerController.getInstance().server_ready = true;
         CronServerController.getInstance().server_ready = true;

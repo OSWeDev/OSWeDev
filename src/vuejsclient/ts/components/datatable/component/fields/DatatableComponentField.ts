@@ -115,25 +115,25 @@ export default class DatatableComponentField extends VueComponentBase {
 
     get field_value(): any {
 
-        if (this.vo[this.field.datatable_field_uid] == null) {
-            return this.vo[this.field.datatable_field_uid];
-        }
+        // if (this.vo[this.field.datatable_field_uid] == null) {
+        //     return this.vo[this.field.datatable_field_uid];
+        // }
 
-        switch (this.field.type) {
-            case DatatableField.SIMPLE_FIELD_TYPE:
+        // switch (this.field.type) {
+        //     case DatatableField.SIMPLE_FIELD_TYPE:
 
-                switch (this.simple_field.moduleTableField.field_type) {
-                    case ModuleTableField.FIELD_TYPE_enum:
+        //         switch (this.simple_field.moduleTableField.field_type) {
+        //             case ModuleTableField.FIELD_TYPE_enum:
 
-                        let enum_val = this.vo[this.field.datatable_field_uid];
-                        return this.t(this.simple_field.moduleTableField.enum_values[enum_val]);
+        //                 let enum_val = this.vo[this.field.datatable_field_uid];
+        //                 return this.t(this.simple_field.moduleTableField.enum_values[enum_val]);
 
-                    default:
-                        return this.vo[this.field.datatable_field_uid];
-                }
-            default:
-                return this.vo[this.field.datatable_field_uid];
-        }
+        //             default:
+        //                 return this.vo[this.field.datatable_field_uid];
+        //         }
+        //     default:
+        return this.vo[this.field.datatable_field_uid];
+        // }
     }
 
     get transliterate_enum_value_to_class_name(): string {

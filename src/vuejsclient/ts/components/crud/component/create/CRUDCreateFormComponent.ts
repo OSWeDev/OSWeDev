@@ -203,7 +203,7 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
 
             this.crud_field_remover_conf = await query(CRUDFieldRemoverConfVO.API_TYPE_ID)
                 .filter_by_text_eq('module_table_vo_type', this.api_type_id)
-                .filter_is_true('is_update')
+                .filter_is_false('is_update')
                 .select_vo<CRUDFieldRemoverConfVO>();
             if (this.crud_field_remover_conf && this.crud_field_remover_conf.module_table_field_ids && this.crud_field_remover_conf.module_table_field_ids.length) {
                 this.crud.updateDatatable.removeFields(this.crud_field_remover_conf.module_table_field_ids);

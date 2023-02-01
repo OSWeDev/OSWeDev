@@ -57,7 +57,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     return hourFilter.read(field_value);
 
                 case ModuleTableField.FIELD_TYPE_enum:
-                    return LocaleManager.getInstance().i18n.t(moduleTableField.enum_values[field_value]);
+                    return LocaleManager.getInstance().t(moduleTableField.enum_values[field_value]);
 
                 case ModuleTableField.FIELD_TYPE_date:
                 case ModuleTableField.FIELD_TYPE_day:
