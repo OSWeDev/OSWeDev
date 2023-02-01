@@ -59,6 +59,7 @@ import TableWidgetOptions from './../options/TableWidgetOptions';
 import TablePaginationComponent from './../pagination/TablePaginationComponent';
 import './TableWidgetTableComponent.scss';
 import TableWidgetController from './../TableWidgetController';
+import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFiltersWidgetController';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -87,6 +88,10 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
     @ModuleDashboardPageAction
     private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
+    @ModuleDashboardPageAction
+    private set_query_api_type_ids: (query_api_type_ids: string[]) => void;
+    @ModuleDashboardPageAction
+    private clear_active_field_filters: () => void;
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
@@ -502,6 +507,12 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             this.dashboard_page.id,
             this.page_widget.id,
             this.throttle_do_update_visible_options.bind(this),
+        );
+
+        ResetFiltersWidgetController.getInstance().register_updater(
+            this.dashboard_page,
+            this.page_widget,
+            this.reset_visible_options.bind(this),
         );
         this.stopLoading();
     }
@@ -1137,6 +1148,14 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         await this.throttle_do_update_visible_options();
     }
 
+    private async reset_visible_options() {
+        // Reset des filtres
+        this.clear_active_field_filters();
+
+        // On update le visuel de tout le monde suite au reset
+        await this.throttle_do_update_visible_options();
+    }
+
     private async throttled_do_update_visible_options() {
 
         let launch_cpt: number = (this.last_calculation_cpt + 1);
@@ -1477,6 +1496,10 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
         this.old_widget_options = cloneDeep(this.widget_options);
 
+        if (this.widget_options.use_for_count) {
+            this.set_query_api_type_ids([this.widget_options.crud_api_type_id]);
+        }
+
         // Si j'ai un tri par defaut, je l'applique au tableau
         if (this.columns) {
             this.order_asc_on_id = null;
@@ -1569,6 +1592,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                     options.default_export_option,
                     options.has_default_export_option,
                     options.use_kanban_by_default_if_exists,
+                    options.use_for_count
                 ) : null;
             }
         } catch (error) {
