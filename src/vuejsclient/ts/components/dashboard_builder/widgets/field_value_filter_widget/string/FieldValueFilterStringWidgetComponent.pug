@@ -45,8 +45,8 @@
                                 input(v-model='advanced_string_filter.filter_content' :placeholder='advanced_mode_placeholder' @change="onchange_advanced_string_filter_content")
                             template(v-if='parseInt(i.toString()) == (advanced_string_filters.length - 1)')
                                 //- .advanced_string_filter_add_filter(v-tooltip.top='label("advanced_filters.add")' @click='add_advanced_string_filter')
-                                //-     i.fa-duotone.fa-plus-circle.fa-lg.btn_icon
-                                template(v-if="!autovalidate_advanced_filter")
+                                //-     i.fa-solid.fa-plus-circle.fa-lg.btn_icon
+                                template(v-if="!autovalidate_advanced_filter || active_field_on_autovalidate_advanced_filter")
                                     .advanced_string_filter_validate_filter(v-tooltip.top='label("advanced_filters.validate")' @click='validate_advanced_string_filter' :class='{"disabled": !is_advanced_filter_valid}')
                                         i.fa-duotone.fa-check-circle.fa-lg.btn_icon
                             template(v-else)

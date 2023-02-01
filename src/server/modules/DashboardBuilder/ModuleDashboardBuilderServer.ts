@@ -703,6 +703,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'dashboards.widgets.icons_tooltips.validationfilters.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Bouton de remise à zéro des filtres'
+        }, 'dashboards.widgets.icons_tooltips.resetfilters.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Nom du filtre personnalisé'
         }, 'dow_filter_widget_component.custom_filter_name.___LABEL___'));
 
@@ -1252,6 +1256,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'field_value_filter_widget_component.autovalidate_advanced_filter.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Validation manuelle avec validation automatique du filtre avancé" },
+            'field_value_filter_widget_component.active_field_on_autovalidate_advanced_filter.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Ajouter l'option 'Non renseigné' dans la liste déroulante" },
             'field_value_filter_widget_component.add_is_null_selectable.___LABEL___'
         ));
@@ -1270,6 +1278,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Valider" },
             'dashboard_viewer.block_widgets_updates.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Réinitialiser" },
+            'dashboard_viewer.block_widgets_reset.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Masquer la pagination du bas" },

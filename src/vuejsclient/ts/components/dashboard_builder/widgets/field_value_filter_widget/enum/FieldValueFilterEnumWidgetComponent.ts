@@ -25,6 +25,7 @@ import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import ValidationFiltersCallUpdaters from '../../validation_filters_widget/ValidationFiltersCallUpdaters';
+import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFiltersWidgetController';
 import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
 import FieldValueFilterWidgetController from '../FieldValueFilterWidgetController';
 import FieldValueFilterWidgetOptions from '../options/FieldValueFilterWidgetOptions';
@@ -82,6 +83,8 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
     private last_calculation_cpt: number = 0;
 
+    private throttled_reset_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.reset_visible_options.bind(this), 300, { leading: false, trailing: true });
+
     @Watch('get_active_field_filters', { deep: true })
     @Watch('get_active_api_type_ids')
     @Watch('get_query_api_type_ids')
@@ -105,6 +108,14 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
         this.is_init = false;
         await this.throttled_update_visible_options();
+    }
+
+    private async mounted() {
+        ResetFiltersWidgetController.getInstance().register_updater(
+            this.dashboard_page,
+            this.page_widget,
+            this.reset_visible_options.bind(this),
+        );
     }
 
     @Watch('tmp_filter_active_options')
@@ -177,6 +188,13 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
     private async query_update_visible_options(queryStr: string) {
         this.actual_query = queryStr;
+        await this.throttled_update_visible_options();
+    }
+
+    private async reset_visible_options() {
+        this.tmp_filter_active_options = [];
+        this.filter_visible_options = [];
+        // On update le visuel de tout le monde suite au reset
         await this.throttled_update_visible_options();
     }
 
@@ -690,6 +708,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
                     options.enum_bg_colors,
                     options.enum_fg_colors,
                     options.show_count_value,
+                    options.active_field_on_autovalidate_advanced_filter,
                 ) : null;
             }
         } catch (error) {

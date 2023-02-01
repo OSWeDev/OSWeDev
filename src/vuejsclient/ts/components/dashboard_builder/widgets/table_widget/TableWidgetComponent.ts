@@ -49,6 +49,7 @@ import VueComponentBase, { FiltersHandler } from '../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsController';
 import FieldValueFilterWidgetOptions from '../field_value_filter_widget/options/FieldValueFilterWidgetOptions';
+import ResetFiltersWidgetController from '../reset_filters_widget/ResetFiltersWidgetController';
 import ValidationFiltersWidgetController from '../validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../var_widget/VarWidgetComponent';
 import CRUDCreateModalComponent from './crud_modals/create/CRUDCreateModalComponent';
@@ -87,6 +88,8 @@ export default class TableWidgetComponent extends VueComponentBase {
     private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
     @ModuleDashboardPageAction
     private set_query_api_type_ids: (query_api_type_ids: string[]) => void;
+    @ModuleDashboardPageAction
+    private clear_active_field_filters: () => void;
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
@@ -502,6 +505,12 @@ export default class TableWidgetComponent extends VueComponentBase {
             this.dashboard_page.id,
             this.page_widget.id,
             this.throttle_do_update_visible_options.bind(this),
+        );
+
+        ResetFiltersWidgetController.getInstance().register_updater(
+            this.dashboard_page,
+            this.page_widget,
+            this.reset_visible_options.bind(this),
         );
         this.stopLoading();
     }
@@ -1128,13 +1137,20 @@ export default class TableWidgetComponent extends VueComponentBase {
     }
 
     private async throttled_update_visible_options(force: boolean = false) {
-
         // Si j'ai mon bouton de validation des filtres qui est actif, j'attends que ce soit lui qui m'appelle
         if ((!force) && this.has_widget_validation_filtres()) {
             return;
         }
 
         await this.throttle_do_update_visible_options();
+    }
+
+    private async reset_visible_options() {
+        // Reset des filtres
+        this.clear_active_field_filters();
+
+        // On update le visuel de tout le monde suite au reset
+        await this.throttled_do_update_visible_options();
     }
 
     private async throttled_do_update_visible_options() {

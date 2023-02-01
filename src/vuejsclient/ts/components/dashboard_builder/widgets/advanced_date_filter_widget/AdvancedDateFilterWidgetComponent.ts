@@ -15,10 +15,12 @@ import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dat
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
+import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import TSRangeInputComponent from '../../../tsrangeinput/TSRangeInputComponent';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
+import ResetFiltersWidgetController from '../reset_filters_widget/ResetFiltersWidgetController';
 import './AdvancedDateFilterWidgetComponent.scss';
 import AdvancedDateFilterWidgetOptions from './options/AdvancedDateFilterWidgetOptions';
 
@@ -36,6 +38,8 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
     @ModuleDashboardPageAction
     private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
+    @ModuleDashboardPageAction
+    private clear_active_field_filters: () => void;
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
@@ -52,6 +56,14 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
     private tmp_filter_active_opt: AdvancedDateFilterOptDescVO = null;
     private tmp_ts_range: TSRange = null;
     private old_widget_options: AdvancedDateFilterWidgetOptions = null;
+
+    private async mounted() {
+        ResetFiltersWidgetController.getInstance().register_updater(
+            this.dashboard_page,
+            this.page_widget,
+            this.reset_visible_options.bind(this),
+        );
+    }
 
     @Watch('widget_options', { immediate: true })
     private onchange_widget_options() {
@@ -188,6 +200,18 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
         }
     }
 
+    private async reset_visible_options() {
+        // Reset des checkbox
+        if (this.tmp_filter_active_opt) {
+            let old_id: number = this.tmp_filter_active_opt.id;
+
+            // On simule le click pour décocher le input
+            $('#' + this.base_filter + old_id.toString()).click();
+        }
+
+        this.tmp_ts_range = null;
+    }
+
     private onchange_filter_opt_input(input: any, opt: AdvancedDateFilterOptDescVO) {
         // Si j'ai rien, j'affecte
         if (!this.tmp_filter_active_opt) {
@@ -217,6 +241,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
 
         this.tmp_filter_active_opt = opt;
 
+        // On simule le click pour décocher le input
         $('#' + this.base_filter + old_id.toString()).click();
     }
 

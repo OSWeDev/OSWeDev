@@ -11,11 +11,11 @@ export default class PWAController {
 
     private static instance: PWAController = null;
 
-    public custom_initialize_pwa: (sw_file: string) => Promise<void>;
+    public custom_initialize_pwa: (jquery: any, app_name: string, sw_file: string) => Promise<void>;
 
-    public async initialize_pwa(sw_file: string) {
+    public async initialize_pwa(jquery: any, app_name: string, sw_file: string) {
         if (this.custom_initialize_pwa) {
-            await this.custom_initialize_pwa(sw_file);
+            await this.custom_initialize_pwa(jquery, app_name, sw_file);
         }
 
         if ('serviceWorker' in navigator) {
