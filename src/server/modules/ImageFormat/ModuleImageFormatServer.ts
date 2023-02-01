@@ -104,7 +104,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
         try {
             fs.rmdirSync(rep);
         } catch (e) {
-            ConsoleHandler.getInstance().error(e);
+            ConsoleHandler.error(e);
         }
     }
 

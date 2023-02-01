@@ -96,12 +96,12 @@ export default class ModuleFacturationProAPIServer extends ModuleServerBase {
             // On va écrire le résultat dans le fichier
             fs.appendFileSync(file_name, invoice_pdf);
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
             return null;
         }
 
         // On retourne l'URL du fichier créé en supprimant les 2 premiers caractères (./)
-        return ConfigurationService.getInstance().node_configuration.BASE_URL + file_name.substring(2);
+        return ConfigurationService.node_configuration.BASE_URL + file_name.substring(2);
     }
     // X-Pagination: { "current_page": 1, "total_pages": 10, "per_page": 30, "total_entries": 300 }
     // Vous pouvez accéder aux différentes pages d’une liste en utilisant le paramètre “page = N” dans vos requêtes, ou N est le numéro de page souhaité.

@@ -72,7 +72,7 @@ export default class ResetFiltersWidgetComponent extends VueComponentBase {
                 options = options ? new ResetFiltersWidgetOptions() : null;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return options;
