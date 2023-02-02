@@ -209,7 +209,7 @@ export default class ContextQueryServerController {
     public async select_datatable_rows(
         context_query: ContextQueryVO,
         columns_by_field_id: { [datatable_field_uid: string]: TableColumnDescVO },
-        fields: { [datatable_field_uid: number]: DatatableField<any, any> }): Promise<any[]> {
+        fields: { [datatable_field_uid: string]: DatatableField<any, any> }): Promise<any[]> {
 
         if (!context_query) {
             throw new Error('Invalid context_query param');

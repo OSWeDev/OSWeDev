@@ -210,7 +210,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         exportable_datatable_custom_field_columns: { [datatable_field_uid: string]: string } = null,
 
         columns: TableColumnDescVO[],
-        fields: { [datatable_field_uid: number]: DatatableField<any, any> },
+        fields: { [datatable_field_uid: string]: DatatableField<any, any> },
         varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConf } = null,
         active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
         custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
@@ -262,7 +262,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         exportable_datatable_custom_field_columns: { [datatable_field_uid: string]: string } = null,
 
         columns: TableColumnDescVO[] = null,
-        fields: { [datatable_field_uid: number]: DatatableField<any, any> } = null,
+        fields: { [datatable_field_uid: string]: DatatableField<any, any> } = null,
         varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConf } = null,
         active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
         custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
@@ -328,7 +328,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         exportable_datatable_custom_field_columns: { [datatable_field_uid: string]: string } = null,
 
         columns: TableColumnDescVO[] = null,
-        fields: { [datatable_field_uid: number]: DatatableField<any, any> } = null,
+        fields: { [datatable_field_uid: string]: DatatableField<any, any> } = null,
         varcolumn_conf: { [datatable_field_uid: string]: ExportVarcolumnConf } = null,
         active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
         custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,

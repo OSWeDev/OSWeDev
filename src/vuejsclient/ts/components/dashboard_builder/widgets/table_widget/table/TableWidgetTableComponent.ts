@@ -1433,7 +1433,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             );
         }
 
-        let fields: { [datatable_field_uid: number]: DatatableField<any, any> } = {};
+        let fields: { [datatable_field_uid: string]: DatatableField<any, any> } = {};
         for (let i in this.fields) {
             let field = this.fields[i];
             fields[field.datatable_field_uid] = field;

@@ -373,7 +373,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             query_.add_fields([new ContextQueryFieldVO(field.vo_type_id, field.module_table_field_id, field.datatable_field_uid)]);
         }
 
-        let fields: { [datatable_field_uid: number]: DatatableField<any, any> } = {};
+        let fields: { [datatable_field_uid: string]: DatatableField<any, any> } = {};
         for (let i in this.fields) {
             let field = this.fields[i];
             fields[field.datatable_field_uid] = field;

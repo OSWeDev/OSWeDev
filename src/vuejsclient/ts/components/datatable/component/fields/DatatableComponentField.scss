@@ -11,7 +11,7 @@
         margin-right: 0.4em;
         background: white;
         border-radius: 3px;
-        opacity: 0.5;    
+        opacity: 0.5;
         margin-bottom: 0.15em;
     }
 
@@ -25,17 +25,20 @@
         background-color: #28a745;
         border-color: #28a745;
         white-space: initial;
+        word-break: break-all;
     }
 
     .one_to_many {
         background-color: #dc3545;
         border-color: #dc3545;
         white-space: initial;
+        word-break: break-all;
     }
 
     .many_to_many {
         background-color: #007bff;
         border-color: #007bff;
         white-space: initial;
+        word-break: break-all;
     }
 }

@@ -110,6 +110,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     private dashboard_page: DashboardPageVO;
 
     private data_rows: { [kanban_index: number]: any[] } = {};
+    private kanban_column_index_to_ref_field_id: { [index: string]: number } = {};
     private kanban_column_values_to_index: { [value: string]: number } = {};
     private kanban_column_values: any[] = null;
     // private kanban_column_labels: string[] = null;
@@ -283,7 +284,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             self.data_rows[new_column_index].splice(new_index, 0, mv_elts[0]);
             promises.push(self.update_weights(old_column_index, updated_data_rows_by_id, errors, data_field_id, kanban_element_id));
             // On update forcément le kanban_element_id
-            promises.push(self.update_weights(new_column_index, updated_data_rows_by_id, errors, data_field_id, null, kanban_element_id, new_column_value));
+            promises.push(self.update_weights(new_column_index, updated_data_rows_by_id, errors, data_field_id, null, kanban_element_id));
         }
 
         if (diff_index) {
@@ -369,8 +370,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         errors: string[],
         data_field_id: string,
         ignore_id: number = null,
-        force_id: number = null,
-        column_value: any = null) {
+        force_id: number = null) {
 
         // on doit récup les datas depuis la base pour chaque vo à modifier
         let promises = [];
@@ -398,7 +398,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
                     let db_element = await query(self.crud_activated_api_type).filter_by_id(data_row_id).select_vo();
                     if ((!db_element) || ((db_element['weight'] == new_weight) &&
-                        ((!force_id) || (db_element[data_field_id] == column_value)))) {
+                        ((!force_id) || (db_element[data_field_id] == this.kanban_column_index_to_ref_field_id[column_index])))) {
                         // ConsoleHandler.warn('Kanban element not found or weight already ok - skipping but probably needs to refresh datas');
                         // errors.push('Kanban element not found or weight already ok - skipping but probably needs to refresh datas');
                         // return;
@@ -414,7 +414,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                     }
 
                     if (force_id && (data_row_id == force_id)) {
-                        db_element[data_field_id] = column_value;
+                        db_element[data_field_id] = this.kanban_column_index_to_ref_field_id[column_index];
                     }
                     updated_data_rows_by_id[data_row_id] = db_element;
                 })());
@@ -1603,7 +1603,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             );
         }
 
-        let fields: { [datatable_field_uid: number]: DatatableField<any, any> } = {};
+        let fields: { [datatable_field_uid: string]: DatatableField<any, any> } = {};
         for (let i in this.fields) {
             let field = this.fields[i];
             fields[field.datatable_field_uid] = field;
@@ -1631,6 +1631,9 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         // si c'est un kanban sur un field de type enum, on va chercher les valeurs possibles dans la def de la table (et on sera en readonly pour l'ajout / suppression de colonne pour le moment (et le weight))
         // sinon on charge les valeurs possibles du field dans la table (indépendamment des filtres de la page ou des autres champs)
 
+        this.kanban_column_index_to_ref_field_id = {};
+        this.kanban_column_values_to_index = {};
+
         let kanban_column_field = VOsTypesManager.moduleTables_by_voType[this.kanban_column.api_type_id].get_field_by_id(this.kanban_column.field_id);
         switch (kanban_column_field.field_type) {
             case ModuleTableField.FIELD_TYPE_enum:
@@ -1640,15 +1643,36 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 break;
             default:
                 this.kanban_column_is_enum = false;
-                let kanban_column_values_query = query(this.kanban_column.api_type_id).field(this.kanban_column.field_id);
+                let kanban_column_values_query = query(this.kanban_column.api_type_id).field(this.kanban_column.field_id).field('id');
                 if (this.kanban_column.kanban_use_weight) {
                     kanban_column_values_query = kanban_column_values_query.set_sort(new SortByVO(this.kanban_column.api_type_id, 'weight', true));
                 }
-                this.kanban_column_values = await kanban_column_values_query.select_datatable_rows({
+
+                let id_column = new TableColumnDescVO();
+                id_column.api_type_id = this.kanban_column.api_type_id;
+                id_column.field_id = 'id';
+                id_column.type = TableColumnDescVO.TYPE_vo_field_ref;
+
+                let id_field = new CRUDActionsDatatableFieldVO();
+                id_field._vo_type_id = this.kanban_column.api_type_id;
+                id_field.module_table_field_id = 'id';
+
+                let kanban_column_values_with_raw_and_ids = await kanban_column_values_query.select_datatable_rows({
+                    ['id']: id_column,
                     [this.kanban_column.datatable_field_uid]: this.kanban_column
                 }, {
+                    id: id_field,
                     [this.kanban_column.datatable_field_uid]: this.fields[this.kanban_column.id]
                 });
+                this.kanban_column_values = kanban_column_values_with_raw_and_ids ? kanban_column_values_with_raw_and_ids.map((row: any) => row[this.kanban_column.field_id]) : [];
+
+                for (let i in kanban_column_values_with_raw_and_ids) {
+                    let row = kanban_column_values_with_raw_and_ids[i];
+                    let kanban_index = parseInt(i);
+
+                    this.kanban_column_values_to_index[row[this.kanban_column_field.field_id].toString()] = kanban_index;
+                    this.kanban_column_index_to_ref_field_id[kanban_index] = row['id'];
+                }
             // this.kanban_column_labels = this.kanban_column_values;
         }
 
@@ -1657,7 +1681,6 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
          */
         let rows_by_kanban_index: { [kanban_index: number]: any[] } = {};
 
-        this.kanban_column_values_to_index = {};
         let promises = [];
         for (let i in this.kanban_column_values) {
             let kanban_column_value = this.kanban_column_values[i];
@@ -1668,6 +1691,10 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 let cloned_query = cloneDeep(query_);
                 switch (kanban_column_field.field_type) {
                     case ModuleTableField.FIELD_TYPE_enum:
+
+                        this.kanban_column_values_to_index[kanban_column_value.toString()] = kanban_index;
+                        this.kanban_column_index_to_ref_field_id[kanban_index] = kanban_column_value;
+
                         rows_by_kanban_index[kanban_index] = await ModuleContextFilter.getInstance().select_datatable_rows(
                             cloned_query.filter_by_num_eq(this.kanban_column_field.field_id, parseInt(kanban_column_value)),
                             this.columns_by_field_id,
@@ -1677,6 +1704,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
                         switch (this.kanban_column_field.field_type) {
                             case ModuleTableField.FIELD_TYPE_string:
+
                                 rows_by_kanban_index[kanban_index] = await ModuleContextFilter.getInstance().select_datatable_rows(
                                     cloned_query.filter_by_text_eq(this.kanban_column.field_id, kanban_column_value, this.kanban_column.api_type_id),
                                     this.columns_by_field_id,
@@ -1689,7 +1717,6 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 }
             })());
 
-            this.kanban_column_values_to_index[kanban_column_value.toString()] = kanban_index;
 
             this.kanban_column_vos.push({
                 [this.kanban_column.datatable_field_uid]: kanban_column_value,

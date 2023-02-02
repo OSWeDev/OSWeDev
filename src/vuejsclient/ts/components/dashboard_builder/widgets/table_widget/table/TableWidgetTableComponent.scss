@@ -1,4 +1,9 @@
 .table_widget_component {
+
+    overflow-y: auto;
+    height: -webkit-fill-available;
+    overflow-x: hidden;
+
     table.has_sticky_cols {
         border-collapse: separate !important;
         border-spacing: 0 !important;

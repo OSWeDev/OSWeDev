@@ -943,7 +943,7 @@ export default class ContextQueryVO implements IDistantVOBase {
      */
     public async select_datatable_row(
         columns_by_field_id: { [datatable_field_uid: string]: TableColumnDescVO },
-        fields: { [datatable_field_uid: number]: DatatableField<any, any> }): Promise<any> {
+        fields: { [datatable_field_uid: string]: DatatableField<any, any> }): Promise<any> {
         let res = await ModuleContextFilter.getInstance().select_datatable_rows(this, columns_by_field_id, fields);
         if (res && (res.length > 1)) {
             throw new Error('Multiple results on select_datatable_row is not allowed');
@@ -957,7 +957,7 @@ export default class ContextQueryVO implements IDistantVOBase {
      */
     public async select_datatable_rows(
         columns_by_field_id: { [datatable_field_uid: string]: TableColumnDescVO },
-        fields: { [datatable_field_uid: number]: DatatableField<any, any> }
+        fields: { [datatable_field_uid: string]: DatatableField<any, any> }
     ): Promise<any[]> {
         return await ModuleContextFilter.getInstance().select_datatable_rows(this, columns_by_field_id, fields);
     }

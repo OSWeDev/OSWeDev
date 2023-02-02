@@ -2,7 +2,7 @@ include ../../../../../../views/mixins/loading.pug
 
 .table_widget_kanban_component
     +loading()
-        template(v-if='table_columns && kanban_column_counts && data_rows')
+        template(v-if='table_columns && kanban_column_counts && data_rows && kanban_column_vos && kanban_column_vos.length')
 
             template(v-if='loaded_once && is_busy')
                 .is_busy 

@@ -9,7 +9,7 @@ export default class SelectDatatableRowsParamVO implements IAPIParamTranslator<S
     public static fromParams(
         context_query: ContextQueryVO,
         columns_by_field_id: { [datatable_field_uid: string]: TableColumnDescVO },
-        fields: { [datatable_field_uid: number]: DatatableField<any, any> }
+        fields: { [datatable_field_uid: string]: DatatableField<any, any> }
     ): SelectDatatableRowsParamVO {
 
         return new SelectDatatableRowsParamVO(context_query, columns_by_field_id, fields);
@@ -26,7 +26,7 @@ export default class SelectDatatableRowsParamVO implements IAPIParamTranslator<S
     public constructor(
         public context_query: ContextQueryVO,
         public columns_by_field_id: { [datatable_field_uid: string]: TableColumnDescVO },
-        public fields: { [datatable_field_uid: number]: DatatableField<any, any> }
+        public fields: { [datatable_field_uid: string]: DatatableField<any, any> }
     ) { }
 }
 
