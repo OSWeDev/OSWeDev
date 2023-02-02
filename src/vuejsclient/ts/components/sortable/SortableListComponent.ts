@@ -27,6 +27,9 @@ export default class SortableListComponent extends VueComponentBase {
     @Prop({ default: null })
     private list_id: string;
 
+    @Prop({ default: false })
+    private disabled: boolean;
+
     private this_uid: number = SortableListComponent.UID++;
     private initialized: boolean = false;
     private is_mounted: boolean = false;
@@ -64,9 +67,11 @@ export default class SortableListComponent extends VueComponentBase {
         }
         this.initialized = true;
 
-        Sortable.create(
-            this.$el as any,
-            this.drag_options
-        );
+        if (!this.disabled) {
+            Sortable.create(
+                this.$el as any,
+                this.drag_options
+            );
+        }
     }
 }

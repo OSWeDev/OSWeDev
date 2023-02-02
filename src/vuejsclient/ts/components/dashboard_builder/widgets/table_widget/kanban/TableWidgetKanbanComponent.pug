@@ -28,11 +28,19 @@ include ../../../../../../views/mixins/loading.pug
 
             .kanban_header {{ table_header_title }}
             .kanban_wrapper 
-                .kanban_columns_wrapper 
-                    template(v-for="(kanban_column_value, kanban_column_value_index) in kanban_column_values")
+
+                Sortablelistcomponent.kanban_columns_wrapper(
+                    :disabled='!(kanban_column && kanban_column.api_type_id && crud_activated_api_type && (kanban_column.api_type_id != crud_activated_api_type))'
+                    list_id='kanban_columns'
+                    key='kanban_columns_wrapper' 
+                    :elts="kanban_column_values" 
+                    :drag_options="kanban_columns_drag_options"
+                    :get_elt_id="get_column_value_id")
+
+                    template(slot-scope="slot_props_columns")
                         .kanban_column 
                             .kanban_column_header
-                                .kanban_column_header_title
+                                .kanban_column_header_title(@click='(kanban_column && kanban_column.api_type_id && crud_activated_api_type && (kanban_column.api_type_id != crud_activated_api_type)) ? open_update(kanban_column.api_type_id, kanban_column_index_to_ref_field_id[kanban_column_values_to_index[slot_props_columns.sortable_list_item]]) : {}')
                                     template(v-if="kanban_column.type == 0")
                                     template(v-else-if="kanban_column.type == 3")
                                     template(v-else-if="kanban_column.type == 4")
@@ -41,18 +49,18 @@ include ../../../../../../views/mixins/loading.pug
                                         template(v-if='kanban_column.is_enum')
                                             Datatablecomponentfield.is_enum(
                                                 :field="fields[kanban_column.id]"
-                                                :vo="kanban_column_vos[kanban_column_value_index]"
+                                                :vo="kanban_column_vos[kanban_column_values_to_index[slot_props_columns.sortable_list_item]]"
                                                 :columns="table_columns"
                                                 :all_page_widget="all_page_widget"
                                                 :page_widget="page_widget"
-                                                :style="{width: (kanban_column.column_width ? kanban_column.column_width + 'rem' : null), background: (kanban_column.enum_bg_colors ? kanban_column.enum_bg_colors[kanban_column_vos[kanban_column_value_index][kanban_column.datatable_field_uid + '__raw']] : ''), color: (kanban_column.enum_fg_colors ? kanban_column.enum_fg_colors[kanban_column_vos[kanban_column_value_index][kanban_column.datatable_field_uid + '__raw']] : '') }"
+                                                :style="{width: (kanban_column.column_width ? kanban_column.column_width + 'rem' : null), background: (kanban_column.enum_bg_colors ? kanban_column.enum_bg_colors[kanban_column_vos[kanban_column_values_to_index[slot_props_columns.sortable_list_item]][kanban_column.datatable_field_uid + '__raw']] : ''), color: (kanban_column.enum_fg_colors ? kanban_column.enum_fg_colors[kanban_column_vos[kanban_column_values_to_index[slot_props_columns.sortable_list_item]][kanban_column.datatable_field_uid + '__raw']] : '') }"
                                             )
                                         template(v-else)
                                             template(v-if="kanban_column.type != 5")
                                                 Datatablecomponentfield(
                                                     :filter_custom_field_filters="kanban_column.filter_custom_field_filters"
                                                     :field="fields[kanban_column.id]"
-                                                    :vo="kanban_column_vos[kanban_column_value_index]"
+                                                    :vo="kanban_column_vos[kanban_column_values_to_index[slot_props_columns.sortable_list_item]]"
                                                     :columns="table_columns"
                                                     :style="'width: ' + (kanban_column.column_width ? kanban_column.column_width + 'rem' : null)"
                                                     :is_dashboard_builder="true"
@@ -64,17 +72,14 @@ include ../../../../../../views/mixins/loading.pug
                                                     :filter_additional_params='get_column_filter_additional_params(kanban_column)'
                                                 )
 
-                                .kanban_column_header_count {{ kanban_column_counts[kanban_column_value_index] }}
+                                .kanban_column_header_count {{ kanban_column_counts[kanban_column_values_to_index[slot_props_columns.sortable_list_item]] }}
                                 //- TODO ajouter les colonnes de somme et de moyenne des vars
                             .kanban_column_content
-                                //- draggable.kanban_column_receiver(:key='"kanban_columns___" + kanban_column_value_index' :list="data_rows[kanban_column_value_index]" group='kanban_columns' :animation='150' :kanban_column_value="kanban_column_value" @start="drag=true" @end="drag=false" @update='on_move_kanban_element' @add='on_move_kanban_element' @change='on_change_kanban_element')
-                                //- draggable.kanban_column_receiver(v-bind="dragOptions" v-model="data_rows[kanban_column_value_index]" group='kanban_columns' @start="drag=true" @end="drag=false" :move='on_change_kanban_element')
-                                //- draggable.kanban_column_receiver(:key='"kanban_columns___" + kanban_column_value_index' :list="data_rows[kanban_column_value_index]" group='kanban_columns' @start="drag=true" @end="drag=false" :move='on_change_kanban_element')
                                 Sortablelistcomponent.kanban_column_receiver(
-                                    :list_id='kanban_column_value'
-                                    :key='"kanban_columns___" + kanban_column_value_index' 
-                                    :elts="data_rows[kanban_column_value_index]" 
-                                    :drag_options="drag_options"
+                                    :list_id='slot_props_columns.sortable_list_item'
+                                    :key='"kanban_columns___" + kanban_column_values_to_index[slot_props_columns.sortable_list_item]' 
+                                    :elts="data_rows[kanban_column_values_to_index[slot_props_columns.sortable_list_item]]" 
+                                    :drag_options="kanban_column_drag_options"
                                     :get_elt_id="get_elt_id")
 
                                     template(slot-scope="slot_props")
@@ -119,3 +124,12 @@ include ../../../../../../views/mixins/loading.pug
                                                                                             :filter='get_column_filter(column)'
                                                                                             :filter_additional_params='get_column_filter_additional_params(column)'
                                                                                         )
+                    .kanban_column.create_new_kanban_column(v-if='kanban_column && kanban_column.api_type_id && crud_activated_api_type && (kanban_column.api_type_id != crud_activated_api_type)')
+                        .kanban_column_header
+                            .kanban_column_header_title
+                                form(@submit.prevent="create_new_kanban_column")
+                                    input(
+                                        type="text" 
+                                        v-model="new_kanban_column_value" 
+                                        :placeholder="label('table_widget_kanban_component.create_new_kanban_column.placeholder')" 
+                                    )

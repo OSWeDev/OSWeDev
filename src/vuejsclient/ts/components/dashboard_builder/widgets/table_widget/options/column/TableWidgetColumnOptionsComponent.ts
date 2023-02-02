@@ -492,6 +492,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
                     options.default_export_option,
                     options.has_default_export_option,
                     options.use_kanban_by_default_if_exists,
+                    options.use_kanban_column_weight_if_exists,
                     options.use_for_count,
                 ) : null;
             }

@@ -8,4 +8,5 @@ export default class FeedbackStateVO implements IDistantVOBase {
     public _type: string = FeedbackStateVO.API_TYPE_ID;
 
     public name: string;
+    public weight: number;
 }

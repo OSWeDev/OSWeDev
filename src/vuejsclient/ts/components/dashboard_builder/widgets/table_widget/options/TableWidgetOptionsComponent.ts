@@ -79,7 +79,13 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private current_column: TableColumnDescVO = null;
 
     private use_kanban_by_default_if_exists: boolean = true;
+    private use_kanban_column_weight_if_exists: boolean = true;
 
+    private async switch_use_kanban_column_weight_if_exists() {
+        this.use_kanban_column_weight_if_exists = !this.use_kanban_column_weight_if_exists;
+        this.widget_options.use_kanban_column_weight_if_exists = this.use_kanban_column_weight_if_exists;
+        this.update_options();
+    }
     private async switch_use_kanban_by_default_if_exists() {
         this.use_kanban_by_default_if_exists = !this.use_kanban_by_default_if_exists;
         this.widget_options.use_kanban_by_default_if_exists = this.use_kanban_by_default_if_exists;
@@ -453,7 +459,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     }
 
     private get_default_options(): TableWidgetOptions {
-        return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, false, false, null, false, true, false);
+        return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, false, false, null, false, true, true, false);
     }
     private async add_column(add_column: TableColumnDescVO) {
 
@@ -613,6 +619,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                     options.default_export_option,
                     options.has_default_export_option,
                     options.use_kanban_by_default_if_exists,
+                    options.use_kanban_column_weight_if_exists,
                     options.use_for_count,
                 ) : null;
             }

@@ -63,6 +63,7 @@ export default class ModuleFeedback extends Module {
 
         let fields = [
             name,
+            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Weight', false),
         ];
 
         let table = new ModuleTable(this, FeedbackStateVO.API_TYPE_ID, () => new FeedbackStateVO(), fields, name, 'Feedbacks - Etats');

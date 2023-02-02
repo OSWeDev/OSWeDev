@@ -1,4 +1,5 @@
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import MatroidController from '../../../../shared/modules/Matroid/MatroidController';
 import ModuleVar from '../../../../shared/modules/Var/ModuleVar';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../shared/modules/Var/vos/VarDataValueResVO';
@@ -89,6 +90,11 @@ export default class VarsClientController {
                 continue;
             }
 
+            if (!MatroidController.getInstance().check_bases_not_max_ranges(var_param)) {
+                ConsoleHandler.error('VarsClientController:registerParams:!check_bases_not_max_ranges:' + var_param.index);
+                continue;
+            }
+
             if (!this.registered_var_params[var_param.index]) {
 
                 needs_registration[var_param.index] = var_param;
@@ -119,6 +125,12 @@ export default class VarsClientController {
 
         for (let i in this.registered_var_params) {
             let var_param_wrapper = this.registered_var_params[i];
+
+            if (!MatroidController.getInstance().check_bases_not_max_ranges(var_param_wrapper.var_param)) {
+                ConsoleHandler.error('VarsClientController:registerParams:!check_bases_not_max_ranges:' + var_param_wrapper.var_param.index);
+                continue;
+            }
+
             needs_registration[var_param_wrapper.var_param.index] = var_param_wrapper.var_param;
         }
 
@@ -134,10 +146,31 @@ export default class VarsClientController {
      */
     public async registerParamsAndWait(var_params: VarDataBaseVO[] | { [index: string]: VarDataBaseVO }, value_type: number = VarUpdateCallback.VALUE_TYPE_VALID): Promise<{ [index: string]: VarDataBaseVO }> {
 
+        let filtered_var_params: VarDataBaseVO[] = [];
+
+        for (let i in var_params) {
+            let var_param = var_params[i];
+
+            if (!var_param) {
+                continue;
+            }
+
+            if (!MatroidController.getInstance().check_bases_not_max_ranges(var_param)) {
+                ConsoleHandler.error('VarsClientController:registerParams:!check_bases_not_max_ranges:' + var_param.index);
+                continue;
+            }
+
+            filtered_var_params.push(var_param);
+        }
+
+        if (!filtered_var_params.length) {
+            return null;
+        }
+
         return new Promise(async (resolve, reject) => {
             let callbacks: { [cb_uid: number]: VarUpdateCallback } = {};
             let res: { [index: string]: VarDataBaseVO } = {};
-            let nb_waited_cbs: number = TypesHandler.getInstance().isArray(var_params) ? (var_params as VarDataBaseVO[]).length : Object.keys(var_params).length;
+            let nb_waited_cbs: number = filtered_var_params.length;
 
             let callback = VarUpdateCallback.newCallbackOnce(async (varData: VarDataBaseVO) => {
                 res[varData.index] = varData;
@@ -148,7 +181,7 @@ export default class VarsClientController {
             }, value_type);
             callbacks[callback.UID] = callback;
 
-            await this.registerParams(var_params, callbacks);
+            await this.registerParams(filtered_var_params, callbacks);
         });
     }
 
@@ -189,6 +222,11 @@ export default class VarsClientController {
             if (!this.registered_var_params[var_param.index]) {
                 continue;
                 // ConsoleHandler.error('unRegisterParams on unregistered param... ' + var_param.index);
+            }
+
+            if (!MatroidController.getInstance().check_bases_not_max_ranges(var_param)) {
+                ConsoleHandler.error('VarsClientController:registerParams:!check_bases_not_max_ranges:' + var_param.index);
+                continue;
             }
 
             this.registered_var_params[var_param.index].nb_registrations--;

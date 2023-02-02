@@ -164,6 +164,8 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     private table_columns: TableColumnDescVO[] = [];
     private drag: boolean = false;
 
+    private new_kanban_column_value: string = "";
+
     public async getquerystr() {
         if (!this.actual_rows_query) {
             return null;
@@ -186,18 +188,238 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         return true;
     }
 
-    get drag_options() {
+    get kanban_columns_drag_options() {
         return {
             animation: 200,
-            group: "TableWidgetKanbanComponent",
+            group: "TableWidgetKanbanComponent_columns_" + this.page_widget.id,
+
+            onUpdate: this.on_move_columns_kanban_element.bind(this),
+        };
+    }
+
+    get kanban_column_drag_options() {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        return {
+            animation: 200,
+            group: "TableWidgetKanbanComponent_column_" + this.page_widget.id,
 
             onAdd: this.on_move_kanban_element.bind(this),
             onUpdate: this.on_move_kanban_element.bind(this),
         };
     }
 
+    private async create_new_kanban_column() {
+        if ((!this.new_kanban_column_value) || (!this.new_kanban_column_value.length)) {
+            return;
+        }
+
+        if (!(this.kanban_column && this.kanban_column.api_type_id && this.crud_activated_api_type && (this.kanban_column.api_type_id != this.crud_activated_api_type))) {
+            return;
+        }
+
+        return await this.$snotify.async(this.label('create_new_kanban_column.start'), () => new Promise(async (resolve, reject) => {
+
+            try {
+
+                let kanban_table = VOsTypesManager.moduleTables_by_voType[this.kanban_column.api_type_id];
+                let new_kanban_column_value = kanban_table.voConstructor();
+                new_kanban_column_value[this.kanban_column.field_id] = this.new_kanban_column_value;
+                if (this.widget_options.use_kanban_column_weight_if_exists && kanban_table.getFieldFromId('weight')) {
+                    new_kanban_column_value['weight'] = this.kanban_column_values.length;
+                }
+                let res = await ModuleDAO.getInstance().insertOrUpdateVO(new_kanban_column_value);
+                if ((!res) || (!res.id)) {
+                    throw new Error('Erreur lors de la création de la colonne');
+                }
+
+            } catch (error) {
+
+                reject({
+                    title: this.label('create_new_kanban_column.error'),
+                    body: '',
+                    config: {
+                        timeout: 2000,
+                    }
+                });
+                return false;
+            }
+
+            resolve({
+                title: this.label('create_new_kanban_column.ok'),
+                body: '',
+                config: {
+                    timeout: 2000,
+                }
+            });
+
+            return true;
+        }));
+    }
+
+    private get_column_value_id(kanban_column_value) {
+        return this.kanban_column_index_to_ref_field_id[this.kanban_column_values_to_index[kanban_column_value.id]];
+    }
+
     private get_elt_id(elt) {
         return elt.id || elt['__crud_actions'];
+    }
+
+    private async on_move_columns_kanban_element(evt, originalEvent) {
+        let self = this;
+
+        let kanban_column_ref_field_id: number = (evt && evt.item && evt.item.getAttribute('draggable_row_index')) ? parseInt(evt.item.getAttribute('draggable_row_index')) : null;
+        // TODO
+        if (!kanban_column_ref_field_id) {
+            throw new Error('No kanban_column_ref_field_id id');
+        }
+        return;
+        // ::::::::
+
+
+        // /**
+        //  * un kanban, on édite soit un enum au sein du api_type_id, soit le lien vers un autre api_type_id
+        //  */
+        // let row_api_type_id = self.crud_activated_api_type;
+        // let kanban_column_api_type_id = self.kanban_column.api_type_id;
+        // let data_field_id = self.kanban_column.field_id;
+
+        // if (kanban_column_api_type_id == row_api_type_id) {
+        //     // On doit être sur un enum en théorie
+        //     if ((!self.kanban_column_field) || (self.kanban_column_field.field_type != ModuleTableField.FIELD_TYPE_enum)) {
+        //         throw new Error('Kanban column is not an enum but same API_TYPE_ID');
+        //     }
+        // } else {
+        //     // on doit être sur un lien vers un autre api_type_id => le champs doit être unique
+        //     if ((!self.kanban_column_field) || (!self.kanban_column_field.is_unique)) {
+        //         throw new Error('Kanban column is not a unique field but different API_TYPE_ID');
+        //     }
+
+        //     // On ne doit trouver qu'une seule liaison possible entre les 2 api_type_ids
+        //     let crud_table = VOsTypesManager.moduleTables_by_voType[self.crud_activated_api_type];
+        //     let fields = crud_table.get_fields();
+
+        //     let data_field: ModuleTableField<any> = null;
+        //     for (let i in fields) {
+        //         let field = fields[i];
+
+        //         if (field.manyToOne_target_moduletable && (field.manyToOne_target_moduletable.vo_type == self.kanban_column.api_type_id)) {
+        //             if (!data_field) {
+        //                 data_field = field;
+        //             } else {
+        //                 throw new Error('Kanban column is not a unique link field but using different API_TYPE_ID needs unique link field between crud_api_type_id and kanban_column.api_type_id');
+        //             }
+        //         }
+        //     }
+
+        //     data_field_id = data_field.field_id;
+        // }
+
+        // // let old_column_value = db_element[data_field_id];
+        // // let new_column_value = (evt.relatedContext && evt.relatedContext.element) ? evt.relatedContext.element : null;
+
+        // let old_column_value = evt.from ? evt.from.getAttribute('draggable_list_id') : null;
+        // let new_column_value = evt.to ? evt.to.getAttribute('draggable_list_id') : null;
+
+        // let old_column_index = old_column_value ? this.kanban_column_values_to_index[old_column_value.toString()] : null;
+        // let new_column_index = new_column_value ? this.kanban_column_values_to_index[new_column_value.toString()] : null;
+
+        // let old_index = self.kanban_column.kanban_use_weight ? evt.oldIndex : null;
+        // let new_index = evt.newIndex;
+
+        // let diff_list = (new_column_index != null) && (new_column_index != old_column_index);
+        // let diff_index = (new_index != null) && (old_index != new_index);
+
+        // if (!diff_index && !diff_list) {
+        //     // aucune modification - on devrait pas vraiment arriver ici, ya peut-etre une désynchronisation, on reload les datas
+        //     ConsoleHandler.warn('No diff found on kanban move - refreshing');
+        //     await this.refresh();
+        //     return false;
+        // }
+
+        // // On clone les données pour pouvoir les réinjecter si besoin
+        // let data_rows_copy = cloneDeep(self.data_rows);
+
+        // // On stocke les lignes qu'on modifie pour les insérer en base
+        // let updated_data_rows_by_id: { [id: number]: IDistantVOBase } = {};
+        // let promises = [];
+        // let errors: string[] = [];
+
+        // if (diff_list) {
+
+        //     let mv_elts = self.data_rows[old_column_index].splice(old_index, 1);
+        //     self.data_rows[new_column_index].splice(new_index, 0, mv_elts[0]);
+        //     promises.push(self.update_weights(old_column_index, updated_data_rows_by_id, errors, data_field_id, kanban_element_id));
+        //     // On update forcément le kanban_element_id
+        //     promises.push(self.update_weights(new_column_index, updated_data_rows_by_id, errors, data_field_id, null, kanban_element_id));
+        // }
+
+        // if (diff_index) {
+        //     // changement d'index : si on a un poids ok sinon on refuse tout simplement le changement de poids (mais on peut accepter le changement de liste)
+        //     if (self.kanban_column.kanban_use_weight) {
+        //         if (!diff_list) {
+        //             // Si on a diff_list, c'est déjà fait
+        //             let mv_elts = self.data_rows[old_column_index].splice(old_index, 1);
+        //             self.data_rows[old_column_index].splice(new_index, 0, mv_elts[0]);
+        //             promises.push(self.update_weights(old_column_index, updated_data_rows_by_id, errors, data_field_id));
+        //         }
+        //     } else {
+        //         if (!diff_list) {
+        //             self.data_rows = data_rows_copy;
+        //             return false;
+        //         }
+        //         ConsoleHandler.warn('Kanban column does not use weight, cannot change index');
+        //     }
+        // }
+
+        // await all_promises(promises);
+
+        // if (errors && (errors.length > 0)) {
+        //     self.data_rows = data_rows_copy;
+        //     this.$snotify.error(this.label('update_kanban_data_rows.needs_refresh'));
+        //     await this.refresh();
+        //     return false;
+        // }
+
+        // return await this.$snotify.async(this.label('update_kanban_data_rows.start'), () => new Promise(async (resolve, reject) => {
+
+        //     try {
+
+        //         let updated_data_rows = Object.values(updated_data_rows_by_id);
+        //         if (updated_data_rows.length >= 0) {
+        //             let insert_res = await ModuleDAO.getInstance().insertOrUpdateVOs(updated_data_rows);
+        //             if (!insert_res) {
+        //                 throw new Error('Erreur lors de l\'insertion du kanban_element');
+        //             }
+        //         }
+
+        //     } catch (error) {
+
+        //         ConsoleHandler.error('on_move_kanban_element:' + error);
+        //         self.data_rows = data_rows_copy;
+
+        //         reject({
+        //             title: this.label('update_kanban_data_rows.error'),
+        //             body: '',
+        //             config: {
+        //                 timeout: 2000,
+        //             }
+        //         });
+        //         return false;
+        //     }
+
+        //     resolve({
+        //         title: this.label('update_kanban_data_rows.ok'),
+        //         body: '',
+        //         config: {
+        //             timeout: 2000,
+        //         }
+        //     });
+
+        //     return true;
+        // }));
     }
 
     private async on_move_kanban_element(evt, originalEvent) {
@@ -1884,6 +2106,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                     options.default_export_option,
                     options.has_default_export_option,
                     options.use_kanban_by_default_if_exists,
+                    options.use_kanban_column_weight_if_exists,
                     options.use_for_count
                 ) : null;
             }

@@ -53,6 +53,25 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Modifications enregistrées'
         }, 'update_kanban_data_rows.ok.___LABEL___'));
 
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Ajout de la colonne...'
+        }, 'create_new_kanban_column.start.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Erreur lors de l\'ajout de la colonne'
+        }, 'create_new_kanban_column.error.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Colonne ajoutée'
+        }, 'create_new_kanban_column.ok.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Ordonner les colonnes du Kanban si possible'
+        }, 'table_widget_options_component.use_kanban_column_weight_if_exists.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Oui'
+        }, 'table_widget_options_component.use_kanban_column_weight_if_exists.true.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Non'
+        }, 'table_widget_options_component.use_kanban_column_weight_if_exists.false.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Affichage Kanban par défaut si il est configuré'
