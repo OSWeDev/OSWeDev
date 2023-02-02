@@ -308,8 +308,10 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
 
             trello_message += await this.routes_to_string(feedback);
             trello_message += await this.console_logs_to_string(feedback);
-            trello_message += await this.api_logs_to_string(feedback);
 
+            if (ModuleParams.APINAME_feedback_activate_api_logs) { //Api_logs du message , désactivé par défaut.
+                trello_message += await this.api_logs_to_string(feedback);
+            }
             switch (feedback.feedback_type) {
                 case FeedbackVO.FEEDBACK_TYPE_BUG:
                     idLabels.push(FEEDBACK_TRELLO_POSSIBLE_BUG_ID);
@@ -586,7 +588,9 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         }
         let file_url = envParam.BASE_URL + file.path;
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- [SCREENSHOT 1 : ' + file_url + '](' + file_url + ')';
-        res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '![SCREENSHOT 1 : ' + file_url + '](' + file_url + ')';
+        if (ModuleParams.APINAME_feedback_display_screenshots) {
+            res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '![SCREENSHOT 1 : ' + file_url + '](' + file_url + ')';
+        }
         if (!feedback.screen_capture_2_id) {
             return res;
         }
@@ -597,7 +601,9 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         }
         file_url = envParam.BASE_URL + file.path;
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- [SCREENSHOT 2 : ' + file_url + '](' + file_url + ')';
-        res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '![SCREENSHOT 2 : ' + file_url + '](' + file_url + ')';
+        if (ModuleParams.APINAME_feedback_display_screenshots) {
+            res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '![SCREENSHOT 2 : ' + file_url + '](' + file_url + ')';
+        }
         if (!feedback.screen_capture_3_id) {
             return res;
         }
@@ -608,7 +614,9 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         }
         file_url = envParam.BASE_URL + file.path;
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- [SCREENSHOT 3 : ' + file_url + '](' + file_url + ')';
-        res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '![SCREENSHOT 3 : ' + file_url + '](' + file_url + ')';
+        if (ModuleParams.APINAME_feedback_display_screenshots) {
+            res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '![SCREENSHOT 3 : ' + file_url + '](' + file_url + ')';
+        }
 
         return res;
     }

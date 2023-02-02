@@ -69,11 +69,13 @@ export default class TablesGraphComponent extends VueComponentBase {
     @Prop()
     private dashboard: DashboardVO;
 
-    private toggle: boolean = null; //Valeur de l'interrupteur.
+    private toggles: { [edge_id: number]: boolean } = null; //Valeur des interrupteurs.
+    private toggle: boolean = null; //Valeur de l'interrupteur de la cellule selectionnée.
     private current_cell = null;
     private graphic_cells: { [cellule: string]: typeof mxCell } = {}; //Dictionnaire dans lequel on enregistre les cellules à afficher afin d'éviter d'afficher des doublons.
+    private end_graphic_cells: { [cellule: string]: typeof mxCell } = {};
     private cells: { [api_type_id: string]: any } = {};
-
+    private end_toggles: { [edge_id: number]: boolean; } = [];
 
     private async selectionChanged() { //TODO Faire en sorte que lorsqu'on selectionne une autre flèche directement, l'interrupteur se met a jour.
         /* S'active lors qu'on selectionne une flèche ou une cellule.
@@ -124,16 +126,23 @@ export default class TablesGraphComponent extends VueComponentBase {
         this.$set(this, 'current_cell', cell);
     }
 
-    private async toggle_check(checked: boolean) { //TODO être sûr que cette supression affecte les tables de widget.
+    private async toggle_check(checked: boolean, edge?: typeof mxCell) { //TODO être sûr que cette supression affecte les tables de widget.
         /* Toggle function
             Permet de réactiver une flèche supprimée.
             After delete_arrow.
         */
         // const input = document.getElementById("myCheckbox") as HTMLInputElement; //Assertion obligatoire
+        let arrowValue: typeof mxCell;
+        if (!edge) {
+            arrowValue = editor.graph.getSelectionCell();
 
-        let arrowValue: typeof mxCell = editor.graph.getSelectionCell();
-
+        } else {
+            arrowValue = edge;
+        }
         //Est-ce bien une flèche ?
+        if (!arrowValue) {
+            return;
+        }
         if (arrowValue.edge != true) {
             return console.log("Ce n'est pas une flèche !");
         }
@@ -490,13 +499,19 @@ export default class TablesGraphComponent extends VueComponentBase {
     }
 
     private async initgraph(red_by_default: boolean = false) {
+
         this.graphic_cells = {}; //Réinitialisation des cellules à afficher.
         if (editor && editor.graph && Object.values(this.cells) && Object.values(this.cells).length) {
             editor.graph.removeCells(Object.values(this.cells));
-        }
+        } //Parfois , le compilateur repasse  sans raison ici et crée alors les cellules en double
 
+        //Pour éviter, on vérifie que graphic_cells est bien nul .
+        if (Object.keys(this.graphic_cells).length != 0) {
+            return;
+        }
         let cells = await query(DashboardGraphVORefVO.API_TYPE_ID).filter_by_num_eq('dashboard_id', this.dashboard.id).select_vos<DashboardGraphVORefVO>();
         let cells_visited: { [vo_type: string]: string } = {};
+
         //On retire les cellules doublons.
         for (let i in cells) { //Adding cells to the model
             let cell = cells[i];
@@ -552,6 +567,8 @@ export default class TablesGraphComponent extends VueComponentBase {
 
         }
         //Adding links
+
+
         let compteur: number = 0;
         for (let cellule in this.graphic_cells) {
             let v1: typeof mxCell = this.graphic_cells[cellule];
@@ -567,6 +584,65 @@ export default class TablesGraphComponent extends VueComponentBase {
             }
             compteur += 1;
         }
+
+        //Initialisation des interrupteurs
+        this.toggles = {};
+
+        for (let cell_name of Object.keys(this.graphic_cells)) {
+            for (let edge of this.graphic_cells[cell_name].edges) {
+                if (!this.toggles[edge.id]) {
+                    //Interrupteur désactivé ?
+                    try {
+                        //Est-ce n/n ?
+                        let is_n_n: boolean; // lien n/n ou non
+                        let vo_type: string;
+                        if (typeof (edge['field_id']) == 'string') {
+                            vo_type = edge.source.value.tables_graph_vo_type;
+                            is_n_n = false;
+                        } else {
+                            vo_type = edge['field_id']['intermediaire'];
+                            is_n_n = true;
+                        }
+
+                        switch (is_n_n) {
+                            case (false):
+                                let db_cells_source = await query(DashboardGraphVORefVO.API_TYPE_ID)
+                                    .filter_by_text_eq('vo_type', vo_type)
+                                    .filter_by_num_eq('dashboard_id', this.dashboard.id)
+                                    .select_vos<DashboardGraphVORefVO>();
+
+                                if ((!db_cells_source) || (!db_cells_source.length)) {
+                                    ConsoleHandler.error('mxEvent.MOVE_END:no db cell');
+                                    return;
+                                }
+
+                                let db_cell_source = db_cells_source[0];
+
+                                this.toggles[edge.id] = db_cell_source.values_to_exclude.includes(edge['field_id']); //On vérifie que l'attribut existe à minima
+
+                                if (this.toggles[edge.id] === undefined) {                          //Indéfini si les interrupteurs n'ont jamais été touchés...
+
+                                    this.toggles[edge.id] = false;
+                                }
+                                break;
+                            case (true):
+                                this.toggles[edge.id] = false; // Une relation n_n est par défaut désactivée.
+                                break;
+                        }
+                    } catch { this.toggles[edge.id] = false; }
+
+                }
+
+
+
+
+            }
+
+        }
+        this.end_graphic_cells = this.graphic_cells;
+        this.end_toggles = this.toggles;
+
+
     }
     private initcell(cell: DashboardGraphVORefVO, v1: typeof mxCell, is_versioned?) { //TODO Inclure les champs techniques dans targets_to_exclude
         /*
@@ -702,9 +778,7 @@ export default class TablesGraphComponent extends VueComponentBase {
                                 ModuleDAO.getInstance().insertOrUpdateVO(cell).then().catch((error) => { ConsoleHandler.error(error); });
 
                             }
-                        } catch {
-                            console.log("ici");
-                        }
+                        } catch { }
                     } else {
                         try { //La flèche est elle acceptée ? On le vérifie en checkant les flèches interdites depuis cette source.
                             is_link_unccepted = Boolean(values_to_exclude.includes(field.field_id));
@@ -753,11 +827,10 @@ export default class TablesGraphComponent extends VueComponentBase {
                             this.cells[node_v1].edges[arrow]['field_id'] = field_values[target][value];
                         }
                     } catch {
-                        console.log("purée!");
                     }
                 }
             }
-            graph_layout.update_matrix();
+            // graph_layout.update_matrix();
         }
         return v1;
     }

@@ -9,6 +9,7 @@ import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import VueAppController from '../../../VueAppController';
 import AjaxCacheClientController from '../../modules/AjaxCache/AjaxCacheClientController';
+import ConsoleLog from '../console_logger/ConsoleLog';
 import ConsoleLogLogger from '../console_logger/ConsoleLogLogger';
 import FileComponent from '../file/FileComponent';
 import ScreenshotComponent from '../screenshot/ScreenshotComponent';
@@ -141,6 +142,7 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
         let feedback: FeedbackVO = new FeedbackVO();
 
         feedback.apis_log_json = stringify(AjaxCacheClientController.getInstance().api_logs);
+        // feedback.apis_log_json = "";
         feedback.console_logs = this.console_logs_tostring_array();
         feedback.email = this.tmp_email;
         feedback.feedback_end_date = Dates.now();
@@ -238,11 +240,18 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
         this.tmp_capture_3_vo = fileVo;
     }
 
-    private console_logs_tostring_array() {
+    private console_logs_tostring_array(keep_errors_only: boolean = true) {
         let res: string[] = [];
+        let console_logs: ConsoleLog[] = ConsoleLogLogger.getInstance().console_logs;
+        if (keep_errors_only) {
+            //On ne conserve que les erreurs
+            let console_logs_only_errors = [];
+            console_logs_only_errors = console_logs.filter((item) => item.type == 'error');
 
-        for (let i in ConsoleLogLogger.getInstance().console_logs) {
-            let console_log = ConsoleLogLogger.getInstance().console_logs[i];
+            console_logs = console_logs_only_errors;
+        }
+        for (let i in console_logs) {
+            let console_log = console_logs[i];
 
             res.push(Dates.format(console_log.datetime, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss) + ':' + console_log.type + ':' + (console_log.value ? console_log.value.toString() : ''));
         }
