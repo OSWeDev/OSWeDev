@@ -8,10 +8,8 @@ import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import ContextFilterVO from '../ContextFilter/vos/ContextFilterVO';
 import { query } from '../ContextFilter/vos/ContextQueryVO';
 import ManualTasksController from '../Cron/ManualTasksController';
-import ModuleDAO from '../DAO/ModuleDAO';
 import APISimpleVOParamVO, { APISimpleVOParamVOStatic } from '../DAO/vos/APISimpleVOParamVO';
 import APISimpleVOsParamVO, { APISimpleVOsParamVOStatic } from '../DAO/vos/APISimpleVOsParamVO';
-import VOFieldRefVO from '../DashboardBuilder/vos/VOFieldRefVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
@@ -34,7 +32,6 @@ import VarDataBaseVO from './vos/VarDataBaseVO';
 import VarDataValueResVO from './vos/VarDataValueResVO';
 import VarNodeParentPerfVO from './vos/VarNodeParentPerfVO';
 import VarNodePerfElementVO from './vos/VarNodePerfElementVO';
-import VarParamFieldTransformStrategyVO from './vos/VarParamFieldTransformStrategyVO';
 import VarPerfElementVO from './vos/VarPerfElementVO';
 import VarPerfVO from './vos/VarPerfVO';
 import VarPixelFieldConfVO from './vos/VarPixelFieldConfVO';
@@ -547,7 +544,6 @@ export default class ModuleVar extends Module {
 
     private initializeVarConfVO() {
 
-        let var_id = this.initializeVarConfAutoDepVO();
         let labelField = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom du compteur').unique();
         let datatable_fields = [
             labelField,
@@ -579,6 +575,7 @@ export default class ModuleVar extends Module {
 
         let datatable = new ModuleTable(this, VarConfVO.API_TYPE_ID, () => new VarConfVO(undefined, undefined), datatable_fields, labelField);
         this.datatables.push(datatable);
+        let var_id = this.initializeVarConfAutoDepVO();
         var_id.addManyToOneRelation(datatable);
     }
 
