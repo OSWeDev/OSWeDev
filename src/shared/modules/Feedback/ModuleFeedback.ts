@@ -85,6 +85,7 @@ export default class ModuleFeedback extends Module {
             user_id,
             impersonated_from_user_id,
             state_id,
+            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Weight', true, true, 0),
             screen_capture_1_id,
             screen_capture_2_id,
             screen_capture_3_id,

@@ -36,19 +36,23 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Cliquer pour éditer'
         }, 'table_widget_kanban_component.edit_card.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Cliquer pour éditer'
+        }, 'table_widget_kanban_component.edit_column.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Ajouter...'
+        }, 'table_widget_kanban_component.create_new_kanban_column.placeholder.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Des données ont été modifiées par ailleurs, rechargement automatique...'
         }, 'update_kanban_data_rows.needs_refresh.___LABEL___'));
-
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Enregistrement...'
         }, 'update_kanban_data_rows.start.___LABEL___'));
-
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Erreur lors de l\'enregistrement'
         }, 'update_kanban_data_rows.error.___LABEL___'));
-
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Modifications enregistrées'
         }, 'update_kanban_data_rows.ok.___LABEL___'));
@@ -62,6 +66,19 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Colonne ajoutée'
         }, 'create_new_kanban_column.ok.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Des données ont été modifiées par ailleurs, rechargement automatique...'
+        }, 'on_move_columns_kanban_element.needs_refresh.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Enregistrement...'
+        }, 'on_move_columns_kanban_element.start.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Erreur lors de l\'enregistrement'
+        }, 'on_move_columns_kanban_element.error.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Modifications enregistrées'
+        }, 'on_move_columns_kanban_element.ok.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Ordonner les colonnes du Kanban si possible'

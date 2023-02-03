@@ -1,3 +1,4 @@
 .sortable_list_component(:id='this_id' :draggable_list_id='list_id')
     .sortable_list_item(v-for='e in elts' :key='"sortable_list_item__" + this_id + "__" + (e ? get_elt_id(e) : null)' :draggable_row_index='e ? get_elt_id(e) : null')
         slot(:sortable_list_item="e")
+    slot(name='create_new')

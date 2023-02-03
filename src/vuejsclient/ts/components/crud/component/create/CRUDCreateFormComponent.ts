@@ -2,6 +2,7 @@ import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import Alert from '../../../../../../shared/modules/Alert/vos/Alert';
 import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import CRUD from '../../../../../../shared/modules/DAO/vos/CRUD';
 import CRUDFieldRemoverConfVO from '../../../../../../shared/modules/DAO/vos/CRUDFieldRemoverConfVO';
@@ -201,10 +202,25 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
         if ((!this.crud) || (this.crud.api_type_id != this.api_type_id)) {
             this.crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[this.api_type_id];
 
-            this.crud_field_remover_conf = await query(CRUDFieldRemoverConfVO.API_TYPE_ID)
-                .filter_by_text_eq('module_table_vo_type', this.api_type_id)
-                .filter_is_false('is_update')
-                .select_vo<CRUDFieldRemoverConfVO>();
+            try {
+                this.crud_field_remover_conf = await query(CRUDFieldRemoverConfVO.API_TYPE_ID)
+                    .filter_by_text_eq('module_table_vo_type', this.api_type_id)
+                    .filter_is_false('is_update')
+                    .select_vo<CRUDFieldRemoverConfVO>();
+            } catch (error) {
+                if (error.message == 'Multiple results on select_vo is not allowed') {
+                    /**
+                     * On gère les doublons au cas où on ait un problème de synchronisation en supprimant les plus récents
+                     */
+                    let doublons = await query(CRUDFieldRemoverConfVO.API_TYPE_ID)
+                        .filter_by_text_eq('module_table_vo_type', this.api_type_id)
+                        .filter_is_false('is_update')
+                        .set_sort(new SortByVO(CRUDFieldRemoverConfVO.API_TYPE_ID, 'id', true))
+                        .select_vos<CRUDFieldRemoverConfVO>();
+                    doublons.shift();
+                    await ModuleDAO.getInstance().deleteVOs(doublons);
+                }
+            }
             if (this.crud_field_remover_conf && this.crud_field_remover_conf.module_table_field_ids && this.crud_field_remover_conf.module_table_field_ids.length) {
                 this.crud.updateDatatable.removeFields(this.crud_field_remover_conf.module_table_field_ids);
             }

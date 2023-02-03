@@ -30,7 +30,7 @@ include ../../../../../../views/mixins/loading.pug
             .kanban_wrapper 
 
                 Sortablelistcomponent.kanban_columns_wrapper(
-                    :disabled='!(kanban_column && kanban_column.api_type_id && crud_activated_api_type && (kanban_column.api_type_id != crud_activated_api_type))'
+                    :disabled='(!kanban_column_is_ref_to_other_api_type_id) || !widget_options.use_kanban_column_weight_if_exists'
                     list_id='kanban_columns'
                     key='kanban_columns_wrapper' 
                     :elts="kanban_column_values" 
@@ -40,7 +40,8 @@ include ../../../../../../views/mixins/loading.pug
                     template(slot-scope="slot_props_columns")
                         .kanban_column 
                             .kanban_column_header
-                                .kanban_column_header_title(@click='(kanban_column && kanban_column.api_type_id && crud_activated_api_type && (kanban_column.api_type_id != crud_activated_api_type)) ? open_update(kanban_column.api_type_id, kanban_column_index_to_ref_field_id[kanban_column_values_to_index[slot_props_columns.sortable_list_item]]) : {}')
+                                .kanban_column_header_count {{ kanban_column_counts[kanban_column_values_to_index[slot_props_columns.sortable_list_item]] }}
+                                .kanban_column_header_title(:class='{clickable:kanban_column_is_ref_to_other_api_type_id, is_not_enum:!kanban_column.is_enum}' @click='kanban_column_is_ref_to_other_api_type_id ? open_update(kanban_column.api_type_id, kanban_column_index_to_ref_field_id[kanban_column_values_to_index[slot_props_columns.sortable_list_item]]) : {}' v-tooltip='label("table_widget_kanban_component.edit_column")')
                                     template(v-if="kanban_column.type == 0")
                                     template(v-else-if="kanban_column.type == 3")
                                     template(v-else-if="kanban_column.type == 4")
@@ -72,7 +73,6 @@ include ../../../../../../views/mixins/loading.pug
                                                     :filter_additional_params='get_column_filter_additional_params(kanban_column)'
                                                 )
 
-                                .kanban_column_header_count {{ kanban_column_counts[kanban_column_values_to_index[slot_props_columns.sortable_list_item]] }}
                                 //- TODO ajouter les colonnes de somme et de moyenne des vars
                             .kanban_column_content
                                 Sortablelistcomponent.kanban_column_receiver(
@@ -124,12 +124,18 @@ include ../../../../../../views/mixins/loading.pug
                                                                                             :filter='get_column_filter(column)'
                                                                                             :filter_additional_params='get_column_filter_additional_params(column)'
                                                                                         )
-                    .kanban_column.create_new_kanban_column(v-if='kanban_column && kanban_column.api_type_id && crud_activated_api_type && (kanban_column.api_type_id != crud_activated_api_type)')
-                        .kanban_column_header
-                            .kanban_column_header_title
-                                form(@submit.prevent="create_new_kanban_column")
-                                    input(
-                                        type="text" 
-                                        v-model="new_kanban_column_value" 
-                                        :placeholder="label('table_widget_kanban_component.create_new_kanban_column.placeholder')" 
-                                    )
+                    template(slot='create_new')
+                        .kanban_column.create_new_kanban_column(v-if='can_create_kanban_column')
+                            .kanban_column_header
+                                .kanban_column_header_title
+                                    template(v-if='kanban_vo_table_needs_only_kanban_column_and_possibly_weight_to_create')
+                                        form(@submit.prevent="create_new_kanban_column")
+                                            input(
+                                                type="text" 
+                                                v-model="new_kanban_column_value" 
+                                                :placeholder="label('table_widget_kanban_component.create_new_kanban_column.placeholder')" 
+                                            )
+                                    template(v-else-if='kanban_column_is_ref_to_other_api_type_id && !kanban_vo_table_needs_only_kanban_column_and_possibly_weight_to_create')
+                                        button.btn.btn-sm.btn-success(@click="open_create_column")
+                                            i.fa-duotone.fa-plus-circle.fa-lg.btn_icon
+                                            | {{ label('crud.actions.create') }}

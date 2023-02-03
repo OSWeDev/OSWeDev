@@ -1,6 +1,11 @@
 .table_widget_kanban_component {
     height: -webkit-fill-available;
 
+    .is_busy {
+        float: left;
+        margin: 0 0.5em;
+    }
+
     .crud_actions {
         float: right;
     }
@@ -35,6 +40,52 @@
                             border-radius: 5px;
                             vertical-align: top;
                             overflow: hidden;
+
+                            .kanban_column_header {
+                                .kanban_column_header_title {
+
+                                    text-align: center;
+                                    margin-bottom: 0.5em;
+                                    text-transform: uppercase;
+
+                                    &.clickable {
+                                        cursor: pointer;
+                                    }
+
+                                    &.is_not_enum {
+                                        background: white;
+                                        border-radius: 4px;
+                                        padding: 0.3em;
+                                        font-weight: bold;
+                                    }
+
+                                    .field.is_enum.field_type_enum {
+                                        border-radius: 4px !important;
+                                        padding: 0.3em !important;
+                                        font-weight: bold !important;
+                                    }
+
+                                    form input[type="text"] {
+                                        width: -webkit-fill-available;
+                                        border: none;
+                                        background: white;
+                                        border-radius: 4px;
+                                        padding: 0.3em;
+                                        font-weight: bold;
+                                        text-transform: uppercase;
+                                        text-align: center;
+                                    }
+                                }
+
+                                .kanban_column_header_count {
+                                    float: right;
+                                    margin-top: -1em;
+                                    background: #555;
+                                    color: white;
+                                    margin-right: -1em;
+                                    padding: 0em 0.5em;
+                                }
+                            }
 
                             .kanban_column_content {
                                 overflow-y: auto;
