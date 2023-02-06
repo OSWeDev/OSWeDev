@@ -299,13 +299,18 @@ export default class DatatableComponent extends VueComponentBase {
                                 this.custom_filters_values[field.datatable_field_uid].end = DateHandler.getInstance().formatDayForIndex(moment(this.embed_filter[field.datatable_field_uid].end).utc(true).unix());
                             }
                             continue;
-                    }
-                }
 
-                if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
-                    if (!this.custom_filters_values[field.datatable_field_uid]) {
-                        this.custom_filters_values[field.datatable_field_uid] = [];
+                        case ModuleTableField.FIELD_TYPE_boolean:
+                            this.preload_custom_filters.push(field.datatable_field_uid);
+
+                            if (!this.custom_filters_values[field.datatable_field_uid]) {
+                                this.custom_filters_values[field.datatable_field_uid] = {};
+                            }
+
+                            this.custom_filters_values[field.datatable_field_uid].value = this.embed_filter[field.datatable_field_uid].value;
+                            continue;
                     }
+
                     this.preload_custom_filters.push(field.datatable_field_uid);
                     this.custom_filters_values[field.datatable_field_uid] = this.embed_filter[field.datatable_field_uid].value;
                     continue;
