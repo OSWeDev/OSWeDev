@@ -61,6 +61,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private show_pagination_list: boolean = false;
     private hide_pagination_bottom: boolean = false;
     private has_table_total_footer: boolean = false;
+    private use_for_count: boolean = false;
     private can_filter_by: boolean = true;
     private is_sticky: boolean = false;
     private limit: string = TableWidgetOptions.DEFAULT_LIMIT.toString();
@@ -77,12 +78,26 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private editable_columns: TableColumnDescVO[] = null;
     private current_column: TableColumnDescVO = null;
 
+    private use_kanban_by_default_if_exists: boolean = true;
+    private use_kanban_column_weight_if_exists: boolean = true;
+
+    private async switch_use_kanban_column_weight_if_exists() {
+        this.use_kanban_column_weight_if_exists = !this.use_kanban_column_weight_if_exists;
+        this.widget_options.use_kanban_column_weight_if_exists = this.use_kanban_column_weight_if_exists;
+        this.update_options();
+    }
+    private async switch_use_kanban_by_default_if_exists() {
+        this.use_kanban_by_default_if_exists = !this.use_kanban_by_default_if_exists;
+        this.widget_options.use_kanban_by_default_if_exists = this.use_kanban_by_default_if_exists;
+        this.update_options();
+    }
+
     get crud_api_type_id_select_options(): string[] {
         return this.dashboard.api_type_ids;
     }
 
     private crud_api_type_id_select_label(api_type_id: string): string {
-        return this.t(VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id].label.code_text);
+        return this.t(VOsTypesManager.moduleTables_by_voType[api_type_id].label.code_text);
     }
 
     @Watch('page_widget', { immediate: true })
@@ -252,7 +267,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
     private get_new_column_id() {
         if (!this.widget_options) {
-            ConsoleHandler.getInstance().error('get_new_column_id:failed');
+            ConsoleHandler.error('get_new_column_id:failed');
             return null;
         }
 
@@ -302,6 +317,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                 crud_actions_column.font_color_header = null;
                 crud_actions_column.can_filter_by = true;
                 crud_actions_column.column_width = 0;
+                crud_actions_column.kanban_column = false;
                 await this.add_column(crud_actions_column);
                 return;
             } else if (!!this.crud_api_type_id_selected) {
@@ -375,7 +391,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         });
 
         if (i < 0) {
-            ConsoleHandler.getInstance().error('update_column failed');
+            ConsoleHandler.error('update_column failed');
             return null;
         }
 
@@ -429,7 +445,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         });
 
         if (i < 0) {
-            ConsoleHandler.getInstance().error('remove_column failed');
+            ConsoleHandler.error('remove_column failed');
             return null;
         }
 
@@ -443,7 +459,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     }
 
     private get_default_options(): TableWidgetOptions {
-        return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, false, false, null, false);
+        return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, false, false, null, false, true, true, false);
     }
     private async add_column(add_column: TableColumnDescVO) {
 
@@ -540,7 +556,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         try {
             this.page_widget.json_options = JSON.stringify(this.next_update_options);
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
         await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
 
@@ -552,7 +568,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         this.set_page_widget(this.page_widget);
         this.$emit('update_layout_widget', this.page_widget);
 
-        let name = VOsTypesManager.getInstance().vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
+        let name = VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets)[this.page_widget.widget_id].name;
         let get_selected_fields = DashboardBuilderWidgetsController.getInstance().widgets_get_selected_fields[name];
         this.set_selected_fields(get_selected_fields ? get_selected_fields(this.page_widget) : {});
     }
@@ -602,10 +618,13 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                     options.hide_pagination_bottom,
                     options.default_export_option,
                     options.has_default_export_option,
+                    options.use_kanban_by_default_if_exists,
+                    options.use_kanban_column_weight_if_exists,
+                    options.use_for_count,
                 ) : null;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return options;
@@ -870,6 +889,21 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
         if (this.next_update_options.has_table_total_footer != this.has_table_total_footer) {
             this.next_update_options.has_table_total_footer = this.has_table_total_footer;
+            await this.throttled_update_options();
+        }
+    }
+
+    private async switch_use_for_count() {
+        this.use_for_count = !this.use_for_count;
+
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.next_update_options.use_for_count != this.use_for_count) {
+            this.next_update_options.use_for_count = this.use_for_count;
             await this.throttled_update_options();
         }
     }

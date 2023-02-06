@@ -10,6 +10,17 @@ include ../../../../../views/mixins/loading.pug
             .crud_update_form_body
                 .alert.alert-danger(v-if="is_only_readable") {{ label('crud.update.modal.readonly') }}
                 template(v-if="selected_vo && editableVO")
+
+                    template(v-if='POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS')
+                        .edit_removed_crud_fields
+                            .btn.btn-primary.btn-block.btn-flat(@click="crud_field_remover_conf_edit = true" v-if='!crud_field_remover_conf_edit') {{ label('crud_update_form_body.edit_removed_crud_fields') }}
+                            .btn.btn-primary.btn-block.btn-flat(@click="crud_field_remover_conf_edit = false" v-if='!!crud_field_remover_conf_edit') {{ label('crud_update_form_body.donot_edit_removed_crud_fields') }}
+                        
+                        template(v-if='crud_field_remover_conf_edit && crud_field_remover_conf && crud_field_remover_conf.module_table_field_ids && (crud_field_remover_conf.module_table_field_ids.length > 0)')
+                            template(v-for='(module_table_field_id, edit_removed_crud_field_i) in crud_field_remover_conf.module_table_field_ids')
+                                .delete_removed_crud_field_id
+                                    .btn.btn-warning.btn-block.btn-flat(@click="delete_removed_crud_field_id(module_table_field_id)") {{ label('crud_update_form_body.delete_removed_crud_field_id', {field_id: module_table_field_id}) }}
+
                     template(v-for="field in crud.updateDatatable.fields")
                         Crudcomponentfield(
                             v-show="!field.hidden",
@@ -24,6 +35,10 @@ include ../../../../../views/mixins/loading.pug
                             :show_insert_or_update_target='show_insert_or_update_target'
                             :is_dashboard_builder="true"
                         )
+                        template(v-if='POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS && crud_field_remover_conf_edit')
+                            .add_removed_crud_field_id
+                                    .btn.btn-danger.btn-block.btn-flat(@click="add_removed_crud_field_id(field.module_table_field_id)") {{ label('crud_update_form_body.add_removed_crud_field_id', {field_id: field.module_table_field_id}) }}
+
 
                 template(v-else)
                     p {{ label('crud.update.modal.content.selection_failure') }}

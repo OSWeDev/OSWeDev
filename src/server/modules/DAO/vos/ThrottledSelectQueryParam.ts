@@ -1,6 +1,6 @@
 import pgPromise = require("pg-promise");
 import ContextQueryVO from "../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
-import ParameterizedQueryWrapperField from "../../ContextFilter/vos/ParameterizedQueryWrapperField";
+import ParameterizedQueryWrapperField from "../../../../shared/modules/ContextFilter/vos/ParameterizedQueryWrapperField";
 
 export default class ThrottledSelectQueryParam {
 

@@ -3,7 +3,7 @@ import { isEqual } from 'lodash';
 import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterHandler from '../../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import SimpleDatatableField from '../../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import SimpleDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
@@ -64,7 +64,7 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
             return;
         }
 
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id];
+        let moduletable = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id];
         let field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
 
         this.set_active_field_filter({
@@ -138,6 +138,7 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
                     options.vo_field_sort,
                     options.can_select_multiple,
                     options.is_checkbox,
+                    options.checkbox_columns,
                     options.max_visible_options,
                     options.show_search_field,
                     options.hide_lvl2_if_lvl1_not_selected,
@@ -161,17 +162,21 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
                     options.vo_field_sort_lvl2,
                     options.autovalidate_advanced_filter,
                     options.add_is_null_selectable,
+                    options.is_button,
+                    options.enum_bg_colors,
+                    options.enum_fg_colors,
+                    options.show_count_value,
                     options.active_field_on_autovalidate_advanced_filter,
                 ) : null;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return options;
     }
 
-    get field_date(): SimpleDatatableField<any, any> {
-        return new SimpleDatatableField(this.vo_field_ref.field_id).setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id]);
+    get field_date(): SimpleDatatableFieldVO<any, any> {
+        return SimpleDatatableFieldVO.createNew(this.vo_field_ref.field_id).setModuleTable(VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id]);
     }
 }

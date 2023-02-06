@@ -24,6 +24,6 @@ export default class TranslationCronWorkersHandler {
         planCronWorker.planification_uid = "InstallTranslationsCronWorker";
         planCronWorker.type_recurrence = CronWorkerPlanification.TYPE_RECURRENCE_AUCUNE;
         planCronWorker.worker_uid = InstallTranslationsCronWorker.getInstance().worker_uid;
-        ModuleCronServer.getInstance().planCronWorker(planCronWorker).then().catch((error) => ConsoleHandler.getInstance().error(error));
+        ModuleCronServer.getInstance().planCronWorker(planCronWorker).then().catch((error) => ConsoleHandler.error(error));
     }
 }

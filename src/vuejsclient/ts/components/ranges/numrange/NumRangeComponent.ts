@@ -52,8 +52,8 @@ export default class NumRangeComponent extends VueComponentBase {
         switch (this.range.segment_type) {
 
             case NumSegment.TYPE_INT:
-                segmented_min = RangeHandler.getInstance().getSegmentedMin(this.range);
-                segmented_max = RangeHandler.getInstance().getSegmentedMax(this.range);
+                segmented_min = RangeHandler.getSegmentedMin(this.range);
+                segmented_max = RangeHandler.getSegmentedMax(this.range);
                 break;
 
             default: return;
@@ -73,7 +73,7 @@ export default class NumRangeComponent extends VueComponentBase {
             if (segmented_min != segmented_max) {
                 this.segmented_max = segmented_max + ' | ' +
                     await NumRangeComponentController.getInstance().num_ranges_enum_handler[this.vo_field.module_table.vo_type][this.vo_field.field_id].label_handler(
-                        RangeHandler.getInstance().getSegmentedMax(this.range)
+                        RangeHandler.getSegmentedMax(this.range)
                     );
             } else {
                 this.segmented_max = this.segmented_min;

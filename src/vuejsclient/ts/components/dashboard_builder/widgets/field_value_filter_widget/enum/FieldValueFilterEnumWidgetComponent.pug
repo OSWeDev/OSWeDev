@@ -2,31 +2,50 @@
     template(v-if='vo_field_ref')
         .vo_field_ref_label {{ vo_field_ref_label }}
 
-        .vo_field_ref_filter
-            multiselect(
-                :preselect-first="false"
-                :multiple="can_select_multiple"
-                :close-on-select="false"
-                v-model="tmp_filter_active_options"
-                :placeholder="placeholder"
-                :options="filter_visible_options"
-                :custom-label="filter_visible_label"
-                autocomplete="off"
+        template(v-if="is_button")
+            template(v-for="filter_visible_opt in filter_visible_options")
+                .btn.btn-primary.button_opacity.mr-1(
+                    @click="select_option(filter_visible_opt)"
+                    :class="{'active': (tmp_filter_active_options && tmp_filter_active_options.find((e) => e.numeric_value == filter_visible_opt.numeric_value))}"
+                    :style="getStyle(filter_visible_opt)"
+                ) 
+                    span {{ filter_visible_label(filter_visible_opt) }}
+                    span.ml-2(v-if="show_count_value") {{ count_by_filter_visible_opt_id[filter_visible_opt.numeric_value] }}
 
-                :searchable="true"
-                :internal-search="false"
-                :hide-selected="true"
+        template(v-else)
+            .vo_field_ref_filter
+                multiselect(
+                    :preselect-first="false"
+                    :multiple="can_select_multiple"
+                    :close-on-select="false"
+                    v-model="tmp_filter_active_options"
+                    :placeholder="placeholder"
+                    :options="filter_visible_options"
+                    :custom-label="filter_visible_label"
+                    autocomplete="off"
 
-                track-by="text_uid"
-                
-                :key="'field_value_filter_widget_component_' + vo_field_ref.api_type_id + '__' + vo_field_ref.field_id"
-                
-                :select-label='label("multiselect.selectLabel")'
-                :select-group-label='label("multiselect.selectGroupLabel")'
-                :selected-label='label("multiselect.selectedLabel")'
-                :deselect-label='label("multiselect.deselectLabel")'
-                :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                    :searchable="true"
+                    :internal-search="false"
+                    :hide-selected="true"
 
-                @search-change="query_update_visible_options"
-            )
-                span(slot="noOptions") -
+                    track-by="text_uid"
+                    
+                    :key="'field_value_filter_widget_component_' + vo_field_ref.api_type_id + '__' + vo_field_ref.field_id"
+                    
+                    :select-label='label("multiselect.selectLabel")'
+                    :select-group-label='label("multiselect.selectGroupLabel")'
+                    :selected-label='label("multiselect.selectedLabel")'
+                    :deselect-label='label("multiselect.deselectLabel")'
+                    :deselect-group-label='label("multiselect.deselectGroupLabel")'
+
+                    @search-change="query_update_visible_options"
+                )
+                    span(slot="noOptions") -
+
+                    template(slot="option", slot-scope="props")
+                        .option__title(:style="getStyle(props.option)") {{ props.option.label }}
+
+                    template(slot="tag", slot-scope="props")
+                        .pill_wrapper.bg-success(:style="getStyle(props.option)")
+                            span.option__tag {{ props.option.label }}
+                            i.fa-duotone.fa-times(@click='props.remove(props.option)')

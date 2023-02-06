@@ -1,7 +1,7 @@
 import CRUD from '../../../../../shared/modules/DAO/vos/CRUD';
 import Datatable from '../../../../../shared/modules/DAO/vos/datatable/Datatable';
-import ManyToOneReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
-import SimpleDatatableField from '../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import ManyToOneReferenceDatatableFieldVO from '../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableFieldVO';
+import SimpleDatatableFieldVO from '../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import MenuElementVO from '../../../../../shared/modules/Menu/vos/MenuElementVO';
 import ModuleTranslation from '../../../../../shared/modules/Translation/ModuleTranslation';
 import LangVO from '../../../../../shared/modules/Translation/vos/LangVO';
@@ -106,24 +106,24 @@ export default class TranslationAdminVueModule extends VueModuleBase {
     protected getTranslationCRUD(): CRUD<TranslationVO> {
         let crud: CRUD<TranslationVO> = new CRUD<TranslationVO>(new Datatable<TranslationVO>(TranslationVO.API_TYPE_ID));
 
-        crud.readDatatable.pushField(new ManyToOneReferenceDatatableField(
+        crud.readDatatable.pushField(ManyToOneReferenceDatatableFieldVO.createNew(
             "lang_id",
-            VOsTypesManager.getInstance().moduleTables_by_voType[LangVO.API_TYPE_ID],
+            VOsTypesManager.moduleTables_by_voType[LangVO.API_TYPE_ID],
             [
-                new SimpleDatatableField("code_lang")
+                SimpleDatatableFieldVO.createNew("code_lang")
             ]
         ));
-        crud.readDatatable.pushField(new ManyToOneReferenceDatatableField(
+        crud.readDatatable.pushField(ManyToOneReferenceDatatableFieldVO.createNew(
             "text_id",
-            VOsTypesManager.getInstance().moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID],
+            VOsTypesManager.moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID],
             [
-                new SimpleDatatableField("code_text")
+                SimpleDatatableFieldVO.createNew("code_text")
             ]
         ));
-        crud.readDatatable.pushField(new SimpleDatatableField("translated"));
+        crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("translated"));
 
-        CRUD.addManyToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[TranslationVO.API_TYPE_ID]);
-        CRUD.addOneToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[TranslationVO.API_TYPE_ID]);
+        CRUD.addManyToManyFields(crud, VOsTypesManager.moduleTables_by_voType[TranslationVO.API_TYPE_ID]);
+        CRUD.addOneToManyFields(crud, VOsTypesManager.moduleTables_by_voType[TranslationVO.API_TYPE_ID]);
 
         return crud;
     }
@@ -131,9 +131,9 @@ export default class TranslationAdminVueModule extends VueModuleBase {
     protected getLangCRUD(): CRUD<LangVO> {
         let crud: CRUD<LangVO> = new CRUD<LangVO>(new Datatable<LangVO>(LangVO.API_TYPE_ID));
 
-        crud.readDatatable.pushField(new SimpleDatatableField("code_lang"));
-        crud.readDatatable.pushField(new SimpleDatatableField("code_flag"));
-        crud.readDatatable.pushField(new SimpleDatatableField("code_phone"));
+        crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("code_lang"));
+        crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("code_flag"));
+        crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("code_phone"));
 
         return crud;
     }

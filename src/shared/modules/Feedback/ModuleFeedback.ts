@@ -10,6 +10,7 @@ import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VersionedVOController from '../Versioned/VersionedVOController';
 import VOsTypesManager from '../VOsTypesManager';
+import FeedbackStateVO from './vos/FeedbackStateVO';
 import FeedbackVO from './vos/FeedbackVO';
 
 export default class ModuleFeedback extends Module {
@@ -53,22 +54,38 @@ export default class ModuleFeedback extends Module {
         this.fields = [];
         this.datatables = [];
 
+        this.initializeFeedbackStateVO();
         this.initializeFeedbackVO();
+    }
+
+    private initializeFeedbackStateVO() {
+        let name = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true).unique();
+
+        let fields = [
+            name,
+            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Weight', false),
+        ];
+
+        let table = new ModuleTable(this, FeedbackStateVO.API_TYPE_ID, () => new FeedbackStateVO(), fields, name, 'Feedbacks - Etats');
+        this.datatables.push(table);
     }
 
     private initializeFeedbackVO() {
         let user_id = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', true);
+        let state_id = new ModuleTableField('state_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Etat', false);
         let impersonated_from_user_id = new ModuleTableField('impersonated_from_user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Si LogAs: Admin', false);
-        let screen_capture_1_id = new ModuleTableField('screen_capture_1_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Capture écran 1', true);
-        let screen_capture_2_id = new ModuleTableField('screen_capture_2_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Capture écran 2', false);
-        let screen_capture_3_id = new ModuleTableField('screen_capture_3_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Capture écran 3', false);
-        let file_attachment_1_id = new ModuleTableField('file_attachment_1_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Pièce jointe 1', false);
-        let file_attachment_2_id = new ModuleTableField('file_attachment_2_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Pièce jointe 2', false);
-        let file_attachment_3_id = new ModuleTableField('file_attachment_3_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Pièce jointe 3', false);
+        let screen_capture_1_id = new ModuleTableField('screen_capture_1_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Capture écran 1', true).not_add_to_crud();
+        let screen_capture_2_id = new ModuleTableField('screen_capture_2_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Capture écran 2', false).not_add_to_crud();
+        let screen_capture_3_id = new ModuleTableField('screen_capture_3_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Capture écran 3', false).not_add_to_crud();
+        let file_attachment_1_id = new ModuleTableField('file_attachment_1_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Pièce jointe 1', false).not_add_to_crud();
+        let file_attachment_2_id = new ModuleTableField('file_attachment_2_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Pièce jointe 2', false).not_add_to_crud();
+        let file_attachment_3_id = new ModuleTableField('file_attachment_3_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Pièce jointe 3', false).not_add_to_crud();
 
         let fields = [
             user_id,
             impersonated_from_user_id,
+            state_id,
+            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Weight', true, true, 0),
             screen_capture_1_id,
             screen_capture_2_id,
             screen_capture_3_id,
@@ -110,14 +127,15 @@ export default class ModuleFeedback extends Module {
         let table = new ModuleTable(this, FeedbackVO.API_TYPE_ID, () => new FeedbackVO(), fields, null, 'Feedbacks');
         this.datatables.push(table);
 
-        user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
-        impersonated_from_user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
-        screen_capture_1_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);
-        screen_capture_2_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);
-        screen_capture_3_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);
-        file_attachment_1_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);
-        file_attachment_2_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);
-        file_attachment_3_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);
+        user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        impersonated_from_user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        screen_capture_1_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
+        screen_capture_2_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
+        screen_capture_3_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
+        file_attachment_1_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
+        file_attachment_2_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
+        file_attachment_3_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
+        state_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FeedbackStateVO.API_TYPE_ID]);
 
         VersionedVOController.getInstance().registerModuleTable(table);
     }

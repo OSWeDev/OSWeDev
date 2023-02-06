@@ -1,5 +1,6 @@
+import Vue from 'vue';
 import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import ComponentDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ComponentDatatableField';
+import ComponentDatatableFieldVO from '../../../../../shared/modules/DAO/vos/datatable/ComponentDatatableFieldVO';
 import ModuleMaintenance from '../../../../../shared/modules/Maintenance/ModuleMaintenance';
 import MaintenanceVO from '../../../../../shared/modules/Maintenance/vos/MaintenanceVO';
 import MenuElementVO from '../../../../../shared/modules/Menu/vos/MenuElementVO';
@@ -7,7 +8,6 @@ import CRUDComponentManager from '../../../../ts/components/crud/CRUDComponentMa
 import MenuController from '../../../../ts/components/menu/MenuController';
 import VueModuleBase from '../../../../ts/modules/VueModuleBase';
 import VueAppController from '../../../../VueAppController';
-import EndMaintenaceComponent from './endmaintenance_component/endmaintenance_component';
 
 export default class MaintenanceAdminVueModule extends VueModuleBase {
 
@@ -64,6 +64,7 @@ export default class MaintenanceAdminVueModule extends VueModuleBase {
             this.routes);
 
         let maintenance_crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[MaintenanceVO.API_TYPE_ID];
-        maintenance_crud.readDatatable.unshiftField(new ComponentDatatableField('end_maintenance', EndMaintenaceComponent, 'maintenance_over'));
+        Vue.component('Endmaintenacecomponent', async () => (await import(/* webpackChunkName: "EndMaintenaceComponent" */  './endmaintenance_component/endmaintenance_component')));
+        maintenance_crud.readDatatable.unshiftField(ComponentDatatableFieldVO.createNew('end_maintenance', 'Endmaintenacecomponent', 'maintenance_over'));
     }
 }

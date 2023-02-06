@@ -54,8 +54,8 @@ export default class SlowVarKiHandler {
      */
     public async computationBatchSupervisor(batch_id: number) {
 
-        let timeout_ms = await ModuleParams.getInstance().getParamValueAsInt(SlowVarKiHandler.PARAM_timeout_ms, 600000);
-        let logout_ms = await ModuleParams.getInstance().getParamValueAsInt(SlowVarKiHandler.PARAM_logout_ms, 20000);
+        let timeout_ms = await ModuleParams.getInstance().getParamValueAsInt(SlowVarKiHandler.PARAM_timeout_ms, 600000, 180000);
+        let logout_ms = await ModuleParams.getInstance().getParamValueAsInt(SlowVarKiHandler.PARAM_logout_ms, 20000, 180000);
 
         setTimeout(async () => {
             if (VarsdatasComputerBGThread.getInstance().is_computing && (VarsdatasComputerBGThread.getInstance().current_batch_id == batch_id)) {
@@ -124,11 +124,11 @@ export default class SlowVarKiHandler {
 
             // Si la var est seule, on la stocke en base comme denied définitivement et on notifie les intéressés
             if (is_single) {
-                ConsoleHandler.getInstance().error('DENY SLOW VAR - ' + computed_var.index);
+                ConsoleHandler.error('DENY SLOW VAR - ' + computed_var.index);
                 await this.deny_slow_var(slowVar, computed_var, computation_ts);
             } else {
                 slowVar.type = SlowVarVO.TYPE_NEEDS_TEST;
-                ConsoleHandler.getInstance().error('NEW SLOW VAR TO TEST - ' + computed_var.index);
+                ConsoleHandler.error('NEW SLOW VAR TO TEST - ' + computed_var.index);
                 await ModuleDAO.getInstance().insertOrUpdateVO(slowVar);
             }
         }
@@ -143,7 +143,7 @@ export default class SlowVarKiHandler {
             for (let i in items) {
                 let slow_var: SlowVarVO = items[i];
 
-                ConsoleHandler.getInstance().warn('HANDLING STUCK SLOW VAR:' + JSON.stringify(slow_var));
+                ConsoleHandler.warn('HANDLING STUCK SLOW VAR:' + JSON.stringify(slow_var));
                 await this.deny_slow_var(slow_var, VarDataBaseVO.from_index(slow_var.name), Dates.now());
             }
         }
@@ -163,7 +163,7 @@ export default class SlowVarKiHandler {
 
         if (items && items.length) {
             let slow_var: SlowVarVO = items[0];
-            ConsoleHandler.getInstance().warn('SLOW PARAM TEST:' + JSON.stringify(slow_var));
+            ConsoleHandler.warn('SLOW PARAM TEST:' + JSON.stringify(slow_var));
 
             slow_var.type = SlowVarVO.TYPE_TESTING;
             await ModuleDAO.getInstance().insertOrUpdateVO(slow_var);
@@ -186,7 +186,7 @@ export default class SlowVarKiHandler {
 
         for (let i in computed_vars) {
             let computed_var = computed_vars[i];
-            ConsoleHandler.getInstance().warn('handleSlowVarLogoutBatch:' + computed_var.index);
+            ConsoleHandler.warn('handleSlowVarLogoutBatch:' + computed_var.index);
         }
     }
 
@@ -195,32 +195,32 @@ export default class SlowVarKiHandler {
      */
     private async handleSlowVarBatch() {
 
-        ConsoleHandler.getInstance().error('handleSlowVarBatch:insertSlowVarBatchInBDD...');
+        ConsoleHandler.error('handleSlowVarBatch:insertSlowVarBatchInBDD...');
         try {
             await SlowVarKiHandler.getInstance().insertSlowVarsBatchInBDD();
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
-        ConsoleHandler.getInstance().error('handleSlowVarBatch:persistVOsCUD...');
+        ConsoleHandler.error('handleSlowVarBatch:persistVOsCUD...');
         try {
             await SlowVarKiHandler.getInstance().persistVOsCUD();
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
-        ConsoleHandler.getInstance().error('handleSlowVarBatch:ReloadAsapForkMessage...');
+        ConsoleHandler.error('handleSlowVarBatch:ReloadAsapForkMessage...');
         try {
             await ForkMessageController.getInstance().send(new ReloadAsapForkMessage());
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
-        ConsoleHandler.getInstance().error('handleSlowVarBatch:kill_process...');
+        ConsoleHandler.error('handleSlowVarBatch:kill_process...');
         try {
             await ModuleForkServer.getInstance().kill_process(0);
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
     }
 
@@ -241,7 +241,7 @@ export default class SlowVarKiHandler {
         computed_var.value_type = VarDataBaseVO.VALUE_TYPE_DENIED;
         let res = await ModuleDAO.getInstance().insertOrUpdateVO(computed_var);
         if (!res) {
-            ConsoleHandler.getInstance().error('DENY SLOW VAR FAILED save computed_var - ' + computed_var.index);
+            ConsoleHandler.error('DENY SLOW VAR FAILED save computed_var - ' + computed_var.index);
         } else {
             computed_var.id = res.id;
         }

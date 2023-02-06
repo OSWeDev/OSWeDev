@@ -37,84 +37,84 @@ export default class ModuleCronServer extends ModuleServerBase {
     }
 
     public async configure() {
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': '{worker_uid}'
         }, 'cron.run_cron_individuel.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Lancer une tâche planifiée manuellement'
         }, 'cron.run_cron_individuel.head.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Mettre à jour la supervision'
         }, 'cron.update_supervised.head.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Tâche manuelles'
         }, 'cron.manual_task.head.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': '{manual_task}'
         }, 'cron.manual_task.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': '{supervised_uid}'
         }, 'cron.update_supervised.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Mise à jour supervision {supervised_uid} débutée'
         }, 'CronComponent.info.update_supervised.started.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Mise à jour supervision {supervised_uid} terminée'
         }, 'CronComponent.info.update_supervised.ended.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Non planifié'
         }, 'cronworkplan.TYPE_RECURRENCE.AUCUNE'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Année.s'
         }, 'cronworkplan.TYPE_RECURRENCE.ANNEES'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Mois'
         }, 'cronworkplan.TYPE_RECURRENCE.MOIS'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Semaine.s'
         }, 'cronworkplan.TYPE_RECURRENCE.SEMAINES'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Jour.s'
         }, 'cronworkplan.TYPE_RECURRENCE.JOURS'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Heure.s'
         }, 'cronworkplan.TYPE_RECURRENCE.HEURES'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Minute.s'
         }, 'cronworkplan.TYPE_RECURRENCE.MINUTES'));
 
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Tâche manuelle en cours'
         }, 'CronComponent.info.run_manual_task.started.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Tâche manuelle terminée'
         }, 'CronComponent.info.run_manual_task.ended.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Lancement manuel des tâches'
         }, 'cron.execute_manually.start'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Tâches terminées'
         }, 'cron.execute_manually.success'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Tâches échouées'
         }, 'cron.execute_manually.failed'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Tâche manuelle en cours'
         }, 'CronComponent.info.executeWorkerManually.started.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Lancement manuel'
         }, 'cron.execute_manually_indiv.start'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Tâche manuelle terminée'
         }, 'cron.execute_manually_indiv.success'));
     }
@@ -180,8 +180,8 @@ export default class ModuleCronServer extends ModuleServerBase {
 
     public async run_manual_task(text: string) {
 
-        let uid: number = StackContext.getInstance().get('UID');
-        let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
+        let uid: number = StackContext.get('UID');
+        let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
         if (!ManualTasksController.getInstance().registered_manual_tasks_by_name[text]) {
             return null;
@@ -192,8 +192,8 @@ export default class ModuleCronServer extends ModuleServerBase {
 
     public async executeWorkersManually() {
 
-        let uid: number = StackContext.getInstance().get('UID');
-        let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
+        let uid: number = StackContext.get('UID');
+        let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
         await PushDataServerController.getInstance().notifySimpleINFO(uid, CLIENT_TAB_ID, 'cron.execute_manually.start');
         try {
@@ -213,8 +213,8 @@ export default class ModuleCronServer extends ModuleServerBase {
             return;
         }
 
-        let uid: number = StackContext.getInstance().get('UID');
-        let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
+        let uid: number = StackContext.get('UID');
+        let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
         await PushDataServerController.getInstance().notifySimpleINFO(uid, CLIENT_TAB_ID, 'cron.execute_manually_indiv.start');
         try {

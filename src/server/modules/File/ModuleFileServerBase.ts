@@ -107,8 +107,8 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
     private async uploadFile(req: Request, res: Response) {
 
         let import_file: fileUpload.UploadedFile = null;
-        let uid: number = StackContext.getInstance().get('UID');
-        let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
+        let uid: number = StackContext.get('UID');
+        let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
         try {
             import_file = req.files[Object.keys(req.files)[0]] as fileUpload.UploadedFile;

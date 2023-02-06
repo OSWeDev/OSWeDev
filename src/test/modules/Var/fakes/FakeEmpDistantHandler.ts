@@ -16,7 +16,7 @@ export default class FakeEmpDistantHandler {
             new ModuleTableField('value', ModuleTableField.FIELD_TYPE_float, 'Valeur'),
         ];
 
-        VOsTypesManager.getInstance().registerModuleTable(new ModuleTable(null, FakeEmpDistantVO.API_TYPE_ID, () => new FakeEmpDistantVO(), datatable_fields, null));
+        VOsTypesManager.registerModuleTable(new ModuleTable(null, FakeEmpDistantVO.API_TYPE_ID, () => new FakeEmpDistantVO(), datatable_fields, null));
     }
 
     public static get_distant_A(): FakeEmpDistantVO {

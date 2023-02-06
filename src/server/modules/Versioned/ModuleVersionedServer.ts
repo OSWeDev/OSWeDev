@@ -69,7 +69,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
 
         if (!vo.version_author_id) {
             if (!robot_user) {
-                await StackContext.getInstance().runPromise(
+                await StackContext.runPromise(
                     { IS_CLIENT: false },
                     async () => {
                         robot_user = await ModuleDAO.getInstance().getNamedVoByName<UserVO>(UserVO.API_TYPE_ID, 'robot');
@@ -83,7 +83,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
 
         if (!vo.version_edit_author_id) {
             if (!robot_user) {
-                await StackContext.getInstance().runPromise(
+                await StackContext.runPromise(
                     { IS_CLIENT: false },
                     async () => {
                         robot_user = await ModuleDAO.getInstance().getNamedVoByName<UserVO>(UserVO.API_TYPE_ID, 'robot');
@@ -122,7 +122,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
             vo_update_handler.post_update_vo.version_edit_author_id = uid;
         } else {
             let robot_user: UserVO = null;
-            await StackContext.getInstance().runPromise(
+            await StackContext.runPromise(
                 { IS_CLIENT: false },
                 async () => {
                     robot_user = await ModuleDAO.getInstance().getNamedVoByName<UserVO>(UserVO.API_TYPE_ID, 'robot');
@@ -159,7 +159,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
 
         let insertionRes: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(cloned);
         if ((!insertionRes) || (!insertionRes.id)) {
-            ConsoleHandler.getInstance().error('handleTriggerVOPreDelete failed:insertionRes:' + JSON.stringify(insertionRes));
+            ConsoleHandler.error('handleTriggerVOPreDelete failed:insertionRes:' + JSON.stringify(insertionRes));
             return false;
         }
         cloned.id = insertionRes.id;
@@ -191,7 +191,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
 
         let insertionRes: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(cloned);
         if ((!insertionRes) || (!insertionRes.id)) {
-            ConsoleHandler.getInstance().error('restoreTrashedVo failed:insertionRes:' + JSON.stringify(insertionRes));
+            ConsoleHandler.error('restoreTrashedVo failed:insertionRes:' + JSON.stringify(insertionRes));
             return false;
         }
         cloned.id = insertionRes.id;

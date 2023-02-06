@@ -5,7 +5,7 @@ import ContextFilterHandler from '../../../../../../../shared/modules/ContextFil
 import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
-import ContextQueryVO, { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
@@ -21,8 +21,10 @@ import TypesHandler from '../../../../../../../shared/tools/TypesHandler';
 import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
+import ValidationFiltersCallUpdaters from '../../validation_filters_widget/ValidationFiltersCallUpdaters';
 import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFiltersWidgetController';
 import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
+import FieldValueFilterWidgetController from '../FieldValueFilterWidgetController';
 import FieldValueFilterWidgetOptions from '../options/FieldValueFilterWidgetOptions';
 import AdvancedNumberFilter from './AdvancedNumberFilter';
 import './FieldValueFilterNumberWidgetComponent.scss';
@@ -104,11 +106,6 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         this.old_widget_options = cloneDeep(this.widget_options);
 
         this.is_init = false;
-        ValidationFiltersWidgetController.getInstance().set_is_init(
-            this.dashboard_page,
-            this.page_widget,
-            false
-        );
         await this.throttled_update_visible_options();
     }
 
@@ -143,7 +140,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
             return;
         }
 
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id];
+        let moduletable = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id];
         let field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
         let has_null_value: boolean = false;
 
@@ -218,7 +215,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
 
         let translated_active_options: ContextFilterVO = null;
 
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id];
+        let moduletable = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id];
         let field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
         let previous_filter: AdvancedNumberFilter = null;
 
@@ -319,11 +316,6 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         if (!old_is_init) {
             // Si on a des valeurs par défaut, on va faire l'init
             if (this.default_values && (this.default_values.length > 0)) {
-                ValidationFiltersWidgetController.getInstance().set_is_init(
-                    this.dashboard_page,
-                    this.page_widget,
-                    true
-                );
 
                 // Si je n'ai pas de filtre actif OU que ma valeur de default values à changée, je prends les valeurs par défaut
                 let has_active_field_filter: boolean = !!(
@@ -335,6 +327,14 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                 if (!has_active_field_filter || this.default_values_changed) {
                     this.default_values_changed = false;
                     this.tmp_filter_active_options = this.default_values;
+
+                    ValidationFiltersWidgetController.getInstance().throttle_call_updaters(
+                        new ValidationFiltersCallUpdaters(
+                            this.dashboard_page.dashboard_id,
+                            this.dashboard_page.id
+                        )
+                    );
+
                     return;
                 }
             }
@@ -393,7 +393,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
 
         // Si je suis sur une table segmentée, je vais voir si j'ai un filtre sur mon field qui segmente
         // Si ce n'est pas le cas, je n'envoie pas la requête
-        let base_table: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[query_.base_api_type_id];
+        let base_table: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[query_.base_api_type_id];
 
         if (
             base_table &&
@@ -420,6 +420,8 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
             if (!has_filter) {
                 return;
             }
+        } else {
+            query_ = await FieldValueFilterWidgetController.getInstance().check_segmented_dependencies(this.dashboard, query_, true);
         }
 
         tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(
@@ -826,6 +828,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                     options.vo_field_sort,
                     options.can_select_multiple,
                     options.is_checkbox,
+                    options.checkbox_columns,
                     options.max_visible_options,
                     options.show_search_field,
                     options.hide_lvl2_if_lvl1_not_selected,
@@ -849,11 +852,15 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                     options.vo_field_sort_lvl2,
                     options.autovalidate_advanced_filter,
                     options.add_is_null_selectable,
+                    options.is_button,
+                    options.enum_bg_colors,
+                    options.enum_fg_colors,
+                    options.show_count_value,
                     options.active_field_on_autovalidate_advanced_filter,
                 ) : null;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return options;

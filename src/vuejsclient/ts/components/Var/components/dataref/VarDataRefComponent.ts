@@ -3,7 +3,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import debounce from 'lodash/debounce';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
-import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
@@ -190,14 +190,14 @@ export default class VarDataRefComponent extends VueComponentBase {
 
         let res = await ModuleDAO.getInstance().insertOrUpdateVO(clone);
         if ((!res) || (!res.id)) {
-            ConsoleHandler.getInstance().warn('Echec onchangevo insertOrUpdateVO : On tente de récupérer la data en base, si elle existe on met à jour...');
+            ConsoleHandler.warn('Echec onchangevo insertOrUpdateVO : On tente de récupérer la data en base, si elle existe on met à jour...');
             let bdddatas: VarDataBaseVO[] = await ModuleDAO.getInstance().getVosByExactMatroids<VarDataBaseVO, VarDataBaseVO>(clone._type, [clone]);
             if (bdddatas && bdddatas.length) {
-                ConsoleHandler.getInstance().log('...trouvé on met à jour');
+                ConsoleHandler.log('...trouvé on met à jour');
                 let bdddata: VarDataBaseVO = bdddatas[0];
 
                 if ((bdddata.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) && (bdddata.value_ts && clone.value_ts && (bdddata.value_ts > clone.value_ts))) {
-                    ConsoleHandler.getInstance().error('...valeur en BDD plus récente que celle saisie, on refuse la maj');
+                    ConsoleHandler.error('...valeur en BDD plus récente que celle saisie, on refuse la maj');
                     return;
                 }
                 bdddata.value_type = clone.value_type;
@@ -205,11 +205,11 @@ export default class VarDataRefComponent extends VueComponentBase {
                 bdddata.value_ts = clone.value_ts;
                 res = await ModuleDAO.getInstance().insertOrUpdateVO(bdddata);
                 if ((!res) || (!res.id)) {
-                    ConsoleHandler.getInstance().error('...la mise à jour a échouée');
+                    ConsoleHandler.error('...la mise à jour a échouée');
                     return;
                 }
             } else {
-                ConsoleHandler.getInstance().error('...pas trouvé, il y a eu une erreur et la valeur est perdue');
+                ConsoleHandler.error('...pas trouvé, il y a eu une erreur et la valeur est perdue');
                 return;
             }
         }
@@ -226,7 +226,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         if (!this.var_param) {
             return null;
         }
-        return new SimpleDatatableField("value").setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[this.var_param._type]);
+        return SimpleDatatableFieldVO.createNew("value").setModuleTable(VOsTypesManager.moduleTables_by_voType[this.var_param._type]);
     }
 
     private var_data_updater() {
@@ -443,7 +443,7 @@ export default class VarDataRefComponent extends VueComponentBase {
 
         if (this.is_show_import_aggregated) {
             if ((this.aggregated_var_param as any).ts_ranges) {
-                formatted_date = Dates.format(RangeHandler.getInstance().getSegmentedMax_from_ranges((this.aggregated_var_param as any).ts_ranges),
+                formatted_date = Dates.format(RangeHandler.getSegmentedMax_from_ranges((this.aggregated_var_param as any).ts_ranges),
                     ModuleFormatDatesNombres.FORMAT_YYYYMMDD
                 );
             } else {

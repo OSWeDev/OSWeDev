@@ -90,7 +90,7 @@ export default class ModuleImageFormat extends Module {
     }
 
     private initializeFormattedImageVO() {
-        let file_id = new ModuleTableField('file_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Image - fichier formatté', true);
+        let file_id = new ModuleTableField('file_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Image - fichier formatté', true).not_add_to_crud();
         let image_format_id = new ModuleTableField('image_format_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Format d\'image', true);
 
         let fields = [
@@ -111,8 +111,8 @@ export default class ModuleImageFormat extends Module {
         let table = new ModuleTable(this, FormattedImageVO.API_TYPE_ID, () => new FormattedImageVO(), fields, null, 'Images formattées');
         this.datatables.push(table);
 
-        file_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);
-        image_format_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[ImageFormatVO.API_TYPE_ID]);
+        file_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
+        image_format_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ImageFormatVO.API_TYPE_ID]);
 
         VersionedVOController.getInstance().registerModuleTable(table);
     }

@@ -1,8 +1,13 @@
+import CacheInvalidationRulesVO from '../AjaxCache/vos/CacheInvalidationRulesVO';
+import APIControllerWrapper from '../API/APIControllerWrapper';
+import StringParamVO, { StringParamVOStatic } from '../API/vos/apis/StringParamVO';
+import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import Module from '../Module';
 
 export default class ModuleSASSSkinConfigurator extends Module {
 
     public static MODULE_NAME: string = 'sass_skin_generator';
+    public static APINAME_get_sass_param_value: string = 'get_sass_param_value';
 
     /**
      * Sert de définition de la liste des params à placer dans le scss généré, et à définir les valeurs par défaut, qui sont remplacées au démarrage par les datas en base (ou init la bdd avec ces infos)
@@ -77,9 +82,21 @@ export default class ModuleSASSSkinConfigurator extends Module {
 
     private static instance: ModuleSASSSkinConfigurator = null;
 
+    public get_sass_param_value: (param_name: string) => Promise<any> = APIControllerWrapper.sah(ModuleSASSSkinConfigurator.APINAME_get_sass_param_value);
+
     private constructor() {
 
         super(ModuleSASSSkinConfigurator.MODULE_NAME, "SASSSkinConfigurator");
         this.forceActivationOnInstallation();
+    }
+
+    public registerApis() {
+
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<StringParamVO, any>(
+            null,
+            ModuleSASSSkinConfigurator.APINAME_get_sass_param_value,
+            CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
+            StringParamVOStatic
+        ).disable_csrf_protection());
     }
 }

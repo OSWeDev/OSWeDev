@@ -126,13 +126,13 @@ export default class PasswordReset {
 
         try {
 
-            let msg = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID].getFieldFromId('password').validate(new_pwd1);
+            let msg = VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID].getFieldFromId('password').validate(new_pwd1);
             if (!((!msg) || (msg == ""))) {
 
                 return false;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
             return false;
         }
 
@@ -146,7 +146,7 @@ export default class PasswordReset {
         }
 
         // On doit se comporter comme un server à ce stade
-        await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
+        await StackContext.runPromise({ IS_CLIENT: false }, async () => {
 
             AccessPolicyController.getInstance().prepareForInsertOrUpdateAfterPwdChange(user, new_pwd1);
             await ModuleDAO.getInstance().insertOrUpdateVO(user);

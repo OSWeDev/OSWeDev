@@ -23,6 +23,7 @@ import CRUDUpdateModalComponent from '../widgets/table_widget/crud_modals/update
 import './DashboardBuilderBoardComponent.scss';
 import DashboardBuilderBoardItemComponent from './item/DashboardBuilderBoardItemComponent';
 import DashboardCopyWidgetComponent from '../copy_widget/DashboardCopyWidgetComponent';
+import SupervisionItemModalComponent from '../widgets/supervision_widget/supervision_item_modal/SupervisionItemModalComponent';
 
 @Component({
     template: require('./DashboardBuilderBoardComponent.pug'),
@@ -34,6 +35,7 @@ import DashboardCopyWidgetComponent from '../copy_widget/DashboardCopyWidgetComp
         Crudcreatemodalcomponent: CRUDCreateModalComponent,
         Dashboardcopywidgetcomponent: DashboardCopyWidgetComponent,
         Checklistitemmodalcomponent: ChecklistItemModalComponent,
+        Supervisionitemmodal: SupervisionItemModalComponent,
         Inlinetranslatabletext: InlineTranslatableText,
     }
 })
@@ -54,6 +56,9 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
 
     @ModuleDashboardPageAction
     private set_Checklistitemmodalcomponent: (Checklistitemmodalcomponent: ChecklistItemModalComponent) => void;
+
+    @ModuleDashboardPageAction
+    private set_Supervisionitemmodal: (Supervisionitemmodal: SupervisionItemModalComponent) => void;
 
     @ModuleDashboardPageAction
     private set_Crudupdatemodalcomponent: (Crudupdatemodalcomponent: CRUDUpdateModalComponent) => void;
@@ -99,7 +104,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     private throttled_rebuild_page_layout = ThrottleHelper.getInstance().declare_throttle_without_args(this.rebuild_page_layout.bind(this), 200);
 
     get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
-        return VOsTypesManager.getInstance().vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
+        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
     }
 
     get draggable(): boolean {
@@ -156,6 +161,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     private mounted() {
         DashboardBuilderWidgetsController.getInstance().add_widget_to_page_handler = this.add_widget_to_page.bind(this);
         this.set_Checklistitemmodalcomponent(this.$refs['Checklistitemmodalcomponent'] as ChecklistItemModalComponent);
+        this.set_Supervisionitemmodal(this.$refs['Supervisionitemmodal'] as SupervisionItemModalComponent);
         this.set_Crudupdatemodalcomponent(this.$refs['Crudupdatemodalcomponent'] as CRUDUpdateModalComponent);
         this.set_Crudcreatemodalcomponent(this.$refs['Crudcreatemodalcomponent'] as CRUDCreateModalComponent);
         this.set_Dashboardcopywidgetcomponent(this.$refs['Dashboardcopywidgetcomponent'] as DashboardCopyWidgetComponent);
@@ -188,55 +194,80 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         }, this.dashboard_page);
     }
 
-    private async add_widget_to_page(widget: DashboardWidgetVO) {
+    private async add_widget_to_page(widget: DashboardWidgetVO): Promise<DashboardPageWidgetVO> {
 
         if (!this.dashboard_page) {
-            return;
+            return null;
         }
 
-        let self = this;
-        self.snotify.async(
-            self.label('DashboardBuilderBoardComponent.add_widget_to_page.start'), () =>
-            new Promise(async (resolve, reject) => {
+        return new Promise((resolvef, rejectf) => {
+            let self = this;
+            self.snotify.async(
+                self.label('DashboardBuilderBoardComponent.add_widget_to_page.start'), () =>
+                new Promise(async (resolve, reject) => {
 
-                let page_widget = new DashboardPageWidgetVO();
+                    let page_widget = new DashboardPageWidgetVO();
 
-                page_widget.page_id = self.dashboard_page.id;
-                page_widget.widget_id = widget.id;
+                    page_widget.page_id = self.dashboard_page.id;
+                    page_widget.widget_id = widget.id;
 
-                let max_weight: number = 0;
-                self.widgets.forEach((w) => {
-                    if (w.weight >= max_weight) {
-                        max_weight = w.weight + 1;
+                    let max_weight: number = 0;
+                    self.widgets.forEach((w) => {
+                        if (w.weight >= max_weight) {
+                            max_weight = w.weight + 1;
+                        }
+                    });
+                    page_widget.weight = max_weight;
+
+                    page_widget.w = widget.default_width;
+                    page_widget.h = widget.default_height;
+
+                    let max_y = 0;
+                    if (self.editable_dashboard_page.layout && self.editable_dashboard_page.layout.length) {
+                        self.editable_dashboard_page.layout.forEach((item) => max_y = Math.max(max_y, item.y + item.h));
                     }
-                });
-                page_widget.weight = max_weight;
+                    page_widget.x = 0;
+                    page_widget.y = max_y;
 
-                page_widget.w = widget.default_width;
-                page_widget.h = widget.default_height;
+                    page_widget.background = widget.default_background;
 
-                let max_y = 0;
-                if (self.editable_dashboard_page.layout && self.editable_dashboard_page.layout.length) {
-                    self.editable_dashboard_page.layout.forEach((item) => max_y = Math.max(max_y, item.y + item.h));
-                }
-                page_widget.x = 0;
-                page_widget.y = max_y;
-
-                page_widget.background = widget.default_background;
-
-                try {
-                    if (DashboardBuilderWidgetsController.getInstance().widgets_options_constructor[widget.name]) {
-                        let options = DashboardBuilderWidgetsController.getInstance().widgets_options_constructor[widget.name]();
-                        page_widget.json_options = JSON.stringify(options);
+                    try {
+                        if (DashboardBuilderWidgetsController.getInstance().widgets_options_constructor[widget.name]) {
+                            let options = DashboardBuilderWidgetsController.getInstance().widgets_options_constructor[widget.name]();
+                            page_widget.json_options = JSON.stringify(options);
+                        }
+                    } catch (error) {
+                        ConsoleHandler.error(error);
                     }
-                } catch (error) {
-                    ConsoleHandler.getInstance().error(error);
-                }
 
-                let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(page_widget);
-                if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
-                    reject({
-                        body: self.label('DashboardBuilderBoardComponent.add_widget_to_page.ko'),
+                    let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(page_widget);
+                    if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
+                        reject({
+                            body: self.label('DashboardBuilderBoardComponent.add_widget_to_page.ko'),
+                            config: {
+                                timeout: 10000,
+                                showProgressBar: true,
+                                closeOnClick: false,
+                                pauseOnHover: true,
+                            },
+                        });
+                        resolvef(null);
+                        return null;
+                    }
+
+                    // On reload les widgets
+                    self.widgets = await query(DashboardPageWidgetVO.API_TYPE_ID).filter_by_num_eq('page_id', self.dashboard_page.id).select_vos<DashboardPageWidgetVO>();
+                    page_widget = self.widgets.find((w) => w.id == insertOrDeleteQueryResult.id);
+
+                    self.editable_dashboard_page = Object.assign({
+                        layout: self.widgets
+                    }, self.dashboard_page);
+
+                    self.set_page_widget(page_widget);
+                    self.select_widget(page_widget);
+
+                    resolve({
+                        body: self.label('DashboardBuilderBoardComponent.add_widget_to_page.ok'),
                         config: {
                             timeout: 10000,
                             showProgressBar: true,
@@ -244,31 +275,10 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
                             pauseOnHover: true,
                         },
                     });
-                    return;
-                }
-
-                // On reload les widgets
-                self.widgets = await query(DashboardPageWidgetVO.API_TYPE_ID).filter_by_num_eq('page_id', self.dashboard_page.id).select_vos<DashboardPageWidgetVO>();
-                page_widget = self.widgets.find((w) => w.id == insertOrDeleteQueryResult.id);
-
-                self.editable_dashboard_page = Object.assign({
-                    layout: self.widgets
-                }, self.dashboard_page);
-
-                self.set_page_widget(page_widget);
-                self.select_widget(page_widget);
-
-                resolve({
-                    body: self.label('DashboardBuilderBoardComponent.add_widget_to_page.ok'),
-                    config: {
-                        timeout: 10000,
-                        showProgressBar: true,
-                        closeOnClick: false,
-                        pauseOnHover: true,
-                    },
-                });
-            })
-        );
+                    resolvef(page_widget);
+                })
+            );
+        });
     }
 
 
@@ -279,7 +289,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         let widget = this.widgets.find((w) => w.i == i);
 
         if (!widget) {
-            ConsoleHandler.getInstance().error("resizedEvent:on ne retrouve pas le widget");
+            ConsoleHandler.error("resizedEvent:on ne retrouve pas le widget");
             return;
         }
 
@@ -303,7 +313,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         let widget = this.widgets.find((w) => w.i == i);
 
         if (!widget) {
-            ConsoleHandler.getInstance().error("movedEvent:on ne retrouve pas le widget");
+            ConsoleHandler.error("movedEvent:on ne retrouve pas le widget");
             return;
         }
 
@@ -347,6 +357,8 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
                                     self.widgets.splice(i, 1);
                                     self.delete_page_widget(page_widget);
                                     self.select_widget(null);
+
+                                    self.$emit('removed_widget_from_page', page_widget);
 
                                     // On reload les widgets
                                     await self.throttled_rebuild_page_layout();

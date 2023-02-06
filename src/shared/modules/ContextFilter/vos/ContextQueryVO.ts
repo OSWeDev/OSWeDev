@@ -1,6 +1,8 @@
 import { isArray } from "lodash";
-import ParameterizedQueryWrapper from "../../../../server/modules/ContextFilter/vos/ParameterizedQueryWrapper";
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
+import ConsoleHandler from "../../../tools/ConsoleHandler";
+import DatatableField from "../../DAO/vos/datatable/DatatableField";
+import TableColumnDescVO from "../../DashboardBuilder/vos/TableColumnDescVO";
 import NumRange from "../../DataRender/vos/NumRange";
 import TimeSegment from "../../DataRender/vos/TimeSegment";
 import TSRange from "../../DataRender/vos/TSRange";
@@ -12,6 +14,7 @@ import VOsTypesManager from "../../VOsTypesManager";
 import ModuleContextFilter from "../ModuleContextFilter";
 import ContextFilterVO, { filter } from "./ContextFilterVO";
 import ContextQueryFieldVO from "./ContextQueryFieldVO";
+import ParameterizedQueryWrapper from "./ParameterizedQueryWrapper";
 import SortByVO from "./SortByVO";
 
 /**
@@ -117,6 +120,11 @@ export default class ContextQueryVO implements IDistantVOBase {
      */
     public discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
 
+    public set_query_distinct() {
+        this.query_distinct = true;
+        return this;
+    }
+
     public discard_field_path(vo_type: string, field_id: string): ContextQueryVO {
         if (!this.discarded_field_paths) {
             this.discarded_field_paths = {};
@@ -187,7 +195,7 @@ export default class ContextQueryVO implements IDistantVOBase {
      * @param field_id l'id du field à ajouter.
      */
     public field(
-        field_id: string, alias: string = field_id, api_type_id: string = null,
+        field_id: string, alias: string = null, api_type_id: string = null,
         aggregator: number = VarConfVO.NO_AGGREGATOR, modifier: number = ContextQueryFieldVO.FIELD_MODIFIER_NONE): ContextQueryVO {
 
         let field = new ContextQueryFieldVO(api_type_id ? api_type_id : this.base_api_type_id, field_id, alias, aggregator, modifier);
@@ -536,11 +544,11 @@ export default class ContextQueryVO implements IDistantVOBase {
         }
 
         let matroid_head_filter: ContextFilterVO = null;
-        let target_moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[target_API_TYPE_ID];
+        let target_moduletable = VOsTypesManager.moduleTables_by_voType[target_API_TYPE_ID];
         let var_id_field_id = (fields_ids_mapper && fields_ids_mapper['var_id']) ? fields_ids_mapper['var_id'] : 'var_id';
         let target_has_var_id_field = target_moduletable.get_field_by_id(var_id_field_id);
 
-        let matroid_module_table = VOsTypesManager.getInstance().moduleTables_by_voType[matroid_api_type_id];
+        let matroid_module_table = VOsTypesManager.moduleTables_by_voType[matroid_api_type_id];
         let matroid_has_var_id_field = matroid_module_table.get_field_by_id('var_id');
         let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getInstance().getMatroidFields(matroid_api_type_id);
 
@@ -614,11 +622,11 @@ export default class ContextQueryVO implements IDistantVOBase {
         }
 
         let matroid_head_filter: ContextFilterVO = null;
-        let target_moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[target_API_TYPE_ID];
+        let target_moduletable = VOsTypesManager.moduleTables_by_voType[target_API_TYPE_ID];
         let var_id_field_id = (fields_ids_mapper && fields_ids_mapper['var_id']) ? fields_ids_mapper['var_id'] : 'var_id';
         let target_has_var_id_field = target_moduletable.get_field_by_id(var_id_field_id);
 
-        let matroid_module_table = VOsTypesManager.getInstance().moduleTables_by_voType[matroid_api_type_id];
+        let matroid_module_table = VOsTypesManager.moduleTables_by_voType[matroid_api_type_id];
         let matroid_has_var_id_field = matroid_module_table.get_field_by_id('var_id');
         let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getInstance().getMatroidFields(matroid_api_type_id);
 
@@ -861,7 +869,6 @@ export default class ContextQueryVO implements IDistantVOBase {
      * @returns les vos issus de la requête
      */
     public async select_vos<T extends IDistantVOBase>(): Promise<T[]> {
-        this.fields = null;
         return await ModuleContextFilter.getInstance().select_vos(this);
     }
 
@@ -871,7 +878,6 @@ export default class ContextQueryVO implements IDistantVOBase {
      * @returns le vo issu de la requête => Throws si on a + de 1 résultat
      */
     public async select_vo<T extends IDistantVOBase>(): Promise<T> {
-        this.fields = null;
         let res: T[] = await ModuleContextFilter.getInstance().select_vos(this);
         if (res && (res.length > 1)) {
             throw new Error('Multiple results on select_vo is not allowed');
@@ -891,6 +897,35 @@ export default class ContextQueryVO implements IDistantVOBase {
         return this;
     }
 
+    public log(is_error: boolean = false) {
+        let log_func = ConsoleHandler.log;
+
+        if (is_error) {
+            log_func = ConsoleHandler.error;
+        }
+
+        log_func('ContextQueryVO - base_api_type_id:' + this.base_api_type_id);
+        log_func('               - active_api_type_ids: ' + this.active_api_type_ids);
+
+        let fields_num = (this.fields ? this.fields.length : 0);
+        if (fields_num) {
+            for (let i in this.fields) {
+                let field = this.fields[i];
+                log_func('               - field:' + i + '/' + fields_num);
+                field.log(is_error);
+            }
+        }
+
+        let filters_num = (this.filters ? this.filters.length : 0);
+        if (filters_num) {
+            for (let i in this.filters) {
+                let filter_ = this.filters[i];
+                log_func('               - filter:' + i + '/' + filters_num);
+                filter_.log(is_error);
+            }
+        }
+    }
+
     /**
      * Faire la requête simplement et récupérer le résultat brut
      */
@@ -906,8 +941,10 @@ export default class ContextQueryVO implements IDistantVOBase {
      * Faire la requête en mode select_datatable_rows mais ligne unique
      * @returns la ligne de datatable issue de la requête
      */
-    public async select_datatable_row(): Promise<any> {
-        let res = await ModuleContextFilter.getInstance().select_datatable_rows(this);
+    public async select_datatable_row(
+        columns_by_field_id: { [datatable_field_uid: string]: TableColumnDescVO },
+        fields: { [datatable_field_uid: string]: DatatableField<any, any> }): Promise<any> {
+        let res = await ModuleContextFilter.getInstance().select_datatable_rows(this, columns_by_field_id, fields);
         if (res && (res.length > 1)) {
             throw new Error('Multiple results on select_datatable_row is not allowed');
         }
@@ -918,8 +955,11 @@ export default class ContextQueryVO implements IDistantVOBase {
      * Faire la requête en mode select_datatable_rows
      * @returns les lignes de datatable issues de la requête
      */
-    public async select_datatable_rows(): Promise<any[]> {
-        return await ModuleContextFilter.getInstance().select_datatable_rows(this);
+    public async select_datatable_rows(
+        columns_by_field_id: { [datatable_field_uid: string]: TableColumnDescVO },
+        fields: { [datatable_field_uid: string]: DatatableField<any, any> }
+    ): Promise<any[]> {
+        return await ModuleContextFilter.getInstance().select_datatable_rows(this, columns_by_field_id, fields);
     }
 
     /**

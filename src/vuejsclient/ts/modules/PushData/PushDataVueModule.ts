@@ -159,7 +159,7 @@ export default class PushDataVueModule extends VueModuleBase {
     private async check_version_app() {
         let server_app_version: string = await ModulePushData.getInstance().get_app_version();
 
-        if (server_app_version && (EnvHandler.getInstance().VERSION != server_app_version)) {
+        if (server_app_version && (EnvHandler.VERSION != server_app_version)) {
             VueAppBase.instance_.vueInstance.snotify.warning(
                 VueAppBase.instance_.vueInstance.label("app_version_changed"),
                 { timeout: 3000 }
@@ -389,7 +389,7 @@ export default class PushDataVueModule extends VueModuleBase {
                         // On log les notifications sur l'index sélectionné en description actuellement
                         let selectedVarParam: VarDataBaseVO = VueAppBase.instance_.vueInstance.$store.getters['VarStore/getDescSelectedVarParam'];
                         if (selectedVarParam && selectedVarParam.index && (selectedVarParam.index == e.index)) {
-                            ConsoleHandler.getInstance().log('Notification pour var sélectionnée :' +
+                            ConsoleHandler.log('Notification pour var sélectionnée :' +
                                 'id:' + e.id + ':' +
                                 'value:' + e.value + ':' +
                                 'value_type:' + e.value_type + ':' +
@@ -437,7 +437,7 @@ export default class PushDataVueModule extends VueModuleBase {
             for (let i in vos) {
                 let vo = vos[i];
 
-                // ConsoleHandler.getInstance().log('notif_var:' + vo.index + ':' + vo.value + ':' + vo.value_ts + ':' + vo.value_type + ':' + vo.is_computing);
+                // ConsoleHandler.log('notif_var:' + vo.index + ':' + vo.value + ':' + vo.value_ts + ':' + vo.value_type + ':' + vo.is_computing);
 
                 // if varData is_computing, on veut écraser un seul champs
                 if (vo.is_computing) {
@@ -480,7 +480,7 @@ export default class PushDataVueModule extends VueModuleBase {
                         switch (vo.marker) {
                             case NotificationVO.TECH_DISCONNECT_AND_REDIRECT_HOME:
 
-                                let PARAM_TECH_DISCONNECT_URL: string = await ModuleParams.getInstance().getParamValue(ModulePushData.PARAM_TECH_DISCONNECT_URL);
+                                let PARAM_TECH_DISCONNECT_URL: string = await ModuleParams.getInstance().getParamValueAsString(ModulePushData.PARAM_TECH_DISCONNECT_URL);
 
                                 let content = LocaleManager.getInstance().i18n.t('PushDataServerController.session_invalidated.___LABEL___');
                                 VueAppBase.instance_.vueInstance.snotify.warning(content, {

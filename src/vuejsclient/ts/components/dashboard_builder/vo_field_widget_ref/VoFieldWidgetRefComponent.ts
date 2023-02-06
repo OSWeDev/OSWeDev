@@ -26,7 +26,7 @@ export default class VoFieldWidgetRefComponent extends VueComponentBase {
             return null;
         }
 
-        let table = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id];
+        let table = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id];
         if (!table) {
             return null;
         }
@@ -54,7 +54,7 @@ export default class VoFieldWidgetRefComponent extends VueComponentBase {
             return null;
         }
 
-        let field = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
+        let field = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
 
         return field ? this.t(field.field_label.code_text) : this.vo_field_ref.field_id;
     }

@@ -56,8 +56,8 @@ export default class ContextFilterTestsTools {
             anon_field_id
         ];
         let datatable = new ModuleTable(null, AnonymizationUserConfVO.API_TYPE_ID, () => new AnonymizationUserConfVO(), datatable_fields, null, "Lien anonymisation/utilisateur");
-        anon_field_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[AnonymizationFieldConfVO.API_TYPE_ID]);
-        user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        anon_field_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[AnonymizationFieldConfVO.API_TYPE_ID]);
+        user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
         datatable.set_bdd_ref('ref', AnonymizationUserConfVO.API_TYPE_ID);
     }
 
@@ -86,13 +86,13 @@ export default class ContextFilterTestsTools {
         ];
 
         let datatable: ModuleTable<any> = new ModuleTable(null, UserRoleVO.API_TYPE_ID, () => new UserRoleVO(), datatable_fields, null, new DefaultTranslation({ 'fr-fr': "Rôles des utilisateurs" }));
-        field_user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
-        field_role_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[RoleVO.API_TYPE_ID]);
+        field_user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        field_role_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[RoleVO.API_TYPE_ID]);
         datatable.set_bdd_ref('ref', UserRoleVO.API_TYPE_ID);
     }
 
     private declare_LangVO_modultable() {
-        let label_field = new ModuleTableField('code_lang', ModuleTableField.FIELD_TYPE_string, 'Code de la langue', true);
+        let label_field = new ModuleTableField('code_lang', ModuleTableField.FIELD_TYPE_string, 'Code de la langue', true).unique();
         let datatable_fields = [
             label_field,
             new ModuleTableField('code_flag', ModuleTableField.FIELD_TYPE_string, 'Code du drapeau', false),
@@ -103,7 +103,7 @@ export default class ContextFilterTestsTools {
     }
 
     private declare_TranslatableTextVO_modultable() {
-        let label_field = new ModuleTableField('code_text', ModuleTableField.FIELD_TYPE_string, 'Id du text', true);
+        let label_field = new ModuleTableField('code_text', ModuleTableField.FIELD_TYPE_string, 'Id du text', true).unique();
         let datatable_fields = [
             label_field
         ];
@@ -122,8 +122,8 @@ export default class ContextFilterTestsTools {
         ];
 
         let datatable: ModuleTable<any> = new ModuleTable(null, TranslationVO.API_TYPE_ID, () => new TranslationVO(), datatable_fields, label_field, "Traductions");
-        field_lang_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[LangVO.API_TYPE_ID]);
-        field_text_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID]);
+        field_lang_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[LangVO.API_TYPE_ID]);
+        field_text_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID]);
         datatable.set_bdd_ref('ref', TranslationVO.API_TYPE_ID);
     }
 
@@ -151,7 +151,7 @@ export default class ContextFilterTestsTools {
         ];
 
         let datatable: ModuleTable<any> = new ModuleTable(null, UserVO.API_TYPE_ID, () => new UserVO(), datatable_fields, label_field, new DefaultTranslation({ 'fr-fr': "Utilisateurs" }));
-        field_lang_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[LangVO.API_TYPE_ID]);
+        field_lang_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[LangVO.API_TYPE_ID]);
         datatable.set_bdd_ref('ref', UserVO.API_TYPE_ID);
     }
 }

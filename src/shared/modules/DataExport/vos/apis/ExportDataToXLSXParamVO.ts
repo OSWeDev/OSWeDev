@@ -1,6 +1,6 @@
-import IExportableDatas from '../../../../../server/modules/DataExport/interfaces/IExportableDatas';
 import IAPIParamTranslator from '../../../API/interfaces/IAPIParamTranslator';
 import IAPIParamTranslatorStatic from '../../../API/interfaces/IAPIParamTranslatorStatic';
+import IExportableDatas from '../../interfaces/IExportableDatas';
 
 export default class ExportDataToXLSXParamVO implements IExportableDatas, IAPIParamTranslator<ExportDataToXLSXParamVO> {
 

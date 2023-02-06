@@ -71,43 +71,53 @@ export default class VarsController {
     }
 
     public get_translatable_name_code_by_var_id(var_id: number): string {
-        return VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.getInstance().var_conf_by_id[var_id].name + '.translatable_name' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return (var_id && VarsController.getInstance().var_conf_by_id[var_id]) ?
+            VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.getInstance().var_conf_by_id[var_id].name + '.translatable_name' + DefaultTranslation.DEFAULT_LABEL_EXTENSION :
+            null;
     }
 
     public get_translatable_description_code_by_var_id(var_id: number): string {
-        return VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.getInstance().var_conf_by_id[var_id].name + '.translatable_description' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return (var_id && VarsController.getInstance().var_conf_by_id[var_id]) ?
+            VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.getInstance().var_conf_by_id[var_id].name + '.translatable_description' + DefaultTranslation.DEFAULT_LABEL_EXTENSION :
+            null;
     }
 
     public get_translatable_public_explaination_by_var_id(var_id: number): string {
-        return VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.getInstance().var_conf_by_id[var_id].name + '.translatable_public_explaination' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return (var_id && VarsController.getInstance().var_conf_by_id[var_id]) ?
+            VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.getInstance().var_conf_by_id[var_id].name + '.translatable_public_explaination' + DefaultTranslation.DEFAULT_LABEL_EXTENSION :
+            null;
     }
 
     public get_translatable_explaination_by_var_id(var_id: number): string {
-        return VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.getInstance().var_conf_by_id[var_id].name + '.translatable_explaination' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return (var_id && VarsController.getInstance().var_conf_by_id[var_id]) ?
+            VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.getInstance().var_conf_by_id[var_id].name + '.translatable_explaination' + DefaultTranslation.DEFAULT_LABEL_EXTENSION :
+            null;
     }
 
     public get_translatable_explaination(var_name: string): string {
-        return VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + var_name + '.translatable_explaination' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return var_name ? VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + var_name + '.translatable_explaination' + DefaultTranslation.DEFAULT_LABEL_EXTENSION : null;
     }
 
     public get_translatable_dep_name(dep_id: string): string {
-        return VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + '__DEPS__' + dep_id + '.name' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return dep_id ? VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + '__DEPS__' + dep_id + '.name' + DefaultTranslation.DEFAULT_LABEL_EXTENSION : null;
     }
 
     public get_translatable_params_desc_code_by_var_id(var_id: number): string {
-        return VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.getInstance().var_conf_by_id[var_id].name + '.translatable_params_desc' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return (var_id && VarsController.getInstance().var_conf_by_id[var_id]) ?
+            VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.getInstance().var_conf_by_id[var_id].name + '.translatable_params_desc' + DefaultTranslation.DEFAULT_LABEL_EXTENSION :
+            null;
     }
 
     public get_translatable_name_code(var_name: string): string {
-        return VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + var_name + '.translatable_name' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return var_name ? VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + var_name + '.translatable_name' + DefaultTranslation.DEFAULT_LABEL_EXTENSION : null;
     }
 
     public get_translatable_description_code(var_name: string): string {
-        return VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + var_name + '.translatable_description' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return var_name ? VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + var_name + '.translatable_description' + DefaultTranslation.DEFAULT_LABEL_EXTENSION : null;
     }
 
     public get_translatable_params_desc_code(var_name: string): string {
-        return VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + var_name + '.translatable_params_desc' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return var_name ? VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + var_name + '.translatable_params_desc' + DefaultTranslation.DEFAULT_LABEL_EXTENSION : null;
     }
 
     public getValueOrDefault(data: VarDataBaseVO, default_value: any): number {

@@ -1,10 +1,10 @@
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
+import FieldPathWrapper from '../../../shared/modules/ContextFilter/vos/FieldPathWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
-import FieldPathWrapper from './vos/FieldPathWrapper';
 
 export default class ContextAccessServerController {
 
@@ -27,11 +27,11 @@ export default class ContextAccessServerController {
         fields: ContextQueryFieldVO[],
         access_type: string): boolean {
 
-        if (!StackContext.getInstance().get('IS_CLIENT')) {
+        if (!StackContext.get('IS_CLIENT')) {
             return true;
         }
 
-        let uid: number = StackContext.getInstance().get('UID');
+        let uid: number = StackContext.get('UID');
         let roles;
         if (!uid) {
             roles = AccessPolicyServerController.getInstance().getUsersRoles(false, null);
@@ -48,7 +48,7 @@ export default class ContextAccessServerController {
                 }
             }
         } else {
-            let table = VOsTypesManager.getInstance().moduleTables_by_voType[base_api_type_id];
+            let table = VOsTypesManager.moduleTables_by_voType[base_api_type_id];
             let table_fields = table.get_fields();
             for (let i in table_fields) {
                 let table_field = table_fields[i];
@@ -66,11 +66,11 @@ export default class ContextAccessServerController {
         fields: FieldPathWrapper[],
         access_type: string): boolean {
 
-        if (!StackContext.getInstance().get('IS_CLIENT')) {
+        if (!StackContext.get('IS_CLIENT')) {
             return true;
         }
 
-        let uid: number = StackContext.getInstance().get('UID');
+        let uid: number = StackContext.get('UID');
         let roles;
         if (!uid) {
             roles = AccessPolicyServerController.getInstance().getUsersRoles(false, null);
@@ -95,11 +95,11 @@ export default class ContextAccessServerController {
         field_id: string,
         access_type: string): boolean {
 
-        if (!StackContext.getInstance().get('IS_CLIENT')) {
+        if (!StackContext.get('IS_CLIENT')) {
             return true;
         }
 
-        let uid: number = StackContext.getInstance().get('UID');
+        let uid: number = StackContext.get('UID');
         let roles;
         if (!uid) {
             roles = AccessPolicyServerController.getInstance().getUsersRoles(false, null);
@@ -122,7 +122,7 @@ export default class ContextAccessServerController {
         /**
          * Si le field_id est le label du type ou id, on peut transformer un droit de type READ en LIST
          */
-        let table = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+        let table = VOsTypesManager.moduleTables_by_voType[api_type_id];
         let tmp_access_type = access_type;
         if ((access_type == ModuleDAO.DAO_ACCESS_TYPE_READ) && ((field_id == 'id') || (table.default_label_field && table.default_label_field.field_id && (field_id == table.default_label_field.field_id)))) {
             tmp_access_type = ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS;

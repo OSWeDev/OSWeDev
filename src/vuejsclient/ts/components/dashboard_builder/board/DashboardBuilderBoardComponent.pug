@@ -8,6 +8,7 @@
         @reload_widgets='reload_widgets'
     )
     Checklistitemmodalcomponent(ref='Checklistitemmodalcomponent')
+    Supervisionitemmodal(ref='Supervisionitemmodal')
 
     //- (@click="(event) => select_widget_and_stop(event, null)")
     .grid_wrapper(:class="{ filter_plie: (dashboard_page.group_filters && !is_filtres_deplie) }")
@@ -21,8 +22,8 @@
                 :is-draggable="draggable"
                 :is-resizable="resizable"
                 :responsive="true"
-                :vertical-compact="true"
-                :prevent-collision="false"
+                :vertical-compact="false"
+                :prevent-collision="true"
                 :use-css-transforms="true"
                 :margin="[10, 10]"
                 :key="'Gridlayout__' + dashboard_page.id"

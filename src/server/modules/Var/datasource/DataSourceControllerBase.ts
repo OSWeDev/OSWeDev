@@ -5,6 +5,7 @@ import DataSourcesController from './DataSourcesController';
 export default abstract class DataSourceControllerBase {
 
     /**
+     * @deprecated
      * Coef de connexion à la DB : par défaut 1
      *  Utilisé pour indiquer qu'une requête se stack (avec d'autres sans préciser spécialement lesquelles)
      *  Du coup on utilisera pas vraiment un slot vers la bdd par load mais moins.
@@ -23,7 +24,7 @@ export default abstract class DataSourceControllerBase {
          */
         public vo_api_type_ids: string[],
 
-        public ds_name_default_translations: { [code_lang: string]: string }
+        public ds_name_default_translations: { [code_lang: string]: string } = null
     ) { }
 
     /**

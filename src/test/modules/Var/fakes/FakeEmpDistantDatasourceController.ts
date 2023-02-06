@@ -30,8 +30,8 @@ export default class FakeEmpDistantDatasourceController extends DataSourceContro
         for (let i in FakeEmpDistantDatasourceController.fake_distant_datas) {
             let fake_distant_data = FakeEmpDistantDatasourceController.fake_distant_datas[i];
 
-            if (RangeHandler.getInstance().elt_intersects_any_range(fake_distant_data.date, param.ts_ranges) &&
-                RangeHandler.getInstance().elt_intersects_any_range(fake_distant_data.employee_id, param.employee_id_ranges)) {
+            if (RangeHandler.elt_intersects_any_range(fake_distant_data.date, param.ts_ranges) &&
+                RangeHandler.elt_intersects_any_range(fake_distant_data.employee_id, param.employee_id_ranges)) {
                 res.push(fake_distant_data);
             }
         }

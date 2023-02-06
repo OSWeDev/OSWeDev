@@ -1,3 +1,4 @@
+import TimeSegment from '../DataRender/vos/TimeSegment';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VOsTypesManager';
@@ -14,6 +15,7 @@ export default class SupervisionController {
     public static SUP_HIST_SCHEMA: string = 'supervsn_hist';
     public static SUP_HIST_TABLE_PREFIX: string = '_sh_';
 
+    public static STATE_COLORS: string[] = ['red', 'orangered', 'orange', '#ffd400', 'green', 'blue', 'grey'];
     public static STATE_LABELS: string[] = ['supervision.STATE_ERROR', 'supervision.STATE_ERROR_READ', 'supervision.STATE_WARN', 'supervision.STATE_WARN_READ', 'supervision.STATE_OK', 'supervision.STATE_PAUSED', 'supervision.STATE_UNKOWN'];
     public static STATE_ERROR = 0;
     public static STATE_ERROR_READ = 1;
@@ -59,18 +61,18 @@ export default class SupervisionController {
         moduleTable.push_field(name.setModuleTable(moduleTable));
 
         let category_id_field = new ModuleTableField('category_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Catégorie').addManyToOneRelation(
-            VOsTypesManager.getInstance().moduleTables_by_voType[SupervisedCategoryVO.API_TYPE_ID]
+            VOsTypesManager.moduleTables_by_voType[SupervisedCategoryVO.API_TYPE_ID]
         );
 
         // rajoute les champs des sondes/controllers dans la moduletable
-        moduleTable.push_field((new ModuleTableField('last_update', ModuleTableField.FIELD_TYPE_tstz, 'Date de dernière mise à jour', false)).setModuleTable(moduleTable));
-        moduleTable.push_field((new ModuleTableField('last_value', ModuleTableField.FIELD_TYPE_float, 'Dernière valeur', false)).setModuleTable(moduleTable));
-        moduleTable.push_field((new ModuleTableField('creation_date', ModuleTableField.FIELD_TYPE_tstz, 'Date de création', true)).setModuleTable(moduleTable));
-        moduleTable.push_field((new ModuleTableField('first_update', ModuleTableField.FIELD_TYPE_tstz, 'Date de dernière mise à jour', false)).setModuleTable(moduleTable));
-        moduleTable.push_field((new ModuleTableField('state', ModuleTableField.FIELD_TYPE_tstz, 'Etat', true, true, SupervisionController.STATE_UNKOWN).setEnumValues(SupervisionController.STATE_LABELS)).setModuleTable(moduleTable));
-        moduleTable.push_field((new ModuleTableField('state_before_pause', ModuleTableField.FIELD_TYPE_tstz, 'Etat - avant pause', true, true, SupervisionController.STATE_UNKOWN).setEnumValues(SupervisionController.STATE_LABELS)).setModuleTable(moduleTable));
-        moduleTable.push_field((new ModuleTableField('invalid', ModuleTableField.FIELD_TYPE_boolean, 'Invalide', false, true, false)).setModuleTable(moduleTable));
-        moduleTable.push_field((category_id_field).setModuleTable(moduleTable));
+        moduleTable.push_field(new ModuleTableField('last_update', ModuleTableField.FIELD_TYPE_tstz, 'Date de dernière mise à jour', false).set_segmentation_type(TimeSegment.TYPE_SECOND).setModuleTable(moduleTable));
+        moduleTable.push_field(new ModuleTableField('last_value', ModuleTableField.FIELD_TYPE_float, 'Dernière valeur', false).setModuleTable(moduleTable));
+        moduleTable.push_field(new ModuleTableField('creation_date', ModuleTableField.FIELD_TYPE_tstz, 'Date de création', true).set_segmentation_type(TimeSegment.TYPE_SECOND).setModuleTable(moduleTable));
+        moduleTable.push_field(new ModuleTableField('first_update', ModuleTableField.FIELD_TYPE_tstz, 'Date de dernière mise à jour', false).set_segmentation_type(TimeSegment.TYPE_SECOND).setModuleTable(moduleTable));
+        moduleTable.push_field(new ModuleTableField('state', ModuleTableField.FIELD_TYPE_enum, 'Etat', true, true, SupervisionController.STATE_UNKOWN).setEnumValues(SupervisionController.STATE_LABELS).setEnumColorValues(SupervisionController.STATE_COLORS).setModuleTable(moduleTable));
+        moduleTable.push_field(new ModuleTableField('state_before_pause', ModuleTableField.FIELD_TYPE_enum, 'Etat - avant pause', true, true, SupervisionController.STATE_UNKOWN).setEnumValues(SupervisionController.STATE_LABELS).setEnumColorValues(SupervisionController.STATE_COLORS).setModuleTable(moduleTable));
+        moduleTable.push_field(new ModuleTableField('invalid', ModuleTableField.FIELD_TYPE_boolean, 'Invalide', false, true, false).setModuleTable(moduleTable));
+        moduleTable.push_field(category_id_field.setModuleTable(moduleTable));
         moduleTable.default_label_field = name;
 
         // On copie les champs, pour la table à créer automatiquement :

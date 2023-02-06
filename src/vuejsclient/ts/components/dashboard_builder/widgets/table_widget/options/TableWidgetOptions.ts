@@ -1,9 +1,9 @@
 import DashboardPageWidgetVO from "../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
 import TableColumnDescVO from "../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO";
-import DataFilterOption from "../../../../../../../shared/modules/DataRender/vos/DataFilterOption";
 import DefaultTranslation from "../../../../../../../shared/modules/Translation/vos/DefaultTranslation";
+import IExportableWidgetOptions from "../../IExportableWidgetOptions";
 
-export default class TableWidgetOptions {
+export default class TableWidgetOptions implements IExportableWidgetOptions {
 
     public static TITLE_CODE_PREFIX: string = "TableWidgetOptions.title.";
     public static DEFAULT_LIMIT: number = 100;
@@ -72,6 +72,9 @@ export default class TableWidgetOptions {
         public hide_pagination_bottom: boolean,
         public default_export_option: number,
         public has_default_export_option: boolean,
+        public use_kanban_by_default_if_exists: boolean,
+        public use_kanban_column_weight_if_exists: boolean,
+        public use_for_count: boolean, // Seulement pour enum pour l'instant
     ) { }
 
     public get_title_name_code_text(page_widget_id: number): string {
@@ -80,5 +83,19 @@ export default class TableWidgetOptions {
             return null;
         }
         return TableWidgetOptions.TITLE_CODE_PREFIX + page_widget_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+    }
+
+    public async get_all_exportable_name_code_and_translation(page_id: number, page_widget_id: number): Promise<{ [current_code_text: string]: string }> {
+        let res: { [exportable_code_text: string]: string } = {};
+
+        let placeholder_name_code_text: string = this.get_title_name_code_text(page_widget_id);
+        if (placeholder_name_code_text) {
+
+            res[placeholder_name_code_text] =
+                TableWidgetOptions.TITLE_CODE_PREFIX +
+                '{{IMPORT:' + DashboardPageWidgetVO.API_TYPE_ID + ':' + page_widget_id + '}}' +
+                DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        }
+        return res;
     }
 }

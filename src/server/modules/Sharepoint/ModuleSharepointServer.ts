@@ -77,10 +77,10 @@ export default class ModuleSharepointServer extends ModuleServerBase {
     public async save_to_sharepoint(coreOptions: ICoreOptions, fileOptions: FileOptions) {
         return new Promise(async (resolve, reject) => {
 
-            let clientId = await ModuleParams.getInstance().getParamValue(ModuleSharepoint.PARAM_NAME_clientId);
-            let clientSecret = await ModuleParams.getInstance().getParamValue(ModuleSharepoint.PARAM_NAME_clientSecret);
+            let clientId = await ModuleParams.getInstance().getParamValueAsString(ModuleSharepoint.PARAM_NAME_clientId);
+            let clientSecret = await ModuleParams.getInstance().getParamValueAsString(ModuleSharepoint.PARAM_NAME_clientSecret);
             // realm == tenant
-            let realm = await ModuleParams.getInstance().getParamValue(ModuleSharepoint.PARAM_NAME_realm);
+            let realm = await ModuleParams.getInstance().getParamValueAsString(ModuleSharepoint.PARAM_NAME_realm);
 
             if ((!clientId) || (!clientSecret)) {
                 /**
@@ -94,7 +94,7 @@ export default class ModuleSharepointServer extends ModuleServerBase {
                  * <AppPermissionRequest Scope="http://sharepoint/content/sitecollection" Right="FullControl" />
                  * </AppPermissionRequests>
                  */
-                ConsoleHandler.getInstance().error('save_to_sharepoint missing credential parameters "' + ModuleSharepoint.PARAM_NAME_clientId + '", "' + ModuleSharepoint.PARAM_NAME_clientSecret + '" and "' + ModuleSharepoint.PARAM_NAME_realm + '". Use https://XXX.sharepoint.com/_layouts/15/appregnew.aspx to register new. Then access https://XXX.sharepoint.com/_layouts/15/appinv.aspx and add the XML that you will find on this code page.');
+                ConsoleHandler.error('save_to_sharepoint missing credential parameters "' + ModuleSharepoint.PARAM_NAME_clientId + '", "' + ModuleSharepoint.PARAM_NAME_clientSecret + '" and "' + ModuleSharepoint.PARAM_NAME_realm + '". Use https://XXX.sharepoint.com/_layouts/15/appregnew.aspx to register new. Then access https://XXX.sharepoint.com/_layouts/15/appinv.aspx and add the XML that you will find on this code page.');
                 return null;
             }
 
@@ -110,7 +110,7 @@ export default class ModuleSharepointServer extends ModuleServerBase {
             spsave(coreOptions, creds, fileOptions)
                 .then(resolve)
                 .catch((error) => {
-                    ConsoleHandler.getInstance().error("FAILED save_to_sharepoint : " + error);
+                    ConsoleHandler.error("FAILED save_to_sharepoint : " + error);
                     reject(error);
                 });
         });
@@ -132,7 +132,7 @@ export default class ModuleSharepointServer extends ModuleServerBase {
         );
 
         if (!file) {
-            ConsoleHandler.getInstance().error('Export échoué:' + api_type_id);
+            ConsoleHandler.error('Export échoué:' + api_type_id);
             return;
         }
 

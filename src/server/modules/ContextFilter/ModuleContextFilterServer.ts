@@ -2,13 +2,15 @@ import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapp
 import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO, { filter } from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ParameterizedQueryWrapper from '../../../shared/modules/ContextFilter/vos/ParameterizedQueryWrapper';
+import DatatableField from '../../../shared/modules/DAO/vos/datatable/DatatableField';
+import TableColumnDescVO from '../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ModuleServerBase from '../ModuleServerBase';
 import ContextQueryServerController from './ContextQueryServerController';
-import ParameterizedQueryWrapper from './vos/ParameterizedQueryWrapper';
 
 export default class ModuleContextFilterServer extends ModuleServerBase {
 
@@ -38,7 +40,13 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_update_vos, this.update_vos.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_build_select_query, this.build_select_query.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_select_vo_from_unique_field, this.select_vo_from_unique_field.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_count_valid_segmentations, this.count_valid_segmentations.bind(this));
     }
+
+    public async count_valid_segmentations(api_type_id: string, context_query: ContextQueryVO, ignore_self_filter: boolean = true): Promise<number> {
+        return await ContextQueryServerController.getInstance().count_valid_segmentations(api_type_id, context_query, ignore_self_filter);
+    }
+
 
     /**
      * Compter les résultats
@@ -94,7 +102,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
             return null;
         }
 
-        let field = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id].getFieldFromId(unique_field_id);
+        let field = VOsTypesManager.moduleTables_by_voType[api_type_id].getFieldFromId(unique_field_id);
         let filter_: ContextFilterVO = null;
 
         switch (field.field_type) {
@@ -144,9 +152,12 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
      * Filtrer des infos avec les context filters, en indiquant obligatoirement les champs ciblés, qui peuvent appartenir à des tables différentes
      * @param context_query le champs fields doit être rempli avec les champs ciblés par la requête (et avec les alias voulus)
      */
-    private async select_datatable_rows(context_query: ContextQueryVO): Promise<any[]> {
+    private async select_datatable_rows(
+        context_query: ContextQueryVO,
+        columns_by_field_id: { [datatable_field_uid: string]: TableColumnDescVO },
+        fields: { [datatable_field_uid: string]: DatatableField<any, any> }): Promise<any[]> {
 
-        return await ContextQueryServerController.getInstance().select_datatable_rows(context_query);
+        return await ContextQueryServerController.getInstance().select_datatable_rows(context_query, columns_by_field_id, fields);
     }
 
     /**

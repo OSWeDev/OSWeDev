@@ -85,6 +85,7 @@ export default class ModuleTableField<T> {
     public manyToOne_target_moduletable: ModuleTable<any> = null;
 
     public cascade_on_delete: boolean = true;
+    public do_not_add_to_crud: boolean = false;
 
     public min_values: number = 0;
     public max_values: number = 999;
@@ -110,6 +111,7 @@ export default class ModuleTableField<T> {
 
     public enum_values: { [value: number]: string } = {};
     public enum_image_values: { [value: number]: string } = {};
+    public enum_color_values: { [value: number]: string } = {};
 
     public hidden_print: boolean = false;
 
@@ -136,8 +138,6 @@ export default class ModuleTableField<T> {
      * Nouvelle version de validation plus complète, qui doit remplacer l'ancienne version à terme
      */
     public validate_input: (input_value: any, field: DatatableField<any, any>, vo: any) => Alert[];
-
-    public plain_obj_cstr: () => any = null;
 
     public return_min_value: boolean = true;
     public return_max_value: boolean = true;
@@ -213,11 +213,6 @@ export default class ModuleTableField<T> {
         }
     }
 
-    public set_plain_obj_cstr(plain_obj_cstr: () => any): ModuleTableField<T> {
-        this.plain_obj_cstr = plain_obj_cstr;
-        return this;
-    }
-
     public setValidatInputFunc(validate_input: (input_value: any, field: DatatableField<any, any>, vo: any) => Alert[]): ModuleTableField<T> {
         this.validate_input = validate_input;
         return this;
@@ -272,6 +267,11 @@ export default class ModuleTableField<T> {
     public unique(replace_if_unique: boolean = false): ModuleTableField<T> {
         this.is_unique = true;
         this.replace_if_unique = replace_if_unique;
+        return this;
+    }
+
+    public not_add_to_crud(): ModuleTableField<T> {
+        this.do_not_add_to_crud = true;
         return this;
     }
 
@@ -398,6 +398,16 @@ export default class ModuleTableField<T> {
         return this;
     }
 
+    /**
+     * @param enum_color_values An obj which for each key has as a value the code_text used for translation
+     */
+    public setEnumColorValues(enum_color_values: { [value: number]: string }): ModuleTableField<T> {
+        this.field_type = ModuleTableField.FIELD_TYPE_enum;
+        this.enum_color_values = enum_color_values;
+
+        return this;
+    }
+
     public setTargetDatatable(module_table: ModuleTable<any>): ModuleTableField<T> {
         this.module_table = module_table;
 
@@ -416,7 +426,7 @@ export default class ModuleTableField<T> {
             this.field_label.code_text = "fields.labels." + module_name + "." + this.field_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
         }
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(this.field_label);
+        DefaultTranslationManager.registerDefaultTranslation(this.field_label);
 
         return this;
     }
@@ -432,7 +442,7 @@ export default class ModuleTableField<T> {
             }
             return this.field_id + ' ' + this.getPGSqlFieldType() + (this.field_required ? ' NOT NULL' : '') + (this.has_default ? ' DEFAULT ' + default_value : '') + (this.is_unique ? ' UNIQUE' : '');
         } catch (error) {
-            ConsoleHandler.getInstance().error('Valeur par défaut incompatible avec la BDD pour le champs:' + this.field_id + ':' + error);
+            ConsoleHandler.error('Valeur par défaut incompatible avec la BDD pour le champs:' + this.field_id + ':' + error);
         }
         return this.field_id + ' ' + this.getPGSqlFieldType() + (this.field_required ? ' NOT NULL' : '') + (this.is_unique ? ' UNIQUE' : '');
     }

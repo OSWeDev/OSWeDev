@@ -1,5 +1,96 @@
 @import 'skin-variables';
 
+.pull-right {
+    float: right;
+}
+
+.btn-primary,
+.btn-primary:visited {
+    background-color: $button_primary_bg_color !important;
+    color: $button_text_color !important;
+    border-color: $button_primary_bg_color !important;
+}
+
+.btn-danger,
+.btn-danger:visited {
+    background-color: $danger_color !important;
+    color: $button_text_color !important;
+    border-color: $danger_color !important;
+}
+
+.bg-danger {
+    background-color: $danger_color !important;
+}
+
+.btn-success,
+.btn-success:visited {
+    background-color: $success_color !important;
+    color: $button_text_color !important;
+    border-color: $success_color !important;
+}
+
+.bg-success {
+    background-color: $success_color !important;
+}
+
+.btn-warning,
+.btn-warning:visited {
+    background-color: $button_warning_color !important;
+    color: $button_text_color !important;
+    border-color: $button_warning_color !important;
+}
+
+.bg-warning {
+    background-color: $button_warning_color !important;
+}
+
+.bg-primary {
+    background-color: $button_primary_bg_color !important;
+}
+
+.btn-primary:hover,
+.btn-primary:active {
+    background-color: $button_primary_active_bg_color !important;
+    color: $button_text_color !important;
+    border-color: $button_primary_active_bg_color !important;
+}
+
+.text-primary,
+a.text-primary:focus {
+    color: $button_primary_bg_color !important;
+}
+
+.text-warning,
+a.text-warning:focus {
+    color: $button_warning_color !important;
+}
+
+.text-success,
+a.text-success:focus {
+    color: $success_color !important;
+}
+
+.text-danger,
+a.text-danger:focus {
+    color: $danger_color !important;
+}
+
+a.text-primary:hover {
+    color: lighten($color: $button_primary_bg_color, $amount: 20%)
+}
+
+a.text-warning:hover {
+    color: lighten($color: $button_warning_color, $amount: 20%)
+}
+
+a.text-success:hover {
+    color: lighten($color: $success_color, $amount: 20%)
+}
+
+a.text-danger:hover {
+    color: lighten($color: $danger_color, $amount: 20%)
+}
+
 .display_inline_block {
     display: inline-block;
 }

@@ -47,7 +47,7 @@ export default class DailyReportCronWorker implements ICronWorker {
          *  suivant les paramètres de l'application
          */
         // On commence par récupérer toutes les sondes et catégories
-        let category_by_ids: { [id: number]: SupervisedCategoryVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(
+        let category_by_ids: { [id: number]: SupervisedCategoryVO } = VOsTypesManager.vosArray_to_vosByIds(
             await query(SupervisedCategoryVO.API_TYPE_ID).select_vos<SupervisedCategoryVO>()
         );
         let supervised_items_by_names: { [name: string]: ISupervisedItem } = await this.load_supervised_items(category_by_ids);
@@ -62,9 +62,9 @@ export default class DailyReportCronWorker implements ICronWorker {
     }
 
     private async send_teams(ordered_supervised_items_by_state: { [state: number]: ISupervisedItem[] }) {
-        let TEAMS_WEBHOOK_PARAM_NAME: string = await ModuleParams.getInstance().getParamValue(DailyReportCronWorker.TEAMS_WEBHOOK_PARAM_NAME);
+        let TEAMS_WEBHOOK_PARAM_NAME: string = await ModuleParams.getInstance().getParamValueAsString(DailyReportCronWorker.TEAMS_WEBHOOK_PARAM_NAME);
 
-        if (ConfigurationService.getInstance().node_configuration.BLOCK_MAIL_DELIVERY) {
+        if (ConfigurationService.node_configuration.BLOCK_MAIL_DELIVERY) {
             return;
         }
 
@@ -108,7 +108,7 @@ export default class DailyReportCronWorker implements ICronWorker {
 
             await ModuleTeamsAPIServer.getInstance().send_to_teams_webhook(TEAMS_WEBHOOK_PARAM_NAME, message);
         } else {
-            ConsoleHandler.getInstance().log('Envoi du Daily Report de Supervision ignoré pour Teams, le paramètre requis n\'est pas initialisé :' + DailyReportCronWorker.TEAMS_WEBHOOK_PARAM_NAME + ':');
+            ConsoleHandler.log('Envoi du Daily Report de Supervision ignoré pour Teams, le paramètre requis n\'est pas initialisé :' + DailyReportCronWorker.TEAMS_WEBHOOK_PARAM_NAME + ':');
         }
     }
 
@@ -121,7 +121,7 @@ export default class DailyReportCronWorker implements ICronWorker {
             if (!log_errors) {
                 log_errors = '<ul>';
             }
-            log_errors += '<li><a href=\"' + ConfigurationService.getInstance().node_configuration.BASE_URL + 'admin/#/supervision/dashboard/item/' + supervised_item._type + '/' + supervised_item.id + '\">' + supervised_item.name + '</a></li>';
+            log_errors += '<li><a href=\"' + ConfigurationService.node_configuration.BASE_URL + 'admin/#/supervision/dashboard/item/' + supervised_item._type + '/' + supervised_item.id + '\">' + supervised_item.name + '</a></li>';
         }
 
         if (!!log_errors) {
@@ -132,15 +132,15 @@ export default class DailyReportCronWorker implements ICronWorker {
 
     private async send_mail(ordered_supervised_items_by_state: { [state: number]: ISupervisedItem[] }) {
 
-        if (ConfigurationService.getInstance().node_configuration.BLOCK_MAIL_DELIVERY) {
+        if (ConfigurationService.node_configuration.BLOCK_MAIL_DELIVERY) {
             return;
         }
 
-        let SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValue(DailyReportCronWorker.SENDINBLUE_TEMPLATEID_PARAM_NAME);
+        let SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValueAsString(DailyReportCronWorker.SENDINBLUE_TEMPLATEID_PARAM_NAME);
         let SEND_IN_BLUE_TEMPLATE_ID: number = SEND_IN_BLUE_TEMPLATE_ID_s ? parseInt(SEND_IN_BLUE_TEMPLATE_ID_s) : null;
 
-        let SEND_IN_BLUE_TONAME: string = await ModuleParams.getInstance().getParamValue(DailyReportCronWorker.SENDINBLUE_TONAME_PARAM_NAME);
-        let SEND_IN_BLUE_TOMAIL: string = await ModuleParams.getInstance().getParamValue(DailyReportCronWorker.SENDINBLUE_TOMAIL_PARAM_NAME);
+        let SEND_IN_BLUE_TONAME: string = await ModuleParams.getInstance().getParamValueAsString(DailyReportCronWorker.SENDINBLUE_TONAME_PARAM_NAME);
+        let SEND_IN_BLUE_TOMAIL: string = await ModuleParams.getInstance().getParamValueAsString(DailyReportCronWorker.SENDINBLUE_TOMAIL_PARAM_NAME);
 
         if ((!!SEND_IN_BLUE_TEMPLATE_ID) && (!!SEND_IN_BLUE_TOMAIL) && (!!SEND_IN_BLUE_TONAME)) {
 
@@ -160,12 +160,12 @@ export default class DailyReportCronWorker implements ICronWorker {
                     UNKOWN: ordered_supervised_items_by_state[SupervisionController.STATE_UNKOWN],
                 });
         } else {
-            ConsoleHandler.getInstance().log('Envoi du Daily Report de Supervision ignoré pour SendInBlue, les 3 paramètres requis ne sont pas initialisés :' + DailyReportCronWorker.SENDINBLUE_TEMPLATEID_PARAM_NAME + ':' + DailyReportCronWorker.SENDINBLUE_TONAME_PARAM_NAME + ':' + DailyReportCronWorker.SENDINBLUE_TOMAIL_PARAM_NAME + ':');
+            ConsoleHandler.log('Envoi du Daily Report de Supervision ignoré pour SendInBlue, les 3 paramètres requis ne sont pas initialisés :' + DailyReportCronWorker.SENDINBLUE_TEMPLATEID_PARAM_NAME + ':' + DailyReportCronWorker.SENDINBLUE_TONAME_PARAM_NAME + ':' + DailyReportCronWorker.SENDINBLUE_TOMAIL_PARAM_NAME + ':');
         }
     }
 
     private log(ordered_supervised_items_by_state: { [state: number]: ISupervisedItem[] }) {
-        ConsoleHandler.getInstance().log(
+        ConsoleHandler.log(
             'Supervision ' +
             ': Erreur non lue (' + (ordered_supervised_items_by_state[SupervisionController.STATE_ERROR] ? ordered_supervised_items_by_state[SupervisionController.STATE_ERROR].length : 0) + '): ' +
             ': Erreur lue (' + (ordered_supervised_items_by_state[SupervisionController.STATE_ERROR_READ] ? ordered_supervised_items_by_state[SupervisionController.STATE_ERROR_READ].length : 0) + '): ' +

@@ -64,7 +64,7 @@ export default class MenuController {
 
             // Si c'est pas défini dans le menu, on check qu'on a le droit de l'ajouter
             if (elt.access_policy_name && !await ModuleAccessPolicy.getInstance().testAccess(elt.access_policy_name)) {
-                ConsoleHandler.getInstance().warn("Menu refusé car accès refusé:" + elt);
+                ConsoleHandler.warn("Menu refusé car accès refusé:" + elt);
                 return;
             }
 
@@ -76,13 +76,13 @@ export default class MenuController {
             }
 
             if (!parent_menu) {
-                ConsoleHandler.getInstance().warn("Menu refusé car parent inactif:" + elt);
+                ConsoleHandler.warn("Menu refusé car parent inactif:" + elt);
                 return;
             }
 
             let res = await ModuleDAO.getInstance().insertOrUpdateVO(elt);
             if ((!res) || (!res.id)) {
-                ConsoleHandler.getInstance().error("Failed declare_menu_element:" + elt);
+                ConsoleHandler.error("Failed declare_menu_element:" + elt);
                 return null;
             }
             elt.id = res.id;

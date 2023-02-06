@@ -74,7 +74,7 @@ export default class EditablePageSwitchComponent extends VueComponentBase {
             let saving_handler = this.saving_handlers[i];
 
             if (!await saving_handler()) {
-                ConsoleHandler.getInstance().error('Echec de sauvegarde de la page');
+                ConsoleHandler.error('Echec de sauvegarde de la page');
                 this.snotify.error(this.label('EditablePageSwitchComponent.try_leave.error'));
 
                 this.set_is_saving(false);

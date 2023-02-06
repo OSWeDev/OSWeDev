@@ -97,9 +97,9 @@ export default class ModuleFacturationProAPI extends Module {
 
     public async getHeadersRequest(): Promise<any> {
 
-        let auth = await ModuleParams.getInstance().getParamValue(ModuleFacturationProAPI.FacturationProAPI_AUTH_PARAM_NAME);
-        let cle = await ModuleParams.getInstance().getParamValue(ModuleFacturationProAPI.FacturationProAPI_Cle_API_PARAM_NAME);
-        let login = await ModuleParams.getInstance().getParamValue(ModuleFacturationProAPI.FacturationProAPI_Login_API_PARAM_NAME);
+        let auth = await ModuleParams.getInstance().getParamValueAsString(ModuleFacturationProAPI.FacturationProAPI_AUTH_PARAM_NAME);
+        let cle = await ModuleParams.getInstance().getParamValueAsString(ModuleFacturationProAPI.FacturationProAPI_Cle_API_PARAM_NAME);
+        let login = await ModuleParams.getInstance().getParamValueAsString(ModuleFacturationProAPI.FacturationProAPI_Login_API_PARAM_NAME);
 
         let authorization = 'Basic ' + Buffer.from(login + ':' + cle).toString('base64');
 

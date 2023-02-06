@@ -124,7 +124,7 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
         for (let i in this.fields_filters_range) {
             let field_filter_range = this.fields_filters_range[i];
 
-            if (RangeHandler.getInstance().getCardinal(field_filter_range)) {
+            if (RangeHandler.getCardinal(field_filter_range)) {
                 return false;
             }
         }
@@ -171,7 +171,7 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
             for (let field_id in self.fields_filters_range) {
 
                 let range = self.fields_filters_range[field_id];
-                let is_filtering = range && RangeHandler.getInstance().getCardinal(range);
+                let is_filtering = range && RangeHandler.getCardinal(range);
 
                 if (is_filtering && ((!self.valid_vars_ids_by_field_id[field_id]) || (!self.valid_vars_ids_by_field_id[field_id][var_conf.id]))) {
                     return false;
@@ -213,7 +213,7 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
             for (let field_id in self.fields_filters_range) {
 
                 let range = self.fields_filters_range[field_id];
-                let is_filtering = range && RangeHandler.getInstance().getCardinal(range);
+                let is_filtering = range && RangeHandler.getCardinal(range);
 
                 if (is_filtering && ((!self.valid_vars_ids_by_field_id[field_id]) || (!self.valid_vars_ids_by_field_id[field_id][var_conf.id]))) {
                     return false;
@@ -336,16 +336,16 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
                 if (this.fields_filters_is_enum[matroid_field.field_id]) {
 
                     if (this.fields_filters_list[matroid_field.field_id] && this.fields_filters_list[matroid_field.field_id].length) {
-                        param[matroid_field.field_id] = RangeHandler.getInstance().get_ids_ranges_from_vos(this.fields_filters_list[matroid_field.field_id]);
+                        param[matroid_field.field_id] = RangeHandler.get_ids_ranges_from_vos(this.fields_filters_list[matroid_field.field_id]);
                     } else {
-                        param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxRange(matroid_field)];
+                        param[matroid_field.field_id] = [RangeHandler.getMaxRange(matroid_field)];
                     }
                 } else {
 
                     if (!!this.fields_filters_range[matroid_field.field_id]) {
                         param[matroid_field.field_id] = [this.fields_filters_range[matroid_field.field_id]];
                     } else {
-                        param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxRange(matroid_field)];
+                        param[matroid_field.field_id] = [RangeHandler.getMaxRange(matroid_field)];
                     }
                 }
             }

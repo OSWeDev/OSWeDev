@@ -11,3 +11,23 @@
                 :actual_additional_options="actual_additional_options"
                 @update_additional_options="update_additional_options"
             )
+        template(v-if='filter_by_names[filter_type] == "toFixedFloor"')
+            Tofixedfloorfilteroptionscomponent(
+                :actual_additional_options="actual_additional_options"
+                @update_additional_options="update_additional_options"
+            )
+        template(v-if='filter_by_names[filter_type] == "toFixedCeil"')
+            Tofixedceilfilteroptionscomponent(
+                :actual_additional_options="actual_additional_options"
+                @update_additional_options="update_additional_options"
+            )
+        template(v-if='filter_by_names[filter_type] == "toFixed"')
+            Tofixedfilteroptionscomponent(
+                :actual_additional_options="actual_additional_options"
+                @update_additional_options="update_additional_options"
+            )
+        template(v-if='filter_by_names[filter_type] == "percent"')
+            Percentfilteroptionscomponent(
+                :actual_additional_options="actual_additional_options"
+                @update_additional_options="update_additional_options"
+            )

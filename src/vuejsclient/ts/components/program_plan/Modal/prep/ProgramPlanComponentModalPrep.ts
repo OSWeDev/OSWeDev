@@ -206,7 +206,7 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
                     let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(self.program_plan_shared_module.rdv_type_id, self.selected_rdv.id);
                     self.updateRdv(rdv);
                 } catch (error) {
-                    ConsoleHandler.getInstance().error(error);
+                    ConsoleHandler.error(error);
                     reject({
                         body: self.label('programplan.rdv_modal.update_rdv.error'),
                         config: {
@@ -450,7 +450,7 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
                                     let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(self.program_plan_shared_module.rdv_type_id, prep.rdv_id);
                                     self.updateRdv(rdv);
                                 } catch (error) {
-                                    ConsoleHandler.getInstance().error(error);
+                                    ConsoleHandler.error(error);
                                     reject({
                                         body: self.label('programplan.create_prep.error'),
                                         config: {
@@ -527,7 +527,7 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
                                     let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.program_plan_shared_module.rdv_type_id, prep.rdv_id);
                                     self.updateRdv(rdv);
                                 } catch (error) {
-                                    ConsoleHandler.getInstance().error(error);
+                                    ConsoleHandler.error(error);
                                     reject({
                                         body: self.label('programplan.update_prep.error'),
                                         config: {
@@ -610,7 +610,7 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
                                     }
                                     self.removePrep(prep.id);
                                 } catch (error) {
-                                    ConsoleHandler.getInstance().error(error);
+                                    ConsoleHandler.error(error);
                                     reject({
                                         body: self.label('programplan.delete_prep.error'),
                                         config: {

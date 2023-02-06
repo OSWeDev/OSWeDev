@@ -26,7 +26,7 @@ export default class Patch20220222RemoveVorfieldreffrombdd implements IGenerator
             await db.query('DELETE from ref.module_dashboardbuilder_vo_field_ref;');
             await db.query('DELETE from ref.module_dashboardbuilder_table_column_desc;');
         } catch (error) {
-            ConsoleHandler.getInstance().log('Patch20220222RemoveVorfieldreffrombdd error ' + error);
+            ConsoleHandler.log('Patch20220222RemoveVorfieldreffrombdd error ' + error);
         }
     }
 }

@@ -40,7 +40,9 @@ export default class CheckListAdminVueModuleBase extends VueModuleBase {
                 )
             );
 
-        if (!!this.checklist_shared_module.checklist_type_id) {
+        if ((!!this.checklist_shared_module.checklist_type_id) &&
+            (!CRUDComponentManager.getInstance().cruds_by_api_type_id[this.checklist_shared_module.checklist_type_id])) {
+
             await CRUDComponentManager.getInstance().registerCRUD(
                 this.checklist_shared_module.checklist_type_id,
                 null,
@@ -57,7 +59,9 @@ export default class CheckListAdminVueModuleBase extends VueModuleBase {
                 this.routes);
         }
 
-        if (!!this.checklist_shared_module.checkpoint_type_id) {
+        if ((!!this.checklist_shared_module.checkpoint_type_id) &&
+            (!CRUDComponentManager.getInstance().cruds_by_api_type_id[this.checklist_shared_module.checkpoint_type_id])) {
+
             await CRUDComponentManager.getInstance().registerCRUD(
                 this.checklist_shared_module.checkpoint_type_id,
                 null,
@@ -74,7 +78,9 @@ export default class CheckListAdminVueModuleBase extends VueModuleBase {
                 this.routes);
         }
 
-        if (!!this.checklist_shared_module.checklistitem_type_id) {
+        if ((!!this.checklist_shared_module.checklistitem_type_id) &&
+            (!CRUDComponentManager.getInstance().cruds_by_api_type_id[this.checklist_shared_module.checklistitem_type_id])) {
+
             await CRUDComponentManager.getInstance().registerCRUD(
                 this.checklist_shared_module.checklistitem_type_id,
                 null,

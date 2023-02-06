@@ -3,7 +3,7 @@ import AnimationController from '../../../../../../../shared/modules/Animation/A
 import AnimationMessageModuleVO from '../../../../../../../shared/modules/Animation/fields/message_module/vos/AnimationMessageModuleVO';
 import AnimationModuleVO from '../../../../../../../shared/modules/Animation/vos/AnimationModuleVO';
 import DatatableField from '../../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
-import SimpleDatatableField from '../../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import SimpleDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import ITableFieldTypeCreateUpdateComponent from '../../../../../../../shared/modules/TableFieldTypes/interfaces/ITableFieldTypeCreateUpdateComponent';
 import VueComponentBase from '../../../../VueComponentBase';
 
@@ -17,7 +17,7 @@ export default class MessageModuleCreateUpdateComponent extends VueComponentBase
     public vo: AnimationModuleVO;
 
     @Prop()
-    public field: SimpleDatatableField<any, any>;
+    public field: SimpleDatatableFieldVO<any, any>;
 
     @Prop()
     public required: boolean;

@@ -24,9 +24,9 @@ describe('TestDataImportHandler', () => {
         expect(DataImportHandler.getDATAIMPORTModalLink(null, null)).to.equal(null);
         expect(DataImportHandler.getDATAIMPORTModalLink([], null)).to.equal(null);
         expect(DataImportHandler.getDATAIMPORTModalLink([null], null)).to.equal(null);
-        expect(DataImportHandler.getDATAIMPORTModalLink(null, TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2020-01-01').utc(true).unix(), TimeSegment.TYPE_DAY))).to.equal(null);
-        expect(DataImportHandler.getDATAIMPORTModalLink(['a'], TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2020-01-01').utc(true).unix(), TimeSegment.TYPE_DAY))).to.equal('/data_import/a/segment/1577836800');
-        expect(DataImportHandler.getDATAIMPORTModalLink(['a', 'a'], TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2020-01-01').utc(true).unix(), TimeSegment.TYPE_DAY))).to.equal('/data_import/a_a/segment/1577836800');
-        expect(DataImportHandler.getDATAIMPORTModalLink(['ab', 'a_d'], TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2020-01-01').utc(true).unix(), TimeSegment.TYPE_DAY))).to.equal('/data_import/ab_a_d/segment/1577836800');
+        expect(DataImportHandler.getDATAIMPORTModalLink(null, TimeSegmentHandler.getCorrespondingTimeSegment(moment('2020-01-01').utc(true).unix(), TimeSegment.TYPE_DAY))).to.equal(null);
+        expect(DataImportHandler.getDATAIMPORTModalLink(['a'], TimeSegmentHandler.getCorrespondingTimeSegment(moment('2020-01-01').utc(true).unix(), TimeSegment.TYPE_DAY))).to.equal('/data_import/a/segment/1577836800');
+        expect(DataImportHandler.getDATAIMPORTModalLink(['a', 'a'], TimeSegmentHandler.getCorrespondingTimeSegment(moment('2020-01-01').utc(true).unix(), TimeSegment.TYPE_DAY))).to.equal('/data_import/a_a/segment/1577836800');
+        expect(DataImportHandler.getDATAIMPORTModalLink(['ab', 'a_d'], TimeSegmentHandler.getCorrespondingTimeSegment(moment('2020-01-01').utc(true).unix(), TimeSegment.TYPE_DAY))).to.equal('/data_import/ab_a_d/segment/1577836800');
     });
 });

@@ -39,7 +39,7 @@ export default class TemplateHandlerServer {
      */
     public resolveEnvConditions(template: string): string {
         let regExp = new RegExp('§§IFENV_([^§ ]+)§§([^§]+)§§([^§]+)§§', 'i');
-        let env: EnvParam = ConfigurationService.getInstance().node_configuration;
+        let env: EnvParam = ConfigurationService.node_configuration;
         while (regExp.test(template)) {
             let regexpres: string[] = regExp.exec(template);
             let varname: string = regexpres[1];
@@ -114,7 +114,7 @@ export default class TemplateHandlerServer {
     public replaceEnvParams(template: string): string {
 
         let regExp = new RegExp('%%ENV%%([^% ]+)%%', 'i');
-        let env: EnvParam = ConfigurationService.getInstance().node_configuration;
+        let env: EnvParam = ConfigurationService.node_configuration;
         while (regExp.test(template)) {
             let regexpres: string[] = regExp.exec(template);
             let varname: string = regexpres[1];

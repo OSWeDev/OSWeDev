@@ -44,6 +44,7 @@ import ModuleRequest from '../../shared/modules/Request/ModuleRequest';
 import ModuleSASSSkinConfigurator from '../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
 import ModuleSendInBlue from '../../shared/modules/SendInBlue/ModuleSendInBlue';
 import ModuleSurvey from '../../shared/modules/Survey/ModuleSurvey';
+import ModulePopup from '../../shared/modules/Popup/ModulePopup';
 import ModuleSupervision from '../../shared/modules/Supervision/ModuleSupervision';
 import ModuleTableFieldTypes from '../../shared/modules/TableFieldTypes/ModuleTableFieldTypes';
 import ModuleTeamsAPI from '../../shared/modules/TeamsAPI/ModuleTeamsAPI';
@@ -102,6 +103,7 @@ import ModuleSASSSkinConfiguratorServer from './SASSSkinConfigurator/ModuleSASSS
 import ModuleSendInBlueServer from './SendInBlue/ModuleSendInBlueServer';
 import ModuleSupervisionServer from './Supervision/ModuleSupervisionServer';
 import ModuleSurveyServer from './Survey/ModuleSurveyServer';
+import ModulePopupServer from './Popup/ModulePopupServer';
 import ModuleTeamsAPIServer from './TeamsAPI/ModuleTeamsAPIServer';
 import ModuleTranslationsImportServer from './Translation/import/ModuleTranslationsImportServer';
 import ModuleTranslationServer from './Translation/ModuleTranslationServer';
@@ -153,7 +155,7 @@ export default abstract class ModuleServiceBase {
     }
 
     get bdd_owner(): string {
-        return ConfigurationService.getInstance().node_configuration.BDD_OWNER;
+        return ConfigurationService.node_configuration.BDD_OWNER;
     }
 
     get sharedModules(): Module[] {
@@ -206,7 +208,7 @@ export default abstract class ModuleServiceBase {
     public async register_all_modules(db: IDatabase<any>, is_generator: boolean = false) {
         this.db_ = db;
 
-        db.$pool.options.max = ConfigurationService.getInstance().node_configuration.MAX_POOL;
+        db.$pool.options.max = ConfigurationService.node_configuration.MAX_POOL;
         db.$pool.options.idleTimeoutMillis = 120000;
 
         this.registered_base_modules = this.getBaseModules();
@@ -226,7 +228,7 @@ export default abstract class ModuleServiceBase {
         ModuleTableDBService.getInstance(db);
 
         // En version SERVER_START_BOOSTER on check pas le format de la BDD au démarrage, le générateur s'en charge déjà en amont
-        if ((!!is_generator) || (!ConfigurationService.getInstance().node_configuration.SERVER_START_BOOSTER)) {
+        if ((!!is_generator) || (!ConfigurationService.node_configuration.SERVER_START_BOOSTER)) {
 
             await this.create_modules_base_structure_in_db();
 
@@ -234,39 +236,39 @@ export default abstract class ModuleServiceBase {
             await this.install_modules();
         } else {
 
-            if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
-                ConsoleHandler.getInstance().log('ModuleServiceBase:register_all_modules:load_or_create_module_is_actif:START');
+            if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+                ConsoleHandler.log('ModuleServiceBase:register_all_modules:load_or_create_module_is_actif:START');
             }
             for (let i in this.registered_modules) {
                 let registered_module = this.registered_modules[i];
 
                 await ModuleDBService.getInstance(db).load_or_create_module_is_actif(registered_module);
             }
-            if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
-                ConsoleHandler.getInstance().log('ModuleServiceBase:register_all_modules:load_or_create_module_is_actif:END');
+            if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+                ConsoleHandler.log('ModuleServiceBase:register_all_modules:load_or_create_module_is_actif:END');
             }
         }
 
         // On lance la configuration des modules, et avant on configure les apis des modules server
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
-            ConsoleHandler.getInstance().log('ModuleServiceBase:register_all_modules:configure_server_modules_apis:START');
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.log('ModuleServiceBase:register_all_modules:configure_server_modules_apis:START');
         }
         await this.configure_server_modules_apis();
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
-            ConsoleHandler.getInstance().log('ModuleServiceBase:register_all_modules:configure_server_modules_apis:END');
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.log('ModuleServiceBase:register_all_modules:configure_server_modules_apis:END');
         }
 
         // On charge le cache des tables segmentées. On cherche à être exhaustifs pour le coup
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
-            ConsoleHandler.getInstance().log('ModuleServiceBase:register_all_modules:preload_segmented_known_databases:START');
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.log('ModuleServiceBase:register_all_modules:preload_segmented_known_databases:START');
         }
         await this.preload_segmented_known_databases();
-        if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
-            ConsoleHandler.getInstance().log('ModuleServiceBase:register_all_modules:preload_segmented_known_databases:END');
+        if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+            ConsoleHandler.log('ModuleServiceBase:register_all_modules:preload_segmented_known_databases:END');
         }
 
         // A mon avis c'est de la merde ça... on charge où la vérif des params, le hook install, ... ?
-        // if ((!!is_generator) || (!ConfigurationService.getInstance().node_configuration.SERVER_START_BOOSTER)) {
+        // if ((!!is_generator) || (!ConfigurationService.node_configuration.SERVER_START_BOOSTER)) {
 
         //     // On appelle le hook de configuration
         //     await this.configure_modules();
@@ -290,7 +292,7 @@ export default abstract class ModuleServiceBase {
 
                 await ModuleDBService.getInstance(db).loadParams(registered_module);
 
-                ModuleDBService.getInstance(db).reloadParamsThread(registered_module).then().catch((error) => ConsoleHandler.getInstance().error(error));
+                ModuleDBService.getInstance(db).reloadParamsThread(registered_module).then().catch((error) => ConsoleHandler.error(error));
             }
 
             // On appelle le hook de fin d'installation
@@ -345,8 +347,8 @@ export default abstract class ModuleServiceBase {
         for (let i in this.server_modules) {
             let server_module: ModuleServerBase = this.server_modules[i];
 
-            if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
-                ConsoleHandler.getInstance().log('configure_server_modules:server_module:' + server_module.name + ':START');
+            if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+                ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':START');
             }
 
             if (server_module.actif) {
@@ -357,27 +359,27 @@ export default abstract class ModuleServiceBase {
                     server_module.registerImport(),
                 ]);
 
-                if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
-                    ConsoleHandler.getInstance().log('configure_server_modules:server_module:' + server_module.name + ':registerCrons');
+                if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+                    ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':registerCrons');
                 }
 
                 server_module.registerCrons();
 
-                if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
-                    ConsoleHandler.getInstance().log('configure_server_modules:server_module:' + server_module.name + ':registerAccessHooks');
+                if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+                    ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':registerAccessHooks');
                 }
                 server_module.registerAccessHooks();
 
                 if (app) {
-                    if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
-                        ConsoleHandler.getInstance().log('configure_server_modules:server_module:' + server_module.name + ':registerExpressApis');
+                    if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+                        ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':registerExpressApis');
                     }
                     server_module.registerExpressApis(app);
                 }
             }
 
-            if (ConfigurationService.getInstance().node_configuration.DEBUG_START_SERVER) {
-                ConsoleHandler.getInstance().log('configure_server_modules:server_module:' + server_module.name + ':END');
+            if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
+                ConsoleHandler.log('configure_server_modules:server_module:' + server_module.name + ':END');
             }
         }
     }
@@ -520,6 +522,7 @@ export default abstract class ModuleServiceBase {
             ModuleVocus.getInstance(),
             ModuleFeedback.getInstance(),
             ModuleSurvey.getInstance(),
+            ModulePopup.getInstance(),
             ModuleRequest.getInstance(),
             ModuleDocument.getInstance(),
             ModuleFork.getInstance(),
@@ -573,6 +576,7 @@ export default abstract class ModuleServiceBase {
             ModuleVocusServer.getInstance(),
             ModuleFeedbackServer.getInstance(),
             ModuleSurveyServer.getInstance(),
+            ModulePopupServer.getInstance(),
             ModuleRequestServer.getInstance(),
             ModuleDocumentServer.getInstance(),
             ModuleForkServer.getInstance(),
@@ -601,19 +605,19 @@ export default abstract class ModuleServiceBase {
             if (error &&
                 ((error['message'] == 'Connection terminated unexpectedly') ||
                     (error['message'].startsWith('connect ETIMEDOUT ')))) {
-                ConsoleHandler.getInstance().error(error + ' - retrying once');
+                ConsoleHandler.error(error + ' - retrying once');
 
                 try {
                     // Retry once
                     await this.db_.none(query, values);
                 } catch (error2) {
-                    ConsoleHandler.getInstance().error(error + ' - retry failed - ' + error2);
+                    ConsoleHandler.error(error + ' - retry failed - ' + error2);
                     throw error2;
                 }
 
                 return;
             } else if (error && (error['message'] == 'sorry, too many clients already')) {
-                ConsoleHandler.getInstance().error(error + ' - retrying in 100 ms');
+                ConsoleHandler.error(error + ' - retrying in 100 ms');
 
                 return new Promise((resolve, reject) => {
 
@@ -623,14 +627,14 @@ export default abstract class ModuleServiceBase {
                             self.db_none(query, values);
                             resolve(null);
                         } catch (error2) {
-                            ConsoleHandler.getInstance().error(error2 + ' - retry failed - ' + error2);
+                            ConsoleHandler.error(error2 + ' - retry failed - ' + error2);
                             reject(error2);
                         }
                     }, 100);
                 });
             }
 
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
     }
 
@@ -646,19 +650,19 @@ export default abstract class ModuleServiceBase {
             if (error &&
                 ((error['message'] == 'Connection terminated unexpectedly') ||
                     (error['message'].startsWith('connect ETIMEDOUT ')))) {
-                ConsoleHandler.getInstance().error(error + ' - retrying once');
+                ConsoleHandler.error(error + ' - retrying once');
 
                 try {
                     // Retry once
                     res = (values && values.length) ? await this.db_.query(query, values) : await this.db_.query(query);
                 } catch (error2) {
-                    ConsoleHandler.getInstance().error(error + ' - retry failed - ' + error2);
+                    ConsoleHandler.error(error + ' - retry failed - ' + error2);
                     throw error2;
                 }
 
                 return res;
             } else if (error && (error['message'] == 'sorry, too many clients already')) {
-                ConsoleHandler.getInstance().error(error + ' - retrying in 100 ms');
+                ConsoleHandler.error(error + ' - retrying in 100 ms');
 
                 return new Promise((resolve, reject) => {
 
@@ -668,14 +672,14 @@ export default abstract class ModuleServiceBase {
                             let res_ = self.db_query(query, values);
                             resolve(res_);
                         } catch (error2) {
-                            ConsoleHandler.getInstance().error(error2 + ' - retry failed - ' + error2);
+                            ConsoleHandler.error(error2 + ' - retry failed - ' + error2);
                             reject(error2);
                         }
                     }, 100);
                 });
             }
 
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return res;
@@ -696,19 +700,19 @@ export default abstract class ModuleServiceBase {
             if (error &&
                 ((error['message'] == 'Connection terminated unexpectedly') ||
                     (error['message'].startsWith('connect ETIMEDOUT ')))) {
-                ConsoleHandler.getInstance().error(error + ' - retrying once');
+                ConsoleHandler.error(error + ' - retrying once');
 
                 try {
                     // Retry once
                     res = await this.db_.oneOrNone(query, values);
                 } catch (error2) {
-                    ConsoleHandler.getInstance().error(error + ' - retry failed - ' + error2);
+                    ConsoleHandler.error(error + ' - retry failed - ' + error2);
                     throw error2;
                 }
 
                 return res;
             } else if (error && (error['message'] == 'sorry, too many clients already')) {
-                ConsoleHandler.getInstance().error(error + ' - retrying in 100 ms');
+                ConsoleHandler.error(error + ' - retrying in 100 ms');
 
                 return new Promise((resolve, reject) => {
 
@@ -718,14 +722,14 @@ export default abstract class ModuleServiceBase {
                             let res_ = self.db_oneOrNone(query, values);
                             resolve(res_);
                         } catch (error2) {
-                            ConsoleHandler.getInstance().error(error2 + ' - retry failed - ' + error2);
+                            ConsoleHandler.error(error2 + ' - retry failed - ' + error2);
                             reject(error2);
                         }
                     }, 100);
                 });
             }
 
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return res;

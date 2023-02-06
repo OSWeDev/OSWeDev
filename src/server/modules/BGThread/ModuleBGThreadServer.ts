@@ -3,22 +3,21 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import ModuleBGThread from '../../../shared/modules/BGThread/ModuleBGThread';
+import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import ForkMessageController from '../Fork/ForkMessageController';
+import ForkServerController from '../Fork/ForkServerController';
+import KillForkMessage from '../Fork/messages/KillForkMessage';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
-import IBGThread from './interfaces/IBGThread';
 import BGThreadServerController from './BGThreadServerController';
-import ThreadHandler from '../../../shared/tools/ThreadHandler';
-import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
-import ForkServerController from '../Fork/ForkServerController';
-import ModuleForkServer from '../Fork/ModuleForkServer';
-import ForkMessageController from '../Fork/ForkMessageController';
-import KillForkMessage from '../Fork/messages/KillForkMessage';
-import ModuleParams from '../../../shared/modules/Params/ModuleParams';
-import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import IBGThread from './interfaces/IBGThread';
 
 export default class ModuleBGThreadServer extends ModuleServerBase {
 
@@ -115,7 +114,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
             return;
         }
 
-        this.execute_bgthread(bgthread).then().catch((error) => ConsoleHandler.getInstance().error(error));
+        this.execute_bgthread(bgthread).then().catch((error) => ConsoleHandler.error(error));
     }
 
     /**
@@ -130,7 +129,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
 
         while (true) {
 
-            await ThreadHandler.getInstance().sleep(bgthread.current_timeout);
+            await ThreadHandler.sleep(bgthread.current_timeout);
 
             /**
              * On check le bloquage par param toutes les minutes
@@ -143,14 +142,14 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
                     let new_param = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleBGThreadServer.PARAM_BLOCK_BGTHREAD_prefix + bgthread.name);
 
                     if (new_param != this.block_param_by_name[bgthread.name]) {
-                        ConsoleHandler.getInstance().log('BGTHREAD:' + bgthread.name + ':' + (new_param ? 'DISABLED' : 'ACTIVATED'));
+                        ConsoleHandler.log('BGTHREAD:' + bgthread.name + ':' + (new_param ? 'DISABLED' : 'ACTIVATED'));
                     }
 
                     this.block_param_by_name[bgthread.name] = new_param;
                     this.block_param_reload_timeout_by_name[bgthread.name] = Dates.now() + 60;
                 }
             } catch (error) {
-                ConsoleHandler.getInstance().error('OK at start, NOK if all nodes already started :execute_bgthread:block_param_by_name:' + error);
+                ConsoleHandler.error('OK at start, NOK if all nodes already started :execute_bgthread:block_param_by_name:' + error);
             }
 
             if (!!this.block_param_by_name[bgthread.name]) {
@@ -180,7 +179,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
                     bgthread.current_timeout = bgthread.MIN_timeout;
                 }
             } catch (error) {
-                ConsoleHandler.getInstance().error(error);
+                ConsoleHandler.error(error);
             }
         }
     }

@@ -60,11 +60,11 @@ export default class ModuleForkServer extends ModuleServerBase {
         await VarsDatasVoUpdateHandler.getInstance().force_empty_vars_datas_vo_update_cache();
 
         while (throttle > 0) {
-            ConsoleHandler.getInstance().error("Received KILL SIGN from parent - KILL in " + throttle);
-            await ThreadHandler.getInstance().sleep(1000);
+            ConsoleHandler.error("Received KILL SIGN from parent - KILL in " + throttle);
+            await ThreadHandler.sleep(1000);
             throttle--;
         }
-        ConsoleHandler.getInstance().error("Received KILL SIGN from parent - KILL");
+        ConsoleHandler.error("Received KILL SIGN from parent - KILL");
         process.exit();
     }
 
@@ -92,7 +92,7 @@ export default class ModuleForkServer extends ModuleServerBase {
         }
 
         if (msg.throw_error) {
-            ConsoleHandler.getInstance().error('handle_taskresult_message:' + msg.throw_error + ':' +
+            ConsoleHandler.error('handle_taskresult_message:' + msg.throw_error + ':' +
                 msg.callback_id + ':' + msg.message_type + ':' + JSON.stringify(msg.message_content));
             if (!!ForkedTasksController.getInstance().registered_task_result_wrappers[msg.callback_id]) {
 
@@ -124,7 +124,7 @@ export default class ModuleForkServer extends ModuleServerBase {
         try {
             res = await ForkedTasksController.getInstance().process_registered_tasks[msg.message_content](...msg.message_content_params);
         } catch (error) {
-            ConsoleHandler.getInstance().error('handle_mainprocesstask_message:' + error);
+            ConsoleHandler.error('handle_mainprocesstask_message:' + error);
         }
 
         if (msg.callback_id) {
@@ -144,7 +144,7 @@ export default class ModuleForkServer extends ModuleServerBase {
          * Si un kill est en cours on throw une erreur ici pour répondre à la demande le plus vite possible
          */
         if (this.is_killing) {
-            ConsoleHandler.getInstance().error('handle_bgthreadprocesstask_message:KILLING TASK HANDLER:' + JSON.stringify(msg));
+            ConsoleHandler.error('handle_bgthreadprocesstask_message:KILLING TASK HANDLER:' + JSON.stringify(msg));
             if (msg.callback_id) {
                 await ForkMessageController.getInstance().send(new TaskResultForkMessage(null, msg.callback_id, 'KILLING TASK HANDLER'), sendHandle as ChildProcess);
             } else {
@@ -159,7 +159,7 @@ export default class ModuleForkServer extends ModuleServerBase {
                 if (msg.callback_id) {
                     await ForkMessageController.getInstance().send(new TaskResultForkMessage(null, msg.callback_id, error), sendHandle as ChildProcess);
                 } else {
-                    ConsoleHandler.getInstance().error('Failed message:' + error + ':' + JSON.stringify(msg));
+                    ConsoleHandler.error('Failed message:' + error + ':' + JSON.stringify(msg));
                 }
                 reject();
             };
@@ -188,7 +188,7 @@ export default class ModuleForkServer extends ModuleServerBase {
          * Si un kill est en cours on throw une erreur ici pour répondre à la demande le plus vite possible
          */
         if (this.is_killing) {
-            ConsoleHandler.getInstance().error('handle_bgthreadprocesstask_message:KILLING TASK HANDLER:' + JSON.stringify(msg));
+            ConsoleHandler.error('handle_bgthreadprocesstask_message:KILLING TASK HANDLER:' + JSON.stringify(msg));
             if (msg.callback_id) {
                 await ForkMessageController.getInstance().broadcast(new TaskResultForkMessage(null, msg.callback_id, 'KILLING TASK HANDLER'));
             } else {
@@ -201,7 +201,7 @@ export default class ModuleForkServer extends ModuleServerBase {
         try {
             res = await ForkedTasksController.getInstance().process_registered_tasks[msg.message_content](...msg.message_content_params);
         } catch (error) {
-            ConsoleHandler.getInstance().error('handle_bgthreadprocesstask_message:' + error);
+            ConsoleHandler.error('handle_bgthreadprocesstask_message:' + error);
         }
 
         if (msg.callback_id) {
@@ -236,7 +236,7 @@ export default class ModuleForkServer extends ModuleServerBase {
         if (ForkServerController.getInstance().forks_waiting_to_be_alive <= 0) {
             ForkServerController.getInstance().forks_are_initialized = true;
         }
-        ConsoleHandler.getInstance().log('Process [' + msg.message_content + ']: ALIVE');
+        ConsoleHandler.log('Process [' + msg.message_content + ']: ALIVE');
         return true;
     }
 

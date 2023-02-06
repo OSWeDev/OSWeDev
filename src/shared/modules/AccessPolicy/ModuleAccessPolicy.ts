@@ -425,7 +425,7 @@ export default class ModuleAccessPolicy extends Module {
         ];
 
         let datatable: ModuleTable<any> = new ModuleTable(this, UserVO.API_TYPE_ID, () => new UserVO(), datatable_fields, label_field, new DefaultTranslation({ 'fr-fr': "Utilisateurs" }));
-        field_lang_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[LangVO.API_TYPE_ID]);
+        field_lang_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[LangVO.API_TYPE_ID]);
         datatable.set_bdd_ref('ref', 'user');
         this.datatables.push(datatable);
     }
@@ -470,8 +470,8 @@ export default class ModuleAccessPolicy extends Module {
 
         let datatable: ModuleTable<any> = new ModuleTable(this, UserRoleVO.API_TYPE_ID, () => new UserRoleVO(), datatable_fields, null, new DefaultTranslation({ 'fr-fr': "Rôles des utilisateurs" }));
 
-        field_user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
-        field_role_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[RoleVO.API_TYPE_ID]);
+        field_user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        field_role_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[RoleVO.API_TYPE_ID]);
 
         this.datatables.push(datatable);
     }
@@ -507,8 +507,8 @@ export default class ModuleAccessPolicy extends Module {
 
         let datatable: ModuleTable<any> = new ModuleTable(this, AccessPolicyVO.API_TYPE_ID, () => new AccessPolicyVO(), datatable_fields, label_field, new DefaultTranslation({ 'fr-fr': "Droit" }));
 
-        field_accpolgroup_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[AccessPolicyGroupVO.API_TYPE_ID]);
-        field_module_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[ModuleVO.API_TYPE_ID]);
+        field_accpolgroup_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[AccessPolicyGroupVO.API_TYPE_ID]);
+        field_module_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ModuleVO.API_TYPE_ID]);
 
         this.datatables.push(datatable);
     }
@@ -527,8 +527,8 @@ export default class ModuleAccessPolicy extends Module {
 
         let datatable: ModuleTable<any> = new ModuleTable(this, PolicyDependencyVO.API_TYPE_ID, () => new PolicyDependencyVO(), datatable_fields, null, new DefaultTranslation({ 'fr-fr': "Dépendances entre droits" }));
 
-        src_pol_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[AccessPolicyVO.API_TYPE_ID]);
-        depends_on_pol_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[AccessPolicyVO.API_TYPE_ID]);
+        src_pol_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[AccessPolicyVO.API_TYPE_ID]);
+        depends_on_pol_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[AccessPolicyVO.API_TYPE_ID]);
 
         this.datatables.push(datatable);
     }
@@ -551,7 +551,7 @@ export default class ModuleAccessPolicy extends Module {
 
         let datatable: ModuleTable<any> = new ModuleTable(this, UserLogVO.API_TYPE_ID, () => new UserLogVO(), datatable_fields, null, new DefaultTranslation({ 'fr-fr': "Logs des utilisateurs" })).segment_on_field(field_user_id.field_id, NumSegment.TYPE_INT);
 
-        field_user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        field_user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
 
         this.datatables.push(datatable);
     }
@@ -567,8 +567,8 @@ export default class ModuleAccessPolicy extends Module {
 
         let datatable: ModuleTable<any> = new ModuleTable(this, RolePolicyVO.API_TYPE_ID, () => new RolePolicyVO(), datatable_fields, null, new DefaultTranslation({ 'fr-fr': "Droits des rôles" }));
 
-        field_accpol_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[AccessPolicyVO.API_TYPE_ID]);
-        field_role_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[RoleVO.API_TYPE_ID]);
+        field_accpol_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[AccessPolicyVO.API_TYPE_ID]);
+        field_role_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[RoleVO.API_TYPE_ID]);
 
         this.datatables.push(datatable);
     }

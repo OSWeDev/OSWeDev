@@ -66,10 +66,10 @@ export default class ModulePowershellServer extends ModuleServerBase {
             noProfile: true
         });
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Identifiant AD'
         }, 'ActiveDirectory.prompt.login.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Mot de passe AD'
         }, 'ActiveDirectory.prompt.pwd.___LABEL___'));
     }
@@ -82,12 +82,12 @@ export default class ModulePowershellServer extends ModuleServerBase {
 
         try {
 
-            let uid: number = StackContext.getInstance().get('UID');
-            let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
+            let uid: number = StackContext.get('UID');
+            let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
             if ((!uid) || (!CLIENT_TAB_ID)) {
                 //on doit venir d'un onglet précis
-                ConsoleHandler.getInstance().error('ask_user_credentials_and_change_ps_user:on doit venir d\'un onglet précis');
+                ConsoleHandler.error('ask_user_credentials_and_change_ps_user:on doit venir d\'un onglet précis');
                 return null;
             }
 
@@ -95,20 +95,20 @@ export default class ModulePowershellServer extends ModuleServerBase {
             pwd = await PushDataServerController.getInstance().notifyPrompt(uid, CLIENT_TAB_ID, 'ActiveDirectory.prompt.pwd.___LABEL___');
 
             if ((!login) || (!pwd)) {
-                ConsoleHandler.getInstance().error('ask_user_credentials_and_change_ps_user:login ou mot de passe manquant');
+                ConsoleHandler.error('ask_user_credentials_and_change_ps_user:login ou mot de passe manquant');
                 return null;
             }
 
         } catch (error) {
-            ConsoleHandler.getInstance().error('ask_user_credentials_and_change_ps_user:' + error);
+            ConsoleHandler.error('ask_user_credentials_and_change_ps_user:' + error);
         }
 
         await this.change_cred_value(login, pwd);
     }
 
     public async change_cred_value(login: string, pwd: string) {
-        ConsoleHandler.getInstance().log(await this.execute_ps_command_and_get_output('$password = "' + pwd + '" | ConvertTo-SecureString -AsPlainText -Force'));
-        ConsoleHandler.getInstance().log(await this.execute_ps_command_and_get_output('$cred = New-Object System.Management.Automation.PSCredential -ArgumentList "' + login + '",$password'));
+        ConsoleHandler.log(await this.execute_ps_command_and_get_output('$password = "' + pwd + '" | ConvertTo-SecureString -AsPlainText -Force'));
+        ConsoleHandler.log(await this.execute_ps_command_and_get_output('$cred = New-Object System.Management.Automation.PSCredential -ArgumentList "' + login + '",$password'));
     }
 
     public async execute_ps_command_and_get_output(command: string): Promise<string> {

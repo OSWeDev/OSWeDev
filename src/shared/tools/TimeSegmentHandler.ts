@@ -7,16 +7,6 @@ import Dates from '../modules/FormatDatesNombres/Dates/Dates';
 import RangeHandler from './RangeHandler';
 
 export default class TimeSegmentHandler {
-    public static getInstance(): TimeSegmentHandler {
-        if (!TimeSegmentHandler.instance) {
-            TimeSegmentHandler.instance = new TimeSegmentHandler();
-        }
-        return TimeSegmentHandler.instance;
-    }
-
-    private static instance: TimeSegmentHandler = null;
-
-    private constructor() { }
 
     /**
      * Renvoi 1 si le semgent_type a est plus grand que b, -1 si plus petit, 0 si égaux
@@ -25,7 +15,7 @@ export default class TimeSegmentHandler {
      * @param segment_type_a
      * @param segment_type_b
      */
-    public compareSegmentTypes(segment_type_a: number, segment_type_b: number): number {
+    public static compareSegmentTypes(segment_type_a: number, segment_type_b: number): number {
         if (segment_type_a == segment_type_b) {
             return 0;
         }
@@ -84,7 +74,7 @@ export default class TimeSegmentHandler {
         return null;
     }
 
-    public getBiggestTimeSegmentationType(segment_type_a: number, segment_type_b: number): number {
+    public static getBiggestTimeSegmentationType(segment_type_a: number, segment_type_b: number): number {
         switch (segment_type_a) {
             case TimeSegment.TYPE_YEAR:
                 return TimeSegment.TYPE_YEAR;
@@ -186,7 +176,7 @@ export default class TimeSegmentHandler {
         }
     }
 
-    public getSmallestTimeSegmentationType(segment_type_a: number, segment_type_b: number): number {
+    public static getSmallestTimeSegmentationType(segment_type_a: number, segment_type_b: number): number {
         switch (segment_type_a) {
             case TimeSegment.TYPE_SECOND:
                 return TimeSegment.TYPE_SECOND;
@@ -298,7 +288,7 @@ export default class TimeSegmentHandler {
      * @param end
      * @param time_segment_type
      */
-    public getAllDataTimeSegments(start: number, end: number, time_segment_type: number, exclude_end: boolean = false): TimeSegment[] {
+    public static getAllDataTimeSegments(start: number, end: number, time_segment_type: number, exclude_end: boolean = false): TimeSegment[] {
 
         if ((!start) || (!end) || (time_segment_type == null) || (typeof time_segment_type === 'undefined')) {
             return null;
@@ -327,7 +317,7 @@ export default class TimeSegmentHandler {
      * @param type_cumul Type > au timesegment.type (YEAR si le segment est MONTH par exemple au minimum)
      * @returns Corresponding CumulTimeSegment
      */
-    public getParentTimeSegment(timeSegment: TimeSegment): TimeSegment {
+    public static getParentTimeSegment(timeSegment: TimeSegment): TimeSegment {
         let type: number = null;
 
         switch (timeSegment.type) {
@@ -364,23 +354,23 @@ export default class TimeSegmentHandler {
      * @param timeSegment
      * @returns Corresponding CumulTimeSegment
      */
-    public getCumulTimeSegments(timeSegment: TimeSegment): TimeSegment[] {
+    public static getCumulTimeSegments(timeSegment: TimeSegment): TimeSegment[] {
 
         if (!timeSegment) {
             return null;
         }
 
         let res: TimeSegment[] = [];
-        let parentTimeSegment: TimeSegment = this.getParentTimeSegment(timeSegment);
+        let parentTimeSegment: TimeSegment = TimeSegmentHandler.getParentTimeSegment(timeSegment);
 
         if (!parentTimeSegment) {
             return null;
         }
 
-        let start_period = this.getStartTimeSegment(parentTimeSegment);
-        let end_period = this.getEndTimeSegment(timeSegment);
+        let start_period = TimeSegmentHandler.getStartTimeSegment(parentTimeSegment);
+        let end_period = TimeSegmentHandler.getEndTimeSegment(timeSegment);
 
-        return this.getAllDataTimeSegments(start_period, end_period, timeSegment.type, true);
+        return TimeSegmentHandler.getAllDataTimeSegments(start_period, end_period, timeSegment.type, true);
     }
 
     /**
@@ -388,7 +378,7 @@ export default class TimeSegmentHandler {
      * @param timeSegment
      * @returns Inclusive lower bound of the timeSegment
      */
-    public getStartTimeSegment(timeSegment: TimeSegment): number {
+    public static getStartTimeSegment(timeSegment: TimeSegment): number {
         switch (timeSegment.type) {
             case TimeSegment.TYPE_YEAR:
             case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
@@ -408,13 +398,13 @@ export default class TimeSegmentHandler {
      * @param timeSegment
      * @returns Exclusive upper bound of the timeSegment
      */
-    public getEndTimeSegment(timeSegment: TimeSegment): number {
+    public static getEndTimeSegment(timeSegment: TimeSegment): number {
 
         if (!timeSegment) {
             return null;
         }
 
-        return Dates.add(this.getStartTimeSegment(timeSegment), 1, timeSegment.type);
+        return Dates.add(TimeSegmentHandler.getStartTimeSegment(timeSegment), 1, timeSegment.type);
     }
 
     /**
@@ -423,7 +413,7 @@ export default class TimeSegmentHandler {
      * @param type_inclusion choose the granularity of the inclusive bound (day or month)
      * @returns Inclusive upper bound of the timeSegment (according to type_inclusion segmentation (last day of month, but not last second...))
      */
-    public getInclusiveEndTimeSegment(timeSegment: TimeSegment, type_inclusion: number = TimeSegment.TYPE_DAY): number {
+    public static getInclusiveEndTimeSegment(timeSegment: TimeSegment, type_inclusion: number = TimeSegment.TYPE_DAY): number {
 
         if (!timeSegment) {
             return null;
@@ -433,7 +423,7 @@ export default class TimeSegmentHandler {
             type_inclusion = TimeSegment.TYPE_DAY;
         }
 
-        let res: number = this.getStartTimeSegment(timeSegment);
+        let res: number = TimeSegmentHandler.getStartTimeSegment(timeSegment);
         res = Dates.add(res, 1, timeSegment.type);
 
         switch (type_inclusion) {
@@ -451,7 +441,7 @@ export default class TimeSegmentHandler {
     }
 
 
-    public getPreviousTimeSegments(timeSegments: TimeSegment[], type: number = null, offset: number = 1): TimeSegment[] {
+    public static getPreviousTimeSegments(timeSegments: TimeSegment[], type: number = null, offset: number = 1): TimeSegment[] {
 
         if (!timeSegments) {
             return null;
@@ -460,7 +450,7 @@ export default class TimeSegmentHandler {
         let res: TimeSegment[] = [];
 
         for (let i in timeSegments) {
-            res.push(this.getPreviousTimeSegment(timeSegments[i], type, offset));
+            res.push(TimeSegmentHandler.getPreviousTimeSegment(timeSegments[i], type, offset));
         }
         return res;
     }
@@ -472,7 +462,7 @@ export default class TimeSegmentHandler {
      * @param offset defaults to 1. Use -1 to get the next segment for example
      * @returns new TimeSegment
      */
-    public getPreviousTimeSegment(timeSegment: TimeSegment, type: number = null, offset: number = 1): TimeSegment {
+    public static getPreviousTimeSegment(timeSegment: TimeSegment, type: number = null, offset: number = 1): TimeSegment {
         if (!timeSegment) {
             return null;
         }
@@ -490,7 +480,7 @@ export default class TimeSegmentHandler {
      * @param type defaults to the type of the timeSegment provided as first argument
      * @param offset defaults to 1.
      */
-    public decTimeSegment(timeSegment: TimeSegment, type: number = null, offset: number = 1): void {
+    public static decTimeSegment(timeSegment: TimeSegment, type: number = null, offset: number = 1): void {
         if (!timeSegment) {
             return null;
         }
@@ -505,7 +495,7 @@ export default class TimeSegmentHandler {
      * @param type defaults to the type of the timeSegment provided as first argument
      * @param offset defaults to 1.
      */
-    public incTimeSegment(timeSegment: TimeSegment, type: number = null, offset: number = 1): void {
+    public static incTimeSegment(timeSegment: TimeSegment, type: number = null, offset: number = 1): void {
         if (!timeSegment) {
             return null;
         }
@@ -514,16 +504,16 @@ export default class TimeSegmentHandler {
         timeSegment.index = Dates.add(timeSegment.index, offset, type);
     }
 
-    public getCorrespondingTimeSegments(dates: number[], type: number, offset: number = 0): TimeSegment[] {
+    public static getCorrespondingTimeSegments(dates: number[], type: number, offset: number = 0): TimeSegment[] {
         let res: TimeSegment[] = [];
 
         for (let i in dates) {
-            res.push(this.getCorrespondingTimeSegment(dates[i], type, offset));
+            res.push(TimeSegmentHandler.getCorrespondingTimeSegment(dates[i], type, offset));
         }
         return res;
     }
 
-    public getCorrespondingTimeSegment(date: number, type: number, offset: number = 0): TimeSegment {
+    public static getCorrespondingTimeSegment(date: number, type: number, offset: number = 0): TimeSegment {
 
         if ((type == null) || (typeof type === 'undefined')) {
             type = TimeSegment.TYPE_DAY;
@@ -533,13 +523,13 @@ export default class TimeSegmentHandler {
         res.index = Dates.startOf(res.index, type);
 
         if (offset) {
-            this.decTimeSegment(res, res.type, -offset);
+            TimeSegmentHandler.decTimeSegment(res, res.type, -offset);
         }
 
         return res;
     }
 
-    public isEltInSegment(date: number, time_segment: TimeSegment): boolean {
+    public static isEltInSegment(date: number, time_segment: TimeSegment): boolean {
         if ((!date) || (!time_segment)) {
             return false;
         }
@@ -553,7 +543,7 @@ export default class TimeSegmentHandler {
      * @param ts2
      * @param type Par défaut on prend le plus grand ensemble
      */
-    public isInSameSegmentType(ts1: TimeSegment, ts2: TimeSegment, type: number = null): boolean {
+    public static isInSameSegmentType(ts1: TimeSegment, ts2: TimeSegment, type: number = null): boolean {
 
         if ((!ts1) || (!ts2)) {
             return false;
@@ -563,13 +553,13 @@ export default class TimeSegmentHandler {
             type = Math.min(ts1.type, ts2.type);
         }
 
-        let start: number = this.getCorrespondingTimeSegment(ts1.index, type).index;
-        let end: number = this.getEndTimeSegment(this.getCorrespondingTimeSegment(ts1.index, type));
+        let start: number = TimeSegmentHandler.getCorrespondingTimeSegment(ts1.index, type).index;
+        let end: number = TimeSegmentHandler.getEndTimeSegment(TimeSegmentHandler.getCorrespondingTimeSegment(ts1.index, type));
 
         return (ts2.index >= start) && (ts2.index < end);
     }
 
-    public segmentsAreEquivalent(ts1: TimeSegment, ts2: TimeSegment): boolean {
+    public static segmentsAreEquivalent(ts1: TimeSegment, ts2: TimeSegment): boolean {
 
         if ((!ts1) && ts2) {
             return false;
@@ -594,7 +584,7 @@ export default class TimeSegmentHandler {
         return true;
     }
 
-    public get_date_indexes(segments: TimeSegment[]): string[] {
+    public static get_date_indexes(segments: TimeSegment[]): string[] {
         let res: string[] = [];
 
         for (let i in segments) {
@@ -604,33 +594,33 @@ export default class TimeSegmentHandler {
         return res;
     }
 
-    public get_ts_ranges(segments: TimeSegment[]): TSRange[] {
-        return RangeHandler.getInstance().getRangesUnion(this.get_ts_ranges_(segments));
+    public static get_ts_ranges(segments: TimeSegment[]): TSRange[] {
+        return RangeHandler.getRangesUnion(TimeSegmentHandler.get_ts_ranges_(segments));
     }
 
-    public get_surrounding_ts_range(segments: TimeSegment[]): TSRange {
-        return RangeHandler.getInstance().getMinSurroundingRange(this.get_ts_ranges_(segments));
+    public static get_surrounding_ts_range(segments: TimeSegment[]): TSRange {
+        return RangeHandler.getMinSurroundingRange(TimeSegmentHandler.get_ts_ranges_(segments));
     }
 
-    public get_segment_from_range_start(ts_range: TSRange, segment_type: number): TimeSegment {
+    public static get_segment_from_range_start(ts_range: TSRange, segment_type: number): TimeSegment {
         if (!ts_range) {
             return null;
         }
 
-        let min = RangeHandler.getInstance().getSegmentedMin(ts_range, segment_type);
-        return this.getCorrespondingTimeSegment(min, segment_type);
+        let min = RangeHandler.getSegmentedMin(ts_range, segment_type);
+        return TimeSegmentHandler.getCorrespondingTimeSegment(min, segment_type);
     }
 
-    public get_segment_from_range_end(ts_range: TSRange, segment_type: number): TimeSegment {
+    public static get_segment_from_range_end(ts_range: TSRange, segment_type: number): TimeSegment {
         if (!ts_range) {
             return null;
         }
 
-        let max = RangeHandler.getInstance().getSegmentedMax(ts_range, segment_type);
-        return this.getCorrespondingTimeSegment(max, segment_type);
+        let max = RangeHandler.getSegmentedMax(ts_range, segment_type);
+        return TimeSegmentHandler.getCorrespondingTimeSegment(max, segment_type);
     }
 
-    public getCorrespondingMomentUnitOfTime(segment_type: number): unitOfTime.Base {
+    public static getCorrespondingMomentUnitOfTime(segment_type: number): unitOfTime.Base {
         switch (segment_type) {
             case TimeSegment.TYPE_DAY:
                 return 'day';
@@ -651,13 +641,13 @@ export default class TimeSegmentHandler {
         return null;
     }
 
-    private get_ts_ranges_(segments: TimeSegment[]): TSRange[] {
+    private static get_ts_ranges_(segments: TimeSegment[]): TSRange[] {
         let res: TSRange[] = [];
 
         for (let i in segments) {
             let range: TSRange = TSRange.createNew(
-                TimeSegmentHandler.getInstance().getStartTimeSegment(segments[i]),
-                TimeSegmentHandler.getInstance().getEndTimeSegment(segments[i]),
+                TimeSegmentHandler.getStartTimeSegment(segments[i]),
+                TimeSegmentHandler.getEndTimeSegment(segments[i]),
                 true,
                 false,
                 segments[i].type);

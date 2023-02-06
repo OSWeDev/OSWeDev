@@ -220,13 +220,13 @@ export default class MailStatsEventsComponent extends VueComponentBase {
             case MailEventVO.EVENT_Email_invalide:
                 return 'fa-home'; // red
             case MailEventVO.EVENT_Envoye:
-                return 'fa-clock-o'; // blue
+                return 'fa-clock'; // blue
             case MailEventVO.EVENT_Error:
                 return 'fa-exclamation-circle'; // red
             case MailEventVO.EVENT_Hard_bounce:
                 return 'fa-chain-broken'; // red
             case MailEventVO.EVENT_Initie:
-                return 'fa-clock-o'; // blue
+                return 'fa-clock'; // blue
             case MailEventVO.EVENT_Ouverture:
                 return 'fa-envelope-open'; // green
             case MailEventVO.EVENT_Plainte:

@@ -228,6 +228,7 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
                     options.vo_field_sort,
                     options.can_select_multiple,
                     options.is_checkbox,
+                    options.checkbox_columns,
                     options.max_visible_options,
                     options.show_search_field,
                     options.hide_lvl2_if_lvl1_not_selected,
@@ -251,11 +252,15 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
                     options.vo_field_sort_lvl2,
                     options.autovalidate_advanced_filter,
                     options.add_is_null_selectable,
+                    options.is_button,
+                    options.enum_bg_colors,
+                    options.enum_fg_colors,
+                    options.show_count_value,
                     options.active_field_on_autovalidate_advanced_filter,
                 ) : null;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return options;

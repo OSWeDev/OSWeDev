@@ -1,5 +1,6 @@
-import DashboardPageVO from "../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO";
-import DashboardPageWidgetVO from "../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
+import { all_promises } from "../../../../../../shared/tools/PromiseTools";
+import ThrottleHelper from "../../../../../../shared/tools/ThrottleHelper";
+import ValidationFiltersCallUpdaters from "./ValidationFiltersCallUpdaters";
 
 export default class ValidationFiltersWidgetController {
 
@@ -13,32 +14,57 @@ export default class ValidationFiltersWidgetController {
 
     private static instance = null;
 
-    public updaters: { [dashboard_id: number]: { [dashboard_page_id: number]: { [page_widget_id: number]: () => Promise<void> } } } = {};
+    public updaters: { [dashboard_id: number]: { [dashboard_page_id: number]: { [page_widget_id: number]: Array<() => Promise<void>> } } } = {};
     public is_init: { [dashboard_id: number]: { [dashboard_page_id: number]: { [page_widget_id: number]: boolean } } } = {};
+
+    public throttle_call_updaters = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(this.throttled_call_updaters.bind(this), 50);
 
     private constructor() { }
 
-    public register_updater(dashboard_page: DashboardPageVO, page_widget: DashboardPageWidgetVO, updater: () => Promise<void>) {
-        if (!this.updaters[dashboard_page.dashboard_id]) {
-            this.updaters[dashboard_page.dashboard_id] = {};
+    public async register_updater(dashboard_id: number, page_id: number, page_widget_id: number, updater: () => Promise<void>) {
+        if (!this.updaters[dashboard_id]) {
+            this.updaters[dashboard_id] = {};
         }
 
-        if (!this.updaters[dashboard_page.dashboard_id][dashboard_page.id]) {
-            this.updaters[dashboard_page.dashboard_id][dashboard_page.id] = {};
+        if (!this.updaters[dashboard_id][page_id]) {
+            this.updaters[dashboard_id][page_id] = {};
         }
 
-        this.updaters[dashboard_page.dashboard_id][dashboard_page.id][page_widget.id] = updater;
+        if (!this.updaters[dashboard_id][page_id][page_widget_id]) {
+            this.updaters[dashboard_id][page_id][page_widget_id] = [];
+        }
+        this.updaters[dashboard_id][page_id][page_widget_id].push(updater);
+
+        updater();
     }
 
-    public set_is_init(dashboard_page: DashboardPageVO, page_widget: DashboardPageWidgetVO, is_init: boolean) {
-        if (!this.is_init[dashboard_page.dashboard_id]) {
-            this.is_init[dashboard_page.dashboard_id] = {};
-        }
+    private async throttled_call_updaters(params: ValidationFiltersCallUpdaters[]) {
 
-        if (!this.is_init[dashboard_page.dashboard_id][dashboard_page.id]) {
-            this.is_init[dashboard_page.dashboard_id][dashboard_page.id] = {};
-        }
+        for (let i in params) {
 
-        this.is_init[dashboard_page.dashboard_id][dashboard_page.id][page_widget.id] = is_init;
+            let dashboard_id = params[i].dashboard_id;
+            let page_id = params[i].page_id;
+
+            let updaters_by_page_widget_id: { [page_widget_id: number]: Array<() => Promise<void>> } = {};
+
+            if (
+                ValidationFiltersWidgetController.getInstance().updaters &&
+                ValidationFiltersWidgetController.getInstance().updaters[dashboard_id]
+            ) {
+                updaters_by_page_widget_id = ValidationFiltersWidgetController.getInstance().updaters[dashboard_id][page_id];
+            }
+
+            let promises = [];
+
+            for (let page_widget_id in updaters_by_page_widget_id) {
+                let updaters = updaters_by_page_widget_id[page_widget_id];
+
+                for (let j in updaters) {
+                    promises.push(updaters[j]());
+                }
+            }
+
+            await all_promises(promises);
+        }
     }
 }

@@ -6,17 +6,17 @@
             template(v-if="field.type == 'Simple'")
                 template(v-if="field.moduleTableField.field_type == 'boolean'")
                     template(v-if="field_value == 'true' || field_value === true")
-                        i.boolean_value.is_true.fa(:class="{[field.moduleTableField.boolean_icon_true]: true, 'text-success': !field.moduleTableField.boolean_invert_colors, 'text-danger': field.moduleTableField.boolean_invert_colors}")
+                        i.boolean_value.is_true.fa-duotone(:class="{[field.moduleTableField.boolean_icon_true]: true, 'text-success': !field.moduleTableField.boolean_invert_colors, 'text-danger': field.moduleTableField.boolean_invert_colors}")
                     template(v-if="field_value == 'false' || field_value === false")
-                        i.boolean_value.is_false.fa(:class="{[field.moduleTableField.boolean_icon_false]: true, 'text-success': field.moduleTableField.boolean_invert_colors, 'text-danger': !field.moduleTableField.boolean_invert_colors}")
+                        i.boolean_value.is_false.fa-duotone(:class="{[field.moduleTableField.boolean_icon_false]: true, 'text-success': field.moduleTableField.boolean_invert_colors, 'text-danger': !field.moduleTableField.boolean_invert_colors}")
                 template(v-else-if="field.moduleTableField.field_type == 'password'")
-                    i.fa-solid.fa-lock
+                    i.fa-duotone.fa-lock
                 template(v-else-if="field.moduleTableField.field_type == 'number[]'")
                     ul.multi-input(v-if="field_value")
-                        li(v-for="value in field_value") {{ value }}
+                        li(v-for="value in field_value") {{ get_filtered_value(value) }}
                 template(v-else-if="field.moduleTableField.field_type == 'float[]'")
                     ul.multi-input(v-if="field_value")
-                        li(v-for="value in field_value") {{ value }}
+                        li(v-for="value in field_value") {{ get_filtered_value(value) }}
 
                 template(v-else-if="field.moduleTableField.field_type == 'file'")
                     Filedatatablefieldcomponent(:file_path="field_value", :show_tooltip="show_tooltip")
@@ -42,8 +42,10 @@
                     .custom_read_field_component(:is="custom_field_types.read_component" :row='vo' :value='field_value')
                 template(v-else-if="field.moduleTableField.field_type == 'textarea'")
                     pre {{ field_value }}
+                template(v-else-if="field.moduleTableField.field_type == 'translatable_text'")
+                    span {{ t(field_value) }}
                 template(v-else)
-                    span {{ field_value }}
+                    span {{ get_filtered_value(field_value) }}
             template(v-else-if="field.type == 'ManyToOne'")
                 template(v-if="field_value")
                     template(v-if="has_access_DAO_ACCESS_TYPE_INSERT_OR_UPDATE && !disabled_many_to_one_link && !!routeExists(get_crud_link(field.targetModuleTable.vo_type, vo[field.datatable_field_uid + '___id___']))")
@@ -64,7 +66,7 @@
                             span {{ e.label }}
 
             template(v-else-if="field.type == 'COMPONENT'")
-                div(:is="field.component" :vo="vo" :columns="columns" :param="vo[field.parameter_datatable_field_uid]" :param_ref_id="vo[field.parameter_datatable_field_uid + '___id___']")
+                div(:is="field.component_name" :vo="vo" :columns="columns" :param="vo[field.parameter_datatable_field_uid]" :param_ref_id="vo[field.parameter_datatable_field_uid + '___id___']")
 
             template(v-else-if="field.type == 'FILE'")
                 Filedatatablefieldcomponent(:file_id="vo[field.parameter_datatable_field_uid]")
@@ -77,7 +79,10 @@
                     :filter_additional_params="field.filter_additional_params"
                     :dashboard_id="field.dashboard_id"
                     :row_value="vo"
-                    :columns="columns")
+                    :columns="columns"
+                    :all_page_widget="all_page_widget"
+                    :page_widget="page_widget"
+                )
 
             template(v-else)
                 span {{ field_value }}

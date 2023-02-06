@@ -1,6 +1,7 @@
 import debounce from 'lodash/debounce';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import ModuleVocus from '../../../../shared/modules/Vocus/ModuleVocus';
@@ -32,7 +33,7 @@ export default class VocusComponent extends VueComponentBase {
     private debounced_load_vocus = debounce(this.load_vocus, 2000);
 
     get vo_types(): string[] {
-        return Object.keys(VOsTypesManager.getInstance().moduleTables_by_voType);
+        return Object.keys(VOsTypesManager.moduleTables_by_voType);
     }
 
     get vo_label() {
@@ -40,7 +41,7 @@ export default class VocusComponent extends VueComponentBase {
             return null;
         }
 
-        let table = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo._type];
+        let table = VOsTypesManager.moduleTables_by_voType[this.vo._type];
         if (table && table.default_label_field) {
             return this.vo[table.default_label_field.field_id];
         } else if (table && table.table_label_function) {
@@ -113,7 +114,7 @@ export default class VocusComponent extends VueComponentBase {
             return;
         }
 
-        this.vo = await ModuleDAO.getInstance().getVoById(this.tmp_vo_type, this.tmp_vo_id);
+        this.vo = await query(this.tmp_vo_type).filter_by_id(this.tmp_vo_id).select_vo();
         this.refvos = await ModuleVocus.getInstance().getVosRefsById(this.tmp_vo_type, this.tmp_vo_id);
 
         this.is_loading = false;

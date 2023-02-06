@@ -2,11 +2,27 @@ import DashboardPageWidgetVO from "../../../../../../../shared/modules/Dashboard
 import VOFieldRefVO from "../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO";
 import DataFilterOption from "../../../../../../../shared/modules/DataRender/vos/DataFilterOption";
 import TSRange from "../../../../../../../shared/modules/DataRender/vos/TSRange";
+import IExportableWidgetOptions from "../../IExportableWidgetOptions";
 
-export default class FieldValueFilterWidgetOptions {
+export default class FieldValueFilterWidgetOptions implements IExportableWidgetOptions {
 
     public static VO_FIELD_REF_PLACEHOLDER_CODE_PREFIX: string = "FieldValueFilterWidgetOptions.vo_field_ref.placeholder.";
     public static VO_FIELD_REF_ADVANCED_MODE_PLACEHOLDER_CODE_PREFIX: string = "FieldValueFilterWidgetOptions.vo_field_ref.advanced_mode_placeholder.";
+
+    public static CHECKBOX_COLUMNS_LABELS: string[] = [
+        'FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS.1',
+        'FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS.2',
+        'FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS.3',
+        'FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS.4',
+        'FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS.6',
+        'FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS.12'
+    ];
+    public static CHECKBOX_COLUMNS_1: number = 0;
+    public static CHECKBOX_COLUMNS_2: number = 1;
+    public static CHECKBOX_COLUMNS_3: number = 2;
+    public static CHECKBOX_COLUMNS_4: number = 3;
+    public static CHECKBOX_COLUMNS_6: number = 4;
+    public static CHECKBOX_COLUMNS_12: number = 5;
 
     public static get_selected_fields(page_widget: DashboardPageWidgetVO): { [api_type_id: string]: { [field_id: string]: boolean } } {
         let res: { [api_type_id: string]: { [field_id: string]: boolean } } = {};
@@ -73,6 +89,7 @@ export default class FieldValueFilterWidgetOptions {
         public vo_field_sort: VOFieldRefVO,
         public can_select_multiple: boolean,
         public is_checkbox: boolean,
+        public checkbox_columns: number,
         public max_visible_options: number,
         public show_search_field: boolean,
         public hide_lvl2_if_lvl1_not_selected: boolean,
@@ -96,6 +113,10 @@ export default class FieldValueFilterWidgetOptions {
         public vo_field_sort_lvl2: VOFieldRefVO,
         public autovalidate_advanced_filter: boolean,
         public add_is_null_selectable: boolean,
+        public is_button: boolean,
+        public enum_bg_colors: { [enum_value: number]: string },
+        public enum_fg_colors: { [enum_value: number]: string },
+        public show_count_value: boolean, // Seulement pour enum pour l'instant
         public active_field_on_autovalidate_advanced_filter: boolean,
     ) { }
 
@@ -113,5 +134,28 @@ export default class FieldValueFilterWidgetOptions {
             return null;
         }
         return FieldValueFilterWidgetOptions.VO_FIELD_REF_ADVANCED_MODE_PLACEHOLDER_CODE_PREFIX + page_widget_id + '.' + this.vo_field_ref.api_type_id + '.' + this.vo_field_ref.field_id;
+    }
+
+    public async get_all_exportable_name_code_and_translation(page_id: number, page_widget_id: number): Promise<{ [current_code_text: string]: string }> {
+        let res: { [exportable_code_text: string]: string } = {};
+
+        let placeholder_name_code_text: string = this.get_placeholder_name_code_text(page_widget_id);
+        if (placeholder_name_code_text) {
+
+            res[placeholder_name_code_text] =
+                FieldValueFilterWidgetOptions.VO_FIELD_REF_PLACEHOLDER_CODE_PREFIX +
+                '{{IMPORT:' + DashboardPageWidgetVO.API_TYPE_ID + ':' + page_widget_id + '}}' +
+                '.' + this.vo_field_ref.api_type_id + '.' + this.vo_field_ref.field_id;
+        }
+
+        let advanced_mode_placeholder_code_text: string = this.get_advanced_mode_placeholder_code_text(page_widget_id);
+        if (advanced_mode_placeholder_code_text) {
+
+            res[advanced_mode_placeholder_code_text] =
+                FieldValueFilterWidgetOptions.VO_FIELD_REF_ADVANCED_MODE_PLACEHOLDER_CODE_PREFIX +
+                '{{IMPORT:' + DashboardPageWidgetVO.API_TYPE_ID + ':' + page_widget_id + '}}' +
+                '.' + this.vo_field_ref.api_type_id + '.' + this.vo_field_ref.field_id;
+        }
+        return res;
     }
 }

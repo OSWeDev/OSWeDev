@@ -43,7 +43,7 @@ export default class EditablePageController {
             return;
         }
         if ((!!edit_info.field) && (!edit_info.vo.id)) {
-            ConsoleHandler.getInstance().error('On ne peut pas éditer le field d\'un vo qui n\'est pas en base');
+            ConsoleHandler.error('On ne peut pas éditer le field d\'un vo qui n\'est pas en base');
             return;
         }
 
@@ -102,7 +102,7 @@ export default class EditablePageController {
                         // VarsController.getInstance().stageUpdateVoUpdate(null, edit_info.vo);
                     }
                 } catch (error) {
-                    ConsoleHandler.getInstance().error(error);
+                    ConsoleHandler.error(error);
                     edit_info_result = false;
 
                     if (!!edit_info.vo) {
@@ -119,7 +119,7 @@ export default class EditablePageController {
                         // VarsController.getInstance().stageUpdateVoUpdate(null, edit_info.vo);
                     }
                 } catch (error) {
-                    ConsoleHandler.getInstance().error(error);
+                    ConsoleHandler.error(error);
                     edit_info_result = false;
                 }
             }

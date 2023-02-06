@@ -297,7 +297,7 @@ export default class OnPageTranslation extends VueComponentBase {
 
             this.snotify.success('Import de trads OK, recharger.');
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
             this.snotify.error(error);
         }
     }

@@ -6,6 +6,8 @@ import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapp
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
+import ConfigurationService from '../../env/ConfigurationService';
 import ForkServerController from './ForkServerController';
 import IFork from './interfaces/IFork';
 import IForkMessage from './interfaces/IForkMessage';
@@ -34,7 +36,9 @@ export default class ForkMessageController {
 
     private last_log_msg_error: number = 0;
 
-    private throttled_retry = throttle(this.retry.bind(this), 1000, { leading: false });
+    private throttled_retry = throttle(this.retry.bind(this), 1000);
+    private throttled_log_send_stats = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(this.log_send_stats.bind(this), 60000);
+    private throttled_log_receive_stats = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(this.log_receive_stats.bind(this), 60000);
 
     private constructor() { }
 
@@ -45,6 +49,10 @@ export default class ForkMessageController {
     public async message_handler(msg: IForkMessage, sendHandle: NodeJS.Process | ChildProcess = null): Promise<boolean> {
         if ((!msg) || (!this.registered_messages_handlers[msg.message_type])) {
             return false;
+        }
+
+        if (ConfigurationService.node_configuration.DEBUG_FORK_MESSAGE_RECEIVED_NB) {
+            this.throttled_log_receive_stats(msg);
         }
 
         return await this.registered_messages_handlers[msg.message_type](msg, sendHandle);
@@ -74,6 +82,10 @@ export default class ForkMessageController {
     }
 
     public async send(msg: IForkMessage, child_process: ChildProcess = null, forked_target: IFork = null): Promise<boolean> {
+
+        if (ConfigurationService.node_configuration.DEBUG_FORK_MESSAGE_SENT_NB) {
+            this.throttled_log_send_stats(msg);
+        }
 
         return new Promise((resolve, reject) => {
 
@@ -110,7 +122,7 @@ export default class ForkMessageController {
             return;
         }
 
-        ConsoleHandler.getInstance().warn("Retry messages... :" + this.stacked_msg_waiting.length + ':');
+        ConsoleHandler.warn("Retry messages... :" + this.stacked_msg_waiting.length + ':');
 
         let stacked_msg_waiting = this.stacked_msg_waiting;
         this.stacked_msg_waiting = [];
@@ -136,14 +148,14 @@ export default class ForkMessageController {
             let log_msg_error = performance.now();
             if (this.last_log_msg_error < (log_msg_error - 60)) {
                 this.last_log_msg_error = log_msg_error;
-                ConsoleHandler.getInstance().error(error);
+                ConsoleHandler.error(error);
             }
 
             /**
              * si le pid du sendHandle est plus actif, ça sert à rien de retenter
              */
             if (msg_wrapper.sendHandle && msg_wrapper.sendHandle.pid && !msg_wrapper.sendHandle.connected) {
-                ConsoleHandler.getInstance().error('ForkMessageController.handle_send_error: sendHandle.pid:' + msg_wrapper.sendHandle.pid + ' is not connected');
+                ConsoleHandler.error('ForkMessageController.handle_send_error: sendHandle.pid:' + msg_wrapper.sendHandle.pid + ' is not connected');
             }
 
             this.stacked_msg_waiting.push(msg_wrapper);
@@ -158,7 +170,7 @@ export default class ForkMessageController {
                      * On doit restart ASAP
                      */
                     ForkServerController.getInstance().forks_reload_asap[msg_wrapper.forked_target.uid] = false;
-                    ConsoleHandler.getInstance().error('handle_send_error:uid:' + msg_wrapper.forked_target.uid + ':On relance le thread le plus vite possible.');
+                    ConsoleHandler.error('handle_send_error:uid:' + msg_wrapper.forked_target.uid + ':On relance le thread le plus vite possible.');
                     ForkServerController.getInstance().forks_availability[msg_wrapper.forked_target.uid] = null;
                     ForkServerController.getInstance().forks_alive[msg_wrapper.forked_target.uid] = false;
                     ForkServerController.getInstance().throttled_reload_unavailable_threads();
@@ -167,12 +179,24 @@ export default class ForkMessageController {
 
                 if (ForkServerController.getInstance().forks_availability[msg_wrapper.forked_target.uid] &&
                     (Dates.add(Dates.now(), -1, TimeSegment.TYPE_MINUTE) > ForkServerController.getInstance().forks_availability[msg_wrapper.forked_target.uid])) {
-                    ConsoleHandler.getInstance().error('handle_send_error:uid:' + msg_wrapper.forked_target.uid + ':On relance le thread, indisponible depuis plus de 60 secondes.');
+                    ConsoleHandler.error('handle_send_error:uid:' + msg_wrapper.forked_target.uid + ':On relance le thread, indisponible depuis plus de 60 secondes.');
                     ForkServerController.getInstance().forks_availability[msg_wrapper.forked_target.uid] = null;
                     ForkServerController.getInstance().forks_alive[msg_wrapper.forked_target.uid] = false;
                     ForkServerController.getInstance().throttled_reload_unavailable_threads();
                 }
             }
+        }
+    }
+
+    private log_send_stats(messages: IForkMessage[]) {
+        if (messages && (messages.length > 0)) {
+            ConsoleHandler.log('ForkMessageController.log_send_stats: ' + messages.length + ' messages sent in last 60 seconds');
+        }
+    }
+
+    private log_receive_stats(messages: IForkMessage[]) {
+        if (messages && (messages.length > 0)) {
+            ConsoleHandler.log('ForkMessageController.log_receive_stats: ' + messages.length + ' messages received in last 60 seconds');
         }
     }
 }

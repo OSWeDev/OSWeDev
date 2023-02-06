@@ -72,7 +72,7 @@ export default class SessionShareComponent extends VueComponentBase {
 
         QRCode.toCanvas(canvas, this.session_share_url, function (error) {
             if (error) {
-                ConsoleHandler.getInstance().error(error);
+                ConsoleHandler.error(error);
             }
             self.hidden = false;
         });
@@ -90,7 +90,7 @@ export default class SessionShareComponent extends VueComponentBase {
                 })
                 .catch((error) => {
                     this.snotify.error(this.label('session_share.navigator_share_error'));
-                    ConsoleHandler.getInstance().error('navigator_share:error:' + error);
+                    ConsoleHandler.error('navigator_share:error:' + error);
                 });
         }
     }

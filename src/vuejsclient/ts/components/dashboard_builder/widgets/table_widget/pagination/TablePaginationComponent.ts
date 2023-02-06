@@ -4,6 +4,8 @@ import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../../VueComponentBase';
 import './TablePaginationComponent.scss';
 import 'vue-slider-component/theme/default.css';
+import ModuleSASSSkinConfigurator from '../../../../../../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
+import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 
 @Component({
     template: require('./TablePaginationComponent.pug'),
@@ -55,6 +57,8 @@ export default class TablePaginationComponent extends VueComponentBase {
     private new_page: number = 0;
     private new_page_str: string = "0";
 
+    private button_primary_bg_color: string = null;
+
     private current_page_and_around: { [index: number]: number } = {};
 
     private all_limit_selectable: number[] = null;
@@ -68,6 +72,11 @@ export default class TablePaginationComponent extends VueComponentBase {
         }
 
         return res;
+    }
+
+    private async mounted() {
+        this.button_primary_bg_color = await ModuleSASSSkinConfigurator.getInstance().get_sass_param_value('button_primary_bg_color');
+        ConsoleHandler.log('button_primary_bg_color', this.button_primary_bg_color);
     }
 
     @Watch('new_page_str')

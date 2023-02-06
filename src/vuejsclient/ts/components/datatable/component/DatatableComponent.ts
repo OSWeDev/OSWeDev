@@ -5,10 +5,10 @@ import { Component, Prop, Watch } from 'vue-property-decorator';
 import { Event } from 'vue-tables-2';
 import Datatable from '../../../../../shared/modules/DAO/vos/datatable/Datatable';
 import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
-import ManyToManyReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ManyToManyReferenceDatatableField';
-import ManyToOneReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
-import OneToManyReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/OneToManyReferenceDatatableField';
-import SimpleDatatableField from '../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import ManyToManyReferenceDatatableFieldVO from '../../../../../shared/modules/DAO/vos/datatable/ManyToManyReferenceDatatableFieldVO';
+import ManyToOneReferenceDatatableFieldVO from '../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableFieldVO';
+import OneToManyReferenceDatatableFieldVO from '../../../../../shared/modules/DAO/vos/datatable/OneToManyReferenceDatatableFieldVO';
+import SimpleDatatableFieldVO from '../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import ExportDataToXLSXParamVO from '../../../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO';
 import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
 import TSRange from '../../../../../shared/modules/DataRender/vos/TSRange';
@@ -111,8 +111,8 @@ export default class DatatableComponent extends VueComponentBase {
     }
 
     get isModuleParamTable() {
-        return VOsTypesManager.getInstance().moduleTables_by_voType[this.datatable.API_TYPE_ID] ?
-            VOsTypesManager.getInstance().moduleTables_by_voType[this.datatable.API_TYPE_ID].isModuleParamTable : false;
+        return VOsTypesManager.moduleTables_by_voType[this.datatable.API_TYPE_ID] ?
+            VOsTypesManager.moduleTables_by_voType[this.datatable.API_TYPE_ID].isModuleParamTable : false;
     }
 
     public async mounted() {
@@ -163,7 +163,7 @@ export default class DatatableComponent extends VueComponentBase {
 
             for (let j in this.$route.query) {
                 if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
-                    let simpleField: SimpleDatatableField<any, any> = (field as SimpleDatatableField<any, any>);
+                    let simpleField: SimpleDatatableFieldVO<any, any> = (field as SimpleDatatableFieldVO<any, any>);
 
                     switch (simpleField.moduleTableField.field_type) {
                         case ModuleTableField.FIELD_TYPE_boolean:
@@ -270,7 +270,7 @@ export default class DatatableComponent extends VueComponentBase {
             // at the moment the "embed" CRUD doesn't handle all types of fields filtering
             if (!!this.embed_filter && !!this.embed_filter[field.datatable_field_uid]) {
                 if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
-                    let simpleField: SimpleDatatableField<any, any> = (field as SimpleDatatableField<any, any>);
+                    let simpleField: SimpleDatatableFieldVO<any, any> = (field as SimpleDatatableFieldVO<any, any>);
 
                     switch (simpleField.moduleTableField.field_type) {
                         case ModuleTableField.FIELD_TYPE_date:
@@ -403,7 +403,7 @@ export default class DatatableComponent extends VueComponentBase {
             let field = this.datatable.fields[i];
 
             if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
-                let simpleField: SimpleDatatableField<any, any> = (field as SimpleDatatableField<any, any>);
+                let simpleField: SimpleDatatableFieldVO<any, any> = (field as SimpleDatatableFieldVO<any, any>);
 
                 switch (simpleField.moduleTableField.field_type) {
 
@@ -439,7 +439,7 @@ export default class DatatableComponent extends VueComponentBase {
             let field = this.datatable.fields[i];
 
             if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
-                let simpleField: SimpleDatatableField<any, any> = (field as SimpleDatatableField<any, any>);
+                let simpleField: SimpleDatatableFieldVO<any, any> = (field as SimpleDatatableFieldVO<any, any>);
 
                 switch (simpleField.moduleTableField.field_type) {
 
@@ -475,7 +475,7 @@ export default class DatatableComponent extends VueComponentBase {
             let field = this.datatable.fields[i];
 
             if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
-                let simpleField = (field as SimpleDatatableField<any, any>);
+                let simpleField = (field as SimpleDatatableFieldVO<any, any>);
 
                 switch (simpleField.moduleTableField.field_type) {
                     case ModuleTableField.FIELD_TYPE_tstz:
@@ -533,7 +533,7 @@ export default class DatatableComponent extends VueComponentBase {
 
             switch (field.type) {
                 case DatatableField.SIMPLE_FIELD_TYPE:
-                    let simpleField = (field as SimpleDatatableField<any, any>);
+                    let simpleField = (field as SimpleDatatableFieldVO<any, any>);
                     if (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_enum) {
                         res.push(field);
                     }
@@ -558,7 +558,7 @@ export default class DatatableComponent extends VueComponentBase {
             let field = this.datatable.fields[i];
 
             if ((field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
-                ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_boolean)) {
+                ((field as SimpleDatatableFieldVO<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_boolean)) {
                 res.push(field);
             }
         }
@@ -593,7 +593,7 @@ export default class DatatableComponent extends VueComponentBase {
 
             switch (datatable_field.type) {
                 case DatatableField.SIMPLE_FIELD_TYPE:
-                    let simpleField = (datatable_field as SimpleDatatableField<any, any>);
+                    let simpleField = (datatable_field as SimpleDatatableFieldVO<any, any>);
                     if (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_enum) {
 
                         for (let j in simpleField.moduleTableField.enum_values) {
@@ -634,7 +634,7 @@ export default class DatatableComponent extends VueComponentBase {
                         break;
                     }
 
-                    RangeHandler.getInstance().foreach_ranges_sync(field_value, (id: number) => {
+                    RangeHandler.foreach_ranges_sync(field_value, (id: number) => {
                         if (!field_values[id]) {
                             field_values[id] = id.toString();
                         }
@@ -647,8 +647,8 @@ export default class DatatableComponent extends VueComponentBase {
             let field_value = field_values[id];
 
             switch (datatable_field.type) {
-                case ManyToOneReferenceDatatableField.REF_RANGES_FIELD_TYPE:
-                case OneToManyReferenceDatatableField.MANY_TO_ONE_FIELD_TYPE:
+                case ManyToOneReferenceDatatableFieldVO.REF_RANGES_FIELD_TYPE:
+                case OneToManyReferenceDatatableFieldVO.MANY_TO_ONE_FIELD_TYPE:
                     res.push(new CustomFilterItem(
                         (field_value && field_value != '') ? field_value : '-',
                         field_value,
@@ -656,8 +656,8 @@ export default class DatatableComponent extends VueComponentBase {
                         parseInt(id),
                     ));
                     break;
-                case ManyToOneReferenceDatatableField.MANY_TO_MANY_FIELD_TYPE:
-                case ManyToManyReferenceDatatableField.ONE_TO_MANY_FIELD_TYPE:
+                case ManyToOneReferenceDatatableFieldVO.MANY_TO_MANY_FIELD_TYPE:
+                case ManyToManyReferenceDatatableFieldVO.ONE_TO_MANY_FIELD_TYPE:
 
                     res.push(new CustomFilterItem(
                         (field_value && field_value != '') ? field_value.label : '-',
@@ -683,13 +683,13 @@ export default class DatatableComponent extends VueComponentBase {
     }
 
     private changeTextFilterValue(datatable_field: DatatableField<any, any>) {
-        Event.$emit('vue-tables.filter::' + (datatable_field.moduleTable.vo_type + '_' + datatable_field.datatable_field_uid),
+        Event.$emit('vue-tables.filter::' + (datatable_field.vo_type_id + '_' + datatable_field.datatable_field_uid),
             this.custom_filters_values[datatable_field.datatable_field_uid] ? this.custom_filters_values[datatable_field.datatable_field_uid] : false);
     }
 
     private changeBooleanFilterValue(datatable_field: DatatableField<any, any>) {
         // Impossible d'envoyer un event avec une valeur false (donc false, 0, ...) car sinon c'est comme supprimer le filtre
-        Event.$emit('vue-tables.filter::' + (datatable_field.moduleTable.vo_type + '_' + datatable_field.datatable_field_uid),
+        Event.$emit('vue-tables.filter::' + (datatable_field.vo_type_id + '_' + datatable_field.datatable_field_uid),
             this.custom_filters_values[datatable_field.datatable_field_uid] ? (this.custom_filters_values[datatable_field.datatable_field_uid].value ? "VRAI" : "FAUX") : false);
     }
 
@@ -711,7 +711,7 @@ export default class DatatableComponent extends VueComponentBase {
         for (let i in this.datatable.fields) {
             let field = this.datatable.fields[i];
             if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
-                let simpleField: SimpleDatatableField<any, any> = field as SimpleDatatableField<any, any>;
+                let simpleField: SimpleDatatableFieldVO<any, any> = field as SimpleDatatableFieldVO<any, any>;
 
                 switch (simpleField.moduleTableField.field_type) {
                     case ModuleTableField.FIELD_TYPE_boolean:
@@ -784,7 +784,7 @@ export default class DatatableComponent extends VueComponentBase {
                     break;
 
                 case DatatableField.ONE_TO_MANY_FIELD_TYPE:
-                    let oneToManyField: OneToManyReferenceDatatableField<any> = (field) as OneToManyReferenceDatatableField<any>;
+                    let oneToManyField: OneToManyReferenceDatatableFieldVO<any> = (field) as OneToManyReferenceDatatableFieldVO<any>;
 
                     for (let oneToManyTargetId in this.getStoredDatas[oneToManyField.targetModuleTable.vo_type]) {
                         let targetVo = this.getStoredDatas[oneToManyField.targetModuleTable.vo_type][oneToManyTargetId];
@@ -807,11 +807,11 @@ export default class DatatableComponent extends VueComponentBase {
                     break;
 
                 case DatatableField.MANY_TO_MANY_FIELD_TYPE:
-                    let manyToManyField: ManyToManyReferenceDatatableField<any, any> = (field) as ManyToManyReferenceDatatableField<any, any>;
+                    let manyToManyField: ManyToManyReferenceDatatableFieldVO<any, any> = (field) as ManyToManyReferenceDatatableFieldVO<any, any>;
 
                     let dest_ids: number[] = [];
                     let interTargetRefField = manyToManyField.interTargetRefFieldId ? manyToManyField.interModuleTable.getFieldFromId(manyToManyField.interTargetRefFieldId) : manyToManyField.interModuleTable.getRefFieldFromTargetVoType(manyToManyField.targetModuleTable.vo_type);
-                    let interSrcRefField = manyToManyField.interSrcRefFieldId ? manyToManyField.interModuleTable.getFieldFromId(manyToManyField.interSrcRefFieldId) : manyToManyField.interModuleTable.getRefFieldFromTargetVoType(manyToManyField.moduleTable.vo_type);
+                    let interSrcRefField = manyToManyField.interSrcRefFieldId ? manyToManyField.interModuleTable.getFieldFromId(manyToManyField.interSrcRefFieldId) : manyToManyField.interModuleTable.getRefFieldFromTargetVoType(manyToManyField.vo_type_id);
 
                     for (let interi in this.getStoredDatas[manyToManyField.interModuleTable.vo_type]) {
                         let intervo = this.getStoredDatas[manyToManyField.interModuleTable.vo_type][interi];
@@ -834,9 +834,9 @@ export default class DatatableComponent extends VueComponentBase {
                     break;
 
                 // case DatatableField.REF_RANGES_FIELD_TYPE:
-                //     let refField: RefRangesReferenceDatatableField<any> = (field) as RefRangesReferenceDatatableField<any>;
+                //     let refField: RefRangesReferenceDatatableFieldVO<any> = (field) as RefRangesReferenceDatatableFieldVO<any>;
 
-                //     RangeHandler.getInstance().foreach_ranges_sync()
+                //     RangeHandler.foreach_ranges_sync()
                 //     let dest_ids: number[] = [];
                 //     let interTargetRefField = refField.interModuleTable.getRefFieldFromTargetVoType(refField.targetModuleTable.vo_type);
                 //     let interSrcRefField = refField.interModuleTable.getRefFieldFromTargetVoType(refField.moduleTable.vo_type);
@@ -974,7 +974,7 @@ export default class DatatableComponent extends VueComponentBase {
                 continue;
             }
             // if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
-            //     let simpleField: SimpleDatatableField<any, any> = this.datatable.fields[i] as SimpleDatatableField<any, any>;
+            //     let simpleField: SimpleDatatableFieldVO<any, any> = this.datatable.fields[i] as SimpleDatatableFieldVO<any, any>;
 
             //     if (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html) {
             //         continue;
@@ -1007,11 +1007,11 @@ export default class DatatableComponent extends VueComponentBase {
             }
 
             customFilters.push({
-                name: field.moduleTable.vo_type + '_' + field.datatable_field_uid,
+                name: field.vo_type_id + '_' + field.datatable_field_uid,
                 callback: function (row, query) {
                     switch (field.type) {
                         case DatatableField.SIMPLE_FIELD_TYPE:
-                            let simpleField: SimpleDatatableField<any, any> = field as SimpleDatatableField<any, any>;
+                            let simpleField: SimpleDatatableFieldVO<any, any> = field as SimpleDatatableFieldVO<any, any>;
 
                             switch (simpleField.moduleTableField.field_type) {
                                 case ModuleTableField.FIELD_TYPE_boolean:
@@ -1146,13 +1146,13 @@ export default class DatatableComponent extends VueComponentBase {
                                     let is_ok: boolean = false;
 
                                     if (query.start && query.start.length > 0) {
-                                        if (RangeHandler.getInstance().elt_intersects_range(moment(query.start).utc(true).unix(), tsrange)) {
+                                        if (RangeHandler.elt_intersects_range(moment(query.start).utc(true).unix(), tsrange)) {
                                             is_ok = true;
                                         }
                                     }
 
                                     if (query.end && query.end.length > 0) {
-                                        if (RangeHandler.getInstance().elt_intersects_range(moment(query.end).utc(true).unix(), tsrange)) {
+                                        if (RangeHandler.elt_intersects_range(moment(query.end).utc(true).unix(), tsrange)) {
                                             is_ok = true;
                                         }
                                     }
@@ -1413,7 +1413,7 @@ export default class DatatableComponent extends VueComponentBase {
             } else {
                 // si le premier item a un min de type number c'est que c'est un tableau de range alors on get le min du range
                 if (typeof raw_data[0].min === 'number') {
-                    return RangeHandler.getInstance().getSegmentedMin_from_ranges(raw_data as TSRange[]);
+                    return RangeHandler.getSegmentedMin_from_ranges(raw_data as TSRange[]);
                 }
             }
             // cas non identifié

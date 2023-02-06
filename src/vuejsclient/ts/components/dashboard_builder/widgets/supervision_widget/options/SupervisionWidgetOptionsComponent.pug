@@ -1,0 +1,81 @@
+.supervision_widget_options_component
+    .widget_title(v-if='title_name_code_text')
+        .widget_title_label {{ label('supervision_widget_options_component.widget_title.title_name_code_text') }}
+        .widget_title_wrapper
+            Inlinetranslatabletext(
+                :code_text="title_name_code_text" 
+                :is_editable="true"
+                :default_translation="default_title_translation")
+
+    .supervision_api_type_ids
+        .input_label {{ label('supervision_widget_options_component.supervision_api_type_ids') }}
+
+        .supervision_api_type_ids_select
+            .input_wrapper
+                multiselect(
+                    :preselect-first="false"
+                    :multiple="true"
+                    v-model="supervision_api_type_ids"
+                    :placeholder="label('supervision_widget_options_component.supervision_api_type_ids_select')"
+                    :options="supervision_select_options"
+                    :custom-label="supervision_select_label"
+                    :allow-empty="true",
+                    autocomplete="off"
+
+                    :searchable="true"
+                    :internal-search="true"
+
+                    id="supervision_api_type_ids_select"
+
+                    :select-label='label("multiselect.selectLabel")'
+                    :select-group-label='label("multiselect.selectGroupLabel")'
+                    :selected-label='label("multiselect.selectedLabel")'
+                    :deselect-label='label("multiselect.deselectLabel")'
+                    :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                )
+
+    .limit
+        .input_label {{ label('supervision_widget_options_component.limit') }}
+        .input_wrapper
+            input(
+                type="number"
+                v-model.number="limit"
+            )
+
+    .refresh_button
+        .input_label {{ label('supervision_widget_options_component.refresh_button') }}
+        
+        toggle-button(
+            @change="switch_refresh_button" 
+            :value="refresh_button" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('supervision_widget_options_component.refresh_button.visible'), unchecked: label('supervision_widget_options_component.refresh_button.hidden')}")
+
+    .auto_refresh
+        .input_label {{ label('supervision_widget_options_component.auto_refresh') }}
+        
+        toggle-button(
+            @change="switch_auto_refresh" 
+            :value="auto_refresh" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('supervision_widget_options_component.auto_refresh.visible'), unchecked: label('supervision_widget_options_component.auto_refresh.hidden')}")
+
+    .auto_refresh_seconds(v-if="widget_options && widget_options.auto_refresh")
+        .input_label {{ label('supervision_widget_options_component.auto_refresh_seconds') }}
+        .input_wrapper
+            input(
+                type="number"
+                v-model.number="auto_refresh_seconds"
+            )
+            
+    .show_bulk_edit
+        .input_label {{ label('supervision_widget_options_component.show_bulk_edit') }}
+        
+        toggle-button(
+            @change="switch_show_bulk_edit" 
+            :value="show_bulk_edit" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('supervision_widget_options_component.show_bulk_edit.visible'), unchecked: label('supervision_widget_options_component.show_bulk_edit.hidden')}")

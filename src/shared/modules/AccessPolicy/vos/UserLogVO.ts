@@ -1,4 +1,4 @@
-import IServerUserSession from "../../../../server/IServerUserSession";
+import IServerUserSession from "./IServerUserSession";
 
 export default class UserLogVO {
     public static API_TYPE_ID: string = "userlog";

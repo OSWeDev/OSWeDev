@@ -2,37 +2,23 @@ import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/Data
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../shared/modules/ModuleTable';
 import WeightHandler from '../../../../tools/WeightHandler';
+import VOsTypesManager from '../../../VOsTypesManager';
 
 export default abstract class ReferenceDatatableField<Target extends IDistantVOBase> extends DatatableField<number, number> {
 
-    protected constructor(
-        type: string,
-        datatable_field_uid: string,
-        public targetModuleTable: ModuleTable<Target>,
-        public sortedTargetFields: Array<DatatableField<any, any>>,
-        translatable_title: string = null
-    ) {
-        super(type, datatable_field_uid, translatable_title);
+    public _target_module_table_type_id: string;
+    public sortedTargetFields: Array<DatatableField<any, any>>;
 
-        for (let i in sortedTargetFields) {
-            sortedTargetFields[i].setModuleTable(this.targetModuleTable);
-        }
+    get target_module_table_type_id(): string {
+        return this._target_module_table_type_id;
+    }
 
-        let has_weight: boolean = false;
+    set target_module_table_type_id(target_module_table_type_id: string) {
+        this._target_module_table_type_id = target_module_table_type_id;
+    }
 
-        for (let i in targetModuleTable.get_fields()) {
-            if (targetModuleTable.get_fields()[i].field_id == "weight") {
-                has_weight = true;
-                break;
-            }
-        }
-
-        //par defaut on trie par id sauf si on a un champ de weight
-        if (!has_weight) {
-            this.setSort((vo1, vo2) => vo1.id - vo2.id);
-        } else {
-            this.setSort(WeightHandler.getInstance().get_sort_by_weight_cb.bind(this));
-        }
+    get targetModuleTable(): ModuleTable<Target> {
+        return this.target_module_table_type_id ? VOsTypesManager.moduleTables_by_voType[this.target_module_table_type_id] : null;
     }
 
     public voIdToHumanReadable: (id: number) => string = (id: number) => {
@@ -67,4 +53,36 @@ export default abstract class ReferenceDatatableField<Target extends IDistantVOB
         return res ? res as any : '';
     }
 
+    protected init_ref_dtf(
+        _type: string,
+        type: string,
+        datatable_field_uid: string,
+        targetModuleTable: ModuleTable<Target>,
+        sortedTargetFields: Array<DatatableField<any, any>>
+    ) {
+        this.init(_type, type, datatable_field_uid);
+
+        this.target_module_table_type_id = targetModuleTable.vo_type;
+        for (let i in sortedTargetFields) {
+            sortedTargetFields[i].vo_type_full_name = targetModuleTable.full_name;
+            sortedTargetFields[i].vo_type_id = targetModuleTable.vo_type;
+        }
+        this.sortedTargetFields = sortedTargetFields;
+
+        let has_weight: boolean = false;
+
+        for (let i in targetModuleTable.get_fields()) {
+            if (targetModuleTable.get_fields()[i].field_id == "weight") {
+                has_weight = true;
+                break;
+            }
+        }
+
+        //par defaut on trie par id sauf si on a un champ de weight
+        if (!has_weight) {
+            this.setSort((vo1, vo2) => vo1.id - vo2.id);
+        } else {
+            this.setSort(WeightHandler.getInstance().get_sort_by_weight_cb.bind(this));
+        }
+    }
 }

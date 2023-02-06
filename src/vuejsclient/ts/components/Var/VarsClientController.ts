@@ -1,4 +1,5 @@
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import MatroidController from '../../../../shared/modules/Matroid/MatroidController';
 import ModuleVar from '../../../../shared/modules/Var/ModuleVar';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../shared/modules/Var/vos/VarDataValueResVO';
@@ -65,7 +66,7 @@ export default class VarsClientController {
         this.prepare_next_check();
 
         // On lance aussi un process pour update les subs côté serveur et pas les perdre sur un timeout
-        this.update_params_registration().then().catch((err) => ConsoleHandler.getInstance().error(err));
+        this.update_params_registration().then().catch((err) => ConsoleHandler.error(err));
     }
 
     /**
@@ -86,6 +87,11 @@ export default class VarsClientController {
             let var_param = var_params[i];
 
             if (!var_param) {
+                continue;
+            }
+
+            if (!MatroidController.getInstance().check_bases_not_max_ranges(var_param)) {
+                ConsoleHandler.error('VarsClientController:registerParams:!check_bases_not_max_ranges:' + var_param.index);
                 continue;
             }
 
@@ -119,6 +125,12 @@ export default class VarsClientController {
 
         for (let i in this.registered_var_params) {
             let var_param_wrapper = this.registered_var_params[i];
+
+            if (!MatroidController.getInstance().check_bases_not_max_ranges(var_param_wrapper.var_param)) {
+                ConsoleHandler.error('VarsClientController:registerParams:!check_bases_not_max_ranges:' + var_param_wrapper.var_param.index);
+                continue;
+            }
+
             needs_registration[var_param_wrapper.var_param.index] = var_param_wrapper.var_param;
         }
 
@@ -134,10 +146,31 @@ export default class VarsClientController {
      */
     public async registerParamsAndWait(var_params: VarDataBaseVO[] | { [index: string]: VarDataBaseVO }, value_type: number = VarUpdateCallback.VALUE_TYPE_VALID): Promise<{ [index: string]: VarDataBaseVO }> {
 
+        let filtered_var_params: VarDataBaseVO[] = [];
+
+        for (let i in var_params) {
+            let var_param = var_params[i];
+
+            if (!var_param) {
+                continue;
+            }
+
+            if (!MatroidController.getInstance().check_bases_not_max_ranges(var_param)) {
+                ConsoleHandler.error('VarsClientController:registerParams:!check_bases_not_max_ranges:' + var_param.index);
+                continue;
+            }
+
+            filtered_var_params.push(var_param);
+        }
+
+        if (!filtered_var_params.length) {
+            return null;
+        }
+
         return new Promise(async (resolve, reject) => {
             let callbacks: { [cb_uid: number]: VarUpdateCallback } = {};
             let res: { [index: string]: VarDataBaseVO } = {};
-            let nb_waited_cbs: number = TypesHandler.getInstance().isArray(var_params) ? (var_params as VarDataBaseVO[]).length : Object.keys(var_params).length;
+            let nb_waited_cbs: number = filtered_var_params.length;
 
             let callback = VarUpdateCallback.newCallbackOnce(async (varData: VarDataBaseVO) => {
                 res[varData.index] = varData;
@@ -148,7 +181,7 @@ export default class VarsClientController {
             }, value_type);
             callbacks[callback.UID] = callback;
 
-            await this.registerParams(var_params, callbacks);
+            await this.registerParams(filtered_var_params, callbacks);
         });
     }
 
@@ -188,13 +221,18 @@ export default class VarsClientController {
 
             if (!this.registered_var_params[var_param.index]) {
                 continue;
-                // ConsoleHandler.getInstance().error('unRegisterParams on unregistered param... ' + var_param.index);
+                // ConsoleHandler.error('unRegisterParams on unregistered param... ' + var_param.index);
+            }
+
+            if (!MatroidController.getInstance().check_bases_not_max_ranges(var_param)) {
+                ConsoleHandler.error('VarsClientController:registerParams:!check_bases_not_max_ranges:' + var_param.index);
+                continue;
             }
 
             this.registered_var_params[var_param.index].nb_registrations--;
             if (this.registered_var_params[var_param.index].nb_registrations < 0) {
                 continue;
-                // ConsoleHandler.getInstance().error('unRegisterParams on unregistered param... ' + var_param.index);
+                // ConsoleHandler.error('unRegisterParams on unregistered param... ' + var_param.index);
             }
 
             if (this.registered_var_params[var_param.index].nb_registrations <= 0) {
@@ -263,7 +301,7 @@ export default class VarsClientController {
              *  on sait qu'il est en train de nous répondre, donc on attend
              */
             if ((Dates.now() - VarsClientController.getInstance().last_notif_received) < 10) {
-                ConsoleHandler.getInstance().log('check_invalid_valued_params_registration : server is calculating, waiting:' + VarsClientController.getInstance().last_notif_received);
+                ConsoleHandler.log('check_invalid_valued_params_registration : server is calculating, waiting:' + VarsClientController.getInstance().last_notif_received);
                 this.prepare_next_check();
                 return;
             }
@@ -329,7 +367,7 @@ export default class VarsClientController {
             }
             await ModuleVar.getInstance().update_params_registration(vars.map((v) => v.var_param));
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         // On lance un process parrallèle qui check en permanence que les vars pour lesquels on a pas de valeurs sont bien enregistrées côté serveur

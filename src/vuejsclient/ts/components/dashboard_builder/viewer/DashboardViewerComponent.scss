@@ -4,6 +4,14 @@
 
     margin-bottom: 5em;
 
+    .is_loading,
+    .loading_failed {
+        width: auto;
+        text-align: center;
+        font-size: x-large;
+        padding: 10%;
+    }
+
     >.row>.col-sm-12>.header {
 
         margin-bottom: 1em;
@@ -53,10 +61,8 @@
                 vertical-align: middle;
                 height: 2em;
                 width: 2em;
-                background: #0d6efd;
                 padding: 0.3em;
                 margin-right: 0.5em;
-                color: white;
                 border-radius: 2px;
                 display: inline-block;
                 font-size: 1.2em;
@@ -64,8 +70,9 @@
                 transition: all ease-in-out 0.4s;
             }
 
-            .back,
-            .select {
+            .back {
+                color: white;
+
                 &:hover {
                     background-color: goldenrod;
                 }
@@ -73,14 +80,6 @@
 
             .back {
                 background: #333;
-            }
-
-            .select {
-                background: #0d6efd;
-            }
-
-            .selected {
-                background: green;
             }
 
             .name {

@@ -56,3 +56,17 @@
                     .existing_custom_filters_list(v-if='get_custom_filters && get_custom_filters.length')
                         template(v-for='custom_filter in get_custom_filters')
                             .custom_filter(@click='change_custom_filter(field_that_could_get_custom_filter, custom_filter)') {{ custom_filter }}
+
+    .color_options 
+        .color_option
+            .bg_color
+                .explication {{ label("var_widget_options_component.bg_color") }}
+                color-picker(v-model="bg_color" @change='throttled_update_colors')
+            .fg_color_value
+                .explication {{ label("var_widget_options_component.fg_color_value") }}
+                color-picker(v-model="fg_color_value" @change='throttled_update_colors')
+            .fg_color_text
+                .explication {{ label("var_widget_options_component.fg_color_text") }}
+                color-picker(v-model="fg_color_text" @change='throttled_update_colors')
+                
+            .preview(:style='{background: bg_color, color: fg_color_value}') {{ t(title_name_code_text) }}

@@ -44,6 +44,8 @@ import Patch20220404UpdateDBBWidgetsDefaultSize from './patchs/postmodules/Patch
 import Patch20220713ChangeVarCacheType1To0 from './patchs/postmodules/Patch20220713ChangeVarCacheType1To0';
 import Patch20220725DashboardWidgetUpdate from './patchs/postmodules/Patch20220725DashboardWidgetUpdate';
 import Patch20220809ChangeDbbTrad from './patchs/postmodules/Patch20220809ChangeDbbTrad';
+import Patch20221216ChangeDbbTradsToIncludeLabels from './patchs/postmodules/Patch20221216ChangeDbbTradsToIncludeLabels';
+import Patch20221217ParamBlockVos from './patchs/postmodules/Patch20221217ParamBlockVos';
 import Patch20210803ChangeDIHDateType from './patchs/premodules/Patch20210803ChangeDIHDateType';
 import Patch20210914ClearDashboardWidgets from './patchs/premodules/Patch20210914ClearDashboardWidgets';
 import Patch20211004ChangeLang from './patchs/premodules/Patch20211004ChangeLang';
@@ -125,6 +127,8 @@ export default abstract class GeneratorBase {
             Patch20220713ChangeVarCacheType1To0.getInstance(),
             Patch20220725DashboardWidgetUpdate.getInstance(),
             Patch20220809ChangeDbbTrad.getInstance(),
+            Patch20221216ChangeDbbTradsToIncludeLabels.getInstance(),
+            Patch20221217ParamBlockVos.getInstance(),
         ];
     }
 
@@ -132,16 +136,18 @@ export default abstract class GeneratorBase {
 
     public async generate() {
 
-        ConfigurationService.getInstance().setEnvParams(this.STATIC_ENV_PARAMS);
+        ConfigurationService.init();
+        ConfigurationService.setEnvParams(this.STATIC_ENV_PARAMS);
 
+        ConsoleHandler.init();
         FileLoggerHandler.getInstance().prepare().then(() => {
-            ConsoleHandler.getInstance().logger_handler = FileLoggerHandler.getInstance();
-            ConsoleHandler.getInstance().log("Generator starting");
+            ConsoleHandler.logger_handler = FileLoggerHandler.getInstance();
+            ConsoleHandler.log("Generator starting");
         }).catch((reason) => {
-            ConsoleHandler.getInstance().error("Generator prepare : " + reason);
+            ConsoleHandler.error("Generator prepare : " + reason);
         });
 
-        const envParam: EnvParam = ConfigurationService.getInstance().node_configuration;
+        const envParam: EnvParam = ConfigurationService.node_configuration;
 
         let connectionString = envParam.CONNECTION_STRING;
 
@@ -205,6 +211,9 @@ export default abstract class GeneratorBase {
             }
         }
         console.log("post modules initialization workers done.");
+
+        // Derniers chargements
+        await this.modulesService.late_server_modules_configurations();
 
         /**
          * On décale les trads après les post modules workers sinon les trads sont pas générées sur créa d'une lang en post worker => cas de la créa de nouveau projet

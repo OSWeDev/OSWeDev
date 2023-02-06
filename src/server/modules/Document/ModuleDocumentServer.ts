@@ -77,77 +77,77 @@ export default class ModuleDocumentServer extends ModuleServerBase {
 
     public async configure() {
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Documents' },
             'fields.labels.ref.module_document_document.___LABEL____file_id'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Youtube' },
             'DOCUMENT.DOCUMENT_TYPE.YOUTUBE'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'PDF' },
             'DOCUMENT.DOCUMENT_TYPE.PDF'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'PPT' },
             'DOCUMENT.DOCUMENT_TYPE.PPT'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'XLS' },
             'DOCUMENT.DOCUMENT_TYPE.XLS'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'DOC' },
             'DOCUMENT.DOCUMENT_TYPE.DOC'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'AUTRE' },
             'DOCUMENT.DOCUMENT_TYPE.OTHER'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'XS' },
             'DOCUMENT.DOCUMENT_IMPORTANCE.XS'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'S' },
             'DOCUMENT.DOCUMENT_IMPORTANCE.S'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'M' },
             'DOCUMENT.DOCUMENT_IMPORTANCE.M'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'L' },
             'DOCUMENT.DOCUMENT_IMPORTANCE.L'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'XL' },
             'DOCUMENT.DOCUMENT_IMPORTANCE.XL'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'XXL' },
             'DOCUMENT.DOCUMENT_IMPORTANCE.XXL'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Documents' },
             'menu.menuelements.admin.DocumentAdminVueModule.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Feedbacks' },
             'menu.menuelements.admin.FeedbackAdminVueModule.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Documents' },
             'menu.menuelements.admin.document.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Tags' },
             'menu.menuelements.admin.dt.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Groupes de tags' },
             'menu.menuelements.admin.dtg.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Feedbacks' },
             'menu.menuelements.admin.feedback.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': ' ' },
             'tstz_input.placeholder.date_debut.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Documentation' },
             'document_handler.modal_title.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Tous' },
             'document_handler.tags.tous.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Besoin d'infos" },
             'document_handler.need_info.___LABEL___'));
 
@@ -192,7 +192,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
             return false;
         }
 
-        let BASE_URL: string = ConfigurationService.getInstance().node_configuration.BASE_URL;
+        let BASE_URL: string = ConfigurationService.node_configuration.BASE_URL;
         let url = FileHandler.getInstance().get_full_url(BASE_URL, file.path);
 
         d.document_url = url;
@@ -212,7 +212,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
             return;
         }
 
-        let BASE_URL: string = ConfigurationService.getInstance().node_configuration.BASE_URL;
+        let BASE_URL: string = ConfigurationService.node_configuration.BASE_URL;
         let url = FileHandler.getInstance().get_full_url(BASE_URL, f.path);
 
         for (let i in docs) {
@@ -241,7 +241,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
 
         let res: DocumentVO[] = [];
         let d_ids: number[] = ObjectHandler.getInstance().getIdsList(vos);
-        let d_by_ids: { [id: number]: DocumentVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(vos);
+        let d_by_ids: { [id: number]: DocumentVO } = VOsTypesManager.vosArray_to_vosByIds(vos);
         let doc_langs: DocumentLangVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIds(DocumentLangVO.API_TYPE_ID, 'lang_id', [user_lang.id], 'd_id', d_ids);
         let doc_roles: DocumentRoleVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIds(DocumentRoleVO.API_TYPE_ID, 'd_id', d_ids);
         let doc_role_ids_by_docid: { [docid: number]: number[] } = {};
@@ -285,7 +285,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
 
         let res: DocumentTagVO[] = [];
         let dt_ids: number[] = ObjectHandler.getInstance().getIdsList(vos);
-        let dt_by_ids: { [id: number]: DocumentTagVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(vos);
+        let dt_by_ids: { [id: number]: DocumentTagVO } = VOsTypesManager.vosArray_to_vosByIds(vos);
         let doc_langs: DocumentTagLangVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIds(DocumentTagLangVO.API_TYPE_ID, 'lang_id', [user_lang.id], 'dt_id', dt_ids);
 
         for (let i in doc_langs) {
@@ -309,7 +309,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
 
         let res: DocumentTagGroupVO[] = [];
         let dtg_ids: number[] = ObjectHandler.getInstance().getIdsList(vos);
-        let dtg_by_ids: { [id: number]: DocumentTagGroupVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(vos);
+        let dtg_by_ids: { [id: number]: DocumentTagGroupVO } = VOsTypesManager.vosArray_to_vosByIds(vos);
         let doc_langs: DocumentTagGroupLangVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIds(DocumentTagGroupLangVO.API_TYPE_ID, 'lang_id', [user_lang.id], 'dtg_id', dtg_ids);
 
         for (let i in doc_langs) {

@@ -29,7 +29,7 @@ export default class ActivateDataImport implements IGeneratorWorker {
 
             await db.none("update admin.modules set actif = true where name = 'data_import';");
         } catch (error) {
-            ConsoleHandler.getInstance().log('Ignore this error if new project: ' + error);
+            ConsoleHandler.log('Ignore this error if new project: ' + error);
         }
     }
 }

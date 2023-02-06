@@ -1,9 +1,8 @@
-import VarServerControllerBase from '../../../../server/modules/Var/VarServerControllerBase';
+import VarServerControllerBase from '../../Var/VarServerControllerBase';
 import AnimationController from '../../../../shared/modules/Animation/AnimationController';
 import ThemeModuleDataRangesVO from '../../../../shared/modules/Animation/params/theme_module/ThemeModuleDataRangesVO';
 import AnimationQRVO from '../../../../shared/modules/Animation/vos/AnimationQRVO';
 import AnimationUserQRVO from '../../../../shared/modules/Animation/vos/AnimationUserQRVO';
-import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
 import VarConfVO from '../../../../shared/modules/Var/vos/VarConfVO';
@@ -30,7 +29,7 @@ export default class VarDayPrctAvancementAnimationController extends VarServerCo
 
     protected constructor() {
         super(
-            new VarConfVO(AnimationController.VarDayPrctAvancementAnimationController_VAR_NAME, ThemeModuleDataRangesVO.API_TYPE_ID, TimeSegment.TYPE_DAY),
+            new VarConfVO(AnimationController.VarDayPrctAvancementAnimationController_VAR_NAME, ThemeModuleDataRangesVO.API_TYPE_ID),
             { 'fr-fr': 'Prct avancement animation' },
             {
                 'fr-fr': 'Prctage d\'avancement de l\'animation.'
@@ -82,9 +81,9 @@ export default class VarDayPrctAvancementAnimationController extends VarServerCo
                 return ThemeModuleDataRangesVO.createNew(
                     var_name,
                     false,
-                    [RangeHandler.getInstance().getMaxNumRange()],
-                    [RangeHandler.getInstance().getMaxNumRange()],
-                    [RangeHandler.getInstance().getMaxNumRange()]
+                    [RangeHandler.getMaxNumRange()],
+                    [RangeHandler.getMaxNumRange()],
+                    [RangeHandler.getMaxNumRange()]
                     // TODO FIXME Améliorer ce matroid point de vue métier
                 );
         }
