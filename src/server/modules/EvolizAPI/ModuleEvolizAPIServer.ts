@@ -2,6 +2,7 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleEvolizAPI from '../../../shared/modules/EvolizAPI/ModuleEvolizAPI';
 import EvolizClientVO from '../../../shared/modules/EvolizAPI/vos/clients/EvolizClientVO';
 import EvolizInvoiceVO from '../../../shared/modules/EvolizAPI/vos/invoices/EvolizInvoiceVO';
@@ -23,7 +24,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
     private static instance: ModuleEvolizAPIServer = null;
 
     private constructor() {
-        super(ModuleEvolizAPIServer.getInstance().name);
+        super(ModuleEvolizAPI.getInstance().name);
     }
 
     public async registerAccessPolicies(): Promise<void> {
@@ -59,6 +60,11 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleEvolizAPI.APINAME_connexion_to_api, this.connexion_to_api.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleEvolizAPI.APINAME_list_invoices, this.list_invoices.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleEvolizAPI.APINAME_create_invoices, this.create_invoices.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleEvolizAPI.APINAME_list_clients, this.list_clients.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleEvolizAPI.APINAME_create_clients, this.create_clients.bind(this));
     }
 
     public async connexion_to_api() {
@@ -102,12 +108,12 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
         }
     }
 
-    public async create_invoices() {
+    public async create_invoices(invoice: EvolizInvoiceVO) {
         try {
             let response = await fetch(ModuleEvolizAPI.EvolizAPI_BaseURL + 'api/v1/invoices', {
                 method: 'POST',
                 body: JSON.stringify({
-                    //infos du EvolizInvoiceVO
+                    invoice
                 }),
                 headers: {
                     'Content-Type': 'application/json'
@@ -148,12 +154,12 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
         }
     }
 
-    public async create_clients() {
+    public async create_clients(client: EvolizClientVO) {
         try {
             let response = await fetch(ModuleEvolizAPI.EvolizAPI_BaseURL + 'api/v1/clients', {
                 method: 'POST',
                 body: JSON.stringify({
-                    //infos du EvolizClientVO
+                    client
                 }),
                 headers: {
                     'Content-Type': 'application/json'

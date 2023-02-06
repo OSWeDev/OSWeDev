@@ -1,5 +1,10 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import APIControllerWrapper from '../API/APIControllerWrapper';
+import GetAPIDefinition from '../API/vos/GetAPIDefinition';
+import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import Module from '../Module';
+import EvolizClientVO from './vos/clients/EvolizClientVO';
+import EvolizInvoiceVO from './vos/invoices/EvolizInvoiceVO';
 
 export default class ModuleEvolizAPI extends Module {
 
@@ -8,6 +13,11 @@ export default class ModuleEvolizAPI extends Module {
     public static EvolizAPI_AccessToken_API_PARAM_NAME: string = 'EvolizAPI.EvolizAPI_AccessToken_API';
 
     public static EvolizAPI_BaseURL: string = 'https://www.evoliz.io/';
+    public static APINAME_connexion_to_api: string = "connexion_to_api";
+    public static APINAME_list_invoices: string = "list_invoices";
+    public static APINAME_create_invoices: string = "create_invoices";
+    public static APINAME_list_clients: string = "list_clients";
+    public static APINAME_create_clients: string = "create_clients";
 
     public static MODULE_NAME: string = 'EvolizAPI';
 
@@ -24,12 +34,47 @@ export default class ModuleEvolizAPI extends Module {
 
     private static instance: ModuleEvolizAPI = null;
 
+    public connexion_to_api: () => Promise<string> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_connexion_to_api);
+    public list_invoices: () => Promise<EvolizInvoiceVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_invoices);
+    public create_invoices: (client: EvolizInvoiceVO) => Promise<string> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_create_invoices);
+    public list_clients: () => Promise<EvolizClientVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_clients);
+    public create_clients: (invoice: EvolizClientVO) => Promise<string> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_create_clients);
+
     private constructor() {
 
         super("evolizapi", ModuleEvolizAPI.MODULE_NAME);
     }
 
     public registerApis() {
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<null, string>(
+            null,
+            ModuleEvolizAPI.APINAME_connexion_to_api,
+            []
+        ));
+
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<null, EvolizClientVO>(
+            null,
+            ModuleEvolizAPI.APINAME_list_invoices,
+            []
+        ));
+
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<EvolizClientVO, string>(
+            null,
+            ModuleEvolizAPI.APINAME_create_invoices,
+            []
+        ));
+
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<null, EvolizInvoiceVO>(
+            null,
+            ModuleEvolizAPI.APINAME_list_clients,
+            []
+        ));
+
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<EvolizInvoiceVO, string>(
+            null,
+            ModuleEvolizAPI.APINAME_create_clients,
+            []
+        ));
     }
 
     public initialize() {
