@@ -1508,7 +1508,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                                 ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':select_vos:OUT');
                             }
 
-                            if (!ids_db) {
+                            if ((!ids_db) || !ids_db.length) {
 
                                 // Max range étant interdit sur les registers de var, on force un retour null
                                 if (!accept_max_ranges) {
@@ -1566,7 +1566,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                                 ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':get_ts_ranges_from_custom_filter:OUT');
                             }
 
-                            if (!var_param[matroid_field.field_id]) {
+                            if ((!var_param[matroid_field.field_id]) || (!var_param[matroid_field.field_id].length)) {
                                 if (!accept_max_ranges) {
 
                                     if (!refuse_param) {
