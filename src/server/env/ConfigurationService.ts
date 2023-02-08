@@ -25,8 +25,8 @@ export default class ConfigurationService {
      * ----- Local thread cache
      */
 
-    public static setEnvParams(STATIC_ENV_PARAMS: { [env: string]: IEnvParam }, force_init: boolean = true) {
-        if (force_init) {
+    public static setEnvParams(STATIC_ENV_PARAMS: { [env: string]: IEnvParam }) {
+        if (!ConfigurationService.nodeEnv) {
             ConfigurationService.init();
         }
 
