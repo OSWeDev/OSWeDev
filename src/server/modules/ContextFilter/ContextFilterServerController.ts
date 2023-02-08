@@ -351,7 +351,7 @@ export default class ContextFilterServerController {
                             }
                             ContextQueryInjectionCheckHandler.assert_integer(active_field_filter.param_tsranges[0].min);
                             where_conditions.push(field_id + " = " + active_field_filter.param_tsranges[0].min);
-                            throw new Error('Not Implemented');
+                            break;
                         }
 
                         if (active_field_filter.param_numeric_array != null) {

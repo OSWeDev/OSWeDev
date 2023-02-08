@@ -24,6 +24,7 @@ export default class FeedbackVO implements IVersionedVO {
     public impersonated_from_user_id: number;
 
     public state_id: number;
+    public weight: number;
 
     public trello_ref: string;
 

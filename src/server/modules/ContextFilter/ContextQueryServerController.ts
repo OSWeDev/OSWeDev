@@ -306,15 +306,18 @@ export default class ContextQueryServerController {
                 let module_table = VOsTypesManager.moduleTables_by_voType[field.api_type_id];
                 let module_field = module_table.getFieldFromId(field.field_id);
 
-                switch (module_field.field_type) {
-                    case ModuleTableField.FIELD_TYPE_tsrange:
-                        row[field_id] = RangeHandler.parseRangeBDD(
-                            TSRange.RANGE_TYPE, row[field_id], (module_field.segmentation_type ? module_field.segmentation_type : TimeSegment.TYPE_SECOND));
-                        break;
-                    default:
-                        break;
-                }
-                row[field_id + '__raw'] = row[field_id];
+                // switch (module_field.field_type) {
+                //     case ModuleTableField.FIELD_TYPE_tsrange:
+                //         row[field_id] = RangeHandler.parseRangeBDD(
+                //             TSRange.RANGE_TYPE, row[field_id], (module_field.segmentation_type ? module_field.segmentation_type : TimeSegment.TYPE_SECOND));
+                //         break;
+                //     default:
+                //         break;
+                // }
+
+                let forced_numeric_field = {};
+                module_table.force_numeric_field(module_field, row, forced_numeric_field, field_id);
+                row[field_id + '__raw'] = forced_numeric_field[field_id];
 
                 // si on est en édition on laisse la data raw
                 if (columns_by_field_id && fields && fields[field_id] && ((!columns_by_field_id[field_id]) || columns_by_field_id[field_id].readonly)) {

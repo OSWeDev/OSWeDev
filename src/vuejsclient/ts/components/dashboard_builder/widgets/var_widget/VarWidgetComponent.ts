@@ -96,10 +96,10 @@ export default class VarWidgetComponent extends VueComponentBase {
         return this.widget_options.var_id;
     }
 
-    // @Watch('get_active_field_filters', { deep: true })
-    // private async onchange_active_field_filters() {
-    //     await this.throttled_update_visible_options();
-    // }
+    @Watch('get_active_field_filters', { deep: true })
+    private async onchange_active_field_filters() {
+        await this.throttled_update_visible_options();
+    }
 
     get var_custom_filters(): { [var_param_field_name: string]: string } {
         if (!this.widget_options) {
@@ -118,12 +118,13 @@ export default class VarWidgetComponent extends VueComponentBase {
     //     await this.throttled_update_visible_options();
     // }
 
-    private async update_visible_options() {
+    private async update_visible_options(force: boolean = false) {
 
         // Si j'ai mon bouton de validation des filtres qui est actif, j'attends que ce soit lui qui m'appelle
-        if (this.has_widget_validation_filtres()) {
+        if ((!force) && this.has_widget_validation_filtres()) {
             return;
         }
+
 
         await this.throttle_do_update_visible_options();
     }
