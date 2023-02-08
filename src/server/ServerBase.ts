@@ -98,7 +98,6 @@ export default abstract class ServerBase {
         ServerBase.instance = this;
         this.modulesService = modulesService;
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
-        ConfigurationService.init();
         ConfigurationService.setEnvParams(this.STATIC_ENV_PARAMS);
 
         ConsoleHandler.init();
