@@ -44,8 +44,6 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     private get_active_api_type_ids: string[];
     @ModuleDashboardPageGetter
     private get_query_api_type_ids: string[];
-    @ModuleDashboardPageGetter
-    private get_force_filter_all_api_type_ids: boolean;
     @ModuleDashboardPageAction
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
     @ModuleDashboardPageAction
@@ -251,66 +249,98 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             this.warn_existing_external_filters = !this.try_apply_actual_active_filters(this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id]);
         }
 
-        let active_field_filters = null;
-
-        if (!this.no_inter_filter) {
-            active_field_filters = this.get_active_field_filters;
-        }
-
         let tmp: DataFilterOption[] = [];
+        let add_tmp: { [numeric_value: number]: boolean } = {};
 
-        let query_api_type_id: string = (this.has_other_ref_api_type_id && this.other_ref_api_type_id) ? this.other_ref_api_type_id : this.vo_field_ref.api_type_id;
+        let available_api_type_ids: string[] = this.get_available_api_type_ids();
 
-        let query_ = query(query_api_type_id)
-            .field(this.vo_field_ref.field_id, 'label', this.vo_field_ref.api_type_id)
-            .add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(ContextFilterHandler.getInstance().clean_context_filters_for_request(active_field_filters)))
-            .set_limit(this.widget_options.max_visible_options)
-            .using(this.dashboard.api_type_ids);
-
-        query_.filters = ContextFilterHandler.getInstance().add_context_filters_exclude_values(
-            this.exclude_values,
-            this.vo_field_ref,
-            query_.filters,
+        let custom_active_field_filters_by_api_type_id: { [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } } = this.get_custom_active_field_filters_by_api_type_id(
+            available_api_type_ids,
             false,
         );
 
-        // Si je suis sur une table segmentée, je vais voir si j'ai un filtre sur mon field qui segmente
-        // Si ce n'est pas le cas, je n'envoie pas la requête
-        let base_table: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[query_.base_api_type_id];
+        let limit = EnvHandler.MAX_POOL / 2;
+        let promise_pipeline = new PromisePipeline(limit);
 
-        if (
-            base_table &&
-            base_table.is_segmented
-        ) {
+        for (let i in available_api_type_ids) {
+            let query_api_type_id: string = available_api_type_ids[i];
+
+            let active_field_filters = custom_active_field_filters_by_api_type_id[query_api_type_id];
+
+            let filters: ContextFilterVO[] = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
+                active_field_filters
+            );
+
+            let vo_field_ref: VOFieldRefVO = Object.assign(new VOFieldRefVO(), this.vo_field_ref);
+
+            if (this.force_filter_all_api_type_ids) {
+                vo_field_ref.api_type_id = query_api_type_id;
+            }
+
+            let query_ = query(query_api_type_id)
+                .field(vo_field_ref.field_id, 'label', vo_field_ref.api_type_id)
+                .add_filters(filters)
+                .set_limit(this.widget_options.max_visible_options)
+                .using(this.dashboard.api_type_ids);
+
+            query_.filters = ContextFilterHandler.getInstance().add_context_filters_exclude_values(
+                this.exclude_values,
+                vo_field_ref,
+                query_.filters,
+                false,
+            );
+
+            // Si je suis sur une table segmentée, je vais voir si j'ai un filtre sur mon field qui segmente
+            // Si ce n'est pas le cas, je n'envoie pas la requête
+            let base_table: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[query_.base_api_type_id];
+
             if (
-                !base_table.table_segmented_field ||
-                !base_table.table_segmented_field.manyToOne_target_moduletable ||
-                !active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type] ||
-                !Object.keys(active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type]).length
+                base_table &&
+                base_table.is_segmented
             ) {
-                return;
-            }
-
-            let has_filter: boolean = false;
-
-            for (let field_id in active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type]) {
-                if (active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type][field_id]) {
-                    has_filter = true;
-                    break;
+                if (
+                    !base_table.table_segmented_field ||
+                    !base_table.table_segmented_field.manyToOne_target_moduletable ||
+                    !active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type] ||
+                    !Object.keys(active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type]).length
+                ) {
+                    return;
                 }
+
+                let has_filter: boolean = false;
+
+                for (let field_id in active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type]) {
+                    if (active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type][field_id]) {
+                        has_filter = true;
+                        break;
+                    }
+                }
+
+                if (!has_filter) {
+                    return;
+                }
+            } else {
+                query_ = await FieldValueFilterWidgetController.getInstance().check_segmented_dependencies(this.dashboard, query_, true);
             }
 
-            if (!has_filter) {
-                return;
-            }
-        } else {
-            query_ = await FieldValueFilterWidgetController.getInstance().check_segmented_dependencies(this.dashboard, query_, true);
+            await promise_pipeline.push(async () => {
+                let tmp_values: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
+                    query_,
+                    this.actual_query
+                );
+
+                for (let j in tmp_values) {
+                    let tmp_value = tmp_values[j];
+
+                    if (!add_tmp[tmp_value.numeric_value]) {
+                        add_tmp[tmp_value.numeric_value] = true;
+                        tmp.push(tmp_value);
+                    }
+                }
+            });
         }
 
-        tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(
-            query_,
-            this.actual_query
-        );
+        await promise_pipeline.end();
 
         // Si je ne suis pas sur la dernière demande, je me casse
         if (this.last_calculation_cpt != launch_cpt) {
@@ -357,54 +387,12 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         let limit = EnvHandler.MAX_POOL / 2;
         let promise_pipeline = new PromisePipeline(limit);
 
-        let custom_active_field_filters_by_api_type_id: { [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } } = {};
-        let context_filters_for_request: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters);
+        let available_api_type_ids: string[] = this.get_available_api_type_ids();
 
-        let available_api_type_ids: string[] = [];
-
-        if (this.get_active_api_type_ids && (this.get_active_api_type_ids.length > 0)) {
-            available_api_type_ids = this.get_active_api_type_ids;
-        } else {
-            available_api_type_ids = this.get_query_api_type_ids;
-        }
-
-        for (let api_type_id in context_filters_for_request) {
-
-            for (let i in available_api_type_ids) {
-                let api_type_id_sup: string = available_api_type_ids[i];
-
-                if (!custom_active_field_filters_by_api_type_id[api_type_id_sup]) {
-                    custom_active_field_filters_by_api_type_id[api_type_id_sup] = {};
-                }
-
-                if (!this.get_query_api_type_ids.includes(api_type_id)) {
-                    custom_active_field_filters_by_api_type_id[api_type_id_sup][api_type_id] = context_filters_for_request[api_type_id];
-                    continue;
-                }
-
-                let new_api_type_id: string = api_type_id_sup;
-
-                if (this.get_force_filter_all_api_type_ids) {
-                    new_api_type_id = api_type_id;
-                }
-
-                custom_active_field_filters_by_api_type_id[api_type_id_sup][new_api_type_id] = cloneDeep(context_filters_for_request[api_type_id]);
-
-                for (let field_id in custom_active_field_filters_by_api_type_id[api_type_id_sup][new_api_type_id]) {
-                    // Si je suis sur le field de la requête, je ne le prend pas en compte, il sera fait plus loin
-                    if (field_id == this.vo_field_ref.field_id) {
-                        custom_active_field_filters_by_api_type_id[api_type_id_sup][new_api_type_id][field_id] = null;
-                        continue;
-                    }
-
-                    if (!custom_active_field_filters_by_api_type_id[api_type_id_sup][new_api_type_id][field_id]) {
-                        continue;
-                    }
-
-                    custom_active_field_filters_by_api_type_id[api_type_id_sup][new_api_type_id][field_id].vo_type = api_type_id_sup;
-                }
-            }
-        }
+        let custom_active_field_filters_by_api_type_id: { [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } } = this.get_custom_active_field_filters_by_api_type_id(
+            available_api_type_ids,
+            true,
+        );
 
         let count_by_filter_visible_opt_id: { [id: number]: number } = {};
 
@@ -428,7 +416,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
                     this.vo_field_ref,
                 );
 
-                if (this.get_force_filter_all_api_type_ids) {
+                if (this.force_filter_all_api_type_ids) {
                     enum_filter.vo_type = api_type_id;
                 }
 
@@ -456,6 +444,75 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         await promise_pipeline.end();
 
         this.count_by_filter_visible_opt_id = count_by_filter_visible_opt_id;
+    }
+
+    private get_available_api_type_ids(): string[] {
+        if (this.has_other_ref_api_type_id && this.other_ref_api_type_id) {
+            return [this.other_ref_api_type_id];
+        }
+
+        if (this.get_active_api_type_ids && (this.get_active_api_type_ids.length > 0)) {
+            return this.get_active_api_type_ids;
+        }
+
+        return this.get_query_api_type_ids;
+    }
+
+    private get_custom_active_field_filters_by_api_type_id(
+        available_api_type_ids: string[],
+        switch_current_field: boolean,
+    ): { [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } } {
+        let res: { [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } } = {};
+
+        let active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null;
+
+        if (!this.no_inter_filter) {
+            active_field_filters = this.get_active_field_filters;
+        }
+
+        let context_filters_for_request: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = ContextFilterHandler.getInstance().clean_context_filters_for_request(
+            active_field_filters
+        );
+
+        for (let api_type_id in context_filters_for_request) {
+
+            for (let i in available_api_type_ids) {
+                let api_type_id_sup: string = available_api_type_ids[i];
+
+                if (!res[api_type_id_sup]) {
+                    res[api_type_id_sup] = {};
+                }
+
+                if (!this.get_query_api_type_ids.includes(api_type_id)) {
+                    res[api_type_id_sup][api_type_id] = context_filters_for_request[api_type_id];
+                    continue;
+                }
+
+                let new_api_type_id: string = api_type_id_sup;
+
+                if (this.force_filter_all_api_type_ids) {
+                    new_api_type_id = api_type_id;
+                }
+
+                res[api_type_id_sup][new_api_type_id] = cloneDeep(context_filters_for_request[api_type_id]);
+
+                for (let field_id in res[api_type_id_sup][new_api_type_id]) {
+                    // Si je suis sur le field de la requête, je ne le prend pas en compte, il sera fait plus loin
+                    if (switch_current_field && (field_id == this.vo_field_ref.field_id)) {
+                        res[api_type_id_sup][new_api_type_id][field_id] = null;
+                        continue;
+                    }
+
+                    if (!res[api_type_id_sup][new_api_type_id][field_id]) {
+                        continue;
+                    }
+
+                    res[api_type_id_sup][new_api_type_id][field_id].vo_type = api_type_id_sup;
+                }
+            }
+        }
+
+        return res;
     }
 
     private try_apply_actual_active_filters(filter: ContextFilterVO): boolean {
@@ -571,6 +628,15 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         }
 
         return !!this.widget_options.add_is_null_selectable;
+    }
+
+    get force_filter_all_api_type_ids(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.force_filter_all_api_type_ids;
     }
 
     get vo_field_ref(): VOFieldRefVO {
@@ -707,6 +773,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
                     options.enum_fg_colors,
                     options.show_count_value,
                     options.active_field_on_autovalidate_advanced_filter,
+                    options.force_filter_all_api_type_ids,
                 ) : null;
             }
         } catch (error) {

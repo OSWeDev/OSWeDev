@@ -136,7 +136,6 @@ export default abstract class GeneratorBase {
 
     public async generate() {
 
-        ConfigurationService.init();
         ConfigurationService.setEnvParams(this.STATIC_ENV_PARAMS);
 
         ConsoleHandler.init();

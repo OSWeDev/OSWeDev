@@ -25,7 +25,11 @@ export default class ConfigurationService {
      * ----- Local thread cache
      */
 
-    public static setEnvParams(STATIC_ENV_PARAMS: { [env: string]: IEnvParam }) {
+    public static setEnvParams(STATIC_ENV_PARAMS: { [env: string]: IEnvParam }, force_init: boolean = true) {
+        if (force_init) {
+            ConfigurationService.init();
+        }
+
         ConfigurationService.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
         ConfigurationService.node_configuration = Object.assign(new EnvParam(), ConfigurationService.STATIC_ENV_PARAMS[ConfigurationService.nodeEnv]);
     }

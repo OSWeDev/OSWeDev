@@ -222,6 +222,21 @@ export default class SupervisionWidgetOptionsComponent extends VueComponentBase 
         }
     }
 
+    private async switch_show_bulk_edit() {
+        this.show_bulk_edit = !this.show_bulk_edit;
+
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.next_update_options.show_bulk_edit != this.show_bulk_edit) {
+            this.next_update_options.show_bulk_edit = this.show_bulk_edit;
+            await this.throttled_update_options();
+        }
+    }
+
     get title_name_code_text(): string {
         if (!this.widget_options) {
             return null;

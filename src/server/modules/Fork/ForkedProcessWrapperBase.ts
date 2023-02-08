@@ -45,7 +45,6 @@ export default abstract class ForkedProcessWrapperBase {
         ForkedProcessWrapperBase.instance = this;
         this.modulesService = modulesService;
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
-        ConfigurationService.init();
         ConfigurationService.setEnvParams(this.STATIC_ENV_PARAMS);
 
         ConsoleHandler.init();

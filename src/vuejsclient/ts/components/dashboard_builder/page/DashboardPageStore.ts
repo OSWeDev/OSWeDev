@@ -41,7 +41,6 @@ export interface IDashboardPageState {
     custom_filters: string[];
     active_api_type_ids: string[];
     query_api_type_ids: string[];
-    force_filter_all_api_type_ids: boolean;
 
     widgets_invisibility: { [w_id: number]: boolean };
 
@@ -84,7 +83,6 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             custom_filters: [],
             active_api_type_ids: [],
             query_api_type_ids: [],
-            force_filter_all_api_type_ids: false,
             widgets_invisibility: {},
             discarded_field_paths: {}
         };
@@ -110,10 +108,6 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
             get_query_api_type_ids(state: IDashboardPageState): string[] {
                 return state.query_api_type_ids;
-            },
-
-            get_force_filter_all_api_type_ids(state: IDashboardPageState): boolean {
-                return state.force_filter_all_api_type_ids;
             },
 
             get_page_history(state: IDashboardPageState): DashboardPageVO[] {
@@ -192,10 +186,6 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
             set_query_api_type_ids(state: IDashboardPageState, query_api_type_ids: string[]) {
                 state.query_api_type_ids = query_api_type_ids;
-            },
-
-            set_force_filter_all_api_type_ids(state: IDashboardPageState, force_filter_all_api_type_ids: boolean) {
-                state.force_filter_all_api_type_ids = force_filter_all_api_type_ids;
             },
 
             set_page_history(state: IDashboardPageState, page_history: DashboardPageVO[]) {
@@ -337,9 +327,6 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             set_query_api_type_ids(context: DashboardPageContext, query_api_type_ids: string[]) {
                 commit_set_query_api_type_ids(context, query_api_type_ids);
             },
-            set_force_filter_all_api_type_ids(context: DashboardPageContext, force_filter_all_api_type_ids: boolean) {
-                commit_set_force_filter_all_api_type_ids(context, force_filter_all_api_type_ids);
-            },
             set_page_history(context: DashboardPageContext, page_history: DashboardPageVO[]) {
                 commit_set_page_history(context, page_history);
             },
@@ -429,7 +416,6 @@ export const commit_pop_page_history = commit(DashboardPageStoreInstance.mutatio
 export const commit_set_custom_filters = commit(DashboardPageStoreInstance.mutations.set_custom_filters);
 export const commit_set_active_api_type_ids = commit(DashboardPageStoreInstance.mutations.set_active_api_type_ids);
 export const commit_set_query_api_type_ids = commit(DashboardPageStoreInstance.mutations.set_query_api_type_ids);
-export const commit_set_force_filter_all_api_type_ids = commit(DashboardPageStoreInstance.mutations.set_force_filter_all_api_type_ids);
 export const commit_clear_active_field_filters = commit(DashboardPageStoreInstance.mutations.clear_active_field_filters);
 export const commit_set_widgets_invisibility = commit(DashboardPageStoreInstance.mutations.set_widgets_invisibility);
 export const commit_set_widget_invisibility = commit(DashboardPageStoreInstance.mutations.set_widget_invisibility);
