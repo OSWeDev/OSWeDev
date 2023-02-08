@@ -69,13 +69,13 @@ export default class TablesGraphComponent extends VueComponentBase {
     @Prop()
     private dashboard: DashboardVO;
 
-    private toggles: { [edge_id: number]: boolean } = null; //Valeur des interrupteurs.
+    private toggles: { [vo_type: number]: string[] } = null; //Valeur des interrupteurs.
     private toggle: boolean = null; //Valeur de l'interrupteur de la cellule selectionnée.
     private current_cell = null;
     private graphic_cells: { [cellule: string]: typeof mxCell } = {}; //Dictionnaire dans lequel on enregistre les cellules à afficher afin d'éviter d'afficher des doublons.
     private end_graphic_cells: { [cellule: string]: typeof mxCell } = {};
     private cells: { [api_type_id: string]: any } = {};
-    private end_toggles: { [edge_id: number]: boolean; } = [];
+    private end_toggles: { [vo_type: number]: string[] } = {};
 
     private async selectionChanged() { //TODO Faire en sorte que lorsqu'on selectionne une autre flèche directement, l'interrupteur se met a jour.
         /* S'active lors qu'on selectionne une flèche ou une cellule.
@@ -126,7 +126,7 @@ export default class TablesGraphComponent extends VueComponentBase {
         this.$set(this, 'current_cell', cell);
     }
 
-    private async toggle_check(checked: boolean, edge?: typeof mxCell) { //TODO être sûr que cette supression affecte les tables de widget.
+    private async toggle_check(checked: boolean, edge?: typeof mxCell) {
         /* Toggle function
             Permet de réactiver une flèche supprimée.
             After delete_arrow.
@@ -199,9 +199,11 @@ export default class TablesGraphComponent extends VueComponentBase {
             db_cell_source.values_to_exclude = results;
 
             const startIndex = db_cell_source.values_to_exclude.indexOf(arrowValue['field_id']);
+            const startIndex_toggles = this.toggles[arrowValue.source.value.tables_graph_vo_type].indexOf(arrowValue['field_id']);
             const deleteCount = 1;
             if (startIndex !== -1) {
                 db_cell_source.values_to_exclude.splice(startIndex, deleteCount);
+                this.toggles[arrowValue.source.value.tables_graph_vo_type].splice(startIndex_toggles, deleteCount);
                 this.toggle = false;
                 await ModuleDAO.getInstance().insertOrUpdateVO(db_cell_source); //Mise à jour de la base.
                 await this.initgraph(); //TODO Peut être que cela est trop brutal, on peut essayer simplement avec initcell je pense.
@@ -220,6 +222,7 @@ export default class TablesGraphComponent extends VueComponentBase {
                 case false:
                     if (!db_cell_source.values_to_exclude.includes(arrowValue['field_id'])) { //On évite les doublons
                         db_cell_source.values_to_exclude.push(arrowValue['field_id']);
+                        this.toggles[arrowValue.source.value.tables_graph_vo_type].push(arrowValue['field_id']);
                         this.toggle = true;
                         await ModuleDAO.getInstance().insertOrUpdateVO(db_cell_source); //Mise à jour de la base.
                     }
@@ -572,7 +575,7 @@ export default class TablesGraphComponent extends VueComponentBase {
         let compteur: number = 0;
         for (let cellule in this.graphic_cells) {
             let v1: typeof mxCell = this.graphic_cells[cellule];
-            //Table associée, on souhaite désactiver par défau certains chemins.
+            //Table associée, on souhaite désactiver par défauts certains chemins.
             switch (red_by_default) {
                 case true:
                     let table = VOsTypesManager.moduleTables_by_voType[cellule];
@@ -589,60 +592,32 @@ export default class TablesGraphComponent extends VueComponentBase {
         this.toggles = {};
 
         for (let cell_name of Object.keys(this.graphic_cells)) {
-            for (let edge of this.graphic_cells[cell_name].edges) {
-                if (!this.toggles[edge.id]) {
-                    //Interrupteur désactivé ?
-                    try {
-                        //Est-ce n/n ?
-                        let is_n_n: boolean; // lien n/n ou non
-                        let vo_type: string;
-                        if (typeof (edge['field_id']) == 'string') {
-                            vo_type = edge.source.value.tables_graph_vo_type;
-                            is_n_n = false;
-                        } else {
-                            vo_type = edge['field_id']['intermediaire'];
-                            is_n_n = true;
-                        }
+            let vo_type = this.graphic_cells[cell_name].value.tables_graph_vo_type;
 
-                        switch (is_n_n) {
-                            case (false):
-                                let db_cells_source = await query(DashboardGraphVORefVO.API_TYPE_ID)
-                                    .filter_by_text_eq('vo_type', vo_type)
-                                    .filter_by_num_eq('dashboard_id', this.dashboard.id)
-                                    .select_vos<DashboardGraphVORefVO>();
+            let db_cells_source = await query(DashboardGraphVORefVO.API_TYPE_ID)
+                .filter_by_text_eq('vo_type', vo_type)
+                .filter_by_num_eq('dashboard_id', this.dashboard.id)
+                .select_vos<DashboardGraphVORefVO>();
 
-                                if ((!db_cells_source) || (!db_cells_source.length)) {
-                                    ConsoleHandler.error('mxEvent.MOVE_END:no db cell');
-                                    return;
-                                }
+            if ((!db_cells_source) || (!db_cells_source.length)) {
+                ConsoleHandler.error('mxEvent.MOVE_END:no db cell');
+                return;
+            }
 
-                                let db_cell_source = db_cells_source[0];
+            let db_cell_source = db_cells_source[0].values_to_exclude;
+            if (db_cell_source === null) {                          //Indéfini si les interrupteurs n'ont jamais été touchés...
 
-                                this.toggles[edge.id] = db_cell_source.values_to_exclude.includes(edge['field_id']); //On vérifie que l'attribut existe à minima
-
-                                if (this.toggles[edge.id] === undefined) {                          //Indéfini si les interrupteurs n'ont jamais été touchés...
-
-                                    this.toggles[edge.id] = false;
-                                }
-                                break;
-                            case (true):
-                                this.toggles[edge.id] = false; // Une relation n_n est par défaut désactivée.
-                                break;
-                        }
-                    } catch { this.toggles[edge.id] = false; }
-
-                }
-
-
-
+                this.toggles[vo_type] = [];
+            } else {
+                this.toggles[vo_type] = db_cell_source;
 
             }
 
         }
+
+
         this.end_graphic_cells = this.graphic_cells;
         this.end_toggles = this.toggles;
-
-
     }
     private initcell(cell: DashboardGraphVORefVO, v1: typeof mxCell, is_versioned?) { //TODO Inclure les champs techniques dans targets_to_exclude
         /*

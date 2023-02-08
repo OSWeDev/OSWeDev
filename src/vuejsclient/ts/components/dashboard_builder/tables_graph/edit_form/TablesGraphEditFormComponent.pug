@@ -1,30 +1,52 @@
 .tables_graph_edit_form
     .tables_graph_edit_form_title {{ label('tables_graph_edit_form.title') }}
     .tables_graph_edit_form_cell(v-if="cellData && cellData.value && cellData.edge")
-        .name Off/On: {{cellData.value}} 
-        toggle-button(
-                type="checkbox" 
-                id="myCheckbox"
-                @change="confirm_delete_arrow" 
-                :value= "!toggle" 
-                :sync="true"
-                :width="100"
-                )
-    .tables_graph_edit_form_cell(v-if="cellData && cellData.value && !cellData.edge")           
+        .arrow
+            .icons 
+                i.fa-duotone.fa-arrow-right.fa-fw 
+            .title Off/On {{cellData.value}}
+        .toggle
+            toggle-button(
+                    type="checkbox" 
+                    id="myCheckbox"
+                    @change="confirm_delete_arrow_selected" 
+                    :value= "!toggle" 
+                    :sync="true"
+                    :width="100"
+                    )
+    .tables_graph_edit_form_cell(v-else-if="cellData && cellData.value && !cellData.edge")           
         .name {{ cell_name }}
         .delete(@click='confirm_delete_cell')
             i.fa-solid.fa-trash.fa-fw(aria-hidden="true")
             | {{ label('tables_graph_edit_form.delete') }}
     .tables_graph_edit_form_cell(v-else) {{ label('tables_graph_edit_form.no_object_selected') }}
-    .tables_graph_arrows_table  
-        template(v-for="edge in all_edges")
-            .edge(:edge='edge.id')
-                .name Off/On: {{edge.value}} 
-                toggle-button(
-                        type="checkbox"
-                        id = "edge.id" 
-                        @change="confirm_delete_arrow(edge)" 
-                        :value= "!toggles[edge.id]" 
-                        :sync="false"
-                        :width="100"
-                        )
+    .tables_graph_arrows_table
+        .header
+                //- .hide_show_switch 
+                .title_arrows_table {{ label('droppable_vos.title') }}
+
+        //- .filters
+        //-     .set_filter_by_api_type_id
+        //-         //- input(type='search' :placeholder="label('droppable_vos.set_filter_by_api_type_id.placeholder')" @input='filter_by_api_type_id' v-model="filter_value")  
+        template(v-for="cell in all_cells_names")
+            .cell
+                .cell_header
+                    b      
+                        .icons
+                            i.fa-solid.fa-table.fa-fw
+                        .title {{cell}}
+                .edges
+                    template(v-for="edge in all_edges[cell]")
+                        .edge(:edge='edge.value')
+                            .arrow
+                                .icons 
+                                    i.fa-duotone.fa-arrow-right.fa-fw 
+                                .title  {{edge.value}}
+                            .toggle
+                                toggle-button(
+                                        type="checkbox"
+                                        @change="confirm_delete_arrow(edge)" 
+                                        :value= "!toggles[all_cells[cell].value.tables_graph_vo_type].includes(edge.field_id)" 
+                                        :sync="true"
+                                        :width="100"
+                                        )
