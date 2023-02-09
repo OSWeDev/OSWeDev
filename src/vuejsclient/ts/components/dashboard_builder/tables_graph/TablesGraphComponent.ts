@@ -69,11 +69,13 @@ export default class TablesGraphComponent extends VueComponentBase {
     @Prop()
     private dashboard: DashboardVO;
 
-    private toggle: boolean = null; //Valeur de l'interrupteur.
+    private toggles: { [vo_type: number]: string[] } = null; //Valeur des interrupteurs.
+    private toggle: boolean = null; //Valeur de l'interrupteur de la cellule selectionnée.
     private current_cell = null;
     private graphic_cells: { [cellule: string]: typeof mxCell } = {}; //Dictionnaire dans lequel on enregistre les cellules à afficher afin d'éviter d'afficher des doublons.
+    private end_graphic_cells: { [cellule: string]: typeof mxCell } = {};
     private cells: { [api_type_id: string]: any } = {};
-
+    private end_toggles: { [vo_type: number]: string[] } = {};
 
     private async selectionChanged() { //TODO Faire en sorte que lorsqu'on selectionne une autre flèche directement, l'interrupteur se met a jour.
         /* S'active lors qu'on selectionne une flèche ou une cellule.
@@ -124,16 +126,23 @@ export default class TablesGraphComponent extends VueComponentBase {
         this.$set(this, 'current_cell', cell);
     }
 
-    private async toggle_check(checked: boolean) { //TODO être sûr que cette supression affecte les tables de widget.
+    private async toggle_check(checked: boolean, edge?: typeof mxCell) {
         /* Toggle function
             Permet de réactiver une flèche supprimée.
             After delete_arrow.
         */
         // const input = document.getElementById("myCheckbox") as HTMLInputElement; //Assertion obligatoire
+        let arrowValue: typeof mxCell;
+        if (!edge) {
+            arrowValue = editor.graph.getSelectionCell();
 
-        let arrowValue: typeof mxCell = editor.graph.getSelectionCell();
-
+        } else {
+            arrowValue = edge;
+        }
         //Est-ce bien une flèche ?
+        if (!arrowValue) {
+            return;
+        }
         if (arrowValue.edge != true) {
             return console.log("Ce n'est pas une flèche !");
         }
@@ -190,9 +199,11 @@ export default class TablesGraphComponent extends VueComponentBase {
             db_cell_source.values_to_exclude = results;
 
             const startIndex = db_cell_source.values_to_exclude.indexOf(arrowValue['field_id']);
+            const startIndex_toggles = this.toggles[arrowValue.source.value.tables_graph_vo_type].indexOf(arrowValue['field_id']);
             const deleteCount = 1;
             if (startIndex !== -1) {
                 db_cell_source.values_to_exclude.splice(startIndex, deleteCount);
+                this.toggles[arrowValue.source.value.tables_graph_vo_type].splice(startIndex_toggles, deleteCount);
                 this.toggle = false;
                 await ModuleDAO.getInstance().insertOrUpdateVO(db_cell_source); //Mise à jour de la base.
                 await this.initgraph(); //TODO Peut être que cela est trop brutal, on peut essayer simplement avec initcell je pense.
@@ -211,6 +222,7 @@ export default class TablesGraphComponent extends VueComponentBase {
                 case false:
                     if (!db_cell_source.values_to_exclude.includes(arrowValue['field_id'])) { //On évite les doublons
                         db_cell_source.values_to_exclude.push(arrowValue['field_id']);
+                        this.toggles[arrowValue.source.value.tables_graph_vo_type].push(arrowValue['field_id']);
                         this.toggle = true;
                         await ModuleDAO.getInstance().insertOrUpdateVO(db_cell_source); //Mise à jour de la base.
                     }
@@ -296,6 +308,8 @@ export default class TablesGraphComponent extends VueComponentBase {
             await ModuleDAO.getInstance().insertOrUpdateVO(cell);
 
             await this.initgraph(); //Le await est important , on relance le graphe afin d'annhiler les relations n/n affichées inutilement.
+
+            //Sélection automatique
             let v1 = this.graphic_cells[cell.vo_type];
             graph.setSelectionCell(v1);
             this.$emit("add_api_type_id", api_type_id);
@@ -490,13 +504,19 @@ export default class TablesGraphComponent extends VueComponentBase {
     }
 
     private async initgraph(red_by_default: boolean = false) {
+
         this.graphic_cells = {}; //Réinitialisation des cellules à afficher.
         if (editor && editor.graph && Object.values(this.cells) && Object.values(this.cells).length) {
             editor.graph.removeCells(Object.values(this.cells));
-        }
+        } //Parfois , le compilateur repasse  sans raison ici et crée alors les cellules en double
 
+        //Pour éviter, on vérifie que graphic_cells est bien nul .
+        if (Object.keys(this.graphic_cells).length != 0) {
+            return;
+        }
         let cells = await query(DashboardGraphVORefVO.API_TYPE_ID).filter_by_num_eq('dashboard_id', this.dashboard.id).select_vos<DashboardGraphVORefVO>();
         let cells_visited: { [vo_type: string]: string } = {};
+
         //On retire les cellules doublons.
         for (let i in cells) { //Adding cells to the model
             let cell = cells[i];
@@ -552,10 +572,12 @@ export default class TablesGraphComponent extends VueComponentBase {
 
         }
         //Adding links
+
+
         let compteur: number = 0;
         for (let cellule in this.graphic_cells) {
             let v1: typeof mxCell = this.graphic_cells[cellule];
-            //Table associée, on souhaite désactiver par défau certains chemins.
+            //Table associée, on souhaite désactiver par défauts certains chemins.
             switch (red_by_default) {
                 case true:
                     let table = VOsTypesManager.moduleTables_by_voType[cellule];
@@ -567,6 +589,46 @@ export default class TablesGraphComponent extends VueComponentBase {
             }
             compteur += 1;
         }
+
+        //Initialisation des interrupteurs
+        this.toggles = {};
+        let vo_types: string[] = [];
+
+        for (let cell_name of Object.keys(this.graphic_cells)) {
+            let vo_type = this.graphic_cells[cell_name].value.tables_graph_vo_type;
+            if (!vo_types.includes(vo_type)) {
+                vo_types.push(vo_type);
+
+            }
+        }
+
+        for (let cell_name of Object.keys(this.graphic_cells)) {
+            let vo_type = this.graphic_cells[cell_name].value.tables_graph_vo_type;
+            if (!vo_types.includes(vo_type)) {
+                vo_types.push(vo_type);
+
+            }
+        }
+
+        let db_cells_sources = await query(DashboardGraphVORefVO.API_TYPE_ID)
+            .filter_by_text_has('vo_type', vo_types)
+            .filter_by_num_eq('dashboard_id', this.dashboard.id)
+            .select_vos<DashboardGraphVORefVO>();
+
+        if ((!db_cells_sources) || (!db_cells_sources.length)) {
+            ConsoleHandler.error('mxEvent.MOVE_END:no db cell');
+            return;
+        }
+
+        for (let value of db_cells_sources) {
+            if (value.values_to_exclude === null) {
+                this.toggles[value.vo_type] = [];  //Indéfini si les interrupteurs n'ont jamais été touchés...
+            } else {
+                this.toggles[value.vo_type] = value.values_to_exclude;
+            }
+        }
+        this.end_graphic_cells = this.graphic_cells;
+        this.end_toggles = this.toggles;
     }
     private initcell(cell: DashboardGraphVORefVO, v1: typeof mxCell, is_versioned?) { //TODO Inclure les champs techniques dans targets_to_exclude
         /*
@@ -702,9 +764,7 @@ export default class TablesGraphComponent extends VueComponentBase {
                                 ModuleDAO.getInstance().insertOrUpdateVO(cell).then().catch((error) => { ConsoleHandler.error(error); });
 
                             }
-                        } catch {
-                            console.log("ici");
-                        }
+                        } catch { }
                     } else {
                         try { //La flèche est elle acceptée ? On le vérifie en checkant les flèches interdites depuis cette source.
                             is_link_unccepted = Boolean(values_to_exclude.includes(field.field_id));
@@ -753,11 +813,10 @@ export default class TablesGraphComponent extends VueComponentBase {
                             this.cells[node_v1].edges[arrow]['field_id'] = field_values[target][value];
                         }
                     } catch {
-                        console.log("purée!");
                     }
                 }
             }
-            graph_layout.update_matrix();
+            // graph_layout.update_matrix();
         }
         return v1;
     }
