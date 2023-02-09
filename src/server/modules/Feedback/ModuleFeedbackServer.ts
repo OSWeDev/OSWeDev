@@ -11,6 +11,7 @@ import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleFeedback from '../../../shared/modules/Feedback/ModuleFeedback';
 import FeedbackVO from '../../../shared/modules/Feedback/vos/FeedbackVO';
+import ModuleFile from '../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
@@ -531,6 +532,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- Submission type : ' + type;
         return res;
     }
+
 
     private async attachments_to_string(feedback: FeedbackVO): Promise<string> {
         let envParam: EnvParam = ConfigurationService.node_configuration;

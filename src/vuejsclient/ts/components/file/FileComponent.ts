@@ -1,5 +1,7 @@
 import Component from 'vue-class-component';
+// import { renameSync } from 'fs';
 import { Prop, Watch } from 'vue-property-decorator';
+import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import ModuleFile from '../../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../../shared/modules/File/vos/FileVO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
@@ -49,6 +51,15 @@ export default class FileComponent extends VueComponentBase {
     public async updateFileVo() {
         this.has_valid_file_linked = false;
         if (this.filevo && this.filevo.id) {
+            let old_path = this.filevo.path;
+            this.filevo.path = this.check_for_valid_format(this.filevo.path);
+            if (!this.filevo.path) {
+                this.snotify.error(this.label('FeedbackHandlerComponent.file_format_error'));
+                return;
+            }
+
+            await ModuleDAO.getInstance().insertOrUpdateVO(this.filevo); //Ecriture en base pour que le path soit retrouvé côté serveur.
+            // renameSync(old_path, this.filevo.path); //Important , il est important de synchroniser avec le système de fichier également
             this.has_valid_file_linked = await ModuleFile.getInstance().testFileExistenz(this.filevo.id);
         }
 
@@ -77,6 +88,7 @@ export default class FileComponent extends VueComponentBase {
         // dropzone.emit('complete', mock);
     }
 
+
     public async mounted() {
         this.uid = FileComponent.__UID++;
     }
@@ -85,7 +97,41 @@ export default class FileComponent extends VueComponentBase {
         this.$emit('uploaded', null);
     }
 
-    get dropzoneOptions() {
+    private check_for_valid_format(path: string) {
+        let file_name_begin = path.lastIndexOf('/');
+        let file_name_end = path.lastIndexOf('.');
+        let file_name = path.slice(file_name_begin + 1, file_name_end);
+        let format = /[!@#$%^&*()+\=\[\]{};':"\\|,.<>\/?]+/;
+
+        if (format.test(file_name) || (file_name.indexOf(' ') >= 0)) {
+
+            // remove gaps from the string
+            file_name = file_name.replace(/\s+/g, ' ');
+
+            // convert the string to an array of characters
+            const charArray: string[] = Array.from(file_name);
+
+            const unwantedChars = ["/", "\\\\", "[", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "+", '=', "[", "]", "{", "}", ";", "'", ":", "|", ",", ".", "<", ">", "?", ' '];
+
+            file_name = charArray.filter((char) => !unwantedChars.includes(char)).join('_');
+
+            console.log(file_name);
+            console.log(format.test(file_name));
+            if (format.test(file_name)) {
+                //Si jamais ça n'a pas fonctionné , dans ce cas on refuse.
+
+                return;
+            }
+            path = path.slice(0, file_name_begin + 1) + file_name + path.slice(file_name_end);
+            return path;
+        } else {
+            return path;
+        }
+
+    }
+
+
+    get dropzoneOptions() { //TODO tester le check_for_valid_format
         let self = this;
 
 
