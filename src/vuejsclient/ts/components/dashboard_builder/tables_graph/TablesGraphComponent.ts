@@ -308,6 +308,8 @@ export default class TablesGraphComponent extends VueComponentBase {
             await ModuleDAO.getInstance().insertOrUpdateVO(cell);
 
             await this.initgraph(); //Le await est important , on relance le graphe afin d'annhiler les relations n/n affichées inutilement.
+
+            //Sélection automatique
             let v1 = this.graphic_cells[cell.vo_type];
             graph.setSelectionCell(v1);
             this.$emit("add_api_type_id", api_type_id);
@@ -590,32 +592,41 @@ export default class TablesGraphComponent extends VueComponentBase {
 
         //Initialisation des interrupteurs
         this.toggles = {};
+        let vo_types: string[] = [];
 
         for (let cell_name of Object.keys(this.graphic_cells)) {
             let vo_type = this.graphic_cells[cell_name].value.tables_graph_vo_type;
-
-            let db_cells_source = await query(DashboardGraphVORefVO.API_TYPE_ID)
-                .filter_by_text_eq('vo_type', vo_type)
-                .filter_by_num_eq('dashboard_id', this.dashboard.id)
-                .select_vos<DashboardGraphVORefVO>();
-
-            if ((!db_cells_source) || (!db_cells_source.length)) {
-                ConsoleHandler.error('mxEvent.MOVE_END:no db cell');
-                return;
-            }
-
-            let db_cell_source = db_cells_source[0].values_to_exclude;
-            if (db_cell_source === null) {                          //Indéfini si les interrupteurs n'ont jamais été touchés...
-
-                this.toggles[vo_type] = [];
-            } else {
-                this.toggles[vo_type] = db_cell_source;
+            if (!vo_types.includes(vo_type)) {
+                vo_types.push(vo_type);
 
             }
-
         }
 
+        for (let cell_name of Object.keys(this.graphic_cells)) {
+            let vo_type = this.graphic_cells[cell_name].value.tables_graph_vo_type;
+            if (!vo_types.includes(vo_type)) {
+                vo_types.push(vo_type);
 
+            }
+        }
+
+        let db_cells_sources = await query(DashboardGraphVORefVO.API_TYPE_ID)
+            .filter_by_text_has('vo_type', vo_types)
+            .filter_by_num_eq('dashboard_id', this.dashboard.id)
+            .select_vos<DashboardGraphVORefVO>();
+
+        if ((!db_cells_sources) || (!db_cells_sources.length)) {
+            ConsoleHandler.error('mxEvent.MOVE_END:no db cell');
+            return;
+        }
+
+        for (let value of db_cells_sources) {
+            if (value.values_to_exclude === null) {
+                this.toggles[value.vo_type] = [];  //Indéfini si les interrupteurs n'ont jamais été touchés...
+            } else {
+                this.toggles[value.vo_type] = value.values_to_exclude;
+            }
+        }
         this.end_graphic_cells = this.graphic_cells;
         this.end_toggles = this.toggles;
     }

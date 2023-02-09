@@ -636,6 +636,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Editer'
         }, 'tables_graph_edit_form.title.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Gérer les liaisons'
+        }, 'tables_graph_edit_form.bonds.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Supprimer'
         }, 'tables_graph_edit_form.delete.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({

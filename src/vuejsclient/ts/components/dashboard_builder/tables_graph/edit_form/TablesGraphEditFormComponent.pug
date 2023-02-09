@@ -23,11 +23,9 @@
     .tables_graph_arrows_table
         .header
                 //- .hide_show_switch 
-                .title_arrows_table {{ label('droppable_vos.title') }}
+                .title_arrows_table {{ label('tables_graph_edit_form.bonds') }}
 
-        //- .filters
-        //-     .set_filter_by_api_type_id
-        //-         //- input(type='search' :placeholder="label('droppable_vos.set_filter_by_api_type_id.placeholder')" @input='filter_by_api_type_id' v-model="filter_value")  
+    
         template(v-for="cell in all_cells_names")
             .cell
                 .cell_header
