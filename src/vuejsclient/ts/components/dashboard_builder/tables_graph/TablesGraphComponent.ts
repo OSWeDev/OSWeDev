@@ -190,6 +190,10 @@ export default class TablesGraphComponent extends VueComponentBase {
             // On retire les valeurs Null dans values_to_exclude pouvant apparaître de manière impromptue.
             const results: string[] = [];
 
+            if (!this.toggles[arrowValue.source.value.tables_graph_vo_type]) {
+                return;
+            }
+
             db_cell_source.values_to_exclude.forEach((element) => {
                 if (element !== null) {
                     results.push(element);
@@ -220,12 +224,17 @@ export default class TablesGraphComponent extends VueComponentBase {
             switch (is_n_n) {
 
                 case false:
+                    if (!this.toggles[arrowValue.source.value.tables_graph_vo_type]) {
+                        break;
+                    }
+
                     if (!db_cell_source.values_to_exclude.includes(arrowValue['field_id'])) { //On évite les doublons
                         db_cell_source.values_to_exclude.push(arrowValue['field_id']);
                         this.toggles[arrowValue.source.value.tables_graph_vo_type].push(arrowValue['field_id']);
                         this.toggle = true;
                         await ModuleDAO.getInstance().insertOrUpdateVO(db_cell_source); //Mise à jour de la base.
                     }
+
                     await this.initgraph(); //On relance le graphe.
                     break;
                 case true:

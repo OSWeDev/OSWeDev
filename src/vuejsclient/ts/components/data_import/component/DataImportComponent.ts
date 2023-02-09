@@ -125,6 +125,9 @@ export default class DataImportComponent extends DataImportComponentBase {
     @Prop({ default: true })
     public show_multiple_segments: boolean;
 
+    @Prop({ default: false })
+    public hide_btn_delete_file: boolean;
+
     public show_new_import: boolean = false;
 
     private selected_segment: TimeSegment = null;

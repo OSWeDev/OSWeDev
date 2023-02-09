@@ -44,6 +44,14 @@ export default class SurveyComponent extends VueComponentBase {
     private throttled_retry = throttle(this.define_survey, 100, { leading: false });
     private display_survey: boolean = false;
 
+    private smileys: any[] = [
+        { id: 0, icon: "fa-comment-slash" },
+        { id: 1, icon: "fa-face-frown" },
+        { id: 2, icon: "fa-face-meh" },
+        { id: 3, icon: "fa-face-smile" },
+        { id: 4, icon: "fa-face-grin-stars" },
+    ];
+
     @Watch('$route.name', { immediate: true })
     private onchange_route_name() {
 

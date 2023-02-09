@@ -34,7 +34,7 @@ export default class FileComponent extends VueComponentBase {
     protected muted: boolean;
 
     @Prop({ default: false })
-    protected route_path: string;
+    protected hide_btn_delete_file: boolean;
 
     // protected uploading: boolean = false;
     // protected datafile = null;
@@ -42,8 +42,6 @@ export default class FileComponent extends VueComponentBase {
     protected has_valid_file_linked: boolean = false;
 
     protected uid: number = null;
-
-    private routes_path_delete_disabled: string[] = ['/import/annuaire_reseaux_apv']; //Route_path pour lesquel le bouton supprimé est désactivé
 
     @Watch('filevo', { immediate: true })
     public async updateFileVo() {

@@ -8,6 +8,6 @@
                 i.fa-download.fa.fa-lg.btn_icon(aria-hidden="true" v-if='has_valid_file_linked')
                 i.fa-times.fa.fa-lg.btn_icon.text-danger(aria-hidden="true" v-else)
                 | {{ label('file.download') }}
-            .btn.btn-sm.btn-danger.ml-2(v-if="(!!filevo) && filevo.id && !routes_path_delete_disabled.includes(route_path)", @click="removeFile")
+            .btn.btn-sm.btn-danger.ml-2(v-if="(!!filevo) && filevo.id && !hide_btn_delete_file", @click="removeFile")
                 i.fa-trash.fa.fa-lg.btn_icon.text-danger(aria-hidden="true")
                 | {{ label('file.trash') }}
