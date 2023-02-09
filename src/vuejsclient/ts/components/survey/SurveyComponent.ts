@@ -16,13 +16,8 @@ import VueComponentBase from '../VueComponentBase';
 import { ModuleSurveyAction, ModuleSurveyGetter } from './store/SurveyStore';
 import './SurveyComponent.scss';
 
-/*
-TODO survey ouvert ou pas en fonction du route_name ok
-    combien de temps, ok
-    detection de sortie
-    smiley
+const { parse, stringify } = require('flatted/cjs');
 
-*/
 @Component({
     template: require('./SurveyComponent.pug'),
     components: {

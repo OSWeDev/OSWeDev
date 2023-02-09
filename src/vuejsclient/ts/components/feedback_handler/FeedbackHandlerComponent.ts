@@ -9,6 +9,7 @@ import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import VueAppController from '../../../VueAppController';
 import AjaxCacheClientController from '../../modules/AjaxCache/AjaxCacheClientController';
+import ConsoleLog from '../console_logger/ConsoleLog';
 import ConsoleLogLogger from '../console_logger/ConsoleLogLogger';
 import FileComponent from '../file/FileComponent';
 import ScreenshotComponent from '../screenshot/ScreenshotComponent';
@@ -141,6 +142,7 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
         let feedback: FeedbackVO = new FeedbackVO();
 
         feedback.apis_log_json = stringify(AjaxCacheClientController.getInstance().api_logs);
+        // feedback.apis_log_json = "";
         feedback.console_logs = this.console_logs_tostring_array();
         feedback.email = this.tmp_email;
         feedback.feedback_end_date = Dates.now();
@@ -163,6 +165,8 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
         feedback.wish_be_called = this.tmp_wish_be_called;
 
         if (!await ModuleFeedback.getInstance().feedback(feedback)) {
+            this.set_hidden(true);
+
             this.snotify.error(this.label('FeedbackHandlerComponent.error_sending_feedback'));
             this.is_already_sending_feedback = false;
             return;
@@ -174,15 +178,54 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
     }
 
     private async uploadedFile1(fileVo: FileVO) {
-        this.tmp_attachment_1_vo = fileVo;
+        //On vérifie que le format est valide afin de pouvoir être consulté sur le trello.
+        if (fileVo) {
+            if (!this.check_for_valid_format(fileVo.path)) {
+                return;
+            }
+            this.set_hidden(false);
+            this.tmp_attachment_1_vo = fileVo;
+        } else {
+            this.tmp_attachment_1_vo = fileVo;
+        }
     }
 
     private async uploadedFile2(fileVo: FileVO) {
-        this.tmp_attachment_2_vo = fileVo;
+        if (fileVo) {
+            if (!this.check_for_valid_format(fileVo.path)) {
+                return;
+            }
+            this.tmp_attachment_2_vo = fileVo;
+
+        } else {
+            this.tmp_attachment_2_vo = fileVo;
+        }
     }
 
     private async uploadedFile3(fileVo: FileVO) {
-        this.tmp_attachment_3_vo = fileVo;
+        if (fileVo) {
+
+            if (!this.check_for_valid_format(fileVo.path)) {
+                return;
+            }
+            this.tmp_attachment_3_vo = fileVo;
+        } else {
+            this.tmp_attachment_3_vo = fileVo;
+        }
+    }
+
+    private check_for_valid_format(path: string) {
+        let file_name_begin = path.lastIndexOf('/');
+        let file_name_end = path.lastIndexOf('.');
+        let file_name = path.slice(file_name_begin + 1, file_name_end);
+        let format = /[!@#$%^&*()+\=\[\]{};':"\\|,.<>\/?]+/;
+
+        if (format.test(file_name) || (file_name.indexOf(' ') >= 0)) {
+            this.set_hidden(true);
+            this.snotify.error(this.label('FeedbackHandlerComponent.file_format_error'));
+            return false;
+        }
+        return true;
     }
 
     private async uploadedCapture1(fileVo: FileVO) {
@@ -197,11 +240,18 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
         this.tmp_capture_3_vo = fileVo;
     }
 
-    private console_logs_tostring_array() {
+    private console_logs_tostring_array(keep_errors_only: boolean = true) {
         let res: string[] = [];
+        let console_logs: ConsoleLog[] = ConsoleLogLogger.getInstance().console_logs;
+        if (keep_errors_only) {
+            //On ne conserve que les erreurs
+            let console_logs_only_errors = [];
+            console_logs_only_errors = console_logs.filter((item) => item.type == 'error');
 
-        for (let i in ConsoleLogLogger.getInstance().console_logs) {
-            let console_log = ConsoleLogLogger.getInstance().console_logs[i];
+            console_logs = console_logs_only_errors;
+        }
+        for (let i in console_logs) {
+            let console_log = console_logs[i];
 
             res.push(Dates.format(console_log.datetime, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss) + ':' + console_log.type + ':' + (console_log.value ? console_log.value.toString() : ''));
         }
