@@ -27,7 +27,7 @@ export default class ValidationFiltersWidgetComponent extends VueComponentBase {
 
     private start_update: boolean = false;
 
-    private async validate() {
+    private async handle_validate() {
         if (this.start_update) {
             return;
         }

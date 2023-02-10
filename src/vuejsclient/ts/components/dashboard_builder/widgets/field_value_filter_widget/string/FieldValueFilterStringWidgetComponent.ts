@@ -657,6 +657,9 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         await this.throttled_update_visible_options();
     }
 
+    /**
+     * Reset visible options
+     */
     private async reset_visible_options() {
         // Reset des filtres
         this.tmp_filter_active_options = []; // Reset le niveau 1
@@ -669,7 +672,13 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         await this.throttled_update_visible_options();
     }
 
-    private async update_visible_options() {
+    /**
+     * Update visible option
+     *  - This happen | triggered with lodash throttle method (throttled_update_visible_options)
+     *  - Each time visible option shall be updated
+     * @returns void
+     */
+    private async update_visible_options(): Promise<void> {
 
         let launch_cpt: number = (this.last_calculation_cpt + 1);
 
@@ -1159,7 +1168,13 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         return true;
     }
 
-    private onchange_filter_opt_input(input: any, opt: DataFilterOption) {
+    /**
+     * handle change filter opt input
+     *  - happen when we toggle checkbox | radio button
+     * @param input the select option input field value
+     * @param opt Option object
+     */
+    private handle_change_filter_opt_input(input: any, opt: DataFilterOption) {
         let tmp_filter_active_options: DataFilterOption[] = cloneDeep(this.tmp_filter_active_options);
 
         if (!tmp_filter_active_options || !this.can_select_multiple) {
@@ -1170,6 +1185,8 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         let opt_splice: number = this.filter_visible_options.findIndex((e) => e.label == opt.label);
 
         if (opt_index >= 0) {
+            // toggle the active filter to false
+            // - remove from the active filters
             Vue.set(this.active_option_lvl1, opt.label, false);
             tmp_filter_active_options.splice(opt_index, 1);
 
@@ -1177,6 +1194,8 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                 this.filter_visible_options.push(opt);
             }
         } else {
+            // toggle the active filter to true
+            // add it to the active filters
             Vue.set(this.active_option_lvl1, opt.label, true);
             tmp_filter_active_options.push(opt);
 
