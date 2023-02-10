@@ -1272,9 +1272,9 @@ export default class CRUDComponentField extends VueComponentBase
 
         let alerts: Alert[] = this.field.validate_input ? this.field.validate_input(this.field_value, this.field, this.vo) : null;
 
-        if (this.field_type == ModuleTableField.FIELD_TYPE_email) {
+        if (this.field_type == ModuleTableField.FIELD_TYPE_email || ModuleTableField.FIELD_TYPE_string) {
             if (!alerts || !alerts.length) {
-                if (!(this.$refs.input_elt as any).checkValidity()) {
+                if (!!(this.$refs.input_elt as any) && !(this.$refs.input_elt as any).checkValidity()) {
                     if (!alerts) {
                         alerts = [];
                     }
