@@ -43,6 +43,9 @@ import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFilter
 export default class FieldValueFilterStringWidgetComponent extends VueComponentBase {
 
     @ModuleDashboardPageGetter
+    private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
+
+    @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
     @ModuleDashboardPageAction
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
@@ -842,6 +845,8 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             .set_sort(new SortByVO(field_sort.api_type_id, field_sort.field_id, true))
             .using(this.dashboard.api_type_ids);
 
+        FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(query_, this.get_discarded_field_paths);
+
         query_.filters = ContextFilterHandler.getInstance().add_context_filters_exclude_values(
             this.exclude_values,
             this.vo_field_ref,
@@ -879,7 +884,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                 return;
             }
         } else {
-            query_ = await FieldValueFilterWidgetController.getInstance().check_segmented_dependencies(this.dashboard, query_, true);
+            query_ = await FieldValueFilterWidgetController.getInstance().check_segmented_dependencies(this.dashboard, query_, this.get_discarded_field_paths, true);
         }
 
         tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(
@@ -903,6 +908,8 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                     .set_limit(this.widget_options.max_visible_options)
                     .set_sort(new SortByVO(field_sort.api_type_id, field_sort.field_id, true))
                     .using(this.dashboard.api_type_ids);
+
+                FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(query_field_ref, this.get_discarded_field_paths);
 
                 let tmp_field_ref: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
                     query_field_ref,
@@ -981,6 +988,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                         .set_limit(this.widget_options.max_visible_options)
                         .set_sort(new SortByVO(field_sort_lvl2.api_type_id, field_sort_lvl2.field_id, true))
                         .using(this.dashboard.api_type_ids);
+                    FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(query_opt_lvl2, this.get_discarded_field_paths);
 
                     let tmp_lvl2_opts: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
                         query_opt_lvl2,
