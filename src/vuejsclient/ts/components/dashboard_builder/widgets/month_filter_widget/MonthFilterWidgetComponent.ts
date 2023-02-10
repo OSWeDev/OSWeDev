@@ -102,8 +102,9 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
 
     /**
      * computed widget_options
+     * @returns MonthFilterWidgetOptions
      */
-    get widget_options() {
+    get widget_options(): MonthFilterWidgetOptions {
         if (!this.page_widget) {
             return null;
         }
@@ -132,7 +133,7 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
      * @returns void
      */
     @Watch('widget_options', { immediate: true })
-    private onchange_widget_options() {
+    private onchange_widget_options(): void {
         if (!!this.old_widget_options) {
             if (isEqual(this.widget_options, this.old_widget_options)) {
                 return;
@@ -244,7 +245,7 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
      * @returns void
      */
     @Watch("get_active_field_filters", { immediate: true })
-    private try_preload_selected_months() {
+    private try_preload_selected_months(): void {
 
         // 1 on cherche le contextfilter correspondant à ce type de filtre
         let root_context_filter: ContextFilterVO = null;
@@ -298,7 +299,7 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
      * @returns void
      */
     @Watch('selected_months', { immediate: true, deep: true })
-    private onchange_selected_months() {
+    private onchange_selected_months(): void {
         // 1 on cherche le contextfilter correspondant à ce type de filtre
         let root_context_filter: ContextFilterVO = null;
         if (this.is_vo_field_ref) {
