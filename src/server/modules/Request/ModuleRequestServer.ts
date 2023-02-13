@@ -39,7 +39,8 @@ export default class ModuleRequestServer extends ModuleServerBase {
         headers: {} = null,
         sendHttps: boolean = false,
         result_headers: {} = null,
-        nojsonparse: boolean = false
+        nojsonparse: boolean = false,
+        add_content_length_to_headers: boolean = false // Que pour les POST
     ): Promise<any> {
 
         return new Promise((resolve, reject) => {
@@ -53,9 +54,9 @@ export default class ModuleRequestServer extends ModuleServerBase {
             let dataPosts: any = posts ? JSON.stringify(posts) : null;
 
             // // Pour plus de compatibilité (avec Teams notamment) => mais incompatible avec lenvoi de SMS sur sendinblue...
-            // if ((method.toLowerCase() == 'post') && ((!headers) || (!headers['Content-Length'])) && !!posts) {
-            //     headers['Content-Length'] = JSON.stringify(posts).length;
-            // }
+            if (add_content_length_to_headers && (method == ModuleRequest.METHOD_POST) && !!dataPosts && (dataPosts.length > 0)) {
+                headers['Content-Length'] = dataPosts.length;
+            }
 
             function callback(res: http.IncomingMessage) {
                 let result: Buffer[] = [];

@@ -29,21 +29,37 @@ export default class EvolizClientVO {
     // Informations bancaires
     public bank_information: { bank_name: string, bank_account_detail: string, iban: string, bank_identification_code: string, };
     // Adresse
-    public address: {
-        addr: string,
-        addr2: string,
-        postcode: string,
-        town: string,
-        country: { label: string, iso2: string }
-    };
+    // En GET : {
+    //     addr: string,
+    //     addr2: string,
+    //     postcode: string,
+    //     town: string,
+    //     country: { label: string, iso2: string }
+    // };
+    // En POST : {
+    //     postcode: string,
+    //     town: string,
+    //     iso2: string
+    //     addr: string,
+    //     addr2: string,
+    // };
+    public address: any;
     // Adresse de livraison
-    public delivery_address: {
-        addr: string,
-        addr2: string,
-        postcode: string,
-        town: string,
-        country: { label: string, iso2: string }
-    };
+    // En GET : {
+    //     addr: string,
+    //     addr2: string,
+    //     postcode: string,
+    //     town: string,
+    //     country: { label: string, iso2: string }
+    // };
+    // En POST : {
+    //     postcode: string,
+    //     town: string,
+    //     iso2: string
+    //     addr: string,
+    //     addr2: string,
+    // };
+    public delivery_address: any;
     // Téléphone
     public phone: string;
     // Téléphone portable

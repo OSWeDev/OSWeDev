@@ -12,10 +12,8 @@ export default class ModuleEvolizAPI extends Module {
 
     public static EvolizAPI_PublicKey_API_PARAM_NAME: string = 'EvolizAPI.EvolizAPI_PublicKey_API';
     public static EvolizAPI_SecretKey_API_PARAM_NAME: string = 'EvolizAPI.EvolizAPI_SecretKey_API';
-    public static EvolizAPI_AccessToken_API_PARAM_NAME: string = 'EvolizAPI.EvolizAPI_AccessToken_API';
 
-    public static EvolizAPI_BaseURL: string = 'https://www.evoliz.io/';
-    public static APINAME_connexion_to_api: string = "connexion_to_api";
+    public static EvolizAPI_BaseURL: string = 'www.evoliz.io';
     public static APINAME_list_invoices: string = "list_invoices";
     public static APINAME_create_invoices: string = "create_invoices";
     public static APINAME_list_clients: string = "list_clients";
@@ -36,7 +34,6 @@ export default class ModuleEvolizAPI extends Module {
 
     private static instance: ModuleEvolizAPI = null;
 
-    public connexion_to_api: () => Promise<string> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_connexion_to_api);
     public list_invoices: () => Promise<EvolizInvoiceVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_invoices);
     public create_invoices: (invoice: EvolizInvoiceVO) => Promise<string> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_create_invoices);
     public list_clients: () => Promise<EvolizClientVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_clients);
@@ -48,13 +45,7 @@ export default class ModuleEvolizAPI extends Module {
     }
 
     public registerApis() {
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<null, string>(
-            null,
-            ModuleEvolizAPI.APINAME_connexion_to_api,
-            []
-        ));
-
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<null, EvolizClientVO>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<null, EvolizClientVO[]>(
             null,
             ModuleEvolizAPI.APINAME_list_invoices,
             []
@@ -67,7 +58,7 @@ export default class ModuleEvolizAPI extends Module {
             EvolizClientParamStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<null, EvolizInvoiceVO>(
+        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<null, EvolizInvoiceVO[]>(
             null,
             ModuleEvolizAPI.APINAME_list_clients,
             []

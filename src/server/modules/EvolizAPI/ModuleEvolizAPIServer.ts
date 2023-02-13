@@ -1,3 +1,4 @@
+import moment = require('moment');
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
@@ -6,11 +7,14 @@ import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapp
 import ModuleEvolizAPI from '../../../shared/modules/EvolizAPI/ModuleEvolizAPI';
 import EvolizClientVO from '../../../shared/modules/EvolizAPI/vos/clients/EvolizClientVO';
 import EvolizInvoiceVO from '../../../shared/modules/EvolizAPI/vos/invoices/EvolizInvoiceVO';
+import ModuleParams from '../../../shared/modules/Params/ModuleParams';
+import ModuleRequest from '../../../shared/modules/Request/ModuleRequest';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import EvolizAPIToken from './vos/EvolizAPIToken';
 
 export default class ModuleEvolizAPIServer extends ModuleServerBase {
 
@@ -22,6 +26,8 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
     }
 
     private static instance: ModuleEvolizAPIServer = null;
+
+    private token: EvolizAPIToken = null;
 
     private constructor() {
         super(ModuleEvolizAPI.getInstance().name);
@@ -60,121 +66,127 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleEvolizAPI.APINAME_connexion_to_api, this.connexion_to_api.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleEvolizAPI.APINAME_list_invoices, this.list_invoices.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleEvolizAPI.APINAME_create_invoices, this.create_invoices.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleEvolizAPI.APINAME_list_clients, this.list_clients.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleEvolizAPI.APINAME_create_clients, this.create_clients.bind(this));
     }
 
-    public async connexion_to_api() {
-        let res = await fetch(ModuleEvolizAPI.EvolizAPI_BaseURL + 'api/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                public: ModuleEvolizAPI.EvolizAPI_PublicKey_API_PARAM_NAME,
-                secret: ModuleEvolizAPI.EvolizAPI_SecretKey_API_PARAM_NAME
-            })
-        })
-            .then((result) => {
-                return result.json();
-            })
-            .then(async (data) => {
-                ModuleEvolizAPI.EvolizAPI_AccessToken_API_PARAM_NAME = data.access_token;
-            });
+    public async getToken(): Promise<EvolizAPIToken> {
+        // Si j'ai un token et que il est encore ACTIF, je ne fais rien
+        if (this.token && this.token.expires_at.isBefore(moment())) {
+            return this.token;
+        }
+
+        // Sinon, je me connecte
+        await this.connexion_to_api();
+
+        return this.token;
     }
 
-    public async list_invoices() {
-        try {
-            let response = await fetch(ModuleEvolizAPI.EvolizAPI_BaseURL + 'api/v1/invoices', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
+    public async connexion_to_api() {
+        let return_connect: any = await ModuleRequest.getInstance().sendRequestFromApp(
+            ModuleRequest.METHOD_POST,
+            ModuleEvolizAPI.EvolizAPI_BaseURL,
+            '/api/login',
+            {
+                public_key: await ModuleParams.getInstance().getParamValueAsString(ModuleEvolizAPI.EvolizAPI_PublicKey_API_PARAM_NAME),
+                secret_key: await ModuleParams.getInstance().getParamValueAsString(ModuleEvolizAPI.EvolizAPI_SecretKey_API_PARAM_NAME)
+            },
+            {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            true,
+            null,
+            false,
+            true,
+        );
 
-            if (!response.ok) {
-                throw new Error('Erreur lors de la récupération des factures');
-            }
-
-            let result = (await response.json()) as EvolizInvoiceVO[];
-
-            return result;
-
-        } catch (error) {
-            console.error(error);
+        if (return_connect) {
+            this.token = return_connect;
         }
+    }
+
+    public async list_invoices(): Promise<EvolizInvoiceVO[]> {
+        let token: EvolizAPIToken = await this.getToken();
+
+        let list_invoices: { data: EvolizInvoiceVO[], links: any, meta: any } = await ModuleRequest.getInstance().sendRequestFromApp(
+            ModuleRequest.METHOD_GET,
+            ModuleEvolizAPI.EvolizAPI_BaseURL,
+            '/api/v1/invoices' + ModuleRequest.getInstance().get_params_url({
+                per_page: '100',
+            }),
+            null,
+            {
+                Authorization: 'Bearer ' + token.access_token
+            },
+            true,
+            null,
+            false,
+            true,
+        );
+
+        console.log(list_invoices);
+        return list_invoices.data;
     }
 
     public async create_invoices(invoice: EvolizInvoiceVO) {
-        try {
-            let response = await fetch(ModuleEvolizAPI.EvolizAPI_BaseURL + 'api/v1/invoices', {
-                method: 'POST',
-                body: JSON.stringify({
-                    invoice
-                }),
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
+        let token: EvolizAPIToken = await this.getToken();
 
-            if (!response.ok) {
-                throw new Error('Erreur lors de la création de la facture');
-            }
-
-            let result = (await response.json()) as EvolizInvoiceVO;
-
-            return result;
-        } catch (error) {
-            console.error(error);
-        }
+        let create_invoice = await ModuleRequest.getInstance().sendRequestFromApp(
+            ModuleRequest.METHOD_POST,
+            ModuleEvolizAPI.EvolizAPI_BaseURL,
+            '/api/v1/invoices',
+            invoice,
+            {
+                Authorization: 'Bearer ' + token.access_token
+            },
+            true,
+            null,
+            false,
+            false,
+        );
     }
 
-    public async list_clients() {
-        try {
-            let response = await fetch(ModuleEvolizAPI.EvolizAPI_BaseURL + 'api/v1/clients', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
+    public async list_clients(): Promise<EvolizClientVO[]> {
+        let token: EvolizAPIToken = await this.getToken();
 
-            if (!response.ok) {
-                throw new Error('Erreur lors de la récupération des clients');
-            }
+        let clients: { data: EvolizClientVO[], links: any, meta: any } = await ModuleRequest.getInstance().sendRequestFromApp(
+            ModuleRequest.METHOD_GET,
+            ModuleEvolizAPI.EvolizAPI_BaseURL,
+            '/api/v1/clients' + ModuleRequest.getInstance().get_params_url({
+                per_page: '100',
+            }),
+            null,
+            {
+                Authorization: 'Bearer ' + token.access_token
+            },
+            true,
+            null,
+            false,
+            true,
+        );
 
-            let result = (await response.json()) as EvolizClientVO[];
-
-            return result;
-
-        } catch (error) {
-            console.error(error);
-        }
+        console.log(clients);
+        return clients.data;
     }
 
     public async create_clients(client: EvolizClientVO) {
-        try {
-            let response = await fetch(ModuleEvolizAPI.EvolizAPI_BaseURL + 'api/v1/clients', {
-                method: 'POST',
-                body: JSON.stringify({
-                    client
-                }),
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
+        let token: EvolizAPIToken = await this.getToken();
 
-            if (!response.ok) {
-                throw new Error('Erreur lors de la création du client');
-            }
-
-            let result = (await response.json()) as EvolizClientVO;
-
-            return result;
-        } catch (error) {
-            console.error(error);
-        }
+        let create_client = await ModuleRequest.getInstance().sendRequestFromApp(
+            ModuleRequest.METHOD_POST,
+            ModuleEvolizAPI.EvolizAPI_BaseURL,
+            '/api/v1/clients',
+            client,
+            {
+                Authorization: 'Bearer ' + token.access_token
+            },
+            true,
+            null,
+            false,
+            false,
+        );
     }
 }
