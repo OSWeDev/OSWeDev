@@ -498,6 +498,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': "Modification échouée. Veuillez réessayer"
         }, 'crud_create_form_body_add_removed_crud_field_id.failed.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Format incorrect"
+        }, 'crud.field_error_format.___LABEL___'));
     }
 
     public registerCrons(): void {

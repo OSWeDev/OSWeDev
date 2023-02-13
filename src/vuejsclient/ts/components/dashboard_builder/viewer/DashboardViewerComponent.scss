@@ -105,4 +105,9 @@
     .grid_item_wrapper.hide {
         display: none !important;
     }
+
+    .grid_item_wrapper.shaded {
+        display: block;
+        opacity: 0.4;
+    }
 }

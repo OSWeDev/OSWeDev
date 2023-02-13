@@ -187,6 +187,13 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
             return;
         }
 
+        let selectable_options_by_ids: { [id: number]: IDistantVOBase } = this.$store.state[this.store_module_uid]['filter_' + this.api_type_id + '_selectable_options_by_ids'];
+
+        // Avant de commit, on check si il y a une modification pour éviter de boucler
+        if (isEqual(selectable_options_by_ids, this.selectables_by_ids)) {
+            return;
+        }
+
         if ((!this.store_module_is_namespaced) || (!this.store_module_uid)) {
             this.$store.commit(this.internal_store_filter_commit_selectables_by_ids_uid, this.selectables_by_ids);
         } else {
@@ -322,6 +329,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
                      */
                     let depends_on_api_type_id_active_options: DataFilterOption[] = this.$store.state[this.store_module_uid]['filter_' + depends_on_api_type_id + '_active_options'];
                     let depends_on_api_type_id_all_by_ids: { [id: number]: IDistantVOBase } = this.$store.state[this.store_module_uid]['all_' + depends_on_api_type_id + '_by_ids'];
+
                     if ((!depends_on_api_type_id_active_options) || (!depends_on_api_type_id_active_options.length)) {
                         if (this.depends_on_mandatory[depends_on_api_type_id]) {
                             vo_res = false;

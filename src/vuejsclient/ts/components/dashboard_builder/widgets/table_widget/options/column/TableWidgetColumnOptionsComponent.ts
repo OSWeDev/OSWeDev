@@ -400,6 +400,8 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         }
         this.tmp_bg_color_header = this.object_column ? this.object_column.bg_color_header : null;
         this.tmp_font_color_header = this.object_column ? this.object_column.font_color_header : null;
+        this.kanban_column = this.object_column ? this.object_column.kanban_column : false;
+        this.kanban_use_weight = this.object_column ? this.object_column.kanban_use_weight : false;
     }
 
     @Watch('column_width', { immediate: true })

@@ -26,6 +26,10 @@ export default class ConfigurationService {
      */
 
     public static setEnvParams(STATIC_ENV_PARAMS: { [env: string]: IEnvParam }) {
+        if (!ConfigurationService.nodeEnv) {
+            ConfigurationService.init();
+        }
+
         ConfigurationService.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
         ConfigurationService.node_configuration = Object.assign(new EnvParam(), ConfigurationService.STATIC_ENV_PARAMS[ConfigurationService.nodeEnv]);
     }

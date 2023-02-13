@@ -81,6 +81,7 @@ export default class ModuleImageFormat extends Module {
             new ModuleTableField('watermark_horizontal_align', ModuleTableField.FIELD_TYPE_enum, 'Watermark Alignement horizontal').setEnumValues(ImageFormatVO.WATERMARK_HORIZONTAL_ALIGN_LABELS),
             new ModuleTableField('watermark_vertical_align', ModuleTableField.FIELD_TYPE_enum, 'Watermark Alignement vertical').setEnumValues(ImageFormatVO.WATERMARK_VERTICAL_ALIGN_LABELS),
             new ModuleTableField('watermark_font', ModuleTableField.FIELD_TYPE_enum, 'Watermark Font').setEnumValues(ImageFormatVO.WATERMARK_FONT_LABELS),
+            new ModuleTableField('watermark_rotate', ModuleTableField.FIELD_TYPE_int, 'Watermark Rotation'),
         ];
 
         let table = new ModuleTable(this, ImageFormatVO.API_TYPE_ID, () => new ImageFormatVO(), fields, null, 'Formats d\'image');

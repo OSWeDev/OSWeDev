@@ -73,6 +73,7 @@ export default class ImageFormatVO implements IVersionedVO, INamedVO {
     public watermark_horizontal_align: number;
     public watermark_vertical_align: number;
     public watermark_font: number;
+    public watermark_rotate: number;
 
     public parent_id: number;
     public trashed: boolean;

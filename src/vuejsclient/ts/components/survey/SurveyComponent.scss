@@ -35,88 +35,35 @@
         z-index: 99999;
         max-width: 95%;
 
-        .smiley {
+        .smileys {
             display: flex;
             justify-content: center;
 
             .selected {
                 .btn {
                     border-color: gold;
+                    background-color: #e6e6e6;
                 }
             }
 
-            .smiley_very_happy {
+            i {
+                padding: 7px 7px;
+                font-size: 60px;
 
-                i.fa-regular.fa-face-grin-stars {
+                &.fa-face-grin-stars {
                     color: green;
-                    padding: 7px 7px;
-                    font-size: 60px
                 }
 
-                i.fa-solid.fa-face-grin-stars {
-                    color: green;
-                    padding: 7px 7px;
-                    font-size: 60px
-                }
-            }
-
-            .smiley_happy {
-
-                i.fa-solid.fa-face-smile {
+                &.fa-face-smile {
                     color: mediumseagreen;
-                    padding: 7px 7px;
-                    font-size: 60px
                 }
 
-                i.fa-regular.fa-face-smile {
-                    color: mediumseagreen;
-                    padding: 7px 7px;
-                    font-size: 60px
-                }
-            }
-
-            .smiley_meh {
-
-                i.fa-solid.fa-face-meh {
+                &.fa-face-meh {
                     color: darkgoldenrod;
-                    padding: 7px 7px;
-                    font-size: 60px
                 }
 
-                i.fa-regular.fa-face-meh {
-                    color: darkgoldenrod;
-                    padding: 7px 7px;
-                    font-size: 60px
-                }
-            }
-
-            .smiley_bad {
-
-                i.fa-solid.fa-face-frown {
+                &.fa-face-frown {
                     color: darkred;
-                    padding: 7px 7px;
-                    font-size: 60px
-                }
-
-                i.fa-regular.fa-face-frown {
-                    color: darkred;
-                    padding: 7px 7px;
-                    font-size: 60px
-                }
-            }
-
-            .no_opinion {
-
-                i.fa-solid.fa-comment-slash {
-
-                    padding: 7px 7px;
-                    font-size: 60px
-                }
-
-                i.fa-regular.fa-comment-slash {
-
-                    padding: 7px 7px;
-                    font-size: 60px
                 }
             }
         }
@@ -161,9 +108,5 @@
             display: block;
             height: 1em;
         }
-
     }
-
-
-
 }

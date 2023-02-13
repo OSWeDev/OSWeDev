@@ -1049,11 +1049,16 @@ export default class ContextQueryServerController {
         let SORT_BY = '';
         if (context_query.sort_by && context_query.sort_by.length) {
 
+            let previous_sort_by = SORT_BY;
             SORT_BY += ' ORDER BY ';
             let first_sort_by = true;
 
             for (let sort_byi in context_query.sort_by) {
                 let sort_by = context_query.sort_by[sort_byi];
+
+                if (!first_sort_by) {
+                    previous_sort_by = SORT_BY;
+                }
 
                 /**
                  * Check injection : context_query.sort_by ok puisqu'on ne l'insère jamais tel quel, mais
@@ -1142,6 +1147,9 @@ export default class ContextQueryServerController {
                         let parameterizedQueryWrapperField: ParameterizedQueryWrapperField = new ParameterizedQueryWrapperField(
                             sort_by.vo_type, sort_by.field_id, (sort_by.sort_asc ? VarConfVO.MIN_AGGREGATOR : VarConfVO.MAX_AGGREGATOR), sort_alias);
                         parameterizedQueryWrapperFields.push(parameterizedQueryWrapperField);
+                    } else {
+                        SORT_BY = previous_sort_by;
+                        continue;
                     }
                 }
             }

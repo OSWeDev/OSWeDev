@@ -51,8 +51,6 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
 
     @ModuleDashboardPageAction
     private set_query_api_type_ids: (query_api_type_ids: string[]) => void;
-    @ModuleDashboardPageAction
-    private set_force_filter_all_api_type_ids: (force_filter_all_api_type_ids: boolean) => void;
     @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
     @ModuleDashboardPageGetter
@@ -95,8 +93,9 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
         }
 
         this.old_widget_options = cloneDeep(this.widget_options);
-        this.set_force_filter_all_api_type_ids(true);
         this.set_query_api_type_ids(this.widget_options.supervision_api_type_ids);
+
+        this.selected_items = {};
 
         await this.throttled_update_visible_options();
     }
@@ -105,6 +104,8 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
     @Watch('get_active_api_type_ids')
     private async onchange_active_field_filters() {
         this.is_busy = true;
+
+        this.selected_items = {};
 
         await this.throttled_update_visible_options();
     }
@@ -138,6 +139,9 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
     private async change_offset(new_offset: number) {
         if (new_offset != this.pagination_offset) {
             this.pagination_offset = new_offset;
+
+            this.selected_items = {};
+
             await this.throttled_update_visible_options();
         }
     }
@@ -317,8 +321,8 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
 
         let items_by_identifier: { [identifier: string]: ISupervisedItem } = {};
 
-        for (let i in items) {
-            let item = items[i];
+        for (let i in this.items) {
+            let item = this.items[i];
             items_by_identifier[this.get_identifier(item)] = item;
         }
 
@@ -340,13 +344,13 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
         return field ? Dates.format_segment(item.last_update, field.segmentation_type, field.format_localized_time) : null;
     }
 
-    private select_unselect_all() {
+    private select_unselect_all(value: boolean) {
         for (let i in this.items) {
             let item = this.items[i];
 
             let identifier: string = this.get_identifier(item);
 
-            Vue.set(this.selected_items, identifier, !this.selected_items[identifier]);
+            Vue.set(this.selected_items, identifier, value);
         }
     }
 
@@ -359,6 +363,10 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
             }
 
             let item: ISupervisedItem = this.items_by_identifier[identifier];
+
+            if (!item) {
+                continue;
+            }
 
             switch (item.state) {
                 case SupervisionController.STATE_ERROR_READ:
@@ -374,6 +382,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
 
         if (tosave.length) {
             await ModuleDAO.getInstance().insertOrUpdateVOs(tosave);
+            await this.refresh();
         }
     }
 
@@ -386,6 +395,10 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
             }
 
             let item: ISupervisedItem = this.items_by_identifier[identifier];
+
+            if (!item) {
+                continue;
+            }
 
             switch (item.state) {
                 case SupervisionController.STATE_ERROR:
@@ -401,6 +414,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
 
         if (tosave.length) {
             await ModuleDAO.getInstance().insertOrUpdateVOs(tosave);
+            await this.refresh();
         }
     }
 
