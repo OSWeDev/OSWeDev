@@ -74,6 +74,9 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
     @Prop({ default: false })
     public modal_show: boolean;
 
+    @Prop({ default: false })
+    public hide_btn_delete_file: boolean;
+
     @Prop({ default: null })
     public get_url_for_modal: (segment_date_index: number) => string;
 

@@ -18,7 +18,6 @@ import SimpleDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/
 import VarDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/datatable/VarDatatableFieldVO';
 import InsertOrDeleteQueryResult from '../../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import DashboardBuilderController from '../../../../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
-import DashboardGraphVORefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
@@ -28,7 +27,6 @@ import ModuleDataExport from '../../../../../../../shared/modules/DataExport/Mod
 import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
 import ExportVarcolumnConf from '../../../../../../../shared/modules/DataExport/vos/ExportVarcolumnConf';
 import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import IDistantVOBase from '../../../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
 import VarConfVO from '../../../../../../../shared/modules/Var/vos/VarConfVO';
@@ -37,7 +35,6 @@ import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
-import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import WeightHandler from '../../../../../../../shared/tools/WeightHandler';
 import VueAppBase from '../../../../../../VueAppBase';
 import AjaxCacheClientController from '../../../../../modules/AjaxCache/AjaxCacheClientController';
@@ -47,19 +44,19 @@ import DatatableRowController from '../../../../datatable/component/DatatableRow
 import DatatableComponentField from '../../../../datatable/component/fields/DatatableComponentField';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
-import VueComponentBase, { FiltersHandler } from '../../../../VueComponentBase';
+import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import FieldValueFilterWidgetOptions from '../../field_value_filter_widget/options/FieldValueFilterWidgetOptions';
+import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFiltersWidgetController';
 import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../../var_widget/VarWidgetComponent';
 import CRUDCreateModalComponent from './../crud_modals/create/CRUDCreateModalComponent';
 import CRUDUpdateModalComponent from './../crud_modals/update/CRUDUpdateModalComponent';
 import TableWidgetOptions from './../options/TableWidgetOptions';
 import TablePaginationComponent from './../pagination/TablePaginationComponent';
-import './TableWidgetTableComponent.scss';
 import TableWidgetController from './../TableWidgetController';
-import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFiltersWidgetController';
+import './TableWidgetTableComponent.scss';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -78,9 +75,6 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
     @ModuleDashboardPageGetter
     private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
-
-    @ModuleDashboardPageAction
-    private set_discarded_field_paths: (discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }) => void;
 
     @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
@@ -1245,42 +1239,11 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters)
             ));
 
-        let db_cells_source = await query(DashboardGraphVORefVO.API_TYPE_ID)
-            .filter_by_num_eq('dashboard_id', this.dashboard.id)
-            .select_vos<DashboardGraphVORefVO>();
-
-        // let db_cell_source_by_vo_type: { [vo_type: string]: DashboardGraphVORefVO } = {};
-        let discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = {};
-
-        for (let i in db_cells_source) {
-            // db_cell_source_by_vo_type[db_cells_source[i].vo_type] = db_cells_source[i];
-            let vo_type = db_cells_source[i].vo_type;
-            let db_cell_source = db_cells_source[i];
-
-            if (!db_cell_source.values_to_exclude) {
-                continue;
-            }
-
-            for (let index_field_id in db_cell_source.values_to_exclude) {
-                let field_id: string = db_cell_source.values_to_exclude[index_field_id];
-
-                if (!discarded_field_paths[vo_type]) {
-                    discarded_field_paths[vo_type] = {};
-                }
-                discarded_field_paths[vo_type][field_id] = true;
-            }
-        }
-        this.set_discarded_field_paths(discarded_field_paths);
-
         //On évite les jointures supprimées.
-        for (let index_vo_type in query_.active_api_type_ids) {
-            let vo_type: string = query_.active_api_type_ids[index_vo_type];
+        for (let vo_type in this.get_discarded_field_paths) {
+            let discarded_field_paths_vo_type = this.get_discarded_field_paths[vo_type];
 
-            if (!discarded_field_paths[vo_type]) {
-                continue;
-            }
-
-            for (let field_id in discarded_field_paths[vo_type]) {
+            for (let field_id in discarded_field_paths_vo_type) {
                 query_.discard_field_path(vo_type, field_id); //On annhile le chemin possible depuis la cellule source de champs field_id
             }
         }

@@ -102,7 +102,9 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
         let rep: string = ModuleImageFormat.RESIZABLE_IMGS_PATH_BASE + update.post_update_vo.name + "/";
 
         try {
-            fs.rmdirSync(rep);
+            if (fs.existsSync(rep)) {
+                fs.rmdirSync(rep, { recursive: true });
+            }
         } catch (e) {
             ConsoleHandler.error(e);
         }
@@ -262,15 +264,35 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
                 base_image_width = image.getWidth();
                 base_image_height = image.getHeight();
 
+                let text_image_width: number = base_image_width;
+                let text_image_height: number = base_image_height;
+
+                if (format.watermark_rotate && ((format.watermark_rotate == 90) || (format.watermark_rotate == 270))) {
+                    text_image_width = base_image_height;
+                    text_image_height = base_image_width;
+                }
+
+                const fontCanvas = await jimp.create(text_image_width, text_image_height);
+
                 let font = await jimp.loadFont(jimp['FONT_SANS_' + format.watermark_font + '_BLACK']);
 
-                image.print(font, format.watermark_x, format.watermark_y, {
+                fontCanvas.print(font, format.watermark_x, format.watermark_y, {
                     text: format.watermark_txt,
                     alignmentX: format.watermark_horizontal_align,
                     alignmentY: format.watermark_vertical_align
-                }, base_image_width, base_image_height);
+                }, text_image_width, text_image_height);
 
-                await image.writeAsync(new_img_file.path);
+                if (format.watermark_rotate) {
+                    fontCanvas.rotate(format.watermark_rotate);
+                }
+
+                // image.print(font, format.watermark_x, format.watermark_y, {
+                //     text: format.watermark_txt,
+                //     alignmentX: format.watermark_horizontal_align,
+                //     alignmentY: format.watermark_vertical_align
+                // }, base_image_width, base_image_height);
+
+                await image.blit(fontCanvas, 0, 0).writeAsync(new_img_file.path);
             }
 
             let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(new_img_file);

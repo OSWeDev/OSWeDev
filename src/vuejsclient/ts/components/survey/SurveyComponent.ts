@@ -16,13 +16,8 @@ import VueComponentBase from '../VueComponentBase';
 import { ModuleSurveyAction, ModuleSurveyGetter } from './store/SurveyStore';
 import './SurveyComponent.scss';
 
-/*
-TODO survey ouvert ou pas en fonction du route_name ok
-    combien de temps, ok
-    detection de sortie
-    smiley
+const { parse, stringify } = require('flatted/cjs');
 
-*/
 @Component({
     template: require('./SurveyComponent.pug'),
     components: {
@@ -48,6 +43,14 @@ export default class SurveyComponent extends VueComponentBase {
     private is_already_sending_survey: boolean = false;
     private throttled_retry = throttle(this.define_survey, 100, { leading: false });
     private display_survey: boolean = false;
+
+    private smileys: any[] = [
+        { id: 0, icon: "fa-comment-slash" },
+        { id: 1, icon: "fa-face-frown" },
+        { id: 2, icon: "fa-face-meh" },
+        { id: 3, icon: "fa-face-smile" },
+        { id: 4, icon: "fa-face-grin-stars" },
+    ];
 
     @Watch('$route.name', { immediate: true })
     private onchange_route_name() {

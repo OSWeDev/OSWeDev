@@ -10,7 +10,7 @@ include ../../../../../../views/mixins/loading.pug
 
             .table_header {{ table_header_title }}
 
-            .upper_pagination                            
+            .upper_pagination
                 Tablepaginationcomponent(
                     :pagination_offset='pagination_offset'
                     :pagination_pagesize='limit'
@@ -162,6 +162,7 @@ include ../../../../../../views/mixins/loading.pug
                                                                 :page_widget="page_widget"
                                                                 :filter='get_column_filter(column)'
                                                                 :filter_additional_params='get_column_filter_additional_params(column)'
+                                                                :table_is_busy="is_busy"
                                                             )
 
                                                 template(v-else)
@@ -204,6 +205,7 @@ include ../../../../../../views/mixins/loading.pug
                                                         :all_page_widget="all_page_widget"
                                                         :filter='get_column_filter(column)'
                                                         :filter_additional_params='get_column_filter_additional_params(column)'
+                                                        :table_is_busy="is_busy"
                                                     )
                                                 template(v-if="child.type == 0 && !child.hide_from_table")
                                                     td.btn-group.d-print-none(

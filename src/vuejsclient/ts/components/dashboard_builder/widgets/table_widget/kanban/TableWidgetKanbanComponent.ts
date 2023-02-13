@@ -75,9 +75,6 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     @ModuleDashboardPageGetter
     private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
 
-    @ModuleDashboardPageAction
-    private set_discarded_field_paths: (discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }) => void;
-
     @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
     @ModuleDashboardPageAction
@@ -1664,42 +1661,11 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters)
             ));
 
-        let db_cells_source = await query(DashboardGraphVORefVO.API_TYPE_ID)
-            .filter_by_num_eq('dashboard_id', this.dashboard.id)
-            .select_vos<DashboardGraphVORefVO>();
-
-        // let db_cell_source_by_vo_type: { [vo_type: string]: DashboardGraphVORefVO } = {};
-        let discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = {};
-
-        for (let i in db_cells_source) {
-            // db_cell_source_by_vo_type[db_cells_source[i].vo_type] = db_cells_source[i];
-            let vo_type = db_cells_source[i].vo_type;
-            let db_cell_source = db_cells_source[i];
-
-            if (!db_cell_source.values_to_exclude) {
-                continue;
-            }
-
-            for (let index_field_id in db_cell_source.values_to_exclude) {
-                let field_id: string = db_cell_source.values_to_exclude[index_field_id];
-
-                if (!discarded_field_paths[vo_type]) {
-                    discarded_field_paths[vo_type] = {};
-                }
-                discarded_field_paths[vo_type][field_id] = true;
-            }
-        }
-        this.set_discarded_field_paths(discarded_field_paths);
-
         //On évite les jointures supprimées.
-        for (let index_vo_type in query_.active_api_type_ids) {
-            let vo_type: string = query_.active_api_type_ids[index_vo_type];
+        for (let vo_type in this.get_discarded_field_paths) {
+            let discarded_field_paths_vo_type = this.get_discarded_field_paths[vo_type];
 
-            if (!discarded_field_paths[vo_type]) {
-                continue;
-            }
-
-            for (let field_id in discarded_field_paths[vo_type]) {
+            for (let field_id in discarded_field_paths_vo_type) {
                 query_.discard_field_path(vo_type, field_id); //On annhile le chemin possible depuis la cellule source de champs field_id
             }
         }

@@ -273,6 +273,12 @@
 
     .grid_item_wrapper.hide {
         opacity: 0.4 !important;
+
+    }
+
+    .grid_item_wrapper.shaded {
+        display: block;
+        opacity: 0.4;
     }
 }
 

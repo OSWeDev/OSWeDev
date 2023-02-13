@@ -24,9 +24,11 @@ include ../../../../../views/mixins/loading.pug
                             | {{ label('crud.actions.refresh') }}
 
         template(v-if="show_bulk_edit")
-            .btn.btn-default.mr-2(@click="select_unselect_all") {{ label('supervision_widget_component.select_unselect_all') }}
-            .btn.btn-default.mr-2(@click="mark_as_read") {{ label('supervision_widget_component.mark_as_read') }}
-            .btn.btn-default.mr-2(@click="mark_as_unread") {{ label('supervision_widget_component.mark_as_unread') }}
+            .show_bulk_edit.text-center.mb-2
+                .btn.btn-primary.display_inline_block.mr-2(@click="select_unselect_all(true)") {{ label('supervision_widget_component.select_all') }}
+                .btn.btn-primary.display_inline_block.mr-2(@click="select_unselect_all(false)") {{ label('supervision_widget_component.unselect_all') }}
+                .btn.btn-primary.display_inline_block.mr-2(@click="mark_as_read") {{ label('supervision_widget_component.mark_as_read') }}
+                .btn.btn-primary.display_inline_block(@click="mark_as_unread") {{ label('supervision_widget_component.mark_as_unread') }}
 
         .table_wrapper
             table.table-striped.table-hover
@@ -45,7 +47,7 @@ include ../../../../../views/mixins/loading.pug
                                 td.text-center
                                     input(type="checkbox", v-model="selected_items[get_identifier(item)]" :checked="selected_items[get_identifier(item)]")
                             td.text-center
-                                div(@click="openModal(item)") 
+                                .show_detail.clickable(@click="openModal(item)") 
                                     i.fa-duotone.fa-eye.mr-1
                                     span {{ label('supervision_widget_component.table.show_detail') }}
 

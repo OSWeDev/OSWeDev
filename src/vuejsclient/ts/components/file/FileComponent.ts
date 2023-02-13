@@ -33,6 +33,9 @@ export default class FileComponent extends VueComponentBase {
     @Prop({ default: false })
     protected muted: boolean;
 
+    @Prop({ default: false })
+    protected hide_btn_delete_file: boolean;
+
     // protected uploading: boolean = false;
     // protected datafile = null;
 
