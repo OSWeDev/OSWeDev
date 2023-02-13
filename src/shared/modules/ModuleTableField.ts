@@ -52,7 +52,7 @@ export default class ModuleTableField<T> {
     public static FIELD_TYPE_hours_and_minutes: string = 'HourAndMinute';
     public static FIELD_TYPE_daterange: string = 'daterange';
     // public static FIELD_TYPE_daterange_array: string = 'daterange[]';
-    public static FIELD_TYPE_tstz: string = 'tstz';
+    public static FIELD_TYPE_tstz: string = 'tstz';  // TimeStamp With TimeZone
     public static FIELD_TYPE_tstz_array: string = 'tstz[]';
     public static FIELD_TYPE_tstzrange_array: string = 'tstzrange[]'; // TimeStamp With TimeZone range array
     public static FIELD_TYPE_tsrange: string = 'tsrange';
