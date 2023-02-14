@@ -1,5 +1,6 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import ModuleFile from '../../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../../shared/modules/File/vos/FileVO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
@@ -49,6 +50,7 @@ export default class FileComponent extends VueComponentBase {
     public async updateFileVo() {
         this.has_valid_file_linked = false;
         if (this.filevo && this.filevo.id) {
+
             this.has_valid_file_linked = await ModuleFile.getInstance().testFileExistenz(this.filevo.id);
         }
 
@@ -77,6 +79,7 @@ export default class FileComponent extends VueComponentBase {
         // dropzone.emit('complete', mock);
     }
 
+
     public async mounted() {
         this.uid = FileComponent.__UID++;
     }
@@ -84,6 +87,8 @@ export default class FileComponent extends VueComponentBase {
     private removeFile() {
         this.$emit('uploaded', null);
     }
+
+
 
     get dropzoneOptions() {
         let self = this;

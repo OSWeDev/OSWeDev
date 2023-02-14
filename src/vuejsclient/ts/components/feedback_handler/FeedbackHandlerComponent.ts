@@ -180,10 +180,6 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
     private async uploadedFile1(fileVo: FileVO) {
         //On vérifie que le format est valide afin de pouvoir être consulté sur le trello.
         if (fileVo) {
-            if (!this.check_for_valid_format(fileVo.path)) {
-                return;
-            }
-            this.set_hidden(false);
             this.tmp_attachment_1_vo = fileVo;
         } else {
             this.tmp_attachment_1_vo = fileVo;
@@ -192,9 +188,6 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
 
     private async uploadedFile2(fileVo: FileVO) {
         if (fileVo) {
-            if (!this.check_for_valid_format(fileVo.path)) {
-                return;
-            }
             this.tmp_attachment_2_vo = fileVo;
 
         } else {
@@ -204,29 +197,12 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
 
     private async uploadedFile3(fileVo: FileVO) {
         if (fileVo) {
-
-            if (!this.check_for_valid_format(fileVo.path)) {
-                return;
-            }
             this.tmp_attachment_3_vo = fileVo;
         } else {
             this.tmp_attachment_3_vo = fileVo;
         }
     }
 
-    private check_for_valid_format(path: string) {
-        let file_name_begin = path.lastIndexOf('/');
-        let file_name_end = path.lastIndexOf('.');
-        let file_name = path.slice(file_name_begin + 1, file_name_end);
-        let format = /[!@#$%^&*()+\=\[\]{};':"\\|,.<>\/?]+/;
-
-        if (format.test(file_name) || (file_name.indexOf(' ') >= 0)) {
-            this.set_hidden(true);
-            this.snotify.error(this.label('FeedbackHandlerComponent.file_format_error'));
-            return false;
-        }
-        return true;
-    }
 
     private async uploadedCapture1(fileVo: FileVO) {
         this.tmp_capture_1_vo = fileVo;

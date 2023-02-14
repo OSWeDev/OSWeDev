@@ -1,4 +1,5 @@
 
+import { renameSync } from 'fs';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
@@ -11,6 +12,7 @@ import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleFeedback from '../../../shared/modules/Feedback/ModuleFeedback';
 import FeedbackVO from '../../../shared/modules/Feedback/vos/FeedbackVO';
+import ModuleFile from '../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
@@ -532,6 +534,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         return res;
     }
 
+
     private async attachments_to_string(feedback: FeedbackVO): Promise<string> {
         let envParam: EnvParam = ConfigurationService.node_configuration;
 
@@ -546,6 +549,19 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         if (!file) {
             return '';
         }
+
+        let tchecked_path = this.check_for_valid_format(file.path); //Corrige le nom du fichier si jamais celui-ci est incompatible avec trello
+        if (tchecked_path) {
+            let old_path = file.path;
+
+            file.path = tchecked_path;
+            await ModuleDAO.getInstance().insertOrUpdateVO(file); //Ecriture en base pour que le path soit retrouvé côté serveur.
+            renameSync(old_path, file.path); //Important , il est important de synchroniser avec le système de fichier également
+
+        }
+
+
+
         let file_url = envParam.BASE_URL + file.path;
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- [FILE 1 : ' + file_url + '](' + file_url + ')';
         if (!feedback.file_attachment_2_id) {
@@ -556,6 +572,17 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         if (!file) {
             return res;
         }
+
+        tchecked_path = this.check_for_valid_format(file.path);
+        if (tchecked_path) {
+            let old_path = file.path;
+
+            file.path = tchecked_path;
+            await ModuleDAO.getInstance().insertOrUpdateVO(file); //Ecriture en base pour que le path soit retrouvé côté serveur.
+            renameSync(old_path, file.path); //Important , il est important de synchroniser avec le système de fichier également
+
+        }
+
         file_url = envParam.BASE_URL + file.path;
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- [FILE 2 : ' + file_url + '](' + file_url + ')';
         if (!feedback.file_attachment_3_id) {
@@ -566,6 +593,17 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         if (!file) {
             return res;
         }
+
+        tchecked_path = this.check_for_valid_format(file.path);
+        if (tchecked_path) {
+            let old_path = file.path;
+
+            file.path = tchecked_path;
+            await ModuleDAO.getInstance().insertOrUpdateVO(file); //Ecriture en base pour que le path soit retrouvé côté serveur.
+            renameSync(old_path, file.path); //Important , il est important de synchroniser avec le système de fichier également
+
+        }
+
         file_url = envParam.BASE_URL + file.path;
         res += ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + '- [FILE 3 : ' + file_url + '](' + file_url + ')';
 
@@ -619,5 +657,42 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         }
 
         return res;
+    }
+    private check_for_valid_format(path: string) {
+
+        /*
+        Corrige le nom du fichier pour compatibilité avec trello , les caractère non voulus sont précisés dans "format" et "unwantedchar".
+        */
+
+        let file_name_begin = path.lastIndexOf('/');
+        let file_name_end = path.lastIndexOf('.');
+        let file_name = path.slice(file_name_begin + 1, file_name_end);
+        let format = /[!@#$%^&*()+\=\[\]{};':"\\|,.<>\/?]+/;
+
+        if (format.test(file_name) || (file_name.indexOf(' ') >= 0)) {
+
+            // remove gaps from the string
+            file_name = file_name.replace(/\s+/g, ' ');
+
+            // convert the string to an array of characters
+            const charArray: string[] = Array.from(file_name);
+
+            const unwantedChars = ["/", "\\\\", "[", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "+", '=', "[", "]", "{", "}", ";", "'", ":", "|", ",", ".", "<", ">", "?", ' '];
+
+            file_name = charArray.filter((char) => !unwantedChars.includes(char)).join('_');
+
+            console.log(file_name);
+            console.log(format.test(file_name));
+            if (format.test(file_name)) {
+                //Si jamais ça n'a pas fonctionné , dans ce cas on refuse.
+
+                return;
+            }
+            path = path.slice(0, file_name_begin + 1) + file_name + path.slice(file_name_end);
+            return path;
+        } else {
+            return null;
+        }
+
     }
 }
