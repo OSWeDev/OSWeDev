@@ -1,4 +1,3 @@
-import * as bodyParser from 'body-parser-with-msgpack';
 import * as child_process from 'child_process';
 import * as compression from 'compression';
 import * as cookieParser from 'cookie-parser';
@@ -9,7 +8,6 @@ import * as createLocaleMiddleware from 'express-locale';
 import * as expressSession from 'express-session';
 import * as sharedsession from 'express-socket.io-session';
 import * as fs from 'fs';
-import * as msgpackResponse from 'msgpack-response';
 import * as path from 'path';
 import * as pg from 'pg';
 import * as pg_promise from 'pg-promise';
@@ -136,7 +134,6 @@ export default abstract class ServerBase {
         EnvHandler.IS_DEV = !!this.envParam.ISDEV;
         EnvHandler.DEBUG_PROMISE_PIPELINE = !!this.envParam.DEBUG_PROMISE_PIPELINE;
         EnvHandler.MAX_POOL = this.envParam.MAX_POOL;
-        EnvHandler.MSGPCK = !!this.envParam.MSGPCK;
         EnvHandler.COMPRESS = !!this.envParam.COMPRESS;
         EnvHandler.CODE_GOOGLE_ANALYTICS = this.envParam.CODE_GOOGLE_ANALYTICS;
         EnvHandler.VERSION = this.version;
@@ -291,11 +288,6 @@ export default abstract class ServerBase {
                     return false;
                 }
 
-                // On check le cas du MSGPack qui est pas géré pour le moment pour indiquer compressible
-                if (req.headers['content-type'] == AjaxCacheController.MSGPACK_REQUEST_TYPE) {
-                    return true;
-                }
-
                 // fallback to standard filter function
                 return compression.filter(req, res);
             };
@@ -419,14 +411,6 @@ export default abstract class ServerBase {
             res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept');
             next();
         });
-
-        if (!!EnvHandler.MSGPCK) {
-            this.app.use(bodyParser.msgpack({
-                limit: '100mb'
-            }));
-            this.app.use(msgpackResponse({ auto_detect: true }));
-        }
-
 
         // Log request & response
         this.app.use((req: Request, res: Response, next: NextFunction) => {

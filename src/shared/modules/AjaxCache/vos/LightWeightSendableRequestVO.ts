@@ -28,7 +28,7 @@ export default class LightWeightSendableRequestVO {
         this.datas = Object.assign({}, request.datas);
         this.contentType = request.contentType;
         this.index = request.index;
-        this.postdatas = (!EnvHandler.MSGPCK) ? request.postdatas : Object.assign({}, request.postdatas);
+        this.postdatas = request.postdatas;
         this.dataType = request.dataType;
         this.processData = request.processData;
         this.type = request.type;
