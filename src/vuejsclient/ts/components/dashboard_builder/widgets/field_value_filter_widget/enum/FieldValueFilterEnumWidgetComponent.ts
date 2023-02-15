@@ -257,7 +257,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         let tmp: DataFilterOption[] = [];
         let add_tmp: { [numeric_value: number]: boolean } = {};
 
-        let available_api_type_ids: string[] = this.get_available_api_type_ids();
+        let available_api_type_ids: string[] = this.get_available_api_type_ids(false);
 
         let custom_active_field_filters_by_api_type_id: { [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } } = this.get_custom_active_field_filters_by_api_type_id(
             available_api_type_ids,
@@ -394,7 +394,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         let limit = EnvHandler.MAX_POOL / 2;
         let promise_pipeline = new PromisePipeline(limit);
 
-        let available_api_type_ids: string[] = this.get_available_api_type_ids();
+        let available_api_type_ids: string[] = this.get_available_api_type_ids(true);
 
         let custom_active_field_filters_by_api_type_id: { [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } } = this.get_custom_active_field_filters_by_api_type_id(
             available_api_type_ids,
@@ -455,7 +455,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         this.count_by_filter_visible_opt_id = count_by_filter_visible_opt_id;
     }
 
-    private get_available_api_type_ids(): string[] {
+    private get_available_api_type_ids(for_count: boolean): string[] {
         if (this.has_other_ref_api_type_id && this.other_ref_api_type_id) {
             return [this.other_ref_api_type_id];
         }
@@ -464,7 +464,11 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             return this.get_active_api_type_ids;
         }
 
-        return this.get_query_api_type_ids;
+        if (this.get_query_api_type_ids && (this.get_query_api_type_ids.length > 0) && for_count) {
+            return this.get_query_api_type_ids;
+        }
+
+        return [this.vo_field_ref.api_type_id];
     }
 
     private get_custom_active_field_filters_by_api_type_id(

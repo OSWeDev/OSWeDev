@@ -1,6 +1,10 @@
 {
     "name": "oswedev",
+<<<<<<< HEAD
     "version": "0.27.16",
+=======
+    "version": "0.27.17",
+>>>>>>> a24c355d (Fix DBB Load filter enum options)
     "description": "",
     "repository": {
         "type": "git",
