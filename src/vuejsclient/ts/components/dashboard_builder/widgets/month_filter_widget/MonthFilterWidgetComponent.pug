@@ -9,4 +9,4 @@
             template(v-if='(!months) || !months.length')
                 .no_month {{ label('month_filter_widget_component.no_month') }}
             template(v-for='month in months')
-                .month(:class='{"selected": !!selected_months[month]}' @click='handle_toggle_slected_month(month)') {{ label(getMonthName((month-1)%12)) }}
+                .month(:class='{"selected": !!selected_months[month]}' @click='handle_toggle_selected_month(month)') {{ label(getMonthName((month-1)%12)) }}
