@@ -15,9 +15,9 @@ export default class ModuleEvolizAPI extends Module {
 
     public static EvolizAPI_BaseURL: string = 'www.evoliz.io';
     public static APINAME_list_invoices: string = "list_invoices";
-    public static APINAME_create_invoices: string = "create_invoices";
+    public static APINAME_create_invoice: string = "create_invoice";
     public static APINAME_list_clients: string = "list_clients";
-    public static APINAME_create_clients: string = "create_clients";
+    public static APINAME_create_client: string = "create_client";
 
     public static MODULE_NAME: string = 'EvolizAPI';
 
@@ -35,9 +35,9 @@ export default class ModuleEvolizAPI extends Module {
     private static instance: ModuleEvolizAPI = null;
 
     public list_invoices: () => Promise<EvolizInvoiceVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_invoices);
-    public create_invoices: (invoice: EvolizInvoiceVO) => Promise<string> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_create_invoices);
+    public create_invoice: (invoice: EvolizInvoiceVO) => Promise<string> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_create_invoice);
     public list_clients: () => Promise<EvolizClientVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_clients);
-    public create_clients: (client: EvolizClientVO) => Promise<string> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_create_clients);
+    public create_client: (client: any) => Promise<string> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_create_client);
 
     private constructor() {
 
@@ -53,7 +53,7 @@ export default class ModuleEvolizAPI extends Module {
 
         APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<EvolizClientVO, string>(
             null,
-            ModuleEvolizAPI.APINAME_create_invoices,
+            ModuleEvolizAPI.APINAME_create_invoice,
             [],
             EvolizClientParamStatic
         ));
@@ -66,7 +66,7 @@ export default class ModuleEvolizAPI extends Module {
 
         APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<EvolizInvoiceVO, string>(
             null,
-            ModuleEvolizAPI.APINAME_create_clients,
+            ModuleEvolizAPI.APINAME_create_client,
             [],
             EvolizInvoiceParamStatic
         ));

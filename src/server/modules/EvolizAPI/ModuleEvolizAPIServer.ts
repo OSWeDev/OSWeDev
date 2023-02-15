@@ -67,9 +67,9 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
 
     public registerServerApiHandlers() {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleEvolizAPI.APINAME_list_invoices, this.list_invoices.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleEvolizAPI.APINAME_create_invoices, this.create_invoices.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleEvolizAPI.APINAME_create_invoice, this.create_invoice.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleEvolizAPI.APINAME_list_clients, this.list_clients.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleEvolizAPI.APINAME_create_clients, this.create_clients.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleEvolizAPI.APINAME_create_client, this.create_client.bind(this));
     }
 
     public async getToken(): Promise<EvolizAPIToken> {
@@ -109,84 +109,104 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
     }
 
     public async list_invoices(): Promise<EvolizInvoiceVO[]> {
-        let token: EvolizAPIToken = await this.getToken();
+        try {
+            let token: EvolizAPIToken = await this.getToken();
 
-        let list_invoices: { data: EvolizInvoiceVO[], links: any, meta: any } = await ModuleRequest.getInstance().sendRequestFromApp(
-            ModuleRequest.METHOD_GET,
-            ModuleEvolizAPI.EvolizAPI_BaseURL,
-            '/api/v1/invoices' + ModuleRequest.getInstance().get_params_url({
-                per_page: '100',
-            }),
-            null,
-            {
-                Authorization: 'Bearer ' + token.access_token
-            },
-            true,
-            null,
-            false,
-            true,
-        );
+            let list_invoices: { data: EvolizInvoiceVO[], links: any, meta: any } = await ModuleRequest.getInstance().sendRequestFromApp(
+                ModuleRequest.METHOD_GET,
+                ModuleEvolizAPI.EvolizAPI_BaseURL,
+                '/api/v1/invoices' + ModuleRequest.getInstance().get_params_url({
+                    per_page: '100',
+                }),
+                null,
+                {
+                    Authorization: 'Bearer ' + token.access_token
+                },
+                true,
+                null,
+                false,
+                true,
+            );
 
-        console.log(list_invoices);
-        return list_invoices.data;
+            console.log(list_invoices);
+            return list_invoices.data;
+        } catch (error) {
+            console.error(error);
+        }
     }
 
-    public async create_invoices(invoice: EvolizInvoiceVO) {
-        let token: EvolizAPIToken = await this.getToken();
+    public async create_invoice(invoice: EvolizInvoiceVO) {
+        try {
+            let token: EvolizAPIToken = await this.getToken();
 
-        let create_invoice = await ModuleRequest.getInstance().sendRequestFromApp(
-            ModuleRequest.METHOD_POST,
-            ModuleEvolizAPI.EvolizAPI_BaseURL,
-            '/api/v1/invoices',
-            invoice,
-            {
-                Authorization: 'Bearer ' + token.access_token
-            },
-            true,
-            null,
-            false,
-            false,
-        );
+            let create_invoice = await ModuleRequest.getInstance().sendRequestFromApp(
+                ModuleRequest.METHOD_POST,
+                ModuleEvolizAPI.EvolizAPI_BaseURL,
+                '/api/v1/invoices',
+                invoice,
+                {
+                    'Authorization': 'Bearer ' + token.access_token,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json; charset=utf-8',
+                },
+                true,
+                null,
+                false,
+                true,
+            );
+        } catch (error) {
+            console.error("Erreur: invoice: " + invoice.document_number);
+        }
     }
 
     public async list_clients(): Promise<EvolizClientVO[]> {
-        let token: EvolizAPIToken = await this.getToken();
+        try {
+            let token: EvolizAPIToken = await this.getToken();
 
-        let clients: { data: EvolizClientVO[], links: any, meta: any } = await ModuleRequest.getInstance().sendRequestFromApp(
-            ModuleRequest.METHOD_GET,
-            ModuleEvolizAPI.EvolizAPI_BaseURL,
-            '/api/v1/clients' + ModuleRequest.getInstance().get_params_url({
-                per_page: '100',
-            }),
-            null,
-            {
-                Authorization: 'Bearer ' + token.access_token
-            },
-            true,
-            null,
-            false,
-            true,
-        );
+            let clients: { data: EvolizClientVO[], links: any, meta: any } = await ModuleRequest.getInstance().sendRequestFromApp(
+                ModuleRequest.METHOD_GET,
+                ModuleEvolizAPI.EvolizAPI_BaseURL,
+                '/api/v1/clients' + ModuleRequest.getInstance().get_params_url({
+                    per_page: '100',
+                }),
+                null,
+                {
+                    Authorization: 'Bearer ' + token.access_token
+                },
+                true,
+                null,
+                false,
+            );
 
-        console.log(clients);
-        return clients.data;
+            console.log(clients);
+            return clients.data;
+        } catch (error) {
+            console.error(error);
+        }
     }
 
-    public async create_clients(client: EvolizClientVO) {
-        let token: EvolizAPIToken = await this.getToken();
+    public async create_client(client: EvolizClientVO) {
 
-        let create_client = await ModuleRequest.getInstance().sendRequestFromApp(
-            ModuleRequest.METHOD_POST,
-            ModuleEvolizAPI.EvolizAPI_BaseURL,
-            '/api/v1/clients',
-            client,
-            {
-                Authorization: 'Bearer ' + token.access_token
-            },
-            true,
-            null,
-            false,
-            false,
-        );
+        try {
+            let token: EvolizAPIToken = await this.getToken();
+
+            let create_client = await ModuleRequest.getInstance().sendRequestFromApp(
+                ModuleRequest.METHOD_POST,
+                ModuleEvolizAPI.EvolizAPI_BaseURL,
+                '/api/v1/clients',
+                client,
+                {
+                    'Authorization': 'Bearer ' + token.access_token,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json; charset=utf-8',
+                },
+                true,
+                null,
+                false,
+                true,
+            );
+        } catch (error) {
+            console.error("Erreur: client: " + client.name);
+        }
     }
 }

@@ -28,8 +28,18 @@ export default class ModuleRequestServer extends ModuleServerBase {
     }
 
     /**
-     * Pour du POST, il faut ajouter Content-Length dans le header
+     * /!\ Pour du POST, il faut ajouter Content-Length dans le header
      * Sinon ça ne marche pas dans certain cas
+     * @param method
+     * @param host
+     * @param path
+     * @param posts
+     * @param headers
+     * @param sendHttps
+     * @param result_headers
+     * @param nojsonparse
+     * @param add_content_length_to_headers Que pour les POST
+     * @returns
      */
     public async sendRequestFromApp(
         method: string,
@@ -40,7 +50,7 @@ export default class ModuleRequestServer extends ModuleServerBase {
         sendHttps: boolean = false,
         result_headers: {} = null,
         nojsonparse: boolean = false,
-        add_content_length_to_headers: boolean = false // Que pour les POST
+        add_content_length_to_headers: boolean = false
     ): Promise<any> {
 
         return new Promise((resolve, reject) => {

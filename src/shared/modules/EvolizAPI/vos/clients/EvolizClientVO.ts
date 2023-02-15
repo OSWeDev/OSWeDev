@@ -1,9 +1,4 @@
 export default class EvolizClientVO {
-    public static API_TYPE_ID: string = "evoliz_client";
-
-    public id: number;
-    public _type: string = EvolizClientVO.API_TYPE_ID;
-
     // ID unique Evoliz
     public clientid: number;
     // ID du créateur du client
@@ -12,9 +7,9 @@ export default class EvolizClientVO {
     public code: string;
     // Civilité
     public civility: string;
-    // Nom
+    // Nom (required & non null)
     public name: string;
-    // Type: Particulier, Professionnel, Administration publique
+    // Type: Particulier, Professionnel, Administration publique (required & non null)
     public type: string;
     // Client's company legalform
     public legalform: string;
@@ -22,13 +17,13 @@ export default class EvolizClientVO {
     public business_number: string;
     // APE, NAF
     public activity_number: string;
-    // Numéro de TVA ou N/C si non-concerné
+    // Numéro de TVA ou N/C si non-concerné ou Not Known
     public vat_number: string;
     // Registration number (RCS, RM)
     public immat_number: string;
     // Informations bancaires
-    public bank_information: { bank_name: string, bank_account_detail: string, iban: string, bank_identification_code: string, };
-    // Adresse
+    public bank_information: { bank_name?: string, bank_account_detail?: string, iban?: string, bank_identification_code?: string, };
+    // Adresse (required & non null)
     // En GET : {
     //     addr: string,
     //     addr2: string,
@@ -43,7 +38,14 @@ export default class EvolizClientVO {
     //     addr: string,
     //     addr2: string,
     // };
-    public address: any;
+    public address: {
+        postcode: string,
+        town: string,
+        iso2?: string,
+        addr: string,
+        addr2?: string,
+        country?: { label: string, iso2: string }
+    };
     // Adresse de livraison
     // En GET : {
     //     addr: string,
@@ -59,7 +61,14 @@ export default class EvolizClientVO {
     //     addr: string,
     //     addr2: string,
     // };
-    public delivery_address: any;
+    public delivery_address: {
+        postcode: string,
+        town: string,
+        iso2?: string,
+        addr: string,
+        addr2?: string,
+        country?: { label: string, iso2: string }
+    };
     // Téléphone
     public phone: string;
     // Téléphone portable

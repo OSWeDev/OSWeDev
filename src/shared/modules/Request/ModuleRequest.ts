@@ -23,6 +23,20 @@ export default class ModuleRequest extends Module {
 
     private static instance: ModuleRequest = null;
 
+    /**
+     * /!\ Pour du POST, il faut ajouter Content-Length dans le header
+     * Sinon ça ne marche pas dans certain cas
+     * @param method
+     * @param host
+     * @param path
+     * @param posts
+     * @param headers
+     * @param sendHttps
+     * @param result_headers
+     * @param nojsonparse
+     * @param add_content_length_to_headers Que pour les POST
+     * @returns
+     */
     public sendRequestFromApp: (
         method: string,
         host: string,
