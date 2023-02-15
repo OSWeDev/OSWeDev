@@ -1,4 +1,4 @@
-import { cloneDeep, debounce, isEqual } from 'lodash';
+import { cloneDeep, debounce, isEmpty, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
@@ -71,7 +71,6 @@ import './TableWidgetTableComponent.scss';
     }
 })
 export default class TableWidgetTableComponent extends VueComponentBase {
-
 
     @ModuleDashboardPageGetter
     private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
@@ -182,11 +181,26 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
     /**
      * On doit avoir accepté sur la tableau, sur le champs, etre readonly
+     * Can Filter By
+     * Defining if column can be filtered depending on its properties
+     *  - column shall provide can_filter_by
+     *  - column shall be readonly
+     *  - column shall not provide crud actions
      */
     private can_filter_by(column: TableColumnDescVO): boolean {
-        return this.widget_options && this.widget_options.can_filter_by && column && column.can_filter_by && column.readonly && (column.datatable_field_uid != '__crud_actions');
+        return this.widget_options &&
+            this.widget_options.can_filter_by &&
+            column &&
+            column.can_filter_by &&
+            column.readonly &&
+            (column.datatable_field_uid != '__crud_actions');
     }
 
+    /**
+     * Is Filtering By Col
+     * Defining if this datatable widget is currently filtering
+     *  - By the given column field_id
+     */
     private is_filtering_by_col(column: TableColumnDescVO): boolean {
         return this.is_filtering_by &&
             this.filtering_by_active_field_filter && (
@@ -195,11 +209,14 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             ) && (this.filtering_by_active_field_filter.vo_type == column.api_type_id);
     }
 
-    private filter_by(column: TableColumnDescVO, datatable_field_uid: string, vo: any) {
+    /**
+     * Handle Filter By
+     *  - Happen each time we want toggle filter (on click row filter)
+     */
+    private handle_filter_by(column: TableColumnDescVO, datatable_field_uid: string, vo: any) {
 
-        /**
-         * On vide le filtre
-         */
+        // case when no Value Object
+        // - empty the active filter
         if (!vo) {
             this.is_filtering_by = false;
             this.filtering_by_active_field_filter = null;
@@ -210,30 +227,32 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         let filtered_value = vo ? vo[datatable_field_uid] : null;
 
         this.is_filtering_by = true;
-        let filtering_by_active_field_filter: ContextFilterVO = new ContextFilterVO();
-        filtering_by_active_field_filter.vo_type = column.api_type_id;
-        filtering_by_active_field_filter.field_id = column.field_id;
+        let context_filter: ContextFilterVO = new ContextFilterVO();
+        context_filter.vo_type = column.api_type_id;
+        context_filter.field_id = column.field_id;
 
-        // cas de l'id
+        // case when field_id is "id" or datatable_field_uid is crud action
         if ((!column.field_id) || (column.field_id == 'id') || (column.datatable_field_uid == "__crud_actions")) {
 
             if (!filtered_value) {
-                filtering_by_active_field_filter.has_null();
+                context_filter.has_null();
             } else {
-                filtering_by_active_field_filter.by_id(filtered_value);
+                context_filter.by_id(filtered_value);
             }
         } else {
-            let field = VOsTypesManager.moduleTables_by_voType[column.api_type_id].getFieldFromId(column.field_id);
+            let moduleTable = VOsTypesManager.moduleTables_by_voType[column.api_type_id];
+            let field = moduleTable.get_field_by_id(column.field_id);
+
             switch (field.field_type) {
                 case ModuleTableField.FIELD_TYPE_html:
                 case ModuleTableField.FIELD_TYPE_password:
                 case ModuleTableField.FIELD_TYPE_textarea:
                 case ModuleTableField.FIELD_TYPE_email:
                 case ModuleTableField.FIELD_TYPE_string:
-                    if (!filtered_value) {
-                        filtering_by_active_field_filter.has_null();
+                    if (filtered_value == null) {
+                        context_filter.has_null();
                     } else {
-                        filtering_by_active_field_filter.by_text_has(filtered_value);
+                        context_filter.by_text_has(filtered_value);
                     }
                     break;
 
@@ -245,10 +264,10 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 case ModuleTableField.FIELD_TYPE_decimal_full_precision:
                 case ModuleTableField.FIELD_TYPE_isoweekdays:
                 case ModuleTableField.FIELD_TYPE_prct:
-                    if (!filtered_value) {
-                        filtering_by_active_field_filter.has_null();
+                    if (filtered_value == null) {
+                        context_filter.has_null();
                     } else {
-                        filtering_by_active_field_filter.by_num_eq(filtered_value);
+                        context_filter.by_num_eq(filtered_value);
                     }
                     break;
 
@@ -290,10 +309,10 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         this.set_active_field_filter({
             field_id: column.field_id,
             vo_type: column.api_type_id,
-            active_field_filter: filtering_by_active_field_filter,
+            active_field_filter: context_filter,
         });
 
-        this.filtering_by_active_field_filter = filtering_by_active_field_filter;
+        this.filtering_by_active_field_filter = context_filter;
     }
 
     private get_column_filter(column: TableColumnDescVO): any {
@@ -320,12 +339,14 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         return column.filter_additional_params ? JSON.parse(column.filter_additional_params) : undefined;
     }
 
+    /**
+     * Is Row Filter Ok
+     *  - Say that if the current row is filtered
+     * @param row
+     * @returns boolean
+     */
     private is_row_filter_ok(row: any): boolean {
         if (!row) {
-            return true;
-        }
-
-        if (!this.filter_by) {
             return true;
         }
 
@@ -337,11 +358,14 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             return true;
         }
 
+        // Search for column with the active filter field_id
+        // must return with length 1
         let columns = this.columns.filter((c) => (c.api_type_id == this.filtering_by_active_field_filter.vo_type) && (
             (c.field_id == this.filtering_by_active_field_filter.field_id) ||
             ((!c.field_id) && (this.filtering_by_active_field_filter.field_id == 'id')) ||
             ((c.datatable_field_uid == "__crud_actions") && (this.filtering_by_active_field_filter.field_id == 'id'))
         ));
+
         let column = columns ? columns[0] : null;
         if (!column) {
             return true;
@@ -355,7 +379,10 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             }
             return row['__crud_actions'] == this.filtering_by_active_field_filter.param_numeric;
         } else {
-            let field = VOsTypesManager.moduleTables_by_voType[column.api_type_id].getFieldFromId(column.field_id);
+
+            let moduleTable = VOsTypesManager.moduleTables_by_voType[column.api_type_id];
+            let field = moduleTable.get_field_by_id(column.field_id);
+
             switch (field.field_type) {
                 case ModuleTableField.FIELD_TYPE_html:
                 case ModuleTableField.FIELD_TYPE_password:
@@ -363,9 +390,9 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 case ModuleTableField.FIELD_TYPE_email:
                 case ModuleTableField.FIELD_TYPE_string:
                     if (this.filtering_by_active_field_filter.filter_type == ContextFilterVO.TYPE_NULL_ANY) {
-                        return row[column.datatable_field_uid] == null;
+                        return row[column.datatable_field_uid + '__raw'] == null;
                     }
-                    return row[column.datatable_field_uid] == this.filtering_by_active_field_filter.param_text;
+                    return row[column.datatable_field_uid + '__raw'] == this.filtering_by_active_field_filter.param_text;
 
                 case ModuleTableField.FIELD_TYPE_enum:
                 case ModuleTableField.FIELD_TYPE_int:
@@ -376,9 +403,9 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 case ModuleTableField.FIELD_TYPE_isoweekdays:
                 case ModuleTableField.FIELD_TYPE_prct:
                     if (this.filtering_by_active_field_filter.filter_type == ContextFilterVO.TYPE_NULL_ANY) {
-                        return row[column.datatable_field_uid] == null;
+                        return row[column.datatable_field_uid + '__raw'] == null;
                     }
-                    return row[column.datatable_field_uid] == this.filtering_by_active_field_filter.param_numeric;
+                    return row[column.datatable_field_uid + '__raw'] == this.filtering_by_active_field_filter.param_numeric;
 
                 case ModuleTableField.FIELD_TYPE_file_ref:
                 case ModuleTableField.FIELD_TYPE_image_field:
