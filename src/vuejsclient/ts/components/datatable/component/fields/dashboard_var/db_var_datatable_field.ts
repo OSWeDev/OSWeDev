@@ -1,24 +1,18 @@
 import { cloneDeep, debounce } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import ContextFilterVO, { filter } from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import DashboardBuilderController from '../../../../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import TableColumnDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
-import NumSegment from '../../../../../../../shared/modules/DataRender/vos/NumSegment';
-import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
-import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
 import ModuleVar from '../../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
 import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
-import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
-import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import { ModuleDashboardPageGetter } from '../../../../dashboard_builder/page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../../../../dashboard_builder/widgets/DashboardBuilderWidgetsController';
 import ValidationFiltersWidgetController from '../../../../dashboard_builder/widgets/validation_filters_widget/ValidationFiltersWidgetController';
@@ -43,6 +37,9 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
 
     @Prop({ default: null })
     public filter_custom_field_filters: { [field_id: string]: string };
+
+    @Prop({ default: false })
+    public table_is_busy: boolean;
 
     @Prop()
     private dashboard_id: number;
@@ -145,6 +142,12 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
             this.dashboard = null;
             this.var_param = null;
             this.is_loading = false;
+            return;
+        }
+
+        // On refuse de charger des vars si la table est en cours de chargement
+        if (this.table_is_busy) {
+            this.throttle_do_init_param();
             return;
         }
 

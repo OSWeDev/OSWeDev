@@ -21,7 +21,21 @@ export default class FieldValueFilterWidgetController {
 
     private constructor() { }
 
-    public async check_segmented_dependencies(dashboard: DashboardVO, query_: ContextQueryVO, ignore_self_filter: boolean = true): Promise<ContextQueryVO> {
+    public add_discarded_field_paths(q: ContextQueryVO, discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }): ContextQueryVO {
+
+        //On évite les jointures supprimées.
+        for (let vo_type in discarded_field_paths) {
+            let discarded_field_paths_vo_type = discarded_field_paths[vo_type];
+
+            for (let field_id in discarded_field_paths_vo_type) {
+                q.discard_field_path(vo_type, field_id); //On annhile le chemin possible depuis la cellule source de champs field_id
+            }
+        }
+
+        return q;
+    }
+
+    public async check_segmented_dependencies(dashboard: DashboardVO, query_: ContextQueryVO, discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }, ignore_self_filter: boolean = true): Promise<ContextQueryVO> {
 
         /**
          * Si on est pas segmenté, mais qu'on a dans les active_api_type_ids un type segmenté, on check que le nombre d'option est faible pour la table segmentée,
@@ -69,6 +83,8 @@ export default class FieldValueFilterWidgetController {
             query_.active_api_type_ids = query_.active_api_type_ids.filter((api_type_id: string) => {
                 return api_type_id != has_segmented_too_much_options_api_type_id;
             });
+            FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(query_, discarded_field_paths);
+
             let segmented_moduletable = VOsTypesManager.moduleTables_by_voType[has_segmented_too_much_options_api_type_id];
             let fields = segmented_moduletable.get_fields();
             for (let i in fields) {

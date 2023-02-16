@@ -24,6 +24,8 @@ import './DashboardBuilderBoardComponent.scss';
 import DashboardBuilderBoardItemComponent from './item/DashboardBuilderBoardItemComponent';
 import DashboardCopyWidgetComponent from '../copy_widget/DashboardCopyWidgetComponent';
 import SupervisionItemModalComponent from '../widgets/supervision_widget/supervision_item_modal/SupervisionItemModalComponent';
+import DashboardGraphVORefVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
+import { all_promises } from '../../../../../shared/tools/PromiseTools';
 
 @Component({
     template: require('./DashboardBuilderBoardComponent.pug'),
@@ -48,6 +50,9 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     public static GridLayout_TOTAL_WIDTH: number = 1280;
     public static GridLayout_TOTAL_COLUMNS: number = 128;
     public static GridLayout_ELT_WIDTH: number = DashboardBuilderBoardComponent.GridLayout_TOTAL_WIDTH / DashboardBuilderBoardComponent.GridLayout_TOTAL_COLUMNS;
+
+    @ModuleDashboardPageAction
+    private set_discarded_field_paths: (discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }) => void;
 
     @ModuleDashboardPageAction
     private set_page_widget: (page_widget: DashboardPageWidgetVO) => void;
@@ -174,10 +179,11 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     }
 
     private async rebuild_page_layout() {
-        let widgets = await query(DashboardPageWidgetVO.API_TYPE_ID).filter_by_num_eq('page_id', this.dashboard_page.id).select_vos<DashboardPageWidgetVO>();
 
-        widgets = widgets ? widgets.filter((w) => !this.get_widgets_invisibility[w.id]) : null;
-        this.widgets = widgets;
+        await all_promises([
+            this.load_widgets(),
+            this.load_discarded_field_paths(),
+        ]);
 
         /**
          * Si on a une sélection qui correpond au widget qu'on est en train de recharger, on modifie aussi le lien
@@ -192,6 +198,43 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
         this.editable_dashboard_page = Object.assign({
             layout: this.widgets
         }, this.dashboard_page);
+    }
+
+    private async load_discarded_field_paths() {
+
+        let db_cells_source = await query(DashboardGraphVORefVO.API_TYPE_ID)
+            .filter_by_num_eq('dashboard_id', this.dashboard.id)
+            .select_vos<DashboardGraphVORefVO>();
+
+        // let db_cell_source_by_vo_type: { [vo_type: string]: DashboardGraphVORefVO } = {};
+        let discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = {};
+
+        for (let i in db_cells_source) {
+            // db_cell_source_by_vo_type[db_cells_source[i].vo_type] = db_cells_source[i];
+            let vo_type = db_cells_source[i].vo_type;
+            let db_cell_source = db_cells_source[i];
+
+            if (!db_cell_source.values_to_exclude) {
+                continue;
+            }
+
+            for (let index_field_id in db_cell_source.values_to_exclude) {
+                let field_id: string = db_cell_source.values_to_exclude[index_field_id];
+
+                if (!discarded_field_paths[vo_type]) {
+                    discarded_field_paths[vo_type] = {};
+                }
+                discarded_field_paths[vo_type][field_id] = true;
+            }
+        }
+        this.set_discarded_field_paths(discarded_field_paths);
+    }
+
+    private async load_widgets() {
+        let widgets = await query(DashboardPageWidgetVO.API_TYPE_ID).filter_by_num_eq('page_id', this.dashboard_page.id).select_vos<DashboardPageWidgetVO>();
+
+        widgets = widgets ? widgets.filter((w) => !this.get_widgets_invisibility[w.id]) : null;
+        this.widgets = widgets;
     }
 
     private async add_widget_to_page(widget: DashboardWidgetVO): Promise<DashboardPageWidgetVO> {

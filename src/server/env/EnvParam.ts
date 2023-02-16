@@ -9,7 +9,6 @@ export default class EnvParam implements IEnvParam {
     public ISDEV: boolean;
     public DEFAULT_LOCALE: string;
     public CODE_PAYS: string;
-    public MSGPCK: boolean;
     public COMPRESS: boolean;
     public URL_RECOVERY_CHALLENGE: string;
     public URL_RECOVERY: string;
