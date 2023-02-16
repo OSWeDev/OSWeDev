@@ -10,7 +10,6 @@ import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import PopupVO from '../../../../shared/modules/Popup/vos/PopupVO';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
-import ConsoleLogLogger from '../console_logger/ConsoleLogLogger';
 import VueComponentBase from '../VueComponentBase';
 import './PopupComponent.scss';
 
@@ -24,14 +23,7 @@ export default class PopupComponent extends VueComponentBase {
 
     private async mounted() {
         let roles: RoleVO[] = await ModuleAccessPolicy.getInstance().getMyRoles();
-        let console_logs = ConsoleLogLogger.getInstance().console_logs;
 
-        let a = RangeHandler.create_single_elt_TSRange(Dates.now(), TimeSegment.TYPE_DAY);
-        let b = ContextFilterVO.or([
-            filter(PopupVO.API_TYPE_ID, 'only_roles').is_null_or_empty(),
-            filter(PopupVO.API_TYPE_ID, 'only_roles').by_num_x_ranges(RangeHandler.create_multiple_NumRange_from_ids(roles.map((role: RoleVO) => role.id), NumSegment.TYPE_INT)),
-        ]);
-        let c = new SortByVO(PopupVO.API_TYPE_ID, 'activated_ts_range', true);
         this.popups = await query(PopupVO.API_TYPE_ID)
             .filter_by_date_x_ranges('activated_ts_range', [
                 RangeHandler.create_single_elt_TSRange(Dates.now(), TimeSegment.TYPE_DAY)
@@ -48,7 +40,6 @@ export default class PopupComponent extends VueComponentBase {
         if (!this.popups.length) {
             return;
         }
-        console_logs = ConsoleLogLogger.getInstance().console_logs;
         this.set_popup();
 
         $("#popup_modal").on("hidden.bs.modal", () => {
