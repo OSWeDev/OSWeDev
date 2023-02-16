@@ -779,13 +779,13 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Montant'
         }, 'filters.names.__percent__.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Montant'
+            'fr-fr': 'Décimales'
         }, 'filters.names.__toFixed__.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Montant'
+            'fr-fr': 'Décimales - Arrondi supérieur'
         }, 'filters.names.__toFixedCeil__.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Montant'
+            'fr-fr': 'Décimales - Arrondi inférieur'
         }, 'filters.names.__toFixedFloor__.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
