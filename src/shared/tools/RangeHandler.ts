@@ -385,15 +385,15 @@ export default class RangeHandler {
      * On retourne les intersections de 2 ranges (uniquement de même type) (si différent on favorise le segment_type le plus petit)
      * @param ranges
      */
-    public getIntersectionFromRanges(range_a: IRange, range_b: IRange): IRange {
+    public static getIntersectionFromRanges(range_a: IRange, range_b: IRange): IRange {
         if ((!range_a) || (!range_b) || (range_a.range_type != range_b.range_type)) {
             return null;
         }
 
-        let min_a: number = this.getSegmentedMin(range_a);
-        let max_a: number = this.getSegmentedMax(range_a);
-        let min_b: number = this.getSegmentedMin(range_b);
-        let max_b: number = this.getSegmentedMax(range_b);
+        let min_a: number = RangeHandler.getSegmentedMin(range_a);
+        let max_a: number = RangeHandler.getSegmentedMax(range_a);
+        let min_b: number = RangeHandler.getSegmentedMin(range_b);
+        let max_b: number = RangeHandler.getSegmentedMax(range_b);
 
         let min: number = (min_a > min_b) ? min_a : min_b;
         let max: number = (max_a < max_b) ? max_a : max_b;
@@ -407,7 +407,7 @@ export default class RangeHandler {
 
         let segment_type: number = (range_a.segment_type == range_b.segment_type)
             ? range_a.segment_type
-            : this.get_smallest_segment_type_from_ranges([range_a, range_b]);
+            : RangeHandler.get_smallest_segment_type_from_ranges([range_a, range_b]);
 
         switch (range_a.range_type) {
             case TSRange.RANGE_TYPE:
@@ -424,7 +424,7 @@ export default class RangeHandler {
                 break;
         }
 
-        return RangeHandler.getInstance().createNew(
+        return RangeHandler.createNew(
             range_a.range_type,
             (min ? min : min_from_type),
             (max ? max : max_from_type),
