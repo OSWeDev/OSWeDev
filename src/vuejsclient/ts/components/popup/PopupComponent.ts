@@ -34,11 +34,12 @@ export default class PopupComponent extends VueComponentBase {
             ])])
             .set_sort(new SortByVO(PopupVO.API_TYPE_ID, 'activated_ts_range', true))
             .select_vos<PopupVO>();
-
+        if (!this.popups) {
+            return;
+        }
         if (!this.popups.length) {
             return;
         }
-
         this.set_popup();
 
         $("#popup_modal").on("hidden.bs.modal", () => {

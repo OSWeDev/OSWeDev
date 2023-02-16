@@ -667,26 +667,22 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
         let file_name_begin = path.lastIndexOf('/');
         let file_name_end = path.lastIndexOf('.');
         let file_name = path.slice(file_name_begin + 1, file_name_end);
-        let format = /[!@#$%^&*()+\=\[\]{};':"\\|,.<>\/?]+/;
+        let format = /[!@#$%^&*()+\=\[\]{};':"\\|,.<>\/?\s]+/;
+
 
         if (format.test(file_name) || (file_name.indexOf(' ') >= 0)) {
 
             // remove gaps from the string
-            file_name = file_name.replace(/\s+/g, ' ');
 
-            // convert the string to an array of characters
-            const charArray: string[] = Array.from(file_name);
+            const unwantedChars = ["/", "\\\\", "[", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "+", '=', "[", "]", "{", "}", ";", "'", ":", "|", ",", ".", "<", ">", "?", ' ', '\t'];
 
-            const unwantedChars = ["/", "\\\\", "[", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "+", '=', "[", "]", "{", "}", ";", "'", ":", "|", ",", ".", "<", ">", "?", ' '];
+            file_name = file_name.split(' ').filter((char) => !unwantedChars.includes(char) && char !== ' ').join('_');
 
-            file_name = charArray.filter((char) => !unwantedChars.includes(char)).join('_');
-
-            console.log(file_name);
-            console.log(format.test(file_name));
             if (format.test(file_name)) {
-                //Si jamais ça n'a pas fonctionné , dans ce cas on refuse.
-
-                return;
+                //Si jamais ça n'a pas fonctionné , dans ce cas on va plus loin.
+                for (const char of unwantedChars) {
+                    file_name = file_name.split(char).join('_');
+                }
             }
             path = path.slice(0, file_name_begin + 1) + file_name + path.slice(file_name_end);
             return path;
