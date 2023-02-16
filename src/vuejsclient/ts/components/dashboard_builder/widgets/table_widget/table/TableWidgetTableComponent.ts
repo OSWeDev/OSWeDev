@@ -345,7 +345,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
      * @param row
      * @returns boolean
      */
-    private is_row_filter_ok(row: any): boolean {
+    private is_row_filter_active(row: any): boolean {
         if (!row) {
             return true;
         }

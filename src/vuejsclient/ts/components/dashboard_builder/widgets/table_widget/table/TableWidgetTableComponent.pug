@@ -102,7 +102,7 @@ include ../../../../../../views/mixins/loading.pug
                                         Inlinetranslatabletext()
                     template(v-if="update_cpt_live <= 1")
                         tbody
-                            tr.table_row(v-for='row in data_rows' :class='{"is_filtering": is_filtering_by, "filtered_value": is_filtering_by && !is_row_filter_ok(row)}')
+                            tr.table_row(v-for='row in data_rows' :class='{"is_filtering": is_filtering_by, "filtered_value": is_filtering_by && !is_row_filter_active(row)}')
                                 template(v-for='column in table_columns')
                                     template(v-if="!column.hide_from_table")
                                         td.table_col(
