@@ -677,12 +677,12 @@ export default class VarsDatasProxy {
         // }
 
         // if (ConfigurationService.node_configuration.DEBUG_VARS) {
-        ConsoleHandler.log('VarsDatasProxy:prepare_current_batch_ordered_pick_list:filter_by_subs:START:' + nb_vars_in_buffer);
+        ConsoleHandler.log('VarsDatasProxy:prepare_current_batch_ordered_pick_list:filter_by_subs:START:nb_vars_in_buffer:' + nb_vars_in_buffer);
         // }
         let registered_var_datas_indexes: string[] = await VarsTabsSubsController.getInstance().filter_by_subs(vars_datas.map((v) => v.index));
         registered_var_datas_indexes = registered_var_datas_indexes ? registered_var_datas_indexes : [];
         // if (ConfigurationService.node_configuration.DEBUG_VARS) {
-        ConsoleHandler.log('VarsDatasProxy:prepare_current_batch_ordered_pick_list:filter_by_subs:END:' + nb_vars_in_buffer);
+        ConsoleHandler.log('VarsDatasProxy:prepare_current_batch_ordered_pick_list:filter_by_subs:END:nb_vars_in_buffer:' + nb_vars_in_buffer + ':registered_var_datas_indexes:' + registered_var_datas_indexes.length);
         // }
 
         let registered_var_datas_indexes_map: { [index: string]: boolean } = {};

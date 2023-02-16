@@ -881,6 +881,10 @@ export default class VarsDatasVoUpdateHandler {
         var_datas: VarDataBaseVO[],
         cached: VarDataBaseVO[],
     ) {
+        if ((!var_datas) || (!var_datas.length)) {
+            return;
+        }
+
         let env = ConfigurationService.node_configuration;
 
         let var_data_by_index: { [index: string]: VarDataBaseVO } = {};
@@ -897,7 +901,11 @@ export default class VarsDatasVoUpdateHandler {
         // pour les vars subs en front,
         //  soit on est en bdd(donc on vient de la trouver et on peut filtrer sur celles chargées de la bdd)
         //  soit on est en cache et on les trouve en dessous
+
+        ConsoleHandler.log('handle_invalidation:filter_by_subs:IN:var_datas:' + var_datas.length);
         let registered_var_datas_indexes = await VarsTabsSubsController.getInstance().filter_by_subs(Object.keys(var_data_by_index));
+        ConsoleHandler.log('handle_invalidation:filter_by_subs:OUT:registered_var_datas_indexes:' + registered_var_datas_indexes.length);
+
         registered_var_datas = (registered_var_datas_indexes && registered_var_datas_indexes.length) ? registered_var_datas_indexes.map((index) => var_data_by_index[index]) : [];
         registered_var_datas = (registered_var_datas && registered_var_datas.length) ?
             ((cached && cached.length) ? registered_var_datas.concat(cached) : registered_var_datas) : cached;
