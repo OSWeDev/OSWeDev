@@ -116,7 +116,7 @@
         "moment-json-parser": "0.9.1",
         "mxgraph": "4.2.2",
         "node-powershell": "4.0.0",
-        "nodemailer": "4.6.5",
+        "nodemailer": "6.6.1",
         "one-colorpicker": "1.0.12",
         "oswedev-autodetect-decoder-stream": "2.0.4",
         "oswedev-connect-pg-simple": "7.0.1",
