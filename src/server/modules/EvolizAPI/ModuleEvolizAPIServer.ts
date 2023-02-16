@@ -6,6 +6,7 @@ import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyD
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleEvolizAPI from '../../../shared/modules/EvolizAPI/ModuleEvolizAPI';
 import EvolizClientVO from '../../../shared/modules/EvolizAPI/vos/clients/EvolizClientVO';
+import EvolizContactClientVO from '../../../shared/modules/EvolizAPI/vos/contact_clients/EvolizContactClientVO';
 import EvolizInvoiceVO from '../../../shared/modules/EvolizAPI/vos/invoices/EvolizInvoiceVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ModuleRequest from '../../../shared/modules/Request/ModuleRequest';
@@ -70,6 +71,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleEvolizAPI.APINAME_create_invoice, this.create_invoice.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleEvolizAPI.APINAME_list_clients, this.list_clients.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleEvolizAPI.APINAME_create_client, this.create_client.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleEvolizAPI.APINAME_create_contact_client, this.create_contact_client.bind(this));
     }
 
     public async getToken(): Promise<EvolizAPIToken> {
@@ -147,7 +149,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
                 {
                     'Authorization': 'Bearer ' + token.access_token,
                     'Accept': 'application/json',
-                    'Content-Type': 'application/json; charset=utf-8',
+                    'Content-Type': 'application/json; charset=ISO8859-1',
                 },
                 true,
                 null,
@@ -198,7 +200,35 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
                 {
                     'Authorization': 'Bearer ' + token.access_token,
                     'Accept': 'application/json',
-                    'Content-Type': 'application/json; charset=utf-8',
+                    'Content-Type': 'application/json; charset=ISO8859-1',
+                },
+                true,
+                null,
+                false,
+                true,
+            );
+
+            return create_client.clientid;
+
+        } catch (error) {
+            console.error("Erreur: client: " + client.name);
+        }
+    }
+
+    public async create_contact_client(contact: EvolizContactClientVO) {
+
+        try {
+            let token: EvolizAPIToken = await this.getToken();
+
+            let create_contact = await ModuleRequest.getInstance().sendRequestFromApp(
+                ModuleRequest.METHOD_POST,
+                ModuleEvolizAPI.EvolizAPI_BaseURL,
+                '/api/v1/contacts-clients',
+                contact,
+                {
+                    'Authorization': 'Bearer ' + token.access_token,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json; charset=ISO8859-1',
                 },
                 true,
                 null,
@@ -206,7 +236,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
                 true,
             );
         } catch (error) {
-            console.error("Erreur: client: " + client.name);
+            console.error("Erreur: contact: " + contact.lastname + " " + contact.firstname);
         }
     }
 }
