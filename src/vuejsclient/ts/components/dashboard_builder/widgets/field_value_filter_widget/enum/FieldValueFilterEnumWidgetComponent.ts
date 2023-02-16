@@ -67,7 +67,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     private default_values_changed: boolean = false; //Attribut pour reaffecter les valeurs par défaut lorsqu'elles sont modifiées.
 
 
-    private tmp_filter_active_options: DataFilterOption[] = [];
+    private tmp_filter_active_options: DataFilterOption[] = []; // Local active filter options
 
     private filter_visible_options: DataFilterOption[] = [];
 
@@ -91,6 +91,65 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     @Watch('get_query_api_type_ids')
     private async onchange_active_field_filters() {
         await this.throttled_update_visible_options();
+    }
+
+    /**
+     * Computed widget options
+     *  - Happen on component|widget creation
+     * @returns FieldValueFilterWidgetOptions
+     */
+    get widget_options(): FieldValueFilterWidgetOptions {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: FieldValueFilterWidgetOptions = null;
+        try {
+            if (!!this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as FieldValueFilterWidgetOptions;
+                options = options ? new FieldValueFilterWidgetOptions(
+                    options.vo_field_ref,
+                    options.vo_field_ref_lvl2,
+                    options.vo_field_sort,
+                    options.can_select_multiple,
+                    options.is_checkbox,
+                    options.checkbox_columns,
+                    options.max_visible_options,
+                    options.show_search_field,
+                    options.hide_lvl2_if_lvl1_not_selected,
+                    options.segmentation_type,
+                    options.advanced_mode,
+                    options.default_advanced_string_filter_type,
+                    options.hide_btn_switch_advanced,
+                    options.hide_advanced_string_filter_type,
+                    options.vo_field_ref_multiple,
+                    options.default_filter_opt_values,
+                    options.default_ts_range_values,
+                    options.default_boolean_values,
+                    options.hide_filter,
+                    options.no_inter_filter,
+                    options.has_other_ref_api_type_id,
+                    options.other_ref_api_type_id,
+                    options.exclude_filter_opt_values,
+                    options.exclude_ts_range_values,
+                    options.placeholder_advanced_mode,
+                    options.separation_active_filter,
+                    options.vo_field_sort_lvl2,
+                    options.autovalidate_advanced_filter,
+                    options.add_is_null_selectable,
+                    options.is_button,
+                    options.enum_bg_colors,
+                    options.enum_fg_colors,
+                    options.show_count_value,
+                    options.active_field_on_autovalidate_advanced_filter,
+                    options.force_filter_all_api_type_ids,
+                ) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
     }
 
     @Watch('widget_options', { immediate: true })
@@ -119,8 +178,15 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         );
     }
 
+    /**
+     * On Change Tmp Filter Active Options
+     * tmp_filter_active_options is the visible active filters of the widget
+     *  - Handle change on tmp filter active options
+     *  - Happen each time tmp_filter_active_options changes
+     * @returns void
+     */
     @Watch('tmp_filter_active_options')
-    private onchange_tmp_filter_active_options() {
+    private onchange_tmp_filter_active_options(): void {
 
         if (!this.widget_options) {
             return;
@@ -199,7 +265,12 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         await this.throttled_update_visible_options();
     }
 
-    private async update_visible_options() {
+    /**
+     * Update Visible Options
+     * This widget may depend on other widget active filters options
+     * @returns Promise<void>
+     */
+    private async update_visible_options(): Promise<void> {
 
         let launch_cpt: number = (this.last_calculation_cpt + 1);
 
@@ -210,21 +281,27 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             return;
         }
 
+        // Init context filter of the current filter
+        let root_context_filter: ContextFilterVO = null;
+
+        // Get context filter from store
+        root_context_filter = this.get_active_field_filters[this.vo_field_ref.api_type_id] ?
+            this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id] :
+            null;
+
+        // Say if has active field filter
+        let has_active_field_filter: boolean = !!(root_context_filter);
+
         // Si on a des valeurs par défaut, on va faire l'init
         let old_is_init: boolean = this.is_init;
 
         this.is_init = true;
 
+        // case when not initializing
         if (!old_is_init) {
             if (this.default_values && (this.default_values.length > 0)) {
-
                 // Si je n'ai pas de filtre actif OU que ma valeur de default values à changée, je prends les valeurs par défaut
-                let has_active_field_filter: boolean = !!(
-                    this.get_active_field_filters &&
-                    this.get_active_field_filters[this.vo_field_ref.api_type_id] &&
-                    this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id]
-                );
-
+                // case when does not have active filter
                 if (!has_active_field_filter || this.default_values_changed) {
                     this.default_values_changed = false;
                     this.tmp_filter_active_options = this.default_values;
@@ -241,17 +318,11 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             }
         }
 
-        /**
-         * Cas où l'on réinit un filter alors qu'on a déjà un filtre actif enregistré (retour sur la page du filtre typiquement)
-         */
-        if (this.get_active_field_filters && this.get_active_field_filters[this.vo_field_ref.api_type_id] &&
-            this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id] &&
-            ((!this.tmp_filter_active_options) || (!this.tmp_filter_active_options.length))) {
-
-            /**
-             * On essaye d'appliquer les filtres. Si on peut pas appliquer un filtre, on garde l'info pour afficher une petite alerte
-             */
-            this.warn_existing_external_filters = !this.try_apply_actual_active_filters(this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id]);
+        // case when has active context filter but active visible filter empty
+        // - try to apply context filter or display filter application fail alert
+        if (has_active_field_filter &&
+            ((!this.tmp_filter_active_options) || (!(this.tmp_filter_active_options.length > 0)))) {
+            this.warn_existing_external_filters = !this.try_apply_actual_active_filters(root_context_filter);
         }
 
         let tmp: DataFilterOption[] = [];
@@ -366,7 +437,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         if (this.add_is_null_selectable) {
             tmp.unshift(new DataFilterOption(
                 DataFilterOption.STATE_SELECTABLE,
-                this.label('datafilteroption.is_null'),
+                this.label('dataFilteroption.is_null'),
                 RangeHandler.MIN_INT,
             ));
         }
@@ -528,37 +599,65 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         return res;
     }
 
+    /**
+     * Try Apply Actual Active Filters
+     *  - Make the showable active filter options by the given filter
+     * @param filter ContextFilterVO
+     * @returns boolean
+     */
     private try_apply_actual_active_filters(filter: ContextFilterVO): boolean {
-        if (!filter) {
 
-            if (this.tmp_filter_active_options && this.tmp_filter_active_options.length) {
-                this.tmp_filter_active_options = [];
-            }
-            return true;
-        }
-
-        let tmp_filter_active_options: DataFilterOption[] = [];
-
-        if (!filter.param_numranges) {
-            if (this.tmp_filter_active_options && this.tmp_filter_active_options.length) {
-                this.tmp_filter_active_options = [];
-            }
-            return true;
-        }
-
-        RangeHandler.foreach_ranges_sync(filter.param_numranges, (num: number) => {
-
-            let datafilter = new DataFilterOption(
+        // create single data filter to apply
+        const createDataFilter = (val: number): DataFilterOption => {
+            const dataFilter = new DataFilterOption(
                 DataFilterOption.STATE_SELECTED,
-                this.t(this.field.enum_values[num]),
-                num
+                this.t(this.field.enum_values[val]),
+                val
             );
-            datafilter.string_value = this.field.enum_values[num];
-            datafilter.numeric_value = num;
-            tmp_filter_active_options.push(datafilter);
-        });
+            dataFilter.string_value = this.field.enum_values[val];
+            dataFilter.numeric_value = val;
 
-        this.tmp_filter_active_options = tmp_filter_active_options;
+            return dataFilter;
+        };
+
+        // case when no filter reset visible active filter options
+        if (!filter) {
+            if (this.tmp_filter_active_options && this.tmp_filter_active_options.length) {
+                this.tmp_filter_active_options = [];
+            }
+            return true;
+        }
+
+        let active_filter_options: DataFilterOption[] = [];
+
+        // filter must have one of the given param to continue
+        if (!(filter.param_numranges?.length > 0)
+            // TODO: Seen With Michael Waiting to Fix the final comportment
+            // && filter.param_numeric == null
+        ) {
+            if (this.tmp_filter_active_options && this.tmp_filter_active_options.length) {
+                this.tmp_filter_active_options = [];
+            }
+            return true;
+        }
+
+        // case filter param_numeric is sets
+        // TODO: Seen With Michael Waiting to Fix the final comportment
+        // if (filter.param_numeric != null) {
+        //     const dataFilter = createDataFilter(filter.param_numeric);
+        //     active_filter_options.push(dataFilter);
+        // }
+
+        // case filter param_numranges is sets
+        if (filter.param_numranges?.length > 0) {
+            RangeHandler.foreach_ranges_sync(filter.param_numranges, (num: number) => {
+                const dataFilter = createDataFilter(num);
+                active_filter_options.push(dataFilter);
+            });
+        }
+
+        this.tmp_filter_active_options = active_filter_options;
+
         return true;
     }
 
@@ -740,59 +839,5 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         }
 
         return res;
-    }
-
-    get widget_options() {
-        if (!this.page_widget) {
-            return null;
-        }
-
-        let options: FieldValueFilterWidgetOptions = null;
-        try {
-            if (!!this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as FieldValueFilterWidgetOptions;
-                options = options ? new FieldValueFilterWidgetOptions(
-                    options.vo_field_ref,
-                    options.vo_field_ref_lvl2,
-                    options.vo_field_sort,
-                    options.can_select_multiple,
-                    options.is_checkbox,
-                    options.checkbox_columns,
-                    options.max_visible_options,
-                    options.show_search_field,
-                    options.hide_lvl2_if_lvl1_not_selected,
-                    options.segmentation_type,
-                    options.advanced_mode,
-                    options.default_advanced_string_filter_type,
-                    options.hide_btn_switch_advanced,
-                    options.hide_advanced_string_filter_type,
-                    options.vo_field_ref_multiple,
-                    options.default_filter_opt_values,
-                    options.default_ts_range_values,
-                    options.default_boolean_values,
-                    options.hide_filter,
-                    options.no_inter_filter,
-                    options.has_other_ref_api_type_id,
-                    options.other_ref_api_type_id,
-                    options.exclude_filter_opt_values,
-                    options.exclude_ts_range_values,
-                    options.placeholder_advanced_mode,
-                    options.separation_active_filter,
-                    options.vo_field_sort_lvl2,
-                    options.autovalidate_advanced_filter,
-                    options.add_is_null_selectable,
-                    options.is_button,
-                    options.enum_bg_colors,
-                    options.enum_fg_colors,
-                    options.show_count_value,
-                    options.active_field_on_autovalidate_advanced_filter,
-                    options.force_filter_all_api_type_ids,
-                ) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        return options;
     }
 }

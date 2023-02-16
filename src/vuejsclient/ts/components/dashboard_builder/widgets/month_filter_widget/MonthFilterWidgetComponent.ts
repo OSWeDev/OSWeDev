@@ -306,12 +306,16 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
             if (!this.vo_field_ref) {
                 return null;
             }
-            root_context_filter = this.get_active_field_filters[this.vo_field_ref.api_type_id] ? this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id] : null;
+            root_context_filter = this.get_active_field_filters[this.vo_field_ref.api_type_id] ?
+                this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id] :
+                null;
         } else {
             if (!this.custom_filter_name) {
                 return null;
             }
-            root_context_filter = this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] ? this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.custom_filter_name] : null;
+            root_context_filter = this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] ?
+                this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.custom_filter_name] :
+                null;
         }
 
         // (on initialization) if context exist and selected_months exist overwrite months_range
