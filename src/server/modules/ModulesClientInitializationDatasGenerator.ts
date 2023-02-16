@@ -79,7 +79,6 @@ export default class ModulesClientInitializationDatasGenerator {
         fileContent += "    EnvHandler.IS_DEV = " + ((!!ConfigurationService.node_configuration.ISDEV) ? 'true' : 'false') + ';\n';
         fileContent += "    EnvHandler.DEBUG_VARS = " + ((!!ConfigurationService.node_configuration.DEBUG_VARS) ? 'true' : 'false') + ';\n';
         fileContent += "    EnvHandler.DEBUG_PROMISE_PIPELINE = " + ((!!ConfigurationService.node_configuration.DEBUG_PROMISE_PIPELINE) ? 'true' : 'false') + ';\n';
-        fileContent += "    EnvHandler.MSGPCK = " + ((!!ConfigurationService.node_configuration.MSGPCK) ? 'true' : 'false') + ';\n';
         fileContent += "    EnvHandler.COMPRESS = " + ((!!ConfigurationService.node_configuration.COMPRESS) ? 'true' : 'false') + ';\n';
         fileContent += "    EnvHandler.BASE_URL = '" + ConfigurationService.node_configuration.BASE_URL + "';\n";
         fileContent += "    EnvHandler.CODE_GOOGLE_ANALYTICS = '" + ConfigurationService.node_configuration.CODE_GOOGLE_ANALYTICS + "';\n";
