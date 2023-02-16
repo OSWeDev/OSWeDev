@@ -1,4 +1,5 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
@@ -33,7 +34,7 @@ export default class ModuleBGThread extends Module {
         let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
         let datatable_fields = [
             label_field,
-            new ModuleTableField('last_up_date', ModuleTableField.FIELD_TYPE_tstz, 'Dernière exécution', false)
+            new ModuleTableField('last_up_date', ModuleTableField.FIELD_TYPE_tstz, 'Dernière exécution', false).set_segmentation_type(TimeSegment.TYPE_SECOND)
         ];
 
         this.datatables.push(new ModuleTable(this, BGThreadVO.API_TYPE_ID, () => new BGThreadVO(), datatable_fields, label_field, "BGThreads"));

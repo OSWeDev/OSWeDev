@@ -1,7 +1,7 @@
 
 
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
-import ModuleDAOServer from '../../../../server/modules/DAO/ModuleDAOServer';
+import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import IImportedData from '../../../../shared/modules/DataImport/interfaces/IImportedData';
 import ModuleDataImport from '../../../../shared/modules/DataImport/ModuleDataImport';
 import DataImportColumnVO from '../../../../shared/modules/DataImport/vos/DataImportColumnVO';
@@ -294,7 +294,7 @@ export default class ImportTypeCSVHandler {
                         }
                     } else if (raw_row_index > dataImportFormat.column_labels_row_index) {
 
-                        let moduletable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[dataImportFormat.api_type_id];
+                        let moduletable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[dataImportFormat.api_type_id];
 
                         let rowData: IImportedData = {
                             _type: ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(dataImportFormat.api_type_id),
@@ -393,7 +393,7 @@ export default class ImportTypeCSVHandler {
                 // }
             } catch (error) {
                 if (!muted) {
-                    ConsoleHandler.getInstance().error(error);
+                    ConsoleHandler.error(error);
                     await ImportLogger.getInstance().log(importHistoric, dataImportFormat, error, DataImportLogVO.LOG_LEVEL_ERROR);
                 }
                 resolve(null);
@@ -537,7 +537,7 @@ export default class ImportTypeCSVHandler {
         let last_row_has_data: boolean = true;
         let datas: IImportedData[] = [];
 
-        let moduletable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[dataImportFormat.api_type_id];
+        let moduletable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[dataImportFormat.api_type_id];
 
         while (last_row_has_data) {
 
@@ -617,7 +617,7 @@ export default class ImportTypeCSVHandler {
                     }
                 }
             } catch (error) {
-                ConsoleHandler.getInstance().error(error);
+                ConsoleHandler.error(error);
                 rowData.importation_state = ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED;
                 rowData.not_validated_msg = (rowData.not_validated_msg ? rowData.not_validated_msg + ', ' : '') + "Column error:" + dataImportColumn.title;
             }

@@ -1,12 +1,10 @@
 import CRUD from '../../../../shared/modules/DAO/vos/CRUD';
-import ComputedDatatableField from '../../../../shared/modules/DAO/vos/datatable/ComputedDatatableField';
-import ManyToOneReferenceDatatableField from '../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
-import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import ComputedDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/ComputedDatatableFieldVO';
+import ManyToOneReferenceDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableFieldVO';
+import SimpleDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import Durations from '../../../../shared/modules/FormatDatesNombres/Dates/Durations';
 import ModuleFormatDatesNombres from '../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
-import IPlanFacilitator from '../../../../shared/modules/ProgramPlan/interfaces/IPlanFacilitator';
 import IPlanRDV from '../../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
 import ModuleProgramPlanBase from '../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
@@ -293,7 +291,8 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
                     null,
                     this.menuBranch.id
                 ),
-                this.routes);
+                this.routes
+            );
         }
 
         if (!!this.programplan_shared_module.task_type_id) {
@@ -319,15 +318,15 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
             // On ajoute l'enseigne
             if (!!this.programplan_shared_module.enseigne_type_id) {
                 rdv_crud.readDatatable.pushField(
-                    new ManyToOneReferenceDatatableField(
+                    ManyToOneReferenceDatatableFieldVO.createNew(
                         'target_id',
-                        VOsTypesManager.getInstance().moduleTables_by_voType[this.programplan_shared_module.target_type_id],
+                        VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.target_type_id],
                         [
-                            new ManyToOneReferenceDatatableField(
+                            ManyToOneReferenceDatatableFieldVO.createNew(
                                 'enseigne_id',
-                                VOsTypesManager.getInstance().moduleTables_by_voType[this.programplan_shared_module.enseigne_type_id],
+                                VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.enseigne_type_id],
                                 [
-                                    new SimpleDatatableField('name')
+                                    SimpleDatatableFieldVO.createNew('name')
                                 ])
                         ]
                     ).setUID_for_readDuplicateOnly('rdv_enseigne_id'));
@@ -340,7 +339,7 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
                     this.programplan_shared_module.POLICY_BO_ACCESS,
                     VueAppController.getInstance().app_name,
                     this.programplan_shared_module.rdv_type_id,
-                    "fa-calendar-o",
+                    "fa-calendar",
                     50,
                     null,
                     null,
@@ -356,46 +355,50 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
         if (!!this.programplan_shared_module.rdv_prep_type_id) {
             let prep_crud = CRUD.getNewCRUD(this.programplan_shared_module.rdv_prep_type_id);
 
+            ComputedDatatableFieldVO.define_compute_function(ModuleProgramPlanBase.rdv_date_compute_function_uid, (rdv: IPlanRDV) => Dates.format(rdv.start_time, ModuleFormatDatesNombres.FORMAT_YYYYMMDD + ' ' + TimeHandler.MINUTES_TIME_FOR_INDEX_FORMAT));
+
             // On ajoute le RDV avec la date - cible - consultant
             prep_crud.readDatatable.pushField(
-                new ManyToOneReferenceDatatableField(
+                ManyToOneReferenceDatatableFieldVO.createNew(
                     'rdv_id',
-                    VOsTypesManager.getInstance().moduleTables_by_voType[this.programplan_shared_module.rdv_type_id],
+                    VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.rdv_type_id],
                     [
-                        new ComputedDatatableField(
+                        ComputedDatatableFieldVO.createNew(
                             'rdv_date',
-                            (rdv: IPlanRDV) => Dates.format(rdv.start_time, ModuleFormatDatesNombres.FORMAT_YYYYMMDD + ' ' + TimeHandler.MINUTES_TIME_FOR_INDEX_FORMAT))
+                            ModuleProgramPlanBase.rdv_date_compute_function_uid
+                        )
                     ]
                 ).setUID_for_readDuplicateOnly('rdv_prep_date'));
 
             // On ajoute le RDV avec la cible - consultant
             prep_crud.readDatatable.pushField(
-                new ManyToOneReferenceDatatableField(
+                ManyToOneReferenceDatatableFieldVO.createNew(
                     'rdv_id',
-                    VOsTypesManager.getInstance().moduleTables_by_voType[this.programplan_shared_module.rdv_type_id],
+                    VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.rdv_type_id],
                     [
-                        new ManyToOneReferenceDatatableField(
+                        ManyToOneReferenceDatatableFieldVO.createNew(
                             'target_id',
-                            VOsTypesManager.getInstance().moduleTables_by_voType[this.programplan_shared_module.target_type_id],
+                            VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.target_type_id],
                             [
-                                new SimpleDatatableField('name')
+                                SimpleDatatableFieldVO.createNew('name')
                             ])
                     ]
                 ).setUID_for_readDuplicateOnly('rdv_prep_target'));
 
             // On ajoute le RDV avec la date - cible - consultant
             prep_crud.readDatatable.pushField(
-                new ManyToOneReferenceDatatableField(
+                ManyToOneReferenceDatatableFieldVO.createNew(
                     'rdv_id',
-                    VOsTypesManager.getInstance().moduleTables_by_voType[this.programplan_shared_module.rdv_type_id],
+                    VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.rdv_type_id],
                     [
-                        new ManyToOneReferenceDatatableField(
+                        ManyToOneReferenceDatatableFieldVO.createNew(
                             'facilitator_id',
-                            VOsTypesManager.getInstance().moduleTables_by_voType[this.programplan_shared_module.facilitator_type_id],
+                            VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.facilitator_type_id],
                             [
-                                new ComputedDatatableField(
+                                ComputedDatatableFieldVO.createNew(
                                     'facilitator_name',
-                                    (facilitator: IPlanFacilitator) => facilitator.firstname + ' ' + facilitator.lastname)
+                                    ModuleProgramPlanBase.facilitator_name_compute_function_uid
+                                )
                             ]
                         )
                     ]
@@ -408,7 +411,7 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
                     this.programplan_shared_module.POLICY_BO_ACCESS,
                     VueAppController.getInstance().app_name,
                     this.programplan_shared_module.rdv_prep_type_id,
-                    "fa-calendar-check-o",
+                    "fa-calendar-check",
                     50 + 1,
                     null,
                     null,
@@ -422,44 +425,46 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
 
             // On ajoute le RDV avec la date - cible - consultant
             cr_crud.readDatatable.pushField(
-                new ManyToOneReferenceDatatableField(
+                ManyToOneReferenceDatatableFieldVO.createNew(
                     'rdv_id',
-                    VOsTypesManager.getInstance().moduleTables_by_voType[this.programplan_shared_module.rdv_type_id],
+                    VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.rdv_type_id],
                     [
-                        new ComputedDatatableField(
+                        ComputedDatatableFieldVO.createNew(
                             'rdv_date',
-                            (rdv: IPlanRDV) => Dates.format(rdv.start_time, ModuleFormatDatesNombres.FORMAT_YYYYMMDD + ' ' + TimeHandler.MINUTES_TIME_FOR_INDEX_FORMAT))
+                            ModuleProgramPlanBase.rdv_date_compute_function_uid
+                        )
                     ]
                 ).setUID_for_readDuplicateOnly('rdv_cr_date'));
 
             // On ajoute le RDV avec la cible - consultant
             cr_crud.readDatatable.pushField(
-                new ManyToOneReferenceDatatableField(
+                ManyToOneReferenceDatatableFieldVO.createNew(
                     'rdv_id',
-                    VOsTypesManager.getInstance().moduleTables_by_voType[this.programplan_shared_module.rdv_type_id],
+                    VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.rdv_type_id],
                     [
-                        new ManyToOneReferenceDatatableField(
+                        ManyToOneReferenceDatatableFieldVO.createNew(
                             'target_id',
-                            VOsTypesManager.getInstance().moduleTables_by_voType[this.programplan_shared_module.target_type_id],
+                            VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.target_type_id],
                             [
-                                new SimpleDatatableField('name')
+                                SimpleDatatableFieldVO.createNew('name')
                             ])
                     ]
                 ).setUID_for_readDuplicateOnly('rdv_cr_target'));
 
             // On ajoute le RDV avec la date - cible - consultant
             cr_crud.readDatatable.pushField(
-                new ManyToOneReferenceDatatableField(
+                ManyToOneReferenceDatatableFieldVO.createNew(
                     'rdv_id',
-                    VOsTypesManager.getInstance().moduleTables_by_voType[this.programplan_shared_module.rdv_type_id],
+                    VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.rdv_type_id],
                     [
-                        new ManyToOneReferenceDatatableField(
+                        ManyToOneReferenceDatatableFieldVO.createNew(
                             'facilitator_id',
-                            VOsTypesManager.getInstance().moduleTables_by_voType[this.programplan_shared_module.facilitator_type_id],
+                            VOsTypesManager.moduleTables_by_voType[this.programplan_shared_module.facilitator_type_id],
                             [
-                                new ComputedDatatableField(
+                                ComputedDatatableFieldVO.createNew(
                                     'facilitator_name',
-                                    (facilitator: IPlanFacilitator) => facilitator.firstname + ' ' + facilitator.lastname)
+                                    ModuleProgramPlanBase.facilitator_name_compute_function_uid
+                                )
                             ]
                         )
                     ]
@@ -472,7 +477,7 @@ export default class ProgramPlanAdminVueModuleBase extends VueModuleBase {
                     this.programplan_shared_module.POLICY_BO_ACCESS,
                     VueAppController.getInstance().app_name,
                     this.programplan_shared_module.rdv_cr_type_id,
-                    "fa-calendar-check-o",
+                    "fa-calendar-check",
                     50 + 1,
                     null,
                     null,

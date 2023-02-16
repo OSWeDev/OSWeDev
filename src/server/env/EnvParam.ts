@@ -9,7 +9,6 @@ export default class EnvParam implements IEnvParam {
     public ISDEV: boolean;
     public DEFAULT_LOCALE: string;
     public CODE_PAYS: string;
-    public MSGPCK: boolean;
     public COMPRESS: boolean;
     public URL_RECOVERY_CHALLENGE: string;
     public URL_RECOVERY: string;
@@ -38,9 +37,13 @@ export default class EnvParam implements IEnvParam {
     public DEBUG_DELETEVOS?: boolean = false;
     public DEBUG_START_SERVER?: boolean = false;
     public DEBUG_DB_QUERY_PERF?: boolean = false;
+    public DEBUG_DB_FULL_QUERY_PERF?: boolean = false;
     public DEBUG_INTERTHREADS_MESSAGES?: boolean = false;
     public DEBUG_IMPORTS?: boolean = false;
     public DEBUG_THROTTLED_SELECT?: boolean = false;
+    public DEBUG_PROMISE_PIPELINE?: boolean = false;
+    public DEBUG_FORK_MESSAGE_RECEIVED_NB?: boolean = false;
+    public DEBUG_FORK_MESSAGE_SENT_NB?: boolean = false;
 
     public ACTIVATE_PWA: boolean = false;
     public RETRY_FAILED_FAST_TRACK_IMPORTS_WITH_NORMAL_IMPORTATION?: boolean = true;

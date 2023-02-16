@@ -1,6 +1,7 @@
+import Vue from 'vue';
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import CRUD from '../../../../shared/modules/DAO/vos/CRUD';
-import ComponentDatatableField from '../../../../shared/modules/DAO/vos/datatable/ComponentDatatableField';
+import ComponentDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/ComponentDatatableFieldVO';
 import ModuleMaintenance from '../../../../shared/modules/Maintenance/ModuleMaintenance';
 import MaintenanceVO from '../../../../shared/modules/Maintenance/vos/MaintenanceVO';
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
@@ -8,7 +9,6 @@ import CRUDComponentManager from '../../../ts/components/crud/CRUDComponentManag
 import MenuController from '../../../ts/components/menu/MenuController';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import VueAppController from '../../../VueAppController';
-import TerminateMaintenanceComponent from './component/TerminateMaintenanceComponent';
 
 export default class MaintenanceAdminVueModule extends VueModuleBase {
 
@@ -75,9 +75,10 @@ export default class MaintenanceAdminVueModule extends VueModuleBase {
     private get_maintenance_crud(): CRUD<any> {
         let crud = CRUD.getNewCRUD(MaintenanceVO.API_TYPE_ID);
 
-        crud.readDatatable.pushField(new ComponentDatatableField(
+        Vue.component('Terminatemaintenancecomponent', async () => (await import(/* webpackChunkName: "TerminateMaintenanceComponent" */  './component/TerminateMaintenanceComponent')));
+        crud.readDatatable.pushField(ComponentDatatableFieldVO.createNew(
             'terminate',
-            TerminateMaintenanceComponent,
+            'Terminatemaintenancecomponent',
             'id'
         ));
 

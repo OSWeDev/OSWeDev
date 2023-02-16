@@ -188,7 +188,7 @@ export default class DataRenderController {
                 continue;
             }
 
-            if (!TimeSegmentHandler.getInstance().isEltInSegment(row.data_dateindex, timeSegment)) {
+            if (!TimeSegmentHandler.isEltInSegment(row.data_dateindex, timeSegment)) {
                 continue;
             }
 
@@ -202,14 +202,14 @@ export default class DataRenderController {
         timeSegment: TimeSegment, resource_id: number, field_name: string, field_name_cumul: string, segment_id: number,
         renderedDatasBySegmentAndResourceId: { [date_index: number]: { [resource_id: number]: { [segment_id: number]: T } } }): number {
 
-        let timeSegment_prec: TimeSegment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(timeSegment);
+        let timeSegment_prec: TimeSegment = TimeSegmentHandler.getPreviousTimeSegment(timeSegment);
 
         let previousCumul: number = this.getValueFromRendererData(timeSegment_prec, resource_id, field_name_cumul, segment_id, renderedDatasBySegmentAndResourceId);
         let value: number = this.getValueFromRendererData(timeSegment, resource_id, field_name, segment_id, renderedDatasBySegmentAndResourceId);
 
         let hasPreviousValue: boolean = TypesHandler.getInstance().isNumber(previousCumul);
         let hasValue: boolean = TypesHandler.getInstance().isNumber(value);
-        let isInSameSegmentType: boolean = TimeSegmentHandler.getInstance().isInSameSegmentType(timeSegment, timeSegment_prec, TimeSegment.TYPE_YEAR);
+        let isInSameSegmentType: boolean = TimeSegmentHandler.isInSameSegmentType(timeSegment, timeSegment_prec, TimeSegment.TYPE_YEAR);
 
         if (hasValue && hasPreviousValue && isInSameSegmentType) {
             return previousCumul + value;
@@ -223,8 +223,8 @@ export default class DataRenderController {
             if ((!hasPreviousValue) && isInSameSegmentType) {
                 // on essaie de retrouver un cumul précédent des fois qu'il y ai un trou dans les datas
                 while (isInSameSegmentType) {
-                    timeSegment_prec = TimeSegmentHandler.getInstance().getPreviousTimeSegment(timeSegment_prec);
-                    isInSameSegmentType = TimeSegmentHandler.getInstance().isInSameSegmentType(timeSegment, timeSegment_prec, TimeSegment.TYPE_YEAR);
+                    timeSegment_prec = TimeSegmentHandler.getPreviousTimeSegment(timeSegment_prec);
+                    isInSameSegmentType = TimeSegmentHandler.isInSameSegmentType(timeSegment, timeSegment_prec, TimeSegment.TYPE_YEAR);
                     previousCumul = this.getValueFromRendererData(timeSegment_prec, resource_id, field_name_cumul, segment_id, renderedDatasBySegmentAndResourceId);
                     hasPreviousValue = TypesHandler.getInstance().isNumber(previousCumul);
                     if (hasPreviousValue && isInSameSegmentType) {
@@ -239,8 +239,8 @@ export default class DataRenderController {
         if ((!hasPreviousValue) && isInSameSegmentType) {
             // on essaie de retrouver un cumul précédent des fois qu'il y ai un trou dans les datas
             while (isInSameSegmentType) {
-                timeSegment_prec = TimeSegmentHandler.getInstance().getPreviousTimeSegment(timeSegment_prec);
-                isInSameSegmentType = TimeSegmentHandler.getInstance().isInSameSegmentType(timeSegment, timeSegment_prec, TimeSegment.TYPE_YEAR);
+                timeSegment_prec = TimeSegmentHandler.getPreviousTimeSegment(timeSegment_prec);
+                isInSameSegmentType = TimeSegmentHandler.isInSameSegmentType(timeSegment, timeSegment_prec, TimeSegment.TYPE_YEAR);
                 previousCumul = this.getValueFromRendererData(timeSegment_prec, resource_id, field_name_cumul, segment_id, renderedDatasBySegmentAndResourceId);
                 hasPreviousValue = TypesHandler.getInstance().isNumber(previousCumul);
                 if (hasPreviousValue && isInSameSegmentType) {
@@ -255,8 +255,8 @@ export default class DataRenderController {
         timeSegment: TimeSegment, resource_id: number, field_name: string, segment_id: number,
         renderedDatasBySegmentAndResourceId: { [date_index: number]: { [resource_id: number]: { [segment_id: number]: T } } }): number {
 
-        let timeSegment_mm1: TimeSegment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(timeSegment);
-        let timeSegment_mm2: TimeSegment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(timeSegment_mm1);
+        let timeSegment_mm1: TimeSegment = TimeSegmentHandler.getPreviousTimeSegment(timeSegment);
+        let timeSegment_mm2: TimeSegment = TimeSegmentHandler.getPreviousTimeSegment(timeSegment_mm1);
         let value_m: number = this.getValueFromRendererData(timeSegment, resource_id, field_name, segment_id, renderedDatasBySegmentAndResourceId);
         let value_mm1: number = this.getValueFromRendererData(timeSegment_mm1, resource_id, field_name, segment_id, renderedDatasBySegmentAndResourceId);
         let value_mm2: number = this.getValueFromRendererData(timeSegment_mm2, resource_id, field_name, segment_id, renderedDatasBySegmentAndResourceId);
@@ -282,21 +282,21 @@ export default class DataRenderController {
 
         let value: number = 0;
 
-        let current_cumulSegment: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(cumulSegment.index, type_segmentation);
-        let end_cumul_dateindex: number = TimeSegmentHandler.getInstance().getEndTimeSegment(cumulSegment);
-        while (end_cumul_dateindex >= TimeSegmentHandler.getInstance().getEndTimeSegment(current_cumulSegment)) {
+        let current_cumulSegment: TimeSegment = TimeSegmentHandler.getCorrespondingTimeSegment(cumulSegment.index, type_segmentation);
+        let end_cumul_dateindex: number = TimeSegmentHandler.getEndTimeSegment(cumulSegment);
+        while (end_cumul_dateindex >= TimeSegmentHandler.getEndTimeSegment(current_cumulSegment)) {
 
             if ((!renderedDatasBySegmentAndResourceId) || (!renderedDatasBySegmentAndResourceId[current_cumulSegment.index]) ||
                 (!renderedDatasBySegmentAndResourceId[current_cumulSegment.index][resource_id]) ||
                 (!renderedDatasBySegmentAndResourceId[current_cumulSegment.index][resource_id][segment_id]) ||
                 (!renderedDatasBySegmentAndResourceId[current_cumulSegment.index][resource_id][segment_id][field_name])) {
-                current_cumulSegment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(current_cumulSegment, current_cumulSegment.type, -1);
+                current_cumulSegment = TimeSegmentHandler.getPreviousTimeSegment(current_cumulSegment, current_cumulSegment.type, -1);
                 continue;
             }
             let segment_value: number = renderedDatasBySegmentAndResourceId[current_cumulSegment.index][resource_id][segment_id][field_name];
             value += segment_value;
 
-            current_cumulSegment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(current_cumulSegment, current_cumulSegment.type, -1);
+            current_cumulSegment = TimeSegmentHandler.getPreviousTimeSegment(current_cumulSegment, current_cumulSegment.type, -1);
         }
 
         return value;

@@ -80,7 +80,7 @@ export default class ClientAPIController implements IAPIController {
                     apiDefinition,
                     (APIControllerWrapper.BASE_API_URL + api_name + "/" + url_param).toLowerCase(),
                     API_TYPES_IDS_involved,
-                    (!EnvHandler.getInstance().MSGPCK) ? 'application/json; charset=utf-8' : AjaxCacheController.MSGPACK_REQUEST_TYPE) as U;
+                    'application/json; charset=utf-8') as U;
                 break;
 
             case APIDefinition.API_TYPE_POST_FOR_GET:
@@ -89,9 +89,9 @@ export default class ClientAPIController implements IAPIController {
                     apiDefinition,
                     (APIControllerWrapper.BASE_API_URL + api_name).toLowerCase(),
                     API_TYPES_IDS_involved,
-                    ((typeof translated_param != 'undefined') && (translated_param != null)) ? ((!EnvHandler.getInstance().MSGPCK) ? JSON.stringify(APIControllerWrapper.getInstance().try_translate_vos_to_api(translated_param)) : APIControllerWrapper.getInstance().try_translate_vos_to_api(translated_param)) : null,
+                    ((typeof translated_param != 'undefined') && (translated_param != null)) ? (JSON.stringify(APIControllerWrapper.getInstance().try_translate_vos_to_api(translated_param))) : null,
                     null,
-                    (!EnvHandler.getInstance().MSGPCK) ? 'application/json; charset=utf-8' : AjaxCacheController.MSGPACK_REQUEST_TYPE,
+                    'application/json; charset=utf-8',
                     null,
                     null,
                     true) as U;
@@ -104,9 +104,9 @@ export default class ClientAPIController implements IAPIController {
                         apiDefinition,
                         (APIControllerWrapper.BASE_API_URL + api_name).toLowerCase(),
                         API_TYPES_IDS_involved,
-                        ((typeof translated_param != 'undefined') && (translated_param != null)) ? ((!EnvHandler.getInstance().MSGPCK) ? JSON.stringify(APIControllerWrapper.getInstance().try_translate_vos_to_api(translated_param)) : APIControllerWrapper.getInstance().try_translate_vos_to_api(translated_param)) : null,
+                        ((typeof translated_param != 'undefined') && (translated_param != null)) ? (JSON.stringify(APIControllerWrapper.getInstance().try_translate_vos_to_api(translated_param))) : null,
                         null,
-                        (!EnvHandler.getInstance().MSGPCK) ? 'application/json; charset=utf-8' : AjaxCacheController.MSGPACK_REQUEST_TYPE) as string;
+                        'application/json; charset=utf-8') as string;
 
                     // const { default: $ } = await import(/* webpackChunkName: "jquery" */ 'jquery');
 
@@ -118,9 +118,9 @@ export default class ClientAPIController implements IAPIController {
                         apiDefinition,
                         (APIControllerWrapper.BASE_API_URL + api_name).toLowerCase(),
                         API_TYPES_IDS_involved,
-                        ((typeof translated_param != 'undefined') && (translated_param != null)) ? ((!EnvHandler.getInstance().MSGPCK) ? JSON.stringify(APIControllerWrapper.getInstance().try_translate_vos_to_api(translated_param)) : APIControllerWrapper.getInstance().try_translate_vos_to_api(translated_param)) : null,
+                        ((typeof translated_param != 'undefined') && (translated_param != null)) ? (JSON.stringify(APIControllerWrapper.getInstance().try_translate_vos_to_api(translated_param))) : null,
                         null,
-                        (!EnvHandler.getInstance().MSGPCK) ? 'application/json; charset=utf-8' : AjaxCacheController.MSGPACK_REQUEST_TYPE) as U;
+                        'application/json; charset=utf-8') as U;
                 }
         }
 

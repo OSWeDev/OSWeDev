@@ -16,21 +16,21 @@ v-client-table(
         .btn-group.d-print-none
             template(v-if="embed")
                 button.btn.btn-sm.btn-primary.m-1(@click="selectVoForAction(props.row.id, 'update')")
-                    i.fa.fa-pencil
+                    i.fa-duotone.fa-pencil
             template(v-else)
                 router-link.btn.btn-sm.btn-primary.m-1(:to="getCRUDUpdateLink(api_type_id, props.row.id)")
-                    i.fa.fa-pencil
+                    i.fa-duotone.fa-pencil
             template(v-if="vocus_button")
                 template(v-if="!embed")
                     router-link.btn.btn-sm.btn-secondary.m-1(:to="getVocusLink(api_type_id, props.row.id)", v-if='!isModuleParamTable')
-                        i.fa.fa-search
+                        i.fa-duotone.fa-search
             template(v-if="delete_button")
                 template(v-if="embed")
                     button.btn.btn-sm.btn-danger.m-1(@click="selectVoForAction(props.row.id, 'delete')")
-                        i.fa.fa-trash
+                        i.fa-duotone.fa-trash
                 template(v-else)
                     router-link.btn.btn-sm.btn-danger.m-1(:to="getCRUDDeleteLink(api_type_id, props.row.id)", v-if='!isModuleParamTable')
-                        i.fa.fa-trash
+                        i.fa-duotone.fa-trash
 
     template(v-for="field in date_filtered_fields" :slot="'filter__' + field.datatable_field_uid", v-if='!isModuleParamTable && display_filters')
         template(v-if="custom_filters_values[field.datatable_field_uid]")

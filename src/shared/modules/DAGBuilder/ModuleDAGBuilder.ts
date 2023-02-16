@@ -69,7 +69,7 @@ export default class ModuleDAGBuilder extends Module {
         ];
 
         let datatable = new ModuleTable(this, DAGBuilderEdgeVO.API_TYPE_ID, () => new DAGBuilderEdgeVO(), datatable_fields, null, "DAGBuilder Edge");
-        from.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[DAGBuilderNodeVO.API_TYPE_ID]);
-        to.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[DAGBuilderNodeVO.API_TYPE_ID]);
+        from.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[DAGBuilderNodeVO.API_TYPE_ID]);
+        to.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[DAGBuilderNodeVO.API_TYPE_ID]);
     }
 }

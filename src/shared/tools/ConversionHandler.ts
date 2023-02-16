@@ -11,7 +11,7 @@ export default class ConversionHandler {
             }
             return res;
         } catch (e) {
-            ConsoleHandler.getInstance().error(e);
+            ConsoleHandler.error(e);
         }
         return null;
     }
@@ -33,7 +33,7 @@ export default class ConversionHandler {
                 res.push(resi);
             }
         } catch (e) {
-            ConsoleHandler.getInstance().error(e);
+            ConsoleHandler.error(e);
         }
         return res;
     }

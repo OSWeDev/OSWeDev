@@ -8,7 +8,6 @@ import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import ContextFilterVO from '../ContextFilter/vos/ContextFilterVO';
 import { query } from '../ContextFilter/vos/ContextQueryVO';
 import ManualTasksController from '../Cron/ManualTasksController';
-import ModuleDAO from '../DAO/ModuleDAO';
 import APISimpleVOParamVO, { APISimpleVOParamVOStatic } from '../DAO/vos/APISimpleVOParamVO';
 import APISimpleVOsParamVO, { APISimpleVOsParamVOStatic } from '../DAO/vos/APISimpleVOsParamVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
@@ -26,6 +25,7 @@ import VarBatchPerfVO from './vos/VarBatchPerfVO';
 import VarBatchVarPerfVO from './vos/VarBatchVarPerfVO';
 import VarCacheConfVO from './vos/VarCacheConfVO';
 import VarComputeTimeLearnBaseVO from './vos/VarComputeTimeLearnBaseVO';
+import VarConfAutoDepVO from './vos/VarConfAutoDepVO';
 import VarConfIds from './vos/VarConfIds';
 import VarConfVO from './vos/VarConfVO';
 import VarDataBaseVO from './vos/VarDataBaseVO';
@@ -79,6 +79,10 @@ export default class ModuleVar extends Module {
     // public static MANUAL_TASK_NAME_switch_force_1_by_1_computation = 'switch_force_1_by_1_computation';
     public static MANUAL_TASK_NAME_switch_add_computation_time_to_learning_base = 'switch_add_computation_time_to_learning_base';
 
+    public static PARAM_NAME_estimated_tree_computation_time_target: string = 'VarsComputeController.estimated_tree_computation_time_target';
+    public static PARAM_NAME_estimated_tree_computation_time_limit: string = 'VarsComputeController.estimated_tree_computation_time_limit';
+    public static PARAM_NAME_var_selection_pack_size: string = 'VarsComputeController.var_selection_pack_size';
+
     public static getInstance(): ModuleVar {
         if (!ModuleVar.instance) {
             ModuleVar.instance = new ModuleVar();
@@ -114,7 +118,8 @@ export default class ModuleVar extends Module {
         get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
         custom_filters: { [var_param_field_name: string]: ContextFilterVO },
         active_api_type_ids: string[],
-        discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }
+        discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
+        accept_max_ranges?: boolean,
     ) => Promise<VarDataBaseVO> = APIControllerWrapper.sah(ModuleVar.APINAME_getVarParamFromContextFilters);
 
     public initializedasync_VarsController: boolean = false;
@@ -344,7 +349,7 @@ export default class ModuleVar extends Module {
         this.initializedasync_VarsController = true;
 
         if (!var_conf_by_id) {
-            await VarsController.getInstance().initializeasync(VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(VarConfVO.API_TYPE_ID).select_vos<VarConfVO>()));
+            await VarsController.getInstance().initializeasync(VOsTypesManager.vosArray_to_vosByIds(await query(VarConfVO.API_TYPE_ID).select_vos<VarConfVO>()));
         } else {
             await VarsController.getInstance().initializeasync(var_conf_by_id);
         }
@@ -382,11 +387,11 @@ export default class ModuleVar extends Module {
             labelField,
             var_id,
             new ModuleTableField('type', ModuleTableField.FIELD_TYPE_enum, 'Type', true, true, SlowVarVO.TYPE_NEEDS_TEST).setEnumValues(SlowVarVO.TYPE_LABELS),
-            new ModuleTableField('perfs', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'perfs', false).set_plain_obj_cstr(() => new VarBatchNodePerfVO()),
+            new ModuleTableField('perfs', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'perfs', false),
         ];
 
         let datatable = new ModuleTable(this, SlowVarVO.API_TYPE_ID, () => new SlowVarVO(), datatable_fields, labelField);
-        var_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
+        var_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 
@@ -412,19 +417,19 @@ export default class ModuleVar extends Module {
         let datatable_fields = [
             var_id,
             var_batch_perf_id,
-            new ModuleTableField('ctree_ddeps_try_load_cache_complet', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_ddeps_try_load_cache_complet', false).set_plain_obj_cstr(() => new VarPerfElementVO()),
-            new ModuleTableField('ctree_ddeps_load_imports_and_split_nodes', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_ddeps_load_imports_and_split_nodes', false).set_plain_obj_cstr(() => new VarPerfElementVO()),
-            new ModuleTableField('ctree_ddeps_try_load_cache_partiel', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_ddeps_try_load_cache_partiel', false).set_plain_obj_cstr(() => new VarPerfElementVO()),
-            new ModuleTableField('ctree_ddeps_get_node_deps', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_ddeps_get_node_deps', false).set_plain_obj_cstr(() => new VarPerfElementVO()),
-            new ModuleTableField('ctree_ddeps_handle_pixellisation', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_ddeps_handle_pixellisation', false).set_plain_obj_cstr(() => new VarPerfElementVO()),
-            new ModuleTableField('load_node_datas', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'load_node_datas', false).set_plain_obj_cstr(() => new VarPerfElementVO()),
-            new ModuleTableField('compute_node', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'compute_node', false).set_plain_obj_cstr(() => new VarPerfElementVO()),
+            new ModuleTableField('ctree_ddeps_try_load_cache_complet', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_ddeps_try_load_cache_complet', false),
+            new ModuleTableField('ctree_ddeps_load_imports_and_split_nodes', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_ddeps_load_imports_and_split_nodes', false),
+            new ModuleTableField('ctree_ddeps_try_load_cache_partiel', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_ddeps_try_load_cache_partiel', false),
+            new ModuleTableField('ctree_ddeps_get_node_deps', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_ddeps_get_node_deps', false),
+            new ModuleTableField('ctree_ddeps_handle_pixellisation', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_ddeps_handle_pixellisation', false),
+            new ModuleTableField('load_node_datas', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'load_node_datas', false),
+            new ModuleTableField('compute_node', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'compute_node', false),
         ];
 
         let datatable = new ModuleTable(this, VarBatchVarPerfVO.API_TYPE_ID, () => new VarBatchVarPerfVO(), datatable_fields, null);
         this.datatables.push(datatable);
-        var_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
-        var_batch_perf_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[VarBatchPerfVO.API_TYPE_ID]);
+        var_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
+        var_batch_perf_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[VarBatchPerfVO.API_TYPE_ID]);
     }
 
     private initVarBatchNodePerfVO() {
@@ -433,15 +438,15 @@ export default class ModuleVar extends Module {
             new ModuleTableField('index', ModuleTableField.FIELD_TYPE_string, 'index', true),
             new ModuleTableField('var_id', ModuleTableField.FIELD_TYPE_int, 'var_id', false),
 
-            new ModuleTableField('ctree_deploy_deps', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_deploy_deps', false).set_plain_obj_cstr(() => new VarNodePerfElementVO(null, null, null)),
-            new ModuleTableField('ctree_ddeps_try_load_cache_complet', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_ddeps_try_load_cache_complet', false).set_plain_obj_cstr(() => new VarNodePerfElementVO(null, null, null)),
-            new ModuleTableField('ctree_ddeps_load_imports_and_split_nodes', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_ddeps_load_imports_and_split_nodes', false).set_plain_obj_cstr(() => new VarNodePerfElementVO(null, null, null)),
-            new ModuleTableField('ctree_ddeps_try_load_cache_partiel', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_ddeps_try_load_cache_partiel', false).set_plain_obj_cstr(() => new VarNodePerfElementVO(null, null, null)),
-            new ModuleTableField('ctree_ddeps_get_node_deps', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_ddeps_get_node_deps', false).set_plain_obj_cstr(() => new VarNodePerfElementVO(null, null, null)),
-            new ModuleTableField('ctree_ddeps_handle_pixellisation', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_ddeps_handle_pixellisation', false).set_plain_obj_cstr(() => new VarNodePerfElementVO(null, null, null)),
+            new ModuleTableField('ctree_deploy_deps', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_deploy_deps', false),
+            new ModuleTableField('ctree_ddeps_try_load_cache_complet', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_ddeps_try_load_cache_complet', false),
+            new ModuleTableField('ctree_ddeps_load_imports_and_split_nodes', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_ddeps_load_imports_and_split_nodes', false),
+            new ModuleTableField('ctree_ddeps_try_load_cache_partiel', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_ddeps_try_load_cache_partiel', false),
+            new ModuleTableField('ctree_ddeps_get_node_deps', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_ddeps_get_node_deps', false),
+            new ModuleTableField('ctree_ddeps_handle_pixellisation', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'ctree_ddeps_handle_pixellisation', false),
 
-            new ModuleTableField('load_node_datas', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'load_node_datas', false).set_plain_obj_cstr(() => new VarNodePerfElementVO(null, null, null)),
-            new ModuleTableField('compute_node', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'compute_node', false).set_plain_obj_cstr(() => new VarNodePerfElementVO(null, null, null)),
+            new ModuleTableField('load_node_datas', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'load_node_datas', false),
+            new ModuleTableField('compute_node', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'compute_node', false),
         ];
 
         let datatable = new ModuleTable(this, VarBatchNodePerfVO.API_TYPE_ID, () => new VarBatchNodePerfVO(), datatable_fields, null);
@@ -470,7 +475,7 @@ export default class ModuleVar extends Module {
             new ModuleTableField('end_time', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'end_time (ms)', false),
             new ModuleTableField('nb_calls', ModuleTableField.FIELD_TYPE_int, 'nb_calls', true, true, 0),
             new ModuleTableField('sum_card', ModuleTableField.FIELD_TYPE_int, 'sum_card', true, true, 0),
-            new ModuleTableField('parent_perf_ref', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'parent_perf_ref', false).set_plain_obj_cstr(() => new VarNodeParentPerfVO()),
+            new ModuleTableField('parent_perf_ref', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'parent_perf_ref', false),
             new ModuleTableField('_nb_started_global', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'nb_started_global', false),
             new ModuleTableField('_initial_estimated_work_time_global', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'initial_estimated_work_time_global (ms)', false),
             new ModuleTableField('_updated_estimated_work_time_global', ModuleTableField.FIELD_TYPE_decimal_full_precision, 'updated_estimated_work_time_global (ms)', false),
@@ -487,21 +492,21 @@ export default class ModuleVar extends Module {
         let datatable_fields = [
             new ModuleTableField('batch_id', ModuleTableField.FIELD_TYPE_int, 'batch_id', true),
 
-            new ModuleTableField('batch_wrapper', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'batch_wrapper', false).set_plain_obj_cstr(() => new VarNodePerfElementVO(null, null, null)),
+            new ModuleTableField('batch_wrapper', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'batch_wrapper', false),
 
-            new ModuleTableField('handle_invalidate_validators', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'handle_invalidate_validators', false).set_plain_obj_cstr(() => new VarNodePerfElementVO(null, null, null)),
+            new ModuleTableField('handle_invalidate_validators', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'handle_invalidate_validators', false),
 
-            new ModuleTableField('handle_buffer_varsdatasproxy', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'handle_buffer_varsdatasproxy', false).set_plain_obj_cstr(() => new VarNodePerfElementVO(null, null, null)),
-            new ModuleTableField('handle_buffer_varsdatasvoupdate', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'handle_buffer_varsdatasvoupdate', false).set_plain_obj_cstr(() => new VarNodePerfElementVO(null, null, null)),
+            new ModuleTableField('handle_buffer_varsdatasproxy', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'handle_buffer_varsdatasproxy', false),
+            new ModuleTableField('handle_buffer_varsdatasvoupdate', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'handle_buffer_varsdatasvoupdate', false),
 
-            new ModuleTableField('computation_wrapper', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'computation_wrapper', false).set_plain_obj_cstr(() => new VarNodePerfElementVO(null, null, null)),
+            new ModuleTableField('computation_wrapper', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'computation_wrapper', false),
 
-            new ModuleTableField('create_tree', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'create_tree', false).set_plain_obj_cstr(() => new VarNodePerfElementVO(null, null, null)),
+            new ModuleTableField('create_tree', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'create_tree', false),
 
-            new ModuleTableField('load_nodes_datas', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'load_nodes_datas', false).set_plain_obj_cstr(() => new VarNodePerfElementVO(null, null, null)),
-            new ModuleTableField('compute_node_wrapper', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'compute_node_wrapper', false).set_plain_obj_cstr(() => new VarNodePerfElementVO(null, null, null)),
+            new ModuleTableField('load_nodes_datas', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'load_nodes_datas', false),
+            new ModuleTableField('compute_node_wrapper', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'compute_node_wrapper', false),
 
-            new ModuleTableField('cache_datas', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'cache_datas', false).set_plain_obj_cstr(() => new VarNodePerfElementVO(null, null, null)),
+            new ModuleTableField('cache_datas', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'cache_datas', false),
 
             new ModuleTableField('nb_batch_vars', ModuleTableField.FIELD_TYPE_int, 'nb_batch_vars', false),
         ];
@@ -521,15 +526,42 @@ export default class ModuleVar extends Module {
         this.datatables.push(datatable);
     }
 
+    private initializeVarConfAutoDepVO(): ModuleTableField<any> {
+
+        let var_id = new ModuleTableField('var_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Dep Var conf', false);
+        let datatable_fields = [
+            new ModuleTableField('type', ModuleTableField.FIELD_TYPE_enum, 'Type de dep', true, true, VarConfAutoDepVO.DEP_TYPE_STATIC).setEnumValues(VarConfAutoDepVO.DEP_TYPE_LABELS),
+            var_id,
+            new ModuleTableField('static_value', ModuleTableField.FIELD_TYPE_float, 'Valeur fixe', false, true, 0),
+            new ModuleTableField('params_transform_strategies', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Stratégies de transformation des paramètres', false),
+        ];
+
+        let datatable = new ModuleTable(this, VarConfAutoDepVO.API_TYPE_ID, () => new VarConfAutoDepVO(), datatable_fields, null, 'Configuration de dependance pour var automatique');
+        this.datatables.push(datatable);
+
+        return var_id;
+    }
+
     private initializeVarConfVO() {
 
-        let labelField = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom du compteur');
+        let labelField = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom du compteur').unique();
         let datatable_fields = [
             labelField,
 
+            new ModuleTableField('is_auto', ModuleTableField.FIELD_TYPE_boolean, 'Variable automatisée', true, true, false),
+            new ModuleTableField('auto_operator', ModuleTableField.FIELD_TYPE_enum, 'Opérateur automatisé', false).setEnumValues(VarConfVO.AUTO_OPERATEUR_LABELS),
+
+            new ModuleTableField('auto_deps', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Dépendances automatisées', false),
+            new ModuleTableField('auto_vofieldref_api_type_id', ModuleTableField.FIELD_TYPE_string, 'API_TYPE_ID vofieldref automatisé', false),
+            new ModuleTableField('auto_vofieldref_field_id', ModuleTableField.FIELD_TYPE_string, 'FILED_ID vofieldref automatisé', false),
+
+            new ModuleTableField('auto_param_fields', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Fields param automatisé', false),
+            new ModuleTableField('auto_param_context_api_type_ids', ModuleTableField.FIELD_TYPE_string_array, 'API_TYPE_IDs context automatisé', false),
+            new ModuleTableField('auto_param_context_discarded_field_paths', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Discarded field paths context automatisé', false),
+            new ModuleTableField('auto_param_context_use_technical_field_versioning', ModuleTableField.FIELD_TYPE_boolean, 'Use technical fields context automatisé', true, true, false),
+
+
             new ModuleTableField('var_data_vo_type', ModuleTableField.FIELD_TYPE_string, 'VoType des données'),
-            new ModuleTableField('ts_ranges_field_name', ModuleTableField.FIELD_TYPE_string, 'Nom du champ ts_ranges', false, true, 'ts_ranges'),
-            new ModuleTableField('ts_ranges_segment_type', ModuleTableField.FIELD_TYPE_int, 'Segment_type du ts_ranges', false, true, TimeSegment.TYPE_DAY),
             new ModuleTableField('segment_types', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Types des segments du matroid', false),
             new ModuleTableField('show_help_tooltip', ModuleTableField.FIELD_TYPE_boolean, 'Afficher la tooltip d\'aide', true, true, false),
             new ModuleTableField('disable_var', ModuleTableField.FIELD_TYPE_boolean, 'Désactiver la variable', true, true, false),
@@ -537,17 +569,19 @@ export default class ModuleVar extends Module {
             new ModuleTableField('aggregator', ModuleTableField.FIELD_TYPE_enum, 'Type d\'aggrégation', true, true, VarConfVO.SUM_AGGREGATOR).setEnumValues(VarConfVO.AGGREGATOR_LABELS),
 
             new ModuleTableField('pixel_activated', ModuleTableField.FIELD_TYPE_boolean, 'Activer la pixellisation', true, true, false),
-            new ModuleTableField('pixel_fields', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Pixeliser sur les champs', false).set_plain_obj_cstr(() => new VarPixelFieldConfVO()),
+            new ModuleTableField('pixel_fields', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Pixeliser sur les champs', false),
             new ModuleTableField('pixel_never_delete', ModuleTableField.FIELD_TYPE_boolean, 'Ne pas supprimer les pixels en cache', true, true, true),
         ];
 
-        let datatable = new ModuleTable(this, VarConfVO.API_TYPE_ID, () => new VarConfVO(undefined, undefined, undefined), datatable_fields, labelField);
+        let datatable = new ModuleTable(this, VarConfVO.API_TYPE_ID, () => new VarConfVO(undefined, undefined), datatable_fields, labelField);
         this.datatables.push(datatable);
+        let var_id = this.initializeVarConfAutoDepVO();
+        var_id.addManyToOneRelation(datatable);
     }
 
     private initializeVarCacheConfVO() {
 
-        let var_id = new ModuleTableField('var_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Var conf', true);
+        let var_id = new ModuleTableField('var_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Var conf', true).unique();
         let datatable_fields = [
             var_id,
 
@@ -568,7 +602,7 @@ export default class ModuleVar extends Module {
 
         let datatable = new ModuleTable(this, VarCacheConfVO.API_TYPE_ID, () => new VarCacheConfVO(), datatable_fields, null);
         this.datatables.push(datatable);
-        var_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
+        var_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
     }
 
     private initializeVarDataValueResVO() {
@@ -602,6 +636,6 @@ export default class ModuleVar extends Module {
 
         let datatable = new ModuleTable(this, VarPerfVO.API_TYPE_ID, () => new VarPerfVO(), datatable_fields, name);
         this.datatables.push(datatable);
-        var_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
+        var_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
     }
 }

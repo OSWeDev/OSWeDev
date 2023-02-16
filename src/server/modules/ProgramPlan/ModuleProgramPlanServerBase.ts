@@ -69,64 +69,64 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             preDeleteTrigger.registerHandler(this.programplan_shared_module.rdv_prep_type_id, this, this.handleTriggerPreDeletePrep);
         }
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Confirmer ?'
         }, 'programplan.create_cr.confirmation.body.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Enregistrer le compte-rendu'
         }, 'programplan.create_cr.confirmation.title.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Enregistrement en cours...'
         }, 'programplan.create_cr.start.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Erreur lors de l\'enregistrement du compte-rendu'
         }, 'programplan.create_cr.error.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Enregistrement du compte-rendu terminé'
         }, 'programplan.create_cr.ok.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Animateur'
         }, 'fields.labels.ref.module_sfam_program_plan_animateur.___LABEL____manager_id'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Animateur'
         }, 'fields.labels.ref.module_sfam_program_plan_animateur.___LABEL____region_id'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Animateur'
         }, 'fields.labels.ref.module_sfam_program_plan_animateur.___LABEL____user_id'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Boutique'
         }, 'fields.labels.ref.module_sfam_program_plan_boutique.___LABEL____enseigne_id'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Contact'
         }, 'fields.labels.ref.module_sfam_program_plan_contact.___LABEL____contact_type_id'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Contact'
         }, 'fields.labels.ref.module_sfam_program_plan_contact.___LABEL____user_id'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Manager'
         }, 'fields.labels.ref.module_sfam_program_plan_manager.___LABEL____user_id'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Création interdite'
         }, 'programplan.fc.create.denied.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Erreur de création'
         }, 'programplan.fc.create.error.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Suppression interdite'
         }, 'programplan.fc.delete.denied.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Erreur de suppression'
         }, 'programplan.delete.error.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Modification interdite'
         }, 'programplan.fc.update.denied.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Erreur de modification'
         }, 'programplan.fc.update.error.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Date'
         }, 'programplan.rdv_modal.rdv_date.___LABEL___'));
     }
@@ -294,8 +294,8 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return null;
         }
 
-        let start_time: number = TimeSegmentHandler.getInstance().getStartTimeSegment(timeSegment);
-        let end_time: number = TimeSegmentHandler.getInstance().getEndTimeSegment(timeSegment);
+        let start_time: number = TimeSegmentHandler.getStartTimeSegment(timeSegment);
+        let end_time: number = TimeSegmentHandler.getEndTimeSegment(timeSegment);
 
         if (!this.programplan_shared_module.program_type_id) {
 
@@ -729,7 +729,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
     private async filterRDVsByFacilitatorIdByAccess_ownTeam(datatable: ModuleTable<IPlanRDV>, vos: IPlanRDV[], uid: number): Promise<IPlanRDV[]> {
         let res: IPlanRDV[] = [];
 
-        let facilitators_by_ids: { [id: number]: IPlanFacilitator } = VOsTypesManager.getInstance().vosArray_to_vosByIds(
+        let facilitators_by_ids: { [id: number]: IPlanFacilitator } = VOsTypesManager.vosArray_to_vosByIds(
             await query(this.programplan_shared_module.facilitator_type_id).select_vos<IPlanFacilitator>()
         );
         for (let i in vos) {
@@ -790,7 +790,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
     private async filterRDVCRPrepsByFacilitatorIdByAccess_ownTeam(datatable: ModuleTable<IPlanRDVCR | IPlanRDVPrep>, vos: IPlanRDVCR[] | IPlanRDVPrep[], uid: number): Promise<IPlanRDVCR[] | IPlanRDVPrep[]> {
         let res = [];
 
-        let rdvs_by_ids: { [id: number]: IPlanRDV } = VOsTypesManager.getInstance().vosArray_to_vosByIds(
+        let rdvs_by_ids: { [id: number]: IPlanRDV } = VOsTypesManager.vosArray_to_vosByIds(
             await query(this.programplan_shared_module.rdv_type_id).select_vos<IPlanRDV>()
         );
         for (let i in vos) {

@@ -12,6 +12,7 @@ import TypesHandler from '../../../../../../../shared/tools/TypesHandler';
 import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
+import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFiltersWidgetController';
 import FieldValueFilterWidgetOptions from '../options/FieldValueFilterWidgetOptions';
 import BooleanFilter from './BooleanFilter';
 import './FieldValueFilterBooleanWidgetComponent.scss';
@@ -42,6 +43,8 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
     @Prop({ default: null })
     private dashboard_page: DashboardPageVO;
 
+    private default_values_changed: boolean = false; //Attribut pour reaffecter les valeurs par défaut lorsqu'elles sont modifiées.
+
     private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
 
     private boolean_filter_types: number[] = [];
@@ -70,6 +73,14 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
         return this.get_flat_locale_translations[this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id)];
     }
 
+    private async mounted() {
+        ResetFiltersWidgetController.getInstance().register_updater(
+            this.dashboard_page,
+            this.page_widget,
+            this.reset_visible_options.bind(this),
+        );
+    }
+
     private filter_type_label(filter_type: number): string {
         if (filter_type != null) {
             return this.t(BooleanFilter.FILTER_TYPE_LABELS[filter_type]);
@@ -82,12 +93,30 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
         await this.throttled_update_visible_options();
     }
 
+    private async reset_visible_options() {
+        this.boolean_filter_types = [];
+        // On update le visuel de tout le monde suite au reset
+        await this.throttled_update_visible_options();
+    }
+
     private async update_visible_options() {
         // Si on a des valeurs par défaut, on va faire l'init
         if (this.is_init && this.default_values && (this.default_values.length > 0)) {
-            this.is_init = false;
-            this.boolean_filter_types = this.default_values;
-            return;
+            // Si on a des valeurs par défaut, on va faire l'init
+
+            // Si je n'ai pas de filtre actif OU que ma valeur de default values à changée, je prends les valeurs par défaut
+            let has_active_field_filter: boolean = !!(
+                this.get_active_field_filters &&
+                this.get_active_field_filters[this.vo_field_ref.api_type_id] &&
+                this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id]
+            );
+
+            if (!has_active_field_filter || this.default_values_changed) {
+                this.is_init = false;
+                this.boolean_filter_types = this.default_values;
+                this.default_values_changed = false;
+                return;
+            }
         }
 
         /**
@@ -123,6 +152,10 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
         if (!!this.old_widget_options) {
             if (isEqual(this.widget_options, this.old_widget_options)) {
                 return;
+            }
+
+            if (!isEqual(this.widget_options.default_filter_opt_values, this.old_widget_options.default_filter_opt_values)) {
+                this.default_values_changed = true;
             }
         }
 
@@ -195,6 +228,7 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
                     options.vo_field_sort,
                     options.can_select_multiple,
                     options.is_checkbox,
+                    options.checkbox_columns,
                     options.max_visible_options,
                     options.show_search_field,
                     options.hide_lvl2_if_lvl1_not_selected,
@@ -218,10 +252,16 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
                     options.vo_field_sort_lvl2,
                     options.autovalidate_advanced_filter,
                     options.add_is_null_selectable,
+                    options.is_button,
+                    options.enum_bg_colors,
+                    options.enum_fg_colors,
+                    options.show_count_value,
+                    options.active_field_on_autovalidate_advanced_filter,
+                    options.force_filter_all_api_type_ids,
                 ) : null;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return options;

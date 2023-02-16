@@ -8,7 +8,7 @@ import AnimationThemeVO from '../../../../shared/modules/Animation/vos/Animation
 import AnimationUserModuleVO from '../../../../shared/modules/Animation/vos/AnimationUserModuleVO';
 import APIControllerWrapper from '../../../../shared/modules/API/APIControllerWrapper';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
+import IExportableDatas from '../../../../shared/modules/DataExport/interfaces/IExportableDatas';
 import ExportHistoricVO from '../../../../shared/modules/DataExport/vos/ExportHistoricVO';
 import NumRange from '../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../../shared/modules/DataRender/vos/NumSegment';
@@ -20,7 +20,6 @@ import { hourFilter, percentFilter } from '../../../../shared/tools/Filters';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
 import StackContext from '../../../StackContext';
 import ExportHandlerBase from '../../DataExport/ExportHandlerBase';
-import IExportableDatas from '../../DataExport/interfaces/IExportableDatas';
 import VarsServerCallBackSubsController from '../../Var/VarsServerCallBackSubsController';
 import VarDayPrctReussiteAnimationController from '../vars/VarDayPrctReussiteAnimationController';
 import VarDayTempsPasseAnimationController from '../vars/VarDayTempsPasseAnimationController';
@@ -43,7 +42,7 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
 
     public async prepare_datas(exhi: ExportHistoricVO): Promise<IExportableDatas> {
 
-        ConsoleHandler.getInstance().log('AnimationReportingExportHandler:en_cours');
+        ConsoleHandler.log('AnimationReportingExportHandler:en_cours');
 
         let datas: IExportableDatas = {
             api_type_id: ModuleAnimation.EXPORT_API_TYPE_ID,
@@ -53,7 +52,7 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
             ordered_column_list: this.ordered_column_list
         };
 
-        ConsoleHandler.getInstance().log('AnimationReportingExportHandler:terminé');
+        ConsoleHandler.log('AnimationReportingExportHandler:terminé');
 
         return datas;
     }
@@ -66,15 +65,15 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
         }
 
         let user: UserVO = null;
-        await StackContext.getInstance().runPromise(
+        await StackContext.runPromise(
             { IS_CLIENT: false },
             async () => {
                 user = await query(UserVO.API_TYPE_ID).filter_by_id(exhi.export_to_uid).select_vo<UserVO>();
             });
         let import_params: AnimationReportingParamVO = APIControllerWrapper.getInstance().try_translate_vo_from_api(JSON.parse(exhi.export_params_stringified));
 
-        let all_anim_theme_by_ids: { [id: number]: AnimationThemeVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>());
-        let all_anim_module_by_ids: { [id: number]: AnimationModuleVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>());
+        let all_anim_theme_by_ids: { [id: number]: AnimationThemeVO } = VOsTypesManager.vosArray_to_vosByIds(await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>());
+        let all_anim_module_by_ids: { [id: number]: AnimationModuleVO } = VOsTypesManager.vosArray_to_vosByIds(await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>());
         let all_role_by_ids: { [id: number]: RoleVO } = {};
         let all_user_by_ids: { [id: number]: UserVO } = {};
         let all_aum_by_theme_module_user: { [anim_theme_id: number]: { [anim_module_id: number]: { [user_id: number]: AnimationUserModuleVO } } } = {};
@@ -117,13 +116,13 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
             if (!all_aum_by_theme_module_user[theme.id]) {
                 all_aum_by_theme_module_user[theme.id] = {};
 
-                theme_id_ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(theme.id, NumSegment.TYPE_INT));
+                theme_id_ranges.push(RangeHandler.create_single_elt_NumRange(theme.id, NumSegment.TYPE_INT));
             }
 
             if (!all_aum_by_theme_module_user[theme.id][aum.module_id]) {
                 all_aum_by_theme_module_user[theme.id][aum.module_id] = {};
 
-                module_id_ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(aum.module_id, NumSegment.TYPE_INT));
+                module_id_ranges.push(RangeHandler.create_single_elt_NumRange(aum.module_id, NumSegment.TYPE_INT));
             }
 
             if (!all_aum_by_theme_module_user[theme.id][aum.module_id][aum.user_id]) {
@@ -137,32 +136,32 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
 
                 if (!user_id_add[aum.user_id]) {
                     user_id_add[aum.user_id] = true;
-                    user_id_ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(aum.user_id, NumSegment.TYPE_INT));
+                    user_id_ranges.push(RangeHandler.create_single_elt_NumRange(aum.user_id, NumSegment.TYPE_INT));
                 }
 
                 user_ids.push(aum.user_id);
             }
 
             if (module.role_id_ranges && module.role_id_ranges.length > 0) {
-                role_ids = role_ids.concat(RangeHandler.getInstance().get_all_segmented_elements_from_ranges(module.role_id_ranges));
+                role_ids = role_ids.concat(RangeHandler.get_all_segmented_elements_from_ranges(module.role_id_ranges));
             }
         }
 
         percent_module_finished = nb_module_total ? nb_module_finished / nb_module_total : 0;
 
         if (user_ids.length > 0) {
-            all_user_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(
+            all_user_by_ids = VOsTypesManager.vosArray_to_vosByIds(
                 await query(UserVO.API_TYPE_ID).filter_by_ids(user_ids).select_vos<UserVO>());
         }
 
         if (role_ids.length > 0) {
-            all_role_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(
+            all_role_by_ids = VOsTypesManager.vosArray_to_vosByIds(
                 await query(RoleVO.API_TYPE_ID).filter_by_ids(role_ids).select_vos<RoleVO>());
         }
 
         // Si on a plus de 1 aums, on calcul le total
         if (aums.length > 1) {
-            ConsoleHandler.getInstance().log('AnimationReportingExportHandler:export_total');
+            ConsoleHandler.log('AnimationReportingExportHandler:export_total');
             res.push(await this.get_new_elem_total(
                 user,
                 theme_id_ranges,
@@ -172,7 +171,7 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
             ));
         }
 
-        ConsoleHandler.getInstance().log('AnimationReportingExportHandler:export_all_aum');
+        ConsoleHandler.log('AnimationReportingExportHandler:export_all_aum');
 
         for (let anim_theme_id in all_aum_by_theme_module_user) {
             for (let anim_module_id in all_aum_by_theme_module_user[anim_theme_id]) {
@@ -213,7 +212,7 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
         try {
             data = await VarsServerCallBackSubsController.getInstance().get_var_data(this.get_DayTempsPasseAnimation_param(theme_id_ranges, module_id_ranges, user_id_ranges), 'AnimationReportingExportHandler.get_new_elem_total');
         } catch (error) {
-            ConsoleHandler.getInstance().error('endModule:get_var_data:' + error + ':FIXME do we need to handle this ?');
+            ConsoleHandler.error('endModule:get_var_data:' + error + ':FIXME do we need to handle this ?');
         }
 
         res.temps_passe = this.filterValue('temps_passe', data ? data.value : null);
@@ -224,7 +223,7 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
         try {
             data = await VarsServerCallBackSubsController.getInstance().get_var_data(this.get_DayPrctReussiteAnimation_param(theme_id_ranges, module_id_ranges, user_id_ranges), 'AnimationReportingExportHandler.get_new_elem_total');
         } catch (error) {
-            ConsoleHandler.getInstance().error('endModule:get_var_data2:' + error + ':FIXME do we need to handle this ?');
+            ConsoleHandler.error('endModule:get_var_data2:' + error + ':FIXME do we need to handle this ?');
         }
 
         res.prct_reussite = this.filterValue('prct_reussite', data ? data.value : null);
@@ -248,7 +247,7 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
         let roles: string[] = [];
 
         if (module && module.role_id_ranges && module.role_id_ranges.length > 0) {
-            await RangeHandler.getInstance().foreach_ranges(module.role_id_ranges, async (role_id: number) => {
+            await RangeHandler.foreach_ranges(module.role_id_ranges, async (role_id: number) => {
                 let role: RoleVO = all_role_by_ids[role_id];
 
                 if (!role) {
@@ -259,8 +258,8 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
             });
         }
 
-        let module_id_ranges: NumRange[] = [RangeHandler.getInstance().create_single_elt_NumRange(aum.module_id, NumSegment.TYPE_INT)];
-        let user_id_ranges: NumRange[] = [RangeHandler.getInstance().create_single_elt_NumRange(aum.user_id, NumSegment.TYPE_INT)];
+        let module_id_ranges: NumRange[] = [RangeHandler.create_single_elt_NumRange(aum.module_id, NumSegment.TYPE_INT)];
+        let user_id_ranges: NumRange[] = [RangeHandler.create_single_elt_NumRange(aum.user_id, NumSegment.TYPE_INT)];
 
         res.roles = (roles.length > 0) ? roles.join(' - ') : null;
         res.utilisateur = all_user_by_ids[aum.user_id] ? all_user_by_ids[aum.user_id].name : null;
@@ -271,7 +270,7 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
         try {
             data = await VarsServerCallBackSubsController.getInstance().get_var_data(this.get_DayTempsPasseAnimation_param(null, module_id_ranges, user_id_ranges), 'AnimationReportingExportHandler.get_new_elem');
         } catch (error) {
-            ConsoleHandler.getInstance().error('endModule:get_new_elem:' + error + ':FIXME do we need to handle this ?');
+            ConsoleHandler.error('endModule:get_new_elem:' + error + ':FIXME do we need to handle this ?');
         }
 
         res.temps_passe = this.filterValue('temps_passe', data ? data.value : null);
@@ -282,7 +281,7 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
         try {
             data = await VarsServerCallBackSubsController.getInstance().get_var_data(this.get_DayPrctReussiteAnimation_param(null, module_id_ranges, user_id_ranges), 'AnimationReportingExportHandler.get_new_elem');
         } catch (error) {
-            ConsoleHandler.getInstance().error('endModule:get_new_elem2:' + error + ':FIXME do we need to handle this ?');
+            ConsoleHandler.error('endModule:get_new_elem2:' + error + ':FIXME do we need to handle this ?');
         }
 
         res.prct_reussite = this.filterValue('prct_reussite', data ? data.value : null);
@@ -322,7 +321,7 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
 
     private async get_column_labels(exhi: ExportHistoricVO): Promise<{ [field_name: string]: string }> {
         let user: UserVO = null;
-        await StackContext.getInstance().runPromise(
+        await StackContext.runPromise(
             { IS_CLIENT: false },
             async () => {
                 user = await query(UserVO.API_TYPE_ID).filter_by_id(exhi.export_to_uid).select_vo<UserVO>();

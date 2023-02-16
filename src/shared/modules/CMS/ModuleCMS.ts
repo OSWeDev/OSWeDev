@@ -184,8 +184,8 @@ export default class ModuleCMS extends Module {
         ];
 
         let datatable = new ModuleTable(this, PageVO.API_TYPE_ID, () => new PageVO(), datatable_fields, label_field, "Pages");
-        translatable_title_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID]);
-        content_type_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[ContentTypeVO.API_TYPE_ID]);
+        translatable_title_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID]);
+        content_type_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ContentTypeVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 
@@ -199,8 +199,8 @@ export default class ModuleCMS extends Module {
         ];
 
         let datatable = new ModuleTable(this, ContentTypeVO.API_TYPE_ID, () => new ContentTypeVO(), datatable_fields, label_field, "Types de contenus");
-        translatable_desc_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID]);
-        translatable_name_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID]);
+        translatable_desc_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID]);
+        translatable_name_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 
@@ -213,7 +213,7 @@ export default class ModuleCMS extends Module {
         ];
 
         let datatable = new ModuleTable(this, PageAliasVO.API_TYPE_ID, () => new PageAliasVO(), datatable_fields, label_field, "Alias des pages");
-        page_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[PageVO.API_TYPE_ID]);
+        page_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[PageVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 
@@ -231,9 +231,9 @@ export default class ModuleCMS extends Module {
         ];
 
         let datatable = new ModuleTable(this, TemplateComponentVO.API_TYPE_ID, () => new TemplateComponentVO(), datatable_fields, label_field, "Templates de composants");
-        translatable_name_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID]);
-        translatable_desc_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID]);
-        thumbnail_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[ImageVO.API_TYPE_ID]);
+        translatable_name_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID]);
+        translatable_desc_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID]);
+        thumbnail_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ImageVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 
@@ -249,8 +249,8 @@ export default class ModuleCMS extends Module {
         ];
 
         let datatable = new ModuleTable(this, ImgHtmlComponentVO.API_TYPE_ID, () => new ImgHtmlComponentVO(), datatable_fields, null, "Composant template : Img+HTML");
-        page_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[PageVO.API_TYPE_ID]);
-        image_vo_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[ImageVO.API_TYPE_ID]);
+        page_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[PageVO.API_TYPE_ID]);
+        image_vo_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ImageVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 
@@ -265,8 +265,8 @@ export default class ModuleCMS extends Module {
         ];
 
         let datatable = new ModuleTable(this, HtmlImgComponentVO.API_TYPE_ID, () => new HtmlImgComponentVO(), datatable_fields, null, "Composant template : HTML+Img");
-        page_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[PageVO.API_TYPE_ID]);
-        image_vo_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[ImageVO.API_TYPE_ID]);
+        page_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[PageVO.API_TYPE_ID]);
+        image_vo_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ImageVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 
@@ -279,7 +279,7 @@ export default class ModuleCMS extends Module {
         ];
 
         let datatable = new ModuleTable(this, HtmlComponentVO.API_TYPE_ID, () => new HtmlComponentVO(), datatable_fields, null, "Composant template : HTML");
-        page_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[PageVO.API_TYPE_ID]);
+        page_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[PageVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 
@@ -293,7 +293,7 @@ export default class ModuleCMS extends Module {
         ];
 
         let datatable = new ModuleTable(this, HtmlHtmlComponentVO.API_TYPE_ID, () => new HtmlHtmlComponentVO(), datatable_fields, null, "Composant template : HTML+HTML");
-        page_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[PageVO.API_TYPE_ID]);
+        page_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[PageVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 
@@ -308,7 +308,7 @@ export default class ModuleCMS extends Module {
         ];
 
         let datatable = new ModuleTable(this, HtmlHtmlHtmlComponentVO.API_TYPE_ID, () => new HtmlHtmlHtmlComponentVO(), datatable_fields, null, "Composant template : HTML+HTML+HTML");
-        page_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[PageVO.API_TYPE_ID]);
+        page_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[PageVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 }

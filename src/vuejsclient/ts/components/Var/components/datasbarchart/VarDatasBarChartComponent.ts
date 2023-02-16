@@ -333,7 +333,7 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
             );
             this.rendered = true;
         } catch (error) {
-            ConsoleHandler.getInstance().warn('PB:render Bar Chart probablement trop tôt:' + error);
+            ConsoleHandler.warn('PB:render Bar Chart probablement trop tôt:' + error);
             this.rendered = false;
             if (!this['_isDestroyed']) {
                 this.debounced_render_chart_js();

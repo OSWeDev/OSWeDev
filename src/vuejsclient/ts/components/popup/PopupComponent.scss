@@ -1,0 +1,22 @@
+.popup {
+    .ql-align-center {
+        text-align: center;
+    }
+
+    .ql-align-right {
+        text-align: right;
+    }
+
+    .ql-align-justify {
+        text-align: justify;
+    }
+
+    .modal-header,
+    .modal-body {
+        padding: 15px 40px;
+
+        img {
+            max-width: 100%;
+        }
+    }
+}

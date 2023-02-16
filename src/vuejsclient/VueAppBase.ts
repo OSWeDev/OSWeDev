@@ -78,6 +78,7 @@ export default abstract class VueAppBase {
 
     public async runApp() {
 
+        ConsoleHandler.init();
         ModuleAjaxCache.getInstance().setClientController(AjaxCacheClientController.getInstance());
 
         // Chargement des données des modules.
@@ -90,7 +91,7 @@ export default abstract class VueAppBase {
 
         promises.push((async () => {
             Vue.config.devtools = false;
-            if (EnvHandler.getInstance().IS_DEV) {
+            if (EnvHandler.IS_DEV) {
                 Vue.config.devtools = true;
             }
         })());
@@ -107,7 +108,7 @@ export default abstract class VueAppBase {
         /**
          * On ajoute tous les types aux DBB
          */
-        let types = Object.keys(VOsTypesManager.getInstance().moduleTables_by_voType);
+        let types = Object.keys(VOsTypesManager.moduleTables_by_voType);
         DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids = {};
         types.forEach((type) =>
             DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids[type] = null
@@ -173,6 +174,7 @@ export default abstract class VueAppBase {
                     missing: true
                 });
             },
+            silentTranslationWarn: true
         });
         Vue.config['lang'] = default_locale;
 
@@ -186,6 +188,14 @@ export default abstract class VueAppBase {
                 next();
             }
         );
+
+        // Vu avec MDE -> on laisse le script en load public pour le moment sinon il faut faire la modification dans tous les projets
+        const fontawesome = document.createElement("script");
+        fontawesome.setAttribute(
+            "src",
+            "//kit.fontawesome.com/26085407f2.js"
+        );
+        document.head.appendChild(fontawesome);
 
         Vue.config.keyCodes.page_up = 33;
         Vue.config.keyCodes.page_down = 34;
@@ -302,7 +312,7 @@ export default abstract class VueAppBase {
             }
         }
 
-        let code_google_analytics: string = EnvHandler.getInstance().CODE_GOOGLE_ANALYTICS;
+        let code_google_analytics: string = EnvHandler.CODE_GOOGLE_ANALYTICS;
 
         VueAppController.getInstance().initGoogleAnalytics(code_google_analytics);
 
@@ -412,9 +422,11 @@ export default abstract class VueAppBase {
 
         let app_name: "client" | "admin" | "login" = this.appController.app_name;
 
-        if (EnvHandler.getInstance().ACTIVATE_PWA && ((app_name == "client") || (app_name == "login"))) {
+        if (EnvHandler.ACTIVATE_PWA && ((app_name == "client") || (app_name == "login"))) {
             await PWAController.getInstance().initialize_pwa(
-                '/vuejsclient/public/pwa/client-sw.' + EnvHandler.getInstance().VERSION + '.js'
+                $,
+                app_name,
+                '/vuejsclient/public/pwa/client-sw.' + EnvHandler.VERSION + '.js'
             );
         }
         // this.registerPushWorker();
@@ -422,7 +434,7 @@ export default abstract class VueAppBase {
         window.onbeforeunload = (e) => {
             var e = e || window.event;
 
-            // ConsoleHandler.getInstance().log('onbeforeunload');
+            // ConsoleHandler.log('onbeforeunload');
 
             var needsSaving = false;
 
@@ -445,7 +457,7 @@ export default abstract class VueAppBase {
                 return message;
             }
 
-            self.unregisterVarsBeforeUnload().then().catch((err) => ConsoleHandler.getInstance().error(err));
+            self.unregisterVarsBeforeUnload().then().catch((err) => ConsoleHandler.error(err));
 
             return null;
         };

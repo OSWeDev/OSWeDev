@@ -42,15 +42,15 @@
                                 input(v-model.number='advanced_number_filter.filter_content' @change="onchange_advanced_number_filter_content")
                             template(v-if='parseInt(i.toString()) == (advanced_number_filters.length - 1)')
                                 //- .advanced_number_filter_add_filter(v-tooltip.top='label("advanced_filters.add")' @click='add_advanced_number_filter')
-                                //-     i.fa.fa-plus-circle.fa-lg.btn_icon
+                                //-     i.fa-duotone.fa-plus-circle.fa-lg.btn_icon
                                 .advanced_number_filter_validate_filter(v-tooltip.top='label("advanced_filters.validate")' @click='validate_advanced_number_filter' :class='{"disabled": !is_advanced_filter_valid}')
-                                    i.fa.fa-check-circle.fa-lg.btn_icon
+                                    i.fa-duotone.fa-check-circle.fa-lg.btn_icon
                             template(v-else)
                                 .advanced_number_filter_link_type(v-tooltip.top='label("advanced_filters.link_type")' @click='switch_link_type(advanced_number_filter)')
-                                    i.fa.fa-circle.fa-lg.btn_icon
+                                    i.fa-duotone.fa-circle.fa-lg.btn_icon
                                     .link_type {{ t(link_type_labels[advanced_number_filter.link_type]) }}
                                 .advanced_number_filter_delete_filter(v-tooltip.top='label("advanced_filters.delete")' @click='delete_advanced_number_filter(parseInt(i.toString()))')
-                                    i.fa.fa-trash.fa-lg.btn_icon
+                                    i.fa-duotone.fa-trash.fa-lg.btn_icon
 
 
         template(v-else)
@@ -90,4 +90,4 @@
                     template(slot="tag", slot-scope="props")
                         .pill_wrapper.bg-success
                             span.option__tag {{ props.option.label }}
-                            i.fa.fa-times(@click='props.remove(props.option)')
+                            i.fa-duotone.fa-times(@click='props.remove(props.option)')

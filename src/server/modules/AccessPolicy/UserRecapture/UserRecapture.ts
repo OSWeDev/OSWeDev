@@ -67,11 +67,11 @@ export default class UserRecapture {
     public async beginrecapture_user(user: UserVO): Promise<boolean> {
 
         // On doit se comporter comme un server à ce stade
-        await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
+        await StackContext.runPromise({ IS_CLIENT: false }, async () => {
 
             await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
 
-            let SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValue(UserRecapture.PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID);
+            let SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValueAsString(UserRecapture.PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID);
             let SEND_IN_BLUE_TEMPLATE_ID: number = SEND_IN_BLUE_TEMPLATE_ID_s ? parseInt(SEND_IN_BLUE_TEMPLATE_ID_s) : null;
 
             // Send mail
@@ -122,7 +122,7 @@ export default class UserRecapture {
         let translation = await ModuleTranslation.getInstance().getTranslation(lang.id, translatable_text.id);
 
         // On doit se comporter comme un server à ce stade
-        await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
+        await StackContext.runPromise({ IS_CLIENT: false }, async () => {
 
             await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
 

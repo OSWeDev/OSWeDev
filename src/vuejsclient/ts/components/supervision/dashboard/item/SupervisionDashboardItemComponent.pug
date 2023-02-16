@@ -6,7 +6,7 @@
         router-link.supervision_dashboard_item(v-if='!noclick' :to="router_to" :class='state_classname')
              .row.has_checkbox
                 .col-sm-1.supervision_dashboard_item_type
-                    i.fa.fa-fw(aria-hidden="true" :class='fa_class_name')
+                    i.fa-solid.fa-fw(aria-hidden="true" :class='fa_class_name')
                 .col-sm-7.supervision_dashboard_item_name {{ item.name }}
                 .col-sm-3.supervision_dashboard_item_date {{ formatted_date }}
                 .col-sm-1.supervision_dashboard_item_value {{ formatted_last_value }}
@@ -14,7 +14,7 @@
         .supervision_dashboard_item.noclick(v-else :class='state_classname')
             .row
                 .col-sm-1.supervision_dashboard_item_type
-                    i.fa.fa-fw(aria-hidden="true" :class='fa_class_name')
+                    i.fa-solid.fa-fw(aria-hidden="true" :class='fa_class_name')
                 .col-sm-7.supervision_dashboard_item_name {{ item.name }}
                 .col-sm-3.supervision_dashboard_item_date {{ formatted_date }}
                 .col-sm-1.supervision_dashboard_item_value {{ formatted_last_value }}

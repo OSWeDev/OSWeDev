@@ -51,23 +51,23 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         // On enregistre le BGThread d'avancement/information sur les maintenances
         ModuleBGThreadServer.getInstance().registerBGThread(MaintenanceBGThread.getInstance());
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Terminer la maintenance' },
             'fields.labels.ref.module_maintenance_maintenance.__component__end_maintenance.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Terminer la maintenance' },
             'endmaintenance_component.endmaintenance.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Maintenances' },
             'menu.menuelements.admin.MaintenanceAdminVueModule.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Maintenances' },
             'menu.menuelements.admin.MaintenanceVO.___LABEL___'));
 
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             {
                 'fr-fr': 'Une opération de maintenance est prévue dans moins de 2H.',
                 'de-de': 'Eine Wartung ist in weniger als 2 Stunden geplant.',
@@ -76,7 +76,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
             ModuleMaintenance.MSG1_code_text
         ));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             {
                 'fr-fr': 'Une opération de maintenance est imminente. Enregistrez votre travail.',
                 'de-de': 'Ein Wartungsvorgang steht unmittelbar bevor. Speichern Sie Ihre Arbeit.',
@@ -85,7 +85,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
             ModuleMaintenance.MSG2_code_text
         ));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             {
                 'fr-fr': 'Une opération de maintenance est en cours, votre travail ne sera pas enregistré.',
                 'de-de': 'Ein Wartungsvorgang wird ausgeführt, Ihre Arbeit wird nicht gespeichert.',
@@ -94,7 +94,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
             ModuleMaintenance.MSG3_code_text
         ));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             {
                 'fr-fr': 'L\'opération de maintenance est terminée',
                 'de-de': 'Der Wartungsvorgang ist abgeschlossen',
@@ -103,7 +103,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
             ModuleMaintenance.MSG4_code_text
         ));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Maintenance',
             'de-de': 'Wartung',
             'es-es': 'Mantenimiento'
@@ -138,7 +138,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
             return;
         }
 
-        let session = StackContext.getInstance().get('SESSION');
+        let session = StackContext.get('SESSION');
 
         if (session && !session.uid) {
             return;
@@ -168,7 +168,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
             return;
         }
 
-        let session = StackContext.getInstance().get('SESSION');
+        let session = StackContext.get('SESSION');
 
         planned_maintenance.maintenance_over = true;
         planned_maintenance.end_ts = Dates.now();
@@ -186,17 +186,17 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
             return;
         }
 
-        ConsoleHandler.getInstance().log('Maintenance demandée:' + validation_code);
+        ConsoleHandler.log('Maintenance demandée:' + validation_code);
 
-        if (ConfigurationService.getInstance().node_configuration.START_MAINTENANCE_ACCEPTATION_CODE != validation_code) {
-            ConsoleHandler.getInstance().error('Maintenance refusée');
+        if (ConfigurationService.node_configuration.START_MAINTENANCE_ACCEPTATION_CODE != validation_code) {
+            ConsoleHandler.error('Maintenance refusée');
 
             return;
         }
 
         let maintenance: MaintenanceVO = new MaintenanceVO();
 
-        let session = StackContext.getInstance().get('SESSION');
+        let session = StackContext.get('SESSION');
 
         if (session && !!session.uid) {
             maintenance.author_id = session.uid;
@@ -212,11 +212,11 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
          * On en profite pour bloquer les updates en bases
          *  - Par défaut on laisse 1 minute entre la réception de la notification et le passage en readonly de l'application
          */
-        ConsoleHandler.getInstance().error('Maintenance programmée dans 10 minutes');
+        ConsoleHandler.error('Maintenance programmée dans 10 minutes');
         await ModuleDAO.getInstance().insertOrUpdateVO(maintenance);
 
-        let readonly_maintenance_deadline = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_start_maintenance_force_readonly_after_x_ms, 60000);
-        await ThreadHandler.getInstance().sleep(readonly_maintenance_deadline);
+        let readonly_maintenance_deadline = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_start_maintenance_force_readonly_after_x_ms, 60000, 180000);
+        await ThreadHandler.sleep(readonly_maintenance_deadline);
         await VarsDatasVoUpdateHandler.getInstance().force_empty_vars_datas_vo_update_cache();
     }
 
@@ -238,7 +238,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
             return false;
         }
 
-        let session = StackContext.getInstance().get('SESSION');
+        let session = StackContext.get('SESSION');
 
         maintenance.creation_date = Dates.now();
         maintenance.author_id = maintenance.author_id ? maintenance.author_id : (session ? session.uid : null);

@@ -30,29 +30,29 @@ export default class FakeDataHandler {
      *                        / \ / \
      *                       E  F G  H
      */
-    public static get_fake_triangular_dag(): VarDAG {
+    public static async get_fake_triangular_dag(): Promise<VarDAG> {
         let dag: VarDAG = new VarDAG();
 
         let var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
-        let dagnodeA: VarDAGNode = VarDAGNode.getInstance(dag, var_data_A, VarsComputeController, true);
+        let dagnodeA: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_A, VarsComputeController, true);
 
         let var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B();
-        let dagnodeB: VarDAGNode = VarDAGNode.getInstance(dag, var_data_B, VarsComputeController, true);
+        let dagnodeB: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_B, VarsComputeController, true);
 
         let var_data_C: FakeDataVO = FakeDataHandler.get_var_data_C();
-        let dagnodeC: VarDAGNode = VarDAGNode.getInstance(dag, var_data_C, VarsComputeController, true);
+        let dagnodeC: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_C, VarsComputeController, true);
 
         let var_data_E: FakeDataVO = FakeDataHandler.get_var_data_E();
-        let dagnodeE: VarDAGNode = VarDAGNode.getInstance(dag, var_data_E, VarsComputeController, true);
+        let dagnodeE: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_E, VarsComputeController, true);
 
         let var_data_F: FakeDataVO = FakeDataHandler.get_var_data_F();
-        let dagnodeF: VarDAGNode = VarDAGNode.getInstance(dag, var_data_F, VarsComputeController, true);
+        let dagnodeF: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_F, VarsComputeController, true);
 
         let var_data_G: FakeDataVO = FakeDataHandler.get_var_data_G();
-        let dagnodeG: VarDAGNode = VarDAGNode.getInstance(dag, var_data_G, VarsComputeController, true);
+        let dagnodeG: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_G, VarsComputeController, true);
 
         let var_data_H: FakeDataVO = FakeDataHandler.get_var_data_H();
-        let dagnodeH: VarDAGNode = VarDAGNode.getInstance(dag, var_data_H, VarsComputeController, true);
+        let dagnodeH: VarDAGNode = await VarDAGNode.getInstance(dag, var_data_H, VarsComputeController, true);
 
         dagnodeA.addOutgoingDep("AB", dagnodeB);
         dagnodeA.addOutgoingDep("AC", dagnodeC);
@@ -70,7 +70,7 @@ export default class FakeDataHandler {
         let var_data: FakeDataVO = new FakeDataVO();
         var_data.var_id = 1;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY)
+            RangeHandler.create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY)
         ];
         let a = var_data.index;
         return var_data;
@@ -83,7 +83,7 @@ export default class FakeDataHandler {
         let var_data: FakeDataVO = new FakeDataVO();
         var_data.var_id = 1;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY)
+            RangeHandler.create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY)
         ];
         let a = var_data.index;
         return var_data;
@@ -93,8 +93,8 @@ export default class FakeDataHandler {
         let var_data: FakeDataVO = new FakeDataVO();
         var_data.var_id = 1;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY),
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY)
+            RangeHandler.create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY),
+            RangeHandler.create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY)
         ];
         let a = var_data.index;
         return var_data;
@@ -104,7 +104,7 @@ export default class FakeDataHandler {
         let var_data: FakeDataVO = new FakeDataVO();
         var_data.var_id = 2;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-02-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_MONTH)
+            RangeHandler.create_single_elt_TSRange(moment('2020-02-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_MONTH)
         ];
         let a = var_data.index;
         return var_data;
@@ -117,7 +117,7 @@ export default class FakeDataHandler {
         let var_data: FakeDataVO = new FakeDataVO();
         var_data.var_id = 2;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_MONTH)
+            RangeHandler.create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_MONTH)
         ];
         let a = var_data.index;
         return var_data;
@@ -130,7 +130,7 @@ export default class FakeDataHandler {
         let var_data: FakeDataVO = new FakeDataVO();
         var_data.var_id = 3;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-02-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY)
+            RangeHandler.create_single_elt_TSRange(moment('2020-02-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY)
         ];
         let a = var_data.index;
         return var_data;
@@ -143,7 +143,7 @@ export default class FakeDataHandler {
         let var_data: FakeDataVO = new FakeDataVO();
         var_data.var_id = 4;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-02-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_ROLLING_YEAR_MONTH_START)
+            RangeHandler.create_single_elt_TSRange(moment('2020-02-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_ROLLING_YEAR_MONTH_START)
         ];
         let a = var_data.index;
         return var_data;
@@ -156,7 +156,7 @@ export default class FakeDataHandler {
         let var_data: FakeDataVO = new FakeDataVO();
         var_data.var_id = 4;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_MONTH)
+            RangeHandler.create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_MONTH)
         ];
         let a = var_data.index;
         return var_data;
@@ -169,7 +169,7 @@ export default class FakeDataHandler {
         let var_data: FakeDataVO = new FakeDataVO();
         var_data.var_id = 5;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_YEAR)
+            RangeHandler.create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_YEAR)
         ];
         let a = var_data.index;
         return var_data;
@@ -182,7 +182,7 @@ export default class FakeDataHandler {
         let var_data: FakeDataVO = new FakeDataVO();
         var_data.var_id = 4;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().createNew(
+            RangeHandler.createNew(
                 TSRange.RANGE_TYPE,
                 moment('2020-04-01').utc(true).startOf('day').unix(),
                 moment('2021-02-01').utc(true).startOf('day').unix(),
@@ -198,14 +198,14 @@ export default class FakeDataHandler {
         let var_data: FakeDataVO = new FakeDataVO();
         var_data.var_id = 4;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().createNew(
+            RangeHandler.createNew(
                 TSRange.RANGE_TYPE,
                 moment('2020-02-01').utc(true).startOf('day').unix(),
                 moment('2020-03-01').utc(true).startOf('day').unix(),
                 true,
                 false,
                 TimeSegment.TYPE_MONTH),
-            RangeHandler.getInstance().createNew(
+            RangeHandler.createNew(
                 TSRange.RANGE_TYPE,
                 moment('2020-04-01').utc(true).startOf('day').unix(),
                 moment('2021-02-01').utc(true).startOf('day').unix(),
@@ -221,7 +221,7 @@ export default class FakeDataHandler {
         let var_data: FakeDataVO = new FakeDataVO();
         var_data.var_id = 4;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().createNew(
+            RangeHandler.createNew(
                 TSRange.RANGE_TYPE,
                 moment('2020-03-01').utc(true).startOf('day').unix(),
                 moment('2021-02-01').utc(true).startOf('day').unix(),
@@ -237,8 +237,8 @@ export default class FakeDataHandler {
         let var_data: FakeDataVO = new FakeDataVO();
         var_data.var_id = 1;
         var_data.ts_ranges = [
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY),
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY)
+            RangeHandler.create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY),
+            RangeHandler.create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY)
         ];
         let a = var_data.index;
         return var_data;

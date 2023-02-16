@@ -5,7 +5,7 @@
             template(v-if='inline_input_show_clear && !field.is_required')
                 i.inline_input_show_clear.fa.fa-trash.btn-danger(@click='inline_clear_value' :class="{busy: inline_input_is_busy}")
             template(v-else)
-                i.inline_input_hide_clear.fa.fa-arrow-circle-o-right.btn-info(:class="{busy: inline_input_is_busy}")
+                i.inline_input_hide_clear.fa.fa-circle-arrow-right.btn-info(:class="{busy: inline_input_is_busy}")
         template(v-else)
             i.inline_input_cancel_input.fa.fa-undo.btn-warning(@click='cancel_input' :class="{busy: inline_input_is_busy}")
 
@@ -14,17 +14,17 @@
     template(v-if='(!inline_input_mode) || (!inline_input_hide_label)')
         label(v-if="show_title") {{ label_replacement ? label(label_replacement) : t(field.translatable_title) }}
             template(v-if="field.is_required")
-                i.fa.fa-asterisk.mandatory
+                i.fa-duotone.fa-asterisk.mandatory
 
     //- template(v-if='is_readonly')
     //- template(v-else)
     .btn-group.link_ref.hidden-print(v-show='can_insert_or_update_target && show_insert_or_update_target')
         template(v-if="field_value")
             a.btn.btn-sm.btn-primary(:href="get_crud_link(field.targetModuleTable.vo_type, field_value)" :target="!is_dashboard_builder ? '_blank' : ''")
-                i.fa.fa-pencil
+                i.fa-duotone.fa-pencil
         template
         a.btn.btn-sm.btn-success(:href="get_crud_link(field.targetModuleTable.vo_type, null)" :target="!is_dashboard_builder ? '_blank' : ''")
-            i.fa.fa-plus-circle
+            i.fa-duotone.fa-plus-circle
 
     multiselect(
         :class="{'valign-middle': show_pencil_btn}"

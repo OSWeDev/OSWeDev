@@ -20,7 +20,7 @@ export default class ModuleFormatDatesNombresServer extends ModuleServerBase {
 
     public async configure() {
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             {
                 'fr-fr': 'DD/MM/YYYY',
                 'de-de': 'D.M.YYYY',

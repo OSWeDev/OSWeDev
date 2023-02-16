@@ -1,0 +1,46 @@
+.survey.hide_from_screenshot(v-if="isActive && active_survey")
+    .survey_switcher(@click='switch_hidden')
+        template(v-if='get_hidden')
+            i.fa-solid.fa-face-smile.fa-fw
+        template(v-else)
+            i.fa-solid.fa-face-smile.fa-fw
+        span {{ label('survey.btn.title') }}
+
+    .survey_modal(:class='{"hidden": !!get_hidden}')
+        .mx-0.mx-sm-auto
+            form(v-on:submit.prevent="send_survey")
+                .modal-body
+                    .text-center
+                        i.far.fa-file-alt.fa-4x.mb-3.text-primary
+                        p
+                            strong {{ label('survey.header') }}
+                        p
+                            span(v-html="need_a_survey ? need_a_survey.content : null")
+                    hr
+                    .text-center
+                        label {{ label('survey.rating') }}
+                            i.fa-solid.fa-asterisk.mandatory
+                    .spacer
+
+                    //- Définition des smiley , malheureusement difficile de faire une boucle car les smileys sont tous différents
+                    .smileys
+                        template(v-for="smiley in smileys")
+                            .smiley(:class="{selected: (tmp_type == smiley.id)}")
+                                .btn.btn-default.mr-2(@click='give_opinion(smiley.id)')
+                                    i.fa-duotone(:class="smiley.icon")                    
+                    
+                    .spacer
+                    p.text-center
+                        strong {{ label('survey.message.remarque.label') }}
+                    // Message input
+                    .row
+                        .col-sm-12
+                            label(for='survey_message') {{ label('survey.message.label') }}
+                    .row
+                        .col-sm-12
+                            textarea.form-control(name="survey_message" cols="80" rows="1" v-model="tmp_message")
+
+                    .row
+                        .col-sm-12
+                            .btn.btn-default.btn-flat.f-l(@click='switch_hidden') {{ label('survey.hide') }}
+                            button.btn.btn-primary.btn-flat.f-r(type="submit") {{ label('survey.submit') }}

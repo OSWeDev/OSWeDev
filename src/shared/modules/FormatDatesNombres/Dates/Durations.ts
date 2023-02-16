@@ -26,7 +26,7 @@ export default class Durations {
             }
             return moment.unix(moment.duration(date, unit).asSeconds()).unix();
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
         return null;
     }

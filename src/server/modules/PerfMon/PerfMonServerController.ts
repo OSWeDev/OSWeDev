@@ -47,7 +47,7 @@ export default class PerfMonServerController {
         perf_line_infos: IPerfMonLineInfo[] = null
     ): Promise<any> {
 
-        return await StackContext.getInstance().runPromise(
+        return await StackContext.runPromise(
             { [PerfMonServerController.stackcontext_parent_UID]: null },
             async () => {
 
@@ -82,14 +82,14 @@ export default class PerfMonServerController {
 
         let monitor_line: PerfMonLineVO = new PerfMonLineVO();
         monitor_line.start_time = performance.now();
-        monitor_line.is_server = !StackContext.getInstance().get('IS_CLIENT');
-        monitor_line.user_id = StackContext.getInstance().get('UID');
-        monitor_line.client_tab_id = StackContext.getInstance().get('CLIENT_TAB_ID');
+        monitor_line.is_server = !StackContext.get('IS_CLIENT');
+        monitor_line.user_id = StackContext.get('UID');
+        monitor_line.client_tab_id = StackContext.get('CLIENT_TAB_ID');
         monitor_line.line_type_id = line_type.id;
         monitor_line.uid = uid;
         PerfMonServerController.getInstance().temp_perf_lines_per_uid[uid] = monitor_line;
 
-        let temp_parent_uid = StackContext.getInstance().get(PerfMonServerController.stackcontext_parent_UID);
+        let temp_parent_uid = StackContext.get(PerfMonServerController.stackcontext_parent_UID);
 
         if (temp_parent_uid && !PerfMonServerController.getInstance().temp_childrens_per_parent_uid[temp_parent_uid]) {
             PerfMonServerController.getInstance().temp_childrens_per_parent_uid[temp_parent_uid] = {};
@@ -98,7 +98,7 @@ export default class PerfMonServerController {
             PerfMonServerController.getInstance().temp_childrens_per_parent_uid[temp_parent_uid][uid] = monitor_line;
         }
 
-        return await StackContext.getInstance().runPromise(
+        return await StackContext.runPromise(
             { [PerfMonServerController.stackcontext_parent_UID]: uid },
             async () => {
                 let res;

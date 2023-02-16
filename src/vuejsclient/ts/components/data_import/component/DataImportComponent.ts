@@ -125,6 +125,9 @@ export default class DataImportComponent extends DataImportComponentBase {
     @Prop({ default: true })
     public show_multiple_segments: boolean;
 
+    @Prop({ default: false })
+    public hide_btn_delete_file: boolean;
+
     public show_new_import: boolean = false;
 
     private selected_segment: TimeSegment = null;
@@ -242,7 +245,7 @@ export default class DataImportComponent extends DataImportComponentBase {
                 this.lower_selected_date_index = this.getlower_segment.dateIndex;
             }
             if (!this.upper_selected_date_index) {
-                this.upper_selected_date_index = TimeSegmentHandler.getInstance().getPreviousTimeSegment(this.getlower_segment, this.getsegment_type, -this.getsegment_number + 1).dateIndex;
+                this.upper_selected_date_index = TimeSegmentHandler.getPreviousTimeSegment(this.getlower_segment, this.getsegment_type, -this.getsegment_number + 1).dateIndex;
             }
         }
     }
@@ -261,8 +264,8 @@ export default class DataImportComponent extends DataImportComponentBase {
         }
 
         // Si le segment est pas chargé on le cible pour le trouver dans la liste
-        this.setlower_segment(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(this.initial_selected_segment, this.getsegment_type, -Math.floor(this.getsegment_number / 2)));
-        await this.select_segment(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(this.initial_selected_segment, this.getsegment_type));
+        this.setlower_segment(TimeSegmentHandler.getCorrespondingTimeSegment(this.initial_selected_segment, this.getsegment_type, -Math.floor(this.getsegment_number / 2)));
+        await this.select_segment(TimeSegmentHandler.getCorrespondingTimeSegment(this.initial_selected_segment, this.getsegment_type));
     }
 
     public hasSelectedOptions(historic: DataImportHistoricVO): boolean {
@@ -295,7 +298,7 @@ export default class DataImportComponent extends DataImportComponentBase {
             return;
         }
 
-        ConsoleHandler.getInstance().log('loadRawImportedDatas:' + timeSegment.index);
+        ConsoleHandler.log('loadRawImportedDatas:' + timeSegment.index);
 
         for (let i in this.import_historics[timeSegment.index]) {
 
@@ -381,7 +384,7 @@ export default class DataImportComponent extends DataImportComponentBase {
         }
 
         // On est en import multiple, soit on passe au suivant, soit c'est terminé
-        this.importing_multiple_segments_current_segment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(this.importing_multiple_segments_current_segment, this.getsegment_type, -1);
+        this.importing_multiple_segments_current_segment = TimeSegmentHandler.getPreviousTimeSegment(this.importing_multiple_segments_current_segment, this.getsegment_type, -1);
         if (this.upper_selected_segment.index < this.importing_multiple_segments_current_segment.index) {
             this.importing_multiple_segments = false;
             return;
@@ -470,7 +473,7 @@ export default class DataImportComponent extends DataImportComponentBase {
         for (let i in this.getsegments) {
             let segment: TimeSegment = this.getsegments[i];
 
-            num_ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(segment.index, NumRange.RANGE_TYPE));
+            num_ranges.push(RangeHandler.create_single_elt_NumRange(segment.index, NumRange.RANGE_TYPE));
         }
 
         let dihs: DataImportHistoricVO[] = await query(DataImportHistoricVO.API_TYPE_ID)
@@ -554,11 +557,11 @@ export default class DataImportComponent extends DataImportComponentBase {
     }
 
     get lower_selected_segment(): TimeSegment {
-        return this.lower_selected_date_index ? TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(this.lower_selected_date_index).utc(true).unix(), this.getsegment_type) : null;
+        return this.lower_selected_date_index ? TimeSegmentHandler.getCorrespondingTimeSegment(moment(this.lower_selected_date_index).utc(true).unix(), this.getsegment_type) : null;
     }
 
     get upper_selected_segment(): TimeSegment {
-        return this.upper_selected_date_index ? TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(this.upper_selected_date_index).utc(true).unix(), this.getsegment_type) : null;
+        return this.upper_selected_date_index ? TimeSegmentHandler.getCorrespondingTimeSegment(moment(this.upper_selected_date_index).utc(true).unix(), this.getsegment_type) : null;
     }
 
     get is_selected_segment(): { [date_index: string]: boolean } {
@@ -576,7 +579,7 @@ export default class DataImportComponent extends DataImportComponentBase {
         while (segment.index <= this.upper_selected_segment.index) {
 
             res[segment.index] = true;
-            segment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(segment, this.getsegment_type, -1);
+            segment = TimeSegmentHandler.getPreviousTimeSegment(segment, this.getsegment_type, -1);
         }
         return res;
     }
@@ -1278,7 +1281,7 @@ export default class DataImportComponent extends DataImportComponentBase {
             if ((!!this.import_historics) && (!!this.import_historics[segment.index])) {
                 return true;
             }
-            segment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(segment, this.getsegment_type, -1);
+            segment = TimeSegmentHandler.getPreviousTimeSegment(segment, this.getsegment_type, -1);
         }
         return false;
     }

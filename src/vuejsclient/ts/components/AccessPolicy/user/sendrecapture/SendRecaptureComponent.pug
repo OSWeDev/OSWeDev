@@ -1,7 +1,7 @@
 .sendrecapture_component
     .btn-group.d-print-none
         button.btn.btn-sm.btn-primary.m-1(@click='sendrecapture')
-            i.fa.fa-envelope.fa-fw.fa-lg.btn_icon(aria-hidden="true")
+            i.fa-duotone.fa-envelope.fa-fw.fa-lg.btn_icon(aria-hidden="true")
         //- button.btn.btn-sm.btn-secondary.m-1(v-if='has_sms_activation' @click='sendrecapturesms')
-        //-     i.fa.fa-mobile.fa-fw.fa-lg.btn_icon(aria-hidden="true")
+        //-     i.fa-solid.fa-mobile.fa-fw.fa-lg.btn_icon(aria-hidden="true")
         Mailstatseventscomponent(v-if='email_to' ref="mailstatsevents" :category_name='category_name' :email_to='email_to' :auto_update='true')

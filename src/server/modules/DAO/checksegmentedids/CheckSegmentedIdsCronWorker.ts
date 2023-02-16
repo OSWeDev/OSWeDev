@@ -30,18 +30,23 @@ export default class CheckSegmentedIdsCronWorker implements ICronWorker {
 
     public async work() {
 
-        for (let i in VOsTypesManager.getInstance().moduleTables_by_voType) {
-            let table = VOsTypesManager.getInstance().moduleTables_by_voType[i];
+        for (let i in VOsTypesManager.moduleTables_by_voType) {
+            let table = VOsTypesManager.moduleTables_by_voType[i];
 
             if (!table.is_segmented) {
                 continue;
             }
 
             let ids: { [id: number]: string } = {};
-            for (let table_name in DAOServerController.getInstance().segmented_known_databases[table.name]) {
+            for (let table_name in DAOServerController.segmented_known_databases[table.name]) {
                 let full_name = table.name + '.' + table_name;
 
-                let vos: IDistantVOBase[] = table.forceNumerics(await ModuleDAOServer.getInstance().query('select * from ' + full_name));
+                let res = await ModuleDAOServer.getInstance().query('select * from ' + full_name);
+                for (let j in res) {
+                    let data = res[j];
+                    data._type = table.vo_type;
+                }
+                let vos: IDistantVOBase[] = table.forceNumerics(res);
 
                 for (let vo_i in vos) {
                     let vo = vos[vo_i];
@@ -51,7 +56,7 @@ export default class CheckSegmentedIdsCronWorker implements ICronWorker {
                         continue;
                     }
 
-                    ConsoleHandler.getInstance().error('CheckSegmentedIdsCronWorker:' + vo.id + ':[seen originally in :' + ids[vo.id] + ':] duplicated in :' + full_name + ':');
+                    ConsoleHandler.error('CheckSegmentedIdsCronWorker:' + vo.id + ':[seen originally in :' + ids[vo.id] + ':] duplicated in :' + full_name + ':');
 
                     // A cette étape on peut directement modifier l'id du nouveau, en utilisant l'auto incrément pour supprimer la duplication.
                     //  Dans l'outil à date impossible d'avoir des références vers des datas segmentées donc ça devrait pas poser de problèmes.

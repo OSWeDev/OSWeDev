@@ -1,5 +1,7 @@
-import ConfigurationService from '../../../../server/env/ConfigurationService';
 import ConsoleHandler from '../../../tools/ConsoleHandler';
+import EnvHandler from '../../../tools/EnvHandler';
+import ObjectHandler from '../../../tools/ObjectHandler';
+import SemaphoreHandler from '../../../tools/SemaphoreHandler';
 import MatroidController from '../../Matroid/MatroidController';
 import VarBatchNodePerfVO from '../vos/VarBatchNodePerfVO';
 import VarDataBaseVO from '../vos/VarDataBaseVO';
@@ -19,55 +21,108 @@ export default class VarDAGNode extends DAGNodeBase {
      *  c'est géré dans OSWedev
      * @returns {VarDAGNode}
      */
-    public static getInstance(var_dag: VarDAG, var_data: VarDataBaseVO, varsComputeController, is_batch_var: boolean, already_tried_load_cache_complet: boolean = is_batch_var): VarDAGNode {
+    public static async getInstance(var_dag: VarDAG, var_data: VarDataBaseVO, varsComputeController, is_batch_var: boolean, already_tried_load_cache_complet: boolean = is_batch_var): Promise<VarDAGNode> {
 
-        if (!!var_dag.nodes[var_data.index]) {
-            let res = var_dag.nodes[var_data.index];
+        return await SemaphoreHandler.semaphore("VarDAGNode.getInstance", async () => {
 
-            let old_already_tried_load_cache_complet = res.already_tried_load_cache_complet;
+            if (!!var_dag.nodes[var_data.index]) {
+                let res = var_dag.nodes[var_data.index];
 
-            // Le but est de savoir si on était un batch var ne serait-ce qu'une fois parmi les demandes de calcul de cette var
-            if (is_batch_var && !res.is_batch_var) {
+                let old_already_tried_load_cache_complet = res.already_tried_load_cache_complet;
 
-                if (ConfigurationService.getInstance().node_configuration.DEBUG_VARS) {
-                    ConsoleHandler.getInstance().warn('Pour ma culture G: on demande un noeud dans l\'arbre qui existe déjà :' +
-                        var_data.index + ': et qui n\'était pas un batch var, mais qui le devient');
-                }
+                // Le but est de savoir si on était un batch var ne serait-ce qu'une fois parmi les demandes de calcul de cette var
+                if (is_batch_var && !res.is_batch_var) {
 
-                // on a donc déjà checké en base de données si on pouvait trouver la var
-                res.already_tried_load_cache_complet = true;
-                res.is_batch_var = true;
-            }
+                    if (EnvHandler.DEBUG_VARS) {
+                        ConsoleHandler.warn('Pour ma culture G: on demande un noeud dans l\'arbre qui existe déjà :' +
+                            var_data.index + ': et qui n\'était pas un batch var, mais qui le devient');
+                    }
 
-            // Si on a déjà enregistré les performances, on les conserve
-            if (var_dag.has_perfs) {
-                if ((!old_already_tried_load_cache_complet) && already_tried_load_cache_complet && res.perfs &&
-                    res.perfs.ctree_ddeps_try_load_cache_complet && (res.perfs.ctree_ddeps_try_load_cache_complet.end_time == null)) {
-
+                    // on a donc déjà checké en base de données si on pouvait trouver la var
                     res.already_tried_load_cache_complet = true;
-                    res.perfs.ctree_ddeps_try_load_cache_complet.skip_and_update_parents_perfs();
+                    res.is_batch_var = true;
                 }
+
+                // Si on a déjà enregistré les performances, on les conserve
+                if (var_dag.has_perfs) {
+                    if ((!old_already_tried_load_cache_complet) && already_tried_load_cache_complet && res.perfs &&
+                        res.perfs.ctree_ddeps_try_load_cache_complet && (res.perfs.ctree_ddeps_try_load_cache_complet.end_time == null)) {
+
+                        res.already_tried_load_cache_complet = true;
+                        res.perfs.ctree_ddeps_try_load_cache_complet.skip_and_update_parents_perfs();
+                    }
+                }
+
+                return res;
             }
 
-            return res;
-        }
+            /**
+             * Avant d'ajouter un noeud, on regarde si on time out sur la création de l'arbre
+             * Si on time out, on note l'information :
+             *  à ce stade on enlève les roots pas encore entamé de déployer (pas déployé et pas de outgoing dep)
+             *  et on cleanera l'arbre en fin de déploiement de l'arbre actuel
+             * 2 cas : soit on est en train d'initialiser les noeuds en cours de sélection :
+             *      - on doit refuser le noeud dont on demande l'insertion à la base dans ce cas et on doit refuser tous les prochains noeuds
+             *  soit on est en train de déployer l'arbre :
+             *      - on doit accepter le noeud demandé car c'est très probablement un noeud qui a été demandé par un autre noeud et qui est attendu
+             */
+            if (!var_dag.timed_out) {
 
-        /**
-         * Si on time out sur la création de l'arbre on refuse d'ajouter de nouveaux éléments
-         */
-        // if (var_dag.timed_out) {
-        //     return null;
-        // }
+                if (await VarDAG.dag_is_in_timeout_with_elpased_time(var_dag)) {
+                    if (EnvHandler.DEBUG_VARS) {
+                        ConsoleHandler.error('BATCH estimated work time + elapsed > limit - STEP 1 Identifying roots to remove and mark as timed_out');
+                    }
+                    var_dag.timed_out = true;
 
-        /**
-         * On check qu'on essaie pas d'ajoute une var avec un maxrange quelque part qui casserait tout
-         */
-        if (!MatroidController.getInstance().check_bases_not_max_ranges(var_data)) {
-            ConsoleHandler.getInstance().error('VarDAGNode.getInstance:!check_bases_not_max_ranges:' + var_data.index);
-            return null;
-        }
+                    for (let i in var_dag.roots) {
+                        let node = var_dag.roots[i];
+                        if (node instanceof VarDAGNode) {
+                            if (node.has_started_deployment ||
+                                (node.incoming_deps && ObjectHandler.getInstance().hasAtLeastOneAttribute(node.incoming_deps)) ||
+                                (node.outgoing_deps && ObjectHandler.getInstance().hasAtLeastOneAttribute(node.outgoing_deps))) {
+                                continue;
+                            }
 
-        return (new VarDAGNode(var_dag, var_data/*, is_registered*/, is_batch_var)).linkToDAG(varsComputeController);
+                            /**
+                             * Si c'est le dernier noeud de l'arbre on doit pas le supprimer
+                             */
+                            if (var_dag.nb_nodes == 1) {
+                                break;
+                            }
+
+                            node.unlinkFromDAG();
+
+                            /***
+                             * Si on est plus en timeout on arrête de faire du ménage
+                             */
+                            if (!await VarDAG.dag_is_in_timeout_with_elpased_time(var_dag)) {
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            if (is_batch_var && var_dag.timed_out) {
+                return null;
+            }
+
+            /**
+             * Si on time out sur la création de l'arbre on refuse d'ajouter de nouveaux éléments
+             */
+            // if (var_dag.timed_out) {
+            //     return null;
+            // }
+
+            /**
+             * On check qu'on essaie pas d'ajoute une var avec un maxrange quelque part qui casserait tout
+             */
+            if (!MatroidController.getInstance().check_bases_not_max_ranges(var_data)) {
+                ConsoleHandler.error('VarDAGNode.getInstance:!check_bases_not_max_ranges:' + var_data.index);
+                return null;
+            }
+
+            return (new VarDAGNode(var_dag, var_data/*, is_registered*/, is_batch_var)).linkToDAG(varsComputeController);
+        });
     }
 
     public perfs: VarBatchNodePerfVO = new VarBatchNodePerfVO();
@@ -110,6 +165,7 @@ export default class VarDAGNode extends DAGNodeBase {
     // public has_compute_node_perf: boolean = false;
     // public has_load_nodes_datas_perf: boolean = false;
 
+    public has_started_deployment: boolean = false;
     public successfully_deployed: boolean = false;
 
     public already_tried_loading_data_and_deploy: boolean = false;
@@ -202,11 +258,19 @@ export default class VarDAGNode extends DAGNodeBase {
         for (let i in this.incoming_deps) {
             let incoming_dep = this.incoming_deps[i];
             delete incoming_dep.incoming_node.outgoing_deps[incoming_dep.dep_name];
+
+            if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(incoming_dep.incoming_node.outgoing_deps)) {
+                dag.leafs[(incoming_dep.incoming_node as VarDAGNode).var_data.index] = incoming_dep.incoming_node as VarDAGNode;
+            }
         }
 
         for (let i in this.outgoing_deps) {
             let outgoing_dep = this.outgoing_deps[i];
             delete outgoing_dep.outgoing_node.incoming_deps[outgoing_dep.dep_name];
+
+            if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(outgoing_dep.outgoing_node.outgoing_deps)) {
+                dag.roots[(outgoing_dep.outgoing_node as VarDAGNode).var_data.index] = outgoing_dep.outgoing_node as VarDAGNode;
+            }
         }
 
         if (!!dag.leafs[this.var_data.index]) {

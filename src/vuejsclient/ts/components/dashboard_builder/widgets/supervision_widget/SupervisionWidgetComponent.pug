@@ -1,0 +1,56 @@
+include ../../../../../views/mixins/loading.pug
+
+.supervision_widget_component
+    +loading()
+
+        template(v-if='loaded_once')
+
+            template(v-if='loaded_once && is_busy')
+                .is_busy
+                    i.fa-duotone.fa-refresh.fa-spin(aria-hidden="true")
+
+            .upper_pagination.mb-2
+                Tablepaginationcomponent(
+                    :pagination_offset='pagination_offset'
+                    :pagination_pagesize='limit'
+                    :pagination_count='pagination_count'
+                    @change_offset='change_offset'
+                )
+
+                template(v-if='!!widget_options')
+                    .crud_actions.btn-group.d-print-none
+                        button.btn.btn-sm.btn-secondary(v-if='refresh_button', @click='refresh')
+                            i.fa-duotone.fa-refresh.fa-lg.btn_icon(aria-hidden="true")
+                            | {{ label('crud.actions.refresh') }}
+
+        template(v-if="show_bulk_edit")
+            .show_bulk_edit.text-center.mb-2
+                .btn.btn-primary.display_inline_block.mr-2(@click="select_unselect_all(true)") {{ label('supervision_widget_component.select_all') }}
+                .btn.btn-primary.display_inline_block.mr-2(@click="select_unselect_all(false)") {{ label('supervision_widget_component.unselect_all') }}
+                .btn.btn-primary.display_inline_block.mr-2(@click="mark_as_read") {{ label('supervision_widget_component.mark_as_read') }}
+                .btn.btn-primary.display_inline_block(@click="mark_as_unread") {{ label('supervision_widget_component.mark_as_unread') }}
+
+        .table_wrapper
+            table.table-striped.table-hover
+                thead
+                    tr
+                        template(v-if="show_bulk_edit")
+                            th
+                        th
+                        th {{ label('supervision_widget_component.table.name') }}
+                        th {{ label('supervision_widget_component.table.last_update') }}
+                        th {{ label('supervision_widget_component.table.last_value') }}
+                tbody
+                    template(v-for="item in items")
+                        tr(:class="'STATE_' + item.state")
+                            template(v-if="show_bulk_edit")
+                                td.text-center
+                                    input(type="checkbox", v-model="selected_items[get_identifier(item)]" :checked="selected_items[get_identifier(item)]")
+                            td.text-center
+                                .show_detail.clickable(@click="openModal(item)") 
+                                    i.fa-duotone.fa-eye.mr-1
+                                    span {{ label('supervision_widget_component.table.show_detail') }}
+
+                            td {{ item.name }}
+                            td {{ get_date(item) }}
+                            td {{ item.last_value }}

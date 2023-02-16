@@ -101,7 +101,7 @@
             margin-right: 0.5rem;
             color: white;
 
-            i.fa.fa-times {
+            i.fa-solid.fa-times {
                 cursor: pointer;
                 margin-left: 8px;
             }
@@ -110,6 +110,14 @@
         .container_filter_opt {
             height: 100%;
             overflow-x: auto;
+
+            >.row {
+                margin-right: 0;
+
+                label {
+                    max-width: calc(100% - 1.4rem);
+                }
+            }
 
             // On enlève la hauteur du nom du champ
             &.has_search_field {

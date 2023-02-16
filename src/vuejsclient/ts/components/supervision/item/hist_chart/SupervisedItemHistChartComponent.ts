@@ -102,8 +102,8 @@ export default class SupervisedItemHistChartComponent extends VueComponentBase {
         /**
          * On part de la segmentation
          */
-        let current = RangeHandler.getInstance().getSegmentedMin(this.graph_segmentation.range);
-        let max = RangeHandler.getInstance().getSegmentedMax(this.graph_segmentation.range);
+        let current = RangeHandler.getSegmentedMin(this.graph_segmentation.range);
+        let max = RangeHandler.getSegmentedMax(this.graph_segmentation.range);
 
         while (current <= max) {
 
@@ -121,8 +121,8 @@ export default class SupervisedItemHistChartComponent extends VueComponentBase {
         /**
          * On part de la segmentation
          */
-        let current = RangeHandler.getInstance().getSegmentedMin(this.graph_segmentation.range);
-        let max = RangeHandler.getInstance().getSegmentedMax(this.graph_segmentation.range);
+        let current = RangeHandler.getSegmentedMin(this.graph_segmentation.range);
+        let max = RangeHandler.getSegmentedMax(this.graph_segmentation.range);
 
         let index_historique: number = 0;
         let last_historique_value: number = 0;
@@ -136,10 +136,10 @@ export default class SupervisedItemHistChartComponent extends VueComponentBase {
             /**
              * La valeur se défini par la moyenne des valeurs compatible, ou la valeur la plus proche
              */
-            let current_range: TSRange = RangeHandler.getInstance().create_single_elt_TSRange(current, this.graph_segmentation.range.segment_type);
+            let current_range: TSRange = RangeHandler.create_single_elt_TSRange(current, this.graph_segmentation.range.segment_type);
             let somme_historique: number = null;
             let nb_historique: number = 0;
-            while (this.historiques[index_historique] && RangeHandler.getInstance().elt_intersects_range(this.historiques[index_historique].last_update, current_range)) {
+            while (this.historiques[index_historique] && RangeHandler.elt_intersects_range(this.historiques[index_historique].last_update, current_range)) {
                 last_historique_value = this.historiques[index_historique].last_value;
                 if (somme_historique == null) {
                     somme_historique = this.historiques[index_historique].last_value;

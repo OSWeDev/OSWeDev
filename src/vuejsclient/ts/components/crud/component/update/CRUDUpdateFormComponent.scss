@@ -2,6 +2,12 @@
 
     padding: 2em;
 
+    .edit_removed_crud_fields,
+    .delete_removed_crud_field_id,
+    .add_removed_crud_field_id {
+        margin: 1em 0em;
+    }
+
     .crud_update_form_header {
 
         .title {
@@ -22,7 +28,7 @@
             margin-left: 1em;
         }
 
-        label.vue-js-switch{
+        label.vue-js-switch {
             margin-left: 1em;
         }
 
@@ -38,7 +44,7 @@
             margin-left: 10px;
         }
 
-        input[type=checkbox].v-switch-input{
+        input[type=checkbox].v-switch-input {
             display: none;
         }
 
@@ -49,7 +55,7 @@
         label {
             font-weight: bold;
 
-            i.fa.fa-asterisk.mandatory {
+            i.fa-solid.fa-asterisk.mandatory {
                 color: red;
                 font-size: 0.4rem;
                 vertical-align: top;

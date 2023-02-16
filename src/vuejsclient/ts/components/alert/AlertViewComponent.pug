@@ -2,13 +2,13 @@
     .col-sm-12
         .type_icon_wrapper(v-if="show_alert_icon")
             template(v-if='is_error')
-                i.fa.fa-exclamation-triangle.fa-fw.alert_component_error(aria-hidden="true")
+                i.fa-solid.fa-exclamation-triangle.fa-fw.alert_component_error(aria-hidden="true")
             template(v-if='is_warn')
-                i.fa.fa-exclamation-triangle.fa-fw.alert_component_warn(aria-hidden="true")
+                i.fa-solid.fa-exclamation-triangle.fa-fw.alert_component_warn(aria-hidden="true")
             template(v-if='is_info')
-                i.fa.fa-exclamation-circle.fa-fw.alert_component_info(aria-hidden="true")
+                i.fa-solid.fa-exclamation-circle.fa-fw.alert_component_info(aria-hidden="true")
             template(v-if='is_debug')
-                i.fa.fa-exclamation-circle.fa-fw.alert_component_debug(aria-hidden="true")
+                i.fa-solid.fa-exclamation-circle.fa-fw.alert_component_debug(aria-hidden="true")
 
         template(v-if="show_alert_date")
             .alert_date {{ date_alert }}

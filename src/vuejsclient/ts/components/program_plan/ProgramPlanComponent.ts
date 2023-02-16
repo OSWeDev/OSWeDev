@@ -243,7 +243,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
     private reset_targets = ThrottleHelper.getInstance().declare_throttle_without_args(this.reset_targets_throttled.bind(this), 100, { leading: false, trailing: true });
 
-    private fcSegment: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
+    private fcSegment: TimeSegment = TimeSegmentHandler.getCorrespondingTimeSegment(
         moment(this.calendar_date).utc(true).unix(),
         (this.viewname == "timelineWeek") ? TimeSegment.TYPE_WEEK : TimeSegment.TYPE_MONTH);
 
@@ -421,25 +421,25 @@ export default class ProgramPlanComponent extends VueComponentBase {
             // partenaires (on charge tous les partenaires ça parait pas être voué à exploser comme donnée mais à suivre)
             if (!!this.program_plan_shared_module.partner_type_id) {
                 promises.push((async () => {
-                    self.setPartnersByIds(VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(this.program_plan_shared_module.partner_type_id).select_vos<IPlanPartner>()));
+                    self.setPartnersByIds(VOsTypesManager.vosArray_to_vosByIds(await query(this.program_plan_shared_module.partner_type_id).select_vos<IPlanPartner>()));
                 })());
             }
 
             if (!!this.program_plan_shared_module.target_region_type_id) {
                 promises.push((async () => {
-                    self.set_targets_regions_by_ids(VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(this.program_plan_shared_module.target_region_type_id).select_vos<IPlanTargetRegion>()));
+                    self.set_targets_regions_by_ids(VOsTypesManager.vosArray_to_vosByIds(await query(this.program_plan_shared_module.target_region_type_id).select_vos<IPlanTargetRegion>()));
                 })());
             }
 
             if (!!this.program_plan_shared_module.target_zone_type_id) {
                 promises.push((async () => {
-                    self.set_targets_zones_by_ids(VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(this.program_plan_shared_module.target_zone_type_id).select_vos<IPlanTargetZone>()));
+                    self.set_targets_zones_by_ids(VOsTypesManager.vosArray_to_vosByIds(await query(this.program_plan_shared_module.target_zone_type_id).select_vos<IPlanTargetZone>()));
                 })());
             }
 
             if (!!this.program_plan_shared_module.target_group_type_id) {
                 promises.push((async () => {
-                    self.set_targets_groups_by_ids(VOsTypesManager.getInstance().vosArray_to_vosByIds(await query(this.program_plan_shared_module.target_group_type_id).select_vos<IPlanTargetGroup>()));
+                    self.set_targets_groups_by_ids(VOsTypesManager.vosArray_to_vosByIds(await query(this.program_plan_shared_module.target_group_type_id).select_vos<IPlanTargetGroup>()));
                 })());
             }
 
@@ -510,7 +510,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         if (!!this.program_plan_shared_module.task_type_type_id) {
             promises.push((async () => {
                 let task_types: IPlanTaskType[] = await query(this.program_plan_shared_module.task_type_type_id).select_vos<IPlanTaskType>();
-                self.set_task_types_by_ids(VOsTypesManager.getInstance().vosArray_to_vosByIds(task_types));
+                self.set_task_types_by_ids(VOsTypesManager.vosArray_to_vosByIds(task_types));
             })());
         }
 
@@ -527,7 +527,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                         tmps.push(task);
                     }
                 }
-                self.set_tasks_by_ids(VOsTypesManager.getInstance().vosArray_to_vosByIds(tmps));
+                self.set_tasks_by_ids(VOsTypesManager.vosArray_to_vosByIds(tmps));
             })());
         }
 
@@ -612,7 +612,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                     return;
                 }
 
-                self.set_targets_facilitators_by_ids(VOsTypesManager.getInstance().vosArray_to_vosByIds(
+                self.set_targets_facilitators_by_ids(VOsTypesManager.vosArray_to_vosByIds(
                     await ModuleDAO.getInstance().getVosByRefFieldsIds<IPlanTargetFacilitator>(
                         this.program_plan_shared_module.target_facilitator_type_id,
                         'target_id', targets_ids,
@@ -710,7 +710,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                     let partner: IPlanPartner = this.getPartnersByIds[facilitator.partner_id];
 
                     let target_name: string = (!!target) ? target.name : "";
-                    let target_table: ModuleTable<IPlanTarget> = VOsTypesManager.getInstance().moduleTables_by_voType[this.program_plan_shared_module.target_type_id];
+                    let target_table: ModuleTable<IPlanTarget> = VOsTypesManager.moduleTables_by_voType[this.program_plan_shared_module.target_type_id];
                     if (target_table && target_table.default_label_field) {
                         target_name = (!!target) ? target[target_table.default_label_field.field_id] : "";
                     } else if (target_table && target_table.table_label_function) {
@@ -796,7 +796,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         if (!!this.program_plan_shared_module.target_facilitator_type_id) {
 
             if (!this.get_tasks_by_ids[rdv.task_id]) {
-                ConsoleHandler.getInstance().error('TASK id introuvable:' + rdv.task_id);
+                ConsoleHandler.error('TASK id introuvable:' + rdv.task_id);
                 return null;
             }
 
@@ -901,11 +901,11 @@ export default class ProgramPlanComponent extends VueComponentBase {
             return;
         }
 
-        let segment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
+        let segment = TimeSegmentHandler.getCorrespondingTimeSegment(
             moment(this.calendar_date).utc(true).unix(),
             (this.viewname == "timelineWeek") ? TimeSegment.TYPE_WEEK : TimeSegment.TYPE_MONTH);
 
-        if (!TimeSegmentHandler.getInstance().segmentsAreEquivalent(segment, this.fcSegment)) {
+        if (!TimeSegmentHandler.segmentsAreEquivalent(segment, this.fcSegment)) {
             this.fcSegment = segment;
             this.$refs.calendar['fireMethod']('gotoDate', this.calendar_date);
         }
@@ -1053,7 +1053,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                     rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.program_plan_shared_module.rdv_type_id, rdv.id);
 
                 } catch (error) {
-                    ConsoleHandler.getInstance().error(error);
+                    ConsoleHandler.error(error);
 
                     // On tente d'annuler le déplacement initial
                     try {
@@ -1210,26 +1210,26 @@ export default class ProgramPlanComponent extends VueComponentBase {
         if (this.program_plan_controller.load_rdv_on_segment_change) {
 
             promises.push((async () => {
-                self.setRdvsByIds(VOsTypesManager.getInstance().vosArray_to_vosByIds(await this.program_plan_shared_module.getRDVsOfProgramSegment(self.program_id, self.fcSegment)));
+                self.setRdvsByIds(VOsTypesManager.vosArray_to_vosByIds(await this.program_plan_shared_module.getRDVsOfProgramSegment(self.program_id, self.fcSegment)));
             })());
         }
 
         if (!!this.program_plan_shared_module.rdv_prep_type_id) {
             // Preps
             promises.push((async () => {
-                self.setPrepsByIds(VOsTypesManager.getInstance().vosArray_to_vosByIds(await this.program_plan_shared_module.getPrepsOfProgramSegment(self.program_id, self.fcSegment)));
+                self.setPrepsByIds(VOsTypesManager.vosArray_to_vosByIds(await this.program_plan_shared_module.getPrepsOfProgramSegment(self.program_id, self.fcSegment)));
             })());
         }
 
         // CRs
         promises.push((async () => {
-            self.setCrsByIds(VOsTypesManager.getInstance().vosArray_to_vosByIds(await this.program_plan_shared_module.getCRsOfProgramSegment(self.program_id, self.fcSegment)));
+            self.setCrsByIds(VOsTypesManager.vosArray_to_vosByIds(await this.program_plan_shared_module.getCRsOfProgramSegment(self.program_id, self.fcSegment)));
         })());
 
         await all_promises(promises);
 
-        this.set_filter_date_debut(this.fcSegment ? TimeSegmentHandler.getInstance().getStartTimeSegment(this.fcSegment) : null);
-        this.set_filter_date_fin(this.fcSegment ? Dates.add(TimeSegmentHandler.getInstance().getEndTimeSegment(this.fcSegment), -1, TimeSegment.TYPE_DAY) : null);
+        this.set_filter_date_debut(this.fcSegment ? TimeSegmentHandler.getStartTimeSegment(this.fcSegment) : null);
+        this.set_filter_date_fin(this.fcSegment ? Dates.add(TimeSegmentHandler.getEndTimeSegment(this.fcSegment), -1, TimeSegment.TYPE_DAY) : null);
 
         // this.filter_changed();
     }
@@ -1263,7 +1263,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                         let target_facilitator = self.get_targets_facilitators_by_ids[parseInt(event.resourceId)];
 
                         if (!target_facilitator) {
-                            ConsoleHandler.getInstance().error("!task_type.order_tasks_on_same_target:event._type:" + event._type);
+                            ConsoleHandler.error("!task_type.order_tasks_on_same_target:event._type:" + event._type);
                             // self.setRdvById({ id: 0 } as any);
                             self.reset_rdvs();
                             reject({
@@ -1290,7 +1290,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
                             if (!task_type.order_tasks_on_same_target) {
                                 // Pas normal...
-                                ConsoleHandler.getInstance().error("!task_type.order_tasks_on_same_target:event._type:" + event._type);
+                                ConsoleHandler.error("!task_type.order_tasks_on_same_target:event._type:" + event._type);
                                 // self.setRdvById({ id: 0 } as any);
                                 self.reset_rdvs();
                                 reject({
@@ -1353,7 +1353,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
                             if ((!task_type_tasks) || (!task_type_tasks.length)) {
                                 errormsg = 'programplan.fc.create.error';
-                                ConsoleHandler.getInstance().error("!task_type_tasks.length");
+                                ConsoleHandler.error("!task_type_tasks.length");
                                 // self.setRdvById({ id: 0 } as any);
                                 self.reset_rdvs();
                                 return;
@@ -1371,7 +1371,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
                             if (!task) {
                                 errormsg = 'programplan.fc.create.no_task_left';
-                                ConsoleHandler.getInstance().error("!task");
+                                ConsoleHandler.error("!task");
                                 // self.setRdvById({ id: 0 } as any);
                                 self.reset_rdvs();
                                 return;
@@ -1384,7 +1384,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                         rdv.target_id = event.target_id;
                     }
                 } catch (error) {
-                    ConsoleHandler.getInstance().error(error);
+                    ConsoleHandler.error(error);
                     // self.setRdvById({ id: 0 } as any);
                     self.reset_rdvs();
                     return;
@@ -1418,7 +1418,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                     rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(self.program_plan_shared_module.rdv_type_id, rdv.id);
 
                 } catch (error) {
-                    ConsoleHandler.getInstance().error(error);
+                    ConsoleHandler.error(error);
                     reject({
                         body: self.label(errormsg),
                         config: {
@@ -1526,7 +1526,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         if (!!this.program_plan_shared_module.task_type_id) {
             let task = this.get_tasks_by_ids[this.selected_rdv.task_id];
             if (!task) {
-                ConsoleHandler.getInstance().error('Impossible de retrouver le type de tache');
+                ConsoleHandler.error('Impossible de retrouver le type de tache');
                 return;
             }
 
@@ -1537,7 +1537,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
             let task_type = this.get_task_types_by_ids[task.task_type_id];
             if (!task_type) {
-                ConsoleHandler.getInstance().error('Impossible de retrouver le type de tache');
+                ConsoleHandler.error('Impossible de retrouver le type de tache');
                 return;
             }
 
@@ -1612,7 +1612,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                             throw new Error('Erreur serveur');
                         }
                     } catch (error) {
-                        ConsoleHandler.getInstance().error(error);
+                        ConsoleHandler.error(error);
                         reject({
                             body: self.label('programplan.delete.error'),
                             config: {
@@ -1726,7 +1726,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
         let rdvs: IPlanRDV[] = await query(this.program_plan_shared_module.rdv_type_id).filter_by_num_eq('target_id', this.selected_rdv.target_id).select_vos<IPlanRDV>();
 
-        let rdvs_by_ids: { [id: number]: IPlanRDV } = VOsTypesManager.getInstance().vosArray_to_vosByIds(rdvs);
+        let rdvs_by_ids: { [id: number]: IPlanRDV } = VOsTypesManager.vosArray_to_vosByIds(rdvs);
         self.addRdvsByIds(rdvs_by_ids);
         let rdvs_ids: number[] = ObjectHandler.getInstance().getNumberMapIndexes(rdvs_by_ids);
 

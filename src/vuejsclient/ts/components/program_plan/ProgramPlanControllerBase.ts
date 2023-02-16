@@ -205,7 +205,7 @@ export default abstract class ProgramPlanControllerBase {
 
                 if ((!task_type_tasks) || (!task_type_tasks.length)) {
                     VueAppBase.instance_.vueInstance.snotify.error(VueAppBase.instance_.vueInstance.label('programplan.fc.create.error'));
-                    ConsoleHandler.getInstance().error("!task_type_tasks.length");
+                    ConsoleHandler.error("!task_type_tasks.length");
                     return true;
                 }
 
@@ -221,19 +221,19 @@ export default abstract class ProgramPlanControllerBase {
 
                 if (!new_task) {
                     VueAppBase.instance_.vueInstance.snotify.error(VueAppBase.instance_.vueInstance.label('programplan.fc.create.no_task_left'));
-                    ConsoleHandler.getInstance().error("!task");
+                    ConsoleHandler.error("!task");
                     return true;
                 }
 
                 if (new_task.id != rdv.task_id) {
                     VueAppBase.instance_.vueInstance.snotify.error(VueAppBase.instance_.vueInstance.label('programplan.fc.create.error'));
-                    ConsoleHandler.getInstance().error("task.id != rdv.task_id");
+                    ConsoleHandler.error("task.id != rdv.task_id");
                     return true;
                 }
             }
             return false;
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
         return true;
     }

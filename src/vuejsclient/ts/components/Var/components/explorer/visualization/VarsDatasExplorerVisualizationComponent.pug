@@ -11,9 +11,12 @@
                     .row(v-if='display_data')
                         p(id = "p1") 
                             | Résultats :
-                        .col-12(v-if = '_error_data')
+                        .col-12(v-if='errors_data && (errors_data.length > 0)')
                             p(id = "p2") 
-                                | Erreur d'index ligne {{_error_data}}.
+                                span Erreur d'index ligne :
+                                ul
+                                    template(v-for="error_d in errors_data")
+                                        li {{ error_d }}
                                 br 
                                 | Veuillez vérifier que celui-ci soit correctement écrit.
                                 br 
@@ -21,7 +24,7 @@
                                 br
                                 |Attendre que les calculs soient complètement terminés.
                                 
-                        .col-12(v-else)
+                        .col-12
                             template(v-for='filtered_data in get_filtered_datas')
                                 var-data.col-12(:var_param='filtered_data')
     .row(v-if='!display_data')

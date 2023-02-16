@@ -2,15 +2,20 @@
 
     .type_icon_wrapper(@click='redirect_notification()') 
         template(v-if='is_error')
-            i.fa.fa-exclamation-triangle.fa-fw.type_icon_error(aria-hidden="true")
+            i.fa-solid.fa-exclamation-triangle.fa-fw.type_icon_error(aria-hidden="true")
         template(v-if='is_warn')
-            i.fa.fa-exclamation-triangle.fa-fw.type_icon_warn(aria-hidden="true")        
+            i.fa-solid.fa-exclamation-triangle.fa-fw.type_icon_warn(aria-hidden="true")        
         template(v-if='is_info')
-            i.fa.fa-exclamation-circle.fa-fw.type_icon_info(aria-hidden="true")
+            i.fa-solid.fa-exclamation-circle.fa-fw.type_icon_info(aria-hidden="true")
         template(v-if='is_success')
-            i.fa.fa-check-circle.fa-fw.type_icon_success(aria-hidden="true")
+            i.fa-solid.fa-check-circle.fa-fw.type_icon_success(aria-hidden="true")
 
     .notif_date(@click='redirect_notification()')  {{ date_notification }}
     .notif_content(@click='redirect_notification()')  {{ notification.simple_notif_json_params ? t(notification.simple_notif_label, JSON.parse(notification.simple_notif_json_params)) : t(notification.simple_notif_label) }}
+
+    .notif_downloadable_link(v-if='notification.simple_downloadable_link')
+        button.btn.btn-sm.btn-primary.m-1(@click='download_file' v-tooltip='notification.simple_downloadable_link')
+            i.fa.fa-download.fa-lg.btn_icon(aria-hidden="true")
+            | {{ label('notification.simple_downloadable_link.download') }}
 
     .notif_mark_as_read(@click='read_notification(notification)') {{ label('UserNotifComponent.mark_as_read') }}

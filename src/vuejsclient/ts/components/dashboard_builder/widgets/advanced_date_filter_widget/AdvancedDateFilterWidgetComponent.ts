@@ -3,7 +3,7 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterHandler from '../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import AdvancedDateFilterOptDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/AdvancedDateFilterOptDescVO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
@@ -15,10 +15,12 @@ import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dat
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
+import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import TSRangeInputComponent from '../../../tsrangeinput/TSRangeInputComponent';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
+import ResetFiltersWidgetController from '../reset_filters_widget/ResetFiltersWidgetController';
 import './AdvancedDateFilterWidgetComponent.scss';
 import AdvancedDateFilterWidgetOptions from './options/AdvancedDateFilterWidgetOptions';
 
@@ -36,6 +38,8 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
     @ModuleDashboardPageAction
     private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
+    @ModuleDashboardPageAction
+    private clear_active_field_filters: () => void;
 
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
@@ -52,6 +56,14 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
     private tmp_filter_active_opt: AdvancedDateFilterOptDescVO = null;
     private tmp_ts_range: TSRange = null;
     private old_widget_options: AdvancedDateFilterWidgetOptions = null;
+
+    private async mounted() {
+        ResetFiltersWidgetController.getInstance().register_updater(
+            this.dashboard_page,
+            this.page_widget,
+            this.reset_visible_options.bind(this),
+        );
+    }
 
     @Watch('widget_options', { immediate: true })
     private onchange_widget_options() {
@@ -102,7 +114,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
                         end_date = Dates.add(now, this.tmp_filter_active_opt.value, this.tmp_filter_active_opt.segmentation_type);
                     }
 
-                    ts_range = RangeHandler.getInstance().createNew(
+                    ts_range = RangeHandler.createNew(
                         TSRange.RANGE_TYPE,
                         start_date,
                         end_date,
@@ -181,11 +193,23 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
          * Si on a un contextfilter, on check si on doit faire un update et si c'est nécessaire on le fait
          */
         if (!!context_filter) {
-            if (!RangeHandler.getInstance().are_same(context_filter.param_tsranges, [ts_range])) {
+            if (!RangeHandler.are_same(context_filter.param_tsranges, [ts_range])) {
                 context_filter.param_tsranges = [ts_range];
             }
             return;
         }
+    }
+
+    private async reset_visible_options() {
+        // Reset des checkbox
+        if (this.tmp_filter_active_opt) {
+            let old_id: number = this.tmp_filter_active_opt.id;
+
+            // On simule le click pour décocher le input
+            $('#' + this.base_filter + old_id.toString()).click();
+        }
+
+        this.tmp_ts_range = null;
     }
 
     private onchange_filter_opt_input(input: any, opt: AdvancedDateFilterOptDescVO) {
@@ -217,6 +241,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
 
         this.tmp_filter_active_opt = opt;
 
+        // On simule le click pour décocher le input
         $('#' + this.base_filter + old_id.toString()).click();
     }
 
@@ -244,7 +269,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
                 ) : null;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return options;
@@ -296,8 +321,8 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
         return this.tmp_filter_active_opt ? (this.tmp_filter_active_opt.search_type == AdvancedDateFilterOptDescVO.SEARCH_TYPE_CUSTOM) : false;
     }
 
-    get field_date(): SimpleDatatableField<any, any> {
-        return new SimpleDatatableField(this.vo_field_ref.field_id).setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[this.vo_field_ref.api_type_id]);
+    get field_date(): SimpleDatatableFieldVO<any, any> {
+        return SimpleDatatableFieldVO.createNew(this.vo_field_ref.field_id).setModuleTable(VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id]);
     }
 
     get base_filter(): string {

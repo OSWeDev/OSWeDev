@@ -297,35 +297,51 @@ export default class OnPageTranslation extends VueComponentBase {
 
             this.snotify.success('Import de trads OK, recharger.');
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
             this.snotify.error(error);
         }
     }
 
     private async change_page_translations_wrapper() {
 
-        if (!this.lang_id) {
+        if ((!this.lang_id) || (!this.getPageTranslations)) {
             return;
         }
 
-        let new_editable_translations: EditablePageTranslationItem[] = [];
-
-        let promises = [];
-        for (let i in this.getPageTranslations) {
-            let pageTranslation: OnPageTranslationItem = this.getPageTranslations[i];
-
-            promises.push((async () => {
-                if (!this.translations_by_code[pageTranslation.translation_code]) {
-                    this.translations_by_code[pageTranslation.translation_code] = await query(TranslationVO.API_TYPE_ID)
-                        .filter_by_text_eq('code_text', pageTranslation.translation_code, TranslatableTextVO.API_TYPE_ID)
-                        .filter_by_num_eq('lang_id', this.lang_id)
-                        .select_vo<TranslationVO>();
-                }
-                let editable_translation: EditablePageTranslationItem = new EditablePageTranslationItem(pageTranslation.translation_code, this.translations_by_code[pageTranslation.translation_code]);
-                new_editable_translations.push(editable_translation);
-            })());
+        let texts = Object.keys(this.getPageTranslations);
+        if ((!texts) || (!texts.length)) {
+            return;
         }
-        await all_promises(promises);
+
+        let translations: Array<{
+            code_text: string,
+            translated: string,
+            id,
+            lang_id,
+            text_id
+        }> = await query(TranslationVO.API_TYPE_ID)
+            .field('code_text', null, TranslatableTextVO.API_TYPE_ID)
+            .field('id')
+            .field('lang_id')
+            .field('text_id')
+            .field('translated')
+            .filter_by_text_has('code_text', texts, TranslatableTextVO.API_TYPE_ID)
+            .filter_by_num_eq('lang_id', this.lang_id)
+            .select_all() as any;
+
+        let new_editable_translations: EditablePageTranslationItem[] = [];
+        for (let i in translations) {
+            let translation = new TranslationVO();
+            let t = translations[i];
+            translation.id = parseInt(t.id);
+            translation.lang_id = parseInt(t.lang_id);
+            translation.text_id = parseInt(t.text_id);
+            translation.translated = t.translated;
+
+            this.translations_by_code[t.code_text] = translation as any as TranslationVO;
+            let editable_translation: EditablePageTranslationItem = new EditablePageTranslationItem(t.code_text, this.translations_by_code[t.code_text]);
+            new_editable_translations.push(editable_translation);
+        }
 
         new_editable_translations.sort((a: EditablePageTranslationItem, b: EditablePageTranslationItem) => {
             if (a.missing && !b.missing) {

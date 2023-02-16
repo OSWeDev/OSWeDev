@@ -5,9 +5,11 @@ import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
+import DashboardWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
+import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
@@ -15,6 +17,8 @@ import InlineTranslatableText from '../../../InlineTranslatableText/InlineTransl
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
+import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsController';
+import ValidationFiltersWidgetController from '../validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetOptions from './options/VarWidgetOptions';
 import './VarWidgetComponent.scss';
 
@@ -67,6 +71,9 @@ export default class VarWidgetComponent extends VueComponentBase {
     private get_custom_filters: string[];
 
     @Prop({ default: null })
+    private all_page_widget: DashboardPageWidgetVO[];
+
+    @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
 
     @Prop({ default: null })
@@ -76,6 +83,7 @@ export default class VarWidgetComponent extends VueComponentBase {
     private dashboard_page: DashboardPageVO;
 
     private throttled_update_visible_options = debounce(this.update_visible_options.bind(this), 500);
+    private throttle_do_update_visible_options = debounce(this.do_update_visible_options.bind(this), 500);
 
     private var_param: VarDataBaseVO = null;
     private last_calculation_cpt: number = 0;
@@ -101,16 +109,61 @@ export default class VarWidgetComponent extends VueComponentBase {
         return ObjectHandler.getInstance().hasAtLeastOneAttribute(this.widget_options.filter_custom_field_filters) ? this.widget_options.filter_custom_field_filters : null;
     }
 
-    @Watch('get_custom_filters', { deep: true })
-    private async onchange_get_custom_filters() {
-        if (!this.var_custom_filters) {
+    // @Watch('get_custom_filters', { deep: true })
+    // private async onchange_get_custom_filters() {
+    //     if (!this.var_custom_filters) {
+    //         return;
+    //     }
+
+    //     await this.throttled_update_visible_options();
+    // }
+
+    private async update_visible_options(force: boolean = false) {
+
+        // Si j'ai mon bouton de validation des filtres qui est actif, j'attends que ce soit lui qui m'appelle
+        if ((!force) && this.has_widget_validation_filtres()) {
             return;
         }
 
-        await this.throttled_update_visible_options();
+
+        await this.throttle_do_update_visible_options();
     }
 
-    private async update_visible_options() {
+    get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
+        return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
+    }
+
+    private has_widget_validation_filtres(): boolean {
+
+        if (!this.all_page_widget) {
+            return false;
+        }
+
+        for (let i in this.all_page_widget) {
+            let widget: DashboardWidgetVO = this.widgets_by_id[this.all_page_widget[i].widget_id];
+
+            if (!widget) {
+                continue;
+            }
+
+            if (widget.is_validation_filters) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private mounted() {
+        ValidationFiltersWidgetController.getInstance().register_updater(
+            this.dashboard_page.dashboard_id,
+            this.dashboard_page.id,
+            this.page_widget.id,
+            this.throttle_do_update_visible_options.bind(this),
+        );
+    }
+
+    private async do_update_visible_options() {
 
         let launch_cpt: number = (this.last_calculation_cpt + 1);
 
@@ -197,10 +250,13 @@ export default class VarWidgetComponent extends VueComponentBase {
                     options.var_id,
                     options.filter_type,
                     options.filter_custom_field_filters,
-                    options.filter_additional_params) : null;
+                    options.filter_additional_params,
+                    options.bg_color,
+                    options.fg_color_value,
+                    options.fg_color_text) : null;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return options;

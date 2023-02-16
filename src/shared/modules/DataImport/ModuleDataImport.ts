@@ -210,7 +210,7 @@ export default class ModuleDataImport extends Module {
             [ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT],
             [ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT],
         }));
-        fields.push(new ModuleTableField<any>("creation_date", ModuleTableField.FIELD_TYPE_tstz, "Date de création", false));
+        fields.push(new ModuleTableField<any>("creation_date", ModuleTableField.FIELD_TYPE_tstz, "Date de création", false).set_segmentation_type(TimeSegment.TYPE_MINUTE));
         fields.push(new ModuleTableField<any>("not_imported_msg", ModuleTableField.FIELD_TYPE_string, "Msg import", false));
         fields.push(new ModuleTableField<any>("not_posttreated_msg", ModuleTableField.FIELD_TYPE_string, "Msg post-traitement", false));
         fields.unshift(field_historic_id);
@@ -219,7 +219,7 @@ export default class ModuleDataImport extends Module {
             ModuleDataImport.IMPORT_TABLE_PREFIX + targetModuleTable.vo_type,
             () => ({} as any), fields, null, "Import " + targetModuleTable.name);
         importTable.set_bdd_ref(ModuleDataImport.IMPORT_SCHEMA, ModuleDataImport.IMPORT_TABLE_PREFIX + targetModuleTable.vo_type);
-        field_historic_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[DataImportHistoricVO.API_TYPE_ID]);
+        field_historic_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[DataImportHistoricVO.API_TYPE_ID]);
         targetModuleTable.module.datatables.push(importTable);
         targetModuleTable.importable = true;
     }
@@ -233,7 +233,7 @@ export default class ModuleDataImport extends Module {
         this.datatables = [];
 
         // Création de la table dataimportfile
-        let field_file_id: ModuleTableField<number> = new ModuleTableField('file_id', ModuleTableField.FIELD_TYPE_file_ref, 'Fichier importé', false);
+        let field_file_id: ModuleTableField<any> = new ModuleTableField('file_id', ModuleTableField.FIELD_TYPE_file_ref, 'Fichier importé', false).not_add_to_crud();
         let field_post_exec_module_id: ModuleTableField<number> = new ModuleTableField('post_exec_module_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Module de post-traitement', false);
         let label_field = new ModuleTableField('import_uid', ModuleTableField.FIELD_TYPE_string, 'Nom du fichier d\'import', true);
         let datatable_fields = [
@@ -273,8 +273,8 @@ export default class ModuleDataImport extends Module {
         ];
         let datatable_desc = new ModuleTable(this, DataImportFormatVO.API_TYPE_ID, () => new DataImportFormatVO(), datatable_fields, label_field, "Fichiers d'import");
         field_file_id.donotCascadeOnDelete();
-        field_file_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);
-        field_post_exec_module_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[ModuleVO.API_TYPE_ID]);
+        field_file_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
+        field_post_exec_module_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ModuleVO.API_TYPE_ID]);
         this.datatables.push(datatable_desc);
 
         // Création de la table dataimportcolumn
@@ -290,13 +290,13 @@ export default class ModuleDataImport extends Module {
             new ModuleTableField('other_column_labels', ModuleTableField.FIELD_TYPE_string_array, 'Autres noms possibles (Fichier)', false)
         ];
         let dt2 = new ModuleTable(this, DataImportColumnVO.API_TYPE_ID, () => new DataImportColumnVO(), datatable_fields, label_field, "Colonnes importées");
-        field_data_import_format_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[DataImportFormatVO.API_TYPE_ID]);
+        field_data_import_format_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[DataImportFormatVO.API_TYPE_ID]);
         this.datatables.push(dt2);
 
         label_field = new ModuleTableField('historic_uid', ModuleTableField.FIELD_TYPE_string, 'ID unique', false);
         field_data_import_format_id = new ModuleTableField('data_import_format_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Format d\'import', false);
         let field_user_id = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Auteur', false);
-        field_file_id = new ModuleTableField('file_id', ModuleTableField.FIELD_TYPE_file_ref, 'Fichier importé', false);
+        field_file_id = new ModuleTableField('file_id', ModuleTableField.FIELD_TYPE_file_ref, 'Fichier importé', false).not_add_to_crud();
         let reimport_of_dih_id = new ModuleTableField('reimport_of_dih_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Réimport de ...', false);
         datatable_fields = [
             field_data_import_format_id,
@@ -347,7 +347,7 @@ export default class ModuleDataImport extends Module {
             }),
 
             label_field,
-            new ModuleTableField('start_date', ModuleTableField.FIELD_TYPE_tstz, 'Date de démarrage', false),
+            new ModuleTableField('start_date', ModuleTableField.FIELD_TYPE_tstz, 'Date de démarrage', false).set_segmentation_type(TimeSegment.TYPE_MINUTE),
             new ModuleTableField('segment_date_index', ModuleTableField.FIELD_TYPE_tstz, 'Segment cible', false),
             new ModuleTableField('segment_type', ModuleTableField.FIELD_TYPE_enum, 'Type de segment', false).setEnumValues({
                 [TimeSegment.TYPE_YEAR]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_YEAR],
@@ -356,8 +356,8 @@ export default class ModuleDataImport extends Module {
                 [TimeSegment.TYPE_WEEK]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_WEEK],
                 [TimeSegment.TYPE_ROLLING_YEAR_MONTH_START]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_ROLLING_YEAR_MONTH_START],
             }),
-            new ModuleTableField('last_up_date', ModuleTableField.FIELD_TYPE_tstz, 'Modification', false).index(),
-            new ModuleTableField('end_date', ModuleTableField.FIELD_TYPE_tstz, 'Date de fin', false),
+            new ModuleTableField('last_up_date', ModuleTableField.FIELD_TYPE_tstz, 'Modification', false).set_segmentation_type(TimeSegment.TYPE_MINUTE).index(),
+            new ModuleTableField('end_date', ModuleTableField.FIELD_TYPE_tstz, 'Date de fin', false).set_segmentation_type(TimeSegment.TYPE_MINUTE),
             new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
             new ModuleTableField('params', ModuleTableField.FIELD_TYPE_string, 'Paramètres', false),
             new ModuleTableField('api_type_id', ModuleTableField.FIELD_TYPE_string, 'Vo importé', false),
@@ -375,13 +375,13 @@ export default class ModuleDataImport extends Module {
         let datatable_historic = new ModuleTable(this, DataImportHistoricVO.API_TYPE_ID, () => new DataImportHistoricVO(), datatable_fields, label_field, "Historiques d'importation").hideAnyToManyByDefault();
         field_data_import_format_id.addManyToOneRelation(datatable_desc);
         field_user_id.donotCascadeOnDelete();
-        field_user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        field_user_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
         reimport_of_dih_id.addManyToOneRelation(datatable_historic);
-        field_file_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);
+        field_file_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
         this.datatables.push(datatable_historic);
 
 
-        label_field = new ModuleTableField('date', ModuleTableField.FIELD_TYPE_tstz, 'Date', false);
+        label_field = new ModuleTableField('date', ModuleTableField.FIELD_TYPE_tstz, 'Date', false).set_segmentation_type(TimeSegment.TYPE_MINUTE);
         field_data_import_format_id = new ModuleTableField('data_import_format_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Format d\'import', false);
         let field_data_import_historic_id = new ModuleTableField('data_import_historic_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Historique', false);
         datatable_fields = [

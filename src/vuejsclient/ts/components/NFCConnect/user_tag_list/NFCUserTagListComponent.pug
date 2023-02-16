@@ -4,7 +4,7 @@
             .row
                 .col-sm-12
                     h3.center.nfc_header
-                        i.fa.fa-wifi.fa-fw.btn_icon(aria-hidden="true")
+                        i.fa-solid.fa-wifi.fa-fw.btn_icon(aria-hidden="true")
                             | {{ label('nfcconnect_user_tag_list.nfc_header') }}
             
             template(v-for="user_tag in user_tags")
@@ -13,10 +13,10 @@
                         .user_tag_name {{ user_tag.name }}
                     .col-sm-2
                         button.btn.btn-danger.btn-flat(@click="delete_user_tag(user_tag)")
-                            i.fa.fa-trash.fa-fw.btn_icon(aria-hidden="true")
+                            i.fa-solid.fa-trash.fa-fw.btn_icon(aria-hidden="true")
             .row.nfc_footer
                 .col-sm-12 
                     .center
                         button.btn.btn-primary.btn-block.btn-flat(@click="update_list")
-                            i.fa.fa-refresh.fa-fw.btn_icon(aria-hidden="true")
+                            i.fa-solid.fa-refresh.fa-fw.btn_icon(aria-hidden="true")
                             | {{ label('nfcconnect_user_tag_list.update_list') }}

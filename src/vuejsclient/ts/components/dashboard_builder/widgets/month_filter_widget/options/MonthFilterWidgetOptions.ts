@@ -1,7 +1,8 @@
 import DashboardPageWidgetVO from "../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
 import VOFieldRefVO from "../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO";
+import IExportableWidgetOptions from "../../IExportableWidgetOptions";
 
-export default class MonthFilterWidgetOptions {
+export default class MonthFilterWidgetOptions implements IExportableWidgetOptions {
 
     public static VO_FIELD_REF_PLACEHOLDER_CODE_PREFIX: string = "MonthFilterWidgetOptions.vo_field_ref.placeholder.";
 
@@ -41,6 +42,9 @@ export default class MonthFilterWidgetOptions {
         public auto_select_month_relative_mode: boolean,
         public auto_select_month_min: number,
         public auto_select_month_max: number,
+        public is_relative_to_other_filter: boolean,
+        public relative_to_other_filter_id: number,
+        public hide_filter: boolean,
     ) { }
 
     public get_placeholder_name_code_text(page_widget_id: number): string {
@@ -49,5 +53,19 @@ export default class MonthFilterWidgetOptions {
             return null;
         }
         return MonthFilterWidgetOptions.VO_FIELD_REF_PLACEHOLDER_CODE_PREFIX + page_widget_id + '.' + this.vo_field_ref.api_type_id + '.' + this.vo_field_ref.field_id;
+    }
+
+    public async get_all_exportable_name_code_and_translation(page_id: number, page_widget_id: number): Promise<{ [current_code_text: string]: string }> {
+        let res: { [exportable_code_text: string]: string } = {};
+
+        let placeholder_name_code_text: string = this.get_placeholder_name_code_text(page_widget_id);
+        if (placeholder_name_code_text) {
+
+            res[placeholder_name_code_text] =
+                MonthFilterWidgetOptions.VO_FIELD_REF_PLACEHOLDER_CODE_PREFIX +
+                '{{IMPORT:' + DashboardPageWidgetVO.API_TYPE_ID + ':' + page_widget_id + '}}' +
+                '.' + this.vo_field_ref.api_type_id + '.' + this.vo_field_ref.field_id;
+        }
+        return res;
     }
 }

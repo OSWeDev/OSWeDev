@@ -31,39 +31,38 @@
                 template(v-if='max_page > 1')
                     template(v-if="show_pagination_slider")
                         .col-sm-2
-                            .pagination_slider
+                            .text-white.pagination_slider
                                 v-slider(
                                     v-model="new_page" :min="1" :max="max_page" tooltip="none"
                                     :disabled="(max_page <= 2)" @change="throttled_change_offset" 
-                                    :process-style="{ backgroundColor: 'dodgerblue' }"
                                 )
                                     template(v-slot:dot="{ value }")
-                                        .custom-dot {{ value }}
+                                        .bg-primary.custom-dot {{ value }}
                                         
                     template(v-if="show_pagination_form")
                         .col-sm-6
                             .pagination_form
-                                .pagination_arrow.go_back(:class="{disabled : new_page <= 1}" @click="goto_previous")
-                                    i.fa.fa-chevron-left.fa-fw(aria-hidden="true")
+                                .bg-primary.text-white.pagination_arrow.go_back(:class="{disabled : new_page <= 1}" @click="goto_previous")
+                                    i.fa-solid.fa-chevron-left.fa-fw(aria-hidden="true")
 
                                 form(v-on:submit.prevent="change_page_str")
                                     input.pagination_input(type="number" min="1" :max="max_page" v-model="new_page_str")
 
-                                .pagination_arrow.go_next(:class="{disabled : new_page>=max_page}" @click="goto_next")
-                                    i.fa.fa-chevron-right.fa-fw(aria-hidden="true")
+                                .bg-primary.text-white.pagination_arrow.go_next(:class="{disabled : new_page>=max_page}" @click="goto_next")
+                                    i.fa-solid.fa-chevron-right.fa-fw(aria-hidden="true")
                         
-                                .pagination_submit(:class="{disabled : new_page == page}" @click="throttled_change_offset")
-                                    i.fa.fa-check.fa-fw.btn_icon(aria-hidden="true")
+                                .bg-primary.text-white.pagination_submit(:class="{disabled : new_page == page}" @click="throttled_change_offset")
+                                    i.fa-solid.fa-check.fa-fw.btn_icon(aria-hidden="true")
                                         
                     template(v-if="show_pagination_list")
                         .col-sm-6
                             .pagination_list
                                 template(v-if="max_page > 5")
                                     .pagination_arrow.go_back(:class="{disabled : new_page <= 1}" @click="goto_first")
-                                        i.fa.fa-angle-double-left.fa-fw(aria-hidden="true")
+                                        i.fa-solid.fa-angle-double-left.fa-fw(aria-hidden="true")
                                     
                                     .pagination_arrow.go_back(:class="{disabled : new_page <= 1}" @click="goto_previous")
-                                        i.fa.fa-chevron-left.fa-fw(aria-hidden="true")
+                                        i.fa-solid.fa-chevron-left.fa-fw(aria-hidden="true")
 
                                 template(v-for="(cpa, index_cpa) in current_page_and_around")
                                     template(v-if='cpa == new_page')
@@ -73,10 +72,10 @@
 
                                 template(v-if="max_page > 5")
                                     .pagination_arrow.go_next(:class="{disabled : new_page>=max_page}" @click="goto_next")
-                                        i.fa.fa-chevron-right.fa-fw(aria-hidden="true")
+                                        i.fa-solid.fa-chevron-right.fa-fw(aria-hidden="true")
                                     
                                     .pagination_arrow.go_next(:class="{disabled : new_page>=max_page}" @click="goto_last")
-                                        i.fa.fa-angle-double-right.fa-fw(aria-hidden="true")
+                                        i.fa-solid.fa-angle-double-right.fa-fw(aria-hidden="true")
 
             template(v-else)
                 template(v-if="show_pagination_resumee")

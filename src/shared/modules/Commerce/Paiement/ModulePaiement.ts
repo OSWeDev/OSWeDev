@@ -52,8 +52,8 @@ export default class ModulePaiement extends Module {
             }),
         ];
         let dt = new ModuleTable<PaiementVO>(this, PaiementVO.API_TYPE_ID, () => new PaiementVO(), datatable_fields, field_mode_paiement_id, 'Paiement');
-        field_abonnement_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[AbonnementVO.API_TYPE_ID]);
-        field_mode_paiement_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[ModePaiementVO.API_TYPE_ID]);
+        field_abonnement_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[AbonnementVO.API_TYPE_ID]);
+        field_mode_paiement_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ModePaiementVO.API_TYPE_ID]);
         this.datatables.push(dt);
     }
 }

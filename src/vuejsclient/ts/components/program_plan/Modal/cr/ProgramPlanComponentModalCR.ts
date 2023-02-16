@@ -349,7 +349,7 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
                 let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.program_plan_shared_module.rdv_type_id, cr.rdv_id);
                 this.updateRdv(rdv);
             } catch (error) {
-                ConsoleHandler.getInstance().error(error);
+                ConsoleHandler.error(error);
                 reject({
                     title: this.label('programplan.create_cr.error'),
                     body: '',
@@ -435,7 +435,7 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
                     this.edited_cr = null;
                 }
             } catch (error) {
-                ConsoleHandler.getInstance().error(error);
+                ConsoleHandler.error(error);
 
                 reject({
                     title: this.label('programplan.update_cr.error'),
@@ -508,7 +508,7 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
                                     let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.program_plan_shared_module.rdv_type_id, cr.rdv_id);
                                     self.updateRdv(rdv);
                                 } catch (error) {
-                                    ConsoleHandler.getInstance().error(error);
+                                    ConsoleHandler.error(error);
                                     reject({
                                         body: self.label('programplan.delete_cr.error'),
                                         config: {

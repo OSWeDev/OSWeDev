@@ -41,7 +41,7 @@ export default class CMSAdminVueModule extends VueModuleBase {
                     ModuleCMS.POLICY_BO_ACCESS,
                     VueAppController.getInstance().app_name,
                     "CMSAdminVueModule",
-                    "fa-newspaper-o",
+                    "fa-newspaper",
                     20,
                     null
                 )
@@ -53,7 +53,7 @@ export default class CMSAdminVueModule extends VueModuleBase {
                     ModuleCMS.POLICY_BO_ACCESS,
                     VueAppController.getInstance().app_name,
                     "CMSAdminVueModule_ContentsComponents",
-                    "fa-newspaper-o",
+                    "fa-newspaper",
                     10,
                     null
                 )
@@ -66,7 +66,7 @@ export default class CMSAdminVueModule extends VueModuleBase {
                 ModuleCMS.POLICY_BO_ACCESS,
                 VueAppController.getInstance().app_name,
                 "PageVO",
-                "fa-newspaper-o",
+                "fa-newspaper",
                 10,
                 null,
                 null,

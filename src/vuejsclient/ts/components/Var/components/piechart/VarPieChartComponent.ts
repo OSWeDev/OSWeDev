@@ -267,7 +267,7 @@ export default class VarPieChartComponent extends VueComponentBase {
                 this.chartOptions
             );
         } catch (error) {
-            ConsoleHandler.getInstance().warn('PB:render Pie Chart probablement trop tôt:' + error);
+            ConsoleHandler.warn('PB:render Pie Chart probablement trop tôt:' + error);
             this.rendered = false;
             setTimeout(this.render_chart_js, 500);
         }

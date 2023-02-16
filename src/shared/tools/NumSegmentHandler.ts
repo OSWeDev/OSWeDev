@@ -4,23 +4,11 @@ import RangeHandler from './RangeHandler';
 
 export default class NumSegmentHandler {
 
-    /* istanbul ignore next: nothing to test here */
-    public static getInstance(): NumSegmentHandler {
-        if (!NumSegmentHandler.instance) {
-            NumSegmentHandler.instance = new NumSegmentHandler();
-        }
-        return NumSegmentHandler.instance;
-    }
-
-    private static instance: NumSegmentHandler = null;
-
-    private constructor() { }
-
-    public getBiggestNumSegmentationType(segment_type_a: number, segment_type_b: number): number {
+    public static getBiggestNumSegmentationType(segment_type_a: number, segment_type_b: number): number {
         return NumSegment.TYPE_INT;
     }
 
-    public getSmallestNumSegmentationType(segment_type_a: number, segment_type_b: number): number {
+    public static getSmallestNumSegmentationType(segment_type_a: number, segment_type_b: number): number {
         return NumSegment.TYPE_INT;
     }
 
@@ -29,7 +17,7 @@ export default class NumSegmentHandler {
      * @param segment_type_a
      * @param segment_type_b
      */
-    public compareSegmentTypes(segment_type_a: number, segment_type_b: number): number {
+    public static compareSegmentTypes(segment_type_a: number, segment_type_b: number): number {
         return 0;
     }
 
@@ -39,13 +27,13 @@ export default class NumSegmentHandler {
      * @param type defaults to the type of the timeSegment provided as first argument
      * @param offset defaults to 1.
      */
-    public decNumSegment(timeSegment: NumSegment, type: number = null, offset: number = 1): void {
+    public static decNumSegment(timeSegment: NumSegment, type: number = null, offset: number = 1): void {
         if (!timeSegment) {
             return null;
         }
 
         type = ((type == null) || (typeof type === "undefined")) ? timeSegment.type : type;
-        timeSegment.index = this.decNum(timeSegment.index, type, offset);
+        timeSegment.index = NumSegmentHandler.decNum(timeSegment.index, type, offset);
     }
 
     /**
@@ -54,16 +42,16 @@ export default class NumSegmentHandler {
      * @param type defaults to the type of the NumSegment provided as first argument
      * @param offset defaults to 1.
      */
-    public incNumSegment(timeSegment: NumSegment, type: number = null, offset: number = 1): void {
+    public static incNumSegment(timeSegment: NumSegment, type: number = null, offset: number = 1): void {
         if (!timeSegment) {
             return null;
         }
 
         type = ((type == null) || (typeof type === "undefined")) ? timeSegment.type : type;
-        timeSegment.index = this.incNum(timeSegment.index, type, offset);
+        timeSegment.index = NumSegmentHandler.incNum(timeSegment.index, type, offset);
     }
 
-    public isEltInSegment(elt: number, segment: NumSegment): boolean {
+    public static isEltInSegment(elt: number, segment: NumSegment): boolean {
         if ((elt == null) || (typeof elt == 'undefined') || (!segment)) {
             return false;
         }
@@ -82,7 +70,7 @@ export default class NumSegmentHandler {
     /**
      * ATTENTION le num n'est pas modifié mais renvoyé
      */
-    public incNum(num: number, segment_type: number, offset: number = 1): number {
+    public static incNum(num: number, segment_type: number, offset: number = 1): number {
 
         switch (segment_type) {
             case NumSegment.TYPE_INT:
@@ -94,8 +82,8 @@ export default class NumSegmentHandler {
     /**
      * ATTENTION le num n'est pas modifié mais renvoyé
      */
-    public decNum(num: number, segment_type: number, offset: number = 1): number {
-        return this.incNum(num, segment_type, -offset);
+    public static decNum(num: number, segment_type: number, offset: number = 1): number {
+        return NumSegmentHandler.incNum(num, segment_type, -offset);
     }
 
     /**
@@ -104,7 +92,7 @@ export default class NumSegmentHandler {
      * @param end
      * @param num_segment_type
      */
-    public getAllDataNumSegments(start: number, end: number, num_segment_type: number, exclude_end: boolean = false): NumSegment[] {
+    public static getAllDataNumSegments(start: number, end: number, num_segment_type: number, exclude_end: boolean = false): NumSegment[] {
 
         if ((!start) || (!end) || (num_segment_type == null) || (typeof num_segment_type === 'undefined')) {
             return null;
@@ -138,7 +126,7 @@ export default class NumSegmentHandler {
      * @param NumSegment
      * @returns Inclusive lower bound of the NumSegment
      */
-    public getStartNumSegment(numSegment: NumSegment): number {
+    public static getStartNumSegment(numSegment: NumSegment): number {
         return numSegment.index;
     }
 
@@ -147,7 +135,7 @@ export default class NumSegmentHandler {
      * @param numSegment
      * @returns Exclusive upper bound of the NumSegment
      */
-    public getEndNumSegment(numSegment: NumSegment): number {
+    public static getEndNumSegment(numSegment: NumSegment): number {
 
         if (!numSegment) {
             return null;
@@ -160,7 +148,7 @@ export default class NumSegmentHandler {
         }
     }
 
-    public getPreviousNumSegments(NumSegments: NumSegment[], type: number = null, offset: number = 1): NumSegment[] {
+    public static getPreviousNumSegments(NumSegments: NumSegment[], type: number = null, offset: number = 1): NumSegment[] {
 
         if (!NumSegments) {
             return null;
@@ -169,7 +157,7 @@ export default class NumSegmentHandler {
         let res: NumSegment[] = [];
 
         for (let i in NumSegments) {
-            res.push(this.getPreviousNumSegment(NumSegments[i], type, offset));
+            res.push(NumSegmentHandler.getPreviousNumSegment(NumSegments[i], type, offset));
         }
         return res;
     }
@@ -181,7 +169,7 @@ export default class NumSegmentHandler {
      * @param offset defaults to 1. Use -1 to get the next segment for example
      * @returns Exclusive upper bound of the NumSegment
      */
-    public getPreviousNumSegment(numSegment: NumSegment, type: number = null, offset: number = 1): NumSegment {
+    public static getPreviousNumSegment(numSegment: NumSegment, type: number = null, offset: number = 1): NumSegment {
         if (!numSegment) {
             return null;
         }
@@ -199,16 +187,16 @@ export default class NumSegmentHandler {
         return res;
     }
 
-    public getCorrespondingNumSegments(nums: number[], type: number, offset: number = 0): NumSegment[] {
+    public static getCorrespondingNumSegments(nums: number[], type: number, offset: number = 0): NumSegment[] {
         let res: NumSegment[] = [];
 
         for (let i in nums) {
-            res.push(this.getCorrespondingNumSegment(nums[i], type, offset));
+            res.push(NumSegmentHandler.getCorrespondingNumSegment(nums[i], type, offset));
         }
         return res;
     }
 
-    public getCorrespondingNumSegment(num: number, type: number, offset: number = 0): NumSegment {
+    public static getCorrespondingNumSegment(num: number, type: number, offset: number = 0): NumSegment {
         let res: NumSegment = new NumSegment();
         res.type = type;
 
@@ -219,13 +207,13 @@ export default class NumSegmentHandler {
         }
 
         if (offset) {
-            res = this.getPreviousNumSegment(res, res.type, -offset);
+            res = NumSegmentHandler.getPreviousNumSegment(res, res.type, -offset);
         }
 
         return res;
     }
 
-    public get_nums(segments: NumSegment[]): number[] {
+    public static get_nums(segments: NumSegment[]): number[] {
         let res: number[] = [];
 
         for (let i in segments) {
@@ -235,39 +223,39 @@ export default class NumSegmentHandler {
         return res;
     }
 
-    public get_num_ranges(segments: NumSegment[]): NumRange[] {
-        return RangeHandler.getInstance().getRangesUnion(this.get_num_ranges_(segments));
+    public static get_num_ranges(segments: NumSegment[]): NumRange[] {
+        return RangeHandler.getRangesUnion(NumSegmentHandler.get_num_ranges_(segments));
     }
 
-    public get_surrounding_ts_range(segments: NumSegment[]): NumRange {
-        return RangeHandler.getInstance().getMinSurroundingRange(this.get_num_ranges_(segments));
+    public static get_surrounding_ts_range(segments: NumSegment[]): NumRange {
+        return RangeHandler.getMinSurroundingRange(NumSegmentHandler.get_num_ranges_(segments));
     }
 
-    public get_segment_from_range_start(num_range: NumRange, segment_type: number): NumSegment {
+    public static get_segment_from_range_start(num_range: NumRange, segment_type: number): NumSegment {
         if (!num_range) {
             return null;
         }
 
-        let min = RangeHandler.getInstance().getSegmentedMin(num_range, segment_type);
-        return this.getCorrespondingNumSegment(min, segment_type);
+        let min = RangeHandler.getSegmentedMin(num_range, segment_type);
+        return NumSegmentHandler.getCorrespondingNumSegment(min, segment_type);
     }
 
-    public get_segment_from_range_end(num_range: NumRange, segment_type: number): NumSegment {
+    public static get_segment_from_range_end(num_range: NumRange, segment_type: number): NumSegment {
         if (!num_range) {
             return null;
         }
 
-        let max = RangeHandler.getInstance().getSegmentedMax(num_range, segment_type);
-        return this.getCorrespondingNumSegment(max, segment_type);
+        let max = RangeHandler.getSegmentedMax(num_range, segment_type);
+        return NumSegmentHandler.getCorrespondingNumSegment(max, segment_type);
     }
 
-    private get_num_ranges_(segments: NumSegment[]): NumRange[] {
+    private static get_num_ranges_(segments: NumSegment[]): NumRange[] {
         let res: NumRange[] = [];
 
         for (let i in segments) {
             let range: NumRange = NumRange.createNew(
-                NumSegmentHandler.getInstance().getStartNumSegment(segments[i]),
-                NumSegmentHandler.getInstance().getEndNumSegment(segments[i]),
+                NumSegmentHandler.getStartNumSegment(segments[i]),
+                NumSegmentHandler.getEndNumSegment(segments[i]),
                 true,
                 false,
                 segments[i].type);

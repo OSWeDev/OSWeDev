@@ -23,6 +23,9 @@ export default class FeedbackVO implements IVersionedVO {
     public is_impersonated: boolean;
     public impersonated_from_user_id: number;
 
+    public state_id: number;
+    public weight: number;
+
     public trello_ref: string;
 
     // When user opened the feedback window to start a feedback

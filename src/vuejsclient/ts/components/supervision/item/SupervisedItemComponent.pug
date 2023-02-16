@@ -38,28 +38,28 @@
                     .col-sm-4.supervised_item_controls
                         .btn-group.d-print-none.pull-right
                             button.btn.btn-sm.m-1.btn-primary(@click="reload")
-                                i.fa.fa-refresh
+                                i.fa-duotone.fa-refresh
 
                             button.btn.btn-sm.m-1.btn-primary(@click="invalidate")
-                                i.fa.fa-cogs
+                                i.fa-duotone.fa-cogs
 
                             template(v-if='is_paused')
                                 button.btn.btn-sm.m-1.btn-primary(@click="switch_paused")
-                                    i.fa.fa-play
+                                    i.fa-duotone.fa-play
                             template(v-else)
                                 button.btn.btn-sm.m-1.btn-primary(@click="switch_paused")
-                                    i.fa.fa-pause
+                                    i.fa-duotone.fa-pause
 
                             template(v-if='!can_not_switch_read')
                                 template(v-if='is_read')
                                     button.btn.btn-sm.m-1.btn-primary(@click="switch_read")
-                                        i.fa.fa-envelope-open
+                                        i.fa-duotone.fa-envelope-open
                                 template(v-if='!is_read')
                                     button.btn.btn-sm.m-1.btn-primary(@click="switch_read")
-                                        i.fa.fa-envelope
+                                        i.fa-duotone.fa-envelope
                             template(v-else)
                                 button.btn.btn-sm.m-1.btn-default(@click="switch_read" :disabled="true")
-                                    i.fa.fa-envelope-open
+                                    i.fa-duotone.fa-envelope-open
 
         .row
             .supervised_item_graph(

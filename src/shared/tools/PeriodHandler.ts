@@ -111,8 +111,8 @@ export default class PeriodHandler {
 
     public get_ts_range_from_period(period: string, segment_type: number): TSRange {
 
-        let ml = this.lowerMoment(period, TimeSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(segment_type));
-        let mu = this.upperMoment(period, TimeSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(segment_type));
+        let ml = this.lowerMoment(period, TimeSegmentHandler.getCorrespondingMomentUnitOfTime(segment_type));
+        let mu = this.upperMoment(period, TimeSegmentHandler.getCorrespondingMomentUnitOfTime(segment_type));
 
         if ((!ml) || (!mu)) {
             return null;

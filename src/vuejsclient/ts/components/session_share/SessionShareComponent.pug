@@ -8,7 +8,7 @@
         .row.send_email(v-show="(!hidden) && can_use_navigator_share")
             .col-sm-12
                 button.btn.btn-primary.btn-flat(@click="navigator_share")
-                    i.fa.fa-share-alt.fa-fw.btn_icon(aria-hidden="true")
+                    i.fa-duotone.fa-share-alt.fa-fw.btn_icon(aria-hidden="true")
                     | {{ label('session_share.navigator_share') }}
                 
         .row.send_email(v-show="!hidden")
@@ -16,14 +16,14 @@
                 form(v-on:submit.prevent="send_mail")
                     input(type="text" v-model="email" :placeholder="label('session_share.email')")
                     button.btn.btn-primary.btn-flat(type="submit")
-                        i.fa.fa-envelope.fa-fw.btn_icon(aria-hidden="true")
+                        i.fa-duotone.fa-envelope.fa-fw.btn_icon(aria-hidden="true")
 
         .row.send_sms(v-show="!hidden")
             .col-sm-12
                 form(v-on:submit.prevent="send_sms")
                     input(type="tel" name="phone" v-model="phone" :placeholder="label('session_share.phone')")
                     button.btn.btn-primary.btn-flat(type="submit")
-                        i.fa.fa-phone.fa-fw.btn_icon(aria-hidden="true")
+                        i.fa-duotone.fa-phone.fa-fw.btn_icon(aria-hidden="true")
 
         .row.raw_url(v-show="!hidden")
             .col-sm-12 
@@ -31,19 +31,19 @@
         .row.copy_url(v-show="!hidden")
             .col-sm-12 
                 button.btn.btn-primary.btn-flat(@click="docopy")
-                    i.fa.fa-clipboard.fa-fw.btn_icon(aria-hidden="true")
+                    i.fa-duotone.fa-clipboard.fa-fw.btn_icon(aria-hidden="true")
                     | {{ label('session_share.copy_url') }}
 
         template(v-if="hidden")
             .row.open_show
                 .col-sm-12 
                     button.btn.btn-primary.btn-flat(@click="open_show")
-                        i.fa.fa-qrcode.fa-fw.btn_icon(aria-hidden="true")
+                        i.fa-duotone.fa-qrcode.fa-fw.btn_icon(aria-hidden="true")
                         | {{ label('session_share.open_show') }}
 
         template(v-if="!hidden")
             .row.delete_session
                 .col-sm-12 
                     button.btn.btn-danger.btn-flat(@click="delete_session")
-                        i.fa.fa-trash.fa-fw.btn_icon(aria-hidden="true")
+                        i.fa-duotone.fa-trash.fa-fw.btn_icon(aria-hidden="true")
                         | {{ label('session_share.delete_session') }}

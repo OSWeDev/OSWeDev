@@ -74,22 +74,22 @@
                 )
 
             .remove_column(@click="remove_column" v-tooltip='vo_ref_tooltip')
-                i.fa.fa-trash(aria-hidden="true")
+                i.fa-solid.fa-trash(aria-hidden="true")
             .default_sort_field(v-if="column.type != 5" v-tooltip='default_sort_field_tooltip')
                 template(v-if="default_sort_field == sort_asc")
-                    i.fa.fa-sort-asc(@click="change_default_sort_field" aria-hidden="true")
+                    i.fa-solid.fa-sort-asc(@click="change_default_sort_field" aria-hidden="true")
                 template(v-else-if="default_sort_field == sort_desc")
-                    i.fa.fa-sort-desc(@click="change_default_sort_field" aria-hidden="true")
+                    i.fa-solid.fa-sort-desc(@click="change_default_sort_field" aria-hidden="true")
                 template(v-else)
-                    i.fa.fa-sort(@click="change_default_sort_field" aria-hidden="true")
+                    i.fa-solid.fa-sort(@click="change_default_sort_field" aria-hidden="true")
 
             template(v-if='!show_options')
                 .show_options(@click="unhide_options")
-                    i.fa.fa-plus(aria-hidden="true")
+                    i.fa-solid.fa-plus(aria-hidden="true")
 
             template(v-if='show_options')
                 .hide_options(@click="hide_options")
-                    i.fa.fa-minus(aria-hidden="true")
+                    i.fa-solid.fa-minus(aria-hidden="true")
 
                 template(v-if='column.type != 5')
                     .column_width
@@ -168,6 +168,49 @@
                             :width="160"
                             :labels="{checked: label('table_widget_column_conf.editable_column.show_tooltip.show'), unchecked: label('table_widget_column_conf.editable_column.show_tooltip.hide')}")
 
+                    template(v-if='column.type == 1')
+                        .kanban_column
+                            .input_label {{ label('table_widget_options_component.kanban_column') }}
+                            toggle-button(
+                                @change="switch_kanban_column" 
+                                :value="kanban_column" 
+                                :sync="true"
+                                :width="100"
+                                :labels="{checked: label('table_widget_options_component.kanban_column.true'), unchecked: label('table_widget_options_component.kanban_column.false')}")
+
+                        template(v-if='kanban_column && column_type_has_weight')
+                            .kanban_use_weight
+                                .input_label {{ label('table_widget_options_component.kanban_use_weight') }}
+                                toggle-button(
+                                    @change="switch_kanban_use_weight" 
+                                    :value="kanban_use_weight" 
+                                    :sync="true"
+                                    :width="100"
+                                    :labels="{checked: label('table_widget_options_component.kanban_use_weight.true'), unchecked: label('table_widget_options_component.kanban_use_weight.false')}")
+
+                    .show_if_any_filter_active(v-tooltip='label("table_widget_column_conf.show_if_any_filter_active")')
+                        multiselect(
+                            :preselect-first="false"
+                            :multiple="true"
+                            v-model="column.show_if_any_filter_active"
+                            :placeholder="label('table_widget_column.show_if_any_filter_active')"
+                            :options="show_if_any_filter_active_options"
+                            :custom-label="show_if_any_filter_active_label"
+                            :allow-empty="true",
+                            autocomplete="off"
+
+                            :searchable="true"
+                            :internal-search="true"
+
+                            id="show_if_any_filter_active"
+
+                            :select-label='label("multiselect.selectLabel")'
+                            :select-group-label='label("multiselect.selectGroupLabel")'
+                            :selected-label='label("multiselect.selectedLabel")'
+                            :deselect-label='label("multiselect.deselectLabel")'
+                            :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                        )
+
                     .filter_by_access(v-tooltip='label("table_widget_column_conf.filter_by_access")')
                         multiselect(
                             :preselect-first="false"
@@ -221,12 +264,21 @@
                         label {{ label('table_widget_column_conf.editable_column.bg_color_header') }}
                     color-picker.mr-2(v-model="tmp_bg_color_header")
                     template(v-if="tmp_bg_color_header")
-                        i.fa.fa-times(@click="clear_tmp_bg_color_header")
+                        i.fa-solid.fa-times(@click="clear_tmp_bg_color_header")
 
                 .font_color_header.mt-3
                     .label.mb-0
                         label {{ label('table_widget_column_conf.editable_column.font_color_header') }}
                     color-picker.mr-2(v-model="tmp_font_color_header")
                     template(v-if="tmp_font_color_header")
-                        i.fa.fa-times(@click="clear_tmp_font_color_header")
+                        i.fa-solid.fa-times(@click="clear_tmp_font_color_header")
 
+                .widget_filter_options(v-if='(column.type == 1) || (column.type == 2)')
+                    .widget_filter_options_label {{ label('table_widget_column_conf.filter_options') }}
+                    .widget_filter_options_wrapper
+                        Widgetfilteroptionscomponent(
+                            :actual_additional_options="column.filter_additional_params"
+                            :actual_filter_type="column.filter_type"
+                            @update_additional_options="update_additional_options"
+                            @update_filter_type="update_filter_type"
+                        )

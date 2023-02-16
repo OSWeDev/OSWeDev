@@ -3,6 +3,7 @@ import AccessPolicyController from '../../../shared/modules/AccessPolicy/AccessP
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
+import IServerUserSession from '../../../shared/modules/AccessPolicy/vos/IServerUserSession';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import RolePolicyVO from '../../../shared/modules/AccessPolicy/vos/RolePolicyVO';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
@@ -32,7 +33,6 @@ import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import TextHandler from '../../../shared/tools/TextHandler';
-import IServerUserSession from '../../IServerUserSession';
 import StackContext from '../../StackContext';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
@@ -342,444 +342,444 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         preDeleteTrigger.registerHandler(RoleVO.API_TYPE_ID, this, this.onDeleteRoleVO);
         preDeleteTrigger.registerHandler(UserRoleVO.API_TYPE_ID, this, this.onDeleteUserRoleVO);
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Partager la connexion'
         }, 'session_share.navigator_share_title.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Partager votre connexion à l\'outil Wedev'
         }, 'session_share.navigator_share_content.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Partager la connexion'
         }, 'session_share.navigator_share.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Copier l\'url de partage'
         }, 'session_share.copy_url.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Connexion partagée !'
         }, 'session_share.navigator_share_success.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Echec du partage.'
         }, 'session_share.navigator_share_error.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Echec',
             'en-us': 'Failed'
         }, 'error.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Gestion des droits'
         }, 'access_policy.admin.filters.filters-title.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Caché'
         }, 'access_policy.admin.filters.hidden.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Visible'
         }, 'access_policy.admin.filters.visible.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Mise à jour des droits : OK'
         }, 'access_policy.admin.set_policy.ok.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Mise à jour des droits : En cours...'
         }, 'access_policy.admin.set_policy.start.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Refusé'
         }, 'access_policy.admin.table.denied.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Accordé'
         }, 'access_policy.admin.table.granted.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': ''
         }, 'access_policy.admin.table.headers.first_header.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Accès admin uniquement'
         }, 'accpol.default_behaviour.access_denied_to_all_but_admin'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Accès utilisateur connecté'
         }, 'accpol.default_behaviour.access_denied_to_anonymous'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Accès pour tous'
         }, 'accpol.default_behaviour.access_granted_to_anyone'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Utilisateurs'
         }, 'menu.menuelements.admin.AccessPolicyAdminVueModule.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Gestion des droits'
         }, 'menu.menuelements.admin.AccessPolicyComponent.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Groupe d\'accès'
         }, 'menu.menuelements.admin.AccessPolicyGroupVO.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Accès'
         }, 'menu.menuelements.admin.AccessPolicyVO.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Droit'
         }, 'fields.labels.ref.module_access_policy_accpol.___LABEL____group_id'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Admin'
         }, 'access.roles.names.admin.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Non connecté'
         }, 'access.roles.names.anonymous.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Connecté'
         }, 'access.roles.names.logged.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Mon compte'
         }, 'client.my_account.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Connexion'
         }, 'login.title.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': ''
         }, 'login.sub_title.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Saisissez vos identifiants'
         }, 'login.msg.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Login'
         }, 'login.password_placeholder.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Connexion'
         }, 'login.signIn.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Mot de passe oublié'
         }, 'login.recoverlink.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Connexion...'
         }, 'login.start.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Echec de la connexion'
         }, 'login.failed.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Connexion validée'
         }, 'login.ok.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Récupération du mot de passe'
         }, 'login.recover.title.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': ''
         }, 'login.recover.sub_title.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Merci de renseigner votre adresse email.'
         }, 'login.recover.desc.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Login/email/n° de téléphone'
         }, 'login.email_placeholder.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Envoyer le mail'
         }, 'login.recover.submit.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Envoyer le SMS'
         }, 'login.recover.sms.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Vous devriez recevoir un SMS d\'ici quelques minutes (si celui-ci est bien configuré dans votre compte) pour réinitialiser votre compte. Si vous n\'avez reçu aucun SMS, vérifiez que le mail saisi est bien celui du compte et réessayez. Vous pouvez également tenter la récupération par Mail.'
         }, 'login.recover.answersms.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Inscription'
         }, 'signin.title.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': ' '
         }, 'signin.sub_title.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Saisissez les informations demandées'
         }, 'signin.msg.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Identifiant'
         }, 'signin.nom_placeholder.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Email'
         }, 'signin.email_placeholder.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Mot de passe'
         }, 'signin.password_placeholder.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Confirmer le mot de passe'
         }, 'signin.confirm_password_placeholder.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'S\'inscrire'
         }, 'signin.signin.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Les informations que vous avez saisi ne sont pas correctes'
         }, 'signin.failed.message.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Le service est en cours de maintenance. Merci de votre patience.'
         }, 'error.global_update_blocker.activated.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Récupération...'
         }, 'recover.start.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Récupération échouée'
         }, 'recover.failed.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Consultez vos mails'
         }, 'recover.ok.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Vous devriez recevoir un mail d\'ici quelques minutes pour réinitialiser votre compte. Si vous n\'avez reçu aucun mail, vérifiez vos spams, et que le mail saisi est bien celui du compte et réessayez. Vous pouvez également tenter la récupération par SMS.'
         }, 'login.recover.answercansms.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Vous devriez recevoir un mail d\'ici quelques minutes pour réinitialiser votre compte. Si vous n\'avez reçu aucun mail, vérifiez vos spams, et que le mail saisi est bien celui du compte et réessayez.'
         }, 'login.recover.answer.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Réinitialisation de votre mot de passe'
         }, 'login.reset.title.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': ''
         }, 'login.reset.sub_title.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Merci de renseigner votre adresse email, le code reçu par mail sur cette même adresse, ainsi que votre nouveau mot de passe. Celui-ci doit contenir au moins 8 caractères, dont 1 chiffre, 1 minuscule et 1 majuscule.'
         }, 'login.reset.desc.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Merci de renseigner votre nouveau mot de passe. Celui-ci doit contenir au moins 8 caractères, dont 1 chiffre, 1 minuscule et 1 majuscule.'
         }, 'login.reset.desc_simplified.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Code de sécurité'
         }, 'login.code_placeholder.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Nouveau mot de passe'
         }, 'login.password_placeholder.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Valider'
         }, 'login.reset.submit.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Me connecter'
         }, 'login.reset.reco.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Modification...'
         }, 'reset.start.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Modification échouée'
         }, 'reset.failed.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Le mot de passe a été réinitialisé. Vous pouvez vous connecter avec votre nouveau mot de passe.'
         }, 'login.reset.answer_ok.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Modification réussie'
         }, 'reset.ok.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'La saisie est invalide. Vérifiez l\'adresse mail, le code envoyé sur cette même adresse et le mot passe. Celui-ci doit contenir au minimum 8 caractères, dont 1 chiffre, 1 minuscule et 1 majuscule.'
         }, 'login.reset.answer_ko.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'La saisie est invalide. Vérifiez le mot passe. Celui-ci doit contenir au minimum 8 caractères, dont 1 chiffre, 1 minuscule et 1 majuscule.'
         }, 'login.reset.answer_ko_simplified.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Se connecter'
         }, 'login.reset.lien_connect.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Mon profil'
         }, 'my_account_page.my_account_content_header.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Accéder au site'
         }, 'mails.pwd.initpwd.submit'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Initialisation du mot de passe'
         }, 'mails.pwd.initpwd.subject'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Cliquez sur le lien ci-dessous pour initialiser votre mot de passe.'
         }, 'mails.pwd.initpwd.html'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Accéder au site'
         }, 'mails.pwd.recovery.submit'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Récupération du mot de passe'
         }, 'mails.pwd.recovery.subject'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': '%%ENV%%APP_TITLE%%: Pour réinitialiser votre compte: %%ENV%%BASE_URL%%login§§IFVAR_SESSION_SHARE_SID§§?sessionid=%%VAR%%SESSION_SHARE_SID%%§§§§#/reset/%%VAR%%UID%%/%%VAR%%CODE_CHALLENGE%%'
         }, 'mails.pwd.recovery.sms'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': '%%ENV%%APP_TITLE%%: Pour initialiser votre compte: %%ENV%%BASE_URL%%%%ENV%%URL_RECOVERY_CHALLENGE%%/%%VAR%%UID%%/%%VAR%%CODE_CHALLENGE%%'
         }, 'sms.pwd.initpwd'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': '%%ENV%%APP_TITLE%%: Pour réactiver votre compte Crescendo+, c\'est ici : %%ENV%%BASE_URL%%%%ENV%%URL_RECOVERY_CHALLENGE%%/%%VAR%%UID%%/%%VAR%%CODE_CHALLENGE%%'
         }, 'sms.pwd.recapture'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Cliquez sur le lien ci-dessous pour modifier votre mot de passe.'
         }, 'mails.pwd.recovery.html'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Votre mot de passe a expiré'
         }, 'mails.pwd.invalidation.subject'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Votre mot de passe a été invalidé. Vous pouvez utiliser la page de récupération du mot de passe accessible en cliquant sur le lien ci-dessous.'
         }, 'mails.pwd.invalidation.html'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Votre mot de passe a expiré'
         }, 'mails.pwd.invalidation.subject'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Votre mot de passe arrive à expiration'
         }, 'mails.pwd.reminder1.subject'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Votre mot de passe arrive à expiration'
         }, 'mails.pwd.reminder2.subject'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Votre mot de passe arrive à expiration'
         }, 'mails.pwd.reminder1.subject'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Votre mot de passe expire dans 20 jours. Vous pouvez le modifier dans l\'administration, ou vous pouvez utiliser la procédure de réinitialisation du mot de passe, accessible en cliquant sur le lien ci- dessous.'
         }, 'mails.pwd.reminder1.html'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Votre mot de passe arrive à expiration'
         }, 'mails.pwd.reminder2.subject'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Votre mot de passe expire dans 3 jours. Vous pouvez le modifier dans l\'administration, ou vous pouvez utiliser la procédure de réinitialisation du mot de passe, accessible en cliquant sur le lien ci- dessous.'
         }, 'mails.pwd.reminder2.html'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Connexion impossible. Vérifiez le mot de passe. Si votre mot de passe a été invalidé, vous devriez recevoir un mail vous invitant à le renouveler. Vous pouvez également utiliser la procédure d\'oubli du mot de passe en cliquant sur "Mot de passe oublié".'
         }, 'login.failed.message.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'LogAs'
         }, 'fields.labels.ref.user.__component__impersonate.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Mise à jour de la langue et rechargement...'
         }, 'lang_selector.encours.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': ''
         }, 'lang_selector.lang_prefix.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': ''
         }, 'lang_selector.lang_suffix.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Consultez vos SMS'
         }, 'recover.oksms.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Langue'
         }, 'lang_selector.label.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Droits'
         }, 'fields.labels.ref.module_access_policy_accpol.___LABEL____module_id'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Mail d\'initialisation du mot de passe envoyé'
         }, 'sendinitpwd.ok.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'SMS d\'initialisation du mot de passe envoyé'
         }, 'sendinitpwd.oksms.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Mail de relance'
         }, 'fields.labels.ref.user.__component__sendrecapture.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Relance compte inactif'
         }, 'MAILCATEGORY.UserRecapture.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Mail de relance envoyé'
         }, 'sendrecapture.ok.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'SMS de relance envoyé'
         }, 'sendrecapture.oksms.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Mail init mdp'
         }, 'fields.labels.ref.user.__component__sendinitpwd.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Renvoyer le mail'
         }, 'login.reset.send_init_pwd.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Renvoyer le SMS'
         }, 'login.reset.send_init_pwd_sms.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Pour des raisons de sécurité, le mail d\'initialisation du mot de passe a expiré. Vous devez faire une nouvelle procédure de récupération du mot de passe en cliquant sur "Renvoyer le mail" ou en utilisant la procédure d\'oubli de mot de passe sur la page de connexion.'
         }, 'login.reset.code_invalid.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Dans la page de connexion, cliquez sur "oubli du mot de passe"'
         }, 'reset.code_invalid.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Mail renvoyé, merci de consulter votre messagerie'
         }, 'reset.sent_init_pwd.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Erreur lors de l\'envoi du mail'
         }, 'session_share.mail_not_sent.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Mail envoyé'
         }, 'session_share.mail_sent.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Erreur lors de l\'envoi du SMS'
         }, 'session_share.sms_not_sent.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Lien de session partagée : '
         }, 'session_share.sms_preurl.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'SMS envoyé'
         }, 'session_share.sms_sent.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Envoyer à cet email'
         }, 'session_share.email.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Envoyer par SMS à ce numéro'
         }, 'session_share.phone.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Partager la session'
         }, 'session_share.open_show.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Supprimer la session'
         }, 'session_share.delete_session.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Session supprimée'
         }, 'session_share.delete_session.success.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': "Informations"
         }, 'signin.informations.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': "Conditions d'utilisation"
         }, 'signin.cgu.___LABEL___'));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': "Connexion"
         }, 'userlog.log_type.login'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': "Déconnexion"
         }, 'userlog.log_type.logout'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': "Ouverture outil"
         }, 'userlog.log_type.csrf_request'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': "Le login, le mail et le téléphone doivent être uniques - il existe un compte avec le même login, mail ou téléphone."
         }, 'AccessPolicyVueController.precreate_uservo_unicity.error.___LABEL___'));
 
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Un utilisateur avec cette adresse mail existe déjà' }, 'accesspolicy.user-create.mail.exists' + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Un utilisateur avec cette adresse mail existe déjà' }, 'accesspolicy.user-create.mail.exists' + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Un utilisateur avec cette adresse mail existe déjà'
         }, 'accesspolicy.user-create.mail.exists' + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': "Sessions des utilisateurs"
         }, 'menu.menuelements.admin.UserSessionVO.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': "Nouvelle version disponible, votre page se recharge automatiquement"
         }, 'app_version_changed.___LABEL___'));
     }
@@ -827,21 +827,21 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     public checkAccessSync(policy_name: string, can_fail: boolean = false): boolean {
 
         if ((!ModuleAccessPolicy.getInstance().actif) || (!policy_name)) {
-            ConsoleHandler.getInstance().error('checkAccessSync:!policy_name');
+            ConsoleHandler.error('checkAccessSync:!policy_name');
             return false;
         }
 
-        if (!StackContext.getInstance().get('IS_CLIENT')) {
+        if (!StackContext.get('IS_CLIENT')) {
             return true;
         }
 
         let target_policy: AccessPolicyVO = AccessPolicyServerController.getInstance().get_registered_policy(policy_name);
         if (!target_policy) {
-            ConsoleHandler.getInstance().error('checkAccessSync:!target_policy:' + policy_name + ':');
+            ConsoleHandler.error('checkAccessSync:!target_policy:' + policy_name + ':');
             return false;
         }
 
-        let uid: number = StackContext.getInstance().get('UID');
+        let uid: number = StackContext.get('UID');
         if (!uid) {
             // profil anonyme
             return AccessPolicyServerController.getInstance().checkAccessTo(
@@ -851,7 +851,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         if (!AccessPolicyServerController.getInstance().get_registered_user_roles_by_uid(uid)) {
-            ConsoleHandler.getInstance().warn('checkAccessSync:!get_registered_user_roles_by_uid:uid:' + uid + ':policy_name:' + policy_name + ':');
+            ConsoleHandler.warn('checkAccessSync:!get_registered_user_roles_by_uid:uid:' + uid + ':policy_name:' + policy_name + ':');
             return false;
         }
 
@@ -866,7 +866,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return new Promise(async (accept, reject) => {
 
             let user_log = null;
-            let session = StackContext.getInstance().get('SESSION');
+            let session = StackContext.get('SESSION');
 
             if (session && session.uid) {
                 let uid: number = session.uid;
@@ -884,7 +884,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 user_log.handle_impersonation(session);
 
 
-                await StackContext.getInstance().runPromise(
+                await StackContext.runPromise(
                     { IS_CLIENT: false },
                     async () => {
                         await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
@@ -896,7 +896,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
              */
             if (session && !!session.impersonated_from) {
 
-                await ConsoleHandler.getInstance().log('unregisterSession:logout:impersonated_from');
+                await ConsoleHandler.log('unregisterSession:logout:impersonated_from');
                 await PushDataServerController.getInstance().unregisterSession(session);
 
                 session = Object.assign(session, session.impersonated_from);
@@ -904,19 +904,19 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
                 session.save((err) => {
                     if (err) {
-                        ConsoleHandler.getInstance().log(err);
+                        ConsoleHandler.log(err);
                     }
                     accept(err);
                 });
             } else {
 
-                await ConsoleHandler.getInstance().log('unregisterSession:logout:uid:' + session.uid);
+                await ConsoleHandler.log('unregisterSession:logout:uid:' + session.uid);
                 await PushDataServerController.getInstance().unregisterSession(session);
 
                 session.uid = null;
                 session.save((err) => {
                     if (err) {
-                        ConsoleHandler.getInstance().log(err);
+                        ConsoleHandler.log(err);
                     }
                     accept(err);
                 });
@@ -1034,7 +1034,15 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
     }
 
+    /**
+     * On ajoute un cache au sein de la session pour éviter de faire des requêtes inutiles
+     */
     public async getSelfUser(): Promise<UserVO> {
+
+        if (StackContext.get('SELF_USER')) {
+            return StackContext.get('SELF_USER');
+        }
+
         /**
          * on doit pouvoir charger son propre user
          */
@@ -1043,7 +1051,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return null;
         }
 
-        let user: UserVO = await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
+        let user: UserVO = await StackContext.runPromise({ IS_CLIENT: false }, async () => {
             return await query(UserVO.API_TYPE_ID).filter_by_id(user_id).ignore_access_hooks().select_vo<UserVO>();
         }) as UserVO;
 
@@ -1087,7 +1095,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        await ModuleDAOServer.getInstance().query('update ' + VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID].full_name + ' set ' +
+        await ModuleDAOServer.getInstance().query('update ' + VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID].full_name + ' set ' +
             "lang_id=$1 where id=$2",
             [num, user_id]);
     }
@@ -1136,11 +1144,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 return true;
             }
 
-            let res = await ModuleDAOServer.getInstance().query('select invalidated or blocked as invalidated from ' + VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID].full_name + ' where id=$1', [uid]);
+            let res = await ModuleDAOServer.getInstance().query('select invalidated or blocked as invalidated from ' + VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID].full_name + ' where id=$1', [uid]);
             let invalidated = (res && (res.length == 1) && (typeof res[0]['invalidated'] != 'undefined') && (res[0]['invalidated'] !== null)) ? res[0]['invalidated'] : false;
             return !invalidated;
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
         return false;
     }
@@ -1168,17 +1176,17 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 }
 
                 try {
-                    await ConsoleHandler.getInstance().log('unregisterSession:onBlockOrInvalidateUserDeleteSessions:uid:' + session.uid);
+                    await ConsoleHandler.log('unregisterSession:onBlockOrInvalidateUserDeleteSessions:uid:' + session.uid);
                     await PushDataServerController.getInstance().unregisterSession(session);
                     session.destroy(() => {
                     });
                 } catch (error) {
-                    ConsoleHandler.getInstance().error(error);
+                    ConsoleHandler.error(error);
                 }
                 break;
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
         return;
     }
@@ -1191,7 +1199,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     public async login(uid: number): Promise<boolean> {
 
         try {
-            let session = StackContext.getInstance().get('SESSION');
+            let session = StackContext.get('SESSION');
 
             if (ModuleDAOServer.getInstance().global_update_blocker) {
                 // On est en readonly partout, donc on informe sur impossibilité de se connecter
@@ -1208,7 +1216,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             let user: UserVO = null;
 
-            await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
+            await StackContext.runPromise({ IS_CLIENT: false }, async () => {
                 user = await query(UserVO.API_TYPE_ID).filter_by_id(uid).select_vo<UserVO>();
             });
 
@@ -1222,7 +1230,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             if (!user.logged_once) {
                 user.logged_once = true;
-                await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
+                await StackContext.runPromise({ IS_CLIENT: false }, async () => {
                     await ModuleDAO.getInstance().insertOrUpdateVO(user);
                 });
             }
@@ -1236,10 +1244,10 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.user_id = user.id;
             user_log.log_time = Dates.now();
             user_log.impersonated = false;
-            user_log.referer = StackContext.getInstance().get('REFERER');
+            user_log.referer = StackContext.get('REFERER');
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
-            await StackContext.getInstance().runPromise(
+            await StackContext.runPromise(
                 { IS_CLIENT: false },
                 async () => {
                     await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
@@ -1249,7 +1257,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             return true;
         } catch (error) {
-            ConsoleHandler.getInstance().error("login uid:" + uid + ":" + error);
+            ConsoleHandler.error("login uid:" + uid + ":" + error);
         }
 
         return false;
@@ -1259,14 +1267,14 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         try {
 
-            let session = StackContext.getInstance().get('SESSION');
+            let session = StackContext.get('SESSION');
 
             if (session && session.uid) {
                 return session.uid;
             }
             return null;
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
             return null;
         }
     }
@@ -1281,14 +1289,14 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         try {
 
-            let session = StackContext.getInstance().get('SESSION');
+            let session = StackContext.get('SESSION');
 
             if (session && !!session.impersonated_from) {
                 return true;
             }
             return false;
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
             return false;
         }
     }
@@ -1301,7 +1309,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         try {
 
-            let session = StackContext.getInstance().get('SESSION');
+            let session = StackContext.get('SESSION');
 
             let impersonated_from_session = (session && session.impersonated_from) ? session.impersonated_from : null;
 
@@ -1314,7 +1322,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }
             return null;
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
             return null;
         }
     }
@@ -1326,7 +1334,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         try {
 
-            let res = StackContext.getInstance().get('SESSION');
+            let res = StackContext.get('SESSION');
 
             if (!res.impersonated_from) {
                 return null;
@@ -1337,7 +1345,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }
             return res;
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
             return null;
         }
     }
@@ -1346,9 +1354,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         try {
 
-            return StackContext.getInstance().get('SESSION') as IServerUserSession;
+            return StackContext.get('SESSION') as IServerUserSession;
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
             return null;
         }
     }
@@ -1359,11 +1367,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        if (!StackContext.getInstance().get('IS_CLIENT')) {
+        if (!StackContext.get('IS_CLIENT')) {
             return true;
         }
 
-        let uid: number = StackContext.getInstance().get('UID');
+        let uid: number = StackContext.get('UID');
         if (!uid) {
             return role_ids.indexOf(AccessPolicyServerController.getInstance().role_anonymous.id) >= 0;
         }
@@ -1384,7 +1392,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         for (let sid in session_to_delete_by_sids) {
-            await StackContext.getInstance().runPromise(
+            await StackContext.runPromise(
                 { SESSION: session_to_delete_by_sids[sid] },
                 async () => {
                     await this.delete_session();
@@ -1456,11 +1464,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     private async getMyRoles(): Promise<RoleVO[]> {
 
-        if (!StackContext.getInstance().get('IS_CLIENT')) {
+        if (!StackContext.get('IS_CLIENT')) {
             return null;
         }
 
-        let uid: number = StackContext.getInstance().get('UID');
+        let uid: number = StackContext.get('UID');
 
         if (!uid) {
             return null;
@@ -1484,11 +1492,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * @deprecated Why use this function, seems like a bad idea, just checkAccess directly there shall be no need for this one. Delete ASAP
      */
     private async isRole(text: string): Promise<boolean> {
-        if (!StackContext.getInstance().get('IS_CLIENT')) {
+        if (!StackContext.get('IS_CLIENT')) {
             return false;
         }
 
-        let uid: number = StackContext.getInstance().get('UID');
+        let uid: number = StackContext.get('UID');
 
         if (!uid) {
             return false;
@@ -1504,11 +1512,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     private async isAdmin(): Promise<boolean> {
-        if (!StackContext.getInstance().get('IS_CLIENT')) {
+        if (!StackContext.get('IS_CLIENT')) {
             return false;
         }
 
-        let uid: number = StackContext.getInstance().get('UID');
+        let uid: number = StackContext.get('UID');
 
         if (!uid) {
             return false;
@@ -1525,7 +1533,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     private consoledebug(msg: string) {
         if (this.debug_check_access) {
-            ConsoleHandler.getInstance().log(msg);
+            ConsoleHandler.log(msg);
         }
     }
 
@@ -1755,7 +1763,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     private async signinAndRedirect(nom: string, email: string, password: string, redirect_to: string): Promise<number> {
 
         try {
-            let session = StackContext.getInstance().get('SESSION');
+            let session = StackContext.get('SESSION');
 
             if (ModuleDAOServer.getInstance().global_update_blocker) {
                 // On est en readonly partout, donc on informe sur impossibilité de se connecter
@@ -1777,7 +1785,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 return null;
             }
 
-            return await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
+            return await StackContext.runPromise({ IS_CLIENT: false }, async () => {
                 let user: UserVO = await ModuleDAOServer.getInstance().selectOneUser(email, password);
 
                 if (!!user) {
@@ -1811,7 +1819,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 // Pour la création d'un User, on utilise la première Lang qui est en BDD et si ca doit changer ca se fera dans un trigger dans le projet
                 let langs: LangVO[] = await ModuleDAO.getInstance().getVos(LangVO.API_TYPE_ID);
                 user.lang_id = langs[0].id;
-                // let res: InsertOrDeleteQueryResult = await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () =>
+                // let res: InsertOrDeleteQueryResult = await StackContext.runPromise({ IS_CLIENT: false }, async () =>
                 //     await ModuleDAO.getInstance().insertOrUpdateVO(user)) as InsertOrDeleteQueryResult;
 
 
@@ -1830,11 +1838,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 user_log.user_id = res.id;
                 user_log.log_time = Dates.now();
                 user_log.impersonated = false;
-                user_log.referer = StackContext.getInstance().get('REFERER');
+                user_log.referer = StackContext.get('REFERER');
                 user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
                 // On await pas ici on se fiche du résultat
-                await StackContext.getInstance().runPromise(
+                await StackContext.runPromise(
                     { IS_CLIENT: false },
                     async () => {
                         await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
@@ -1846,7 +1854,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             });
         } catch (error) {
-            ConsoleHandler.getInstance().error("login:" + email + ":" + error);
+            ConsoleHandler.error("login:" + email + ":" + error);
         }
 
         return null;
@@ -1855,7 +1863,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     private async loginAndRedirect(email: string, password: string, redirect_to: string): Promise<number> {
 
         try {
-            let session = StackContext.getInstance().get('SESSION');
+            let session = StackContext.get('SESSION');
 
             if (ModuleDAOServer.getInstance().global_update_blocker) {
                 // On est en readonly partout, donc on informe sur impossibilité de se connecter
@@ -1916,11 +1924,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.user_id = user.id;
             user_log.log_time = Dates.now();
             user_log.impersonated = false;
-            user_log.referer = StackContext.getInstance().get('REFERER');
+            user_log.referer = StackContext.get('REFERER');
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
             // On await pas ici on se fiche du résultat
-            await StackContext.getInstance().runPromise(
+            await StackContext.runPromise(
                 { IS_CLIENT: false },
                 async () => {
                     await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
@@ -1930,7 +1938,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             return user.id;
         } catch (error) {
-            ConsoleHandler.getInstance().error("login:" + email + ":" + error);
+            ConsoleHandler.error("login:" + email + ":" + error);
         }
 
         return null;
@@ -1939,14 +1947,14 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     private async impersonateLogin(email: string, password: string, redirect_to: string): Promise<number> {
 
         try {
-            let session = StackContext.getInstance().get('SESSION');
-            let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
+            let session = StackContext.get('SESSION');
+            let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
             if (ModuleDAOServer.getInstance().global_update_blocker) {
                 // On est en readonly partout, donc on informe sur impossibilité de se connecter
                 await PushDataServerController.getInstance().notifySimpleERROR(
-                    StackContext.getInstance().get('UID'),
-                    StackContext.getInstance().get('CLIENT_TAB_ID'),
+                    StackContext.get('UID'),
+                    StackContext.get('CLIENT_TAB_ID'),
                     'error.global_update_blocker.activated.___LABEL___'
                 );
                 return null;
@@ -1971,7 +1979,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }
 
             if (user.blocked || user.invalidated) {
-                ConsoleHandler.getInstance().error("impersonate login:" + email + ":blocked or invalidated");
+                ConsoleHandler.error("impersonate login:" + email + ":blocked or invalidated");
                 await PushDataServerController.getInstance().notifySimpleERROR(session.uid, CLIENT_TAB_ID, 'Impossible de se connecter avec un compte bloqué ou invalidé', true);
                 return null;
             }
@@ -1985,11 +1993,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             let user_log = new UserLogVO();
             user_log.user_id = user.id;
             user_log.log_time = Dates.now();
-            user_log.referer = StackContext.getInstance().get('REFERER');
+            user_log.referer = StackContext.get('REFERER');
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
             user_log.handle_impersonation(session);
 
-            await StackContext.getInstance().runPromise(
+            await StackContext.runPromise(
                 { IS_CLIENT: false },
                 async () => {
                     await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
@@ -1999,7 +2007,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             return user.id;
         } catch (error) {
-            ConsoleHandler.getInstance().error("impersonate login:" + email + ":" + error);
+            ConsoleHandler.error("impersonate login:" + email + ":" + error);
         }
 
         return null;
@@ -2076,8 +2084,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     private async sendErrorMsg(msg_translatable_code: string) {
-        let uid: number = StackContext.getInstance().get('UID');
-        let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
+        let uid: number = StackContext.get('UID');
+        let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
         await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, msg_translatable_code);
     }
@@ -2135,7 +2143,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             return await ModuleDAOServer.getInstance().selectUsersForCheckUnicity(user.name, user.email, user.phone, user.id);
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
         return false;
     }
@@ -2149,7 +2157,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     private async checkBlockingOrInvalidatingUser(user: UserVO) {
         let old_user: UserVO = null;
         if (!!user.id) {
-            await StackContext.getInstance().runPromise(
+            await StackContext.runPromise(
                 { IS_CLIENT: false },
                 async () => {
                     old_user = await query(UserVO.API_TYPE_ID).filter_by_id(user.id).select_vo<UserVO>();
@@ -2199,7 +2207,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     private get_my_sid(res: Response) {
-        // let session = StackContext.getInstance().get('SESSION');
+        // let session = StackContext.get('SESSION');
         // if (!session) {
         //     return null;
         // }
@@ -2213,7 +2221,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
          * On veut supprimer la session et déconnecter tout le monde
          */
         let user_log = null;
-        let session = StackContext.getInstance().get('SESSION');
+        let session = StackContext.get('SESSION');
 
         if (session && session.uid) {
             let uid: number = session.uid;
@@ -2226,7 +2234,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
             user_log.handle_impersonation(session);
 
-            await StackContext.getInstance().runPromise(
+            await StackContext.runPromise(
                 { IS_CLIENT: false },
                 async () => {
                     await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
@@ -2238,7 +2246,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
          */
         while (session && !!session.impersonated_from) {
 
-            await ConsoleHandler.getInstance().log('unregisterSession:delete_session:impersonated_from:uid:' + session.uid);
+            await ConsoleHandler.log('unregisterSession:delete_session:impersonated_from:uid:' + session.uid);
             await PushDataServerController.getInstance().unregisterSession(session, false);
 
             session = Object.assign(session, session.impersonated_from);
@@ -2254,20 +2262,20 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
             user_log.handle_impersonation(session);
 
-            await StackContext.getInstance().runPromise(
+            await StackContext.runPromise(
                 { IS_CLIENT: false },
                 async () => {
                     await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
                 });
         }
 
-        await ConsoleHandler.getInstance().log('unregisterSession:delete_session:uid:' + session.uid);
+        await ConsoleHandler.log('unregisterSession:delete_session:uid:' + session.uid);
         await PushDataServerController.getInstance().unregisterSession(session, true);
 
         session.uid = null;
         session.destroy((err) => {
             if (err) {
-                ConsoleHandler.getInstance().log(err);
+                ConsoleHandler.log(err);
             }
         });
     }

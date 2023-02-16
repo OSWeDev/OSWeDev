@@ -157,7 +157,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             let light_weight = new LightWeightSendableRequestVO(null);
             light_weight.url = url;
             light_weight.contentType = contentType;
-            light_weight.postdatas = (!EnvHandler.getInstance().MSGPCK) ? postdatas : Object.assign({}, postdatas);
+            light_weight.postdatas = postdatas;
             light_weight.dataType = dataType;
             light_weight.processData = processData;
             light_weight.type = post_for_get ? LightWeightSendableRequestVO.API_TYPE_POST_FOR_GET : LightWeightSendableRequestVO.API_TYPE_POST;
@@ -190,83 +190,49 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 self.invalidateCachesFromApiTypesInvolved(api_types_involved);
             }
 
-            if (contentType == AjaxCacheController.MSGPACK_REQUEST_TYPE) {
-
-                let prepared_postdatas = this.prepare_for_encoding(postdatas);
-                var buffer = encode(prepared_postdatas);
-
-                const { default: axios } = await import(/* webpackChunkName: "axios" */ 'axios');
-                let axios_headers: any = {
-                    'Content-Type': contentType,
-                    'Accept': 'application/x-msgpack',
-                    'client_tab_id': AjaxCacheClientController.getInstance().client_tab_id
-                };
-                if (!!self.csrf_token) {
-                    axios_headers['X-CSRF-Token'] = self.csrf_token;
-                }
-
-                axios.post(
-                    url, buffer,
-                    {
-                        responseType: 'blob',
-                        headers: axios_headers
-                    }
-                ).then(function (response) {
-                    var reader = new FileReader();
-                    reader.onload = function (e) {
-                        var pack = decode(new Uint8Array(reader.result as ArrayBuffer));
-                        resolve(pack);
-                    };
-                    reader.readAsArrayBuffer(response.data);
-                }).catch(function (error) {
-                    console.error(error);
-                    resolve(null);
-                });
+            let options: any = {
+                type: "POST",
+                url: url
+            };
+            if ((typeof cache.postdatas != 'undefined') && (cache.postdatas != null)) {
+                options.data = cache.postdatas;
+            }
+            if (contentType == null) {
+                options.contentType = false;
             } else {
-                let options: any = {
-                    type: "POST",
-                    url: url
-                };
-                if ((typeof cache.postdatas != 'undefined') && (cache.postdatas != null)) {
-                    options.data = cache.postdatas;
+                options.contentType = contentType;
+            }
+            if (dataType != null) {
+                options.dataType = dataType;
+            }
+            if (cache.processData != null) {
+                options.processData = cache.processData;
+            }
+            if (cache.timeout != null) {
+                options.timeout = cache.timeout;
+            }
+            if (!!self.csrf_token) {
+                if (!options.headers) {
+                    options.headers = {};
                 }
-                if (contentType == null) {
-                    options.contentType = false;
-                } else {
-                    options.contentType = contentType;
-                }
-                if (dataType != null) {
-                    options.dataType = dataType;
-                }
-                if (cache.processData != null) {
-                    options.processData = cache.processData;
-                }
-                if (cache.timeout != null) {
-                    options.timeout = cache.timeout;
-                }
-                if (!!self.csrf_token) {
-                    if (!options.headers) {
-                        options.headers = {};
-                    }
-                    options.headers['X-CSRF-Token'] = self.csrf_token;
-                    options.headers['client_tab_id'] = AjaxCacheClientController.getInstance().client_tab_id;
-                }
-                self.addCallback(cache, resolve, reject);
+                options.headers['X-CSRF-Token'] = self.csrf_token;
+                options.headers['client_tab_id'] = AjaxCacheClientController.getInstance().client_tab_id;
+            }
+            self.addCallback(cache, resolve, reject);
 
-                // const $ = await import(/* webpackChunkName: "jquery" */ 'jquery');
-                if ($.ajax) {
-                    await $.ajax(options)
-                        .done(async (r) => {
-                            await self.resolve_request(cache, r);
-                        })
-                        .fail(async (err) => {
-                            await self.traitementFailRequest(err, cache);
+            // const $ = await import(/* webpackChunkName: "jquery" */ 'jquery');
+            if ($.ajax) {
+                await $.ajax(options)
+                    .done(async (r) => {
+                        await self.resolve_request(cache, r);
+                    })
+                    .fail(async (err) => {
+                        await self.traitementFailRequest(err, cache);
 
-                            ConsoleHandler.getInstance().log("post failed :" + url + ":" + postdatas + ":" + err);
-                        });
-                } else {
-                    await self.resolve_request(cache, null);
-                }
+                        ConsoleHandler.log("post failed :" + url + ":" + postdatas + ":" + err);
+                    });
+            } else {
+                await self.resolve_request(cache, null);
             }
         });
 
@@ -434,7 +400,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 self.addToWaitingRequestsStack(request);
             }, 2000);
         } else {
-            ConsoleHandler.getInstance().log("request failed :" + request + ":" + err);
+            ConsoleHandler.log("request failed :" + request + ":" + err);
             if ((503 == err.status) || (502 == err.status) || ('timeout' == err.statusText)) {
                 (window as any).alert('Loading failure - Please reload your page');
             }
@@ -480,7 +446,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
         try {
             await this.processRequests();
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         this.processRequestsSemaphore = false;
@@ -529,9 +495,9 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             let results: RequestsWrapperResult = await this.post(
                 null,
                 "/api_handler/requests_wrapper", [],
-                (!EnvHandler.getInstance().MSGPCK) ? JSON.stringify(sendable_objects) : sendable_objects,
+                JSON.stringify(sendable_objects),
                 null,
-                (!EnvHandler.getInstance().MSGPCK) ? 'application/json; charset=utf-8' : AjaxCacheController.MSGPACK_REQUEST_TYPE,
+                'application/json; charset=utf-8',
                 null, null, false, true) as RequestsWrapperResult;
 
             if ((!results) || (!results.requests_results)) {
@@ -550,7 +516,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 await this.resolve_request(wrapped_request, results.requests_results[i]);
             }
         } catch (error) {
-            ConsoleHandler.getInstance().error("Echec de requête groupée : " + error);
+            ConsoleHandler.error("Echec de requête groupée : " + error);
 
             // Si ça échoue, on relance avec une logique de dichotomie, si il reste plus d'une requête à traiter. On demande minimum 2 requêtes par wrap
             let left_wrappable_requests: RequestResponseCacheVO[] = [];
@@ -606,59 +572,31 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             switch (request.type) {
                 case RequestResponseCacheVO.API_TYPE_GET:
 
-                    if (request.contentType == AjaxCacheController.MSGPACK_REQUEST_TYPE) {
+                    // const $ = await import(/* webpackChunkName: "jquery" */ 'jquery');
 
-                        const { default: axios } = await import(/* webpackChunkName: "axios" */ 'axios');
-                        axios.get(
+                    if ($.ajaxSetup) {
+                        $.ajaxSetup({
+                            timeout: 30000
+                        }); // in milliseconds
+                    }
+
+                    if ($.get) {
+                        $.get(
                             request.url,
-                            {
-                                responseType: 'blob',
-                                headers: {
-                                    'Content-Type': request.contentType,
-                                    'Accept': 'application/x-msgpack',
-                                    'client_tab_id': AjaxCacheClientController.getInstance().client_tab_id
-                                }
-                            }
-                        ).then(function (response) {
-                            var reader = new FileReader();
-                            reader.onload = async function (e) {
-                                var pack = decode(new Uint8Array(reader.result as ArrayBuffer));
-                                await self.resolve_request(request, pack);
-                            };
-                            reader.readAsArrayBuffer(response.data);
-                        }).catch(async function (error) {
-                            console.error(error);
-                            await self.traitementFailRequest(error, request);
-                        });
-
+                            async (datas) => {
+                                await self.resolve_request(request, datas);
+                            })
+                            .fail(async (err) => {
+                                await self.traitementFailRequest(err, request);
+                            });
                     } else {
-
-                        // const $ = await import(/* webpackChunkName: "jquery" */ 'jquery');
-
-                        if ($.ajaxSetup) {
-                            $.ajaxSetup({
-                                timeout: 30000
-                            }); // in milliseconds
-                        }
-
-                        if ($.get) {
-                            $.get(
-                                request.url,
-                                async (datas) => {
-                                    await self.resolve_request(request, datas);
-                                })
-                                .fail(async (err) => {
-                                    await self.traitementFailRequest(err, request);
-                                });
-                        } else {
-                            let resolve_callback = request.resolve_callbacks.shift();
-                            resolve_callback(null);
-                        }
+                        let resolve_callback = request.resolve_callbacks.shift();
+                        resolve_callback(null);
                     }
                     break;
 
                 case RequestResponseCacheVO.API_TYPE_POST:
-                    ConsoleHandler.getInstance().error('Should never happen :processRequests:TYPE == POST:');
+                    ConsoleHandler.error('Should never happen :processRequests:TYPE == POST:');
                     break;
 
                 case RequestResponseCacheVO.API_TYPE_POST_FOR_GET:

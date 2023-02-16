@@ -1,57 +1,57 @@
 .col-sm-12(v-for='api_type_id in valid_api_type_ids')
     .jumbotron(v-if="logs_path[api_type_id]")
         router-link.btn.btn-sm.btn-primary.pull-right(:to="logs_path[api_type_id]" target="_blank")
-            i.fa.fa-info-circle.fa-lg.btn_icon(aria-hidden="true")
+            i.fa-solid.fa-info-circle.fa-lg.btn_icon(aria-hidden="true")
             | {{ label('import.modal.see_logs') }}
             
         p.lead.import_title {{ labels[api_type_id] }}
         hr
         p.justify-content-between.align-items-left
             span.badge.badge-success.badge-spill.pull-right(v-if='format_validated[api_type_id]')
-                i.fa.fa-check.fa-2x.fa-fw(aria-hidden="true")
+                i.fa-solid.fa-check.fa-2x.fa-fw(aria-hidden="true")
             span.badge.badge-danger.badge-spill.pull-right(v-if='format_invalidated[api_type_id]')
-                i.fa.fa-times.fa-2x.fa-fw(aria-hidden="true")
+                i.fa-solid.fa-times.fa-2x.fa-fw(aria-hidden="true")
             span.badge.badge-primary.badge-spill.pull-right(v-if='formatting[api_type_id]')
-                i.fa.fa-cog.fa-spin.fa-fw.fa-2x(aria-hidden="true")
+                i.fa-solid.fa-cog.fa-spin.fa-fw.fa-2x(aria-hidden="true")
             p {{ label('import.format.modal.title') }}
         ul.raw_datas_stats.list-group(v-if="has_formatted_datas[api_type_id]")
-            i.fa.fa-spinner.fa-spin(v-if="!nb_validated_format_elements")
+            i.fa-solid.fa-spinner.fa-spin(v-if="!nb_validated_format_elements")
             router-link.list-group-item.list-group-item-action.d-flex.justify-content-between.align-items-center(:to="raw_datas_path[api_type_id]" target="_blank" v-if="nb_validated_format_elements")
-                i.fa.fa-table(aria-hidden="true")
+                i.fa-solid.fa-table(aria-hidden="true")
                 span {{ label('import.format.modal.nb_validated_format_elements') }}
                 span.badge.badge-success.badge-spill {{ nb_validated_format_elements[api_type_id] }}
-            i.fa.fa-spinner.fa-spin(v-if="!nb_unvalidated_format_elements")
+            i.fa-solid.fa-spinner.fa-spin(v-if="!nb_unvalidated_format_elements")
             router-link.list-group-item.list-group-item-action.d-flex.justify-content-between.align-items-center(:to="raw_datas_path[api_type_id]" target="_blank" v-if="nb_unvalidated_format_elements")
-                i.fa.fa-table(aria-hidden="true")
+                i.fa-solid.fa-table(aria-hidden="true")
                 span {{ label('import.format.modal.nb_unvalidated_format_elements') }}
                 span.badge.badge-danger.badge-spill {{ nb_unvalidated_format_elements[api_type_id] }}
         template(v-if='needs_format_validation[api_type_id]')
             .btn-group
                 button.btn.btn-primary(@click="continue_importation(api_type_id)")
-                    i.fa.fa-check.fa-lg.btn_icon(aria-hidden="true")
+                    i.fa-solid.fa-check.fa-lg.btn_icon(aria-hidden="true")
                     | {{ label('import.format.modal.continue') }}
                     
                 button.btn.btn-secondary(@click="cancel_importation(api_type_id)")
-                    i.fa.fa-check.fa-lg.btn_icon(aria-hidden="true")                               
+                    i.fa-solid.fa-check.fa-lg.btn_icon(aria-hidden="true")                               
                     | {{ label('import.format.modal.cancel') }}             
 
         hr
         p.justify-content-between.align-items-left
             span.badge.badge-danger.badge-spill.pull-right(v-if='import_failed[api_type_id]')
-                i.fa.fa-times.fa-2x.fa-fw(aria-hidden="true")
+                i.fa-solid.fa-times.fa-2x.fa-fw(aria-hidden="true")
             span.badge.badge-success.badge-spill.pull-right(v-if='imported[api_type_id]')
-                i.fa.fa-check.fa-2x.fa-fw(aria-hidden="true")
+                i.fa-solid.fa-check.fa-2x.fa-fw(aria-hidden="true")
             span.badge.badge-primary.badge-spill.pull-right(v-if='importing[api_type_id]')
-                i.fa.fa-cog.fa-spin.fa-fw.fa-2x(aria-hidden="true")
+                i.fa-solid.fa-cog.fa-spin.fa-fw.fa-2x(aria-hidden="true")
             p {{ label('import.import.modal.title') }}
             
         hr
         p.justify-content-between.align-items-left
             span.badge.badge-success.badge-spill.pull-right(v-if='posttreated[api_type_id]')
-                i.fa.fa-check.fa-2x.fa-fw(aria-hidden="true")
+                i.fa-solid.fa-check.fa-2x.fa-fw(aria-hidden="true")
             span.badge.badge-danger.badge-spill.pull-right(v-if='posttreat_failed[api_type_id]')
-                i.fa.fa-times.fa-2x.fa-fw(aria-hidden="true")
+                i.fa-solid.fa-times.fa-2x.fa-fw(aria-hidden="true")
             span.badge.badge-primary.badge-spill.pull-right(v-if='posttreating[api_type_id]')
-                i.fa.fa-cog.fa-spin.fa-fw.fa-2x(aria-hidden="true")
+                i.fa-solid.fa-cog.fa-spin.fa-fw.fa-2x(aria-hidden="true")
             p {{ label('import.posttreat.modal.title') }}
             

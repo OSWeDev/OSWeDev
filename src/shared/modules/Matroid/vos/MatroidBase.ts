@@ -17,7 +17,7 @@ export default class MatroidBase {
                 return null;
             }
 
-            let res_IRange = RangeHandler.getInstance().cloneFrom(from_IRange);
+            let res_IRange = RangeHandler.cloneFrom(from_IRange);
             res.ranges_.push(res_IRange);
         }
         res.api_type_id = api_type_id;
@@ -37,7 +37,7 @@ export default class MatroidBase {
                 return null;
             }
 
-            let res_IRange = RangeHandler.getInstance().cloneFrom(from_IRange);
+            let res_IRange = RangeHandler.cloneFrom(from_IRange);
             res.ranges_.push(res_IRange);
         }
         res.api_type_id = from.api_type_id;

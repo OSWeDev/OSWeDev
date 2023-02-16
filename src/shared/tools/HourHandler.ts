@@ -56,7 +56,7 @@ export default class HourHandler {
 
             return duration_s;
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
 
         return null;

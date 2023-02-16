@@ -1,5 +1,5 @@
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Prop, Vue, Watch } from 'vue-property-decorator';
 import ContextFilterHandler from '../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
@@ -34,6 +34,12 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
     @ModuleTranslatableTextGetter
     private get_flat_locale_translations: { [code_text: string]: string };
 
+    @ModuleDashboardPageAction
+    private set_page_widget_component_by_pwid: (param: { pwid: number, page_widget_component: VueComponentBase }) => void;
+
+    @ModuleDashboardPageGetter
+    private get_page_widgets_components_by_pwid: { [pwid: number]: VueComponentBase };
+
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
 
@@ -50,9 +56,24 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
     private auto_select_month_min: number = null;
     private auto_select_month_max: number = null;
     private old_widget_options: MonthFilterWidgetOptions = null;
+    private is_relative_to_other_filter: boolean = false;
+    private relative_to_other_filter_id: number = null;
 
-    private switch_selection(i: string) {
-        this.selected_months[i] = !this.selected_months[i];
+    protected async mounted() {
+        this.set_page_widget_component_by_pwid({
+            pwid: this.page_widget.id,
+            page_widget_component: this
+        });
+        // TODO: load selected_months from the context store
+    }
+
+    /**
+     * Handle toggle slected month
+     *  - Happen when we click on toggle month button
+     * @param i index in selected month array
+     */
+    private handle_toggle_slected_month(i: string) {
+        Vue.set(this.selected_months, i, !this.selected_months[i]);
     }
 
     get vo_field_ref_label(): string {
@@ -63,8 +84,169 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
         return this.get_flat_locale_translations[this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id)];
     }
 
-    @Watch('selected_months', { deep: true })
-    private onchange_selected_months() {
+    get relative_to_this_filter(): MonthFilterWidgetComponent {
+        if (!this.widget_options.auto_select_month_relative_mode) {
+            return null;
+        }
+
+        if (!this.widget_options.is_relative_to_other_filter) {
+            return null;
+        }
+
+        if (!this.widget_options.relative_to_other_filter_id) {
+            return null;
+        }
+
+        return this.get_page_widgets_components_by_pwid[this.widget_options.relative_to_other_filter_id] as MonthFilterWidgetComponent;
+    }
+
+    /**
+     * computed widget_options
+     * @returns MonthFilterWidgetOptions
+     */
+    get widget_options(): MonthFilterWidgetOptions {
+        if (!this.page_widget) {
+            return null;
+        }
+
+        let options: MonthFilterWidgetOptions = null;
+        try {
+            if (!!this.page_widget.json_options) {
+                options = JSON.parse(this.page_widget.json_options) as MonthFilterWidgetOptions;
+                options = options ? new MonthFilterWidgetOptions(
+                    options.is_vo_field_ref, options.vo_field_ref, options.custom_filter_name, options.month_relative_mode,
+                    options.min_month, options.max_month, options.auto_select_month, options.auto_select_month_relative_mode,
+                    options.auto_select_month_min, options.auto_select_month_max, options.is_relative_to_other_filter, options.relative_to_other_filter_id,
+                    options.hide_filter) : null;
+            }
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        return options;
+    }
+
+    /**
+     * Watch on widget_options
+     *  - Shall happen first on component init
+     *  - Initialize the selected_months with default widget options
+     * @returns void
+     */
+    @Watch('widget_options', { immediate: true })
+    private onchange_widget_options(): void {
+        if (!!this.old_widget_options) {
+            if (isEqual(this.widget_options, this.old_widget_options)) {
+                return;
+            }
+        }
+
+        this.old_widget_options = cloneDeep(this.widget_options);
+
+        /**
+         * Si on change la conf de auto_select on veut réinit le filtre (on est en modif donc et on vient de changer la conf on veut voir l'impact)
+         *  sinon on veut surtout pas changer la sélection actuelle
+         */
+        if (
+            (this.auto_select_month == this.widget_options.auto_select_month) &&
+            (this.auto_select_month_relative_mode == this.widget_options.auto_select_month_relative_mode) &&
+            (this.auto_select_month_min == this.widget_options.auto_select_month_min) &&
+            (this.auto_select_month_max == this.widget_options.auto_select_month_max) &&
+            (this.is_relative_to_other_filter == this.widget_options.is_relative_to_other_filter) &&
+            (this.relative_to_other_filter_id == this.widget_options.relative_to_other_filter_id)
+        ) {
+            return;
+        }
+
+        this.auto_select_month = this.widget_options.auto_select_month;
+        this.auto_select_month_relative_mode = this.widget_options.auto_select_month_relative_mode;
+        this.auto_select_month_min = this.widget_options.auto_select_month_min;
+        this.auto_select_month_max = this.widget_options.auto_select_month_max;
+        this.is_relative_to_other_filter = this.widget_options.is_relative_to_other_filter;
+        this.relative_to_other_filter_id = this.widget_options.relative_to_other_filter_id;
+
+        let selected_months = {};
+
+        let months = this.months;
+        if (months && (!!months.length)) {
+            for (let i in months) {
+                let month = months[i];
+                // if (this.selected_months[month]) {
+                //     selected_months[month] = true;
+                //     continue;
+                // }
+
+                if (this.widget_options.auto_select_month) {
+
+                    if ((this.widget_options.auto_select_month_min == null) || (this.widget_options.auto_select_month_max == null)) {
+                        continue;
+                    }
+
+                    if (this.widget_options.auto_select_month_relative_mode) {
+                        let current_month = Dates.month(Dates.now()) + 1;
+                        let month_int = parseInt(month);
+                        if ((month_int >= (current_month + this.widget_options.auto_select_month_min)) &&
+                            (month_int <= (current_month + this.widget_options.auto_select_month_max))) {
+                            selected_months[month] = true;
+                            continue;
+                        }
+                    } else {
+                        let month_int = parseInt(month);
+                        if ((month_int >= this.widget_options.auto_select_month_min) &&
+                            (month_int <= this.widget_options.auto_select_month_max)) {
+                            selected_months[month] = true;
+                            continue;
+                        }
+                    }
+                }
+
+                selected_months[month] = false;
+            }
+        }
+        this.selected_months = selected_months;
+    }
+
+    get other_filter_selected_months(): { [year: string]: boolean } {
+        if (!this.relative_to_this_filter) {
+            return null;
+        }
+
+        let other_filter_selected_months = this.relative_to_this_filter.selected_months;
+        if (!other_filter_selected_months) {
+            return null;
+        }
+
+        return other_filter_selected_months;
+    }
+
+    @Watch('other_filter_selected_months', { immediate: true, deep: true })
+    private onchange_other_filter_selected_months() {
+        if (!this.relative_to_this_filter) {
+            return;
+        }
+
+        let selected_months = {};
+        for (let month in this.other_filter_selected_months) {
+            let month_int = parseInt(month);
+
+            if (!this.other_filter_selected_months[month]) {
+                continue;
+            }
+
+            for (let month_i = month_int + this.widget_options.auto_select_month_min; month_i <= month_int + this.widget_options.auto_select_month_max; month_i++) {
+                selected_months[month_i] = true;
+            }
+        }
+        this.selected_months = selected_months;
+    }
+
+    /**
+     * Get active field filters
+     *  - Shall initialize the selected months by using context filter
+     * @returns void
+     */
+    @Watch("get_active_field_filters", { immediate: true })
+    private try_preload_selected_months(): void {
+
         // 1 on cherche le contextfilter correspondant à ce type de filtre
         let root_context_filter: ContextFilterVO = null;
         if (this.is_vo_field_ref) {
@@ -79,14 +261,68 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
             root_context_filter = this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] ? this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.custom_filter_name] : null;
         }
 
+        /**
+         * Si on a un root_context_filter, on cherche celui qui est du type concerné
+         */
+        let context_filter: ContextFilterVO = null;
+        if (!!root_context_filter) {
+            context_filter = ContextFilterHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_MONTH);
+        }
+
+        // If no context filter that mean there is no initialization
+        // - Then keep let all selected months with default values
+        if (!context_filter) {
+            return;
+        }
+
+        // On veut surtout pas changer si ya pas de changement à faire, donc on test la conf actuelle et on verra après
+        let new_value: { [month: number]: boolean } = {};
+        for (let i in this.months) {
+            new_value[this.months[i]] = false;
+        }
+        RangeHandler.foreach_ranges_sync(context_filter.param_numranges, (month: number) => {
+            new_value[month] = true;
+        });
+
+        for (let i in new_value) {
+            if (new_value[i] != this.selected_months[i]) {
+                this.selected_months = new_value;
+                break;
+            }
+        }
+    }
+
+    /**
+     * Watch on select changes
+     *  - Happen each time the selected_months changes
+     *  - This initialize the context store on first call
+     * @returns void
+     */
+    @Watch('selected_months', { immediate: true, deep: true })
+    private onchange_selected_months(): void {
+        // 1 on cherche le contextfilter correspondant à ce type de filtre
+        let root_context_filter: ContextFilterVO = null;
+        if (this.is_vo_field_ref) {
+            if (!this.vo_field_ref) {
+                return null;
+            }
+            root_context_filter = this.get_active_field_filters[this.vo_field_ref.api_type_id] ? this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id] : null;
+        } else {
+            if (!this.custom_filter_name) {
+                return null;
+            }
+            root_context_filter = this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] ? this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.custom_filter_name] : null;
+        }
+
+        // (on initialization) if context exist and range exist overwrite selected_range
         let months_ranges: NumRange[] = [];
         for (let i in this.selected_months) {
             if (!this.selected_months[i]) {
                 continue;
             }
-            months_ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(parseInt(i.toString()), NumSegment.TYPE_INT));
+            months_ranges.push(RangeHandler.create_single_elt_NumRange(parseInt(i.toString()), NumSegment.TYPE_INT));
         }
-        months_ranges = RangeHandler.getInstance().getRangesUnion(months_ranges);
+        months_ranges = RangeHandler.getRangesUnion(months_ranges);
 
         /**
          * Si on a un root_context_filter, on cherche celui qui est du type concerné
@@ -163,62 +399,18 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
          * Si on a un contextfilter, on check si on doit faire un update et si c'est nécessaire on le fait
          */
         if (!!context_filter) {
-            if (!RangeHandler.getInstance().are_same(context_filter.param_numranges, months_ranges)) {
+            if (!RangeHandler.are_same(context_filter.param_numranges, months_ranges)) {
                 context_filter.param_numranges = months_ranges;
+
+                let new_root = ContextFilterHandler.getInstance().add_context_filter_to_tree(root_context_filter, context_filter);
+
+                this.set_active_field_filter({
+                    field_id: this.is_vo_field_ref ? this.vo_field_ref.field_id : this.custom_filter_name,
+                    vo_type: this.is_vo_field_ref ? this.vo_field_ref.api_type_id : ContextFilterVO.CUSTOM_FILTERS_TYPE,
+                    active_field_filter: new_root,
+                });
             }
             return;
-        }
-    }
-
-    @Watch("get_active_field_filters", { immediate: true })
-    private try_preload_selected_months() {
-
-        // 1 on cherche le contextfilter correspondant à ce type de filtre
-        let root_context_filter: ContextFilterVO = null;
-        if (this.is_vo_field_ref) {
-            if (!this.vo_field_ref) {
-                return null;
-            }
-            root_context_filter = this.get_active_field_filters[this.vo_field_ref.api_type_id] ? this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id] : null;
-        } else {
-            if (!this.custom_filter_name) {
-                return null;
-            }
-            root_context_filter = this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] ? this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.custom_filter_name] : null;
-        }
-
-        /**
-         * Si on a un root_context_filter, on cherche celui qui est du type concerné
-         */
-        let context_filter: ContextFilterVO = null;
-        if (!!root_context_filter) {
-            context_filter = ContextFilterHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_MONTH);
-        }
-
-        // si ya pas de root ou de context_filter, on a pas de filtre en cours
-        if (!context_filter) {
-            for (let i in this.selected_months) {
-                if (!!this.selected_months[i]) {
-                    this.selected_months[i] = false;
-                }
-            }
-            return;
-        }
-
-        // On veut surtout pas changer si ya pas de changement à faire, donc on test la conf actuelle et on verra après
-        let new_value: { [month: number]: boolean } = {};
-        for (let i in this.months) {
-            new_value[this.months[i]] = false;
-        }
-        RangeHandler.getInstance().foreach_ranges_sync(context_filter.param_numranges, (month: number) => {
-            new_value[month] = true;
-        });
-
-        for (let i in new_value) {
-            if (new_value[i] != this.selected_months[i]) {
-                this.selected_months = new_value;
-                break;
-            }
         }
     }
 
@@ -246,96 +438,6 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
         }
 
         return Object.assign(new VOFieldRefVO(), options.vo_field_ref);
-    }
-
-    get widget_options() {
-        if (!this.page_widget) {
-            return null;
-        }
-
-        let options: MonthFilterWidgetOptions = null;
-        try {
-            if (!!this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as MonthFilterWidgetOptions;
-                options = options ? new MonthFilterWidgetOptions(
-                    options.is_vo_field_ref, options.vo_field_ref, options.custom_filter_name, options.month_relative_mode,
-                    options.min_month, options.max_month, options.auto_select_month, options.auto_select_month_relative_mode,
-                    options.auto_select_month_min, options.auto_select_month_max) : null;
-            }
-        } catch (error) {
-            ConsoleHandler.getInstance().error(error);
-        }
-
-        return options;
-    }
-
-    @Watch('widget_options', { immediate: true })
-    private onchange_widget_options() {
-        if (!!this.old_widget_options) {
-            if (isEqual(this.widget_options, this.old_widget_options)) {
-                return;
-            }
-        }
-
-        this.old_widget_options = cloneDeep(this.widget_options);
-
-        /**
-         * Si on change la conf de auto_select on veut réinit le filtre (on est en modif donc et on vient de changer la conf on veut voir l'impact)
-         *  sinon on veut surtout pas changer la sélection actuelle
-         */
-        if (
-            (this.auto_select_month == this.widget_options.auto_select_month) &&
-            (this.auto_select_month_relative_mode == this.widget_options.auto_select_month_relative_mode) &&
-            (this.auto_select_month_min == this.widget_options.auto_select_month_min) &&
-            (this.auto_select_month_max == this.widget_options.auto_select_month_max)
-        ) {
-            return;
-        }
-
-        this.auto_select_month = this.widget_options.auto_select_month;
-        this.auto_select_month_relative_mode = this.widget_options.auto_select_month_relative_mode;
-        this.auto_select_month_min = this.widget_options.auto_select_month_min;
-        this.auto_select_month_max = this.widget_options.auto_select_month_max;
-
-        let selected_months = {};
-
-        let months = this.months;
-        if (months && (!!months.length)) {
-            for (let i in months) {
-                let month = months[i];
-                // if (this.selected_months[month]) {
-                //     selected_months[month] = true;
-                //     continue;
-                // }
-
-                if (this.widget_options.auto_select_month) {
-
-                    if ((this.widget_options.auto_select_month_min == null) || (this.widget_options.auto_select_month_max == null)) {
-                        continue;
-                    }
-
-                    if (this.widget_options.auto_select_month_relative_mode) {
-                        let current_month = Dates.month(Dates.now()) + 1;
-                        let month_int = parseInt(month);
-                        if ((month_int >= (current_month + this.widget_options.auto_select_month_min)) &&
-                            (month_int <= (current_month + this.widget_options.auto_select_month_max))) {
-                            selected_months[month] = true;
-                            continue;
-                        }
-                    } else {
-                        let month_int = parseInt(month);
-                        if ((month_int >= this.widget_options.auto_select_month_min) &&
-                            (month_int <= this.widget_options.auto_select_month_max)) {
-                            selected_months[month] = true;
-                            continue;
-                        }
-                    }
-                }
-
-                selected_months[month] = false;
-            }
-        }
-        this.selected_months = selected_months;
     }
 
     get months(): string[] {

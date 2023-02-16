@@ -61,50 +61,50 @@ export default class ModuleAnonymizationServer extends ModuleServerBase {
     }
 
     public async configure() {
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Ville' },
             'anonym_conf.anonymizer.city'
         ));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Prénom' },
             'anonym_conf.anonymizer.firstname',
         ));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Nom' },
             'anonym_conf.anonymizer.lastname',
         ));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Prénom Nom' },
             'anonym_conf.anonymizer.fullname',
         ));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Téléphone' },
             'anonym_conf.anonymizer.phone',
         ));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Email' },
             'anonym_conf.anonymizer.email',
         ));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Code Postal' },
             'anonym_conf.anonymizer.postal',
         ));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Adresse' },
             'anonym_conf.anonymizer.address'
         ));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Anonymisation' },
             'menu.menuelements.anonym_field_conf.___LABEL___'
         ));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Anonymisation' },
             'menu.menuelements.admin.AnonymizationAdminVueModule.___LABEL___'
         ));
 
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': 'Modification impossible sur data anonymisée.' },
             "check_is_anonymise.failed" + DefaultTranslation.DEFAULT_LABEL_EXTENSION
         ));
@@ -125,8 +125,8 @@ export default class ModuleAnonymizationServer extends ModuleServerBase {
     }
 
     public async late_configuration(): Promise<void> {
-        for (let i in VOsTypesManager.getInstance().moduleTables_by_voType) {
-            let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[i];
+        for (let i in VOsTypesManager.moduleTables_by_voType) {
+            let moduletable = VOsTypesManager.moduleTables_by_voType[i];
 
             // ModuleDAOServer.getInstance().registerAccessHook(moduletable.vo_type, ModuleDAO.DAO_ACCESS_TYPE_READ, ServerAnonymizationController.getInstance().anonymise.bind(ServerAnonymizationController.getInstance()));
             //TODO FIXME à faire en fait aujourd'hui ce n'est pas fait

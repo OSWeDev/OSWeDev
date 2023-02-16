@@ -1,0 +1,253 @@
+include ../../../../../../views/mixins/loading.pug
+
+.table_widget_component
+    +loading()
+        template(v-if='table_columns')
+
+            template(v-if='loaded_once && is_busy')
+                .is_busy 
+                    i.fa-duotone.fa-refresh.fa-spin(aria-hidden="true")
+
+            .table_header {{ table_header_title }}
+
+            .upper_pagination
+                Tablepaginationcomponent(
+                    :pagination_offset='pagination_offset'
+                    :pagination_pagesize='limit'
+                    :pagination_count='pagination_count'
+                    :show_limit_selectable='show_limit_selectable'
+                    :show_pagination_resumee='show_pagination_resumee'
+                    :show_pagination_slider='show_pagination_slider'
+                    :show_pagination_form='show_pagination_form'
+                    :show_pagination_list='show_pagination_list'
+                    :limit_selectable='limit_selectable'
+                    :nbpages_pagination_list = 'tmp_nbpages_pagination_list'
+                    @change_offset='change_offset'
+                    @change_limit='change_limit'
+                )
+
+                template(v-if='!!crud_activated_api_type')
+                    .crud_actions.btn-group.d-print-none
+                        button.btn.btn-sm.btn-secondary(v-if='can_getquerystr', @click='getquerystr')
+                            i.fa.fa-copy.fa-lg.btn_icon(aria-hidden="true")
+                            | {{ label('crud.actions.getquerystr') }}
+                        button.btn.btn-sm.btn-danger(v-if='can_delete_all', @click='confirm_delete_all')
+                            i.fa-duotone.fa-trash.fa-lg.btn_icon(aria-hidden="true")
+                            | {{ label('crud.actions.delete_all') }}
+                        button.btn.btn-sm.btn-secondary(v-if='can_refresh', @click='refresh')
+                            i.fa-duotone.fa-refresh.fa-lg.btn_icon(aria-hidden="true")
+                            | {{ label('crud.actions.refresh') }}
+                        button.btn.btn-sm.btn-outline-dark(v-if='can_export' @click="choose_export_type")
+                            i.fa-duotone.fa-download.fa-lg.btn_icon
+                            | {{ label('crud.actions.export') }}
+                        button.btn.btn-sm.btn-success(v-if='can_create' @click="open_create")
+                            i.fa-duotone.fa-plus-circle.fa-lg.btn_icon
+                            | {{ label('crud.actions.create') }}
+
+            .table_wrapper
+                table.table-striped.table-hover(:class='{"has_sticky_cols": has_sticky_cols}')
+                    thead
+                        tr(v-if='has_group_headers')
+                            template(v-for='column in table_columns')
+                                template(v-if="!column.hide_from_table")
+                            
+                                    //- debut de la colonne d'entete
+                                    th.table_header(v-if="column.type == 5 && column.children.length > 0"
+                                        :style="get_style_th(column)"
+                                        :colspan="column.children.length"
+                                    )
+                                        Inlinetranslatabletext.text-center(:code_text="column.get_translatable_name_code_text(page_widget.id)")
+                                    
+                                    th.table_header(v-if="column.type != 5")
+                        tr
+                            template(v-for='column in table_columns')
+                                template(v-if="!column.hide_from_table")
+                                
+                                    th.table_header(
+                                        v-if="column.type != 5"
+                                        :class='{ order_asc: order_asc_on_id == column.id, order_desc: order_desc_on_id == column.id, "position-sticky": column.is_sticky}'
+                                        @click="sort_by(column)"
+                                        :style="get_style_th(column)"
+                                        )
+
+
+                                        template(v-if="column.type == 1")
+                                            .order_by
+                                                template(v-if='(order_asc_on_id != column.id) && (order_desc_on_id != column.id)')
+                                                    i.fa-solid.fa-sort.fa-fw(aria-hidden="true")
+                                                template(v-if='order_asc_on_id == column.id')
+                                                    i.fa-duotone.fa-sort-asc.fa-fw(aria-hidden="true")
+                                                template(v-if='order_desc_on_id == column.id')
+                                                    i.fa-duotone.fa-sort-desc.fa-fw(aria-hidden="true")
+
+                                        Inlinetranslatabletext( :code_text="column.get_translatable_name_code_text(page_widget.id)")
+
+                                    th(
+                                        v-if="column.type == 5 && column.children.length > 0"
+                                        v-for='child in column.children'
+                                        :class="{order_asc: order_asc_on_id == child.id, order_desc: order_desc_on_id == child.id}"
+                                        :style="get_style_th(child)"
+                                        @click="sort_by(child)"
+                                        )
+                                        template(v-if="child.type == 1")
+                                            .order_by
+                                                template(v-if='(order_asc_on_id != child.id) && (order_desc_on_id != child.id)')
+                                                    i.fa-duotone.fa-sort.fa-fw(aria-hidden="true")
+                                                template(v-if='order_asc_on_id == child.id')
+                                                    i.fa-duotone.fa-sort-asc.fa-fw(aria-hidden="true")
+                                                template(v-if='order_desc_on_id == child.id')
+                                                    i.fa-duotone.fa-sort-desc.fa-fw(aria-hidden="true")
+                                        Inlinetranslatabletext( :code_text="child.get_translatable_name_code_text(page_widget.id)")
+                                        template(v-if="child.type == 0")
+                                        Inlinetranslatabletext()
+                    template(v-if="update_cpt_live <= 1")
+                        tbody
+                            tr.table_row(v-for='row in data_rows' :class='{"is_filtering": is_filtering_by, "filtered_value": is_filtering_by && !is_row_filter_ok(row)}')
+                                template(v-for='column in table_columns')
+                                    template(v-if="!column.hide_from_table")
+                                        td.table_col(
+                                            v-if="column.type != 5"
+                                            :class='{["type_" + column.type]: true, "can_filter": can_filter_by(column) && (is_filtering_by_col(column) || !is_filtering_by), "is_filtering_by": is_filtering_by_col(column), "position-sticky": column.is_sticky }'
+                                            :style="get_style_td(column)"
+                                            @click="can_filter_by(column) ? (is_filtering_by_col(column) ? filter_by(column, column.datatable_field_uid, null) : (is_filtering_by ? null : filter_by(column, column.datatable_field_uid, row))) : null"
+                                            v-tooltip='can_filter_by(column) ? ((!is_filtering_by_col(column)) ? (is_filtering_by ? null : (((!column.field_id) || (column.field_id == "id")) ? label("table_widget_component.filter_by.id") : label("table_widget_component.filter_by.column_value"))) : label("table_widget_component.filter_by.unfilter")) : null'
+                                            )
+
+                                            //- If it's a select box
+                                            template(v-if="column.type == 3")
+                                                input.d-print-none.form-control(
+                                                    type="checkbox"
+                                                    v-model="selected_rows[parseInt(row.__crud_actions)]"
+                                                    :style="{width: (column.column_width ? column.column_width + 'rem' : null)}"
+                                                )
+
+                                            //- If it's the crud actions
+                                            template(v-if="(column.type == 0) && !column.hide_from_table")
+                                                .btn-group.d-print-none(v-tooltip='label("table_widget_component.id", {id : parseInt(row.__crud_actions)})' :style="{width: (column.column_width ? column.column_width + 'rem' : null)}")
+                                                    template(v-if='update_button')
+                                                        .btn.btn-sm.btn-primary(@click="open_update(column.api_type_id, row.__crud_actions?parseInt(row.__crud_actions):null)")
+                                                            i.fa-duotone.fa-pencil
+                                                    template(v-if="can_open_vocus")
+                                                        .btn.btn-xs.btn-secondary(@click="open_vocus(column.api_type_id, row.__crud_actions?parseInt(row.__crud_actions):null)")
+                                                            i.fa.fa-search
+                                                    template(v-if="delete_button")
+                                                        .btn.btn-sm.btn-danger(@click="confirm_delete(column.api_type_id, row.__crud_actions?parseInt(row.__crud_actions):null)")
+                                                            i.fa.fa-trash
+
+                                            //- If it's a component
+                                            //-  or any other type of fields
+                                            template(v-else)
+                                                template(v-if='column.readonly')
+                                                    template(v-if='column.is_enum')
+                                                        Datatablecomponentfield.is_enum(
+                                                            :field="fields[column.id]"
+                                                            :vo="row"
+                                                            :columns="table_columns"
+                                                            :all_page_widget="all_page_widget"
+                                                            :page_widget="page_widget"
+                                                            :style="{width: (column.column_width ? column.column_width + 'rem' : null), background: (column.enum_bg_colors ? column.enum_bg_colors[row[column.datatable_field_uid + '__raw']] : ''), color: (column.enum_fg_colors ? column.enum_fg_colors[row[column.datatable_field_uid + '__raw']] : '') }"
+                                                        )
+                                                    template(v-else)
+                                                        template(v-if="column.type != 5")
+                                                            Datatablecomponentfield(
+                                                                :filter_custom_field_filters="column.filter_custom_field_filters"
+                                                                :field="fields[column.id]"
+                                                                :vo="row"
+                                                                :columns="table_columns"
+                                                                :style="'width: ' + (column.column_width ? column.column_width + 'rem' : null)"
+                                                                :is_dashboard_builder="true"
+                                                                :show_tooltip="column.show_tooltip"
+                                                                :disabled_many_to_one_link="column.disabled_many_to_one_link"
+                                                                :all_page_widget="all_page_widget"
+                                                                :page_widget="page_widget"
+                                                                :filter='get_column_filter(column)'
+                                                                :filter_additional_params='get_column_filter_additional_params(column)'
+                                                                :table_is_busy="is_busy"
+                                                            )
+
+                                                template(v-else)
+                                                    Crudcomponentfield(
+                                                        @onchangevo='onchange_column'
+                                                        :field="fields[column.id]"
+                                                        :vo="row"
+                                                        :style="'width: ' + (column.column_width ? column.column_width + 'rem' : null)"
+                                                        :ask_confirmation_to_delete='true'
+                                                        :inline_input_mode='true'
+                                                        :inline_input_read_value="row[column.datatable_field_uid]"
+                                                        :key='"crudcomponentfield_" + column.datatable_field_uid + "___" + parseInt(row.__crud_actions)'
+                                                        :is_dashboard_builder="true"
+                                                        :inline_input_show_clear='false'
+                                                        :auto_validate_inline_input='true'
+                                                        :force_input_is_editing='true'
+                                                        :inline_input_mode_input_only='true'
+                                                        :filter='get_column_filter(column)'
+                                                        :filter_additional_params='get_column_filter_additional_params(column)'
+                                                    )
+
+                                        template.table_col(
+                                            v-if="column.type == 5 && (column.children.length > 0)"
+                                            :class='{["type_" + column.type]: true, "can_filter": can_filter_by(column) && (is_filtering_by_col(column) || !is_filtering_by), "is_filtering_by": is_filtering_by_col(column) }'
+                                            @click="can_filter_by(column) ? (is_filtering_by_col(column) ? filter_by(column, column.datatable_field_uid, null) : (is_filtering_by ? null : filter_by(column, column.datatable_field_uid, row))) : null"
+                                            v-tooltip='can_filter_by(column) ? ((!is_filtering_by_col(column)) ? (is_filtering_by ? null : (((!column.field_id) || (column.field_id == "id")) ? label("table_widget_component.filter_by.id") : label("table_widget_component.filter_by.column_value"))) : label("table_widget_component.filter_by.unfilter")) : null'
+                                            )
+                                            template(v-for='child in column.children')
+                                                td.table_col(v-if="child.type == 1")
+                                                    Datatablecomponentfield(
+                                                        :filter_custom_field_filters="column.filter_custom_field_filters"
+                                                        :field="fields[child.id]"
+                                                        :vo="row"
+                                                        :columns="table_columns"
+                                                        :style="'width: ' + (child.column_width ? child.column_width + 'rem' : null)"
+                                                        :is_dashboard_builder="true"
+                                                        :show_tooltip="child.show_tooltip"
+                                                        :page_widget="page_widget"
+                                                        :disabled_many_to_one_link="column.disabled_many_to_one_link"
+                                                        :all_page_widget="all_page_widget"
+                                                        :filter='get_column_filter(column)'
+                                                        :filter_additional_params='get_column_filter_additional_params(column)'
+                                                        :table_is_busy="is_busy"
+                                                    )
+                                                template(v-if="child.type == 0 && !child.hide_from_table")
+                                                    td.btn-group.d-print-none(
+                                                        v-tooltip='label("table_widget_component.id", {id : parseInt(row.__crud_actions)})' :style="{width: (child.column_width ? child.column_width + 'rem' : null)}" 
+                                                        )
+                                                        template(v-if='update_button')
+                                                            .btn.btn-sm.btn-primary(@click="open_update(child.api_type_id, row.__crud_actions?parseInt(row.__crud_actions):null)")
+                                                                i.fa.fa-pencil
+                                                        template(v-if="can_open_vocus")
+                                                            .btn.btn-xs.btn-secondary(@click="open_vocus(child.api_type_id, row.__crud_actions?parseInt(row.__crud_actions):null)")
+                                                                i.fa.fa-search
+                                                        template(v-if="delete_button")
+                                                            .btn.btn-sm.btn-danger(@click="confirm_delete(child.api_type_id, row.__crud_actions?parseInt(row.__crud_actions):null)")
+                                                                i.fa.fa-trash
+                                                                            
+                    template(v-if="has_table_total_footer && data_rows && (data_rows.length > 0)")
+                        tfoot
+                            template(v-if="!!colspan_total")
+                                td.text-center(:colspan='colspan_total') {{ label('table_widget_component.table_total_footer')}}
+
+                            template(v-for='(column, index_column) in table_columns')
+                                template(v-if="is_column_type_number(column)")
+                                    td.text-center
+                                        template(v-if="column_total && column_total[column.api_type_id]")
+                                            | {{ column_total[column.api_type_id][column.field_id] }}
+
+                                template(v-else)
+                                    template(v-if="(!colspan_total_with_hidden || (parseInt(index_column) >= colspan_total_with_hidden)) && !column.hide_from_table")
+                                        td.test(:field_id="column.field_id")
+
+            .lower_pagination(v-if="!hide_pagination_bottom")
+                Tablepaginationcomponent(
+                    :pagination_offset='pagination_offset'
+                    :pagination_pagesize='limit'
+                    :pagination_count='pagination_count'
+                    :show_limit_selectable='show_limit_selectable'
+                    :show_pagination_resumee='show_pagination_resumee'
+                    :show_pagination_slider='show_pagination_slider'
+                    :show_pagination_form='show_pagination_form'
+                    :show_pagination_list='show_pagination_list'
+                    :limit_selectable='limit_selectable'
+                    :nbpages_pagination_list = 'tmp_nbpages_pagination_list'
+                    @change_offset='change_offset'
+                    @change_limit='change_limit'
+                )

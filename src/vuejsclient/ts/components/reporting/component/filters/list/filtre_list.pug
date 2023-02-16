@@ -3,7 +3,7 @@
         v-select.v-select-multiple(:placeholder="label('client.reporting.filtre.placeholder.' + name)", v-model="values", multiple, :options="all_values")
             span(slot="no-options") -
             template(slot="option", slot-scope="option")
-                i.fa.fa-object-group(aria-hidden='true')
+                i.fa-solid.fa-object-group(aria-hidden='true')
                 span {{ option.label }}
         //- multiselect(
         //-     :preselect-first="false"
@@ -29,6 +29,6 @@
         //- @input="onChangeField"
     div
         button.selectall.action-button.float-left(@click="select_all")
-            i.fa.fa-list(aria-hidden="true")
+            i.fa-solid.fa-list(aria-hidden="true")
         button.deselectall.action-button.float-left(@click="deselect_all")
-            i.fa.fa-trash(aria-hidden="true")
+            i.fa-solid.fa-trash(aria-hidden="true")

@@ -1,0 +1,143 @@
+include ../../../../../../views/mixins/loading.pug
+
+.table_widget_kanban_component
+    +loading()
+        template(v-if='table_columns && kanban_column_counts && data_rows && kanban_column_vos && kanban_column_vos.length')
+
+            template(v-if='loaded_once && is_busy')
+                .is_busy 
+                    i.fa-duotone.fa-refresh.fa-spin(aria-hidden="true")
+
+            template(v-if='!!crud_activated_api_type')
+                .crud_actions.btn-group.d-print-none
+                    button.btn.btn-sm.btn-secondary(v-if='can_getquerystr', @click='getquerystr')
+                        i.fa.fa-copy.fa-lg.btn_icon(aria-hidden="true")
+                        | {{ label('crud.actions.getquerystr') }}
+                    button.btn.btn-sm.btn-danger(v-if='can_delete_all', @click='confirm_delete_all')
+                        i.fa-duotone.fa-trash.fa-lg.btn_icon(aria-hidden="true")
+                        | {{ label('crud.actions.delete_all') }}
+                    button.btn.btn-sm.btn-secondary(v-if='can_refresh', @click='refresh')
+                        i.fa-duotone.fa-refresh.fa-lg.btn_icon(aria-hidden="true")
+                        | {{ label('crud.actions.refresh') }}
+                    button.btn.btn-sm.btn-outline-dark(v-if='can_export' @click="choose_export_type")
+                        i.fa-duotone.fa-download.fa-lg.btn_icon
+                        | {{ label('crud.actions.export') }}
+                    button.btn.btn-sm.btn-success(v-if='can_create' @click="open_create")
+                        i.fa-duotone.fa-plus-circle.fa-lg.btn_icon
+                        | {{ label('crud.actions.create') }}
+
+            .kanban_header {{ table_header_title }}
+            .kanban_wrapper
+
+                Sortablelistcomponent.kanban_columns_wrapper(
+                    :disabled='(!kanban_column_is_ref_to_other_api_type_id) || !widget_options.use_kanban_column_weight_if_exists'
+                    list_id='kanban_columns'
+                    key='kanban_columns_wrapper' 
+                    :elts="kanban_column_values" 
+                    :drag_options="kanban_columns_drag_options"
+                    :get_elt_id="get_column_value_id")
+
+                    template(slot-scope="slot_props_columns")
+                        .kanban_column 
+                            .kanban_column_header
+                                .kanban_column_header_count {{ kanban_column_counts[kanban_column_values_to_index[slot_props_columns.sortable_list_item]] }}
+                                .kanban_column_header_title(:class='{clickable:kanban_column_is_ref_to_other_api_type_id, is_not_enum:!kanban_column.is_enum}' @click='kanban_column_is_ref_to_other_api_type_id ? open_update(kanban_column.api_type_id, kanban_column_index_to_ref_field_id[kanban_column_values_to_index[slot_props_columns.sortable_list_item]]) : {}' v-tooltip='label("table_widget_kanban_component.edit_column")')
+                                    template(v-if="kanban_column.type == 0")
+                                    template(v-else-if="kanban_column.type == 3")
+                                    template(v-else-if="kanban_column.type == 4")
+                                    template(v-else-if="kanban_column.type == 5")
+                                    template(v-else)
+                                        template(v-if='kanban_column.is_enum')
+                                            Datatablecomponentfield.is_enum(
+                                                :field="fields[kanban_column.id]"
+                                                :vo="kanban_column_vos[kanban_column_values_to_index[slot_props_columns.sortable_list_item]]"
+                                                :columns="table_columns"
+                                                :all_page_widget="all_page_widget"
+                                                :page_widget="page_widget"
+                                                :style="{width: (kanban_column.column_width ? kanban_column.column_width + 'rem' : null), background: (kanban_column.enum_bg_colors ? kanban_column.enum_bg_colors[kanban_column_vos[kanban_column_values_to_index[slot_props_columns.sortable_list_item]][kanban_column.datatable_field_uid + '__raw']] : ''), color: (kanban_column.enum_fg_colors ? kanban_column.enum_fg_colors[kanban_column_vos[kanban_column_values_to_index[slot_props_columns.sortable_list_item]][kanban_column.datatable_field_uid + '__raw']] : '') }"
+                                            )
+                                        template(v-else)
+                                            template(v-if="kanban_column.type != 5")
+                                                Datatablecomponentfield(
+                                                    :filter_custom_field_filters="kanban_column.filter_custom_field_filters"
+                                                    :field="fields[kanban_column.id]"
+                                                    :vo="kanban_column_vos[kanban_column_values_to_index[slot_props_columns.sortable_list_item]]"
+                                                    :columns="table_columns"
+                                                    :style="'width: ' + (kanban_column.column_width ? kanban_column.column_width + 'rem' : null)"
+                                                    :is_dashboard_builder="true"
+                                                    :show_tooltip="kanban_column.show_tooltip"
+                                                    :disabled_many_to_one_link="kanban_column.disabled_many_to_one_link"
+                                                    :all_page_widget="all_page_widget"
+                                                    :page_widget="page_widget"
+                                                    :filter='get_column_filter(kanban_column)'
+                                                    :filter_additional_params='get_column_filter_additional_params(kanban_column)'
+                                                    :table_is_busy="is_busy"
+                                                )
+
+                                //- TODO ajouter les colonnes de somme et de moyenne des vars
+                            .kanban_column_content
+                                Sortablelistcomponent.kanban_column_receiver(
+                                    :list_id='slot_props_columns.sortable_list_item'
+                                    :key='"kanban_columns___" + kanban_column_values_to_index[slot_props_columns.sortable_list_item]' 
+                                    :elts="data_rows[kanban_column_values_to_index[slot_props_columns.sortable_list_item]]" 
+                                    :drag_options="kanban_column_drag_options"
+                                    :get_elt_id="get_elt_id")
+
+                                    template(slot-scope="slot_props")
+                                        .card.kanban_row
+                                            .card-body(@click='open_update(crud_activated_api_type, slot_props.sortable_list_item.__crud_actions?parseInt(slot_props.sortable_list_item.__crud_actions):slot_props.sortable_list_item.id)' v-tooltip.top='label("table_widget_kanban_component.edit_card")')
+                                                .card-text
+                                                    template(v-for='(column, column_index) in table_columns')
+                                                        template(v-if='kanban_column && (kanban_column.datatable_field_uid != column.datatable_field_uid)')
+                                                            template(v-if="!column.hide_from_table")
+                                                                template(v-if="column.type == 0")
+                                                                template(v-else-if="column.type == 3")
+                                                                template(v-else-if="column.type == 4")
+                                                                template(v-else-if="column.type == 5")
+                                                                template(v-else)
+                                                                    .kanban_row_column
+                                                                        .kanban_row_column_field
+                                                                            .kanban_row_column_field_label
+                                                                                Inlinetranslatabletext(:code_text="column.get_translatable_name_code_text(page_widget.id)")
+                                                                            .kanban_row_column_field_value
+                                                                                template(v-if='column.is_enum')
+                                                                                    Datatablecomponentfield.is_enum(
+                                                                                        :field="fields[column.id]"
+                                                                                        :vo="slot_props.sortable_list_item"
+                                                                                        :columns="table_columns"
+                                                                                        :all_page_widget="all_page_widget"
+                                                                                        :page_widget="page_widget"
+                                                                                        :style="{width: (column.column_width ? column.column_width + 'rem' : null), background: (column.enum_bg_colors ? column.enum_bg_colors[slot_props.sortable_list_item[column.datatable_field_uid + '__raw']] : ''), color: (column.enum_fg_colors ? column.enum_fg_colors[slot_props.sortable_list_item[column.datatable_field_uid + '__raw']] : '') }"
+                                                                                    )
+                                                                                template(v-else)
+                                                                                    template(v-if="column.type != 5")
+                                                                                        Datatablecomponentfield(
+                                                                                            :filter_custom_field_filters="column.filter_custom_field_filters"
+                                                                                            :field="fields[column.id]"
+                                                                                            :vo="slot_props.sortable_list_item"
+                                                                                            :columns="table_columns"
+                                                                                            :style="'width: ' + (column.column_width ? column.column_width + 'rem' : null)"
+                                                                                            :is_dashboard_builder="true"
+                                                                                            :show_tooltip="column.show_tooltip"
+                                                                                            :disabled_many_to_one_link="column.disabled_many_to_one_link"
+                                                                                            :all_page_widget="all_page_widget"
+                                                                                            :page_widget="page_widget"
+                                                                                            :filter='get_column_filter(column)'
+                                                                                            :filter_additional_params='get_column_filter_additional_params(column)'
+                                                                                            :table_is_busy="is_busy"
+                                                                                        )
+                    template(slot='create_new')
+                        .kanban_column.create_new_kanban_column(v-if='can_create_kanban_column')
+                            .kanban_column_header
+                                .kanban_column_header_title
+                                    template(v-if='kanban_vo_table_needs_only_kanban_column_and_possibly_weight_to_create')
+                                        form(@submit.prevent="create_new_kanban_column")
+                                            input(
+                                                type="text" 
+                                                v-model="new_kanban_column_value" 
+                                                :placeholder="label('table_widget_kanban_component.create_new_kanban_column.placeholder')" 
+                                            )
+                                    template(v-else-if='kanban_column_is_ref_to_other_api_type_id && !kanban_vo_table_needs_only_kanban_column_and_possibly_weight_to_create')
+                                        button.btn.btn-sm.btn-success(@click="open_create_column")
+                                            i.fa-duotone.fa-plus-circle.fa-lg.btn_icon
+                                            | {{ label('crud.actions.create') }}

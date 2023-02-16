@@ -13,7 +13,7 @@ export default class Dates {
             }
             return moment(date, format).utc(!localized_src).unix();
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
         return null;
     }
@@ -576,6 +576,9 @@ export default class Dates {
 
     private static p = (() => {
         try {
+            if (typeof performance === 'undefined') {
+                return null;
+            }
             return performance;
         } catch (e) {
             return null;

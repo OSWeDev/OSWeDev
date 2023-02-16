@@ -2,7 +2,6 @@ import { expect } from 'chai';
 import 'mocha';
 import ServerAPIController from '../../../server/modules/API/ServerAPIController';
 import ContextQueryServerController from '../../../server/modules/ContextFilter/ContextQueryServerController';
-import ParameterizedQueryWrapper from '../../../server/modules/ContextFilter/vos/ParameterizedQueryWrapper';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
@@ -12,6 +11,7 @@ import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapp
 import ContextFilterVO, { filter } from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ParameterizedQueryWrapper from '../../../shared/modules/ContextFilter/vos/ParameterizedQueryWrapper';
 import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import ContextFilterTestsTools from './tools/ContextFilterTestsTools';

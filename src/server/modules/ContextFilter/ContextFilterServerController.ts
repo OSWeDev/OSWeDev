@@ -1,14 +1,15 @@
-import { cloneDeep } from 'lodash';
+import pgPromise = require('pg-promise');
 import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
+import ContextQueryInjectionCheckHandler from '../../../shared/modules/ContextFilter/ContextQueryInjectionCheckHandler';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import FieldPathWrapper from '../../../shared/modules/ContextFilter/vos/FieldPathWrapper';
+import ParameterizedQueryWrapper from '../../../shared/modules/ContextFilter/vos/ParameterizedQueryWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
-import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import MatroidIndexHandler from '../../../shared/tools/MatroidIndexHandler';
@@ -17,10 +18,7 @@ import StackContext from '../../StackContext';
 import ServerAnonymizationController from '../Anonymization/ServerAnonymizationController';
 import DAOServerController from '../DAO/DAOServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
-import ContextQueryInjectionCheckHandler from './ContextQueryInjectionCheckHandler';
 import ContextQueryServerController from './ContextQueryServerController';
-import FieldPathWrapper from './vos/FieldPathWrapper';
-import ParameterizedQueryWrapper from './vos/ParameterizedQueryWrapper';
 
 export default class ContextFilterServerController {
 
@@ -70,12 +68,12 @@ export default class ContextFilterServerController {
          */
         if (field_id && !tables_aliases_by_type[active_field_filter.vo_type]) {
             // Typiquement pas un souci dans les requetes sur les param de vars dans les dbs ...
-            // ConsoleHandler.getInstance().log('Filtrage initié via table non liée à la requête (pas forcément une erreur dans un DB pour le moment):' + JSON.stringify(active_field_filter) + ':' + JSON.stringify(tables_aliases_by_type) + ':');
+            // ConsoleHandler.log('Filtrage initié via table non liée à la requête (pas forcément une erreur dans un DB pour le moment):' + JSON.stringify(active_field_filter) + ':' + JSON.stringify(tables_aliases_by_type) + ':');
             return;
         }
 
         let field = active_field_filter.vo_type ?
-            VOsTypesManager.getInstance().moduleTables_by_voType[active_field_filter.vo_type].get_field_by_id(active_field_filter.field_id) :
+            VOsTypesManager.moduleTables_by_voType[active_field_filter.vo_type].get_field_by_id(active_field_filter.field_id) :
             null;
 
         /**
@@ -85,7 +83,7 @@ export default class ContextFilterServerController {
         let field_type = field_id ? (field ? field.field_type : ModuleTableField.FIELD_TYPE_int) : null;
 
         // On tente de déanonymiser avant de construire la requête
-        let uid = await StackContext.getInstance().get('UID');
+        let uid = await StackContext.get('UID');
         if (active_field_filter.param_text) {
             active_field_filter.param_text = await ServerAnonymizationController.getInstance().get_unanonymised_row_field_value(active_field_filter.param_text, active_field_filter.vo_type, active_field_filter.field_id, uid);
         }
@@ -214,12 +212,11 @@ export default class ContextFilterServerController {
                         } else {
                             throw new Error('Not Implemented');
                         }
-                        query_result.params.push("%" + text_TYPE_TEXT_INCLUDES_ANY + "%");
 
                         if (active_field_filter.text_ignore_case) {
-                            where_conditions.push(field_id + "::text ILIKE $" + query_result.params.length);
+                            where_conditions.push(field_id + "::text ILIKE " + pgPromise.as.format('$1', ["%" + text_TYPE_TEXT_INCLUDES_ANY + "%"]));
                         } else {
-                            where_conditions.push(field_id + "::text LIKE $" + query_result.params.length);
+                            where_conditions.push(field_id + "::text LIKE " + pgPromise.as.format('$1', ["%" + text_TYPE_TEXT_INCLUDES_ANY + "%"]));
                         }
 
                         break;
@@ -249,12 +246,10 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_text != null) {
                             let text = active_field_filter.param_text;
 
-                            query_result.params.push("%" + text + "%");
-
                             if (active_field_filter.text_ignore_case) {
-                                where_conditions.push(field_id + " ILIKE $" + query_result.params.length);
+                                where_conditions.push(field_id + " ILIKE " + pgPromise.as.format('$1', ["%" + text + "%"]));
                             } else {
-                                where_conditions.push(field_id + " LIKE $" + query_result.params.length);
+                                where_conditions.push(field_id + " LIKE " + pgPromise.as.format('$1', ["%" + text + "%"]));
                             }
                         } else if (active_field_filter.param_textarray != null) {
                             if (active_field_filter.param_textarray.length == 0) {
@@ -269,8 +264,7 @@ export default class ContextFilterServerController {
                                     continue;
                                 }
 
-                                query_result.params.push("%" + text + "%");
-                                like_array.push("$" + query_result.params.length);
+                                like_array.push(pgPromise.as.format('$1', ["%" + text + "%"]));
                             }
                             if ((!like_array) || (!like_array.length)) {
                                 return;
@@ -291,12 +285,10 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_text != null) {
                             let text = active_field_filter.param_text;
 
-                            query_result.params.push("%" + text + "%");
-
                             if (active_field_filter.text_ignore_case) {
-                                where_conditions.push("$" + query_result.params.length + " ILIKE ANY(" + field_id + ')');
+                                where_conditions.push(pgPromise.as.format('$1', ["%" + text + "%"]) + " ILIKE ANY(" + field_id + ')');
                             } else {
-                                where_conditions.push("$" + query_result.params.length + " LIKE ANY(" + field_id + ')');
+                                where_conditions.push(pgPromise.as.format('$1', ["%" + text + "%"]) + " LIKE ANY(" + field_id + ')');
                             }
                         } else if (active_field_filter.param_textarray != null) {
                             let like_array = [];
@@ -306,12 +298,10 @@ export default class ContextFilterServerController {
                                     continue;
                                 }
 
-                                query_result.params.push("%" + text + "%");
-
                                 if (active_field_filter.text_ignore_case) {
-                                    like_array.push("$" + query_result.params.length + " ILIKE ANY(" + field_id + ')');
+                                    like_array.push(pgPromise.as.format('$1', ["%" + text + "%"]) + " ILIKE ANY(" + field_id + ')');
                                 } else {
-                                    like_array.push("$" + query_result.params.length + " LIKE ANY(" + field_id + ')');
+                                    like_array.push(pgPromise.as.format('$1', ["%" + text + "%"]) + " LIKE ANY(" + field_id + ')');
                                 }
                             }
                             if ((!like_array) || (!like_array.length)) {
@@ -355,13 +345,13 @@ export default class ContextFilterServerController {
                             /**
                              * On devrait renommer en equals_all, et donc si on a un cardinal de tsranges > 1, on a forcément aucun résultat
                              */
-                            if (RangeHandler.getInstance().getCardinalFromArray(active_field_filter.param_tsranges) != 1) {
+                            if (RangeHandler.getCardinalFromArray(active_field_filter.param_tsranges) != 1) {
                                 where_conditions.push("false");
                                 break;
                             }
                             ContextQueryInjectionCheckHandler.assert_integer(active_field_filter.param_tsranges[0].min);
                             where_conditions.push(field_id + " = " + active_field_filter.param_tsranges[0].min);
-                            throw new Error('Not Implemented');
+                            break;
                         }
 
                         if (active_field_filter.param_numeric_array != null) {
@@ -499,8 +489,7 @@ export default class ContextFilterServerController {
 
                         if (active_field_filter.param_text != null) {
                             let text = (active_field_filter.param_text && active_field_filter.text_ignore_case) ? active_field_filter.param_text.toLowerCase() : active_field_filter.param_text;
-                            query_result.params.push(text);
-                            where_conditions.push((active_field_filter.text_ignore_case ? 'LOWER(' : '') + field_id + (active_field_filter.text_ignore_case ? ')' : '') + " = $" + query_result.params.length);
+                            where_conditions.push((active_field_filter.text_ignore_case ? 'LOWER(' : '') + field_id + (active_field_filter.text_ignore_case ? ')' : '') + " = " + pgPromise.as.format('$1', [text]));
                         } else if (active_field_filter.param_textarray != null) {
                             let like_array = [];
                             for (let i in active_field_filter.param_textarray) {
@@ -510,8 +499,7 @@ export default class ContextFilterServerController {
                                     continue;
                                 }
 
-                                query_result.params.push(text);
-                                like_array.push("$" + query_result.params.length);
+                                like_array.push(pgPromise.as.format('$1', [text]));
                             }
                             if ((!like_array) || (!like_array.length)) {
                                 return;
@@ -532,11 +520,8 @@ export default class ContextFilterServerController {
                          */
                         if (active_field_filter.param_text != null) {
 
-                            // let text = (active_field_filter.param_text && active_field_filter.text_ignore_case) ? active_field_filter.param_text.toLowerCase() : active_field_filter.param_text;
                             let text = active_field_filter.param_text;
-                            query_result.params.push(text);
-                            // where_conditions.push("$" + query_result.params.length + " = ALL(" + (active_field_filter.text_ignore_case ? 'LOWER(' : '') + field_id + (active_field_filter.text_ignore_case ? ')' : '') + ")");
-                            where_conditions.push("$" + query_result.params.length + " = ALL(" + field_id + ")");
+                            where_conditions.push(pgPromise.as.format('$1', [text]) + " = ALL(" + field_id + ")");
 
                         } else if (active_field_filter.param_textarray != null) {
 
@@ -549,8 +534,7 @@ export default class ContextFilterServerController {
                                     continue;
                                 }
 
-                                query_result.params.push(text);
-                                like_array.push("$" + query_result.params.length);
+                                like_array.push(pgPromise.as.format('$1', [text]));
                             }
                             if ((!like_array) || (!like_array.length)) {
                                 return;
@@ -639,8 +623,7 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_text != null) {
                             let text = (active_field_filter.param_text && active_field_filter.text_ignore_case) ? active_field_filter.param_text.toLowerCase() : active_field_filter.param_text;
 
-                            query_result.params.push(text);
-                            where_conditions.push((active_field_filter.text_ignore_case ? 'LOWER(' : '') + field_id + (active_field_filter.text_ignore_case ? ')' : '') + " = $" + query_result.params.length);
+                            where_conditions.push((active_field_filter.text_ignore_case ? 'LOWER(' : '') + field_id + (active_field_filter.text_ignore_case ? ')' : '') + " = " + pgPromise.as.format('$1', [text]));
                         } else if (active_field_filter.param_textarray != null) {
 
                             if (active_field_filter.param_textarray.length == 0) {
@@ -656,8 +639,7 @@ export default class ContextFilterServerController {
                                     continue;
                                 }
 
-                                query_result.params.push(text);
-                                like_array.push("$" + query_result.params.length);
+                                like_array.push(pgPromise.as.format('$1', [text]));
                             }
                             if ((!like_array) || (!like_array.length)) {
                                 return;
@@ -676,12 +658,8 @@ export default class ContextFilterServerController {
                          */
 
                         if (active_field_filter.param_text != null) {
-                            // let text = (active_field_filter.param_text && active_field_filter.text_ignore_case) ? active_field_filter.param_text.toLowerCase() : active_field_filter.param_text;
                             let text = active_field_filter.param_text;
-
-                            query_result.params.push(text);
-                            // where_conditions.push("$" + query_result.params.length + " = ANY(" + (active_field_filter.text_ignore_case ? 'LOWER(' : '') + field_id + (active_field_filter.text_ignore_case ? ')' : '') + ")");
-                            where_conditions.push("$" + query_result.params.length + " = ANY(" + field_id + ")");
+                            where_conditions.push(pgPromise.as.format('$1', [text]) + " = ANY(" + field_id + ")");
 
                         } else if (active_field_filter.param_textarray != null) {
                             let like_array = [];
@@ -694,9 +672,7 @@ export default class ContextFilterServerController {
                                     continue;
                                 }
 
-                                query_result.params.push(text);
-                                // like_array.push("$" + query_result.params.length + " = ANY(" + (active_field_filter.text_ignore_case ? 'LOWER(' : '') + field_id + (active_field_filter.text_ignore_case ? ')' : '') + ')');
-                                like_array.push("$" + query_result.params.length + " = ANY(" + field_id + ')');
+                                like_array.push(pgPromise.as.format('$1', [text]) + " = ANY(" + field_id + ')');
 
                             }
                             if ((!like_array) || (!like_array.length)) {
@@ -731,22 +707,18 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numeric != null) {
                             let text = active_field_filter.param_numeric.toString();
 
-                            query_result.params.push(text + "%");
-
                             if (active_field_filter.text_ignore_case) {
-                                where_conditions.push(field_id + "::text ILIKE $" + query_result.params.length);
+                                where_conditions.push(field_id + "::text ILIKE " + pgPromise.as.format('$1', [text + '%']));
                             } else {
-                                where_conditions.push(field_id + "::text LIKE $" + query_result.params.length);
+                                where_conditions.push(field_id + "::text LIKE " + pgPromise.as.format('$1', [text + '%']));
                             }
                         } else if (active_field_filter.param_text != null) {
                             let text = active_field_filter.param_text;
 
-                            query_result.params.push(text + "%");
-
                             if (active_field_filter.text_ignore_case) {
-                                where_conditions.push(field_id + "::text ILIKE $" + query_result.params.length);
+                                where_conditions.push(field_id + "::text ILIKE " + pgPromise.as.format('$1', [text + '%']));
                             } else {
-                                where_conditions.push(field_id + "::text LIKE $" + query_result.params.length);
+                                where_conditions.push(field_id + "::text LIKE " + pgPromise.as.format('$1', [text + '%']));
                             }
                         } else {
                             throw new Error('Not Implemented');
@@ -788,12 +760,10 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_text != null) {
                             let text = active_field_filter.param_text;
 
-                            query_result.params.push(text + "%");
-
                             if (active_field_filter.text_ignore_case) {
-                                where_conditions.push(field_id + " ILIKE $" + query_result.params.length);
+                                where_conditions.push(field_id + " ILIKE " + pgPromise.as.format('$1', [text + '%']));
                             } else {
-                                where_conditions.push(field_id + " LIKE $" + query_result.params.length);
+                                where_conditions.push(field_id + " LIKE " + pgPromise.as.format('$1', [text + '%']));
                             }
                         } else if (active_field_filter.param_textarray != null) {
                             if (active_field_filter.param_textarray.length == 0) {
@@ -808,8 +778,7 @@ export default class ContextFilterServerController {
                                     continue;
                                 }
 
-                                query_result.params.push(text + "%");
-                                like_array.push("$" + query_result.params.length);
+                                like_array.push(pgPromise.as.format('$1', [text + '%']));
                             }
                             if ((!like_array) || (!like_array.length)) {
                                 return;
@@ -831,11 +800,10 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_text != null) {
 
                             let text = active_field_filter.param_text;
-                            query_result.params.push(text + "%");
                             if (active_field_filter.text_ignore_case) {
-                                where_conditions.push("$" + query_result.params.length + " ILIKE ANY(" + field_id + ')');
+                                where_conditions.push(pgPromise.as.format('$1', [text + '%']) + " ILIKE ANY(" + field_id + ')');
                             } else {
-                                where_conditions.push("$" + query_result.params.length + " LIKE ANY(" + field_id + ')');
+                                where_conditions.push(pgPromise.as.format('$1', [text + '%']) + " LIKE ANY(" + field_id + ')');
                             }
 
                         } else if (active_field_filter.param_textarray != null) {
@@ -848,12 +816,10 @@ export default class ContextFilterServerController {
                                     continue;
                                 }
 
-                                query_result.params.push(text + "%");
-
                                 if (active_field_filter.text_ignore_case) {
-                                    like_array.push("$" + query_result.params.length + " ILIKE ANY(" + field_id + ')');
+                                    like_array.push(pgPromise.as.format('$1', [text + '%']) + " ILIKE ANY(" + field_id + ')');
                                 } else {
-                                    like_array.push("$" + query_result.params.length + " LIKE ANY(" + field_id + ')');
+                                    like_array.push(pgPromise.as.format('$1', [text + '%']) + " LIKE ANY(" + field_id + ')');
                                 }
                             }
                             if ((!like_array) || (!like_array.length)) {
@@ -888,23 +854,18 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numeric != null) {
                             let text = active_field_filter.param_numeric.toString();
 
-                            query_result.params.push("%" + text);
-
-
                             if (active_field_filter.text_ignore_case) {
-                                where_conditions.push(field_id + "::text ILIKE $" + query_result.params.length);
+                                where_conditions.push(field_id + "::text ILIKE " + pgPromise.as.format('$1', ['%' + text]));
                             } else {
-                                where_conditions.push(field_id + "::text LIKE $" + query_result.params.length);
+                                where_conditions.push(field_id + "::text LIKE " + pgPromise.as.format('$1', ['%' + text]));
                             }
                         } else if (active_field_filter.param_text != null) {
                             let text = active_field_filter.param_text;
 
-                            query_result.params.push("%" + text);
-
                             if (active_field_filter.text_ignore_case) {
-                                where_conditions.push(field_id + "::text ILIKE $" + query_result.params.length);
+                                where_conditions.push(field_id + "::text ILIKE " + pgPromise.as.format('$1', ['%' + text]));
                             } else {
-                                where_conditions.push(field_id + "::text LIKE $" + query_result.params.length);
+                                where_conditions.push(field_id + "::text LIKE " + pgPromise.as.format('$1', ['%' + text]));
                             }
                         } else {
                             throw new Error('Not Implemented');
@@ -946,11 +907,10 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_text != null) {
 
                             let text = active_field_filter.param_text;
-                            query_result.params.push("%" + text);
                             if (active_field_filter.text_ignore_case) {
-                                where_conditions.push(field_id + " ILIKE $" + query_result.params.length);
+                                where_conditions.push(field_id + " ILIKE " + pgPromise.as.format('$1', ['%' + text]));
                             } else {
-                                where_conditions.push(field_id + " LIKE $" + query_result.params.length);
+                                where_conditions.push(field_id + " LIKE " + pgPromise.as.format('$1', ['%' + text]));
                             }
 
                         } else if (active_field_filter.param_textarray != null) {
@@ -966,8 +926,7 @@ export default class ContextFilterServerController {
                                     continue;
                                 }
 
-                                query_result.params.push("%" + text);
-                                like_array.push("$" + query_result.params.length);
+                                like_array.push(pgPromise.as.format('$1', ['%' + text]));
                             }
                             if ((!like_array) || (!like_array.length)) {
                                 return;
@@ -989,12 +948,11 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_text != null) {
 
                             let text = active_field_filter.param_text;
-                            query_result.params.push("%" + text);
 
                             if (active_field_filter.text_ignore_case) {
-                                where_conditions.push("$" + query_result.params.length + " ILIKE ANY(" + field_id + ')');
+                                where_conditions.push(pgPromise.as.format('$1', ['%' + text]) + " ILIKE ANY(" + field_id + ')');
                             } else {
-                                where_conditions.push("$" + query_result.params.length + " LIKE ANY(" + field_id + ')');
+                                where_conditions.push(pgPromise.as.format('$1', ['%' + text]) + " LIKE ANY(" + field_id + ')');
                             }
                         } else if (active_field_filter.param_textarray != null) {
 
@@ -1005,12 +963,10 @@ export default class ContextFilterServerController {
                                     continue;
                                 }
 
-                                query_result.params.push("%" + text);
-
                                 if (active_field_filter.text_ignore_case) {
-                                    like_array.push("$" + query_result.params.length + " ILIKE ANY(" + field_id + ')');
+                                    like_array.push(pgPromise.as.format('$1', ['%' + text]) + " ILIKE ANY(" + field_id + ')');
                                 } else {
-                                    like_array.push("$" + query_result.params.length + " LIKE ANY(" + field_id + ')');
+                                    like_array.push(pgPromise.as.format('$1', ['%' + text]) + " LIKE ANY(" + field_id + ')');
                                 }
                             }
                             if ((!like_array) || (!like_array.length)) {
@@ -1089,8 +1045,7 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_text != null) {
                             let text = (active_field_filter.param_text && active_field_filter.text_ignore_case) ? active_field_filter.param_text.toLowerCase() : active_field_filter.param_text;
 
-                            query_result.params.push(text);
-                            where_conditions.push((active_field_filter.text_ignore_case ? 'LOWER(' : '') + field_id + (active_field_filter.text_ignore_case ? ')' : '') + " != $" + query_result.params.length);
+                            where_conditions.push((active_field_filter.text_ignore_case ? 'LOWER(' : '') + field_id + (active_field_filter.text_ignore_case ? ')' : '') + " != " + pgPromise.as.format('$1', [text]));
 
                         } else if (active_field_filter.param_textarray != null) {
 
@@ -1103,8 +1058,7 @@ export default class ContextFilterServerController {
                                     continue;
                                 }
 
-                                query_result.params.push(text);
-                                like_array.push("$" + query_result.params.length);
+                                like_array.push(pgPromise.as.format('$1', [text]));
                             }
                             if ((!like_array) || (!like_array.length)) {
                                 return;
@@ -1124,25 +1078,19 @@ export default class ContextFilterServerController {
                          */
 
                         if (active_field_filter.param_text != null) {
-                            // let text = (active_field_filter.param_text && active_field_filter.text_ignore_case) ? active_field_filter.param_text.toLowerCase() : active_field_filter.param_text;
                             let text = active_field_filter.param_text;
 
-                            query_result.params.push(text);
-                            // where_conditions.push("$" + query_result.params.length + " != ALL(" + (active_field_filter.text_ignore_case ? 'LOWER(' : '') + field_id + (active_field_filter.text_ignore_case ? ')' : '') + ")");
-                            where_conditions.push("$" + query_result.params.length + " != ALL(" + field_id + ")");
+                            where_conditions.push(pgPromise.as.format('$1', [text]) + " != ALL(" + field_id + ")");
                         } else if (active_field_filter.param_textarray != null) {
                             let like_array = [];
                             for (let i in active_field_filter.param_textarray) {
-                                // let param_text = active_field_filter.param_textarray[i];
-                                // let text = (param_text && active_field_filter.text_ignore_case) ? param_text.toLowerCase() : param_text;
                                 let text = active_field_filter.param_textarray[i];
 
                                 if (!text) {
                                     continue;
                                 }
 
-                                query_result.params.push(text);
-                                like_array.push("$" + query_result.params.length + " != ALL(" + field_id + ')');
+                                like_array.push(pgPromise.as.format('$1', [text]) + " != ALL(" + field_id + ')');
                             }
                             if ((!like_array) || (!like_array.length)) {
                                 return;
@@ -1224,22 +1172,18 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numeric != null) {
                             let text = active_field_filter.param_numeric.toString();
 
-                            query_result.params.push('%' + text + '%');
-
                             if (active_field_filter.text_ignore_case) {
-                                where_conditions.push(field_id + "::text NOT ILIKE $" + query_result.params.length);
+                                where_conditions.push(field_id + "::text NOT ILIKE " + pgPromise.as.format('$1', ['%' + text + '%']));
                             } else {
-                                where_conditions.push(field_id + "::text NOT LIKE $" + query_result.params.length);
+                                where_conditions.push(field_id + "::text NOT LIKE " + pgPromise.as.format('$1', ['%' + text + '%']));
                             }
                         } else if (active_field_filter.param_text != null) {
                             let text = active_field_filter.param_text;
 
-                            query_result.params.push('%' + text + '%');
-
                             if (active_field_filter.text_ignore_case) {
-                                where_conditions.push(field_id + "::text NOT ILIKE $" + query_result.params.length);
+                                where_conditions.push(field_id + "::text NOT ILIKE " + pgPromise.as.format('$1', ['%' + text + '%']));
                             } else {
-                                where_conditions.push(field_id + "::text NOT LIKE $" + query_result.params.length);
+                                where_conditions.push(field_id + "::text NOT LIKE " + pgPromise.as.format('$1', ['%' + text + '%']));
                             }
                         } else {
                             throw new Error('Not Implemented');
@@ -1270,12 +1214,10 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_password:
                         if (active_field_filter.param_text != null) {
                             let text = active_field_filter.param_text;
-                            query_result.params.push('%' + text + '%');
-
                             if (active_field_filter.text_ignore_case) {
-                                where_conditions.push(field_id + " NOT ILIKE $" + query_result.params.length);
+                                where_conditions.push(field_id + " NOT ILIKE " + pgPromise.as.format('$1', ['%' + text + '%']));
                             } else {
-                                where_conditions.push(field_id + " NOT LIKE $" + query_result.params.length);
+                                where_conditions.push(field_id + " NOT LIKE " + pgPromise.as.format('$1', ['%' + text + '%']));
                             }
                         } else if (active_field_filter.param_textarray != null) {
                             let like_array = [];
@@ -1285,8 +1227,7 @@ export default class ContextFilterServerController {
                                     continue;
                                 }
 
-                                query_result.params.push('%' + text + '%');
-                                like_array.push("$" + query_result.params.length);
+                                like_array.push(pgPromise.as.format('$1', ['%' + text + '%']));
                             }
                             if ((!like_array) || (!like_array.length)) {
                                 return;
@@ -1306,12 +1247,11 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_html_array:
                         if (active_field_filter.param_text != null) {
                             let text = active_field_filter.param_text;
-                            query_result.params.push('%' + text + '%');
 
                             if (active_field_filter.text_ignore_case) {
-                                where_conditions.push("$" + query_result.params.length + " NOT ILIKE ALL(" + field_id + ')');
+                                where_conditions.push(pgPromise.as.format('$1', ['%' + text + '%']) + " NOT ILIKE ALL(" + field_id + ')');
                             } else {
-                                where_conditions.push("$" + query_result.params.length + " NOT LIKE ALL(" + field_id + ')');
+                                where_conditions.push(pgPromise.as.format('$1', ['%' + text + '%']) + " NOT LIKE ALL(" + field_id + ')');
                             }
                         } else if (active_field_filter.param_textarray != null) {
                             let like_array = [];
@@ -1321,12 +1261,10 @@ export default class ContextFilterServerController {
                                     continue;
                                 }
 
-                                query_result.params.push('%' + text + '%');
-
                                 if (active_field_filter.text_ignore_case) {
-                                    like_array.push("$" + query_result.params.length + " NOT ILIKE ALL(" + field_id + ')');
+                                    like_array.push(pgPromise.as.format('$1', ['%' + text + '%']) + " NOT ILIKE ALL(" + field_id + ')');
                                 } else {
-                                    like_array.push("$" + query_result.params.length + " NOT LIKE ALL(" + field_id + ')');
+                                    like_array.push(pgPromise.as.format('$1', ['%' + text + '%']) + " NOT LIKE ALL(" + field_id + ')');
                                 }
                             }
                             if ((!like_array) || (!like_array.length)) {
@@ -1361,22 +1299,18 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numeric != null) {
                             let text = active_field_filter.param_numeric.toString();
 
-                            query_result.params.push(text + '%');
-
                             if (active_field_filter.text_ignore_case) {
-                                where_conditions.push(field_id + "::text NOT ILIKE $" + query_result.params.length);
+                                where_conditions.push(field_id + "::text NOT ILIKE " + pgPromise.as.format('$1', [text + '%']));
                             } else {
-                                where_conditions.push(field_id + "::text NOT LIKE $" + query_result.params.length);
+                                where_conditions.push(field_id + "::text NOT LIKE " + pgPromise.as.format('$1', [text + '%']));
                             }
                         } else if (active_field_filter.param_text != null) {
                             let text = active_field_filter.param_text;
 
-                            query_result.params.push(text + '%');
-
                             if (active_field_filter.text_ignore_case) {
-                                where_conditions.push(field_id + "::text NOT ILIKE $" + query_result.params.length);
+                                where_conditions.push(field_id + "::text NOT ILIKE " + pgPromise.as.format('$1', [text + '%']));
                             } else {
-                                where_conditions.push(field_id + "::text NOT LIKE $" + query_result.params.length);
+                                where_conditions.push(field_id + "::text NOT LIKE " + pgPromise.as.format('$1', [text + '%']));
                             }
                         } else {
                             throw new Error('Not Implemented');
@@ -1407,12 +1341,11 @@ export default class ContextFilterServerController {
                     case ModuleTableField.FIELD_TYPE_password:
                         if (active_field_filter.param_text != null) {
                             let text = active_field_filter.param_text;
-                            query_result.params.push(text + '%');
 
                             if (active_field_filter.text_ignore_case) {
-                                where_conditions.push(field_id + " NOT ILIKE $" + query_result.params.length);
+                                where_conditions.push(field_id + " NOT ILIKE " + pgPromise.as.format('$1', [text + '%']));
                             } else {
-                                where_conditions.push(field_id + " NOT LIKE $" + query_result.params.length);
+                                where_conditions.push(field_id + " NOT LIKE " + pgPromise.as.format('$1', [text + '%']));
                             }
                         } else if (active_field_filter.param_textarray != null) {
                             let like_array = [];
@@ -1422,8 +1355,7 @@ export default class ContextFilterServerController {
                                     continue;
                                 }
 
-                                query_result.params.push(text + '%');
-                                like_array.push("$" + query_result.params.length);
+                                like_array.push(pgPromise.as.format('$1', [text + '%']));
                             }
                             if ((!like_array) || (!like_array.length)) {
                                 return;
@@ -1445,12 +1377,11 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_text != null) {
 
                             let text = active_field_filter.param_text;
-                            query_result.params.push(text + '%');
 
                             if (active_field_filter.text_ignore_case) {
-                                where_conditions.push("$" + query_result.params.length + " NOT ILIKE ALL(" + field_id + ')');
+                                where_conditions.push(pgPromise.as.format('$1', [text + '%']) + " NOT ILIKE ALL(" + field_id + ')');
                             } else {
-                                where_conditions.push("$" + query_result.params.length + " NOT LIKE ALL(" + field_id + ')');
+                                where_conditions.push(pgPromise.as.format('$1', [text + '%']) + " NOT LIKE ALL(" + field_id + ')');
                             }
 
                         } else if (active_field_filter.param_textarray != null) {
@@ -1462,12 +1393,10 @@ export default class ContextFilterServerController {
                                     continue;
                                 }
 
-                                query_result.params.push(text + '%');
-
                                 if (active_field_filter.text_ignore_case) {
-                                    like_array.push("$" + query_result.params.length + " NOT ILIKE ALL(" + field_id + ')');
+                                    like_array.push(pgPromise.as.format('$1', [text + '%']) + " NOT ILIKE ALL(" + field_id + ')');
                                 } else {
-                                    like_array.push("$" + query_result.params.length + " NOT LIKE ALL(" + field_id + ')');
+                                    like_array.push(pgPromise.as.format('$1', [text + '%']) + " NOT LIKE ALL(" + field_id + ')');
                                 }
                             }
                             if ((!like_array) || (!like_array.length)) {
@@ -1503,23 +1432,21 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numeric != null) {
 
                             let text = active_field_filter.param_numeric.toString();
-                            query_result.params.push(text + '%');
 
                             if (active_field_filter.text_ignore_case) {
-                                where_conditions.push(field_id + "::text NOT ILIKE $" + query_result.params.length);
+                                where_conditions.push(field_id + "::text NOT ILIKE " + pgPromise.as.format('$1', [text + '%']));
                             } else {
-                                where_conditions.push(field_id + "::text NOT LIKE $" + query_result.params.length);
+                                where_conditions.push(field_id + "::text NOT LIKE " + pgPromise.as.format('$1', [text + '%']));
                             }
 
                         } else if (active_field_filter.param_text != null) {
 
                             let text = active_field_filter.param_text;
-                            query_result.params.push(text + '%');
 
                             if (active_field_filter.text_ignore_case) {
-                                where_conditions.push(field_id + "::text NOT ILIKE $" + query_result.params.length);
+                                where_conditions.push(field_id + "::text NOT ILIKE " + pgPromise.as.format('$1', [text + '%']));
                             } else {
-                                where_conditions.push(field_id + "::text NOT LIKE $" + query_result.params.length);
+                                where_conditions.push(field_id + "::text NOT LIKE " + pgPromise.as.format('$1', [text + '%']));
                             }
                         } else {
                             throw new Error('Not Implemented');
@@ -1552,12 +1479,11 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_text != null) {
 
                             let text = active_field_filter.param_text;
-                            query_result.params.push('%' + text);
 
                             if (active_field_filter.text_ignore_case) {
-                                where_conditions.push(field_id + " NOT ILIKE $" + query_result.params.length);
+                                where_conditions.push(field_id + " NOT ILIKE " + pgPromise.as.format('$1', ['%' + text]));
                             } else {
-                                where_conditions.push(field_id + " NOT LIKE $" + query_result.params.length);
+                                where_conditions.push(field_id + " NOT LIKE " + pgPromise.as.format('$1', ['%' + text]));
                             }
 
                         } else if (active_field_filter.param_textarray != null) {
@@ -1569,8 +1495,7 @@ export default class ContextFilterServerController {
                                     continue;
                                 }
 
-                                query_result.params.push('%' + text);
-                                like_array.push("$" + query_result.params.length);
+                                like_array.push(pgPromise.as.format('$1', ['%' + text]));
                             }
                             if ((!like_array) || (!like_array.length)) {
                                 return;
@@ -1592,12 +1517,11 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_text != null) {
 
                             let text = active_field_filter.param_text;
-                            query_result.params.push('%' + text);
 
                             if (active_field_filter.text_ignore_case) {
-                                where_conditions.push("$" + query_result.params.length + " NOT ILIKE ALL(" + field_id + ')');
+                                where_conditions.push(pgPromise.as.format('$1', ['%' + text]) + " NOT ILIKE ALL(" + field_id + ')');
                             } else {
-                                where_conditions.push("$" + query_result.params.length + " NOT LIKE ALL(" + field_id + ')');
+                                where_conditions.push(pgPromise.as.format('$1', ['%' + text]) + " NOT LIKE ALL(" + field_id + ')');
                             }
                         } else if (active_field_filter.param_textarray != null) {
 
@@ -1608,12 +1532,10 @@ export default class ContextFilterServerController {
                                     continue;
                                 }
 
-                                query_result.params.push('%' + text);
-
                                 if (active_field_filter.text_ignore_case) {
-                                    like_array.push("$" + query_result.params.length + " NOT ILIKE ALL(" + field_id + ')');
+                                    like_array.push(pgPromise.as.format('$1', ['%' + text]) + " NOT ILIKE ALL(" + field_id + ')');
                                 } else {
-                                    like_array.push("$" + query_result.params.length + " NOT LIKE ALL(" + field_id + ')');
+                                    like_array.push(pgPromise.as.format('$1', ['%' + text]) + " NOT LIKE ALL(" + field_id + ')');
                                 }
                             }
                             if ((!like_array) || (!like_array.length)) {
@@ -2060,7 +1982,7 @@ export default class ContextFilterServerController {
                         }
 
                         if (active_field_filter.param_numranges) {
-                            RangeHandler.getInstance().foreach_ranges_sync(active_field_filter.param_numranges, (num: number) => {
+                            RangeHandler.foreach_ranges_sync(active_field_filter.param_numranges, (num: number) => {
                                 ContextQueryInjectionCheckHandler.assert_numeric(num);
                                 where_conditions.push(field_id + " != " + num);
                             });
@@ -2267,6 +2189,18 @@ export default class ContextFilterServerController {
                             where_conditions.push(ranges_clause + " = " + field.field_id + '_ndx');
 
                             break;
+                        } else if (active_field_filter.param_numeric != null) {
+                            let ranges_clause = null;
+                            ranges_clause = "'" + MatroidIndexHandler.getInstance().get_normalized_ranges(RangeHandler.get_ids_ranges_from_list([active_field_filter.param_numeric])) + "'";
+                            where_conditions.push(ranges_clause + " = " + field.field_id + '_ndx');
+
+                            break;
+                        } else if (active_field_filter.param_numeric_array && active_field_filter.param_numeric_array.length) {
+                            let ranges_clause = null;
+                            ranges_clause = "'" + MatroidIndexHandler.getInstance().get_normalized_ranges(RangeHandler.get_ids_ranges_from_list(active_field_filter.param_numeric_array)) + "'";
+                            where_conditions.push(ranges_clause + " = " + field.field_id + '_ndx');
+
+                            break;
                         } else {
                             throw new Error('Not Implemented');
                         }
@@ -2457,7 +2391,7 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numranges && active_field_filter.param_numranges.length) {
                             let dows: number[] = [];
 
-                            RangeHandler.getInstance().foreach_ranges_sync(active_field_filter.param_numranges, (dow) => dows.push(dow));
+                            RangeHandler.foreach_ranges_sync(active_field_filter.param_numranges, (dow) => dows.push(dow));
                             if ((!dows) || (!dows.length)) {
                                 break;
                             }
@@ -2481,7 +2415,7 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numranges && active_field_filter.param_numranges.length) {
                             let years: number[] = [];
 
-                            RangeHandler.getInstance().foreach_ranges_sync(active_field_filter.param_numranges, (year) => years.push(year));
+                            RangeHandler.foreach_ranges_sync(active_field_filter.param_numranges, (year) => years.push(year));
                             if ((!years) || (!years.length)) {
                                 break;
                             }
@@ -2506,7 +2440,7 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numranges && active_field_filter.param_numranges.length) {
                             let years: number[] = [];
 
-                            RangeHandler.getInstance().foreach_ranges_sync(active_field_filter.param_numranges, (year) => years.push(year));
+                            RangeHandler.foreach_ranges_sync(active_field_filter.param_numranges, (year) => years.push(year));
                             if ((!years) || (!years.length)) {
                                 break;
                             }
@@ -2531,7 +2465,7 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numranges && active_field_filter.param_numranges.length) {
                             let years: number[] = [];
 
-                            RangeHandler.getInstance().foreach_ranges_sync(active_field_filter.param_numranges, (year) => years.push(year));
+                            RangeHandler.foreach_ranges_sync(active_field_filter.param_numranges, (year) => years.push(year));
                             if ((!years) || (!years.length)) {
                                 break;
                             }
@@ -2560,7 +2494,7 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numranges && active_field_filter.param_numranges.length) {
                             let months: number[] = [];
 
-                            RangeHandler.getInstance().foreach_ranges_sync(active_field_filter.param_numranges, (month) => months.push(month));
+                            RangeHandler.foreach_ranges_sync(active_field_filter.param_numranges, (month) => months.push(month));
                             if ((!months) || (!months.length)) {
                                 break;
                             }
@@ -2621,8 +2555,10 @@ export default class ContextFilterServerController {
 
                 let qr_TYPE_IN = await ContextQueryServerController.getInstance().build_select_query(active_field_filter.sub_query);
 
-                if ((!qr_TYPE_IN) || (!qr_TYPE_IN.query)) {
-                    throw new Error('Invalid query');
+                if (((!qr_TYPE_IN) || (!qr_TYPE_IN.query)) && (!qr_TYPE_IN.is_segmented_non_existing_table)) {
+                    ConsoleHandler.error('Invalid query:TYPE_IN:INFOS context_query:' + (qr_TYPE_IN ? (qr_TYPE_IN.query ? qr_TYPE_IN.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
+                    context_query.log(true);
+                    throw new Error('Invalid query:TYPE_IN');
                 }
 
                 if (qr_TYPE_IN.is_segmented_non_existing_table) {
@@ -2632,6 +2568,47 @@ export default class ContextFilterServerController {
 
                 if (qr_TYPE_IN.params && qr_TYPE_IN.params.length) {
                     query_result.params = query_result.params.concat(qr_TYPE_IN.params);
+                }
+
+                /**
+                 * Cas particulier pour les champs de type range_array qu'on veut déployer avant de tester le IN
+                 */
+                switch (field_type) {
+                    case ModuleTableField.FIELD_TYPE_amount:
+                    case ModuleTableField.FIELD_TYPE_enum:
+                    case ModuleTableField.FIELD_TYPE_file_ref:
+                    case ModuleTableField.FIELD_TYPE_float:
+                    case ModuleTableField.FIELD_TYPE_decimal_full_precision:
+                    case ModuleTableField.FIELD_TYPE_foreign_key:
+                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableField.FIELD_TYPE_image_ref:
+                    case ModuleTableField.FIELD_TYPE_int:
+                    case ModuleTableField.FIELD_TYPE_prct:
+                    case ModuleTableField.FIELD_TYPE_tstz:
+                    case ModuleTableField.FIELD_TYPE_numrange:
+                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableField.FIELD_TYPE_string:
+                    case ModuleTableField.FIELD_TYPE_html:
+                    case ModuleTableField.FIELD_TYPE_file_field:
+                    case ModuleTableField.FIELD_TYPE_textarea:
+                    case ModuleTableField.FIELD_TYPE_translatable_text:
+                    case ModuleTableField.FIELD_TYPE_email:
+                    case ModuleTableField.FIELD_TYPE_password:
+                    default:
+                        break;
+
+
+                    case ModuleTableField.FIELD_TYPE_string_array:
+                    case ModuleTableField.FIELD_TYPE_html_array:
+                    case ModuleTableField.FIELD_TYPE_isoweekdays:
+                    case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_float_array:
+                    case ModuleTableField.FIELD_TYPE_tstz_array:
+                    case ModuleTableField.FIELD_TYPE_numrange_array:
+                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                        throw new Error('Not Implemented');
                 }
 
                 where_conditions.push(field_id + ' IN (' + qr_TYPE_IN.query + ')');
@@ -2645,8 +2622,10 @@ export default class ContextFilterServerController {
 
                 let qr_TYPE_NOT_IN = await ContextQueryServerController.getInstance().build_select_query(active_field_filter.sub_query);
 
-                if ((!qr_TYPE_NOT_IN) || (!qr_TYPE_NOT_IN.query)) {
-                    throw new Error('Invalid query');
+                if (((!qr_TYPE_NOT_IN) || (!qr_TYPE_NOT_IN.query)) && (!qr_TYPE_NOT_IN.is_segmented_non_existing_table)) {
+                    ConsoleHandler.error('Invalid query:TYPE_NOT_IN:INFOS context_query:' + (qr_TYPE_NOT_IN ? (qr_TYPE_NOT_IN.query ? qr_TYPE_NOT_IN.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
+                    context_query.log(true);
+                    throw new Error('Invalid query:TYPE_NOT_IN');
                 }
 
                 if (qr_TYPE_NOT_IN.is_segmented_non_existing_table) {
@@ -2669,8 +2648,10 @@ export default class ContextFilterServerController {
 
                 let qr_TYPE_NOT_EXISTS = await ContextQueryServerController.getInstance().build_select_query(active_field_filter.sub_query);
 
-                if ((!qr_TYPE_NOT_EXISTS) || (!qr_TYPE_NOT_EXISTS.query)) {
-                    throw new Error('Invalid query');
+                if (((!qr_TYPE_NOT_EXISTS) || (!qr_TYPE_NOT_EXISTS.query)) && (!qr_TYPE_NOT_EXISTS.is_segmented_non_existing_table)) {
+                    ConsoleHandler.error('Invalid query:TYPE_NOT_EXISTS:INFOS context_query:' + (qr_TYPE_NOT_EXISTS ? (qr_TYPE_NOT_EXISTS.query ? qr_TYPE_NOT_EXISTS.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
+                    context_query.log(true);
+                    throw new Error('Invalid query:TYPE_NOT_EXISTS');
                 }
 
                 if (qr_TYPE_NOT_EXISTS.is_segmented_non_existing_table) {
@@ -2693,8 +2674,10 @@ export default class ContextFilterServerController {
 
                 let qr_TYPE_EXISTS = await ContextQueryServerController.getInstance().build_select_query(active_field_filter.sub_query);
 
-                if ((!qr_TYPE_EXISTS) || (!qr_TYPE_EXISTS.query)) {
-                    throw new Error('Invalid query');
+                if (((!qr_TYPE_EXISTS) || (!qr_TYPE_EXISTS.query)) && (!qr_TYPE_EXISTS.is_segmented_non_existing_table)) {
+                    ConsoleHandler.error('Invalid query:TYPE_EXISTS:INFOS context_query:' + (qr_TYPE_EXISTS ? (qr_TYPE_EXISTS.query ? qr_TYPE_EXISTS.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
+                    context_query.log(true);
+                    throw new Error('Invalid query:TYPE_EXISTS');
                 }
 
                 if (qr_TYPE_EXISTS.is_segmented_non_existing_table) {
@@ -2813,7 +2796,7 @@ export default class ContextFilterServerController {
                                 throw new Error('Error should not filter on empty range array TYPE_NUMERIC_IS_INCLUDED_IN');
                             }
 
-                            let table = VOsTypesManager.getInstance().moduleTables_by_voType[active_field_filter.vo_type];
+                            let table = VOsTypesManager.moduleTables_by_voType[active_field_filter.vo_type];
                             let table_name = table.full_name.split('.')[1];
                             let ranges_query = 'ANY(' + range_to_db + ')';
 
@@ -2839,7 +2822,7 @@ export default class ContextFilterServerController {
                                 throw new Error('Error should not filter on empty range array TYPE_NUMERIC_IS_INCLUDED_IN');
                             }
 
-                            let table = VOsTypesManager.getInstance().moduleTables_by_voType[active_field_filter.vo_type];
+                            let table = VOsTypesManager.moduleTables_by_voType[active_field_filter.vo_type];
                             let table_name = table.full_name.split('.')[1];
                             let ranges_query = 'ANY(' + range_to_db + ')';
 
@@ -2896,9 +2879,9 @@ export default class ContextFilterServerController {
                                 throw new Error('Error should not filter on empty range array TYPE_NUMERIC_CONTAINS');
                             }
 
-                            let nb_values: number = RangeHandler.getInstance().get_all_segmented_elements_from_ranges(active_field_filter.param_numranges).length;
+                            let nb_values: number = RangeHandler.get_all_segmented_elements_from_ranges(active_field_filter.param_numranges).length;
 
-                            let table = VOsTypesManager.getInstance().moduleTables_by_voType[active_field_filter.vo_type];
+                            let table = VOsTypesManager.moduleTables_by_voType[active_field_filter.vo_type];
                             let table_name = table.full_name.split('.')[1];
                             let ranges_query = 'ANY(' + range_to_db + ')';
 
@@ -2924,9 +2907,9 @@ export default class ContextFilterServerController {
                                 throw new Error('Error should not filter on empty range array TYPE_NUMERIC_CONTAINS');
                             }
 
-                            let nb_values: number = RangeHandler.getInstance().get_all_segmented_elements_from_ranges(active_field_filter.param_tsranges).length;
+                            let nb_values: number = RangeHandler.get_all_segmented_elements_from_ranges(active_field_filter.param_tsranges).length;
 
-                            let table = VOsTypesManager.getInstance().moduleTables_by_voType[active_field_filter.vo_type];
+                            let table = VOsTypesManager.moduleTables_by_voType[active_field_filter.vo_type];
                             let table_name = table.full_name.split('.')[1];
                             let ranges_query = 'ANY(' + range_to_db + ')';
 
@@ -2983,7 +2966,7 @@ export default class ContextFilterServerController {
                                 throw new Error('Error should not filter on empty range array TYPE_DATE_IS_INCLUDED_IN');
                             }
 
-                            let table = VOsTypesManager.getInstance().moduleTables_by_voType[active_field_filter.vo_type];
+                            let table = VOsTypesManager.moduleTables_by_voType[active_field_filter.vo_type];
                             let table_name = table.full_name.split('.')[1];
                             let ranges_query = 'ANY(' + range_to_db + ')';
 
@@ -3009,7 +2992,7 @@ export default class ContextFilterServerController {
                                 throw new Error('Error should not filter on empty range array TYPE_DATE_IS_INCLUDED_IN');
                             }
 
-                            let table = VOsTypesManager.getInstance().moduleTables_by_voType[active_field_filter.vo_type];
+                            let table = VOsTypesManager.moduleTables_by_voType[active_field_filter.vo_type];
                             let table_name = table.full_name.split('.')[1];
                             let ranges_query = 'ANY(' + range_to_db + ')';
 
@@ -3091,6 +3074,7 @@ export default class ContextFilterServerController {
      * Check Injection OK : Aucun insère de données depuis la query(pas en param) ou les filtres
      */
     public async updates_jointures(
+        context_query: ContextQueryVO,
         query_tables_prefix: string,
         jointures: string[],
         filters: ContextFilterVO[],
@@ -3111,20 +3095,56 @@ export default class ContextFilterServerController {
 
                 if (!tables_aliases_by_type[path_i.field.manyToOne_target_moduletable.vo_type]) {
 
-                    tables_aliases_by_type[path_i.field.manyToOne_target_moduletable.vo_type] = (query_tables_prefix ?
+                    let api_type_id = path_i.field.manyToOne_target_moduletable.vo_type;
+                    tables_aliases_by_type[api_type_id] = (query_tables_prefix ?
                         (query_tables_prefix + '_t' + (aliases_n++)) :
                         ('t' + (aliases_n++))
                     );
-                    joined_tables_by_vo_type[path_i.field.manyToOne_target_moduletable.vo_type] = path_i.field.manyToOne_target_moduletable;
+                    joined_tables_by_vo_type[api_type_id] = path_i.field.manyToOne_target_moduletable;
+                    let jointure_table_ref: string = null;
+                    let table = joined_tables_by_vo_type[api_type_id];
 
-                    let full_name = await this.get_table_full_name(path_i.field.manyToOne_target_moduletable, filters);
+                    if (table.is_segmented) {
 
-                    /**
-                     * Cas du segmented table dont la table n'existe pas, donc on select null en somme (c'est pas une erreur en soit, juste il n'y a pas de données)
-                     *  normalement ça devrait pas arriver sur une jointure
-                     */
-                    if (!full_name) {
-                        continue;
+                        let ids: number[] = await ContextQueryServerController.getInstance().get_valid_segmentations(table, context_query);
+
+                        if ((!ids) || (!ids.length)) {
+                            return aliases_n;
+                        }
+
+                        let tables: string[] = [];
+                        for (let j in ids) {
+                            let id = ids[j];
+                            let full_name = table.get_segmented_full_name(id);
+
+                            /**
+                             * Cas du segmented table dont la table n'existe pas, donc on select null en somme (c'est pas une erreur en soit, juste il n'y a pas de données)
+                             *  normalement ça devrait pas arriver sur une jointure
+                             */
+                            if (!full_name) {
+                                return aliases_n;
+                            }
+
+                            tables.push(full_name);
+                        }
+
+                        if ((!tables) || (!tables.length)) {
+                            return aliases_n;
+                        }
+
+                        if (tables.length == 1) {
+                            jointure_table_ref = tables[0];
+                        } else {
+                            jointure_table_ref = '(SELECT * FROM ' + tables.join(' UNION ALL SELECT * FROM ') + ')';
+                        }
+                    } else {
+
+                        let full_name = await this.get_table_full_name(joined_tables_by_vo_type[api_type_id], filters);
+                        if (!full_name) {
+                            throw new Error('Table not found');
+                        }
+
+                        jointure_table_ref = full_name;
                     }
 
                     switch (path_i.field.field_type) {
@@ -3132,17 +3152,17 @@ export default class ContextFilterServerController {
                         case ModuleTableField.FIELD_TYPE_file_ref:
                         case ModuleTableField.FIELD_TYPE_image_ref:
                             jointures.push(
-                                full_name + ' ' + tables_aliases_by_type[path_i.field.manyToOne_target_moduletable.vo_type] +
+                                jointure_table_ref + ' ' + tables_aliases_by_type[api_type_id] +
                                 ' on ' +
-                                tables_aliases_by_type[path_i.field.manyToOne_target_moduletable.vo_type] + '.id = ' +
+                                tables_aliases_by_type[api_type_id] + '.id = ' +
                                 tables_aliases_by_type[path_i.field.module_table.vo_type] + '.' + path_i.field.field_id
                             );
                             break;
                         case ModuleTableField.FIELD_TYPE_refrange_array:
                             jointures.push(
-                                full_name + ' ' + tables_aliases_by_type[path_i.field.manyToOne_target_moduletable.vo_type] +
+                                jointure_table_ref + ' ' + tables_aliases_by_type[api_type_id] +
                                 ' on ' +
-                                tables_aliases_by_type[path_i.field.manyToOne_target_moduletable.vo_type] + '.id::numeric <@ ANY(' +
+                                tables_aliases_by_type[api_type_id] + '.id::numeric <@ ANY(' +
                                 tables_aliases_by_type[path_i.field.module_table.vo_type] + '.' + path_i.field.field_id + ')'
                             );
                             break;
@@ -3153,20 +3173,56 @@ export default class ContextFilterServerController {
             } else {
                 if (!tables_aliases_by_type[path_i.field.module_table.vo_type]) {
 
-                    tables_aliases_by_type[path_i.field.module_table.vo_type] = (query_tables_prefix ?
+                    let api_type_id = path_i.field.module_table.vo_type;
+                    tables_aliases_by_type[api_type_id] = (query_tables_prefix ?
                         (query_tables_prefix + '_t' + (aliases_n++)) :
                         ('t' + (aliases_n++))
                     );
-                    joined_tables_by_vo_type[path_i.field.module_table.vo_type] = path_i.field.module_table;
+                    joined_tables_by_vo_type[api_type_id] = path_i.field.module_table;
+                    let jointure_table_ref: string = null;
+                    let table = joined_tables_by_vo_type[api_type_id];
 
-                    let full_name = await this.get_table_full_name(path_i.field.module_table, filters);
+                    if (table.is_segmented) {
 
-                    /**
-                     * Cas du segmented table dont la table n'existe pas, donc on select null en somme (c'est pas une erreur en soit, juste il n'y a pas de données)
-                     *  normalement ça devrait pas arriver sur une jointure
-                     */
-                    if (!full_name) {
-                        continue;
+                        let ids: number[] = await ContextQueryServerController.getInstance().get_valid_segmentations(table, context_query);
+
+                        if ((!ids) || (!ids.length)) {
+                            return aliases_n;
+                        }
+
+                        let tables: string[] = [];
+                        for (let j in ids) {
+                            let id = ids[j];
+                            let full_name = table.get_segmented_full_name(id);
+
+                            /**
+                             * Cas du segmented table dont la table n'existe pas, donc on select null en somme (c'est pas une erreur en soit, juste il n'y a pas de données)
+                             *  normalement ça devrait pas arriver sur une jointure
+                             */
+                            if (!full_name) {
+                                return aliases_n;
+                            }
+
+                            tables.push(full_name);
+                        }
+
+                        if ((!tables) || (!tables.length)) {
+                            return aliases_n;
+                        }
+
+                        if (tables.length == 1) {
+                            jointure_table_ref = tables[0];
+                        } else {
+                            jointure_table_ref = '(SELECT * FROM ' + tables.join(' UNION ALL SELECT * FROM ') + ')';
+                        }
+                    } else {
+
+                        let full_name = await this.get_table_full_name(joined_tables_by_vo_type[api_type_id], filters);
+                        if (!full_name) {
+                            throw new Error('Table not found');
+                        }
+
+                        jointure_table_ref = full_name;
                     }
 
                     switch (path_i.field.field_type) {
@@ -3174,18 +3230,18 @@ export default class ContextFilterServerController {
                         case ModuleTableField.FIELD_TYPE_file_ref:
                         case ModuleTableField.FIELD_TYPE_image_ref:
                             jointures.push(
-                                full_name + ' ' + tables_aliases_by_type[path_i.field.module_table.vo_type] +
+                                jointure_table_ref + ' ' + tables_aliases_by_type[api_type_id] +
                                 ' on ' +
-                                tables_aliases_by_type[path_i.field.module_table.vo_type] + '.' + path_i.field.field_id + ' = ' +
+                                tables_aliases_by_type[api_type_id] + '.' + path_i.field.field_id + ' = ' +
                                 tables_aliases_by_type[path_i.field.manyToOne_target_moduletable.vo_type] + '.id'
                             );
                             break;
                         case ModuleTableField.FIELD_TYPE_refrange_array:
                             jointures.push(
-                                full_name + ' ' + tables_aliases_by_type[path_i.field.module_table.vo_type] +
+                                jointure_table_ref + ' ' + tables_aliases_by_type[api_type_id] +
                                 ' on ' +
                                 tables_aliases_by_type[path_i.field.manyToOne_target_moduletable.vo_type] + '.id::numeric <@ ANY(' +
-                                tables_aliases_by_type[path_i.field.module_table.vo_type] + '.' + path_i.field.field_id + ')'
+                                tables_aliases_by_type[api_type_id] + '.' + path_i.field.field_id + ')'
                             );
                             break;
                         default:
@@ -3199,6 +3255,7 @@ export default class ContextFilterServerController {
     }
 
     public async updates_cross_jointures(
+        context_query: ContextQueryVO,
         query_tables_prefix: string,
         api_type_id: string,
         cross_jointures: string[],
@@ -3218,19 +3275,55 @@ export default class ContextFilterServerController {
                 (query_tables_prefix + '_t' + (aliases_n++)) :
                 ('t' + (aliases_n++))
             );
-            joined_tables_by_vo_type[api_type_id] = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+            joined_tables_by_vo_type[api_type_id] = VOsTypesManager.moduleTables_by_voType[api_type_id];
 
-            let full_name = await this.get_table_full_name(joined_tables_by_vo_type[api_type_id], filters);
+            let cross_jointure_table_ref: string = null;
+            let table = joined_tables_by_vo_type[api_type_id];
 
-            /**
-             * Cas du segmented table dont la table n'existe pas, donc on select null en somme (c'est pas une erreur en soit, juste il n'y a pas de données)
-             *  normalement ça devrait pas arriver sur une jointure
-             */
-            if (!full_name) {
-                return aliases_n;
+            if (table.is_segmented) {
+
+                let ids: number[] = await ContextQueryServerController.getInstance().get_valid_segmentations(table, context_query);
+
+                if ((!ids) || (!ids.length)) {
+                    return aliases_n;
+                }
+
+                let tables: string[] = [];
+                for (let i in ids) {
+                    let id = ids[i];
+                    let full_name = table.get_segmented_full_name(id);
+
+                    /**
+                     * Cas du segmented table dont la table n'existe pas, donc on select null en somme (c'est pas une erreur en soit, juste il n'y a pas de données)
+                     *  normalement ça devrait pas arriver sur une jointure
+                     */
+                    if (!full_name) {
+                        return aliases_n;
+                    }
+
+                    tables.push(full_name);
+                }
+
+                if ((!tables) || (!tables.length)) {
+                    return aliases_n;
+                }
+
+                if (tables.length == 1) {
+                    cross_jointure_table_ref = tables[0];
+                } else {
+                    cross_jointure_table_ref = '(SELECT * FROM ' + tables.join(' UNION ALL SELECT * FROM ') + ')';
+                }
+            } else {
+
+                let full_name = await this.get_table_full_name(joined_tables_by_vo_type[api_type_id], filters);
+                if (!full_name) {
+                    throw new Error('Table not found');
+                }
+
+                cross_jointure_table_ref = full_name;
             }
 
-            cross_jointures.push(full_name + ' ' + tables_aliases_by_type[api_type_id]);
+            cross_jointures.push(cross_jointure_table_ref + ' ' + tables_aliases_by_type[api_type_id]);
         }
 
         return aliases_n;
@@ -3303,7 +3396,7 @@ export default class ContextFilterServerController {
 
                     if (query_res && query_res.length) {
 
-                        let unique_segment_vos = await ModuleDAOServer.getInstance().filterVOsAccess(linked_segment_table, ModuleDAO.DAO_ACCESS_TYPE_READ, linked_segment_table.forceNumerics(query_res));
+                        let unique_segment_vos = await ModuleDAOServer.getInstance().filterVOsAccess(linked_segment_table, ModuleDAO.DAO_ACCESS_TYPE_READ, query_res);
 
                         if (unique_segment_vos && (unique_segment_vos.length == 1)) {
                             is_implemented = true;

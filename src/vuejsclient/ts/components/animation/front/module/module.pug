@@ -56,7 +56,7 @@
                     template(v-for="qr in ordered_qrs")
                         .question(@click="switchQR(qr)", :class="{active: (!show_recap && current_qr && current_qr.id == qr.id), 'fa fa-check': (qr && uqr_by_qr_ids[qr.id] && uqr_by_qr_ids[qr.id].id && is_reponse_valid[qr.id]), 'fa fa-times': (qr && uqr_by_qr_ids[qr.id] && uqr_by_qr_ids[qr.id].id && !is_reponse_valid[qr.id])}")
 
-                    i.fa.fa-trophy.question(@click="show_recap_toggle", :class="{active: show_recap, actif: recap_is_actif}")
+                    i.fa-solid.fa-trophy.question(@click="show_recap_toggle", :class="{active: show_recap, actif: recap_is_actif}")
 
             //- question page
             template(v-if="current_qr && !show_recap")
@@ -112,13 +112,13 @@
 
                             //- succeeded => feedback
                             template(v-if="is_module_valide")
-                                i.fa.fa-long-arrow-right(@click="goToFeedback")
+                                i.fa-solid.fa-long-arrow-right(@click="goToFeedback")
 
                             //- failed => documentation + return to theme menu
                             template(v-else)
                                 template(v-if="document")
                                     a.document_module(:href="document.document_url", target="_blank")
-                                        i.fa.fa-long-arrow-right
+                                        i.fa-solid.fa-long-arrow-right
                                         span {{ label('animation.module.document') }}
 
                                 .btn.btn-success.mt-2(@click="backToFront") {{ label('animation.retour_formations') }}

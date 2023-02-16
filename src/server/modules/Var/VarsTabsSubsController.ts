@@ -72,11 +72,11 @@ export default class VarsTabsSubsController {
             if (!this._tabs_subs[param_index][user_id]) {
                 this._tabs_subs[param_index][user_id] = {};
             }
-            // ConsoleHandler.getInstance().log('REMOVETHIS:register_sub:' + param_index + ':user_id:' + user_id + ':client_tab_id:' + client_tab_id + ':');
+            // ConsoleHandler.log('REMOVETHIS:register_sub:' + param_index + ':user_id:' + user_id + ':client_tab_id:' + client_tab_id + ':');
             this._tabs_subs[param_index][user_id][client_tab_id] = Dates.now();
         }
 
-        ConsoleHandler.getInstance().log('VarsTabsSubsController:post register_sub:nb_subs:' + Object.keys(this._tabs_subs).length + ':');
+        ConsoleHandler.log('VarsTabsSubsController:post register_sub:nb_subs:' + Object.keys(this._tabs_subs).length + ':');
     }
 
     /**
@@ -93,7 +93,7 @@ export default class VarsTabsSubsController {
             if ((!param_index) || (!this._tabs_subs[param_index]) || (!this._tabs_subs[param_index][user_id]) || (!this._tabs_subs[param_index][user_id][client_tab_id])) {
                 continue;
             }
-            // ConsoleHandler.getInstance().log('REMOVETHIS:unregister_sub:' + param_index + ':user_id:' + user_id + ':client_tab_id:' + client_tab_id + ':');
+            // ConsoleHandler.log('REMOVETHIS:unregister_sub:' + param_index + ':user_id:' + user_id + ':client_tab_id:' + client_tab_id + ':');
             delete this._tabs_subs[param_index][user_id][client_tab_id];
         }
 
@@ -129,7 +129,7 @@ export default class VarsTabsSubsController {
         }
 
 
-        ConsoleHandler.getInstance().log('VarsTabsSubsController:post unregister_sub:nb_subs:' + Object.keys(this._tabs_subs).length + ':');
+        ConsoleHandler.log('VarsTabsSubsController:post unregister_sub:nb_subs:' + Object.keys(this._tabs_subs).length + ':');
     }
 
     /**
@@ -152,7 +152,7 @@ export default class VarsTabsSubsController {
             for (let i in param.var_datas) {
                 let var_data = param.var_datas[i];
 
-                // ConsoleHandler.getInstance().log('REMOVETHIS:notify_vardatas.1:' + var_data.index + ':');
+                // ConsoleHandler.log('REMOVETHIS:notify_vardatas.1:' + var_data.index + ':');
 
                 for (let user_id in this._tabs_subs[var_data.index]) {
 
@@ -178,7 +178,7 @@ export default class VarsTabsSubsController {
 
         for (let socketid in datas_by_socketid_for_notif) {
 
-            // datas_by_socketid_for_notif[socketid].forEach((vd) => ConsoleHandler.getInstance().log('REMOVETHIS:notify_vardatas.2:' + vd.index + ':'));
+            // datas_by_socketid_for_notif[socketid].forEach((vd) => ConsoleHandler.log('REMOVETHIS:notify_vardatas.2:' + vd.index + ':'));
             await PushDataServerController.getInstance().notifyVarsDatasBySocket(socketid, datas_by_socketid_for_notif[socketid]);
         }
         return true;
@@ -205,7 +205,11 @@ export default class VarsTabsSubsController {
                 return;
             }
 
+            ConsoleHandler.log('filter_by_subs:IN:' + var_datas_indexes.length + ':clean_old_subs:IN');
+
             await self.clean_old_subs();
+
+            ConsoleHandler.log('filter_by_subs:IN:' + var_datas_indexes.length + ':clean_old_subs:OUT');
 
             for (let i in var_datas_indexes) {
                 let var_datas_index = var_datas_indexes[i];
@@ -214,6 +218,8 @@ export default class VarsTabsSubsController {
                     res.push(var_datas_index);
                 }
             }
+
+            ConsoleHandler.log('filter_by_subs:IN:' + var_datas_indexes.length + ':for has_registered_user:OUT:resolve:' + res.length + ':');
 
             resolve(res);
         });
@@ -244,13 +250,15 @@ export default class VarsTabsSubsController {
     private async clean_old_subs() {
 
         let now = Dates.now();
-        let SUBS_CLEAN_DELAY = await ModuleParams.getInstance().getParamValueAsInt(VarsTabsSubsController.PARAM_NAME_SUBS_CLEAN_DELAY, 1800);
-        let SUBS_CLEAN_THROTTLE = await ModuleParams.getInstance().getParamValueAsInt(VarsTabsSubsController.PARAM_NAME_SUBS_CLEAN_THROTTLE, 600);
+        let SUBS_CLEAN_DELAY = await ModuleParams.getInstance().getParamValueAsInt(VarsTabsSubsController.PARAM_NAME_SUBS_CLEAN_DELAY, 600, 180000);
+        let SUBS_CLEAN_THROTTLE = await ModuleParams.getInstance().getParamValueAsInt(VarsTabsSubsController.PARAM_NAME_SUBS_CLEAN_THROTTLE, 1800, 180000);
 
         if ((now - this.last_subs_clean) < SUBS_CLEAN_THROTTLE) {
             return;
         }
         this.last_subs_clean = now;
+
+        ConsoleHandler.log('VarsTabsSubsController:clean_old_subs:IN:nb_subs:' + Object.keys(this._tabs_subs).length + ':');
 
         let indexs_to_delete = [];
         for (let index in this._tabs_subs) {
@@ -300,5 +308,7 @@ export default class VarsTabsSubsController {
         for (let i in indexs_to_delete) {
             delete this._tabs_subs[indexs_to_delete[i]];
         }
+
+        ConsoleHandler.log('VarsTabsSubsController:clean_old_subs:OUT:nb_subs:' + Object.keys(this._tabs_subs).length + ':');
     }
 }

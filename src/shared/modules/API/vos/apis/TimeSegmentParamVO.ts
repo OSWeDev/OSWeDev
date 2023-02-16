@@ -12,7 +12,7 @@ export default class TimeSegmentParamVO implements IAPIParamTranslator<TimeSegme
         if (!(req && req.params)) {
             return null;
         }
-        return new TimeSegmentParamVO(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(parseInt(req.params.date_index.toString()), parseInt(req.params.type.toString())));
+        return new TimeSegmentParamVO(TimeSegmentHandler.getCorrespondingTimeSegment(parseInt(req.params.date_index.toString()), parseInt(req.params.type.toString())));
     }
 
     public static fromParams(timeSegment: TimeSegment): TimeSegmentParamVO {

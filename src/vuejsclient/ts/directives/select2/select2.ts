@@ -11,7 +11,7 @@ export default Vue.directive('select2', {
         Vue.nextTick(function () {
             // DIRTY : Incompatibilité quand on essaie de mettre les types select2 avec les types nodes....
             if (!select['select2']) {
-                ConsoleHandler.getInstance().error("FIXME: select2 not loading properly");
+                ConsoleHandler.error("FIXME: select2 not loading properly");
                 return;
             }
             select['select2']({

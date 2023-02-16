@@ -72,6 +72,16 @@ export default class ModuleImageFormat extends Module {
             new ModuleTableField('align_larg', ModuleTableField.FIELD_TYPE_enum, 'Alignement en largeur', true, true, ImageFormatVO.HALIGN_CENTER).setEnumValues(ImageFormatVO.HALIGN_NAMES),
             new ModuleTableField('align_haut', ModuleTableField.FIELD_TYPE_enum, 'Alignement en hauteur', true, true, ImageFormatVO.VALIGN_CENTER).setEnumValues(ImageFormatVO.VALIGN_NAMES),
             new ModuleTableField('quality', ModuleTableField.FIELD_TYPE_prct, 'Qualité', true, true, 0.9),
+            new ModuleTableField('height', ModuleTableField.FIELD_TYPE_int, 'Hauteur'),
+            new ModuleTableField('width', ModuleTableField.FIELD_TYPE_int, 'Largeur'),
+            new ModuleTableField('add_size_rename_name', ModuleTableField.FIELD_TYPE_boolean, 'Ajouter la taille au nom', false, true, true),
+            new ModuleTableField('watermark_txt', ModuleTableField.FIELD_TYPE_string, 'Watermark texte'),
+            new ModuleTableField('watermark_x', ModuleTableField.FIELD_TYPE_int, 'Watermark ecart X'),
+            new ModuleTableField('watermark_y', ModuleTableField.FIELD_TYPE_int, 'Watermark ecart Y'),
+            new ModuleTableField('watermark_horizontal_align', ModuleTableField.FIELD_TYPE_enum, 'Watermark Alignement horizontal').setEnumValues(ImageFormatVO.WATERMARK_HORIZONTAL_ALIGN_LABELS),
+            new ModuleTableField('watermark_vertical_align', ModuleTableField.FIELD_TYPE_enum, 'Watermark Alignement vertical').setEnumValues(ImageFormatVO.WATERMARK_VERTICAL_ALIGN_LABELS),
+            new ModuleTableField('watermark_font', ModuleTableField.FIELD_TYPE_enum, 'Watermark Font').setEnumValues(ImageFormatVO.WATERMARK_FONT_LABELS),
+            new ModuleTableField('watermark_rotate', ModuleTableField.FIELD_TYPE_int, 'Watermark Rotation'),
         ];
 
         let table = new ModuleTable(this, ImageFormatVO.API_TYPE_ID, () => new ImageFormatVO(), fields, null, 'Formats d\'image');
@@ -81,7 +91,7 @@ export default class ModuleImageFormat extends Module {
     }
 
     private initializeFormattedImageVO() {
-        let file_id = new ModuleTableField('file_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Image - fichier formatté', true);
+        let file_id = new ModuleTableField('file_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Image - fichier formatté', true).not_add_to_crud();
         let image_format_id = new ModuleTableField('image_format_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Format d\'image', true);
 
         let fields = [
@@ -102,8 +112,8 @@ export default class ModuleImageFormat extends Module {
         let table = new ModuleTable(this, FormattedImageVO.API_TYPE_ID, () => new FormattedImageVO(), fields, null, 'Images formattées');
         this.datatables.push(table);
 
-        file_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);
-        image_format_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[ImageFormatVO.API_TYPE_ID]);
+        file_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[FileVO.API_TYPE_ID]);
+        image_format_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[ImageFormatVO.API_TYPE_ID]);
 
         VersionedVOController.getInstance().registerModuleTable(table);
     }

@@ -43,7 +43,7 @@ export default class AmountFilterOptionsComponent extends VueComponentBase {
             this.currency = additional_options[4];
             this.humanize = additional_options[3];
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
     }
 

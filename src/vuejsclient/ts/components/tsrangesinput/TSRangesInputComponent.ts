@@ -3,7 +3,7 @@
 import * as moment from 'moment';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import SimpleDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import TSRange from '../../../../shared/modules/DataRender/vos/TSRange';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
@@ -25,7 +25,7 @@ export default class TSRangesInputComponent extends VueComponentBase {
     private value: TSRange[];
 
     @Prop({ default: null })
-    private field: SimpleDatatableField<any, any>;
+    private field: SimpleDatatableFieldVO<any, any>;
 
     @Prop({ default: null })
     private vo: IDistantVOBase;
@@ -36,7 +36,7 @@ export default class TSRangesInputComponent extends VueComponentBase {
 
     @Watch('value', { immediate: true })
     private async onchange_value(): Promise<void> {
-        if (RangeHandler.getInstance().are_same(this.new_value, this.value)) {
+        if (RangeHandler.are_same(this.new_value, this.value)) {
             return;
         }
 
@@ -48,7 +48,7 @@ export default class TSRangesInputComponent extends VueComponentBase {
             return;
         }
 
-        RangeHandler.getInstance().foreach_ranges_sync(this.value, (e: number) => {
+        RangeHandler.foreach_ranges_sync(this.value, (e: number) => {
             // On met UTC false car le composant v-date-picker utilise sans UTC et il compare directement la date
             // Ca pose donc un soucis de comparaison pour v-date-picker
             // Il faut bien laisser utc(false)
@@ -63,16 +63,16 @@ export default class TSRangesInputComponent extends VueComponentBase {
         for (let i in this.selectedDates) {
             let selectedDate = this.selectedDates[i];
 
-            new_value.push(RangeHandler.getInstance().create_single_elt_TSRange(moment(selectedDate).utc(true).unix(), this.field.moduleTableField.segmentation_type));
+            new_value.push(RangeHandler.create_single_elt_TSRange(moment(selectedDate).utc(true).unix(), this.field.moduleTableField.segmentation_type));
         }
-        new_value = RangeHandler.getInstance().getRangesUnion(new_value);
+        new_value = RangeHandler.getRangesUnion(new_value);
 
         /**
          * On check que c'est bien une nouvelle value
          */
         let old_value = this.vo ? this.vo[this.field.datatable_field_uid] : null;
         if ((old_value == new_value) ||
-            (RangeHandler.getInstance().are_same(old_value, new_value))) {
+            (RangeHandler.are_same(old_value, new_value))) {
             return;
         }
         this.new_value = new_value;

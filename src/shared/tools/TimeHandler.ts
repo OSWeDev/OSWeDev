@@ -55,7 +55,7 @@ export default class TimeHandler {
 
             return ((hours >= 10) ? hours : '0' + hours) + ':' + ((minutes >= 10) ? minutes : '0' + minutes);
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            ConsoleHandler.error(error);
         }
         return null;
     }
