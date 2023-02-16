@@ -37,6 +37,9 @@ import './FieldValueFilterNumberWidgetComponent.scss';
 export default class FieldValueFilterNumberWidgetComponent extends VueComponentBase {
 
     @ModuleDashboardPageGetter
+    private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
+
+    @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
     @ModuleDashboardPageAction
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
@@ -384,6 +387,8 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         query_.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(active_field_filters_query);
         query_.active_api_type_ids = this.dashboard.api_type_ids;
 
+        FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(query_, this.get_discarded_field_paths);
+
         query_.filters = ContextFilterHandler.getInstance().add_context_filters_exclude_values(
             this.exclude_values,
             this.vo_field_ref,
@@ -421,7 +426,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                 return;
             }
         } else {
-            query_ = await FieldValueFilterWidgetController.getInstance().check_segmented_dependencies(this.dashboard, query_, true);
+            query_ = await FieldValueFilterWidgetController.getInstance().check_segmented_dependencies(this.dashboard, query_, this.get_discarded_field_paths, true);
         }
 
         tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(

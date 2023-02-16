@@ -438,6 +438,7 @@ export default class ContextFilterHandler {
 
         // Le root est déjà rempli, on renvoie un nouvel operateur
         let new_root = new ContextFilterVO();
+
         new_root.vo_type = context_filter_to_add.vo_type;
         new_root.field_id = context_filter_to_add.field_id;
         new_root.filter_type = operator_type;

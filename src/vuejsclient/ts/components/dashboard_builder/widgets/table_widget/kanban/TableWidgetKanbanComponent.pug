@@ -27,7 +27,7 @@ include ../../../../../../views/mixins/loading.pug
                         | {{ label('crud.actions.create') }}
 
             .kanban_header {{ table_header_title }}
-            .kanban_wrapper 
+            .kanban_wrapper
 
                 Sortablelistcomponent.kanban_columns_wrapper(
                     :disabled='(!kanban_column_is_ref_to_other_api_type_id) || !widget_options.use_kanban_column_weight_if_exists'
@@ -71,6 +71,7 @@ include ../../../../../../views/mixins/loading.pug
                                                     :page_widget="page_widget"
                                                     :filter='get_column_filter(kanban_column)'
                                                     :filter_additional_params='get_column_filter_additional_params(kanban_column)'
+                                                    :table_is_busy="is_busy"
                                                 )
 
                                 //- TODO ajouter les colonnes de somme et de moyenne des vars
@@ -123,6 +124,7 @@ include ../../../../../../views/mixins/loading.pug
                                                                                             :page_widget="page_widget"
                                                                                             :filter='get_column_filter(column)'
                                                                                             :filter_additional_params='get_column_filter_additional_params(column)'
+                                                                                            :table_is_busy="is_busy"
                                                                                         )
                     template(slot='create_new')
                         .kanban_column.create_new_kanban_column(v-if='can_create_kanban_column')

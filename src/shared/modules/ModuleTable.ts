@@ -132,13 +132,6 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
             let new_id = fieldIdToAPIMap[field.field_id];
             res[new_id] = table.default_get_field_api_version(e[field.field_id], field);
-
-            /**
-             * Compatibilité MSGPACK : il traduit les undefind en null
-             */
-            if (typeof res[new_id] === 'undefined') {
-                delete res[new_id];
-            }
         }
 
         return res;

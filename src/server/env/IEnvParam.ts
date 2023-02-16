@@ -7,7 +7,6 @@ export default interface IEnvParam {
     ISDEV: boolean;
     DEFAULT_LOCALE: string;
     CODE_PAYS: string;
-    MSGPCK: boolean;
     COMPRESS: boolean;
     URL_RECOVERY_CHALLENGE: string;
     URL_RECOVERY: string;

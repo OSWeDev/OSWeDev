@@ -222,6 +222,9 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
 
     get vo_ref_tooltip(): string {
         if (!this.field || !this.table) {
+            if (this.column?.var_id) {
+                return 'VAR :var_id:' + this.column.var_id + ' :name: ' + this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(this.column.var_id));
+            }
             return null;
         }
 

@@ -205,7 +205,11 @@ export default class VarsTabsSubsController {
                 return;
             }
 
+            ConsoleHandler.log('filter_by_subs:IN:' + var_datas_indexes.length + ':clean_old_subs:IN');
+
             await self.clean_old_subs();
+
+            ConsoleHandler.log('filter_by_subs:IN:' + var_datas_indexes.length + ':clean_old_subs:OUT');
 
             for (let i in var_datas_indexes) {
                 let var_datas_index = var_datas_indexes[i];
@@ -214,6 +218,8 @@ export default class VarsTabsSubsController {
                     res.push(var_datas_index);
                 }
             }
+
+            ConsoleHandler.log('filter_by_subs:IN:' + var_datas_indexes.length + ':for has_registered_user:OUT:resolve:' + res.length + ':');
 
             resolve(res);
         });

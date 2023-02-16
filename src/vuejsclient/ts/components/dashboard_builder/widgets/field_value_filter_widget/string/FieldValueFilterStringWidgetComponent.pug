@@ -70,7 +70,7 @@
                                     div(:class='div_column_class')
                                         template(v-for="(opt, index) in active_options")
                                             .filter_opt
-                                                input(:type="(can_select_multiple) ? 'checkbox' : 'radio'" :id="opt.label + '_' + column_index + '_' + index" name="filter_opt" :key="opt.label" :checked="true" @change="onchange_filter_opt_input($event.target, opt)")                            
+                                                input(:type="(can_select_multiple) ? 'checkbox' : 'radio'" :id="opt.label + '_' + column_index + '_' + index" name="filter_opt" :key="opt.label" :checked="true" @change="handle_change_filter_opt_input($event.target, opt)")                            
                                                 template(v-if='is_translatable_type')
                                                     label.option__title.ml-2(:for="opt.label + '_' + column_index + '_' + index") {{ label(opt.label) }}
                                                 template(v-else)
@@ -82,7 +82,7 @@
                                 div(:class='div_column_class')
                                     template(v-for="(opt, index) in visible_options")
                                         .filter_opt
-                                            input(:checked="tmp_filter_active_options.findIndex((e) => e.label == opt.label) >= 0" :type="(can_select_multiple) ? 'checkbox' : 'radio'" :id="base_filter + '_' + column_index + '_' + index" name="filter_opt" :key="opt.label" @change="onchange_filter_opt_input($event.target, opt)")                            
+                                            input(:checked="tmp_filter_active_options.findIndex((e) => e.label == opt.label) >= 0" :type="(can_select_multiple) ? 'checkbox' : 'radio'" :id="base_filter + '_' + column_index + '_' + index" name="filter_opt" :key="opt.label" @change="handle_change_filter_opt_input($event.target, opt)")                            
                                             template(v-if='is_translatable_type')
                                                 label.option__title.ml-2(:for="base_filter + '_' + column_index + '_' + index") {{ label(opt.label) }}
                                             template(v-else)
