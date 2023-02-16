@@ -91,7 +91,13 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
             new Promise(async (resolve, reject) => {
 
                 try {
-                    await ModuleDAO.getInstance().insertOrUpdateVO(self.crud_field_remover_conf);
+                    let res = await ModuleDAO.getInstance().insertOrUpdateVO(self.crud_field_remover_conf);
+                    if (!res.id) {
+                        throw new Error('Failed delete_removed_crud_field_id');
+                    }
+                    if (!self.crud_field_remover_conf.id) {
+                        self.crud_field_remover_conf.id = res.id;
+                    }
 
                     resolve({
                         body: self.label('crud_update_form_body_delete_removed_crud_field_id.ok'),
@@ -136,7 +142,13 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
             new Promise(async (resolve, reject) => {
 
                 try {
-                    await ModuleDAO.getInstance().insertOrUpdateVO(self.crud_field_remover_conf);
+                    let res = await ModuleDAO.getInstance().insertOrUpdateVO(self.crud_field_remover_conf);
+                    if (!res.id) {
+                        throw new Error('Failed add_removed_crud_field_id');
+                    }
+                    if (!self.crud_field_remover_conf.id) {
+                        self.crud_field_remover_conf.id = res.id;
+                    }
 
                     this.crud.updateDatatable.removeFields([module_table_field_id]);
 

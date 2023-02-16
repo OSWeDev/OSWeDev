@@ -776,6 +776,19 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'filters.names.__amount__.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Pourcentage'
+        }, 'filters.names.__percent__.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Décimales'
+        }, 'filters.names.__toFixed__.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Décimales - Arrondi supérieur'
+        }, 'filters.names.__toFixedCeil__.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Décimales - Arrondi inférieur'
+        }, 'filters.names.__toFixedFloor__.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Filtre de données ou de valeurs'
         }, 'dow_filter_widget_component.is_vo_field_ref.___LABEL___'));
 
