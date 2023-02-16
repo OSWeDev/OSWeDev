@@ -39,6 +39,9 @@ import './FieldValueFilterEnumWidgetComponent.scss';
 export default class FieldValueFilterEnumWidgetComponent extends VueComponentBase {
 
     @ModuleDashboardPageGetter
+    private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
+
+    @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
     @ModuleDashboardPageGetter
     private get_active_api_type_ids: string[];
@@ -283,6 +286,8 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
                 .set_limit(this.widget_options.max_visible_options)
                 .using(this.dashboard.api_type_ids);
 
+            FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(query_, this.get_discarded_field_paths);
+
             query_.filters = ContextFilterHandler.getInstance().add_context_filters_exclude_values(
                 this.exclude_values,
                 vo_field_ref,
@@ -320,7 +325,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
                     return;
                 }
             } else {
-                query_ = await FieldValueFilterWidgetController.getInstance().check_segmented_dependencies(this.dashboard, query_, true);
+                query_ = await FieldValueFilterWidgetController.getInstance().check_segmented_dependencies(this.dashboard, query_, this.get_discarded_field_paths, true);
             }
 
             await promise_pipeline.push(async () => {
@@ -429,9 +434,11 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
                     }
 
                     // pour éviter de récuperer le cache
-                    let items_c: number = await query(api_type_id)
+                    let query_items_c = query(api_type_id)
                         .using(this.dashboard.api_type_ids)
-                        .add_filters(filters)
+                        .add_filters(filters);
+                    FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(query_items_c, this.get_discarded_field_paths);
+                    let items_c: number = await query_items_c
                         .select_count();
 
                     if (items_c >= 0) {

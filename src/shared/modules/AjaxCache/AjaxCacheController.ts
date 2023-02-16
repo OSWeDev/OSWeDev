@@ -3,7 +3,6 @@ import RequestResponseCacheVO from "./vos/RequestResponseCacheVO";
 
 export default class AjaxCacheController {
 
-    public static MSGPACK_REQUEST_TYPE: string = 'application/x-msgpack; charset=utf-8';
     public static POST_UID: number = 1;
 
     public static getInstance(): AjaxCacheController {

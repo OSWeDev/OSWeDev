@@ -823,12 +823,6 @@ export default class ModuleDataExportServer extends ModuleServerBase {
          */
         if (!!field.custom_translate_to_xlsx) {
             dest_vo[dest_field_id] = field.custom_translate_to_xlsx(src_vo[src_field_id]);
-            /**
-             * Compatibilité MSGPACK : il traduit les undefind en null
-             */
-            if (typeof dest_vo[dest_field_id] === 'undefined') {
-                delete dest_vo[dest_field_id];
-            }
             return;
         }
 

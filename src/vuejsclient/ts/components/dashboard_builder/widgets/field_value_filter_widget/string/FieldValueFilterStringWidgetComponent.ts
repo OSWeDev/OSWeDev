@@ -43,6 +43,9 @@ import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFilter
 export default class FieldValueFilterStringWidgetComponent extends VueComponentBase {
 
     @ModuleDashboardPageGetter
+    private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
+
+    @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
     @ModuleDashboardPageAction
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
@@ -657,6 +660,9 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         await this.throttled_update_visible_options();
     }
 
+    /**
+     * Reset visible options
+     */
     private async reset_visible_options() {
         // Reset des filtres
         this.tmp_filter_active_options = []; // Reset le niveau 1
@@ -669,7 +675,13 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         await this.throttled_update_visible_options();
     }
 
-    private async update_visible_options() {
+    /**
+     * Update visible option
+     *  - This happen | triggered with lodash throttle method (throttled_update_visible_options)
+     *  - Each time visible option shall be updated
+     * @returns void
+     */
+    private async update_visible_options(): Promise<void> {
 
         let launch_cpt: number = (this.last_calculation_cpt + 1);
 
@@ -842,6 +854,8 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             .set_sort(new SortByVO(field_sort.api_type_id, field_sort.field_id, true))
             .using(this.dashboard.api_type_ids);
 
+        FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(query_, this.get_discarded_field_paths);
+
         query_.filters = ContextFilterHandler.getInstance().add_context_filters_exclude_values(
             this.exclude_values,
             this.vo_field_ref,
@@ -879,7 +893,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                 return;
             }
         } else {
-            query_ = await FieldValueFilterWidgetController.getInstance().check_segmented_dependencies(this.dashboard, query_, true);
+            query_ = await FieldValueFilterWidgetController.getInstance().check_segmented_dependencies(this.dashboard, query_, this.get_discarded_field_paths, true);
         }
 
         tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(
@@ -903,6 +917,8 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                     .set_limit(this.widget_options.max_visible_options)
                     .set_sort(new SortByVO(field_sort.api_type_id, field_sort.field_id, true))
                     .using(this.dashboard.api_type_ids);
+
+                FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(query_field_ref, this.get_discarded_field_paths);
 
                 let tmp_field_ref: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
                     query_field_ref,
@@ -981,6 +997,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                         .set_limit(this.widget_options.max_visible_options)
                         .set_sort(new SortByVO(field_sort_lvl2.api_type_id, field_sort_lvl2.field_id, true))
                         .using(this.dashboard.api_type_ids);
+                    FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(query_opt_lvl2, this.get_discarded_field_paths);
 
                     let tmp_lvl2_opts: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
                         query_opt_lvl2,
@@ -1159,7 +1176,13 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         return true;
     }
 
-    private onchange_filter_opt_input(input: any, opt: DataFilterOption) {
+    /**
+     * handle change filter opt input
+     *  - happen when we toggle checkbox | radio button
+     * @param input the select option input field value
+     * @param opt Option object
+     */
+    private handle_change_filter_opt_input(input: any, opt: DataFilterOption) {
         let tmp_filter_active_options: DataFilterOption[] = cloneDeep(this.tmp_filter_active_options);
 
         if (!tmp_filter_active_options || !this.can_select_multiple) {
@@ -1170,6 +1193,8 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         let opt_splice: number = this.filter_visible_options.findIndex((e) => e.label == opt.label);
 
         if (opt_index >= 0) {
+            // toggle the active filter to false
+            // - remove from the active filters
             Vue.set(this.active_option_lvl1, opt.label, false);
             tmp_filter_active_options.splice(opt_index, 1);
 
@@ -1177,6 +1202,8 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                 this.filter_visible_options.push(opt);
             }
         } else {
+            // toggle the active filter to true
+            // add it to the active filters
             Vue.set(this.active_option_lvl1, opt.label, true);
             tmp_filter_active_options.push(opt);
 
