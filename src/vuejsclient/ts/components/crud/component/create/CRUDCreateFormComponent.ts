@@ -108,7 +108,13 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
             new Promise(async (resolve, reject) => {
 
                 try {
-                    await ModuleDAO.getInstance().insertOrUpdateVO(self.crud_field_remover_conf);
+                    let res = await ModuleDAO.getInstance().insertOrUpdateVO(self.crud_field_remover_conf);
+                    if (!res.id) {
+                        throw new Error('Failed delete_removed_crud_field_id');
+                    }
+                    if (!self.crud_field_remover_conf.id) {
+                        self.crud_field_remover_conf.id = res.id;
+                    }
 
                     resolve({
                         body: self.label('crud_create_form_body_delete_removed_crud_field_id.ok'),
@@ -146,13 +152,20 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
         }
 
         crud_field_remover_conf.module_table_field_ids.push(module_table_field_id);
+        this.crud_field_remover_conf = crud_field_remover_conf;
 
         let self = this;
         self.snotify.async(self.label('crud_create_form_body_add_removed_crud_field_id.start'), () =>
             new Promise(async (resolve, reject) => {
 
                 try {
-                    await ModuleDAO.getInstance().insertOrUpdateVO(self.crud_field_remover_conf);
+                    let res = await ModuleDAO.getInstance().insertOrUpdateVO(self.crud_field_remover_conf);
+                    if (!res.id) {
+                        throw new Error('Failed add_removed_crud_field_id');
+                    }
+                    if (!self.crud_field_remover_conf.id) {
+                        self.crud_field_remover_conf.id = res.id;
+                    }
 
                     this.crud.updateDatatable.removeFields([module_table_field_id]);
 
