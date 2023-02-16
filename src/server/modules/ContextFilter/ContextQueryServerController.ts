@@ -76,6 +76,9 @@ export default class ContextQueryServerController {
 
         query_wrapper = query_wrapper ? query_wrapper : await this.build_select_query(context_query);
         //Requête
+        if (!query_wrapper) {
+            throw new Error('Invalid query');
+        }
         if (((!query_wrapper) || (!query_wrapper.query)) && (!query_wrapper.is_segmented_non_existing_table)) {
             throw new Error('Invalid query');
         }
@@ -159,6 +162,9 @@ export default class ContextQueryServerController {
         }
 
         query_wrapper = query_wrapper ? query_wrapper : await this.build_select_query(context_query);
+        if (!query_wrapper) {
+            throw new Error('Invalid query');
+        }
         if (((!query_wrapper) || (!query_wrapper.query)) && (!query_wrapper.is_segmented_non_existing_table)) {
             throw new Error('Invalid query');
         }
@@ -239,6 +245,9 @@ export default class ContextQueryServerController {
         // On force des résultats distincts sur un datatable row
         context_query.query_distinct = true;
         let query_wrapper = await this.build_select_query(context_query);
+        if (!query_wrapper) {
+            throw new Error('Invalid query');
+        }
         if (((!query_wrapper) || (!query_wrapper.query)) && (!query_wrapper.is_segmented_non_existing_table)) {
             throw new Error('Invalid query');
         }
@@ -443,6 +452,9 @@ export default class ContextQueryServerController {
 
 
         let query_wrapper = await this.build_select_query_not_count(context_query);
+        if (!query_wrapper) {
+            throw new Error('Invalid query');
+        }
         if (((!query_wrapper) || (!query_wrapper.query)) && (!query_wrapper.is_segmented_non_existing_table)) {
             throw new Error('Invalid query');
         }

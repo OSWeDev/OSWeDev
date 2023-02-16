@@ -7,6 +7,7 @@ import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import { ModuleDAOAction } from '../../../ts/components/dao/store/DaoStore';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
 import AjaxCacheClientController from '../../modules/AjaxCache/AjaxCacheClientController';
+import ConsoleLogLogger from '../console_logger/ConsoleLogLogger';
 
 @Component({
     template: require('./FileComponent.pug'),
@@ -77,6 +78,8 @@ export default class FileComponent extends VueComponentBase {
         // dropzone.emit('addedfile', mock);
         // dropzone.createThumbnailFromUrl(mock, mock.url);
         // dropzone.emit('complete', mock);
+
+
     }
 
 

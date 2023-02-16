@@ -140,7 +140,6 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
         }
 
         let feedback: FeedbackVO = new FeedbackVO();
-
         feedback.apis_log_json = stringify(AjaxCacheClientController.getInstance().api_logs);
         // feedback.apis_log_json = "";
         feedback.console_logs = this.console_logs_tostring_array();
