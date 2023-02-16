@@ -776,7 +776,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'filters.names.__amount__.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Montant'
+            'fr-fr': 'Pourcentage'
         }, 'filters.names.__percent__.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Décimales'
