@@ -86,6 +86,14 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
     private throttled_reset_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.reset_visible_options.bind(this), 300, { leading: false, trailing: true });
 
+    private async mounted() {
+        ResetFiltersWidgetController.getInstance().register_updater(
+            this.dashboard_page,
+            this.page_widget,
+            this.reset_visible_options.bind(this),
+        );
+    }
+
     @Watch('get_active_field_filters', { deep: true })
     @Watch('get_active_api_type_ids')
     @Watch('get_query_api_type_ids')
@@ -152,6 +160,12 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         return options;
     }
 
+    /**
+     * Watch on widget_options
+     *  - Shall happen first on component init or each time widget_options changes
+     *  - Initialize the tmp_filter_active_options with default widget options
+     * @returns void
+     */
     @Watch('widget_options', { immediate: true })
     private async onchange_widget_options() {
         if (!!this.old_widget_options) {
@@ -167,15 +181,8 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         this.old_widget_options = cloneDeep(this.widget_options);
 
         this.is_init = false;
-        await this.throttled_update_visible_options();
-    }
 
-    private async mounted() {
-        ResetFiltersWidgetController.getInstance().register_updater(
-            this.dashboard_page,
-            this.page_widget,
-            this.reset_visible_options.bind(this),
-        );
+        await this.throttled_update_visible_options();
     }
 
     /**
@@ -268,6 +275,8 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     /**
      * Update Visible Options
      * This widget may depend on other widget active filters options
+     *  - This happen | triggered with lodash throttle method (throttled_update_visible_options)
+     *  - Each time visible option shall be updated
      * @returns Promise<void>
      */
     private async update_visible_options(): Promise<void> {
@@ -297,7 +306,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
         this.is_init = true;
 
-        // case when not initializing
+        // case when not currently initializing
         if (!old_is_init) {
             if (this.default_values && (this.default_values.length > 0)) {
                 // Si je n'ai pas de filtre actif OU que ma valeur de default values à changée, je prends les valeurs par défaut
@@ -321,7 +330,8 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         // case when has active context filter but active visible filter empty
         // - try to apply context filter or display filter application fail alert
         if (has_active_field_filter &&
-            ((!this.tmp_filter_active_options) || (!(this.tmp_filter_active_options.length > 0)))) {
+            (!(this.tmp_filter_active_options?.length > 0))) {
+
             this.warn_existing_external_filters = !this.try_apply_actual_active_filters(root_context_filter);
         }
 
