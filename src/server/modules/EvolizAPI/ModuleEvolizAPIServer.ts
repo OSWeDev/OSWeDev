@@ -8,6 +8,7 @@ import ModuleEvolizAPI from '../../../shared/modules/EvolizAPI/ModuleEvolizAPI';
 import EvolizClientVO from '../../../shared/modules/EvolizAPI/vos/clients/EvolizClientVO';
 import EvolizContactClientVO from '../../../shared/modules/EvolizAPI/vos/contact_clients/EvolizContactClientVO';
 import EvolizInvoiceVO from '../../../shared/modules/EvolizAPI/vos/invoices/EvolizInvoiceVO';
+import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ModuleRequest from '../../../shared/modules/Request/ModuleRequest';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
@@ -112,26 +113,9 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
 
     public async list_invoices(): Promise<EvolizInvoiceVO[]> {
         try {
-            let token: EvolizAPIToken = await this.getToken();
+            let invoices: EvolizInvoiceVO[] = await this.get_all_pages('/api/v1/invoices') as EvolizInvoiceVO[];
 
-            let list_invoices: { data: EvolizInvoiceVO[], links: any, meta: any } = await ModuleRequest.getInstance().sendRequestFromApp(
-                ModuleRequest.METHOD_GET,
-                ModuleEvolizAPI.EvolizAPI_BaseURL,
-                '/api/v1/invoices' + ModuleRequest.getInstance().get_params_url({
-                    per_page: '100',
-                }),
-                null,
-                {
-                    Authorization: 'Bearer ' + token.access_token
-                },
-                true,
-                null,
-                false,
-                true,
-            );
-
-            console.log(list_invoices);
-            return list_invoices.data;
+            return invoices;
         } catch (error) {
             console.error(error);
         }
@@ -163,25 +147,9 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
 
     public async list_clients(): Promise<EvolizClientVO[]> {
         try {
-            let token: EvolizAPIToken = await this.getToken();
+            let clients: EvolizClientVO[] = await this.get_all_pages('/api/v1/clients') as EvolizClientVO[];
 
-            let clients: { data: EvolizClientVO[], links: any, meta: any } = await ModuleRequest.getInstance().sendRequestFromApp(
-                ModuleRequest.METHOD_GET,
-                ModuleEvolizAPI.EvolizAPI_BaseURL,
-                '/api/v1/clients' + ModuleRequest.getInstance().get_params_url({
-                    per_page: '100',
-                }),
-                null,
-                {
-                    Authorization: 'Bearer ' + token.access_token
-                },
-                true,
-                null,
-                false,
-            );
-
-            console.log(clients);
-            return clients.data;
+            return clients;
         } catch (error) {
             console.error(error);
         }
@@ -238,5 +206,38 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
         } catch (error) {
             console.error("Erreur: contact: " + contact.lastname + " " + contact.firstname);
         }
+    }
+
+    private async get_all_pages(url: string) {
+        let token: EvolizAPIToken = await this.getToken();
+
+        let res: any[] = [];
+        let has_more: boolean = true;
+        let page: number = 1;
+
+        while (has_more) {
+            let elts: { data: any[], links: any, meta: any } = await ModuleRequest.getInstance().sendRequestFromApp(
+                ModuleRequest.METHOD_GET,
+                ModuleEvolizAPI.EvolizAPI_BaseURL,
+                (url.startsWith('/') ? url : '/' + url) + ModuleRequest.getInstance().get_params_url({
+                    per_page: '100',
+                    page: page.toString(),
+                }),
+                null,
+                {
+                    Authorization: 'Bearer ' + token.access_token
+                },
+                true,
+                null,
+                false,
+            );
+
+            res = res.concat(elts.data);
+            page++;
+
+            has_more = page <= elts.meta.last_page;
+        }
+
+        return res;
     }
 }
