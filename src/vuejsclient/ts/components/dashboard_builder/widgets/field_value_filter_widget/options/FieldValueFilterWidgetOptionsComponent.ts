@@ -1,3 +1,4 @@
+import { clone, cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
@@ -96,14 +97,23 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
 
     private tmp_exclude_filter_opt_values: DataFilterOption[] = [];
     private tmp_exclude_ts_range_values: TSRange = null;
+
     private enum_bg_colors: { [enum_value: number]: string } = {};
     private enum_fg_colors: { [enum_value: number]: string } = {};
     private show_hide_enum_color_options: boolean = false;
+
+    // Colors of the actual Filter
+    private fg_color_value: string = null;
+    private fg_color_text: string = null;
+    private bg_color: string = null;
 
     private filter_visible_options: DataFilterOption[] = [];
     private actual_query: string = null;
 
     private next_update_options: FieldValueFilterWidgetOptions = null;
+
+    // Perform the action of update colors
+    private throttled_update_colors = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_colors.bind(this), 800, { leading: false, trailing: true });
     private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
     private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
 
@@ -111,6 +121,35 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
 
     private placeholder_advanced_string_filter: string = null;
     private last_calculation_cpt: number = 0;
+
+    /**
+     * Update Colors
+     *  - Update the widget options before the actual filter update
+     * @returns Promise<void>
+     */
+    private async update_colors(): Promise<void> {
+        if (!this.widget_options) {
+            return;
+        }
+
+        this.widget_options.fg_color_value = this.fg_color_value;
+        this.widget_options.fg_color_text = this.fg_color_text;
+        this.widget_options.bg_color = this.bg_color;
+
+        if (!this.next_update_options) {
+            this.next_update_options = cloneDeep(this.widget_options);
+        }
+
+        await this.throttled_update_options();
+    }
+
+    /**
+     * Handle Colors Change
+     * - Happen each time we change color by using color-picker
+     */
+    private handle_colors_change() {
+        this.throttled_update_colors();
+    }
 
     private crud_api_type_id_select_label(api_type_id: string): string {
         return this.t(VOsTypesManager.moduleTables_by_voType[api_type_id].label.code_text);
@@ -153,6 +192,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
             this.enum_bg_colors = {};
             this.enum_fg_colors = {};
             this.checkbox_columns = FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_1;
+            this.fg_color_text = null;
+            this.fg_color_value = null;
+            this.bg_color = null;
             return;
         }
         this.max_visible_options = this.widget_options.max_visible_options;
@@ -167,6 +209,10 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.tmp_exclude_ts_range_values = this.widget_options.exclude_ts_range_values;
         this.enum_bg_colors = this.get_enum_colors('enum_bg_colors', true);
         this.enum_fg_colors = this.get_enum_colors('enum_fg_colors', false);
+
+        this.fg_color_text = this.widget_options.fg_color_text;
+        this.fg_color_value = this.widget_options.fg_color_value;
+        this.bg_color = this.widget_options.bg_color;
 
         if (!this.tmp_segmentation_type && this.is_type_date) {
             let field = this.field;
@@ -361,6 +407,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.show_count_value,
                 this.active_field_on_autovalidate_advanced_filter,
                 this.force_filter_all_api_type_ids,
+                this.bg_color,
+                this.fg_color_value,
+                this.fg_color_text,
             );
         }
 
@@ -409,6 +458,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.show_count_value,
                 this.active_field_on_autovalidate_advanced_filter,
                 this.force_filter_all_api_type_ids,
+                this.bg_color,
+                this.fg_color_value,
+                this.fg_color_text,
             );
         }
 
@@ -457,6 +509,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.show_count_value,
                 this.active_field_on_autovalidate_advanced_filter,
                 this.force_filter_all_api_type_ids,
+                this.bg_color,
+                this.fg_color_value,
+                this.fg_color_text,
             );
         }
 
@@ -505,6 +560,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.show_count_value,
                 this.active_field_on_autovalidate_advanced_filter,
                 this.force_filter_all_api_type_ids,
+                this.bg_color,
+                this.fg_color_value,
+                this.fg_color_text,
             );
         }
 
@@ -553,6 +611,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.show_count_value,
                 this.active_field_on_autovalidate_advanced_filter,
                 this.force_filter_all_api_type_ids,
+                this.bg_color,
+                this.fg_color_value,
+                this.fg_color_text,
             );
         }
 
@@ -601,6 +662,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.show_count_value,
                 this.active_field_on_autovalidate_advanced_filter,
                 this.force_filter_all_api_type_ids,
+                this.bg_color,
+                this.fg_color_value,
+                this.fg_color_text,
             );
         }
 
@@ -649,6 +713,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.show_count_value,
                 this.active_field_on_autovalidate_advanced_filter,
                 this.force_filter_all_api_type_ids,
+                this.bg_color,
+                this.fg_color_value,
+                this.fg_color_text,
             );
         }
 
@@ -697,6 +764,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.show_count_value,
                 this.active_field_on_autovalidate_advanced_filter,
                 this.force_filter_all_api_type_ids,
+                this.bg_color,
+                this.fg_color_value,
+                this.fg_color_text,
             );
         }
 
@@ -745,6 +815,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.show_count_value,
                 this.active_field_on_autovalidate_advanced_filter,
                 this.force_filter_all_api_type_ids,
+                this.bg_color,
+                this.fg_color_value,
+                this.fg_color_text,
             );
         }
 
@@ -793,6 +866,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.show_count_value,
                 this.active_field_on_autovalidate_advanced_filter,
                 this.force_filter_all_api_type_ids,
+                this.bg_color,
+                this.fg_color_value,
+                this.fg_color_text,
             );
         }
 
@@ -841,6 +917,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.show_count_value,
                 this.active_field_on_autovalidate_advanced_filter,
                 this.force_filter_all_api_type_ids,
+                this.bg_color,
+                this.fg_color_value,
+                this.fg_color_text,
             );
         }
 
@@ -889,6 +968,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.show_count_value,
                 this.active_field_on_autovalidate_advanced_filter,
                 this.force_filter_all_api_type_ids,
+                this.bg_color,
+                this.fg_color_value,
+                this.fg_color_text,
             );
         }
 
@@ -937,6 +1019,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.show_count_value,
                 this.active_field_on_autovalidate_advanced_filter,
                 this.force_filter_all_api_type_ids,
+                this.bg_color,
+                this.fg_color_value,
+                this.fg_color_text,
             );
         }
 
@@ -985,6 +1070,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.show_count_value,
                 this.active_field_on_autovalidate_advanced_filter,
                 this.force_filter_all_api_type_ids,
+                this.bg_color,
+                this.fg_color_value,
+                this.fg_color_text,
             );
         }
 
@@ -1033,6 +1121,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.show_count_value,
                 this.active_field_on_autovalidate_advanced_filter,
                 this.force_filter_all_api_type_ids,
+                this.bg_color,
+                this.fg_color_value,
+                this.fg_color_text,
             );
         }
 
@@ -1081,6 +1172,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.show_count_value,
                 this.active_field_on_autovalidate_advanced_filter,
                 this.force_filter_all_api_type_ids,
+                this.bg_color,
+                this.fg_color_value,
+                this.fg_color_text,
             );
         }
 
@@ -1129,6 +1223,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.show_count_value,
                 this.active_field_on_autovalidate_advanced_filter,
                 this.force_filter_all_api_type_ids,
+                this.bg_color,
+                this.fg_color_value,
+                this.fg_color_text,
             );
         }
 
@@ -1291,6 +1388,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.show_count_value,
                 this.active_field_on_autovalidate_advanced_filter,
                 this.force_filter_all_api_type_ids,
+                this.bg_color,
+                this.fg_color_value,
+                this.fg_color_text,
             );
         }
 
@@ -1344,6 +1444,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.show_count_value,
                 this.active_field_on_autovalidate_advanced_filter,
                 this.force_filter_all_api_type_ids,
+                this.bg_color,
+                this.fg_color_value,
+                this.fg_color_text,
             );
         }
 
@@ -1397,6 +1500,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.show_count_value,
                 this.active_field_on_autovalidate_advanced_filter,
                 this.force_filter_all_api_type_ids,
+                this.bg_color,
+                this.fg_color_value,
+                this.fg_color_text,
             );
         }
 
@@ -1450,6 +1556,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.show_count_value,
                 this.active_field_on_autovalidate_advanced_filter,
                 this.force_filter_all_api_type_ids,
+                this.bg_color,
+                this.fg_color_value,
+                this.fg_color_text,
             );
         }
 
@@ -1503,6 +1612,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.show_count_value,
                 this.active_field_on_autovalidate_advanced_filter,
                 this.force_filter_all_api_type_ids,
+                this.bg_color,
+                this.fg_color_value,
+                this.fg_color_text,
             );
         }
 
@@ -1741,6 +1853,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                     options.show_count_value,
                     options.active_field_on_autovalidate_advanced_filter,
                     options.force_filter_all_api_type_ids,
+                    options.bg_color,
+                    options.fg_color_value,
+                    options.fg_color_text,
                 ) : null;
             }
         } catch (error) {

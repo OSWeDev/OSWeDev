@@ -1360,6 +1360,18 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'field_value_filter_widget_component.add_is_null_selectable.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Couleur du fond" },
+            'field_value_filter_widget_component.bg_color.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Couleur de la valeur" },
+            'field_value_filter_widget_component.fg_color_value.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Couleur du texte" },
+            'field_value_filter_widget_component.fg_color_text.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Non renseigné" },
             'datafilteroption.is_null.___LABEL___'
         ));

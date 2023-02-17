@@ -119,6 +119,9 @@ export default class FieldValueFilterWidgetOptions implements IExportableWidgetO
         public show_count_value: boolean, // Seulement pour enum pour l'instant
         public active_field_on_autovalidate_advanced_filter: boolean,
         public force_filter_all_api_type_ids: boolean, // (Pour la supervision)
+        public bg_color?: string,
+        public fg_color_value?: string,
+        public fg_color_text?: string,
     ) { }
 
     public get_placeholder_name_code_text(page_widget_id: number): string {
