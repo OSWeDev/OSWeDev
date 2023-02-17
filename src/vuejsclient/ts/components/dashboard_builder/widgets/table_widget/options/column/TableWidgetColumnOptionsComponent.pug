@@ -247,7 +247,7 @@
                                         )
                                     .existing_custom_filters_list(v-if='get_custom_filters && get_custom_filters.length')
                                         template(v-for='custom_filter in get_custom_filters')
-                                            .custom_filter(@click='change_custom_filter(field_that_could_get_custom_filter, custom_filter)') {{ custom_filter }}
+                                            .custom_filter.clickable(@click='change_custom_filter(field_that_could_get_custom_filter, custom_filter)') {{ custom_filter }}
 
 
                 //- template(v-if='column.is_enum')
