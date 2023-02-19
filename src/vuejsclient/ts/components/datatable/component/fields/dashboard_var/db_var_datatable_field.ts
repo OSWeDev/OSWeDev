@@ -15,6 +15,7 @@ import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager
 import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
 import { ModuleDashboardPageGetter } from '../../../../dashboard_builder/page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../../../../dashboard_builder/widgets/DashboardBuilderWidgetsController';
+import FieldValueFilterWidgetOptions from '../../../../dashboard_builder/widgets/field_value_filter_widget/options/FieldValueFilterWidgetOptions';
 import ValidationFiltersWidgetController from '../../../../dashboard_builder/widgets/validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../../../../dashboard_builder/widgets/var_widget/VarWidgetComponent';
 import VueComponentBase from '../../../../VueComponentBase';
@@ -37,6 +38,9 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
 
     @Prop({ default: null })
     public filter_custom_field_filters: { [field_id: string]: string };
+
+    @Prop({ default: null })
+    public do_not_user_filter_active_ids: number[];
 
     @Prop({ default: false })
     public table_is_busy: boolean;
@@ -153,12 +157,36 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
 
         this.dashboard = await query(DashboardVO.API_TYPE_ID).filter_by_id(this.dashboard_id).select_vo<DashboardVO>();
 
-        let context = DashboardBuilderController.getInstance().add_table_row_context(cloneDeep(this.get_active_field_filters), this.columns, this.row_value);
+        let active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = cloneDeep(this.get_active_field_filters);
+
+        // On supprime les filtres à ne pas prendre en compte pour créer le bon param
+        if (this.do_not_user_filter_active_ids && this.do_not_user_filter_active_ids.length) {
+            let all_page_widget_by_id: { [id: number]: DashboardPageWidgetVO } = VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
+
+            for (let i in this.do_not_user_filter_active_ids) {
+                let page_filter_id = this.do_not_user_filter_active_ids[i];
+
+                let page_widget: DashboardPageWidgetVO = all_page_widget_by_id[page_filter_id];
+                if (!page_widget) {
+                    continue;
+                }
+
+                let page_widget_options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
+
+                if (page_widget_options?.vo_field_ref) {
+                    if (active_field_filters && active_field_filters[page_widget_options.vo_field_ref.api_type_id]) {
+                        delete active_field_filters[page_widget_options.vo_field_ref.api_type_id][page_widget_options.vo_field_ref.field_id];
+                    }
+                }
+            }
+        }
+
+        let context = DashboardBuilderController.getInstance().add_table_row_context(active_field_filters, this.columns, this.row_value);
 
         /**
          * On crée le custom_filters
          */
-        let custom_filters: { [var_param_field_name: string]: ContextFilterVO } = VarWidgetComponent.get_var_custom_filters(this.var_custom_filters, this.get_active_field_filters);
+        let custom_filters: { [var_param_field_name: string]: ContextFilterVO } = VarWidgetComponent.get_var_custom_filters(this.var_custom_filters, active_field_filters);
 
         this.var_param = await ModuleVar.getInstance().getVarParamFromContextFilters(
             VarsController.getInstance().var_conf_by_id[this.var_id].name,

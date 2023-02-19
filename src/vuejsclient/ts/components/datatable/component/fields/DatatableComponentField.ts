@@ -54,6 +54,9 @@ export default class DatatableComponentField extends VueComponentBase {
     private filter_custom_field_filters: { [field_id: string]: string };
 
     @Prop({ default: null })
+    private do_not_user_filter_active_ids: number[];
+
+    @Prop({ default: null })
     private all_page_widget: DashboardPageWidgetVO[];
 
     @Prop({ default: null })

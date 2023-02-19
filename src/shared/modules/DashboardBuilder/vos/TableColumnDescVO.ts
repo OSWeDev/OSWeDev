@@ -41,6 +41,11 @@ export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem 
     public show_if_any_filter_active: number[];
 
     /**
+     * Paramétrage permettant de ne pas prendre en compte les filtres pour la création du param de la VAR
+     */
+    public do_not_user_filter_active_ids: number[];
+
+    /**
      * On filtre par un droit d'accès (le nom du droit en l'occurrence)
      */
     public filter_by_access: string;
