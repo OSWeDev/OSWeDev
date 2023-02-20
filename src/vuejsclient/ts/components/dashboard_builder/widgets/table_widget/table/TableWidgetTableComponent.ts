@@ -1693,7 +1693,11 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             this.get_active_field_filters,
             this.columns_custom_filters,
             this.dashboard.api_type_ids,
-            this.get_discarded_field_paths
+            this.get_discarded_field_paths,
+            false,
+            null,
+            null,
+            this.do_not_user_filter_by_datatable_field_uid,
         );
     }
 
@@ -1707,9 +1711,78 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 continue;
             }
 
+            let active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = cloneDeep(this.get_active_field_filters);
+
+            // On supprime les filtres à ne pas prendre en compte pour créer le bon param
+            if (column.do_not_user_filter_active_ids && column.do_not_user_filter_active_ids.length) {
+                let all_page_widget_by_id: { [id: number]: DashboardPageWidgetVO } = VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
+
+                for (let j in column.do_not_user_filter_active_ids) {
+                    let page_filter_id = column.do_not_user_filter_active_ids[j];
+
+                    let page_widget: DashboardPageWidgetVO = all_page_widget_by_id[page_filter_id];
+                    if (!page_widget) {
+                        continue;
+                    }
+
+                    let page_widget_options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
+
+                    if (page_widget_options?.vo_field_ref) {
+                        if (active_field_filters && active_field_filters[page_widget_options.vo_field_ref.api_type_id]) {
+                            delete active_field_filters[page_widget_options.vo_field_ref.api_type_id][page_widget_options.vo_field_ref.field_id];
+                        }
+                    }
+                }
+            }
+
             res[column.datatable_field_uid] = VarWidgetComponent.get_var_custom_filters(
                 ObjectHandler.getInstance().hasAtLeastOneAttribute(column.filter_custom_field_filters) ? column.filter_custom_field_filters : null,
-                this.get_active_field_filters);
+                active_field_filters
+            );
+        }
+
+        return res;
+    }
+
+    get do_not_user_filter_by_datatable_field_uid(): { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } {
+        let res: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } = {};
+
+        for (let i in this.columns) {
+            let column = this.columns[i];
+
+            if (column.type !== TableColumnDescVO.TYPE_var_ref) {
+                continue;
+            }
+
+            let do_not_use: { [vo_type: string]: { [field_id: string]: boolean } } = {};
+
+            // On supprime les filtres à ne pas prendre en compte pour créer le bon param
+            if (column.do_not_user_filter_active_ids && column.do_not_user_filter_active_ids.length) {
+                let all_page_widget_by_id: { [id: number]: DashboardPageWidgetVO } = VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
+
+                for (let j in column.do_not_user_filter_active_ids) {
+                    let page_filter_id = column.do_not_user_filter_active_ids[j];
+
+                    let page_widget: DashboardPageWidgetVO = all_page_widget_by_id[page_filter_id];
+                    if (!page_widget) {
+                        continue;
+                    }
+
+                    let page_widget_options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
+
+                    if (page_widget_options?.vo_field_ref) {
+                        if (!do_not_use[page_widget_options.vo_field_ref.api_type_id]) {
+                            do_not_use[page_widget_options.vo_field_ref.api_type_id] = {};
+                        }
+
+                        do_not_use[page_widget_options.vo_field_ref.api_type_id][page_widget_options.vo_field_ref.field_id] = true;
+                    }
+                }
+            }
+
+            if (Object.keys(do_not_use).length > 0) {
+                res[column.datatable_field_uid] = do_not_use;
+            }
         }
 
         return res;
@@ -1911,7 +1984,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 param.discarded_field_paths,
                 param.is_secured,
                 param.file_access_policy_name,
-                VueAppBase.getInstance().appController.data_user ? VueAppBase.getInstance().appController.data_user.id : null
+                VueAppBase.getInstance().appController.data_user ? VueAppBase.getInstance().appController.data_user.id : null,
+                param.do_not_user_filter_by_datatable_field_uid,
             );
         }
     }
