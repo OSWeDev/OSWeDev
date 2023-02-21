@@ -53,7 +53,6 @@ export default class PercentFilterOptionsComponent extends VueComponentBase {
     private onchange_inputs() {
         let additional_options = [
             this.fractionalDigits,
-            false,
             this.pts,
             this.explicit_sign,
             this.evol_from_prct,

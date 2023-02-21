@@ -1527,6 +1527,15 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         ));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Filtres à ne pas utiliser" },
+            'table_widget_column.do_not_user_filter_active_ids.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Filtres à ne pas utiliser dans la création du param de la VAR" },
+            'table_widget_column_conf.do_not_user_filter_active_ids.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "La colonne peut-être éditée directement dans le tableau" },
             'table_widget_column_conf.editable_column.___LABEL___'
         ));
