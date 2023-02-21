@@ -225,6 +225,7 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('filter_custom_field_filters', ModuleTableField.FIELD_TYPE_plain_vo_obj, "filter_custom_field_filters"),
 
             new ModuleTableField('show_if_any_filter_active', ModuleTableField.FIELD_TYPE_int_array, "show_if_any_filter_active"),
+            new ModuleTableField('do_not_user_filter_active_ids', ModuleTableField.FIELD_TYPE_int_array, "do_not_user_filter_active_ids"),
             new ModuleTableField('readonly', ModuleTableField.FIELD_TYPE_boolean, "Readonly", false, true, true),
             new ModuleTableField('exportable', ModuleTableField.FIELD_TYPE_boolean, "Exportable", false, true, true),
             new ModuleTableField('hide_from_table', ModuleTableField.FIELD_TYPE_boolean, "Masquer de la table", false, true, false),

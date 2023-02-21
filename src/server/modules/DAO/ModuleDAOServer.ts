@@ -468,16 +468,16 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': "Gérer les champs cachés"
-        }, 'crud__create_form_body.edit_removed_crud_fields.___LABEL___'));
+        }, 'crud_create_form_body.edit_removed_crud_fields.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': "Masquer les champs cachés"
-        }, 'crud__create_form_body.donot_edit_removed_crud_fields.___LABEL___'));
+        }, 'crud_create_form_body.donot_edit_removed_crud_fields.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': "Afficher le champs {field_id}"
-        }, 'crud__create_form_body.delete_removed_crud_field_id.___LABEL___'));
+        }, 'crud_create_form_body.delete_removed_crud_field_id.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': "Masquer le champs {field_id}"
-        }, 'crud__create_form_body.add_removed_crud_field_id.___LABEL___'));
+        }, 'crud_create_form_body.add_removed_crud_field_id.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': "Modification en cours..."

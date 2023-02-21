@@ -136,7 +136,29 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         }).map((page_widget: DashboardPageWidgetVO) => page_widget.id);
     }
 
+    get do_not_user_filter_active_ids_options(): number[] {
+        let self = this;
+        return this.get_page_widgets.filter((page_widget: DashboardPageWidgetVO) => {
+
+            let options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
+
+            return options && options.vo_field_ref && options.vo_field_ref.api_type_id && options.vo_field_ref.field_id && (self.all_filter_widgets_ids.indexOf(page_widget.widget_id) > -1);
+        }).map((page_widget: DashboardPageWidgetVO) => page_widget.id);
+    }
+
     private show_if_any_filter_active_label(page_widget_id: number): string {
+        let page_widget = this.page_widget_by_id[page_widget_id];
+        if (!page_widget) {
+            return "[" + page_widget_id + "] " + "???";
+        }
+        let options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
+        if (!options || !options.vo_field_ref || !options.vo_field_ref.api_type_id || !options.vo_field_ref.field_id) {
+            return "[" + page_widget.id + "] " + "???";
+        }
+        return "[" + page_widget.id + "] " + options.vo_field_ref.api_type_id + " > " + options.vo_field_ref.field_id;
+    }
+
+    private do_not_user_filter_active_ids_label(page_widget_id: number): string {
         let page_widget = this.page_widget_by_id[page_widget_id];
         if (!page_widget) {
             return "[" + page_widget_id + "] " + "???";
@@ -222,6 +244,9 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
 
     get vo_ref_tooltip(): string {
         if (!this.field || !this.table) {
+            if (this.column?.var_id) {
+                return 'VAR :var_id:' + this.column.var_id + ' :name: ' + this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(this.column.var_id));
+            }
             return null;
         }
 
@@ -335,6 +360,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
 
     @Watch('column.filter_by_access')
     @Watch('column.show_if_any_filter_active')
+    @Watch('column.do_not_user_filter_active_ids')
     private async onchange_filter_by_access() {
         if (!this.object_column) {
             return;
@@ -532,6 +558,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.hide_from_table = false;
         new_column.filter_by_access = null;
         new_column.show_if_any_filter_active = [];
+        new_column.do_not_user_filter_active_ids = [];
         new_column.enum_bg_colors = null;
         new_column.enum_fg_colors = null;
         new_column.can_filter_by = false;
@@ -564,6 +591,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.hide_from_table = false;
         new_column.filter_by_access = null;
         new_column.show_if_any_filter_active = [];
+        new_column.do_not_user_filter_active_ids = [];
         new_column.enum_bg_colors = null;
         new_column.enum_fg_colors = null;
         new_column.can_filter_by = false;
@@ -614,6 +642,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.hide_from_table = false;
         new_column.filter_by_access = null;
         new_column.show_if_any_filter_active = [];
+        new_column.do_not_user_filter_active_ids = [];
         new_column.enum_bg_colors = null;
         new_column.enum_fg_colors = null;
         new_column.can_filter_by = true;
@@ -658,6 +687,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
         new_column.hide_from_table = false;
         new_column.filter_by_access = null;
         new_column.show_if_any_filter_active = [];
+        new_column.do_not_user_filter_active_ids = [];
         new_column.enum_bg_colors = null;
         new_column.enum_fg_colors = null;
         new_column.can_filter_by = false;
@@ -886,5 +916,9 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
 
     get sort_desc(): number {
         return TableColumnDescVO.SORT_desc;
+    }
+
+    get is_type_var_ref(): boolean {
+        return this.object_column.type == TableColumnDescVO.TYPE_var_ref;
     }
 }

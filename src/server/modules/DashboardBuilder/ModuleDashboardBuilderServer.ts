@@ -776,6 +776,19 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'filters.names.__amount__.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Pourcentage'
+        }, 'filters.names.__percent__.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Décimales'
+        }, 'filters.names.__toFixed__.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Décimales - Arrondi supérieur'
+        }, 'filters.names.__toFixedCeil__.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Décimales - Arrondi inférieur'
+        }, 'filters.names.__toFixedFloor__.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Filtre de données ou de valeurs'
         }, 'dow_filter_widget_component.is_vo_field_ref.___LABEL___'));
 
@@ -1523,6 +1536,15 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Afficher si 1 filtre actif" },
             'table_widget_column_conf.show_if_any_filter_active.___LABEL___'
+        ));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Filtres à ne pas utiliser" },
+            'table_widget_column.do_not_user_filter_active_ids.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Filtres à ne pas utiliser dans la création du param de la VAR" },
+            'table_widget_column_conf.do_not_user_filter_active_ids.___LABEL___'
         ));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(

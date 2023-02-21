@@ -22,6 +22,7 @@ import ModuleDataImport from '../../shared/modules/DataImport/ModuleDataImport';
 import ModuleDataRender from '../../shared/modules/DataRender/ModuleDataRender';
 import ModuleDataSource from '../../shared/modules/DataSource/ModuleDataSource';
 import ModuleDocument from '../../shared/modules/Document/ModuleDocument';
+import ModuleEvolizAPI from '../../shared/modules/EvolizAPI/ModuleEvolizAPI';
 import ModuleFacturationProAPI from '../../shared/modules/FacturationProAPI/ModuleFacturationProAPI';
 import ModuleFeedback from '../../shared/modules/Feedback/ModuleFeedback';
 import ModuleFile from '../../shared/modules/File/ModuleFile';
@@ -77,6 +78,7 @@ import ModuleDataExportServer from './DataExport/ModuleDataExportServer';
 import ModuleDataImportServer from './DataImport/ModuleDataImportServer';
 import ModuleDataRenderServer from './DataRender/ModuleDataRenderServer';
 import ModuleDocumentServer from './Document/ModuleDocumentServer';
+import ModuleEvolizAPIServer from './EvolizAPI/ModuleEvolizAPIServer';
 import ModuleFacturationProAPIServer from './FacturationProAPI/ModuleFacturationProAPIServer';
 import ModuleFeedbackServer from './Feedback/ModuleFeedbackServer';
 import ModuleFileServer from './File/ModuleFileServer';
@@ -529,6 +531,7 @@ export default abstract class ModuleServiceBase {
             ModuleTeamsAPI.getInstance(),
             ModuleAnimation.getInstance(),
             ModuleAnonymization.getInstance(),
+            ModuleEvolizAPI.getInstance(),
             ModuleFacturationProAPI.getInstance(),
             ModulePowershell.getInstance(),
             ModuleNFCConnect.getInstance(),
@@ -582,6 +585,7 @@ export default abstract class ModuleServiceBase {
             ModuleTeamsAPIServer.getInstance(),
             ModuleAnimationServer.getInstance(),
             ModuleAnonymizationServer.getInstance(),
+            ModuleEvolizAPIServer.getInstance(),
             ModuleFacturationProAPIServer.getInstance(),
             ModulePowershellServer.getInstance(),
             ModuleNFCConnectServer.getInstance(),
