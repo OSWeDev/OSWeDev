@@ -1,5 +1,5 @@
 import Component from 'vue-class-component';
-import { isEqual } from 'lodash';
+import { cloneDeep, isEqual } from 'lodash';
 import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterHandler from '../../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
@@ -14,6 +14,7 @@ import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
 import TSRangeInputComponent from '../../../../tsrangeinput/TSRangeInputComponent';
+import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import FieldValueFilterWidgetOptions from '../options/FieldValueFilterWidgetOptions';
@@ -53,32 +54,6 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
 
     private actual_query: string = null;
 
-    @Watch('ts_range')
-    private onchange_ts_range() {
-        if (!this.widget_options) {
-            return;
-        }
-
-        if (!this.ts_range) {
-            this.remove_active_field_filter({ vo_type: this.vo_field_ref.api_type_id, field_id: this.vo_field_ref.field_id });
-            return;
-        }
-
-        let moduletable = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id];
-        let field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
-
-        this.set_active_field_filter({
-            field_id: this.vo_field_ref.field_id,
-            vo_type: this.vo_field_ref.api_type_id,
-            active_field_filter: ContextFilterHandler.getInstance().get_ContextFilterVO_from_DataFilterOption(null, this.ts_range, field, this.vo_field_ref),
-        });
-    }
-
-    @Watch('widget_options', { immediate: true })
-    private async onchange_widget_options() {
-        this.ts_range = this.default_values;
-    }
-
     get vo_field_ref_label(): string {
         if ((!this.widget_options) || (!this.vo_field_ref)) {
             return null;
@@ -87,42 +62,10 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
         return this.get_flat_locale_translations[this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id)];
     }
 
-    get vo_field_ref(): VOFieldRefVO {
-        let options: FieldValueFilterWidgetOptions = this.widget_options;
-
-        if ((!options) || (!options.vo_field_ref)) {
-            return null;
-        }
-
-        return Object.assign(new VOFieldRefVO(), options.vo_field_ref);
-    }
-
-    get segmentation_type(): number {
-        let options: FieldValueFilterWidgetOptions = this.widget_options;
-
-        return options ? options.segmentation_type : null;
-    }
-
-    get default_values(): TSRange {
-        let options: FieldValueFilterWidgetOptions = this.widget_options;
-
-        if (!options) {
-            return null;
-        }
-
-        return options.default_ts_range_values;
-    }
-
-    get exclude_values(): TSRange {
-        let options: FieldValueFilterWidgetOptions = this.widget_options;
-
-        if (!options) {
-            return null;
-        }
-
-        return options.exclude_ts_range_values;
-    }
-
+    /**
+     * Computed widget options
+     *  - Happen on component|widget creation
+     */
     get widget_options() {
         if (!this.page_widget) {
             return null;
@@ -168,6 +111,9 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
                     options.show_count_value,
                     options.active_field_on_autovalidate_advanced_filter,
                     options.force_filter_all_api_type_ids,
+                    options.bg_color,
+                    options.fg_color_value,
+                    options.fg_color_text,
                 ) : null;
             }
         } catch (error) {
@@ -175,6 +121,147 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
         }
 
         return options;
+    }
+
+    /**
+     * Watch on widget_options
+     *  - Shall happen first on component init or each time widget_options changes
+     *  - Initialize the times range (ts_range) with default widget options
+     * @returns void
+     */
+    @Watch('widget_options', { immediate: true })
+    private onchange_widget_options(): void {
+        if (!!this.old_widget_options) {
+            if (isEqual(this.widget_options, this.old_widget_options)) {
+                return;
+            }
+        }
+
+        this.old_widget_options = cloneDeep(this.widget_options);
+
+        let options: FieldValueFilterWidgetOptions = this.widget_options;
+
+        if (!options) {
+            return null;
+        }
+
+        this.ts_range = options.default_ts_range_values;
+    }
+
+    /**
+     * Get active field filters
+     *  - Shall initialize the ts_range by using context filter
+     * @returns void
+     */
+    @Watch("get_active_field_filters", { immediate: true })
+    private try_preload_ts_range(): void {
+        // Search context filter for this filter in the store
+        let root_context_filter: ContextFilterVO = null;
+        root_context_filter = this.get_active_field_filters[this.vo_field_ref.api_type_id] ? this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id] : null;
+
+        // We must search for the actual context filter
+        let context_filter: ContextFilterVO = null;
+        if (!!root_context_filter) {
+            context_filter = ContextFilterHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_INTERSECTS);
+        }
+
+        // If no context filter that mean there is no initialization
+        // - Then keep let all selected months with default values
+        if (!context_filter) {
+            return;
+        }
+
+        // Just sets the current ts_range with the stored one (from context filter)
+        this.ts_range = context_filter.param_tsranges[0];
+    }
+
+    /**
+     * Watch on ts_range
+     *  - Happen each time ts_range change
+     *  - This (re)initialize the context store on each call
+     * @returns void
+     */
+    @Watch('ts_range', { immediate: true, deep: true })
+    private onchange_ts_range() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        // Search context filter for this filter in the store
+        let root_context_filter: ContextFilterVO = null;
+        root_context_filter = this.get_active_field_filters[this.vo_field_ref.api_type_id] ? this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id] : null;
+
+        // We must search for the actual context filter
+        let context_filter: ContextFilterVO = null;
+        if (!!root_context_filter) {
+            context_filter = ContextFilterHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_INTERSECTS);
+        }
+
+        // if there is no ts_range there is no need to continue
+        if (!this.ts_range) {
+            this.remove_active_field_filter({ vo_type: this.vo_field_ref.api_type_id, field_id: this.vo_field_ref.field_id });
+            return;
+        }
+
+        // (on initialization) if context exist and ts_range
+        let ts_ranges: TSRange[] = [];
+        ts_ranges.push(this.ts_range);
+
+        // If the is no context_filter create a new one with this ts_range
+        if (!context_filter) {
+            let moduletable = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id];
+            let field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
+            context_filter = ContextFilterHandler.getInstance().get_ContextFilterVO_from_DataFilterOption(null, this.ts_range, field, this.vo_field_ref);
+
+            this.set_active_field_filter({
+                field_id: this.vo_field_ref.field_id,
+                vo_type: this.vo_field_ref.api_type_id,
+                active_field_filter: context_filter,
+            });
+            return;
+        }
+
+        // If context_filter exist, replace with the actual ts_range
+        if (!!context_filter) {
+            if (!RangeHandler.are_same(context_filter.param_tsranges, ts_ranges)) {
+                context_filter.param_tsranges = ts_ranges;
+
+                let new_root = ContextFilterHandler.getInstance().add_context_filter_to_tree(root_context_filter, context_filter);
+
+                this.set_active_field_filter({
+                    field_id: this.vo_field_ref.field_id,
+                    vo_type: this.vo_field_ref.api_type_id,
+                    active_field_filter: new_root,
+                });
+            }
+            return;
+        }
+    }
+
+    get vo_field_ref(): VOFieldRefVO {
+        let options: FieldValueFilterWidgetOptions = this.widget_options;
+
+        if ((!options) || (!options.vo_field_ref)) {
+            return null;
+        }
+
+        return Object.assign(new VOFieldRefVO(), options.vo_field_ref);
+    }
+
+    get segmentation_type(): number {
+        let options: FieldValueFilterWidgetOptions = this.widget_options;
+
+        return options ? options.segmentation_type : null;
+    }
+
+    get exclude_values(): TSRange {
+        let options: FieldValueFilterWidgetOptions = this.widget_options;
+
+        if (!options) {
+            return null;
+        }
+
+        return options.exclude_ts_range_values;
     }
 
     get field_date(): SimpleDatatableFieldVO<any, any> {

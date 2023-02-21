@@ -1,4 +1,4 @@
-.field_value_filter_widget_component
+.field_value_filter_widget_component(:style='widget_options ? {background: widget_options.bg_color ? widget_options.bg_color : "inherit", color: widget_options.fg_color_text ? widget_options.fg_color_text : "inherit"} : {}')
     template(v-if='is_type_string')
         Fieldvaluefilterstringwidgetcomponent(
             :page_widget="page_widget"

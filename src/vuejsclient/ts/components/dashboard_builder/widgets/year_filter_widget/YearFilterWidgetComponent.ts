@@ -60,11 +60,11 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
     }
 
     /**
-     * Handle toggle slected year
+     * Handle toggle selected year
      *  - Happen when we click on toggle year button
      * @param i index in selected year array
      */
-    private handle_toggle_slected_year(i: string): void {
+    private handle_toggle_selected_year(i: string): void {
         Vue.set(this.selected_years, i, !this.selected_years[i]);
     }
 

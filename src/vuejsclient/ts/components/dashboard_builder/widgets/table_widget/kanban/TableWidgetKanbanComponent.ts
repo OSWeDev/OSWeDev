@@ -821,7 +821,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         return column.filter_additional_params ? JSON.parse(column.filter_additional_params) : undefined;
     }
 
-    private is_row_filter_ok(row: any): boolean {
+    private is_row_filter_active(row: any): boolean {
         if (!row) {
             return true;
         }

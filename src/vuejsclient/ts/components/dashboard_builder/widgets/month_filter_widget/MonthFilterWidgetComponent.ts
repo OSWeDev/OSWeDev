@@ -64,15 +64,14 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
             pwid: this.page_widget.id,
             page_widget_component: this
         });
-        // TODO: load selected_months from the context store
     }
 
     /**
-     * Handle toggle slected month
+     * Handle toggle selected month
      *  - Happen when we click on toggle month button
      * @param i index in selected month array
      */
-    private handle_toggle_slected_month(i: string) {
+    private handle_toggle_selected_month(i: string) {
         Vue.set(this.selected_months, i, !this.selected_months[i]);
     }
 
@@ -101,7 +100,8 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
     }
 
     /**
-     * computed widget_options
+     * Computed widget options
+     *  - Happen on component|widget creation
      * @returns MonthFilterWidgetOptions
      */
     get widget_options(): MonthFilterWidgetOptions {
@@ -128,7 +128,7 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
 
     /**
      * Watch on widget_options
-     *  - Shall happen first on component init
+     *  - Shall happen first on component init or each time widget_options changes
      *  - Initialize the selected_months with default widget options
      * @returns void
      */
@@ -293,9 +293,9 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
     }
 
     /**
-     * Watch on select changes
+     * Watch on selected_months
      *  - Happen each time the selected_months changes
-     *  - This initialize the context store on first call
+     *  - This (re)initialize the context store on each call
      * @returns void
      */
     @Watch('selected_months', { immediate: true, deep: true })
@@ -306,15 +306,19 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
             if (!this.vo_field_ref) {
                 return null;
             }
-            root_context_filter = this.get_active_field_filters[this.vo_field_ref.api_type_id] ? this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id] : null;
+            root_context_filter = this.get_active_field_filters[this.vo_field_ref.api_type_id] ?
+                this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id] :
+                null;
         } else {
             if (!this.custom_filter_name) {
                 return null;
             }
-            root_context_filter = this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] ? this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.custom_filter_name] : null;
+            root_context_filter = this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] ?
+                this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.custom_filter_name] :
+                null;
         }
 
-        // (on initialization) if context exist and range exist overwrite selected_range
+        // (on initialization) if context exist and selected_months exist overwrite months_range
         let months_ranges: NumRange[] = [];
         for (let i in this.selected_months) {
             if (!this.selected_months[i]) {

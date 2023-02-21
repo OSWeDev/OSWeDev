@@ -40,7 +40,7 @@ export default class TSRange implements IRange {
             return null;
         }
 
-        if (end_range < start_range) {
+        if (start_range > end_range) {
             return null;
         }
 

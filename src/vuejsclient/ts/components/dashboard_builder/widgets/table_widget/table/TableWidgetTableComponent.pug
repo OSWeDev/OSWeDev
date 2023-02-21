@@ -102,16 +102,16 @@ include ../../../../../../views/mixins/loading.pug
                                         Inlinetranslatabletext()
                     template(v-if="update_cpt_live <= 1")
                         tbody
-                            tr.table_row(v-for='row in data_rows' :class='{"is_filtering": is_filtering_by, "filtered_value": is_filtering_by && !is_row_filter_ok(row)}')
+                            tr.table_row(v-for='row in data_rows' :class='{"is_filtering": is_filtering_by, "filtered_value": is_filtering_by && !is_row_filter_active(row)}')
                                 template(v-for='column in table_columns')
                                     template(v-if="!column.hide_from_table")
                                         td.table_col(
                                             v-if="column.type != 5"
                                             :class='{["type_" + column.type]: true, "can_filter": can_filter_by(column) && (is_filtering_by_col(column) || !is_filtering_by), "is_filtering_by": is_filtering_by_col(column), "position-sticky": column.is_sticky }'
                                             :style="get_style_td(column)"
-                                            @click="can_filter_by(column) ? (is_filtering_by_col(column) ? filter_by(column, column.datatable_field_uid, null) : (is_filtering_by ? null : filter_by(column, column.datatable_field_uid, row))) : null"
+                                            @click="can_filter_by(column) ? (is_filtering_by_col(column) ? handle_filter_by(column, column.datatable_field_uid + '__raw', null) : (is_filtering_by ? null : handle_filter_by(column, column.datatable_field_uid + '__raw', row))) : null"
                                             v-tooltip='can_filter_by(column) ? ((!is_filtering_by_col(column)) ? (is_filtering_by ? null : (((!column.field_id) || (column.field_id == "id")) ? label("table_widget_component.filter_by.id") : label("table_widget_component.filter_by.column_value"))) : label("table_widget_component.filter_by.unfilter")) : null'
-                                            )
+                                        )
 
                                             //- If it's a select box
                                             template(v-if="column.type == 3")
