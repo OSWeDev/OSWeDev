@@ -202,25 +202,43 @@ export default class InlineTranslatableText extends VueComponentBase {
 
     private async save_translation(code_lang: string, code_text: string, translation: string, muted: boolean = false) {
 
+        let self = this;
+
         if ((!this.is_editable) || (!this.semaphore)) {
             return;
         }
         this.semaphore = false;
 
         if (!muted) {
-            this.snotify.info(this.label('on_page_translation.save_translation.start'));
+            this.snotify.async(self.label('on_page_translation.save_translation.start'), () =>
+                new Promise(async (resolve, reject) => {
+                    if (!await TranslatableTextController.getInstance().save_translation(code_lang, code_text, translation)) {
+                        reject({
+                            body: self.label('on_page_translation.save_translation.ko'),
+                            config: {
+                                timeout: 10000,
+                                showProgressBar: true,
+                                closeOnClick: false,
+                                pauseOnHover: true,
+                            },
+                        });
+                        this.semaphore = true;
+                        return;
+                    }
+
+                    this.set_flat_locale_translation({ code_text, value: translation });
+                    resolve({
+                        body: self.label('on_page_translation.save_translation.ok'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                }));
         }
 
-        if (!await TranslatableTextController.getInstance().save_translation(code_lang, code_text, translation)) {
-            this.snotify.error(this.label('on_page_translation.save_translation.ko'));
-            this.semaphore = true;
-            return;
-        }
-
-        this.set_flat_locale_translation({ code_text, value: translation });
-        if (!muted) {
-            this.snotify.success(this.label('on_page_translation.save_translation.ok'));
-        }
         this.semaphore = true;
     }
 }
