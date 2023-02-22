@@ -8,7 +8,6 @@ import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/Sort
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
-import TableColumnDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
 import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
@@ -106,6 +105,10 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
     private fg_color_value: string = null;
     private fg_color_text: string = null;
     private bg_color: string = null;
+
+    // Current filter may show all on none of its options
+    private show_all: boolean = false;
+    private show_none: boolean = false;
 
     private filter_visible_options: DataFilterOption[] = [];
     private actual_query: string = null;
@@ -213,6 +216,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.fg_color_text = this.widget_options.fg_color_text;
         this.fg_color_value = this.widget_options.fg_color_value;
         this.bg_color = this.widget_options.bg_color;
+
+        this.show_all = this.widget_options.show_all;
+        this.show_none = this.widget_options.show_none;
 
         if (!this.tmp_segmentation_type && this.is_type_date) {
             let field = this.field;
@@ -1132,6 +1138,42 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         await this.throttled_update_options();
     }
 
+    /**
+     * Toggle Show All
+     *  - Allow to the user to show all of the active filter options
+     */
+    private async toggle_show_all() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        this.widget_options.show_all = !this.show_all;
+
+        if (!this.next_update_options) {
+            this.next_update_options = cloneDeep(this.widget_options);
+        }
+
+        await this.throttled_update_options();
+    }
+
+    /**
+     * Toggle Show None
+     *  - Allow to the user to show none of the active filter options
+     */
+    private async toggle_show_none() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        this.widget_options.show_none = !this.show_none;
+
+        if (!this.next_update_options) {
+            this.next_update_options = cloneDeep(this.widget_options);
+        }
+
+        await this.throttled_update_options();
+    }
+
     private async switch_hide_btn_switch_advanced() {
         this.next_update_options = this.widget_options;
 
@@ -1808,6 +1850,10 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         return this.label('FieldValueFilterWidget.advanced_mode_placeholder');
     }
 
+    /**
+     *  Widget Options
+     *   - Load default widget option (from backend)
+     */
     get widget_options(): FieldValueFilterWidgetOptions {
         if (!this.page_widget) {
             return null;
@@ -1856,6 +1902,8 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                     options.bg_color,
                     options.fg_color_value,
                     options.fg_color_text,
+                    options.show_all,
+                    options.show_none,
                 ) : null;
             }
         } catch (error) {

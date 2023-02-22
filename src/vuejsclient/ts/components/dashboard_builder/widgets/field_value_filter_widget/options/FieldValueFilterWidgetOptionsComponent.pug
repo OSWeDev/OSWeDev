@@ -149,6 +149,30 @@
                         :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                     ) 
 
+        template(v-if="is_type_string || is_type_enum")
+            .advanced_mode
+                .input_label {{ label('field_value_filter_widget_component.show_all_option') }}
+                .input_wrapper
+                    toggle-button(
+                        @change="toggle_show_all" 
+                        :value="show_all" 
+                        :sync="false"
+                        :width="60"
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                    ) 
+
+        template(v-if="is_type_string || is_type_enum")
+            .advanced_mode
+                .input_label {{ label('field_value_filter_widget_component.show_none_option') }}
+                .input_wrapper
+                    toggle-button(
+                        @change="toggle_show_none" 
+                        :value="show_none" 
+                        :sync="false"
+                        :width="60"
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                    ) 
+
             .default_advanced_string_filter_type
                 .input_label {{ label('field_value_filter_widget_component.default_advanced_string_filter_type') }}
                 .input_wrapper

@@ -154,6 +154,8 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
                     options.bg_color,
                     options.fg_color_value,
                     options.fg_color_text,
+                    options.show_all,
+                    options.show_none,
                 ) : null;
             }
         } catch (error) {
@@ -297,7 +299,8 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         let root_context_filter: ContextFilterVO = null;
 
         // Get context filter from store
-        root_context_filter = this.get_active_field_filters[this.vo_field_ref.api_type_id] ?
+        root_context_filter = this.get_active_field_filters &&
+            this.get_active_field_filters[this.vo_field_ref.api_type_id] ?
             this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id] :
             null;
 
@@ -463,6 +466,26 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
         // Si on doit afficher le compteur, on fait les requêtes nécessaires
         await this.set_count_value();
+    }
+
+    /**
+     * Handle Select All
+     *  - Select all fields of the current active filter
+     */
+    private handle_select_all(): void {
+        let selection: DataFilterOption[] = [];
+
+        selection = this.filter_visible_options?.map((filter) => new DataFilterOption(DataFilterOption.STATE_SELECTED, filter.label, filter.id));
+
+        this.tmp_filter_active_options = selection;
+    }
+
+    /**
+     * Handle Select None
+     *  - Remove all fields of the current selected active filter
+     */
+    private handle_select_none(): void {
+        this.tmp_filter_active_options = [];
     }
 
     /**
@@ -788,6 +811,32 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
     get is_button(): boolean {
         return this.widget_options.is_button;
+    }
+
+    get show_all(): boolean {
+        if (!this.widget_options) {
+            return false;
+        }
+
+        const canShowAll = !!this.widget_options.show_all;
+        const queryLimit = this.widget_options.max_visible_options;
+
+        if (!canShowAll) {
+            return canShowAll;
+        }
+
+        // May be shown only if active filter options
+        // length smaller than actual query limit
+        return this.filter_visible_options?.length < queryLimit;
+    }
+
+    get show_none(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.show_none;
     }
 
     get show_count_value(): boolean {
