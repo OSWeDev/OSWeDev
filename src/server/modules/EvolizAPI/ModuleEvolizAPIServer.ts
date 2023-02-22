@@ -167,8 +167,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
                 client,
                 {
                     'Authorization': 'Bearer ' + token.access_token,
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json; charset=ISO8859-1',
+                    'Content-Type': 'application/json',
                 },
                 true,
                 null,

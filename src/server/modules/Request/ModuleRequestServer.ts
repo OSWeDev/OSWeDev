@@ -54,6 +54,10 @@ export default class ModuleRequestServer extends ModuleServerBase {
     ): Promise<any> {
 
         return new Promise((resolve, reject) => {
+            if (!headers) {
+                headers = {};
+            }
+
             const options = {
                 host: host,
                 path: path,
@@ -65,7 +69,8 @@ export default class ModuleRequestServer extends ModuleServerBase {
 
             // // Pour plus de compatibilité (avec Teams notamment) => mais incompatible avec lenvoi de SMS sur sendinblue...
             if (add_content_length_to_headers && (method == ModuleRequest.METHOD_POST) && !!dataPosts && (dataPosts.length > 0)) {
-                headers['Content-Length'] = dataPosts.length;
+                // .byteLength pour avoir la gestion des caractères spéciaux tel que les accents
+                headers['Content-Length'] = Buffer.byteLength(dataPosts);
             }
 
             function callback(res: http.IncomingMessage) {
