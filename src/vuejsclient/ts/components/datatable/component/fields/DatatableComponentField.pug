@@ -66,7 +66,14 @@
                             span {{ e.label }}
 
             template(v-else-if="field.type == 'COMPONENT'")
-                div(:is="field.component_name" :vo="vo" :columns="columns" :param="vo[field.parameter_datatable_field_uid]" :param_ref_id="vo[field.parameter_datatable_field_uid + '___id___']")
+                div(
+                    :is="field.component_name" 
+                    :vo="vo" 
+                    :columns="columns" 
+                    :param="vo[field.parameter_datatable_field_uid]" 
+                    :param_ref_id="vo[field.parameter_datatable_field_uid + '___id___']"
+                    :dashboard_page="dashboard_page"
+                )
 
             template(v-else-if="field.type == 'FILE'")
                 Filedatatablefieldcomponent(:file_id="vo[field.parameter_datatable_field_uid]")

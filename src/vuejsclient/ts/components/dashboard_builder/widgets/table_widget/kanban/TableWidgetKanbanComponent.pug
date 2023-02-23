@@ -53,6 +53,7 @@ include ../../../../../../views/mixins/loading.pug
                                                 :vo="kanban_column_vos[kanban_column_values_to_index[slot_props_columns.sortable_list_item]]"
                                                 :columns="table_columns"
                                                 :all_page_widget="all_page_widget"
+                                                :dashboard_page="dashboard_page"
                                                 :page_widget="page_widget"
                                                 :style="{width: (kanban_column.column_width ? kanban_column.column_width + 'rem' : null), background: (kanban_column.enum_bg_colors ? kanban_column.enum_bg_colors[kanban_column_vos[kanban_column_values_to_index[slot_props_columns.sortable_list_item]][kanban_column.datatable_field_uid + '__raw']] : ''), color: (kanban_column.enum_fg_colors ? kanban_column.enum_fg_colors[kanban_column_vos[kanban_column_values_to_index[slot_props_columns.sortable_list_item]][kanban_column.datatable_field_uid + '__raw']] : '') }"
                                             )
@@ -68,6 +69,7 @@ include ../../../../../../views/mixins/loading.pug
                                                     :show_tooltip="kanban_column.show_tooltip"
                                                     :disabled_many_to_one_link="kanban_column.disabled_many_to_one_link"
                                                     :all_page_widget="all_page_widget"
+                                                    :dashboard_page="dashboard_page"
                                                     :page_widget="page_widget"
                                                     :filter='get_column_filter(kanban_column)'
                                                     :filter_additional_params='get_column_filter_additional_params(kanban_column)'
@@ -106,6 +108,7 @@ include ../../../../../../views/mixins/loading.pug
                                                                                         :vo="slot_props.sortable_list_item"
                                                                                         :columns="table_columns"
                                                                                         :all_page_widget="all_page_widget"
+                                                                                        :dashboard_page="dashboard_page"
                                                                                         :page_widget="page_widget"
                                                                                         :style="{width: (column.column_width ? column.column_width + 'rem' : null), background: (column.enum_bg_colors ? column.enum_bg_colors[slot_props.sortable_list_item[column.datatable_field_uid + '__raw']] : ''), color: (column.enum_fg_colors ? column.enum_fg_colors[slot_props.sortable_list_item[column.datatable_field_uid + '__raw']] : '') }"
                                                                                     )
@@ -121,6 +124,7 @@ include ../../../../../../views/mixins/loading.pug
                                                                                             :show_tooltip="column.show_tooltip"
                                                                                             :disabled_many_to_one_link="column.disabled_many_to_one_link"
                                                                                             :all_page_widget="all_page_widget"
+                                                                                            :dashboard_page="dashboard_page"
                                                                                             :page_widget="page_widget"
                                                                                             :filter='get_column_filter(column)'
                                                                                             :filter_additional_params='get_column_filter_additional_params(column)'

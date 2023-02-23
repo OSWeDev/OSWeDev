@@ -144,6 +144,7 @@ include ../../../../../../views/mixins/loading.pug
                                                             :vo="row"
                                                             :columns="table_columns"
                                                             :all_page_widget="all_page_widget"
+                                                            :dashboard_page="dashboard_page"
                                                             :page_widget="page_widget"
                                                             :style="{width: (column.column_width ? column.column_width + 'rem' : null), background: (column.enum_bg_colors ? column.enum_bg_colors[row[column.datatable_field_uid + '__raw']] : ''), color: (column.enum_fg_colors ? column.enum_fg_colors[row[column.datatable_field_uid + '__raw']] : '') }"
                                                         )
@@ -160,6 +161,7 @@ include ../../../../../../views/mixins/loading.pug
                                                                 :show_tooltip="column.show_tooltip"
                                                                 :disabled_many_to_one_link="column.disabled_many_to_one_link"
                                                                 :all_page_widget="all_page_widget"
+                                                                :dashboard_page="dashboard_page"
                                                                 :page_widget="page_widget"
                                                                 :filter='get_column_filter(column)'
                                                                 :filter_additional_params='get_column_filter_additional_params(column)'
@@ -204,6 +206,7 @@ include ../../../../../../views/mixins/loading.pug
                                                         :page_widget="page_widget"
                                                         :disabled_many_to_one_link="column.disabled_many_to_one_link"
                                                         :all_page_widget="all_page_widget"
+                                                        :dashboard_page="dashboard_page"
                                                         :filter='get_column_filter(column)'
                                                         :filter_additional_params='get_column_filter_additional_params(column)'
                                                         :table_is_busy="is_busy"
