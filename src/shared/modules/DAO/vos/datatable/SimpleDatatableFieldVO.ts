@@ -220,7 +220,7 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                     }
 
                     // none still active field_value may have another format
-                    const rgx = /(?<=[\[?\(])(\d{10})\,(\d{10})(?=[\]?\)])/; // the actual date_range format may be e.g. "[1577836800,1580515200)"
+                    const rgx = /(?<=[\[|\(])(\d{10})\,(\d{10})(?=[\]|\)])/; // the actual date_range format may be e.g. "[1577836800,1580515200)"
                     const isStringDateRangeFormat = rgx.test(field_value);
 
                     if (isStringDateRangeFormat) {
