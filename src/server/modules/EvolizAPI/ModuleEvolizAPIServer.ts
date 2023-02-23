@@ -132,8 +132,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
                 invoice,
                 {
                     'Authorization': 'Bearer ' + token.access_token,
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json; charset=ISO8859-1',
+                    'Content-Type': 'application/json',
                 },
                 true,
                 null,
@@ -194,8 +193,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
                 contact,
                 {
                     'Authorization': 'Bearer ' + token.access_token,
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json; charset=ISO8859-1',
+                    'Content-Type': 'application/json',
                 },
                 true,
                 null,
