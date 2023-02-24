@@ -14,6 +14,7 @@ import * as fs from 'fs';
 import ModuleFile from '../../../shared/modules/File/ModuleFile';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../../env/ConfigurationService';
+import FactuProInvoicesEmailParams from '../../../shared/modules/FacturationProAPI/vos/invoices/FactuProInvoicesEmailParams';
 
 export default class ModuleFacturationProAPIServer extends ModuleServerBase {
 
@@ -64,6 +65,7 @@ export default class ModuleFacturationProAPIServer extends ModuleServerBase {
 
     public registerServerApiHandlers() {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleFacturationProAPI.APINAME_download_invoice, this.download_invoice.bind(this));
+        // APIControllerWrapper.getInstance().registerServerApiHandler(ModuleFacturationProAPI.APINAME_send_email_facture, this.send_email_facture.bind(this));
     }
 
     private async download_invoice(firm_id: number, invoice_id: string, original: boolean): Promise<string> {
@@ -103,6 +105,20 @@ export default class ModuleFacturationProAPIServer extends ModuleServerBase {
         // On retourne l'URL du fichier créé en supprimant les 2 premiers caractères (./)
         return ConfigurationService.node_configuration.BASE_URL + file_name.substring(2);
     }
+
+    // private async send_email_facture(firm_id: number, bill_id: number, params: FactuProInvoicesEmailParams) {
+    //     let send_mail = await ModuleRequest.getInstance().sendRequestFromApp(
+    //         ModuleRequest.METHOD_POST,
+    //         "www.facturation.pro",
+    //         "/firms/" + firm_id + "/emails.json?bill_id=" + bill_id,
+    //         params,
+    //         await ModuleFacturationProAPI.getInstance().getHeadersRequest(),
+    //         true,
+    //         null,
+    //         true,
+    //         true
+    //     );
+    // }
     // X-Pagination: { "current_page": 1, "total_pages": 10, "per_page": 30, "total_entries": 300 }
     // Vous pouvez accéder aux différentes pages d’une liste en utilisant le paramètre “page = N” dans vos requêtes, ou N est le numéro de page souhaité.
 
