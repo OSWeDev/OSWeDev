@@ -1,0 +1,19 @@
+# sh ./bin/docker_up.sh --dev
+
+version: '3.5'
+services:
+    oswedev_back:
+        image: oswedev_server_img:latest
+        user: ${USER_UID}
+        restart: unless-stopped
+        networks:
+            - oswedev
+        volumes:
+            - ./bin/entrypoint.sh:/home/node/oswedev/bin/entrypoint.sh:ro
+            - ./package.json:/home/node/oswedev/package.json
+            - ./src:/home/node/oswedev/src
+
+networks:
+    oswedev:
+        name: oswedev
+

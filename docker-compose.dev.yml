@@ -1,0 +1,18 @@
+# sh ./bin/docker_up.sh --dev
+
+version: '3.5'
+
+x-env: &env
+    NODE_ENV: development
+    PORT: 3000
+
+services:
+    oswedev_back:
+        user: ${USER_UID}
+        command: sh -c "/home/node/oswedev/bin/entrypoint.sh && yarn dev"
+        container_name: oswedev_server_container
+        environment:
+            <<: *env
+        ports:
+            - '3050-3055:3000' # depend on if we use load balancer
+
