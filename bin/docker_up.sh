@@ -24,8 +24,8 @@ done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
 # ./docker_up.sh --dev
-if [[ $ENV == "dev" ]]; then
-    scale='--scale oswedev_server_container=1'
-fi
+# if [[ $ENV == "dev" ]]; then
+#     scale='--scale oswedev_server_container=1'
+# fi
 
-docker-compose $base -f ./docker-compose.${ENV}.yml up -d $scale
+docker compose $base -f ./docker-compose.${ENV}.yml up -d $scale

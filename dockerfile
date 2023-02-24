@@ -40,10 +40,16 @@ WORKDIR ${APP_PATH}
 # install package manager
 RUN npm install -g ts-node npm
 
+# create workdir directories
+RUN mkdir var dist bin
+
 # provide a file for docker env params 
 # for some reason cron job does not 
 # read the actual docker env params
 RUN touch ./bin/docker-env.sh
+
+# command line tha will be run on init
+COPY ./bin/entrypoint.sh ./bin/entrypoint.sh
 
 # copy the project
 COPY ./src ./src
