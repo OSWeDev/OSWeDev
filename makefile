@@ -11,10 +11,7 @@ DOCKER_USERNAME ?= wedev
 APPLICATION_IMG_NAME ?= ${DOCKER_USERNAME}/${APPLICATION_NAME}_img
 CONTAINER_NAME ?= oswedev_server_container
 
-DOCKER_BASE_FILE ?= docker-compose.base.yml
-DOCKER_DEV_FILE ?= docker-compose.dev.yml
-
-COMPOSE_FILE ?= docker compose -f ${DOCKER_BASE_FILE} -f ${DOCKER_DEV_FILE}
+COMPOSE_FILE ?= docker compose -f docker-compose.base.yml -f docker-compose.dev.yml
 
 COMPOSE_UP ?= APPLICATION_IMG_NAME=${APPLICATION_IMG_NAME} \
 	CONTAINER_NAME=${CONTAINER_NAME} \
