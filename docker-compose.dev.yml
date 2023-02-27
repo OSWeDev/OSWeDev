@@ -13,7 +13,7 @@ services:
     oswedev_back:
         user: ${USER_UID}
         command: sh -c "/home/node/oswedev/bin/entrypoint.sh && yarn tsc-watch"
-        container_name: oswedev_server_container
+        container_name: ${CONTAINER_NAME}
         environment:
             <<: *env
         ports:

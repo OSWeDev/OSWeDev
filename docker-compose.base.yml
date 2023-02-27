@@ -3,7 +3,7 @@
 version: '3.5'
 services:
     oswedev_back:
-        image: oswedev_server_img:latest
+        image: ${APPLICATION_IMG_NAME}:latest
         user: ${USER_UID}
         restart: unless-stopped
         networks:
@@ -16,4 +16,3 @@ services:
 networks:
     oswedev:
         name: oswedev
-
