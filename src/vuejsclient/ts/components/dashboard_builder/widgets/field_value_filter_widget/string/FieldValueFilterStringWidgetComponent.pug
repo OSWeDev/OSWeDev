@@ -6,7 +6,7 @@
                 .vo_field_ref_advanced
                     toggle-button(
                         @change="toggle_advanced_filters" 
-                        :value="advanced_string_filters" 
+                        :value="is_advanced_filters" 
                         :sync="true"
                         :width="100"
                         :labels="{checked: label('vo_field_ref_advanced.advanced_filters.visible'), unchecked: label('vo_field_ref_advanced.advanced_filters.hidden')}")
