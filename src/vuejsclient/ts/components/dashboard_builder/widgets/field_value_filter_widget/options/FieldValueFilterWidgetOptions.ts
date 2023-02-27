@@ -131,6 +131,7 @@ export default class FieldValueFilterWidgetOptions implements IExportableWidgetO
         if ((!this.vo_field_ref) || (!page_widget_id)) {
             return null;
         }
+
         return FieldValueFilterWidgetOptions.VO_FIELD_REF_PLACEHOLDER_CODE_PREFIX + page_widget_id + '.' + this.vo_field_ref.api_type_id + '.' + this.vo_field_ref.field_id;
     }
 

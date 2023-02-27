@@ -2055,6 +2055,15 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         return VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
     }
 
+    get title_name_code_text() {
+
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.get_placeholder_name_code_text(this.page_widget.id);
+    }
+
     get segmentation_type_options(): DataFilterOption[] {
         let res: DataFilterOption[] = [];
 
