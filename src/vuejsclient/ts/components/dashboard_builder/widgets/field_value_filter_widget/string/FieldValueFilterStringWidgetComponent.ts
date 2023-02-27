@@ -4,7 +4,7 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ContextFilterHandler from '../../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
-import ContextFilterVO, { filter as createFilter } from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextFilterVO, { filter } from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 
 import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/SortByVO';
@@ -1153,25 +1153,26 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         this.filter_visible_options_lvl2 = tmp_lvl2;
     }
 
+
+    // create single data filter to apply
+    private createDataFilter(text: string, index: string | number): DataFilterOption {
+        let dataFilter = new DataFilterOption(
+            DataFilterOption.STATE_SELECTED,
+            text,
+            parseInt(index.toString())
+        );
+        dataFilter.string_value = text;
+
+        return dataFilter;
+    }
+
     /**
      * Try Apply Actual Active Filters
      *  - Make the showable active filter options by the given filter
      * @param filter ContextFilterVO
      * @returns boolean
      */
-    private try_apply_actual_active_filters(filter: ContextFilterVO): boolean {
-
-        // create single data filter to apply
-        const createDataFilter = (text: string, index: string | number): DataFilterOption => {
-            let dataFilter = new DataFilterOption(
-                DataFilterOption.STATE_SELECTED,
-                text,
-                parseInt(index.toString())
-            );
-            dataFilter.string_value = text;
-
-            return dataFilter;
-        };
+    private try_apply_actual_active_filters(filter_: ContextFilterVO): boolean {
 
         if (!filter) {
             if (this.is_advanced_filters) {
@@ -1191,7 +1192,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         /**
          * si on a des filtres autres que simple, on doit passer en advanced
          */
-        if (this.has_advanced_filter(filter)) {
+        if (this.has_advanced_filter(filter_)) {
 
             if (!this.is_advanced_filters) {
                 this.is_advanced_filters = true;
@@ -1205,9 +1206,9 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             let advanced_filters: AdvancedStringFilter[] = [];
 
             if ((this.vo_field_ref_multiple?.length > 0)) {
-                this.try_apply_advanced_filters(filter.left_hook, advanced_filters);
+                this.try_apply_advanced_filters(filter_.left_hook, advanced_filters);
             } else {
-                this.try_apply_advanced_filters(filter, advanced_filters);
+                this.try_apply_advanced_filters(filter_, advanced_filters);
             }
 
             this.advanced_string_filters = advanced_filters;
@@ -1223,10 +1224,10 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
             let tmp_filter_active_options: DataFilterOption[] = [];
 
-            for (let i in filter.param_textarray) {
-                let text = filter.param_textarray[i];
+            for (let i in filter_.param_textarray) {
+                let text = filter_.param_textarray[i];
 
-                const dataFilter = createDataFilter(text, i);
+                const dataFilter = this.createDataFilter(text, i);
 
                 tmp_filter_active_options.push(dataFilter);
 
@@ -1294,8 +1295,8 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
     //     return true;
     // }
 
-    private has_advanced_filter(filter: ContextFilterVO): boolean {
-        if ((filter.filter_type == ContextFilterVO.TYPE_TEXT_EQUALS_ANY) && (filter.param_textarray != null) && (filter.param_textarray.length > 0)) {
+    private has_advanced_filter(filter_: ContextFilterVO): boolean {
+        if ((filter_.filter_type == ContextFilterVO.TYPE_TEXT_EQUALS_ANY) && (filter_.param_textarray != null) && (filter_.param_textarray.length > 0)) {
             return false;
         }
 
@@ -1407,34 +1408,34 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
                 switch (advanced_filter.filter_type) {
                     case AdvancedStringFilter.FILTER_TYPE_COMMENCE:
-                        translated_active_options = createFilter(vo_field_ref.api_type_id, vo_field_ref.field_id).by_text_starting_with(advanced_filter.filter_content);
+                        translated_active_options = filter(vo_field_ref.api_type_id, vo_field_ref.field_id).by_text_starting_with(advanced_filter.filter_content);
                         break;
                     case AdvancedStringFilter.FILTER_TYPE_COMMENCE_PAS:
-                        translated_active_options = createFilter(vo_field_ref.api_type_id, vo_field_ref.field_id).by_text_starting_with_none(advanced_filter.filter_content);
+                        translated_active_options = filter(vo_field_ref.api_type_id, vo_field_ref.field_id).by_text_starting_with_none(advanced_filter.filter_content);
                         break;
                     case AdvancedStringFilter.FILTER_TYPE_CONTIENT:
-                        translated_active_options = createFilter(vo_field_ref.api_type_id, vo_field_ref.field_id).by_text_including(advanced_filter.filter_content);
+                        translated_active_options = filter(vo_field_ref.api_type_id, vo_field_ref.field_id).by_text_including(advanced_filter.filter_content);
                         break;
                     case AdvancedStringFilter.FILTER_TYPE_CONTIENT_PAS:
-                        translated_active_options = createFilter(vo_field_ref.api_type_id, vo_field_ref.field_id).by_text_excluding(advanced_filter.filter_content);
+                        translated_active_options = filter(vo_field_ref.api_type_id, vo_field_ref.field_id).by_text_excluding(advanced_filter.filter_content);
                         break;
                     case AdvancedStringFilter.FILTER_TYPE_EST:
-                        translated_active_options = createFilter(vo_field_ref.api_type_id, vo_field_ref.field_id).by_text_has(advanced_filter.filter_content);
+                        translated_active_options = filter(vo_field_ref.api_type_id, vo_field_ref.field_id).by_text_has(advanced_filter.filter_content);
                         break;
                     case AdvancedStringFilter.FILTER_TYPE_NEST_PAS:
-                        translated_active_options = createFilter(vo_field_ref.api_type_id, vo_field_ref.field_id).by_text_has_none(advanced_filter.filter_content);
+                        translated_active_options = filter(vo_field_ref.api_type_id, vo_field_ref.field_id).by_text_has_none(advanced_filter.filter_content);
                         break;
                     case AdvancedStringFilter.FILTER_TYPE_EST_NULL:
-                        translated_active_options = createFilter(vo_field_ref.api_type_id, vo_field_ref.field_id).has_null();
+                        translated_active_options = filter(vo_field_ref.api_type_id, vo_field_ref.field_id).has_null();
                         break;
                     case AdvancedStringFilter.FILTER_TYPE_NEST_PAS_NULL:
-                        translated_active_options = createFilter(vo_field_ref.api_type_id, vo_field_ref.field_id).is_not_null();
+                        translated_active_options = filter(vo_field_ref.api_type_id, vo_field_ref.field_id).is_not_null();
                         break;
                     case AdvancedStringFilter.FILTER_TYPE_EST_VIDE:
-                        translated_active_options = createFilter(vo_field_ref.api_type_id, vo_field_ref.field_id).by_text_has('');
+                        translated_active_options = filter(vo_field_ref.api_type_id, vo_field_ref.field_id).by_text_has('');
                         break;
                     case AdvancedStringFilter.FILTER_TYPE_NEST_PAS_VIDE:
-                        translated_active_options = createFilter(vo_field_ref.api_type_id, vo_field_ref.field_id).by_text_has_none('');
+                        translated_active_options = filter(vo_field_ref.api_type_id, vo_field_ref.field_id).by_text_has_none('');
                         break;
                 }
                 break;
