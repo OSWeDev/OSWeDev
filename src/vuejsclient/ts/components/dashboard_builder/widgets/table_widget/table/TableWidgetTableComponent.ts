@@ -1,6 +1,6 @@
 import { cloneDeep, debounce, isEqual } from 'lodash';
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import { Prop, Vue, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ContextFilterHandler from '../../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
@@ -27,6 +27,7 @@ import ModuleDataExport from '../../../../../../../shared/modules/DataExport/Mod
 import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
 import ExportVarcolumnConf from '../../../../../../../shared/modules/DataExport/vos/ExportVarcolumnConf';
 import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import IDistantVOBase from '../../../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
 import VarConfVO from '../../../../../../../shared/modules/Var/vos/VarConfVO';
@@ -157,6 +158,9 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     private old_widget_options: TableWidgetOptions = null;
 
     private table_columns: TableColumnDescVO[] = [];
+
+    private selected_vos: { [id: number]: boolean } = {};
+    private vos_by_id: { [id: number]: any } = {};
 
     get all_page_widget_by_id(): { [id: number]: DashboardPageWidgetVO } {
         return VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
@@ -415,12 +419,20 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         }
     }
 
+    private get_identifier(vo: any): number {
+        return vo.__crud_actions;
+    }
+
     get can_refresh(): boolean {
         return this.widget_options && this.widget_options.refresh_button;
     }
 
     get can_export(): boolean {
         return this.widget_options && this.widget_options.export_button;
+    }
+
+    get show_bulk_edit(): boolean {
+        return this.widget_options && this.widget_options.show_bulk_edit;
     }
 
     get default_export_option(): number {
@@ -703,6 +715,9 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     private async change_offset(new_offset: number) {
         if (new_offset != this.pagination_offset) {
             this.pagination_offset = new_offset;
+
+            this.selected_vos = {};
+
             await this.throttle_do_update_visible_options();
         }
     }
@@ -1129,6 +1144,9 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
     @Watch('get_active_field_filters', { deep: true })
     private async onchange_active_field_filters() {
+
+        this.selected_vos = {};
+
         await this.throttle_update_visible_options();
     }
 
@@ -1405,6 +1423,14 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         query_.query_distinct = true;
         let rows = await ModuleContextFilter.getInstance().select_datatable_rows(query_, this.columns_by_field_id, fields);
 
+        let vos_by_id: { [id: number]: any } = {};
+        for (let i in rows) {
+            let row = rows[i];
+            vos_by_id[this.get_identifier(row)] = row;
+        }
+
+        this.vos_by_id = vos_by_id;
+
         // Si je ne suis pas sur la dernière demande, je me casse
         if (this.last_calculation_cpt != launch_cpt) {
             this.update_cpt_live--;
@@ -1463,6 +1489,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             this.set_query_api_type_ids([this.widget_options.crud_api_type_id]);
         }
 
+        this.selected_vos = {};
+
         // Si j'ai un tri par defaut, je l'applique au tableau
         if (this.columns) {
             this.order_asc_on_id = null;
@@ -1487,6 +1515,16 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             this.update_filter_by_access_cache()
         ];
         await all_promises(promises);
+    }
+
+    private select_unselect_all(value: boolean) {
+        for (let i in this.data_rows) {
+            let vo = this.data_rows[i];
+
+            let id: number = this.get_identifier(vo);
+
+            Vue.set(this.selected_vos, id, value);
+        }
     }
 
     private async update_filter_by_access_cache() {
@@ -1556,7 +1594,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                     options.has_default_export_option,
                     options.use_kanban_by_default_if_exists,
                     options.use_kanban_column_weight_if_exists,
-                    options.use_for_count
+                    options.use_for_count,
+                    options.show_bulk_edit,
                 ) : null;
             }
         } catch (error) {

@@ -25,4 +25,8 @@ export default class TableWidgetController {
 
         this.components_by_translatable_title[component.translatable_title] = component;
     }
+
+    public register_bulk_action(callback: () => Promise<void>) {
+
+    }
 }

@@ -67,6 +67,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private limit: string = TableWidgetOptions.DEFAULT_LIMIT.toString();
     private limit_selectable: string = TableWidgetOptions.DEFAULT_LIMIT_SELECTABLE;
     private tmp_nbpages_pagination_list: number = TableWidgetOptions.DEFAULT_NBPAGES_PAGINATION_LIST;
+    private show_bulk_edit: boolean = false;
 
     private tmp_default_export_option: DataFilterOption = null;
     private export_page_options: DataFilterOption[] = [
@@ -136,6 +137,9 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             if (!this.can_filter_by) {
                 this.can_filter_by = true;
             }
+            if (!this.show_bulk_edit) {
+                this.show_bulk_edit = false;
+            }
             this.limit = TableWidgetOptions.DEFAULT_LIMIT.toString();
             this.limit_selectable = TableWidgetOptions.DEFAULT_LIMIT_SELECTABLE;
             this.tmp_nbpages_pagination_list = TableWidgetOptions.DEFAULT_NBPAGES_PAGINATION_LIST;
@@ -194,10 +198,28 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         if (this.can_filter_by != this.widget_options.can_filter_by) {
             this.can_filter_by = this.widget_options.can_filter_by;
         }
+        if (this.show_bulk_edit != this.widget_options.show_bulk_edit) {
+            this.show_bulk_edit = this.widget_options.show_bulk_edit;
+        }
 
         this.limit = (this.widget_options.limit == null) ? TableWidgetOptions.DEFAULT_LIMIT.toString() : this.widget_options.limit.toString();
         this.limit_selectable = (this.widget_options.limit_selectable == null) ? TableWidgetOptions.DEFAULT_LIMIT_SELECTABLE : this.widget_options.limit_selectable;
         this.tmp_nbpages_pagination_list = (this.widget_options.nbpages_pagination_list == null) ? TableWidgetOptions.DEFAULT_NBPAGES_PAGINATION_LIST : this.widget_options.nbpages_pagination_list;
+    }
+
+    @Watch('show_bulk_edit')
+    private async onchange_show_bulk_edit() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.show_bulk_edit != this.next_update_options.show_bulk_edit) {
+            this.next_update_options.show_bulk_edit = this.show_bulk_edit;
+
+            await this.throttled_update_options();
+        }
     }
 
     @Watch('tmp_nbpages_pagination_list')
@@ -459,7 +481,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     }
 
     private get_default_options(): TableWidgetOptions {
-        return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, false, false, null, false, true, true, false);
+        return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, false, false, null, false, true, true, false, false);
     }
     private async add_column(add_column: TableColumnDescVO) {
 
@@ -621,6 +643,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                     options.use_kanban_by_default_if_exists,
                     options.use_kanban_column_weight_if_exists,
                     options.use_for_count,
+                    options.show_bulk_edit,
                 ) : null;
             }
         } catch (error) {
@@ -904,6 +927,21 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
         if (this.next_update_options.use_for_count != this.use_for_count) {
             this.next_update_options.use_for_count = this.use_for_count;
+            await this.throttled_update_options();
+        }
+    }
+
+    private async switch_show_bulk_edit() {
+        this.show_bulk_edit = !this.show_bulk_edit;
+
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.next_update_options.show_bulk_edit != this.show_bulk_edit) {
+            this.next_update_options.show_bulk_edit = this.show_bulk_edit;
             await this.throttled_update_options();
         }
     }

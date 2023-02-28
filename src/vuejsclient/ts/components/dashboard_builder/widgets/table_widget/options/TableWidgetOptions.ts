@@ -75,6 +75,7 @@ export default class TableWidgetOptions implements IExportableWidgetOptions {
         public use_kanban_by_default_if_exists: boolean,
         public use_kanban_column_weight_if_exists: boolean,
         public use_for_count: boolean, // Seulement pour enum pour l'instant
+        public show_bulk_edit: boolean,
     ) { }
 
     public get_title_name_code_text(page_widget_id: number): string {

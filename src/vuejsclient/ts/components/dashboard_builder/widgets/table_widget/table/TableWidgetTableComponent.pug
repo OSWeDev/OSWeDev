@@ -10,6 +10,11 @@ include ../../../../../../views/mixins/loading.pug
 
             .table_header {{ table_header_title }}
 
+            template(v-if="show_bulk_edit")
+                .show_bulk_edit.text-center.mb-2
+                    .btn.btn-primary.display_inline_block.mr-2(@click="select_unselect_all(true)") {{ label('supervision_widget_component.select_all') }}
+                    .btn.btn-primary.display_inline_block.mr-2(@click="select_unselect_all(false)") {{ label('supervision_widget_component.unselect_all') }}
+
             .upper_pagination
                 Tablepaginationcomponent(
                     :pagination_offset='pagination_offset'
@@ -60,6 +65,8 @@ include ../../../../../../views/mixins/loading.pug
                                     
                                     th.table_header(v-if="column.type != 5")
                         tr
+                            template(v-if="show_bulk_edit")
+                                th
                             template(v-for='column in table_columns')
                                 template(v-if="!column.hide_from_table")
                                 
@@ -103,6 +110,9 @@ include ../../../../../../views/mixins/loading.pug
                     template(v-if="update_cpt_live <= 1")
                         tbody
                             tr.table_row(v-for='row in data_rows' :class='{"is_filtering": is_filtering_by, "filtered_value": is_filtering_by && !is_row_filter_ok(row)}')
+                                template(v-if="show_bulk_edit")
+                                    td.text-center
+                                        input(type="checkbox", v-model="selected_vos[get_identifier(row)]" :checked="selected_vos[get_identifier(row)]")
                                 template(v-for='column in table_columns')
                                     template(v-if="!column.hide_from_table")
                                         td.table_col(

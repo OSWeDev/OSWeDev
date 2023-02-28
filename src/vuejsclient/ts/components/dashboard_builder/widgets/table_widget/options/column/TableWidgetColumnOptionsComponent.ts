@@ -522,6 +522,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
                     options.use_kanban_by_default_if_exists,
                     options.use_kanban_column_weight_if_exists,
                     options.use_for_count,
+                    options.show_bulk_edit
                 ) : null;
             }
         } catch (error) {
@@ -536,6 +537,10 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
     }
 
     private component_label(translatable_title: string): string {
+        return this.t(translatable_title);
+    }
+
+    private bulk_action_label(translatable_title: string): string {
         return this.t(translatable_title);
     }
 
@@ -920,5 +925,9 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
 
     get is_type_var_ref(): boolean {
         return this.object_column.type == TableColumnDescVO.TYPE_var_ref;
+    }
+
+    get show_bulk_edit(): boolean {
+        return this.widget_options && this.widget_options.show_bulk_edit;
     }
 }
