@@ -68,7 +68,7 @@ export default class ModuleRequestServer extends ModuleServerBase {
             let dataPosts: any = posts ? JSON.stringify(posts) : null;
 
             // // Pour plus de compatibilité (avec Teams notamment) => mais incompatible avec lenvoi de SMS sur sendinblue...
-            if (add_content_length_to_headers && (method == ModuleRequest.METHOD_POST) && !!dataPosts && (dataPosts.length > 0)) {
+            if (add_content_length_to_headers && ((method == ModuleRequest.METHOD_POST) || (method == ModuleRequest.METHOD_PATCH)) && !!dataPosts && (dataPosts.length > 0)) {
                 // .byteLength pour avoir la gestion des caractères spéciaux tel que les accents
                 headers['Content-Length'] = Buffer.byteLength(dataPosts);
             }
