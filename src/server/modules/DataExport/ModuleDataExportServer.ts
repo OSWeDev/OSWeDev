@@ -361,7 +361,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         let datas = (context_query.fields && context_query.fields.length) ?
             await ModuleContextFilter.getInstance().select_datatable_rows(context_query, columns_by_field_id, fields) :
             await ModuleContextFilter.getInstance().select_vos(context_query);
-        datas = await this.addVarColumnsValues(
+
+        let datas_with_vars = await this.addVarColumnsValues(
             datas,
             ordered_column_list,
             columns,
@@ -373,13 +374,13 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             do_not_user_filter_by_datatable_field_uid,
         );
 
-        datas = await this.translate_context_query_fields_from_bdd(datas, context_query, !!(context_query.fields && context_query.fields.length));
+        let translated_datas = await this.translate_context_query_fields_from_bdd(datas_with_vars, context_query, context_query.fields?.length > 0);
 
-        await this.update_custom_fields(datas, exportable_datatable_custom_field_columns);
+        await this.update_custom_fields(translated_datas, exportable_datatable_custom_field_columns);
 
         let filepath: string = await this.exportDataToXLSX_base(
             filename,
-            datas,
+            translated_datas,
             ordered_column_list,
             column_labels,
             api_type_id,
@@ -420,7 +421,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     }
 
     public async translate_context_query_fields_from_bdd(datas: any[], context_query: ContextQueryVO, use_raw_field: boolean = false): Promise<any[]> {
-        if ((!datas) || (!datas.length)) {
+        if (!(datas?.length > 0)) {
             return null;
         }
 
@@ -430,7 +431,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         let res = cloneDeep(datas);
 
-        if ((!context_query.fields) || !context_query.fields.length) {
+        if (!(context_query?.fields?.length > 0)) {
 
             let table = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
             for (let j in res) {
@@ -1001,7 +1002,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
      *  Il faut donc d'abord définir les pramètres de calcul des vars, puis attendre le résultat du calcul
      */
     private async addVarColumnsValues(
-        datas: IDistantVOBase[],
+        _datas: IDistantVOBase[],
         ordered_column_list: string[],
 
         columns: TableColumnDescVO[],
@@ -1013,6 +1014,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         do_not_user_filter_by_datatable_field_uid: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } = null,
 
     ): Promise<IDistantVOBase[]> {
+
+        let datas: IDistantVOBase[] = cloneDeep(_datas);
 
         let limit = 500; //Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
         let promise_pipeline = new PromisePipeline(limit);

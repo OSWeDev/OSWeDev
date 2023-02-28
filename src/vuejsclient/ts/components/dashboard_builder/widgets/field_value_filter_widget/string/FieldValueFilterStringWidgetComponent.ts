@@ -584,7 +584,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
     private handle_select_all(): void {
         let selection: DataFilterOption[] = [];
 
-        selection = this.filter_visible_options?.map((filter) => new DataFilterOption(DataFilterOption.STATE_SELECTED, filter.label, filter.id));
+        selection = this.filter_visible_options?.map((_filter) => new DataFilterOption(DataFilterOption.STATE_SELECTED, _filter.label, _filter.id));
 
         this.tmp_filter_active_options = selection;
     }
