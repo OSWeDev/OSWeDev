@@ -68,7 +68,7 @@ include ../../../../../../views/mixins/loading.pug
                                         :class='{ order_asc: order_asc_on_id == column.id, order_desc: order_desc_on_id == column.id, "position-sticky": column.is_sticky}'
                                         @click="sort_by(column)"
                                         :style="get_style_th(column)"
-                                        )
+                                    )
 
 
                                         template(v-if="column.type == 1")
@@ -80,7 +80,10 @@ include ../../../../../../views/mixins/loading.pug
                                                 template(v-if='order_desc_on_id == column.id')
                                                     i.fa-duotone.fa-sort-desc.fa-fw(aria-hidden="true")
 
-                                        Inlinetranslatabletext( :code_text="column.get_translatable_name_code_text(page_widget.id)")
+                                        Inlinetranslatabletext( 
+                                            :code_text="column.get_translatable_name_code_text(page_widget.id)" 
+                                            :translation_params="get_active_filter_params_by_translatable_name_code_text(column.get_translatable_name_code_text(page_widget.id))" 
+                                        )
 
                                     th(
                                         v-if="column.type == 5 && column.children.length > 0"
@@ -88,7 +91,7 @@ include ../../../../../../views/mixins/loading.pug
                                         :class="{order_asc: order_asc_on_id == child.id, order_desc: order_desc_on_id == child.id}"
                                         :style="get_style_th(child)"
                                         @click="sort_by(child)"
-                                        )
+                                    )
                                         template(v-if="child.type == 1")
                                             .order_by
                                                 template(v-if='(order_asc_on_id != child.id) && (order_desc_on_id != child.id)')

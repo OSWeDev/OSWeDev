@@ -220,7 +220,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         if (!vo) {
             this.is_filtering_by = false;
             this.filtering_by_active_field_filter = null;
-            this.remove_active_field_filter({ vo_type: column.api_type_id, field_id: (column.field_id ? column.field_id : 'id') });
+            this.remove_active_field_filter({ vo_type: column.api_type_id, field_id: (column.field_id ?? 'id') });
             return;
         }
 
@@ -340,7 +340,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     }
 
     /**
-     * Is Row Filter Ok
+     * Is Row Filter Active
      *  - Say that if the current row is filtered
      * @param row
      * @returns boolean
@@ -440,6 +440,60 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                     throw new Error('Not implemented');
             }
         }
+    }
+
+    /**
+     * Get Active Filter Params By Translatable Name Code Text
+     *  - Shall provide parameters (from active filter) for dynamique translated text
+     *
+     * @param code <string>
+     * @returns <[active_filter_name: string]: string | number>
+     */
+    private get_active_filter_params_by_translatable_name_code_text(code: string): { [active_filter_name: string]: string | number } {
+        if (!(code?.length > 0)) { return; }
+
+        const active_field_filters = this.get_active_field_filters;
+
+        // We must have active fields filters
+        if (!(Object.keys(active_field_filters)?.length > 0)) { return; }
+
+        let res: { [active_filter_name: string]: string | number } = null;
+
+        const translated_text: string = this.get_flat_locale_translations[code];
+
+        // Active filter checker + get filter name e.g. {#active_filter:Datesmoins1}
+        const rgx = /\{[\"|\']?(?<checker_name>\#active_filter\:)(?<filter_name>\w+)[\"|\']?\}/;
+
+        const is_active_filter_type = rgx.test(translated_text);
+
+        if (is_active_filter_type) {
+            res = {};
+
+            // exec regex on translated text
+            const rgx_result = rgx.exec(translated_text);
+
+            // find the actual field filters key (required by translated text) from active_field_filters
+            const field_filters_key: string = Object.keys(active_field_filters)
+                .find((key_a) => Object.keys(active_field_filters[key_a])
+                    .find((key_b) => key_b === rgx_result?.groups?.filter_name)
+                );
+
+            // case when actve filter does not exist
+            if (!(field_filters_key?.length > 0)) { return; }
+
+            // The actual required filter
+            // - At this step it must be found
+            const context_filter: ContextFilterVO = active_field_filters[field_filters_key][rgx_result.groups.filter_name];
+
+            // filter to IHM readable
+            const filter_readable = ContextFilterHandler.context_filter_to_readable_ihm(context_filter);
+
+            const params_key = `#active_filter:${rgx_result.groups.filter_name}`;
+
+            res[params_key] = filter_readable;
+        }
+
+        return res;
     }
 
     get can_refresh(): boolean {
