@@ -57,6 +57,7 @@ import CRUDUpdateModalComponent from './../crud_modals/update/CRUDUpdateModalCom
 import TableWidgetOptions from './../options/TableWidgetOptions';
 import TablePaginationComponent from './../pagination/TablePaginationComponent';
 import TableWidgetController from './../TableWidgetController';
+import BulkActionsComponent from './../bulk_actions/BulkActionsComponent';
 import './TableWidgetTableComponent.scss';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
@@ -68,7 +69,8 @@ import './TableWidgetTableComponent.scss';
         Datatablecomponentfield: DatatableComponentField,
         Tablepaginationcomponent: TablePaginationComponent,
         Crudupdatemodalcomponent: CRUDUpdateModalComponent,
-        Crudcreatemodalcomponent: CRUDCreateModalComponent
+        Crudcreatemodalcomponent: CRUDCreateModalComponent,
+        Bulkactionscomponent: BulkActionsComponent,
     }
 })
 export default class TableWidgetTableComponent extends VueComponentBase {
@@ -1596,6 +1598,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                     options.use_kanban_column_weight_if_exists,
                     options.use_for_count,
                     options.show_bulk_edit,
+                    options.bulk_actions,
                 ) : null;
             }
         } catch (error) {

@@ -1,3 +1,4 @@
+import BulkActionVO from "../../../../../../../shared/modules/DashboardBuilder/vos/BulkActionVO";
 import DashboardPageWidgetVO from "../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
 import TableColumnDescVO from "../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO";
 import DefaultTranslation from "../../../../../../../shared/modules/Translation/vos/DefaultTranslation";
@@ -76,6 +77,7 @@ export default class TableWidgetOptions implements IExportableWidgetOptions {
         public use_kanban_column_weight_if_exists: boolean,
         public use_for_count: boolean, // Seulement pour enum pour l'instant
         public show_bulk_edit: boolean,
+        public bulk_actions: BulkActionVO[],
     ) { }
 
     public get_title_name_code_text(page_widget_id: number): string {

@@ -64,31 +64,6 @@
                         :deselect-group-label='label("multiselect.deselectGroupLabel")'
                     )
 
-            template(v-if="show_bulk_edit")
-                span TEST BULK EDIT
-                .input_wrapper
-                    multiselect(
-                        :preselect-first="false"
-                        :multiple="false"
-                        v-model="new_bulk_action"
-                        :placeholder="label('table_widget_bulk.new_bulk_action')"
-                        :options="bulk_action_options"
-                        :custom-label="bulk_action_label"
-                        :allow-empty="false",
-                        autocomplete="off"
-
-                        :searchable="true"
-                        :internal-search="true"
-
-                        id="new_bulk_action"
-
-                        :select-label='label("multiselect.selectLabel")'
-                        :select-group-label='label("multiselect.selectGroupLabel")'
-                        :selected-label='label("multiselect.selectedLabel")'
-                        :deselect-label='label("multiselect.deselectLabel")'
-                        :deselect-group-label='label("multiselect.deselectGroupLabel")'
-                    )
-
     template(v-else)
         .table_widget_column_conf
             .column_label(v-if='!!translatable_name_code_text')

@@ -17,6 +17,7 @@ import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/Drop
 import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import TableWidgetColumnOptionsComponent from './column/TableWidgetColumnOptionsComponent';
+import TableWidgetBulkActionsOptionsComponent from './bulk_actions/TableWidgetBulkActionsOptionsComponent';
 import TableWidgetOptions from './TableWidgetOptions';
 import './TableWidgetOptionsComponent.scss';
 
@@ -25,6 +26,7 @@ import './TableWidgetOptionsComponent.scss';
     components: {
         Inlinetranslatabletext: InlineTranslatableText,
         Tablewidgetcolumnoptionscomponent: TableWidgetColumnOptionsComponent,
+        Tablewidgetbulkactionsoptionscomponent: TableWidgetBulkActionsOptionsComponent,
         Vuenestable: VueNestable,
         Vuenestablehandle: VueNestableHandle,
     }
@@ -481,7 +483,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     }
 
     private get_default_options(): TableWidgetOptions {
-        return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, false, false, null, false, true, true, false, false);
+        return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, false, false, null, false, true, true, false, false, null);
     }
     private async add_column(add_column: TableColumnDescVO) {
 
@@ -644,6 +646,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                     options.use_kanban_column_weight_if_exists,
                     options.use_for_count,
                     options.show_bulk_edit,
+                    options.bulk_actions,
                 ) : null;
             }
         } catch (error) {

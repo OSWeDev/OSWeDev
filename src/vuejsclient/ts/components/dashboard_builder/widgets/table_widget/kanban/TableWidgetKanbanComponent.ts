@@ -2120,6 +2120,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                     options.use_kanban_column_weight_if_exists,
                     options.use_for_count,
                     options.show_bulk_edit,
+                    options.bulk_actions,
                 ) : null;
             }
         } catch (error) {

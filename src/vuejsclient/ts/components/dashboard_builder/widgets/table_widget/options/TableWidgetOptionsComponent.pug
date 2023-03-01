@@ -321,3 +321,11 @@
                 :page_widget="page_widget"
                 :get_new_column_id='get_new_column_id'
             )
+
+    template(v-if="show_bulk_edit")
+        .item_content 
+            Tablewidgetbulkactionsoptionscomponent(
+                :bulk_action="item" @add_bulk_action="add_bulk_action" @remove_bulk_action="remove_bulk_action" @update_bulk_action="update_bulk_action"
+                :page_widget="page_widget"
+                :get_new_bulk_action_id='get_new_bulk_action_id'
+            )
