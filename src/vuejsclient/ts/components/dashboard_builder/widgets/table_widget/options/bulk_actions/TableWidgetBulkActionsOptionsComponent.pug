@@ -1,25 +1,26 @@
-template(v-if="show_bulk_edit")
-    .table_widget_bulk_actions
-        span TEST BULK EDIT
-        .input_wrapper
-            multiselect(
-                :preselect-first="false"
-                :multiple="false"
-                v-model="new_bulk_action"
-                :placeholder="label('table_widget_bulk.new_bulk_action')"
-                :options="bulk_action_options"
-                :custom-label="bulk_action_label"
-                :allow-empty="false",
-                autocomplete="off"
+.table_widget_bulk_actions_component
+    template(v-if="show_bulk_edit")
+        .table_widget_bulk_actions
+            span TEST BULK EDIT
+            .input_wrapper
+                multiselect(
+                    :preselect-first="false"
+                    :multiple="false"
+                    v-model="new_bulk_action"
+                    :placeholder="label('table_widget_bulk.new_bulk_action')"
+                    :options="bulk_action_options"
+                    :custom-label="bulk_action_label"
+                    :allow-empty="false",
+                    autocomplete="off"
 
-                :searchable="true"
-                :internal-search="true"
+                    :searchable="true"
+                    :internal-search="true"
 
-                id="new_bulk_action"
+                    id="new_bulk_action"
 
-                :select-label='label("multiselect.selectLabel")'
-                :select-group-label='label("multiselect.selectGroupLabel")'
-                :selected-label='label("multiselect.selectedLabel")'
-                :deselect-label='label("multiselect.deselectLabel")'
-                :deselect-group-label='label("multiselect.deselectGroupLabel")'
-            )
+                    :select-label='label("multiselect.selectLabel")'
+                    :select-group-label='label("multiselect.selectGroupLabel")'
+                    :selected-label='label("multiselect.selectedLabel")'
+                    :deselect-label='label("multiselect.deselectLabel")'
+                    :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                )

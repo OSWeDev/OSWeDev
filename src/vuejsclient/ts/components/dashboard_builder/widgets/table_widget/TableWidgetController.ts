@@ -16,7 +16,8 @@ export default class TableWidgetController {
     public components_by_crud_api_type_id: { [api_type_id: string]: Array<ComponentDatatableFieldVO<any, any>> } = {};
     public components_by_translatable_title: { [translatable_title: string]: ComponentDatatableFieldVO<any, any> } = {};
 
-    public bulk_actions: Array<{ label: string, callback: () => Promise<void> }> = [];
+    public bulk_actions_by_crud_api_type_id: { [api_type_id: string]: Array<BulkActionVO<any, any>> } = {};
+    public bulk_actions_by_translatable_title: { [translatable_title: string]: BulkActionVO<any, any> } = {};
 
     private constructor() { }
 
@@ -29,11 +30,13 @@ export default class TableWidgetController {
         this.components_by_translatable_title[component.translatable_title] = component;
     }
 
-    public register_bulk_action(bulk_action: BulkActionVO) {
-        if (!this.bulk_actions[bulk_action.label]) {
-            this.bulk_actions[bulk_action.label] = [];
-        }
+    public register_bulk_action(bulk_action: BulkActionVO<any, any>) {
 
-        this.bulk_actions[bulk_action.label].push(bulk_action.callback);
+        if (!this.bulk_actions_by_crud_api_type_id[bulk_action.vo_type_id]) {
+            this.bulk_actions_by_crud_api_type_id[bulk_action.vo_type_id] = [];
+        }
+        this.bulk_actions_by_crud_api_type_id[bulk_action.vo_type_id].push(bulk_action);
+
+        this.bulk_actions_by_translatable_title[bulk_action.translatable_title] = bulk_action;
     }
 }
