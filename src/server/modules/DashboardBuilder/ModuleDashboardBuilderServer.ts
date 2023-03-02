@@ -356,6 +356,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Masquer le filtre" },
             'month_filter_widget_component.hide_filter.___LABEL___'
         ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher Option Selectionner Tout" },
+            'month_filter_widget_component.can_select_all_option.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Selectionner Tout" },
+            'month_filter_widget_component.select_all.___LABEL___'
+        ));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Copie du tableau de bord en cours...'
@@ -1677,11 +1685,11 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Afficher Option Selectionner Tout" },
-            'field_value_filter_widget_component.show_all_option.___LABEL___'
+            'field_value_filter_widget_component.can_select_all_option.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Afficher Option Selectionner Aucun" },
-            'field_value_filter_widget_component.show_none_option.___LABEL___'
+            'field_value_filter_widget_component.can_select_none_option.___LABEL___'
         ));
 
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);

@@ -154,8 +154,8 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
                     options.bg_color,
                     options.fg_color_value,
                     options.fg_color_text,
-                    options.show_all,
-                    options.show_none,
+                    options.can_select_all,
+                    options.can_select_none,
                 ) : null;
             }
         } catch (error) {
@@ -813,30 +813,38 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         return this.widget_options.is_button;
     }
 
-    get show_all(): boolean {
+    /**
+     * Can Select All
+     *  - Can select all clickable text
+     */
+    get can_select_all(): boolean {
         if (!this.widget_options) {
             return false;
         }
 
-        const canShowAll = !!this.widget_options.show_all;
-        const queryLimit = this.widget_options.max_visible_options;
+        const can_select_all = !!this.widget_options.can_select_all;
+        const query_limit = this.widget_options.max_visible_options;
 
-        if (!canShowAll) {
-            return canShowAll;
+        if (!can_select_all) {
+            return can_select_all;
         }
 
         // May be shown only if active filter options
         // length smaller than actual query limit
-        return this.filter_visible_options?.length < queryLimit;
+        return this.filter_visible_options?.length < query_limit;
     }
 
-    get show_none(): boolean {
+    /**
+     * Can Select None
+     *  - Can select none clickable text
+     */
+    get can_select_none(): boolean {
 
         if (!this.widget_options) {
             return false;
         }
 
-        return !!this.widget_options.show_none;
+        return !!this.widget_options.can_select_none;
     }
 
     get show_count_value(): boolean {

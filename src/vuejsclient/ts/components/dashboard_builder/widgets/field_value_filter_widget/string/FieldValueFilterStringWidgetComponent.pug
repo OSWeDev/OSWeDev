@@ -56,11 +56,15 @@
                                 .advanced_string_filter_delete_filter(v-tooltip.top='label("advanced_filters.delete")' @click='delete_advanced_string_filter(parseInt(i.toString()))')
                                     i.fa-duotone.fa-trash.fa-lg.btn_icon
                             
-                            template
-                                .text_cliquable(@click='handle_select_all') {{ label('select_all') }}
-                                .inter_text -
-                                .text_cliquable(@click='handle_select_none') {{ label('select_none') }}
+                template 
+                    template(v-if="can_select_all")
+                        .text_cliquable(@click='handle_select_all') {{ label('select_all') }}
+                        template(v-if="can_select_all && can_select_none")
+                            .inter_text -
+                    template(v-if="can_select_none")
+                        .text_cliquable(@click='handle_select_none') {{ label('select_none') }}
 
+                        
         template(v-else)
             .vo_field_ref_filter                
                 template(v-if="is_checkbox")
@@ -158,10 +162,10 @@
                                     span.option__tag {{ props.option.label }}
                                 i.fa-duotone.fa-times(@click='props.remove(props.option)')
                     
-                    template 
-                        template(v-if="show_all")
-                            .text_cliquable(@click='handle_select_all') {{ label('select_all') }}
-                            template(v-if="show_all && show_none")
-                                .inter_text -
-                        template(v-if="show_none")
-                            .text_cliquable(@click='handle_select_none') {{ label('select_none') }}
+                template 
+                    template(v-if="can_select_all")
+                        .text_cliquable(@click='handle_select_all') {{ label('select_all') }}
+                        template(v-if="can_select_all && can_select_none")
+                            .inter_text -
+                    template(v-if="can_select_none")
+                        .text_cliquable(@click='handle_select_none') {{ label('select_none') }}

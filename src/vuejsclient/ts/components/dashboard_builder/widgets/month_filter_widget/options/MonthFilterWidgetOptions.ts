@@ -45,6 +45,7 @@ export default class MonthFilterWidgetOptions implements IExportableWidgetOption
         public is_relative_to_other_filter: boolean,
         public relative_to_other_filter_id: number,
         public hide_filter: boolean,
+        public can_select_all?: boolean,
     ) { }
 
     public get_placeholder_name_code_text(page_widget_id: number): string {
