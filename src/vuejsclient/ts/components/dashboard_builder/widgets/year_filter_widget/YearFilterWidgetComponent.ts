@@ -43,6 +43,12 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
 
     private selected_years: { [year: number]: boolean } = {};
 
+    // Is All Years Selected Toggle Button
+    // - Shall be highlight or true when selected_years empty
+    // - Shall be false when selected_years has at least one selected
+    private is_all_years_selected: boolean = false;
+    private force_selected_years_reset: boolean = false;
+
     private auto_select_year: boolean = null;
     private auto_select_year_relative_mode: boolean = null;
     private auto_select_year_min: number = null;
@@ -61,11 +67,32 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
 
     /**
      * Handle toggle selected year
-     *  - Happen when we click on toggle year button
+     *  - Called when we click on toggle year button
      * @param i index in selected year array
      */
     private handle_toggle_selected_year(i: string): void {
         Vue.set(this.selected_years, i, !this.selected_years[i]);
+
+        if (!(Object.keys(this.selected_years)?.length > 0)) {
+            // if there is no selected_years
+            this.is_all_years_selected = true;
+        } else {
+            this.is_all_years_selected = false;
+        }
+    }
+
+    /**
+     * Handle Toggle Select All
+     *  - Called when we click on toggle select all
+     */
+    private handle_toggle_select_all() {
+        this.is_all_years_selected = !this.is_all_years_selected;
+
+        if (this.is_all_years_selected) {
+            // If is all years selected reset selected_years
+            this.selected_years = {};
+            this.force_selected_years_reset = true;
+        }
     }
 
     get vo_field_ref_label(): string {
@@ -78,6 +105,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
 
     /**
      * computed widget_options
+     *  - Called on component|widget creation
      */
     get widget_options(): YearFilterWidgetOptions {
         if (!this.page_widget) {
@@ -89,10 +117,21 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
             if (!!this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as YearFilterWidgetOptions;
                 options = options ? new YearFilterWidgetOptions(
-                    options.is_vo_field_ref, options.vo_field_ref, options.custom_filter_name, options.year_relative_mode,
-                    options.min_year, options.max_year, options.auto_select_year, options.auto_select_year_relative_mode,
-                    options.auto_select_year_min, options.auto_select_year_max, options.is_relative_to_other_filter, options.relative_to_other_filter_id,
-                    options.hide_filter) : null;
+                    options.is_vo_field_ref,
+                    options.vo_field_ref,
+                    options.custom_filter_name,
+                    options.year_relative_mode,
+                    options.min_year,
+                    options.max_year,
+                    options.auto_select_year,
+                    options.auto_select_year_relative_mode,
+                    options.auto_select_year_min,
+                    options.auto_select_year_max,
+                    options.is_relative_to_other_filter,
+                    options.relative_to_other_filter_id,
+                    options.hide_filter,
+                    options.can_select_all
+                ) : null;
             }
         } catch (error) {
             ConsoleHandler.error(error);
@@ -235,7 +274,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
 
     /**
      * Watch on select changes
-     *  - Happen each time the selected_years changes
+     *  - Called each time the selected_years changes
      *  - This initialize the context store on first call
      * @returns void
      */
@@ -275,7 +314,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
         /**
          * Si on a pas de contextfilter actuellement et qu'on a pas besoin d'en avoir, inutile de continuer
          */
-        if ((!context_filter) && ((!years_ranges) || (!years_ranges.length))) {
+        if ((!context_filter) && (!(years_ranges?.length > 0))) {
             return;
         }
 
@@ -316,7 +355,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
         /**
          * Si on a un contextfilter et qu'on en a plus besoin on le supprime
          */
-        if ((!!context_filter) && ((!years_ranges) || (!years_ranges.length))) {
+        if ((!!context_filter) && (!this.force_selected_years_reset) && (!(years_ranges?.length > 0))) {
             let new_root = ContextFilterHandler.getInstance().remove_context_filter_from_tree(root_context_filter, context_filter);
             if (new_root != root_context_filter) {
                 if (!new_root) {
@@ -349,6 +388,9 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
                     vo_type: this.is_vo_field_ref ? this.vo_field_ref.api_type_id : ContextFilterVO.CUSTOM_FILTERS_TYPE,
                     active_field_filter: new_root,
                 });
+
+                // Reset default value
+                this.force_selected_years_reset = false;
             }
             return;
         }
@@ -378,6 +420,19 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
         }
 
         return Object.assign(new VOFieldRefVO(), options.vo_field_ref);
+    }
+
+    /**
+     * Can Select All
+     *  - Can select all clickable button
+     */
+    get can_select_all(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.can_select_all;
     }
 
     get relative_to_this_filter(): YearFilterWidgetComponent {

@@ -242,8 +242,8 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
     /**
      * Computed widget options
-     *  - Happen on component|widget creation
-     * @returns MonthFilterWidgetOptions
+     *  - Called on component|widget creation
+     * @returns FieldValueFilterWidgetOptions
      */
     get widget_options(): FieldValueFilterWidgetOptions {
         if (!this.page_widget) {

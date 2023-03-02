@@ -511,6 +511,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Année maximale'
         }, 'year_filter_widget_component.max_year.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher Option Selectionner Tout" },
+            'year_filter_widget_component.can_select_all_option.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Selectionner Tout" },
+            'year_filter_widget_component.select_all.___LABEL___'
+        ));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Sélectionner un Dashboard...'

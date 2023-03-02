@@ -1,7 +1,7 @@
+import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
-import InsertOrDeleteQueryResult from '../../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
@@ -58,6 +58,9 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase {
     private relative_to_other_filter_id: number = null;
     private is_relative_to_other_filter: boolean = false;
     private hide_filter: boolean = false;
+
+    // Current filter may show select_all of selectable months
+    private can_select_all: boolean = false;
 
     get other_filters_by_name(): { [filter_name: string]: DashboardPageWidgetVO } {
         if (!this.get_page_widgets) {
@@ -167,9 +170,11 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase {
             this.relative_to_other_filter_id = null;
             this.is_relative_to_other_filter = false;
             this.hide_filter = false;
+            this.can_select_all = false;
 
             return;
         }
+
         this.is_vo_field_ref = this.widget_options.is_vo_field_ref;
         this.year_relative_mode = this.widget_options.year_relative_mode;
         this.auto_select_year = this.widget_options.auto_select_year;
@@ -182,6 +187,7 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase {
         this.relative_to_other_filter_id = this.widget_options.relative_to_other_filter_id;
         this.is_relative_to_other_filter = this.widget_options.is_relative_to_other_filter;
         this.hide_filter = this.widget_options.hide_filter;
+        this.can_select_all = this.widget_options.can_select_all;
     }
 
     @Watch('relative_to_other_filter_id')
@@ -334,6 +340,24 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase {
         await this.throttled_update_options();
     }
 
+    /**
+     * Toggle Can Select All
+     *  - Allow to the user to show select_all of the active filter (years) options
+     */
+    private async toggle_can_select_all() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        this.widget_options.can_select_all = !this.can_select_all;
+
+        if (!this.next_update_options) {
+            this.next_update_options = cloneDeep(this.widget_options);
+        }
+
+        await this.throttled_update_options();
+    }
+
     private async switch_is_vo_field_ref() {
         this.next_update_options = this.widget_options;
 
@@ -392,6 +416,11 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase {
         return this.label('DOWFilterWidget.filter_placeholder');
     }
 
+    /**
+     * Computed widget options
+     *  - Called on component|widget creation
+     * @returns YearFilterWidgetOptions
+     */
     get widget_options(): YearFilterWidgetOptions {
         if (!this.page_widget) {
             return null;
@@ -402,10 +431,21 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase {
             if (!!this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as YearFilterWidgetOptions;
                 options = options ? new YearFilterWidgetOptions(
-                    options.is_vo_field_ref, options.vo_field_ref, options.custom_filter_name, options.year_relative_mode,
-                    options.min_year, options.max_year, options.auto_select_year, options.auto_select_year_relative_mode,
-                    options.auto_select_year_min, options.auto_select_year_max, options.is_relative_to_other_filter, options.relative_to_other_filter_id,
-                    options.hide_filter) : null;
+                    options.is_vo_field_ref,
+                    options.vo_field_ref,
+                    options.custom_filter_name,
+                    options.year_relative_mode,
+                    options.min_year,
+                    options.max_year,
+                    options.auto_select_year,
+                    options.auto_select_year_relative_mode,
+                    options.auto_select_year_min,
+                    options.auto_select_year_max,
+                    options.is_relative_to_other_filter,
+                    options.relative_to_other_filter_id,
+                    options.hide_filter,
+                    options.can_select_all,
+                ) : null;
             }
         } catch (error) {
             ConsoleHandler.error(error);

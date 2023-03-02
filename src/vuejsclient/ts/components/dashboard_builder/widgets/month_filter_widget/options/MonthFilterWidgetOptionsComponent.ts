@@ -2,7 +2,6 @@ import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
-import InsertOrDeleteQueryResult from '../../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
@@ -169,6 +168,7 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
             this.relative_to_other_filter_id = null;
             this.is_relative_to_other_filter = false;
             this.hide_filter = false;
+            this.can_select_all = false;
             return;
         }
         this.is_vo_field_ref = this.widget_options.is_vo_field_ref;
@@ -183,6 +183,7 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
         this.relative_to_other_filter_id = this.widget_options.relative_to_other_filter_id;
         this.is_relative_to_other_filter = this.widget_options.is_relative_to_other_filter;
         this.hide_filter = this.widget_options.hide_filter;
+        this.can_select_all = this.widget_options.can_select_all;
     }
 
     private async switch_hide_filter() {
@@ -409,6 +410,11 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
         return this.label('DOWFilterWidget.filter_placeholder');
     }
 
+    /**
+     * Computed widget options
+     *  - Called on component|widget creation
+     * @returns MonthFilterWidgetOptions
+     */
     get widget_options(): MonthFilterWidgetOptions {
         if (!this.page_widget) {
             return null;

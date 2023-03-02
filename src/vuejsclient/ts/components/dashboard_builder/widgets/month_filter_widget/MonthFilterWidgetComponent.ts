@@ -74,7 +74,7 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
 
     /**
      * Handle toggle selected month
-     *  - Happen when we click on toggle month button
+     *  - Called when we click on toggle month button
      * @param i index in selected month array
      */
     private handle_toggle_selected_month(i: string) {
@@ -90,7 +90,7 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
 
     /**
      * Handle Toggle Select All
-     *  - Happen when we click on toggle select all
+     *  - Called when we click on toggle select all
      */
     private handle_toggle_select_all() {
         this.is_all_months_selected = !this.is_all_months_selected;
@@ -128,7 +128,7 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
 
     /**
      * Computed widget options
-     *  - Happen on component|widget creation
+     *  - Called on component|widget creation
      * @returns MonthFilterWidgetOptions
      */
     get widget_options(): MonthFilterWidgetOptions {
@@ -332,7 +332,7 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
 
     /**
      * Watch on selected_months
-     *  - Happen each time the selected_months changes
+     *  - Called each time the selected_months changes
      *  - This (re)initialize the context store on each call
      * @returns void
      */
