@@ -107,6 +107,15 @@
                                                                 template(v-else)
                                                                     label.option__title.ml-2(:for="base_filter + '_' + column_index + '_' + index + '_lvl2_' + index_lvl2") {{ opt_lvl2.label }}
 
+                        template 
+                            template(v-if="can_select_all")
+                                .text_cliquable(@click='handle_select_all') {{ label('select_all') }}
+                                template(v-if="can_select_all && can_select_none")
+                                    .inter_text -
+                            template(v-if="can_select_none")
+                                .text_cliquable(@click='handle_select_none') {{ label('select_none') }}
+                        
+
                 template(v-else-if="is_button")
                     template(v-for="filter_visible_opt in filter_visible_options")
                         .btn.btn-info.button_opacity.mr-1(
@@ -162,10 +171,10 @@
                                     span.option__tag {{ props.option.label }}
                                 i.fa-duotone.fa-times(@click='props.remove(props.option)')
                     
-                template 
-                    template(v-if="can_select_all")
-                        .text_cliquable(@click='handle_select_all') {{ label('select_all') }}
-                        template(v-if="can_select_all && can_select_none")
-                            .inter_text -
-                    template(v-if="can_select_none")
-                        .text_cliquable(@click='handle_select_none') {{ label('select_none') }}
+                    template 
+                        template(v-if="can_select_all")
+                            .text_cliquable(@click='handle_select_all') {{ label('select_all') }}
+                            template(v-if="can_select_all && can_select_none")
+                                .inter_text -
+                        template(v-if="can_select_none")
+                            .text_cliquable(@click='handle_select_none') {{ label('select_none') }}

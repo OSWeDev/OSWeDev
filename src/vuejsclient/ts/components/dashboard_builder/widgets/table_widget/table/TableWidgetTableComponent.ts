@@ -1855,18 +1855,18 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         // The actual fields to be exported
         let fields: { [datatable_field_uid: string]: DatatableField<any, any> } = {};
 
-        for (let i in this.default_widget_options_fields) {
-            let field = this.default_widget_options_fields[i];
+        for (let i in this.fields) {
+            let field = this.fields[i];
             fields[field.datatable_field_uid] = field;
         }
 
         return new ExportContextQueryToXLSXParamVO(
             export_name,
             context_query,
-            this.exportable_datatable_default_widget_options_columns,
-            this.datatable_default_widget_options_columns_labels,
+            this.exportable_datatable_columns,
+            this.datatable_columns_labels,
             this.exportable_datatable_custom_field_columns,
-            this.default_widget_options_columns,
+            this.columns,
             fields,
             this.varcolumn_conf,
             this.get_active_field_filters,
