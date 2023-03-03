@@ -1,6 +1,6 @@
 /* istanbul ignore file: not a usefull test to write */
 
-import { WriteStream } from 'fs';
+import * as fs from 'fs';
 import Dates from '../shared/modules/FormatDatesNombres/Dates/Dates';
 import ILoggerHandler from '../shared/tools/interfaces/ILoggerHandler';
 import ConfigurationService from './env/ConfigurationService';
@@ -19,7 +19,8 @@ export default class FileLoggerHandler implements ILoggerHandler {
 
     private static instance: FileLoggerHandler = null;
 
-    private log_file: WriteStream = null;
+    private log_file: fs.WriteStream = null;
+    private is_prepared: boolean = false;
 
     private constructor() { }
 
@@ -27,14 +28,22 @@ export default class FileLoggerHandler implements ILoggerHandler {
 
         if (ConfigurationService.node_configuration.CONSOLE_LOG_TO_FILE) {
             await FileServerController.getInstance().makeSureThisFolderExists('./nodes_logs');
-            this.log_file = FileServerController.getInstance().getWriteStream('./nodes_logs/node_log_' + process.pid + '_' + Dates.now() + '.txt', 'a');
+            this.is_prepared = true;
+            this.set_log_file();
         }
     }
 
     public log(msg: string, ...params) {
 
         if (!this.log_file) {
+            // On essaye de recréer le fichier s'il est perdu
+            this.set_log_file();
             return;
+        }
+
+        // Si le log est > à 10Mo, on va créé un autre pour éviter que ce soit trop lourd de l'ouvrir et d'écrire dedans
+        if (fs.statSync(this.log_file.path).size >= 10000) {
+            this.set_log_file();
         }
 
         for (let i in params) {
@@ -42,5 +51,11 @@ export default class FileLoggerHandler implements ILoggerHandler {
         }
 
         this.log_file.write(msg + '\n');
+    }
+
+    private set_log_file() {
+        if (ConfigurationService.node_configuration.CONSOLE_LOG_TO_FILE && this.is_prepared) {
+            this.log_file = FileServerController.getInstance().getWriteStream('./nodes_logs/node_log_' + process.pid + '_' + Dates.now() + '.txt', 'a');
+        }
     }
 }
