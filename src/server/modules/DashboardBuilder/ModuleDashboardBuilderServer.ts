@@ -356,6 +356,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Masquer le filtre" },
             'month_filter_widget_component.hide_filter.___LABEL___'
         ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher Option Selectionner Tout" },
+            'month_filter_widget_component.can_select_all_option.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Selectionner Tout" },
+            'month_filter_widget_component.select_all.___LABEL___'
+        ));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Copie du tableau de bord en cours...'
@@ -503,6 +511,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Année maximale'
         }, 'year_filter_widget_component.max_year.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher Option Selectionner Tout" },
+            'year_filter_widget_component.can_select_all_option.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Selectionner Tout" },
+            'year_filter_widget_component.select_all.___LABEL___'
+        ));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Sélectionner un Dashboard...'
@@ -1674,6 +1690,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Afficher Bulk Edit" },
             'supervision_widget_options_component.show_bulk_edit.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher Option Selectionner Tout" },
+            'field_value_filter_widget_component.can_select_all_option.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher Option Selectionner Aucun" },
+            'field_value_filter_widget_component.can_select_none_option.___LABEL___'
         ));
 
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);

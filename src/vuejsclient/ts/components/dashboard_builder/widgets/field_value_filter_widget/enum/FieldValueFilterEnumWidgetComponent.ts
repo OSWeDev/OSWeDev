@@ -84,6 +84,8 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
     private last_calculation_cpt: number = 0;
 
+    private throttled_reset_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.reset_visible_options.bind(this), 300, { leading: false, trailing: true });
+
     private async mounted() {
         ResetFiltersWidgetController.getInstance().register_updater(
             this.dashboard_page,
@@ -152,6 +154,8 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
                     options.bg_color,
                     options.fg_color_value,
                     options.fg_color_text,
+                    options.can_select_all,
+                    options.can_select_none,
                 ) : null;
             }
         } catch (error) {
@@ -295,7 +299,8 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         let root_context_filter: ContextFilterVO = null;
 
         // Get context filter from store
-        root_context_filter = this.get_active_field_filters[this.vo_field_ref.api_type_id] ?
+        root_context_filter = this.get_active_field_filters &&
+            this.get_active_field_filters[this.vo_field_ref.api_type_id] ?
             this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id] :
             null;
 
@@ -461,6 +466,26 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
         // Si on doit afficher le compteur, on fait les requêtes nécessaires
         await this.set_count_value();
+    }
+
+    /**
+     * Handle Select All
+     *  - Select all fields of the current active filter
+     */
+    private handle_select_all(): void {
+        let selection: DataFilterOption[] = [];
+
+        selection = this.filter_visible_options?.map((filter) => new DataFilterOption(DataFilterOption.STATE_SELECTED, filter.label, filter.id));
+
+        this.tmp_filter_active_options = selection;
+    }
+
+    /**
+     * Handle Select None
+     *  - Remove all fields of the current selected active filter
+     */
+    private handle_select_none(): void {
+        this.tmp_filter_active_options = [];
     }
 
     /**
@@ -786,6 +811,40 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
     get is_button(): boolean {
         return this.widget_options.is_button;
+    }
+
+    /**
+     * Can Select All
+     *  - Can select all clickable text
+     */
+    get can_select_all(): boolean {
+        if (!this.widget_options) {
+            return false;
+        }
+
+        const can_select_all = !!this.widget_options.can_select_all;
+        const query_limit = this.widget_options.max_visible_options;
+
+        if (!can_select_all) {
+            return can_select_all;
+        }
+
+        // May be shown only if active filter options
+        // length smaller than actual query limit
+        return this.filter_visible_options?.length < query_limit;
+    }
+
+    /**
+     * Can Select None
+     *  - Can select none clickable text
+     */
+    get can_select_none(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.can_select_none;
     }
 
     get show_count_value(): boolean {

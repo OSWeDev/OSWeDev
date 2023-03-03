@@ -8,7 +8,6 @@ import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/Sort
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
-import TableColumnDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
 import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
@@ -106,6 +105,10 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
     private fg_color_value: string = null;
     private fg_color_text: string = null;
     private bg_color: string = null;
+
+    // Current filter may show select_all on select_none of its options
+    private can_select_all: boolean = false;
+    private can_select_none: boolean = false;
 
     private filter_visible_options: DataFilterOption[] = [];
     private actual_query: string = null;
@@ -213,6 +216,9 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.fg_color_text = this.widget_options.fg_color_text;
         this.fg_color_value = this.widget_options.fg_color_value;
         this.bg_color = this.widget_options.bg_color;
+
+        this.can_select_all = this.widget_options.can_select_all;
+        this.can_select_none = this.widget_options.can_select_none;
 
         if (!this.tmp_segmentation_type && this.is_type_date) {
             let field = this.field;
@@ -1132,6 +1138,42 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         await this.throttled_update_options();
     }
 
+    /**
+     * Toggle Can Select All
+     *  - Allow to the user to show select_all of the active filter options
+     */
+    private async toggle_can_select_all() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        this.widget_options.can_select_all = !this.can_select_all;
+
+        if (!this.next_update_options) {
+            this.next_update_options = cloneDeep(this.widget_options);
+        }
+
+        await this.throttled_update_options();
+    }
+
+    /**
+     * Toggle Can Select None
+     *  - Allow to the user to show none of the active filter options
+     */
+    private async toggle_can_select_none() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        this.widget_options.can_select_none = !this.can_select_none;
+
+        if (!this.next_update_options) {
+            this.next_update_options = cloneDeep(this.widget_options);
+        }
+
+        await this.throttled_update_options();
+    }
+
     private async switch_hide_btn_switch_advanced() {
         this.next_update_options = this.widget_options;
 
@@ -1808,6 +1850,10 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         return this.label('FieldValueFilterWidget.advanced_mode_placeholder');
     }
 
+    /**
+     *  Widget Options
+     *   - Load default widget option (from backend)
+     */
     get widget_options(): FieldValueFilterWidgetOptions {
         if (!this.page_widget) {
             return null;
@@ -1856,6 +1902,8 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                     options.bg_color,
                     options.fg_color_value,
                     options.fg_color_text,
+                    options.can_select_all,
+                    options.can_select_none,
                 ) : null;
             }
         } catch (error) {
@@ -2005,6 +2053,15 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         }
 
         return VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id].get_field_by_id(this.vo_field_ref.field_id);
+    }
+
+    get title_name_code_text() {
+
+        if (!this.widget_options) {
+            return null;
+        }
+
+        return this.widget_options.get_placeholder_name_code_text(this.page_widget.id);
     }
 
     get segmentation_type_options(): DataFilterOption[] {

@@ -242,8 +242,8 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
     /**
      * Computed widget options
-     *  - Happen on component|widget creation
-     * @returns MonthFilterWidgetOptions
+     *  - Called on component|widget creation
+     * @returns FieldValueFilterWidgetOptions
      */
     get widget_options(): FieldValueFilterWidgetOptions {
         if (!this.page_widget) {
@@ -293,6 +293,8 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                     options.bg_color,
                     options.fg_color_value,
                     options.fg_color_text,
+                    options.can_select_all,
+                    options.can_select_none,
                 ) : null;
             }
         } catch (error) {
@@ -575,6 +577,26 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         return ContextFilterVO.or(res);
     }
 
+    /**
+     * Handle Select All
+     *  - Select all fields of the current active filter
+     */
+    private handle_select_all(): void {
+        let selection: DataFilterOption[] = [];
+
+        selection = this.filter_visible_options?.map((_filter) => new DataFilterOption(DataFilterOption.STATE_SELECTED, _filter.label, _filter.id));
+
+        this.tmp_filter_active_options = selection;
+    }
+
+    /**
+     * Handle Select None
+     *  - Remove all fields of the current selected active filter
+     */
+    private handle_select_none(): void {
+        this.tmp_filter_active_options = [];
+    }
+
     private filter_type_label(filter_type: number): string {
         if (filter_type != null) {
             return this.t(AdvancedStringFilter.FILTER_TYPE_LABELS[filter_type]);
@@ -775,7 +797,8 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         let root_context_filter: ContextFilterVO = null;
 
         // Get context filter from store
-        root_context_filter = this.get_active_field_filters[this.vo_field_ref.api_type_id] ?
+        root_context_filter = this.get_active_field_filters &&
+            this.get_active_field_filters[this.vo_field_ref.api_type_id] ?
             this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id] :
             null;
 
@@ -1653,6 +1676,40 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         }
 
         return !!this.widget_options.is_button;
+    }
+
+    /**
+     * Can Select All
+     *  - Can select all clickable text
+     */
+    get can_select_all(): boolean {
+        if (!this.widget_options) {
+            return false;
+        }
+
+        const can_select_all = !!this.widget_options.can_select_all;
+        const query_limit = this.widget_options.max_visible_options;
+
+        if (!can_select_all) {
+            return can_select_all;
+        }
+
+        // May be shown only if active filter options
+        // length smaller than actual query limit
+        return this.filter_visible_options?.length < query_limit;
+    }
+
+    /**
+     * Can select None
+     *  - Can select none clickable text
+     */
+    get can_select_none(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.can_select_none;
     }
 
     get hide_lvl2_if_lvl1_not_selected(): boolean {
