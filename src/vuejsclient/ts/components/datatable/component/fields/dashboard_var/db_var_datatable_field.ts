@@ -45,6 +45,9 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
     @Prop({ default: false })
     public table_is_busy: boolean;
 
+    @Prop({ default: false })
+    public editable: boolean;
+
     @Prop()
     private dashboard_id: number;
 
