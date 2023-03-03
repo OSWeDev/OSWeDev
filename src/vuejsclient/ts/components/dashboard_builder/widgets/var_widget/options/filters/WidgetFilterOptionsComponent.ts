@@ -60,10 +60,14 @@ export default class WidgetFilterOptionsComponent extends VueComponentBase {
 
     @Watch('actual_filter_type', { immediate: true })
     private onchange_actual_filter_type() {
-        let ftype = this.filter_by_names[this.filter_type];
-        if (ftype != this.actual_filter_type) {
+        if (this.filter_type) {
+            let ftype = this.filter_by_names[this.filter_type];
+            if (ftype != this.actual_filter_type) {
+                this.filter_type = this.filter_names[this.actual_filter_type];
+                this.$emit('update_additional_options', null);
+            }
+        } else {
             this.filter_type = this.filter_names[this.actual_filter_type];
-            this.$emit('update_additional_options', null);
         }
     }
 
