@@ -354,11 +354,13 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         let api_type_id = context_query.base_api_type_id;
         let columns_by_field_id = {};
+
         for (let i in columns) {
             let column = columns[i];
             columns_by_field_id[column.datatable_field_uid] = column;
         }
-        let datas = (context_query.fields && context_query.fields.length) ?
+
+        let datas = (context_query.fields?.length > 0) ?
             await ModuleContextFilter.getInstance().select_datatable_rows(context_query, columns_by_field_id, fields) :
             await ModuleContextFilter.getInstance().select_vos(context_query);
 
@@ -1030,12 +1032,14 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             for (let i in ordered_column_list) {
                 let data_field_name: string = ordered_column_list[i];
 
+                // Check if it's actually a var param field
                 if (!varcolumn_conf[data_field_name]) {
                     continue;
                 }
-                let this_varcolumn_conf = varcolumn_conf[data_field_name];
-                let this_custom_filters = custom_filters[data_field_name];
-                let do_not_user_filter: { [vo_type: string]: { [field_id: string]: boolean } } = do_not_user_filter_by_datatable_field_uid[data_field_name];
+
+                const this_varcolumn_conf = varcolumn_conf[data_field_name];
+                const this_custom_filters = custom_filters[data_field_name];
+                const do_not_user_filter: { [vo_type: string]: { [field_id: string]: boolean } } = do_not_user_filter_by_datatable_field_uid[data_field_name];
 
                 let current_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = cloneDeep(active_field_filters);
 
