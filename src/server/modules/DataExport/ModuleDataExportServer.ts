@@ -54,7 +54,7 @@ import VarsServerCallBackSubsController from '../Var/VarsServerCallBackSubsContr
 import DataExportBGThread from './bgthreads/DataExportBGThread';
 import ExportContextQueryToXLSXBGThread from './bgthreads/ExportContextQueryToXLSXBGThread';
 import ExportContextQueryToXLSXQueryVO from './bgthreads/vos/ExportContextQueryToXLSXQueryVO';
-import FilterObj from '../../../shared/tools/Filters';
+import FilterObj, { percentFilter, toFixedFilter } from '../../../shared/tools/Filters';
 
 export default class ModuleDataExportServer extends ModuleServerBase {
 
@@ -1026,7 +1026,6 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             try {
                 // JSON parse may throw exeception (case when empty or Non-JSON)
                 filter_additional_params = JSON.parse(column.filter_additional_params);
-                fractional_digits = filter_additional_params[0] ?? filter_additional_params?.fractional_digits;
             } catch (e) {
 
             }
@@ -1042,12 +1041,20 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
                 switch (column.filter_type) {
                     case FilterObj.FILTER_TYPE_percent:
+                        filter_additional_params = percentFilter.toObject(filter_additional_params);
+                        fractional_digits = filter_additional_params?.fractional_digits;
+
                         row[column.datatable_field_uid] = row[column.datatable_field_uid] ?
                             (row[column.datatable_field_uid] * 100)?.toFixed(fractional_digits) + `%` :
                             void 0;
+
                         break;
                     case FilterObj.FILTER_TYPE_toFixed:
+                        filter_additional_params = toFixedFilter.toObject(filter_additional_params);
+                        fractional_digits = filter_additional_params?.fractional_digits;
+
                         row[column.datatable_field_uid] = row[column.datatable_field_uid]?.toFixed(fractional_digits);
+
                         break;
                     case FilterObj.FILTER_TYPE_amount:
                         break;

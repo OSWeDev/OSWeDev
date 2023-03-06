@@ -40,24 +40,24 @@ export default class PercentFilterOptionsComponent extends VueComponentBase {
             // evol_from_prct: boolean = false,
             // treat_999_as_infinite: boolean = true
 
-            this.fractional_digits = options.fractional_digits ? parseInt(options.fractional_digits) : 0;
-            this.pts = options.pts;
-            this.explicit_sign = options.explicit_sign;
-            this.evol_from_prct = options.evol_from_prct;
-            this.treat_999_as_infinite = options.treat_999_as_infinite;
+            this.fractional_digits = options[0] ? parseInt(options[0]) : 0;
+            this.pts = options[1];
+            this.explicit_sign = options[2];
+            this.evol_from_prct = options[3];
+            this.treat_999_as_infinite = options[4];
         } catch (error) {
             ConsoleHandler.error(error);
         }
     }
 
     private onchange_inputs() {
-        let options = {
-            fractional_digits: this.fractional_digits,
-            pts: this.pts,
-            explicit_sign: this.explicit_sign,
-            evol_from_prct: this.evol_from_prct,
-            treat_999_as_infinite: this.treat_999_as_infinite,
-        };
+        let options = [
+            this.fractional_digits,
+            this.pts,
+            this.explicit_sign,
+            this.evol_from_prct,
+            this.treat_999_as_infinite,
+        ];
 
         this.$emit('update_additional_options', JSON.stringify(options));
     }
