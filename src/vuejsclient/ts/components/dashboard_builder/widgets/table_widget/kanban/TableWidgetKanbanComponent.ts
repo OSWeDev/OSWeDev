@@ -1419,8 +1419,12 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                     break;
                 case TableColumnDescVO.TYPE_var_ref:
                     let var_data_field: VarDatatableFieldVO<any, any> = VarDatatableFieldVO.createNew(
-                        column.id.toString(), column.var_id, column.filter_type, column.filter_additional_params,
-                        this.dashboard.id).auto_update_datatable_field_uid_with_vo_type(); //, column.get_translatable_name_code_text(this.page_widget.id)
+                        column.id.toString(),
+                        column.var_id,
+                        column.filter_type,
+                        column.filter_additional_params,
+                        this.dashboard.id
+                    ).auto_update_datatable_field_uid_with_vo_type(); //, column.get_translatable_name_code_text(this.page_widget.id)
                     res[column.id] = var_data_field;
                     break;
                 case TableColumnDescVO.TYPE_vo_field_ref:
@@ -1539,8 +1543,12 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 break;
             case TableColumnDescVO.TYPE_var_ref:
                 let var_data_field: VarDatatableFieldVO<any, any> = VarDatatableFieldVO.createNew(
-                    column.id.toString(), column.var_id, column.filter_type, column.filter_additional_params,
-                    this.dashboard.id).auto_update_datatable_field_uid_with_vo_type(); //, column.get_translatable_name_code_text(this.page_widget.id)
+                    column.id.toString(),
+                    column.var_id,
+                    column.filter_type,
+                    column.filter_additional_params,
+                    this.dashboard.id
+                ).auto_update_datatable_field_uid_with_vo_type(); //, column.get_translatable_name_code_text(this.page_widget.id)
                 res = var_data_field;
                 break;
             case TableColumnDescVO.TYPE_vo_field_ref:

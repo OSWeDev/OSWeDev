@@ -54,6 +54,7 @@ import VarsServerCallBackSubsController from '../Var/VarsServerCallBackSubsContr
 import DataExportBGThread from './bgthreads/DataExportBGThread';
 import ExportContextQueryToXLSXBGThread from './bgthreads/ExportContextQueryToXLSXBGThread';
 import ExportContextQueryToXLSXQueryVO from './bgthreads/vos/ExportContextQueryToXLSXQueryVO';
+import FilterObj from '../../../shared/tools/Filters';
 
 export default class ModuleDataExportServer extends ModuleServerBase {
 
@@ -380,9 +381,12 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         await this.update_custom_fields(translated_datas, exportable_datatable_custom_field_columns);
 
+        // - update to columns format (percent, toFixed etc...)
+        const xlsxDatas = await this.update_to_xlsx_columns_format(translated_datas, columns);
+
         let filepath: string = await this.exportDataToXLSX_base(
             filename,
-            translated_datas,
+            xlsxDatas,
             ordered_column_list,
             column_labels,
             api_type_id,
@@ -976,19 +980,20 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         exportable_datatable_custom_field_columns: { [datatable_field_uid: string]: string } = null,
     ) {
 
-        let max_connections_to_use = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
-        let promise_pipeline = new PromisePipeline(max_connections_to_use);
+        const max_connections_to_use = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
+        const promise_pipeline = new PromisePipeline(max_connections_to_use);
 
-        for (let field_id in exportable_datatable_custom_field_columns) {
-            let custom_field_translatable_name = exportable_datatable_custom_field_columns[field_id];
-            let cb = TableWidgetCustomFieldsController.getInstance().custom_components_export_cb_by_translatable_title[custom_field_translatable_name];
+        for (const field_id in exportable_datatable_custom_field_columns) {
+            const custom_field_translatable_name = exportable_datatable_custom_field_columns[field_id];
+            // cb mean callback
+            const cb = TableWidgetCustomFieldsController.getInstance().custom_components_export_cb_by_translatable_title[custom_field_translatable_name];
 
             if (!cb) {
                 continue;
             }
 
-            for (let i in datas) {
-                let data = datas[i];
+            for (const key_i in datas) {
+                let data = datas[key_i];
 
                 await promise_pipeline.push(async () => {
                     data[field_id] = await cb(data);
@@ -997,6 +1002,64 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         }
 
         await promise_pipeline.end();
+
+        return datas;
+    }
+
+    /**
+     * Update To Columns Format
+     *  - Update to column format defined from the column widget configuration (percent, decimal, toFixed etc...)
+     */
+    private async update_to_xlsx_columns_format(
+        datas: any[],
+        columns: TableColumnDescVO[] = null,
+    ) {
+
+        const rows = cloneDeep(datas);
+
+        for (const field_uid in columns) {
+            const column = columns[field_uid];
+
+            let filter_additional_params = null;
+            let fractional_digits = 0;
+
+            try {
+                // JSON parse may throw exeception (case when empty or Non-JSON)
+                filter_additional_params = JSON.parse(column.filter_additional_params);
+                fractional_digits = filter_additional_params[0] ?? filter_additional_params?.fractional_digits;
+            } catch (e) {
+
+            }
+
+            for (const row_key in rows) {
+                let row = rows[row_key];
+
+                row[column.datatable_field_uid + '__raw'] = row[column.datatable_field_uid];
+
+                if (row[column.datatable_field_uid] == null) {
+                    continue;
+                }
+
+                switch (column.filter_type) {
+                    case FilterObj.FILTER_TYPE_percent:
+                        row[column.datatable_field_uid] = row[column.datatable_field_uid] ?
+                            (row[column.datatable_field_uid] * 100)?.toFixed(fractional_digits) + `%` :
+                            void 0;
+                        break;
+                    case FilterObj.FILTER_TYPE_toFixed:
+                        row[column.datatable_field_uid] = row[column.datatable_field_uid]?.toFixed(fractional_digits);
+                        break;
+                    case FilterObj.FILTER_TYPE_amount:
+                        break;
+                    case FilterObj.FILTER_TYPE_toFixedCeil:
+                        break;
+                    case FilterObj.FILTER_TYPE_toFixedFloor:
+                        break;
+                }
+            }
+        }
+
+        return rows;
     }
 
     /**

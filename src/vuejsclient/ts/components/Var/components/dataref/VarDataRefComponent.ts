@@ -1,6 +1,5 @@
 
-import cloneDeep from 'lodash/cloneDeep';
-import debounce from 'lodash/debounce';
+import { debounce, cloneDeep } from 'lodash';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
@@ -260,8 +259,8 @@ export default class VarDataRefComponent extends VueComponentBase {
 
         let params = [this.var_data_value];
 
-        if (!!this.filter_additional_params) {
-            params = params.concat(this.filter_additional_params);
+        for (let additional_param_key in this.filter_additional_params) {
+            params = params.concat(this.filter_additional_params[additional_param_key]);
         }
 
         return this.filter.apply(null, params);
@@ -412,8 +411,8 @@ export default class VarDataRefComponent extends VueComponentBase {
         if (this.filter) {
             let params = [value];
 
-            if (!!this.filter_additional_params) {
-                params = params.concat(this.filter_additional_params);
+            for (let additional_param_key in this.filter_additional_params) {
+                params = params.concat(this.filter_additional_params[additional_param_key]);
             }
 
             value = this.filter.apply(null, params);
@@ -458,8 +457,8 @@ export default class VarDataRefComponent extends VueComponentBase {
         if (this.filter) {
             let params = [value];
 
-            if (!!this.filter_additional_params) {
-                params = params.concat(this.filter_additional_params);
+            for (let additional_param_key in this.filter_additional_params) {
+                params = params.concat(this.filter_additional_params[additional_param_key]);
             }
 
             value = this.filter.apply(null, params);
