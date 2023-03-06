@@ -18,6 +18,7 @@ import SimpleDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/
 import VarDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/datatable/VarDatatableFieldVO';
 import InsertOrDeleteQueryResult from '../../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import DashboardBuilderController from '../../../../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
+import BulkActionVO from '../../../../../../../shared/modules/DashboardBuilder/vos/BulkActionVO';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
@@ -30,6 +31,7 @@ import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/
 import IDistantVOBase from '../../../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
+import DefaultTranslation from '../../../../../../../shared/modules/Translation/vos/DefaultTranslation';
 import VarConfVO from '../../../../../../../shared/modules/Var/vos/VarConfVO';
 import ModuleVocus from '../../../../../../../shared/modules/Vocus/ModuleVocus';
 import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
@@ -57,7 +59,6 @@ import CRUDUpdateModalComponent from './../crud_modals/update/CRUDUpdateModalCom
 import TableWidgetOptions from './../options/TableWidgetOptions';
 import TablePaginationComponent from './../pagination/TablePaginationComponent';
 import TableWidgetController from './../TableWidgetController';
-// import BulkActionsComponent from './../bulk_actions/BulkActionsComponent';
 import './TableWidgetTableComponent.scss';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
@@ -70,7 +71,6 @@ import './TableWidgetTableComponent.scss';
         Tablepaginationcomponent: TablePaginationComponent,
         Crudupdatemodalcomponent: CRUDUpdateModalComponent,
         Crudcreatemodalcomponent: CRUDCreateModalComponent,
-        // Bulkactionscomponent: BulkActionsComponent,
     }
 })
 export default class TableWidgetTableComponent extends VueComponentBase {
@@ -1598,7 +1598,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                     options.use_kanban_column_weight_if_exists,
                     options.use_for_count,
                     options.show_bulk_edit,
-                    options.bulk_actions,
+                    options.cb_bulk_actions,
+                    options.show_bulk_select_all,
                 ) : null;
             }
         } catch (error) {
@@ -2115,6 +2116,49 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
     get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
         return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
+    }
+
+    get show_bulk_select_all(): boolean {
+        return this.widget_options && this.widget_options.show_bulk_select_all;
+    }
+
+    get cb_bulk_actions(): BulkActionVO[] {
+        let res: BulkActionVO[] = [];
+
+        if (this.show_bulk_select_all) {
+            res.push(BulkActionVO.createNew(
+                this.widget_options.crud_api_type_id,
+                'table_widget_component.select_all',
+                this.select_unselect_all.bind(this, true)
+            ));
+            res.push(BulkActionVO.createNew(
+                this.widget_options.crud_api_type_id,
+                'table_widget_component.unselect_all',
+                this.select_unselect_all.bind(this, false)
+            ));
+        }
+
+        for (let i in this.widget_options.cb_bulk_actions) {
+            if (!TableWidgetController.getInstance().cb_bulk_actions_by_translatable_title[this.widget_options.cb_bulk_actions[i]]) {
+                continue;
+            }
+
+            res.push(TableWidgetController.getInstance().cb_bulk_actions_by_translatable_title[this.widget_options.cb_bulk_actions[i]]);
+        }
+
+        return res;
+    }
+
+    get selected_vos_true(): number[] {
+        let res: number[] = [];
+
+        for (let vo_id in this.selected_vos) {
+            if (this.selected_vos[vo_id]) {
+                res.push(parseInt(vo_id));
+            }
+        }
+
+        return res;
     }
 
     private has_widget_validation_filtres(): boolean {

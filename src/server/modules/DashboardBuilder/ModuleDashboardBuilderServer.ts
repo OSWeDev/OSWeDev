@@ -1679,6 +1679,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Afficher Bulk Edit" },
             'table_widget_options_component.show_bulk_edit.___LABEL___'
         ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher boutons tout (dé)sélectionner" },
+            'table_widget_options_component.show_bulk_select_all.___LABEL___'
+        ));
 
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.onCDashboardPageWidgetVO);

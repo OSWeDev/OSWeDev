@@ -17,17 +17,15 @@ import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/Drop
 import { ModuleDashboardPageAction } from '../../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
 import TableWidgetColumnOptionsComponent from './column/TableWidgetColumnOptionsComponent';
-import TableWidgetBulkActionsOptionsComponent from './bulk_actions/TableWidgetBulkActionsOptionsComponent';
 import TableWidgetOptions from './TableWidgetOptions';
 import './TableWidgetOptionsComponent.scss';
-import BulkActionVO from '../../../../../../../shared/modules/DashboardBuilder/vos/BulkActionVO';
+import TableWidgetController from '../TableWidgetController';
 
 @Component({
     template: require('./TableWidgetOptionsComponent.pug'),
     components: {
         Inlinetranslatabletext: InlineTranslatableText,
         Tablewidgetcolumnoptionscomponent: TableWidgetColumnOptionsComponent,
-        Tablewidgetbulkactionsoptionscomponent: TableWidgetBulkActionsOptionsComponent,
         Vuenestable: VueNestable,
         Vuenestablehandle: VueNestableHandle,
     }
@@ -50,6 +48,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
 
     private crud_api_type_id_selected: string = null;
+    private cb_bulk_actions: string[] = null;
     private vocus_button: boolean = false;
     private delete_button: boolean = true;
     private delete_all_button: boolean = false;
@@ -71,6 +70,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private limit_selectable: string = TableWidgetOptions.DEFAULT_LIMIT_SELECTABLE;
     private tmp_nbpages_pagination_list: number = TableWidgetOptions.DEFAULT_NBPAGES_PAGINATION_LIST;
     private show_bulk_edit: boolean = false;
+    private show_bulk_select_all: boolean = true;
 
     private tmp_default_export_option: DataFilterOption = null;
     private export_page_options: DataFilterOption[] = [
@@ -110,6 +110,9 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             if (!!this.crud_api_type_id_selected) {
                 this.crud_api_type_id_selected = null;
             }
+            if (!!this.cb_bulk_actions) {
+                this.cb_bulk_actions = null;
+            }
             if (!!this.vocus_button) {
                 this.vocus_button = false;
             }
@@ -143,6 +146,9 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             if (!this.show_bulk_edit) {
                 this.show_bulk_edit = false;
             }
+            if (!this.show_bulk_select_all) {
+                this.show_bulk_select_all = true;
+            }
             this.limit = TableWidgetOptions.DEFAULT_LIMIT.toString();
             this.limit_selectable = TableWidgetOptions.DEFAULT_LIMIT_SELECTABLE;
             this.tmp_nbpages_pagination_list = TableWidgetOptions.DEFAULT_NBPAGES_PAGINATION_LIST;
@@ -151,6 +157,10 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
         if (this.crud_api_type_id_selected != this.widget_options.crud_api_type_id) {
             this.crud_api_type_id_selected = this.widget_options.crud_api_type_id;
+        }
+
+        if (this.cb_bulk_actions != this.widget_options.cb_bulk_actions) {
+            this.cb_bulk_actions = this.widget_options.cb_bulk_actions;
         }
 
         if (this.vocus_button != this.widget_options.vocus_button) {
@@ -204,6 +214,9 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         if (this.show_bulk_edit != this.widget_options.show_bulk_edit) {
             this.show_bulk_edit = this.widget_options.show_bulk_edit;
         }
+        if (this.show_bulk_select_all != this.widget_options.show_bulk_select_all) {
+            this.show_bulk_select_all = this.widget_options.show_bulk_select_all;
+        }
 
         this.limit = (this.widget_options.limit == null) ? TableWidgetOptions.DEFAULT_LIMIT.toString() : this.widget_options.limit.toString();
         this.limit_selectable = (this.widget_options.limit_selectable == null) ? TableWidgetOptions.DEFAULT_LIMIT_SELECTABLE : this.widget_options.limit_selectable;
@@ -220,6 +233,21 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
         if (this.show_bulk_edit != this.next_update_options.show_bulk_edit) {
             this.next_update_options.show_bulk_edit = this.show_bulk_edit;
+
+            await this.throttled_update_options();
+        }
+    }
+
+    @Watch('show_bulk_select_all')
+    private async onchange_show_bulk_select_all() {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.show_bulk_select_all != this.next_update_options.show_bulk_select_all) {
+            this.next_update_options.show_bulk_select_all = this.show_bulk_select_all;
 
             await this.throttled_update_options();
         }
@@ -311,27 +339,6 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         return max + 1;
     }
 
-    private get_new_bulk_action_id() {
-        if (!this.widget_options) {
-            ConsoleHandler.error('get_new_bulk_action_id:failed');
-            return null;
-        }
-
-        if ((!this.widget_options.bulk_actions) || (!this.widget_options.bulk_actions.length)) {
-            return 0;
-        }
-
-        let ids = this.widget_options.bulk_actions.map((c) => c.id ? c.id : 0);
-        let max = -1;
-        for (let i in ids) {
-            if (max < ids[i]) {
-                max = ids[i];
-            }
-        }
-
-        return max + 1;
-    }
-
     @Watch('crud_api_type_id_selected')
     private async onchange_crud_api_type_id_selected() {
         this.next_update_options = this.widget_options;
@@ -373,6 +380,20 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                     existing_column.api_type_id = this.crud_api_type_id_selected;
                 }
             }
+
+            await this.throttled_update_options();
+        }
+    }
+
+    @Watch('cb_bulk_actions')
+    private async onchange_cb_bulk_actions() {
+        if (!this.widget_options) {
+            return;
+        }
+
+        if (this.widget_options.cb_bulk_actions != this.cb_bulk_actions) {
+            this.next_update_options = this.widget_options;
+            this.next_update_options.cb_bulk_actions = this.cb_bulk_actions;
 
             await this.throttled_update_options();
         }
@@ -462,38 +483,6 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         await this.throttled_update_options();
     }
 
-    private async update_bulk_action(update_bulk_action: BulkActionVO<any, any>) {
-
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            return null;
-        }
-
-        if (!this.next_update_options.bulk_actions) {
-            return null;
-        }
-
-        let old_bulk_action: BulkActionVO<any, any> = null;
-
-        let k: number;
-        let i = this.next_update_options.bulk_actions.findIndex((bulk_action) => {
-
-            if (bulk_action.id == update_bulk_action.id) {
-                old_bulk_action = bulk_action;
-                return true;
-            }
-            return false;
-        });
-
-        if (i < 0) {
-            ConsoleHandler.error('update_bulk_action failed');
-            return null;
-        }
-
-        await this.throttled_update_options();
-    }
-
     private async remove_column(del_column: TableColumnDescVO) {
         this.next_update_options = this.widget_options;
 
@@ -536,35 +525,8 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         await this.throttled_update_options();
     }
 
-    private async remove_bulk_action(del_bulk_action: BulkActionVO<any, any>) {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            return null;
-        }
-
-        if (!this.next_update_options.bulk_actions) {
-            return null;
-        }
-
-        let k: number;
-        let i = this.next_update_options.bulk_actions.findIndex((bulk_action) => {
-
-            if (bulk_action.id == del_bulk_action.id) {
-                return bulk_action.id == del_bulk_action.id;
-            }
-        });
-
-        if (i < 0) {
-            ConsoleHandler.error('remove_bulk_action failed');
-            return null;
-        }
-
-        await this.throttled_update_options();
-    }
-
     private get_default_options(): TableWidgetOptions {
-        return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, false, false, null, false, true, true, false, false, null);
+        return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, false, false, null, false, true, true, false, false, [], true);
     }
     private async add_column(add_column: TableColumnDescVO) {
 
@@ -594,39 +556,6 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                 this.next_update_options.columns = [];
             }
             this.next_update_options.columns.push(add_column);
-        }
-
-        await this.throttled_update_options();
-    }
-
-    private async add_bulk_action(add_bulk_action: BulkActionVO<any, any>) {
-
-        this.next_update_options = this.widget_options;
-        if (!this.next_update_options) {
-            this.next_update_options = this.get_default_options();
-        }
-
-        let i = -1;
-        let found = false;
-
-        if ((!!add_bulk_action) && (!!this.next_update_options.bulk_actions)) {
-            i = this.next_update_options.bulk_actions.findIndex((ref_elt) => {
-                return ref_elt.id == add_bulk_action.id;
-            });
-        }
-
-        if (i < 0) {
-            i = 0;
-            add_bulk_action.weight = 0;
-        } else {
-            found = true;
-        }
-
-        if (!found) {
-            if (!this.next_update_options.bulk_actions) {
-                this.next_update_options.bulk_actions = [];
-            }
-            this.next_update_options.bulk_actions.push(add_bulk_action);
         }
 
         await this.throttled_update_options();
@@ -761,7 +690,8 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                     options.use_kanban_column_weight_if_exists,
                     options.use_for_count,
                     options.show_bulk_edit,
-                    options.bulk_actions,
+                    options.cb_bulk_actions,
+                    options.show_bulk_select_all,
                 ) : null;
             }
         } catch (error) {
@@ -1062,5 +992,42 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             this.next_update_options.show_bulk_edit = this.show_bulk_edit;
             await this.throttled_update_options();
         }
+    }
+
+    private async switch_show_bulk_select_all() {
+        this.show_bulk_select_all = !this.show_bulk_select_all;
+
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.next_update_options.show_bulk_select_all != this.show_bulk_select_all) {
+            this.next_update_options.show_bulk_select_all = this.show_bulk_select_all;
+            await this.throttled_update_options();
+        }
+    }
+
+    private cb_bulk_actions_label(cb_bulk_action: string): string {
+        return this.t(cb_bulk_action);
+    }
+
+    get cb_bulk_actions_options(): string[] {
+        if ((!this.page_widget) || (!this.widget_options)) {
+            return [];
+        }
+
+        if (!this.widget_options.crud_api_type_id) {
+            return [];
+        }
+
+        if (!TableWidgetController.getInstance().cb_bulk_actions_by_crud_api_type_id[this.widget_options.crud_api_type_id]) {
+            return [];
+        }
+
+        let res = TableWidgetController.getInstance().cb_bulk_actions_by_crud_api_type_id[this.widget_options.crud_api_type_id];
+
+        return res.map((c) => c.translatable_title);
     }
 }

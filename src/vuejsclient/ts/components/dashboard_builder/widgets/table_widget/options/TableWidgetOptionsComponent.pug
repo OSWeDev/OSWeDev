@@ -283,6 +283,41 @@
             :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
         )
 
+    template(v-if="show_bulk_edit")
+        .show_bulk_select_all
+            .input_label {{ label('table_widget_options_component.show_bulk_select_all') }}
+            
+            toggle-button(
+                @change="switch_show_bulk_select_all" 
+                :value="show_bulk_select_all" 
+                :sync="true"
+                :width="100"
+                :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+            )
+
+        .cb_bulk_actions 
+            multiselect(
+                :preselect-first="false"
+                :multiple="true"
+                v-model="cb_bulk_actions"
+                :placeholder="label('table_widget_options_component.cb_bulk_actions')"
+                :options="cb_bulk_actions_options"
+                :custom-label="cb_bulk_actions_label"
+                :allow-empty="true",
+                autocomplete="off"
+
+                :searchable="true"
+                :internal-search="true"
+
+                id="cb_bulk_actions"
+
+                :select-label='label("multiselect.selectLabel")'
+                :select-group-label='label("multiselect.selectGroupLabel")'
+                :selected-label='label("multiselect.selectedLabel")'
+                :deselect-label='label("multiselect.deselectLabel")'
+                :deselect-group-label='label("multiselect.deselectGroupLabel")'
+            )
+
     .field_refs
         .input_label {{ label('table_widget_options_component.columns') }}
         template(v-if='columns && (columns.length > 1)')
@@ -320,12 +355,4 @@
                 :column="null" @add_column="add_column" @remove_column="remove_column" @update_column="update_column"
                 :page_widget="page_widget"
                 :get_new_column_id='get_new_column_id'
-            )
-
-    template(v-if="show_bulk_edit")
-        .item_content 
-            Tablewidgetbulkactionsoptionscomponent(
-                :bulk_action="null" @add_bulk_action="add_bulk_action" @remove_bulk_action="remove_bulk_action" @update_bulk_action="update_bulk_action"
-                :page_widget="page_widget"
-                :get_new_bulk_action_id='get_new_bulk_action_id'
             )

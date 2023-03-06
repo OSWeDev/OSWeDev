@@ -1,33 +1,31 @@
-import DatatableField from "../../DAO/vos/datatable/DatatableField";
 import DefaultTranslation from "../../Translation/vos/DefaultTranslation";
 
-export default class BulkActionVO<T, U> extends DatatableField<T, U> {
-
-    public static API_TYPE_ID: string = "bulk_action";
+export default class BulkActionVO {
 
     public static createNew(
+        vo_type_id: string,
         label: string,
-        callback: () => Promise<void>,
-    ): BulkActionVO<any, any> {
+        callback: (vo_ids: number[]) => Promise<void>,
+    ): BulkActionVO {
         let res = new BulkActionVO();
 
+        res.vo_type_id = vo_type_id;
         res.label = label;
         res.callback = callback;
+
         return res;
     }
 
-    public id: number;
-    public _type: string = BulkActionVO.API_TYPE_ID;
-
+    public vo_type_id: string;
     public label: string;
     public weight: number;
-    public callback: () => Promise<void>;
+    public callback: (vo_ids: number[]) => Promise<void>;
 
     get translatable_title(): string {
         if (!this.label) {
             return null;
         }
 
-        return "fields.labels." + this.label + ".__bulk_action__" + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return "fields.labels.bulk_action." + this.vo_type_id + "." + this.label + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     }
 }
