@@ -41,24 +41,24 @@ export default class ToFixedFilterOptionsComponent extends VueComponentBase {
             // only_positive: boolean = false,
             // dot_decimal_marker: boolean = false
 
-            this.fractional_digits = options.fractional_digits ? parseInt(options.fractional_digits) : 0;
-            this.rounded = options.rounded;
-            this.rounded_type = options.rounded_type;
-            this.only_positive = options.only_positive;
-            this.dot_decimal_marker = options.dot_decimal_marker;
+            this.fractional_digits = options[0] ? parseInt(options[0]) : 0;
+            this.rounded = options[1];
+            this.rounded_type = options[2];
+            this.only_positive = options[3];
+            this.dot_decimal_marker = options[4];
         } catch (error) {
             ConsoleHandler.error(error);
         }
     }
 
     private onchange_inputs() {
-        let options = {
-            fractional_digits: this.fractional_digits,
-            rounded: this.rounded,
-            rounded_type: this.rounded_type,
-            only_positive: this.only_positive,
-            dot_decimal_marker: this.dot_decimal_marker,
-        };
+        let options = [
+            this.fractional_digits,
+            this.rounded,
+            this.rounded_type,
+            this.only_positive,
+            this.dot_decimal_marker,
+        ];
 
         this.$emit('update_additional_options', JSON.stringify(options));
     }

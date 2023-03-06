@@ -38,22 +38,23 @@ export default class AmountFilterOptionsComponent extends VueComponentBase {
             // humanize: boolean = false,
             // currency = "€"
 
-            this.fractional_digits = options.fractional_digits ? parseInt(options.fractional_digits) : 0;
-            this.only_positive = options.only_positive;
-            this.currency = options.currency;
-            this.humanize = options.humanize;
+            this.fractional_digits = options[0] ? parseInt(options[0]) : 0;
+            this.only_positive = options[2];
+            this.currency = options[4];
+            this.humanize = options[3];
         } catch (error) {
             ConsoleHandler.error(error);
         }
     }
 
     private onchange_inputs() {
-        let options = {
-            fractional_digits: this.fractional_digits,
-            only_positive: this.only_positive,
-            humanize: this.humanize,
-            currency: this.currency,
-        };
+        let options = [
+            this.fractional_digits,
+            false,
+            this.only_positive,
+            this.humanize,
+            this.currency,
+        ];
 
         this.$emit('update_additional_options', JSON.stringify(options));
     }
