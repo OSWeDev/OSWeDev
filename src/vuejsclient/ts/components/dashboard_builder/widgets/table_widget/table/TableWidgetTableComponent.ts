@@ -1,4 +1,4 @@
-import { cloneDeep, debounce, isEmpty, isEqual } from 'lodash';
+import { cloneDeep, debounce, isEqual, isObject, transform } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
@@ -1455,6 +1455,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 }
             }
         }
+
         for (let column_id in this.fields) {
             let field = this.fields[column_id];
 
@@ -1855,16 +1856,16 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         // The actual fields to be exported
         let fields: { [datatable_field_uid: string]: DatatableField<any, any> } = {};
 
-        for (let i in this.fields) {
-            let field = this.fields[i];
+        for (let i in this.default_widget_options_fields) {
+            let field = this.default_widget_options_fields[i];
             fields[field.datatable_field_uid] = field;
         }
 
         return new ExportContextQueryToXLSXParamVO(
             export_name,
             context_query,
-            this.exportable_datatable_columns,
-            this.datatable_columns_labels,
+            this.exportable_datatable_default_widget_options_columns,
+            this.datatable_default_widget_options_columns_labels,
             this.exportable_datatable_custom_field_columns,
             this.columns,
             fields,
@@ -1883,8 +1884,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     get columns_custom_filters(): { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } {
         let res: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = {};
 
-        for (let i in this.columns) {
-            let column = this.columns[i];
+        for (let i in this.default_widget_options_columns) {
+            let column = this.default_widget_options_columns[i];
 
             if (column.type !== TableColumnDescVO.TYPE_var_ref) {
                 continue;
@@ -1926,8 +1927,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     get do_not_user_filter_by_datatable_field_uid(): { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } {
         let res: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } = {};
 
-        for (let i in this.columns) {
-            let column = this.columns[i];
+        for (let i in this.default_widget_options_columns) {
+            let column = this.default_widget_options_columns[i];
 
             if (column.type !== TableColumnDescVO.TYPE_var_ref) {
                 continue;
@@ -1970,8 +1971,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     get varcolumn_conf(): { [datatable_field_uid: string]: ExportVarcolumnConf } {
         let res: { [datatable_field_uid: string]: ExportVarcolumnConf } = {};
 
-        for (let i in this.columns) {
-            let column = this.columns[i];
+        for (let i in this.default_widget_options_columns) {
+            let column = this.default_widget_options_columns[i];
 
             if (column.type !== TableColumnDescVO.TYPE_var_ref) {
                 continue;

@@ -114,6 +114,7 @@ export default class DashboardBuilderController {
                 context[column.api_type_id][column.field_id] = and_filter;
             }
         }
+
         return context;
     }
 
