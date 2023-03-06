@@ -19,7 +19,7 @@
                         li(v-for="value in field_value") {{ get_filtered_value(value) }}
 
                 template(v-else-if="field.moduleTableField.field_type == 'file'")
-                    Filedatatablefieldcomponent(:file_path="field_value", :show_tooltip="show_tooltip")
+                    Filedatatablefieldcomponent(:vo_id="parseInt(vo.__crud_actions)" :field="field" :file_path="field_value", :show_tooltip="show_tooltip")
 
                 template(v-else-if="field.moduleTableField.field_type == 'text[]'")
                     ul.multi-input(v-if="field_value")
@@ -76,7 +76,7 @@
                 )
 
             template(v-else-if="field.type == 'FILE'")
-                Filedatatablefieldcomponent(:file_id="vo[field.parameter_datatable_field_uid]")
+                Filedatatablefieldcomponent(:vo_id="parseInt(vo.__crud_actions)" :field="field" :file_id="vo[field.parameter_datatable_field_uid]")
 
             template(v-else-if="field.type == 'VAR'")
                 Dbvardatatablefieldcomponent(
