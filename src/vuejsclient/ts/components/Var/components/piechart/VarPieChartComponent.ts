@@ -1,4 +1,4 @@
-import debounce from 'lodash/debounce';
+import { debounce } from 'lodash';
 import { Pie } from 'vue-chartjs';
 import 'chartjs-plugin-labels';
 import { Component, Prop, Watch } from 'vue-property-decorator';
@@ -116,8 +116,8 @@ export default class VarPieChartComponent extends VueComponentBase {
 
         let params = [var_data.value];
 
-        if (!!this.filter_additional_params) {
-            params = params.concat(this.filter_additional_params);
+        for (let additional_param_key in this.filter_additional_params) {
+            params = params.concat(this.filter_additional_params[additional_param_key]);
         }
 
         return this.filter.apply(null, params);

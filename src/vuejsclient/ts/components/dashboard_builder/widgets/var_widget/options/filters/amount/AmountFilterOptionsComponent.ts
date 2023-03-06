@@ -13,16 +13,16 @@ export default class AmountFilterOptionsComponent extends VueComponentBase {
     @Prop({ default: null })
     private actual_additional_options: string;
 
-    private fractionalDigits: number = 0;
-    private onlyPositive: boolean = false;
+    private fractional_digits: number = 0;
+    private only_positive: boolean = false;
     private currency: string = '€';
     private humanize: boolean = true;
 
     @Watch('actual_additional_options', { immediate: true })
     private onchange_actual_additional_options() {
         if (!this.actual_additional_options) {
-            this.fractionalDigits = 0;
-            this.onlyPositive = false;
+            this.fractional_digits = 0;
+            this.only_positive = false;
             this.currency = '€';
             this.humanize = true;
             this.onchange_inputs();
@@ -30,33 +30,32 @@ export default class AmountFilterOptionsComponent extends VueComponentBase {
         }
 
         try {
-            let additional_options = JSON.parse(this.actual_additional_options);
+            let options = JSON.parse(this.actual_additional_options);
 
-            // fractionalDigits: number = 0,
+            // fractional_digits: number = 0,
             // k: boolean = false,
-            // onlyPositive: boolean = false,
+            // only_positive: boolean = false,
             // humanize: boolean = false,
             // currency = "€"
 
-            this.fractionalDigits = additional_options[0] ? parseInt(additional_options[0]) : 0;
-            this.onlyPositive = additional_options[2];
-            this.currency = additional_options[4];
-            this.humanize = additional_options[3];
+            this.fractional_digits = options.fractional_digits ? parseInt(options.fractional_digits) : 0;
+            this.only_positive = options.only_positive;
+            this.currency = options.currency;
+            this.humanize = options.humanize;
         } catch (error) {
             ConsoleHandler.error(error);
         }
     }
 
     private onchange_inputs() {
-        let additional_options = [
-            this.fractionalDigits,
-            false,
-            this.onlyPositive,
-            this.humanize,
-            this.currency,
-        ];
+        let options = {
+            fractional_digits: this.fractional_digits,
+            only_positive: this.only_positive,
+            humanize: this.humanize,
+            currency: this.currency,
+        };
 
-        this.$emit('update_additional_options', JSON.stringify(additional_options));
+        this.$emit('update_additional_options', JSON.stringify(options));
     }
 
     private switch_humanize() {
@@ -66,7 +65,7 @@ export default class AmountFilterOptionsComponent extends VueComponentBase {
     }
 
     private switch_onlyPositive() {
-        this.onlyPositive = !this.onlyPositive;
+        this.only_positive = !this.only_positive;
 
         this.onchange_inputs();
     }
