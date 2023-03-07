@@ -371,7 +371,9 @@ let readToPercentFilter = (
         pourcentage = "pts";
     }
 
-    let res: string = returns_infinity ? ((value < 0) ? '-&infin;' : '&infin;') : ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(number_value, fractional_digits) + " " + pourcentage;
+    let res: string = returns_infinity ?
+        ((value < 0) ? '-&infin;' : '&infin;') :
+        ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(number_value, fractional_digits) + " " + pourcentage;
 
     if (explicit_sign) {
         if (number_value > 0) {

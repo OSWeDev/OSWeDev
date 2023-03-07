@@ -395,20 +395,22 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         // - update to columns format (percent, toFixed etc...)
         const xlsxDatas = await this.update_to_xlsx_columns_format(translated_datas, columns);
 
-        // Make workbook and create each sheet
-        let workbook: WorkBook = XLSX.utils.book_new();
+        let sheets: IExportableSheet[] = [];
 
         // Sheet for the actual datatable
-        workbook = await this.makeDatasXLSXSheet(
-            workbook,
-            xlsxDatas,
+        const datasSheet: IExportableSheet = {
+            sheet_name: 'Datas',
+            datas: xlsxDatas,
             ordered_column_list,
             column_labels,
-        );
+        };
+
+        sheets.push(datasSheet);
 
         // Sheet for active field filters
         if (export_options?.export_active_field_filters || true) {
-            workbook = await this.makeActiveFieldFiltersXLSXSheet(workbook, active_field_filters);
+            const activeFiltersSheet = await this.makeActiveFiltersXLSXSheet(active_field_filters);
+            sheets.push(activeFiltersSheet);
         }
 
         if (export_options?.export_vars) {
@@ -416,11 +418,12 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         }
 
         // Final Excel file
-        let filepath: string = await this.exportWorkbookToXLSX(
+        let filepath: string = await this.exportDataToMultiSheetsXLSX(
             filename,
-            workbook,
+            sheets,
             api_type_id,
             is_secured,
+            file_access_policy_name,
         );
 
         if (!filepath) {
@@ -675,117 +678,26 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     }
 
     /**
-     * exportWorkbookToXLSX
-     *  - Export the workbook sheets (create the final sheet)
-     */
-    private async exportWorkbookToXLSX(
-        filename: string,
-        workbook: WorkBook,
-        api_type_id: string,
-        is_secured: boolean = false,
-    ): Promise<string> {
-
-        if ((!filename)) {
-            return null;
-        }
-
-        ConsoleHandler.log('EXPORT : ' + filename);
-
-        // we need to make sure the name is suitable
-        filename = filename.replace(/[^-._a-z0-9]/gi, '_');
-
-        let filepath: string = (is_secured ? ModuleFile.SECURED_FILES_ROOT : ModuleFile.FILES_ROOT) + filename;
-        XLSX.writeFile(workbook, filepath);
-
-        let user_log_id: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
-
-        // On log l'export
-        if (!!user_log_id) {
-
-            await StackContext.runPromise(
-                { IS_CLIENT: false },
-                async () => {
-                    await ModuleDAO.getInstance().insertOrUpdateVO(ExportLogVO.createNew(
-                        api_type_id ? api_type_id : 'N/A',
-                        Dates.now(),
-                        user_log_id
-                    ));
-                });
-        }
-
-        return filepath;
-    }
-
-    /**
-     * makeDatasXLSXSheet
-     *  - Make the Xlsx sheet of datas
-     *
-     * @param workbook {WorkBook}
-     * @param rows {any[]}
-     * @param ordered_column_list {string[]}
-     * @param column_labels {{ [field_name: string]: string }}
-     * @returns {WorkBook}
-     */
-    private async makeDatasXLSXSheet(
-        workbook: WorkBook,
-        rows: any[],
-        ordered_column_list: string[],
-        column_labels: { [field_name: string]: string },
-    ): Promise<WorkBook> {
-
-        if ((!rows) || (!column_labels) || (!ordered_column_list)) {
-            return null;
-        }
-
-        let ws_data = [];
-        let ws_row = [];
-        for (let i in ordered_column_list) {
-            let data_field_name: string = ordered_column_list[i];
-            let title: string = column_labels[data_field_name];
-
-            ws_row.push(title);
-        }
-        ws_data.push(ws_row);
-
-        for (let r in rows) {
-            let row = rows[r];
-            ws_row = [];
-
-            for (let i in ordered_column_list) {
-                let data_field_name: string = ordered_column_list[i];
-                let data = row[data_field_name];
-
-                ws_row.push(data);
-            }
-            ws_data.push(ws_row);
-        }
-
-        let ws = XLSX.utils.aoa_to_sheet(ws_data);
-        XLSX.utils.book_append_sheet(workbook, ws, "Datas");
-
-        return workbook;
-    }
-
-    /**
-     * makeActiveFieldFiltersXLSXSheet
+     * makeActiveFiltersXLSXSheet
      *  - Make the Xlsx sheet of Active field filters
      *
-     * @param workbook {WorkBook}
      * @param active_field_filters {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }}
-     * @returns {WorkBook}
+     * @returns {IExportableSheet}
      */
-    private async makeActiveFieldFiltersXLSXSheet(
-        workbook: WorkBook,
+    private async makeActiveFiltersXLSXSheet(
         active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
-    ): Promise<WorkBook> {
+    ): Promise<IExportableSheet> {
 
-        if ((!workbook) || (!active_field_filters)) {
+        if ((!active_field_filters)) {
             return null;
         }
 
-        let rows: Array<{ filter_name: string, value: string }> = [];
-        let ordered_column_list: string[] = ['filter_name', 'value'];
-        let column_labels: string[] = ['Filtre', 'Valeur'];
+        const sheet: IExportableSheet = {
+            sheet_name: 'Filtres Actifs',
+            datas: [],
+            ordered_column_list: ['filter_name', 'value'],
+            column_labels: { filter_name: 'Filtre', value: 'Valeur' },
+        };
 
         for (const api_type_id in active_field_filters) {
             const active_filter = active_field_filters[api_type_id];
@@ -793,34 +705,14 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             for (const context_filter_name in active_filter) {
                 const context_filter: ContextFilterVO = active_filter[context_filter_name];
 
-                rows.push({
+                sheet.datas.push({
                     filter_name: `${context_filter.vo_type} - ${context_filter.field_id}`,
                     value: ContextFilterHandler.context_filter_to_readable_ihm(context_filter)
                 });
             }
         }
 
-        let ws_data = [];
-
-        ws_data.push(column_labels);
-
-        for (let r in rows) {
-            let row = rows[r];
-            let ws_row = [];
-
-            for (let i in ordered_column_list) {
-                let data_field_name: string = ordered_column_list[i];
-                let data = row[data_field_name];
-
-                ws_row.push(data);
-            }
-            ws_data.push(ws_row);
-        }
-
-        let ws = XLSX.utils.aoa_to_sheet(ws_data);
-        XLSX.utils.book_append_sheet(workbook, ws, "Filtres Actifs");
-
-        return workbook;
+        return sheet;
     }
 
 
@@ -1219,19 +1111,17 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
                 switch (column.filter_type) {
                     case FilterObj.FILTER_TYPE_percent:
-                        filter_additional_params = percentFilter.toObject(filter_additional_params);
-                        fractional_digits = filter_additional_params?.fractional_digits ?? 0;
+                        let params_1 = [row[column.datatable_field_uid]];
+                        params_1 = params_1.concat(filter_additional_params);
 
-                        row[column.datatable_field_uid] = row[column.datatable_field_uid] ?
-                            (row[column.datatable_field_uid] * 100)?.toFixed(fractional_digits) + `%` :
-                            void 0;
+                        row[column.datatable_field_uid] = percentFilter.read.apply(null, params_1 as any);
 
                         break;
                     case FilterObj.FILTER_TYPE_toFixed:
-                        filter_additional_params = toFixedFilter.toObject(filter_additional_params);
-                        fractional_digits = filter_additional_params?.fractional_digits ?? 0;
+                        let params_2 = [row[column.datatable_field_uid]];
+                        params_2 = params_2.concat(filter_additional_params);
 
-                        row[column.datatable_field_uid] = row[column.datatable_field_uid]?.toFixed(fractional_digits);
+                        row[column.datatable_field_uid] = toFixedFilter.read.apply(null, params_2 as any);
 
                         break;
                     case FilterObj.FILTER_TYPE_amount:
