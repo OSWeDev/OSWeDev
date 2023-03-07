@@ -63,7 +63,8 @@ export default class ModuleFeedback extends Module {
 
         let fields = [
             name,
-            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Weight', false),
+            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', false),
+            new ModuleTableField('is_default_state', ModuleTableField.FIELD_TYPE_boolean, 'Etat par défaut', true, true, false),
         ];
 
         let table = new ModuleTable(this, FeedbackStateVO.API_TYPE_ID, () => new FeedbackStateVO(), fields, name, 'Feedbacks - Etats');
@@ -74,12 +75,12 @@ export default class ModuleFeedback extends Module {
         let user_id = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', true);
         let state_id = new ModuleTableField('state_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Etat', false);
         let impersonated_from_user_id = new ModuleTableField('impersonated_from_user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Si LogAs: Admin', false);
-        let screen_capture_1_id = new ModuleTableField('screen_capture_1_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Capture écran 1', true).not_add_to_crud();
-        let screen_capture_2_id = new ModuleTableField('screen_capture_2_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Capture écran 2', false).not_add_to_crud();
-        let screen_capture_3_id = new ModuleTableField('screen_capture_3_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Capture écran 3', false).not_add_to_crud();
-        let file_attachment_1_id = new ModuleTableField('file_attachment_1_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Pièce jointe 1', false).not_add_to_crud();
-        let file_attachment_2_id = new ModuleTableField('file_attachment_2_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Pièce jointe 2', false).not_add_to_crud();
-        let file_attachment_3_id = new ModuleTableField('file_attachment_3_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Pièce jointe 3', false).not_add_to_crud();
+        let screen_capture_1_id = new ModuleTableField('screen_capture_1_id', ModuleTableField.FIELD_TYPE_image_ref, 'Capture écran 1', true).not_add_to_crud();
+        let screen_capture_2_id = new ModuleTableField('screen_capture_2_id', ModuleTableField.FIELD_TYPE_image_ref, 'Capture écran 2', false).not_add_to_crud();
+        let screen_capture_3_id = new ModuleTableField('screen_capture_3_id', ModuleTableField.FIELD_TYPE_image_ref, 'Capture écran 3', false).not_add_to_crud();
+        let file_attachment_1_id = new ModuleTableField('file_attachment_1_id', ModuleTableField.FIELD_TYPE_file_ref, 'Pièce jointe 1', false).not_add_to_crud();
+        let file_attachment_2_id = new ModuleTableField('file_attachment_2_id', ModuleTableField.FIELD_TYPE_file_ref, 'Pièce jointe 2', false).not_add_to_crud();
+        let file_attachment_3_id = new ModuleTableField('file_attachment_3_id', ModuleTableField.FIELD_TYPE_file_ref, 'Pièce jointe 3', false).not_add_to_crud();
 
         let fields = [
             user_id,

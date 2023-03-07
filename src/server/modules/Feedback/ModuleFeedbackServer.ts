@@ -11,6 +11,7 @@ import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO'
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleFeedback from '../../../shared/modules/Feedback/ModuleFeedback';
+import FeedbackStateVO from '../../../shared/modules/Feedback/vos/FeedbackStateVO';
 import FeedbackVO from '../../../shared/modules/Feedback/vos/FeedbackVO';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -18,6 +19,7 @@ import ModuleFormatDatesNombres from '../../../shared/modules/FormatDatesNombres
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import CRUDHandler from '../../../shared/tools/CRUDHandler';
 import FileHandler from '../../../shared/tools/FileHandler';
@@ -26,6 +28,7 @@ import EnvParam from '../../env/EnvParam';
 import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import ModuleFileServer from '../File/ModuleFileServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
@@ -232,10 +235,31 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             { 'fr-fr': 'Votre avis', 'es-es': 'Su opinión' },
             'survey.btn.title.___LABEL___')
         );
+
+        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        preCreateTrigger.registerHandler(FeedbackVO.API_TYPE_ID, this, this.pre_create_feedback_assign_default_state);
     }
 
     public registerServerApiHandlers() {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleFeedback.APINAME_feedback, this.feedback.bind(this));
+    }
+
+    private async pre_create_feedback_assign_default_state(feedback: FeedbackVO): Promise<boolean> {
+
+        if (!feedback) {
+            return false;
+        }
+
+        if (!feedback.state_id) {
+            let default_state = await query(FeedbackStateVO.API_TYPE_ID).filter_is_true('is_default_state').select_vo<FeedbackStateVO>();
+            if (!default_state) {
+                ConsoleHandler.error('pre_create_feedback_assigne_default_state:Aucun état par défaut n\'est défini pour les retours d\'expérience');
+                return true;
+            }
+            feedback.state_id = default_state.id;
+        }
+
+        return true;
     }
 
     /**

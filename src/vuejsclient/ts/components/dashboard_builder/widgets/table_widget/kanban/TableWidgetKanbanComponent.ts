@@ -56,6 +56,8 @@ import TableWidgetController from './../TableWidgetController';
 import './TableWidgetKanbanComponent.scss';
 import IDistantVOBase from '../../../../../../../shared/modules/IDistantVOBase';
 import SortableListComponent from '../../../../sortable/SortableListComponent';
+import TableWidgetKanbanCardHeaderCollageComponent from './kanban_card_header_collage/TableWidgetKanbanCardHeaderCollageComponent';
+import TableWidgetKanbanCardFooterLinksComponent from './kanban_card_footer_links/TableWidgetKanbanCardFooterLinksComponent';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -66,7 +68,9 @@ import SortableListComponent from '../../../../sortable/SortableListComponent';
         Datatablecomponentfield: DatatableComponentField,
         Crudupdatemodalcomponent: CRUDUpdateModalComponent,
         Crudcreatemodalcomponent: CRUDCreateModalComponent,
-        Sortablelistcomponent: SortableListComponent
+        Sortablelistcomponent: SortableListComponent,
+        Tablewidgetkanbancardheadercollagecomponent: TableWidgetKanbanCardHeaderCollageComponent,
+        Tablewidgetkanbancardfooterlinkscomponent: TableWidgetKanbanCardFooterLinksComponent
     }
 })
 export default class TableWidgetKanbanComponent extends VueComponentBase {
@@ -173,6 +177,121 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         await this.$snotify.success(this.label('copied_to_clipboard'));
     }
 
+    private get_links_titles(row: any): string[] {
+        if ((!this.sorted_link_datatable_field_uids) || !this.sorted_link_datatable_field_uids.length) {
+            return [];
+        }
+
+        let res: string[] = []; //number
+
+        for (let i in this.sorted_link_datatable_field_uids) {
+            let datatable_field_uid = this.sorted_link_datatable_field_uids[i];
+
+            if (row[datatable_field_uid]) {
+                res.push(this.t(this.columns_by_field_id[datatable_field_uid].get_translatable_name_code_text(this.page_widget.id)));
+            }
+        }
+        return res;
+    }
+
+    private get_links(row: any): string[] { //number
+
+        if ((!this.sorted_link_datatable_field_uids) || !this.sorted_link_datatable_field_uids.length) {
+            return [];
+        }
+
+        let res: string[] = []; //number
+
+        for (let i in this.sorted_link_datatable_field_uids) {
+            let datatable_field_uid = this.sorted_link_datatable_field_uids[i];
+
+            if (row[datatable_field_uid]) {
+                res.push(row[datatable_field_uid]);
+            }
+        }
+        return res;
+    }
+
+
+    private get_images_ids(row: any): string[] { //number
+
+        if ((!this.sorted_image_datatable_field_uids) || !this.sorted_image_datatable_field_uids.length) {
+            return [];
+        }
+
+        let res: string[] = []; //number
+
+        for (let i in this.sorted_image_datatable_field_uids) {
+            let datatable_field_uid = this.sorted_image_datatable_field_uids[i];
+
+            if (row[datatable_field_uid]) {
+                res.push(row[datatable_field_uid]);
+            }
+        }
+        return res;
+    }
+
+    get sorted_link_datatable_field_uids(): string[] {
+
+        if (!this.kanban_column_field) {
+            return [];
+        }
+
+        if (!this.columns) {
+            return [];
+        }
+
+        let res: string[] = [];
+
+        for (let i in this.columns) {
+
+            let field = this.columns[i];
+
+            if (field.type != TableColumnDescVO.TYPE_vo_field_ref) {
+                continue;
+            }
+
+            let module_table_field = VOsTypesManager.moduleTables_by_voType[field.api_type_id].get_field_by_id(field.field_id);
+
+            if (module_table_field.field_type == ModuleTableField.FIELD_TYPE_file_ref) {
+                res.push(field.datatable_field_uid);
+            }
+        }
+
+        return res;
+    }
+
+
+    get sorted_image_datatable_field_uids(): string[] {
+
+        if (!this.kanban_column_field) {
+            return [];
+        }
+
+        if (!this.columns) {
+            return [];
+        }
+
+        let res: string[] = [];
+
+        for (let i in this.columns) {
+
+            let field = this.columns[i];
+
+            if (field.type != TableColumnDescVO.TYPE_vo_field_ref) {
+                continue;
+            }
+
+            let module_table_field = VOsTypesManager.moduleTables_by_voType[field.api_type_id].get_field_by_id(field.field_id);
+
+            if (module_table_field.field_type == ModuleTableField.FIELD_TYPE_image_ref) {
+                res.push(field.datatable_field_uid);
+            }
+        }
+
+        return res;
+    }
+
     get kanban_column_field(): ModuleTableField<any> {
         if (!this.kanban_column) {
             return null;
@@ -233,6 +352,9 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                     throw new Error('Erreur lors de la création de la colonne');
                 }
 
+                this.new_kanban_column_value = null;
+                await this.throttle_do_update_visible_options();
+
             } catch (error) {
 
                 reject({
@@ -290,7 +412,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         let fields = kanban_table.get_fields();
         for (let i in fields) {
             let field = fields[i];
-            if ((field.field_id != this.kanban_column.field_id) && (field.field_id != 'weight') && field.field_required) {
+            if ((field.field_id != this.kanban_column.field_id) && (field.field_id != 'weight') && (field.field_required && !field.has_default)) {
                 return false;
             }
         }
