@@ -23,6 +23,7 @@ import DashboardPageWidgetVO from '../../../../../../../shared/modules/Dashboard
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DashboardWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import TableColumnDescVO from '../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
+import { IExportOptions } from '../../../../../../../shared/modules/DataExport/interfaces/IExportOptions';
 import ModuleDataExport from '../../../../../../../shared/modules/DataExport/ModuleDataExport';
 import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
 import ExportVarcolumnConf from '../../../../../../../shared/modules/DataExport/vos/ExportVarcolumnConf';
@@ -1745,7 +1746,9 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                     options.has_default_export_option,
                     options.use_kanban_by_default_if_exists,
                     options.use_kanban_column_weight_if_exists,
-                    options.use_for_count
+                    options.use_for_count,
+                    options.can_export_active_field_filters,
+                    options.can_export_vars,
                 ) : null;
             }
         } catch (error) {
@@ -1890,6 +1893,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             null,
             null,
             this.do_not_user_filter_by_datatable_field_uid,
+            this.export_options,
         );
     }
 
@@ -2225,6 +2229,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 param.file_access_policy_name,
                 VueAppBase.getInstance().appController.data_user ? VueAppBase.getInstance().appController.data_user.id : null,
                 param.do_not_user_filter_by_datatable_field_uid,
+                param.export_options,
             );
         }
     }
@@ -2386,6 +2391,18 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
     get widgets_by_id(): { [id: number]: DashboardWidgetVO } {
         return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
+    }
+
+    get export_options(): IExportOptions {
+
+        if (!this.widget_options) {
+            return;
+        }
+
+        return {
+            export_active_field_filters: this.widget_options.can_export_active_field_filters,
+            export_vars: this.widget_options.can_export_vars
+        };
     }
 
     private has_widget_validation_filtres(): boolean {

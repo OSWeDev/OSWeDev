@@ -195,7 +195,6 @@
 
     .export_button(v-if='widget_options && widget_options.crud_api_type_id')
         .input_label {{ label('table_widget_options_component.export_button') }}
-        
         toggle-button(
             @change="switch_export_button" 
             :value="export_button" 
@@ -204,7 +203,6 @@
             :labels="{checked: label('table_widget_options_component.export_button.visible'), unchecked: label('table_widget_options_component.export_button.hidden')}")
 
     template(v-if="export_button")
-
         .has_default_export_option
             .input_label {{ label('table_widget_options_component.has_default_export_option') }}
             toggle-button(
@@ -214,8 +212,27 @@
                 :width="100"
                 :labels="{checked: label('table_widget_options_component.export_button.visible'), unchecked: label('table_widget_options_component.export_button.hidden')}")
 
-        template(v-if="tmp_has_default_export_option")
+    template(v-if="export_button")
+        .can_export_active_field_filters
+            .input_label {{ label('table_widget_options_component.can_export_active_field_filters') }}
+            toggle-button(
+                @change="toggle_can_export_active_field_filters" 
+                :value="can_export_active_field_filters" 
+                :sync="true"
+                :width="100"
+                :labels="{checked: label('table_widget_options_component.export_button.visible'), unchecked: label('table_widget_options_component.export_button.hidden')}")
 
+    template(v-if="export_button")
+        .can_export_vars
+            .input_label {{ label('table_widget_options_component.can_export_vars') }}
+            toggle-button(
+                @change="toggle_can_export_vars" 
+                :value="can_export_vars" 
+                :sync="true"
+                :width="100"
+                :labels="{checked: label('table_widget_options_component.export_button.visible'), unchecked: label('table_widget_options_component.export_button.hidden')}")
+
+        template(v-if="tmp_has_default_export_option")
             .default_export_option 
                 .input_label {{ label('table_widget_options_component.default_export_options') }}
                 .input_wrapper
@@ -243,7 +260,6 @@
 
     .vocus_button(v-if='widget_options && widget_options.crud_api_type_id')
         .input_label {{ label('table_widget_options_component.vocus_button') }}
-        
         toggle-button(
             @change="switch_vocus_button" 
             :value="vocus_button" 
@@ -252,9 +268,7 @@
             :labels="{checked: label('table_widget_options_component.vocus_button.visible'), unchecked: label('table_widget_options_component.vocus_button.hidden')}")
 
     .can_filter_by(v-if='widget_options')
-        .input_label {{ label('table_widget_options_component.can_filter_by') }}
-
-       
+        .input_label {{ label('table_widget_options_component.can_filter_by') }}       
         toggle-button(
             @change="switch_can_filter_by" 
             :value="can_filter_by" 
