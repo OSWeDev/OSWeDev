@@ -210,6 +210,30 @@
                             :deselect-label='label("multiselect.deselectLabel")'
                             :deselect-group-label='label("multiselect.deselectGroupLabel")'
                         )
+                    
+                    template(v-if="is_type_var_ref")
+                        .do_not_user_filter_active_ids(v-tooltip='label("table_widget_column_conf.do_not_user_filter_active_ids")')
+                            multiselect(
+                                :preselect-first="false"
+                                :multiple="true"
+                                v-model="column.do_not_user_filter_active_ids"
+                                :placeholder="label('table_widget_column.do_not_user_filter_active_ids')"
+                                :options="do_not_user_filter_active_ids_options"
+                                :custom-label="do_not_user_filter_active_ids_label"
+                                :allow-empty="true",
+                                autocomplete="off"
+
+                                :searchable="true"
+                                :internal-search="true"
+
+                                id="do_not_user_filter_active_ids"
+
+                                :select-label='label("multiselect.selectLabel")'
+                                :select-group-label='label("multiselect.selectGroupLabel")'
+                                :selected-label='label("multiselect.selectedLabel")'
+                                :deselect-label='label("multiselect.deselectLabel")'
+                                :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                            )
 
                     .filter_by_access(v-tooltip='label("table_widget_column_conf.filter_by_access")')
                         multiselect(
@@ -247,7 +271,7 @@
                                         )
                                     .existing_custom_filters_list(v-if='get_custom_filters && get_custom_filters.length')
                                         template(v-for='custom_filter in get_custom_filters')
-                                            .custom_filter(@click='change_custom_filter(field_that_could_get_custom_filter, custom_filter)') {{ custom_filter }}
+                                            .custom_filter.clickable(@click='change_custom_filter(field_that_could_get_custom_filter, custom_filter)') {{ custom_filter }}
 
 
                 //- template(v-if='column.is_enum')

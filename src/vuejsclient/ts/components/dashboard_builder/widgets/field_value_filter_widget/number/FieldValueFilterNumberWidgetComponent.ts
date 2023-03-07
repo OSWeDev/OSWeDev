@@ -78,8 +78,6 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
 
     private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
 
-    private throttled_reset_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.reset_visible_options.bind(this), 300, { leading: false, trailing: true });
-
     private filter_type_options: number[] = [
         AdvancedNumberFilter.FILTER_TYPE_INF,
         AdvancedNumberFilter.FILTER_TYPE_INFEQ,
