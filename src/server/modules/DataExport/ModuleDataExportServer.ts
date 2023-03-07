@@ -1042,7 +1042,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 switch (column.filter_type) {
                     case FilterObj.FILTER_TYPE_percent:
                         filter_additional_params = percentFilter.toObject(filter_additional_params);
-                        fractional_digits = filter_additional_params?.fractional_digits;
+                        fractional_digits = filter_additional_params?.fractional_digits ?? 0;
 
                         row[column.datatable_field_uid] = row[column.datatable_field_uid] ?
                             (row[column.datatable_field_uid] * 100)?.toFixed(fractional_digits) + `%` :
@@ -1051,7 +1051,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                         break;
                     case FilterObj.FILTER_TYPE_toFixed:
                         filter_additional_params = toFixedFilter.toObject(filter_additional_params);
-                        fractional_digits = filter_additional_params?.fractional_digits;
+                        fractional_digits = filter_additional_params?.fractional_digits ?? 0;
 
                         row[column.datatable_field_uid] = row[column.datatable_field_uid]?.toFixed(fractional_digits);
 

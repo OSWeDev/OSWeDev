@@ -101,8 +101,8 @@ export default class VarDataSumComponent extends VueComponentBase {
 
         let params = [this.var_data_value];
 
-        for (let additional_param_key in this.filter_additional_params) {
-            params = params.concat(this.filter_additional_params[additional_param_key]);
+        if (!!this.filter_additional_params) {
+            params = params.concat(this.filter_additional_params);
         }
 
         return this.filter.apply(null, params);

@@ -9,7 +9,7 @@ export default class FilterObj<T, U, K> {
 
     // readToHourFilter = (
     //     value: number | string,
-    //     arrondi: boolean = false,
+    //     rounded: boolean = false,
     //     negativeValue: boolean = false,
     //     positiveSign: boolean = false,
     //     formatted: boolean = false,
@@ -31,13 +31,13 @@ export default class FilterObj<T, U, K> {
     // readToFixed = (
     //     value: number | string,
     //     fractional_digits: number = 0,
-    //     arrondi: boolean | number = false,
-    //     arrondi_type: number = ARRONDI_TYPE_ROUND,
+    //     rounded: boolean | number = false,
+    //     rounded_type: number = ARRONDI_TYPE_ROUND,
     //     only_positive: boolean = false,
     //     dot_decimal_marker: boolean = false
     // )
-    // readToFixedCeilFilter = (value: number, fractional_digits: number, arrondi: number | boolean = false)
-    // readToFixedFloorFilter = (value: number, fractional_digits: number, arrondi: number | boolean = false)
+    // readToFixedCeilFilter = (value: number, fractional_digits: number, rounded: number | boolean = false)
+    // readToFixedFloorFilter = (value: number, fractional_digits: number, rounded: number | boolean = false)
     public static FILTER_TYPE_toFixed = 'toFixed';
     public static FILTER_TYPE_toFixedCeil = 'toFixedCeil';
     public static FILTER_TYPE_toFixedFloor = 'toFixedFloor';
@@ -76,7 +76,7 @@ export default class FilterObj<T, U, K> {
 
 let readToHourFilter = (
     value: number | string,
-    arrondi: boolean = false,
+    rounded: boolean = false,
     negativeValue: boolean = false,
     positiveSign: boolean = false,
     formatted: boolean = false,
@@ -96,7 +96,7 @@ let readToHourFilter = (
     }
 
     // Refonte.....
-    if (arrondi) {
+    if (rounded) {
         value = Math.round(value);
     }
     let duration = Math.abs(value * 60 * 60);
@@ -210,6 +210,15 @@ export let alerteCheckFilter = FilterObj.createNew(
     writeToAlerteCheckFilter
 );
 
+export interface IAmountFilter {
+    value: number | string;
+    fractional_digits: number;
+    k: boolean;
+    only_positive: boolean;
+    humanize: boolean;
+    currency: string;
+}
+
 let readToAmountFilter = (
     value: number | string,
     fractional_digits: number = 0,
@@ -288,9 +297,29 @@ let writeToAmountFilter = (value: string | number): number => {
     return res;
 };
 
-export let amountFilter = FilterObj.createNew(
+const amontFilterToObject = (
+    value: number | string,
+    fractional_digits: number = 0,
+    k: boolean = false,
+    only_positive: boolean = false,
+    humanize: boolean = false,
+    currency = "€"
+): IAmountFilter => {
+
+    return {
+        value,
+        fractional_digits,
+        k,
+        only_positive,
+        humanize,
+        currency,
+    };
+};
+
+export const amountFilter = FilterObj.createNew(
     readToAmountFilter,
-    writeToAmountFilter
+    writeToAmountFilter,
+    amontFilterToObject,
 );
 
 /**
@@ -405,8 +434,8 @@ export let ARRONDI_TYPE_ROUND: number = 2;
 export interface IFixed {
     value: number | string;
     fractional_digits: number;
-    arrondi: boolean | number;
-    arrondi_type: number;
+    rounded: boolean | number;
+    rounded_type: number;
     only_positive: boolean;
     dot_decimal_marker: boolean;
 }
@@ -422,8 +451,8 @@ let writeToFixed = (value: string): number => {
 let readToFixed = (
     value: number | string,
     fractional_digits: number = 0,
-    arrondi: boolean | number = false,
-    arrondi_type: number = ARRONDI_TYPE_ROUND,
+    rounded: boolean | number = false,
+    rounded_type: number = ARRONDI_TYPE_ROUND,
     only_positive: boolean = false,
     dot_decimal_marker: boolean = false
 ): string => {
@@ -440,17 +469,17 @@ let readToFixed = (
 
     result = value.toString();
 
-    if ((!arrondi) && (arrondi_type != ARRONDI_TYPE_ROUND) && (fractional_digits !== null)) {
-        // si pas de parametre d'arrondui, mais arrondi_type n'est pas round,
-        // il faut appliquer une arrondi par defaut avec le arrondi_type selon le nbr de decimal
-        arrondi = 1 / (10 ** fractional_digits);
+    if ((!rounded) && (rounded_type != ARRONDI_TYPE_ROUND) && (fractional_digits !== null)) {
+        // si pas de parametre d'arrondui, mais rounded_type n'est pas round,
+        // il faut appliquer une rounded par defaut avec le rounded_type selon le nbr de decimal
+        rounded = 1 / (10 ** fractional_digits);
     }
 
-    if (arrondi) {
+    if (rounded) {
         result = ModuleFormatDatesNombres.getInstance().formatNumber_arrondi(
             parseFloat(result),
-            arrondi,
-            arrondi_type
+            rounded,
+            rounded_type
         );
     }
 
@@ -464,8 +493,8 @@ let readToFixed = (
 const fixedFilterToObject = (
     value: number | string,
     fractional_digits: number = 0,
-    arrondi: boolean | number = false,
-    arrondi_type: number = ARRONDI_TYPE_ROUND,
+    rounded: boolean | number = false,
+    rounded_type: number = ARRONDI_TYPE_ROUND,
     only_positive: boolean = false,
     dot_decimal_marker: boolean = false,
 ): IFixed => {
@@ -473,8 +502,8 @@ const fixedFilterToObject = (
     return {
         value,
         fractional_digits,
-        arrondi,
-        arrondi_type,
+        rounded,
+        rounded_type,
         only_positive,
         dot_decimal_marker,
     };
@@ -486,7 +515,7 @@ export const toFixedFilter = FilterObj.createNew(
     fixedFilterToObject,
 );
 
-// let readToFixedCeilAndFloor = (value: number | string, fractional_digits: number = 0, arrondi_type: number = null): string => {
+// let readToFixedCeilAndFloor = (value: number | string, fractional_digits: number = 0, rounded_type: number = null): string => {
 //     if (!value && value !== 0) {
 //         return null;
 //     }
@@ -522,7 +551,7 @@ export const toFixedFilter = FilterObj.createNew(
 
 //     let value_number: number = parseFloat(value.toString());
 
-//     if (arrondi_type == ARRONDI_TYPE_FLOOR) {
+//     if (rounded_type == ARRONDI_TYPE_FLOOR) {
 //         if (value > 0) {
 //             value = floorPositiveCeilNegative(value_number);
 //         } else {
@@ -532,7 +561,7 @@ export const toFixedFilter = FilterObj.createNew(
 //         }
 //     }
 
-//     if (arrondi_type == ARRONDI_TYPE_CEIL) {
+//     if (rounded_type == ARRONDI_TYPE_CEIL) {
 //         if (value > 0) {
 //             value = ceilPositiveFloorNegative(value_number);
 //         } else {
@@ -546,8 +575,8 @@ export const toFixedFilter = FilterObj.createNew(
 // };
 
 
-let readToFixedCeilFilter = (value: number, fractional_digits: number, arrondi: number | boolean = false, only_positive: boolean = false, dot_decimal_marker: boolean = false): string => {
-    return readToFixed(value, fractional_digits, arrondi, ARRONDI_TYPE_CEIL, only_positive, dot_decimal_marker);
+let readToFixedCeilFilter = (value: number, fractional_digits: number, rounded: number | boolean = false, only_positive: boolean = false, dot_decimal_marker: boolean = false): string => {
+    return readToFixed(value, fractional_digits, rounded, ARRONDI_TYPE_CEIL, only_positive, dot_decimal_marker);
 };
 
 export let toFixedCeilFilter = FilterObj.createNew(
@@ -555,8 +584,8 @@ export let toFixedCeilFilter = FilterObj.createNew(
     writeToFixed
 );
 
-let readToFixedFloorFilter = (value: number, fractional_digits: number, arrondi: number | boolean = false, only_positive: boolean = false, dot_decimal_marker: boolean = false): string => {
-    return readToFixed(value, fractional_digits, arrondi, ARRONDI_TYPE_FLOOR, only_positive, dot_decimal_marker);
+let readToFixedFloorFilter = (value: number, fractional_digits: number, rounded: number | boolean = false, only_positive: boolean = false, dot_decimal_marker: boolean = false): string => {
+    return readToFixed(value, fractional_digits, rounded, ARRONDI_TYPE_FLOOR, only_positive, dot_decimal_marker);
 };
 
 export let toFixedFloorFilter = FilterObj.createNew(
