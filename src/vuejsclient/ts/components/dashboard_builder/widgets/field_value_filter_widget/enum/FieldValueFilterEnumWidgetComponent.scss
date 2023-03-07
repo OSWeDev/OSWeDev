@@ -1,7 +1,6 @@
-@import '../../../../../../scss/base/skin.scss';
+@import "../../../../../../scss/base/skin.scss";
 
 .field_value_filter_enum_widget_component {
-
     .vo_field_ref_label {
         font-size: 1.2em;
         margin-bottom: 0.4em;
@@ -34,5 +33,19 @@
                 margin-left: 8px;
             }
         }
+    }
+
+    .text_cliquable {
+        display: inline-block;
+        // color: #555;
+        text-decoration: underline;
+        cursor: pointer;
+        font-size: 0.8em;
+    }
+
+    .inter_text {
+        display: inline-block;
+        font-size: 0.8em;
+        margin: 0em 0.2em;
     }
 }

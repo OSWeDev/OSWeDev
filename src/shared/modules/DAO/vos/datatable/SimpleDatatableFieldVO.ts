@@ -15,6 +15,7 @@ import DateHandler from '../../../../../shared/tools/DateHandler';
 import HourHandler from '../../../../../shared/tools/HourHandler';
 import LocaleManager from '../../../../../shared/tools/LocaleManager';
 import { amountFilter, hourFilter, percentFilter } from '../../../../tools/Filters';
+import MatroidIndexHandler from '../../../../tools/MatroidIndexHandler';
 import RangeHandler from '../../../../tools/RangeHandler';
 import Dates from '../../../FormatDatesNombres/Dates/Dates';
 import DatatableField from './DatatableField';
@@ -212,6 +213,19 @@ export default class SimpleDatatableFieldVO<T, U> extends DatatableField<T, U> {
                         }
                     } else {
                         res_tsrange.push('');
+                    }
+
+                    if (!none) {
+                        return res_tsrange.join(' - ');
+                    }
+
+                    // none still active field_value may have another format
+                    const rgx = /(?<=[\[|\(])(\d{10})\,(\d{10})(?=[\]|\)])/; // the actual date_range format may be e.g. "[1577836800,1580515200)"
+                    const isStringDateRangeFormat = rgx.test(field_value);
+
+                    if (isStringDateRangeFormat) {
+                        const new_field_value = RangeHandler.parseRangeBDD(TSRange.RANGE_TYPE, field_value, (moduleTableField.segmentation_type ?? TimeSegment.TYPE_SECOND));
+                        return SimpleDatatableFieldVO.defaultDataToReadIHM(new_field_value, moduleTableField, vo, datatable_field_uid);
                     }
 
                     return none ? '∞' : res_tsrange.join(' - ');

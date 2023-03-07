@@ -10,6 +10,12 @@ import MainProcessForwardToBGThreadForkMessage from './messages/MainProcessForwa
 import ForkMessageCallbackWrapper from './vos/ForkMessageCallbackWrapper';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 
+/**
+ * ForkedTasksController
+ *
+ * - How to create a real sub-procress (multi-threads) using NodeJS
+ * https://www.digitalocean.com/community/tutorials/how-to-use-multithreading-in-node-js#offloading-a-cpu-bound-task-with-the-worker-threads-module
+ */
 export default class ForkedTasksController {
 
     public static getInstance() {

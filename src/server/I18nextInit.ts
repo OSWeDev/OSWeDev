@@ -41,7 +41,8 @@ export default class I18nextInit {
             .init({
                 fallbackLng: envParam.DEFAULT_LOCALE,
                 preload: 'all',
-                resources: ALL_LOCALES
+                resources: ALL_LOCALES,
+                nsSeparator: '¤'
             });
 
         this.i18next = i18next;

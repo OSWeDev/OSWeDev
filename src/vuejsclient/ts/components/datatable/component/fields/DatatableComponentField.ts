@@ -68,6 +68,9 @@ export default class DatatableComponentField extends VueComponentBase {
     @Prop({ default: false })
     private table_is_busy: boolean;
 
+    @Prop({ default: false })
+    private editable: boolean;
+
     @Prop({ default: null })
     private filter_additional_params: any[];
 

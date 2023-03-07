@@ -220,7 +220,10 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         is_secured: boolean = false,
         file_access_policy_name: string = null,
 
-        target_user_id: number = null): Promise<string> {
+        target_user_id: number = null,
+
+        do_not_user_filter_by_datatable_field_uid: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } = null,
+    ): Promise<string> {
 
         target_user_id = target_user_id ? target_user_id : StackContext.get('UID');
 
@@ -243,7 +246,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             discarded_field_paths,
             is_secured,
             file_access_policy_name,
-            target_user_id
+            target_user_id,
+            do_not_user_filter_by_datatable_field_uid,
         );
         await ExportContextQueryToXLSXBGThread.getInstance().push_export_query(export_query);
 
@@ -272,7 +276,10 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         is_secured: boolean = false,
         file_access_policy_name: string = null,
 
-        target_user_id: number = null): Promise<void> {
+        target_user_id: number = null,
+
+        do_not_user_filter_by_datatable_field_uid: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } = null,
+    ): Promise<void> {
 
         target_user_id = target_user_id ? target_user_id : StackContext.get('UID');
 
@@ -296,7 +303,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     discarded_field_paths,
                     is_secured,
                     file_access_policy_name,
-                    target_user_id
+                    target_user_id,
+                    do_not_user_filter_by_datatable_field_uid,
                 );
             });
         } else {
@@ -315,7 +323,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 discarded_field_paths,
                 is_secured,
                 file_access_policy_name,
-                target_user_id
+                target_user_id,
+                do_not_user_filter_by_datatable_field_uid,
             );
         }
     }
@@ -338,26 +347,42 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         is_secured: boolean = false,
         file_access_policy_name: string = null,
 
-        target_user_id: number = null): Promise<void> {
+        target_user_id: number = null,
+
+        do_not_user_filter_by_datatable_field_uid: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } = null,
+    ): Promise<void> {
 
         let api_type_id = context_query.base_api_type_id;
         let columns_by_field_id = {};
+
         for (let i in columns) {
             let column = columns[i];
             columns_by_field_id[column.datatable_field_uid] = column;
         }
-        let datas = (context_query.fields && context_query.fields.length) ?
+
+        let datas = (context_query.fields?.length > 0) ?
             await ModuleContextFilter.getInstance().select_datatable_rows(context_query, columns_by_field_id, fields) :
             await ModuleContextFilter.getInstance().select_vos(context_query);
-        datas = await this.addVarColumnsValues(datas, ordered_column_list, columns, varcolumn_conf, active_field_filters, custom_filters, active_api_type_ids, discarded_field_paths);
 
-        datas = await this.translate_context_query_fields_from_bdd(datas, context_query, !!(context_query.fields && context_query.fields.length));
+        let datas_with_vars = await this.addVarColumnsValues(
+            datas,
+            ordered_column_list,
+            columns,
+            varcolumn_conf,
+            active_field_filters,
+            custom_filters,
+            active_api_type_ids,
+            discarded_field_paths,
+            do_not_user_filter_by_datatable_field_uid,
+        );
 
-        await this.update_custom_fields(datas, exportable_datatable_custom_field_columns);
+        let translated_datas = await this.translate_context_query_fields_from_bdd(datas_with_vars, context_query, context_query.fields?.length > 0);
+
+        await this.update_custom_fields(translated_datas, exportable_datatable_custom_field_columns);
 
         let filepath: string = await this.exportDataToXLSX_base(
             filename,
-            datas,
+            translated_datas,
             ordered_column_list,
             column_labels,
             api_type_id,
@@ -398,7 +423,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     }
 
     public async translate_context_query_fields_from_bdd(datas: any[], context_query: ContextQueryVO, use_raw_field: boolean = false): Promise<any[]> {
-        if ((!datas) || (!datas.length)) {
+        if (!(datas?.length > 0)) {
             return null;
         }
 
@@ -408,7 +433,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         let res = cloneDeep(datas);
 
-        if ((!context_query.fields) || !context_query.fields.length) {
+        if (!(context_query?.fields?.length > 0)) {
 
             let table = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
             for (let j in res) {
@@ -979,7 +1004,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
      *  Il faut donc d'abord définir les pramètres de calcul des vars, puis attendre le résultat du calcul
      */
     private async addVarColumnsValues(
-        datas: IDistantVOBase[],
+        _datas: IDistantVOBase[],
         ordered_column_list: string[],
 
         columns: TableColumnDescVO[],
@@ -987,9 +1012,12 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
         custom_filters: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = null,
         active_api_type_ids: string[] = null,
-        discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null
+        discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = null,
+        do_not_user_filter_by_datatable_field_uid: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } = null,
 
     ): Promise<IDistantVOBase[]> {
+
+        let datas: IDistantVOBase[] = cloneDeep(_datas);
 
         let limit = 500; //Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
         let promise_pipeline = new PromisePipeline(limit);
@@ -998,18 +1026,34 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         ConsoleHandler.log('addVarColumnsValues:nb datas:' + datas.length);
         for (let j in datas) {
             let data = datas[j];
-            let context = DashboardBuilderController.getInstance().add_table_row_context(cloneDeep(active_field_filters), columns, data);
 
             ConsoleHandler.log('addVarColumnsValues:nb datas:' + datas.length + ':' + j);
 
             for (let i in ordered_column_list) {
                 let data_field_name: string = ordered_column_list[i];
 
+                // Check if it's actually a var param field
                 if (!varcolumn_conf[data_field_name]) {
                     continue;
                 }
-                let this_varcolumn_conf = varcolumn_conf[data_field_name];
-                let this_custom_filters = custom_filters[data_field_name];
+
+                const this_varcolumn_conf = varcolumn_conf[data_field_name];
+                const this_custom_filters = custom_filters[data_field_name];
+                const do_not_user_filter: { [vo_type: string]: { [field_id: string]: boolean } } = do_not_user_filter_by_datatable_field_uid[data_field_name];
+
+                let current_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = cloneDeep(active_field_filters);
+
+                for (let vo_type in do_not_user_filter) {
+                    for (let field_id in do_not_user_filter[vo_type]) {
+                        if (do_not_user_filter[vo_type][field_id]) {
+                            if (current_active_field_filters && current_active_field_filters[vo_type]) {
+                                delete current_active_field_filters[vo_type][field_id];
+                            }
+                        }
+                    }
+                }
+
+                let context = DashboardBuilderController.getInstance().add_table_row_context(current_active_field_filters, columns, data);
 
                 debug_uid++;
                 ConsoleHandler.log('addVarColumnsValues:PRE PIPELINE PUSH:nb datas:' + datas.length + ':' + j + ':' + i + ':' + debug_uid);
