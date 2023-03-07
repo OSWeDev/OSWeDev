@@ -224,9 +224,10 @@ export default class InlineTranslatableText extends VueComponentBase {
                             },
                         });
                         this.semaphore = true;
+                        return;
                     }
 
-                    this.set_flat_locale_translation({ code_text, value: translation });
+                    this.set_flat_locale_translation({ code_text: code_text, value: translation });
                     resolve({
                         body: self.label('on_page_translation.save_translation.ok'),
                         config: {
