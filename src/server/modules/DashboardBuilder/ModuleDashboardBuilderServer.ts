@@ -965,6 +965,13 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'table_widget_options_component.export_button.hidden.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Peut exporter les filtres actifs ?'
+        }, 'table_widget_options_component.can_export_active_field_filters.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Peut exporter les variables ?'
+        }, 'table_widget_options_component.can_export_vars.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Bouton "Tout supprimer"'
         }, 'table_widget_options_component.delete_all_button.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({

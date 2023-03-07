@@ -2,6 +2,7 @@ import ContextFilterVO from "../../../../../shared/modules/ContextFilter/vos/Con
 import ContextQueryVO from "../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import DatatableField from "../../../../../shared/modules/DAO/vos/datatable/DatatableField";
 import TableColumnDescVO from "../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO";
+import { IExportOptions } from "../../../../../shared/modules/DataExport/interfaces/IExportOptions";
 import ExportVarcolumnConf from "../../../../../shared/modules/DataExport/vos/ExportVarcolumnConf";
 
 export default class ExportContextQueryToXLSXQueryVO {
@@ -26,5 +27,7 @@ export default class ExportContextQueryToXLSXQueryVO {
         public target_user_id: number = null,
 
         public do_not_user_filter_by_datatable_field_uid: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } = null,
+
+        public export_options?: IExportOptions,
     ) { }
 }

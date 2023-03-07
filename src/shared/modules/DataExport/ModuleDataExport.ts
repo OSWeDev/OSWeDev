@@ -15,6 +15,7 @@ import ModuleTableField from '../ModuleTableField';
 import DefaultTranslation from '../Translation/vos/DefaultTranslation';
 import VOsTypesManager from '../VOsTypesManager';
 import IExportableSheet from './interfaces/IExportableSheet';
+import { IExportOptions } from './interfaces/IExportOptions';
 import ExportContextQueryToXLSXParamVO, { ExportContextQueryToXLSXParamVOStatic } from './vos/apis/ExportContextQueryToXLSXParamVO';
 import ExportDataToMultiSheetsXLSXParamVO from './vos/apis/ExportDataToMultiSheetsXLSXParamVO';
 import ExportDataToXLSXParamVO, { ExportDataToXLSXParamVOStatic } from './vos/apis/ExportDataToXLSXParamVO';
@@ -58,6 +59,8 @@ export default class ModuleDataExport extends Module {
         file_access_policy_name?: string,
         target_user_id?: number,
         do_not_user_filter_by_datatable_field_uid?: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } },
+
+        export_options?: IExportOptions,
     ) => Promise<string> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVO);
 
     public exportDataToXLSX: (

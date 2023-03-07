@@ -55,6 +55,8 @@ import DataExportBGThread from './bgthreads/DataExportBGThread';
 import ExportContextQueryToXLSXBGThread from './bgthreads/ExportContextQueryToXLSXBGThread';
 import ExportContextQueryToXLSXQueryVO from './bgthreads/vos/ExportContextQueryToXLSXQueryVO';
 import FilterObj, { percentFilter, toFixedFilter } from '../../../shared/tools/Filters';
+import { IExportOptions } from '../../../shared/modules/DataExport/interfaces/IExportOptions';
+import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
 
 export default class ModuleDataExportServer extends ModuleServerBase {
 
@@ -224,6 +226,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         target_user_id: number = null,
 
         do_not_user_filter_by_datatable_field_uid: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } = null,
+
+        export_options?: IExportOptions,
     ): Promise<string> {
 
         target_user_id = target_user_id ? target_user_id : StackContext.get('UID');
@@ -249,6 +253,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             file_access_policy_name,
             target_user_id,
             do_not_user_filter_by_datatable_field_uid,
+            export_options,
         );
         await ExportContextQueryToXLSXBGThread.getInstance().push_export_query(export_query);
 
@@ -280,6 +285,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         target_user_id: number = null,
 
         do_not_user_filter_by_datatable_field_uid: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } = null,
+
+        export_options?: IExportOptions,
     ): Promise<void> {
 
         target_user_id = target_user_id ? target_user_id : StackContext.get('UID');
@@ -306,6 +313,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     file_access_policy_name,
                     target_user_id,
                     do_not_user_filter_by_datatable_field_uid,
+                    export_options,
                 );
             });
         } else {
@@ -326,6 +334,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 file_access_policy_name,
                 target_user_id,
                 do_not_user_filter_by_datatable_field_uid,
+                export_options,
             );
         }
     }
@@ -351,6 +360,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         target_user_id: number = null,
 
         do_not_user_filter_by_datatable_field_uid: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } = null,
+
+        export_options?: IExportOptions,
     ): Promise<void> {
 
         let api_type_id = context_query.base_api_type_id;
@@ -384,14 +395,32 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         // - update to columns format (percent, toFixed etc...)
         const xlsxDatas = await this.update_to_xlsx_columns_format(translated_datas, columns);
 
-        let filepath: string = await this.exportDataToXLSX_base(
-            filename,
+        // Make workbook and create each sheet
+        let workbook: WorkBook = XLSX.utils.book_new();
+
+        // Sheet for the actual datatable
+        workbook = await this.makeDatasXLSXSheet(
+            workbook,
             xlsxDatas,
             ordered_column_list,
             column_labels,
+        );
+
+        // Sheet for active field filters
+        if (export_options?.export_active_field_filters || true) {
+            workbook = await this.makeActiveFieldFiltersXLSXSheet(workbook, active_field_filters);
+        }
+
+        if (export_options?.export_vars) {
+
+        }
+
+        // Final Excel file
+        let filepath: string = await this.exportWorkbookToXLSX(
+            filename,
+            workbook,
             api_type_id,
             is_secured,
-            file_access_policy_name
         );
 
         if (!filepath) {
@@ -643,6 +672,155 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         }
 
         return filepath;
+    }
+
+    /**
+     * exportWorkbookToXLSX
+     *  - Export the workbook sheets (create the final sheet)
+     */
+    private async exportWorkbookToXLSX(
+        filename: string,
+        workbook: WorkBook,
+        api_type_id: string,
+        is_secured: boolean = false,
+    ): Promise<string> {
+
+        if ((!filename)) {
+            return null;
+        }
+
+        ConsoleHandler.log('EXPORT : ' + filename);
+
+        // we need to make sure the name is suitable
+        filename = filename.replace(/[^-._a-z0-9]/gi, '_');
+
+        let filepath: string = (is_secured ? ModuleFile.SECURED_FILES_ROOT : ModuleFile.FILES_ROOT) + filename;
+        XLSX.writeFile(workbook, filepath);
+
+        let user_log_id: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+
+        // On log l'export
+        if (!!user_log_id) {
+
+            await StackContext.runPromise(
+                { IS_CLIENT: false },
+                async () => {
+                    await ModuleDAO.getInstance().insertOrUpdateVO(ExportLogVO.createNew(
+                        api_type_id ? api_type_id : 'N/A',
+                        Dates.now(),
+                        user_log_id
+                    ));
+                });
+        }
+
+        return filepath;
+    }
+
+    /**
+     * makeDatasXLSXSheet
+     *  - Make the Xlsx sheet of datas
+     *
+     * @param workbook {WorkBook}
+     * @param rows {any[]}
+     * @param ordered_column_list {string[]}
+     * @param column_labels {{ [field_name: string]: string }}
+     * @returns {WorkBook}
+     */
+    private async makeDatasXLSXSheet(
+        workbook: WorkBook,
+        rows: any[],
+        ordered_column_list: string[],
+        column_labels: { [field_name: string]: string },
+    ): Promise<WorkBook> {
+
+        if ((!rows) || (!column_labels) || (!ordered_column_list)) {
+            return null;
+        }
+
+        let ws_data = [];
+        let ws_row = [];
+        for (let i in ordered_column_list) {
+            let data_field_name: string = ordered_column_list[i];
+            let title: string = column_labels[data_field_name];
+
+            ws_row.push(title);
+        }
+        ws_data.push(ws_row);
+
+        for (let r in rows) {
+            let row = rows[r];
+            ws_row = [];
+
+            for (let i in ordered_column_list) {
+                let data_field_name: string = ordered_column_list[i];
+                let data = row[data_field_name];
+
+                ws_row.push(data);
+            }
+            ws_data.push(ws_row);
+        }
+
+        let ws = XLSX.utils.aoa_to_sheet(ws_data);
+        XLSX.utils.book_append_sheet(workbook, ws, "Datas");
+
+        return workbook;
+    }
+
+    /**
+     * makeActiveFieldFiltersXLSXSheet
+     *  - Make the Xlsx sheet of Active field filters
+     *
+     * @param workbook {WorkBook}
+     * @param active_field_filters {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }}
+     * @returns {WorkBook}
+     */
+    private async makeActiveFieldFiltersXLSXSheet(
+        workbook: WorkBook,
+        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
+    ): Promise<WorkBook> {
+
+        if ((!workbook) || (!active_field_filters)) {
+            return null;
+        }
+
+        let rows: Array<{ filter_name: string, value: string }> = [];
+        let ordered_column_list: string[] = ['filter_name', 'value'];
+        let column_labels: string[] = ['Filtre', 'Valeur'];
+
+        for (const api_type_id in active_field_filters) {
+            const active_filter = active_field_filters[api_type_id];
+
+            for (const context_filter_name in active_filter) {
+                const context_filter: ContextFilterVO = active_filter[context_filter_name];
+
+                rows.push({
+                    filter_name: `${context_filter.vo_type} - ${context_filter.field_id}`,
+                    value: ContextFilterHandler.context_filter_to_readable_ihm(context_filter)
+                });
+            }
+        }
+
+        let ws_data = [];
+
+        ws_data.push(column_labels);
+
+        for (let r in rows) {
+            let row = rows[r];
+            let ws_row = [];
+
+            for (let i in ordered_column_list) {
+                let data_field_name: string = ordered_column_list[i];
+                let data = row[data_field_name];
+
+                ws_row.push(data);
+            }
+            ws_data.push(ws_row);
+        }
+
+        let ws = XLSX.utils.aoa_to_sheet(ws_data);
+        XLSX.utils.book_append_sheet(workbook, ws, "Filtres Actifs");
+
+        return workbook;
     }
 
 
