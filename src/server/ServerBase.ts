@@ -139,6 +139,7 @@ export default abstract class ServerBase {
         EnvHandler.CODE_GOOGLE_ANALYTICS = this.envParam.CODE_GOOGLE_ANALYTICS;
         EnvHandler.VERSION = this.version;
         EnvHandler.ACTIVATE_PWA = !!this.envParam.ACTIVATE_PWA;
+        EnvHandler.ZOOM_AUTO = !!this.envParam.ZOOM_AUTO;
         EnvHandler.DEBUG_VARS = !!this.envParam.DEBUG_VARS;
 
         this.connectionString = this.envParam.CONNECTION_STRING;

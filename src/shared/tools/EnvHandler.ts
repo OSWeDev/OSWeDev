@@ -12,6 +12,7 @@ export default class EnvHandler {
     public static ACTIVATE_PWA: boolean = false;
     public static MAX_POOL: number = null;
     public static DEBUG_PROMISE_PIPELINE: boolean = false;
+    public static ZOOM_AUTO: boolean = false;
 
     private constructor() { }
 }
