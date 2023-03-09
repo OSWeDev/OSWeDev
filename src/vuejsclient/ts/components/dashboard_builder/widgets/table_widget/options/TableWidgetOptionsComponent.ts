@@ -55,7 +55,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private update_button: boolean = true;
     private create_button: boolean = true;
     private can_export_active_field_filters: boolean = false;
-    private can_export_vars: boolean = false;
+    private can_export_vars_indicator: boolean = false;
     private show_limit_selectable: boolean = false;
     private show_pagination_resumee: boolean = true;
     private show_pagination_slider: boolean = true;
@@ -175,8 +175,8 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         if (this.can_export_active_field_filters != this.widget_options.can_export_active_field_filters) {
             this.can_export_active_field_filters = this.widget_options.can_export_active_field_filters;
         }
-        if (this.can_export_vars != this.widget_options.can_export_vars) {
-            this.can_export_vars = this.widget_options.can_export_vars;
+        if (this.can_export_vars_indicator != this.widget_options.can_export_vars_indicator) {
+            this.can_export_vars_indicator = this.widget_options.can_export_vars_indicator;
         }
         if (this.tmp_has_default_export_option != this.widget_options.has_default_export_option) {
             this.tmp_has_default_export_option = this.widget_options.has_default_export_option;
@@ -630,7 +630,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                     options.use_kanban_column_weight_if_exists,
                     options.use_for_count,
                     options.can_export_active_field_filters,
-                    options.can_export_vars,
+                    options.can_export_vars_indicator,
                 ) : null;
             }
         } catch (error) {
@@ -780,8 +780,8 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         }
     }
 
-    private async toggle_can_export_vars() {
-        this.can_export_vars = !this.can_export_vars;
+    private async toggle_can_export_vars_indicator() {
+        this.can_export_vars_indicator = !this.can_export_vars_indicator;
 
         this.next_update_options = this.widget_options;
 
@@ -789,8 +789,8 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             this.next_update_options = this.get_default_options();
         }
 
-        if (this.next_update_options.can_export_vars != this.can_export_vars) {
-            this.next_update_options.can_export_vars = this.can_export_vars;
+        if (this.next_update_options.can_export_vars_indicator != this.can_export_vars_indicator) {
+            this.next_update_options.can_export_vars_indicator = this.can_export_vars_indicator;
 
             await this.throttled_update_options();
         }

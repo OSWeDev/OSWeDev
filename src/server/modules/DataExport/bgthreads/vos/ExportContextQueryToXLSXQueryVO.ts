@@ -4,6 +4,7 @@ import DatatableField from "../../../../../shared/modules/DAO/vos/datatable/Data
 import TableColumnDescVO from "../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO";
 import { IExportOptions } from "../../../../../shared/modules/DataExport/interfaces/IExportOptions";
 import ExportVarcolumnConf from "../../../../../shared/modules/DataExport/vos/ExportVarcolumnConf";
+import { ExportVarIndicator } from "../../../../../shared/modules/DataExport/vos/ExportVarIndicator";
 
 export default class ExportContextQueryToXLSXQueryVO {
     public constructor(
@@ -29,5 +30,7 @@ export default class ExportContextQueryToXLSXQueryVO {
         public do_not_user_filter_by_datatable_field_uid: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } = null,
 
         public export_options?: IExportOptions,
+
+        public vars_indicator?: ExportVarIndicator,
     ) { }
 }

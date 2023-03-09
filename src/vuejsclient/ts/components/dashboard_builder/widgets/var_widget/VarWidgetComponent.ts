@@ -32,7 +32,8 @@ export default class VarWidgetComponent extends VueComponentBase {
 
     public static get_var_custom_filters(
         var_custom_filters: { [var_param_field_name: string]: string },
-        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }): { [var_param_field_name: string]: ContextFilterVO } {
+        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
+    ): { [var_param_field_name: string]: ContextFilterVO } {
 
         /**
          * On crée le custom_filters
@@ -226,14 +227,15 @@ export default class VarWidgetComponent extends VueComponentBase {
 
     @Watch('widget_options', { immediate: true })
     private async onchange_widget_options() {
-
         await this.throttled_update_visible_options();
     }
 
     get title_name_code_text() {
+
         if (!this.widget_options) {
             return null;
         }
+
         return this.widget_options.get_title_name_code_text(this.page_widget.id);
     }
 

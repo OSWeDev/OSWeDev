@@ -72,6 +72,7 @@ export default class ExportContextQueryToXLSXBGThread implements IBGThread {
                 export_query.target_user_id,
                 export_query.do_not_user_filter_by_datatable_field_uid,
                 export_query.export_options,
+                export_query.vars_indicator,
             );
             return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
         } catch (error) {

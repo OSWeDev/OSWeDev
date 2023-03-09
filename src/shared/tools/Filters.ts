@@ -726,3 +726,19 @@ export let positiveNumberFilter = FilterObj.createNew(
     readTopositiveNumberFilter,
     writeTopositiveNumberFilter
 );
+
+export const filter_by_name = {
+    amount: amountFilter,
+    percent: percentFilter,
+    toFixed: toFixedFilter,
+    toFixedCeil: toFixedCeilFilter,
+    toFixedFloor: toFixedFloorFilter,
+    hideZero: hideZeroFilter,
+    boolean: booleanFilter,
+    padHour: padHourFilter,
+    truncate: truncateFilter,
+    bignum: bignumFilter,
+    hour: hourFilter,
+    planningCheck: planningCheckFilter,
+    alerteCheck: alerteCheckFilter,
+};
