@@ -2331,4 +2331,13 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
     get crud_api_type_id_select_options(): string[] {
         return this.dashboard.api_type_ids;
     }
+
+    get translatable_name_code_text() {
+
+        if (!this.vo_field_ref) {
+            return null;
+        }
+
+        return this.vo_field_ref.get_translatable_name_code_text(this.page_widget.id);
+    }
 }

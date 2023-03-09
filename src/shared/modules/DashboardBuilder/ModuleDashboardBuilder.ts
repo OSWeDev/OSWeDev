@@ -1,15 +1,15 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
-import ComponentDatatableFieldVO from '../DAO/vos/datatable/ComponentDatatableFieldVO';
-import ComputedDatatableFieldVO from '../DAO/vos/datatable/ComputedDatatableFieldVO';
-import CRUDActionsDatatableFieldVO from '../DAO/vos/datatable/CRUDActionsDatatableFieldVO';
-import FileDatatableFieldVO from '../DAO/vos/datatable/FileDatatableFieldVO';
-import InputDatatableFieldVO from '../DAO/vos/datatable/InputDatatableFieldVO';
 import ManyToManyReferenceDatatableFieldVO from '../DAO/vos/datatable/ManyToManyReferenceDatatableFieldVO';
 import ManyToOneReferenceDatatableFieldVO from '../DAO/vos/datatable/ManyToOneReferenceDatatableFieldVO';
 import OneToManyReferenceDatatableFieldVO from '../DAO/vos/datatable/OneToManyReferenceDatatableFieldVO';
 import RefRangesReferenceDatatableFieldVO from '../DAO/vos/datatable/RefRangesReferenceDatatableFieldVO';
+import CRUDActionsDatatableFieldVO from '../DAO/vos/datatable/CRUDActionsDatatableFieldVO';
 import SelectBoxDatatableFieldVO from '../DAO/vos/datatable/SelectBoxDatatableFieldVO';
+import ComponentDatatableFieldVO from '../DAO/vos/datatable/ComponentDatatableFieldVO';
+import ComputedDatatableFieldVO from '../DAO/vos/datatable/ComputedDatatableFieldVO';
 import SimpleDatatableFieldVO from '../DAO/vos/datatable/SimpleDatatableFieldVO';
+import InputDatatableFieldVO from '../DAO/vos/datatable/InputDatatableFieldVO';
+import FileDatatableFieldVO from '../DAO/vos/datatable/FileDatatableFieldVO';
 import VarDatatableFieldVO from '../DAO/vos/datatable/VarDatatableFieldVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
@@ -19,12 +19,12 @@ import VarConfVO from '../Var/vos/VarConfVO';
 import VOsTypesManager from '../VOsTypesManager';
 import AdvancedDateFilterOptDescVO from './vos/AdvancedDateFilterOptDescVO';
 import DashboardGraphVORefVO from './vos/DashboardGraphVORefVO';
-import DashboardPageVO from './vos/DashboardPageVO';
 import DashboardPageWidgetVO from './vos/DashboardPageWidgetVO';
-import DashboardVO from './vos/DashboardVO';
 import DashboardWidgetVO from './vos/DashboardWidgetVO';
 import TableColumnDescVO from './vos/TableColumnDescVO';
+import DashboardPageVO from './vos/DashboardPageVO';
 import VOFieldRefVO from './vos/VOFieldRefVO';
+import DashboardVO from './vos/DashboardVO';
 
 export default class ModuleDashboardBuilder extends Module {
 
@@ -181,8 +181,20 @@ export default class ModuleDashboardBuilder extends Module {
         ];
 
         this.datatables.push(new ModuleTable(this, DashboardPageWidgetVO.API_TYPE_ID, () => new DashboardPageWidgetVO(), datatable_fields, null, "Pages de Dashboard"));
+
         widget_id.addManyToOneRelation(db_widget);
         page_id.addManyToOneRelation(db_page);
+    }
+
+    /**
+     * Init Dashboard Active Filters Favorites
+     *  -
+     */
+    private init_DashboardActiveFiltersFavoritesVO(db_page: ModuleTable<any>, db_widget: ModuleTable<any>) {
+
+        let widget_id = new ModuleTableField('widget_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Widget', true);
+        let page_id = new ModuleTableField('page_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Page Dashboard', true);
+
     }
 
     private init_VOFieldRefVO() {
