@@ -122,15 +122,13 @@ export default class VarDataBaseVO implements IMatroid {
 
         let fields = MatroidController.getInstance().getMatroidFields(varConf.var_data_vo_type);
 
-        if (varConf.segment_types) {
-            for (let i in fields) {
-                let field = fields[i];
-                let segmentation_cible = varConf.segment_types[field.field_id];
-                segmentation_cible = (segmentation_cible != null) ?
-                    segmentation_cible :
-                    RangeHandler.get_smallest_segment_type_for_range_type(RangeHandler.getRangeType(field));
-                res[field.field_id] = segmentation_cible;
-            }
+        for (let i in fields) {
+            let field = fields[i];
+            let segmentation_cible = varConf.segment_types ? varConf.segment_types[field.field_id] : null;
+            segmentation_cible = (segmentation_cible != null) ?
+                segmentation_cible :
+                RangeHandler.get_smallest_segment_type_for_range_type(RangeHandler.getRangeType(field));
+            res[field.field_id] = segmentation_cible;
         }
 
         return res;
