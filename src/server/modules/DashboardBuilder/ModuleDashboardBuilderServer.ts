@@ -968,8 +968,8 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Peut exporter les filtres actifs ?'
         }, 'table_widget_options_component.can_export_active_field_filters.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Peut exporter les variables ?'
-        }, 'table_widget_options_component.can_export_vars.___LABEL___'));
+            'fr-fr': 'Peut exporter les variables "indicateur" ?'
+        }, 'table_widget_options_component.can_export_vars_indicator.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Bouton "Tout supprimer"'

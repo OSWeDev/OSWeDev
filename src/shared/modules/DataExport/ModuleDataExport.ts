@@ -22,6 +22,7 @@ import ExportDataToXLSXParamVO, { ExportDataToXLSXParamVOStatic } from './vos/ap
 import ExportLogVO from './vos/apis/ExportLogVO';
 import ExportHistoricVO from './vos/ExportHistoricVO';
 import ExportVarcolumnConf from './vos/ExportVarcolumnConf';
+import { ExportVarIndicator } from './vos/ExportVarIndicator';
 
 export default class ModuleDataExport extends Module {
 
@@ -61,6 +62,8 @@ export default class ModuleDataExport extends Module {
         do_not_user_filter_by_datatable_field_uid?: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } },
 
         export_options?: IExportOptions,
+
+        vars_indicator?: ExportVarIndicator,
     ) => Promise<string> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVO);
 
     public exportDataToXLSX: (

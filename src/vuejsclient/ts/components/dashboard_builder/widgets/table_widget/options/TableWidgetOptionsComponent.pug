@@ -32,7 +32,7 @@
                     :selected-label='label("multiselect.selectedLabel")'
                     :deselect-label='label("multiselect.deselectLabel")'
                     :deselect-group-label='label("multiselect.deselectGroupLabel")'
-                    )
+                )
 
 
     .limit
@@ -223,11 +223,11 @@
                 :labels="{checked: label('table_widget_options_component.export_button.visible'), unchecked: label('table_widget_options_component.export_button.hidden')}")
 
     template(v-if="export_button")
-        .can_export_vars
-            .input_label {{ label('table_widget_options_component.can_export_vars') }}
+        .can_export_vars_indicator
+            .input_label {{ label('table_widget_options_component.can_export_vars_indicator') }}
             toggle-button(
-                @change="toggle_can_export_vars" 
-                :value="can_export_vars" 
+                @change="toggle_can_export_vars_indicator" 
+                :value="can_export_vars_indicator" 
                 :sync="true"
                 :width="100"
                 :labels="{checked: label('table_widget_options_component.export_button.visible'), unchecked: label('table_widget_options_component.export_button.hidden')}")
