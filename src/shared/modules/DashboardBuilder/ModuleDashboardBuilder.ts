@@ -18,6 +18,7 @@ import ModuleTableField from '../ModuleTableField';
 import VarConfVO from '../Var/vos/VarConfVO';
 import VOsTypesManager from '../VOsTypesManager';
 import AdvancedDateFilterOptDescVO from './vos/AdvancedDateFilterOptDescVO';
+import DashboardFavoritesFiltersVO from './vos/DashboardFavoritesFiltersVO';
 import DashboardGraphVORefVO from './vos/DashboardGraphVORefVO';
 import DashboardPageWidgetVO from './vos/DashboardPageWidgetVO';
 import DashboardWidgetVO from './vos/DashboardWidgetVO';
@@ -54,6 +55,7 @@ export default class ModuleDashboardBuilder extends Module {
         this.datatables = [];
 
         let db_table = this.init_DashboardVO();
+        this.init_DashboardActiveFiltersFavoritesVO(db_table);
         let db_page = this.init_DashboardPageVO(db_table);
         this.init_DashboardGraphVORefVO(db_table);
         let db_widget = this.init_DashboardWidgetVO();
@@ -144,7 +146,9 @@ export default class ModuleDashboardBuilder extends Module {
         ];
 
         let res = new ModuleTable(this, DashboardWidgetVO.API_TYPE_ID, () => new DashboardWidgetVO(), datatable_fields, name, "Widgets de Dashboard");
+
         this.datatables.push(res);
+
         return res;
     }
 
@@ -188,13 +192,33 @@ export default class ModuleDashboardBuilder extends Module {
 
     /**
      * Init Dashboard Active Filters Favorites
-     *  -
+     *  - Data table to stock user favorites active filters
+     *  - May be useful save the actual dashboard, owner_id and page_filters
      */
-    private init_DashboardActiveFiltersFavoritesVO(db_page: ModuleTable<any>, db_widget: ModuleTable<any>) {
+    private init_DashboardActiveFiltersFavoritesVO(db_table: ModuleTable<any>) {
 
-        let widget_id = new ModuleTableField('widget_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Widget', true);
-        let page_id = new ModuleTableField('page_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Page Dashboard', true);
+        let dashboard_id = new ModuleTableField('dashboard_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Dashboard', true);
 
+        let datatable_fields = [
+            dashboard_id,
+
+            new ModuleTableField('owner_id', ModuleTableField.FIELD_TYPE_string, 'Owner Id', true),
+            new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom des filtres', true),
+            new ModuleTableField('page_filters', ModuleTableField.FIELD_TYPE_string, 'Page Filters', false),
+        ];
+
+        this.datatables.push(
+            new ModuleTable(
+                this,
+                DashboardFavoritesFiltersVO.API_TYPE_ID,
+                () => new DashboardFavoritesFiltersVO(),
+                datatable_fields,
+                null,
+                "Filtres Favoris"
+            )
+        );
+
+        dashboard_id.addManyToOneRelation(db_table);
     }
 
     private init_VOFieldRefVO() {
