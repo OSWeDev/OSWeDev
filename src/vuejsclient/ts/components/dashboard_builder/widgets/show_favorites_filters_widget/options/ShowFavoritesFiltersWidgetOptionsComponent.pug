@@ -1,3 +1,20 @@
 .show_favorites_filters_widget_options_component
-    .show_favorites_filters_widget_options_component_wrapper
+    .page_widget_options(:id="'page_widget_options_' + page_widget.id" :key="'page_widget_options_' + page_widget.id")
         
+        .field_ref 
+            .input_label {{ label('show_favorites_filters_widget_component.vo_field_ref') }}
+            .input_wrapper
+                Singlevofieldrefholdercomponent(
+                    @remove_field_ref="handle_remove_field_ref"
+                    @add_field_ref="handle_add_field_ref"
+                    :page_widget_id='page_widget ? page_widget.id : null'
+                    :vo_field_ref="vo_field_ref"
+                )
+
+        .max_visible_options
+            .input_label {{ label('show_favorites_filters_widget_component.max_visible_options') }}
+            .input_wrapper
+                input(
+                    type="number"
+                    v-model.number="max_visible_options"
+                )

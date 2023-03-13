@@ -107,7 +107,6 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
     private last_calculation_cpt: number = 0;
 
-    private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
     private debounced_query_update_visible_options_checkbox = debounce(this.query_update_visible_options_checkbox.bind(this), 300);
 
     private filter_type_options: number[] = [
@@ -122,6 +121,8 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         AdvancedStringFilter.FILTER_TYPE_NEST_PAS_NULL,
         AdvancedStringFilter.FILTER_TYPE_NEST_PAS_VIDE
     ];
+
+    private throttled_update_visible_options = (timeout: number = 300) => (ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), timeout, { leading: false, trailing: true }))();
 
     private async mounted() {
         ResetFiltersWidgetController.getInstance().register_updater(
@@ -772,7 +773,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         this.advanced_string_filters = [new AdvancedStringFilter()]; // Reset les champs saisie libre
 
         // On update le visuel de tout le monde suite au reset
-        await this.throttled_update_visible_options();
+        await this.throttled_update_visible_options(10);
     }
 
     /**

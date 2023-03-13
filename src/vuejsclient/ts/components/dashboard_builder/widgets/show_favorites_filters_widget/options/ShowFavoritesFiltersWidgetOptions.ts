@@ -1,14 +1,33 @@
 import DashboardPageWidgetVO from "../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
+import VOFieldRefVO from "../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO";
 import DefaultTranslation from "../../../../../../../shared/modules/Translation/vos/DefaultTranslation";
 import IExportableWidgetOptions from "../../IExportableWidgetOptions";
+
+
+export interface IShowFavoritesFiltersWidgetOptionsProps {
+    vo_field_ref?: VOFieldRefVO;
+    max_visible_options?: number;
+}
 
 export default class ShowFavoritesFiltersWidgetOptions implements IExportableWidgetOptions {
 
     public static TITLE_CODE_PREFIX: string = "ShowFavoritesFiltersWidgetOptions.title.";
 
-    public constructor() { }
+    public constructor(
+        public vo_field_ref?: VOFieldRefVO,
+        public max_visible_options?: number,
+    ) { }
 
-    public from(props: ShowFavoritesFiltersWidgetOptions): ShowFavoritesFiltersWidgetOptions {
+    /**
+     * Hydrate from the given properties
+     *
+     * @param props {IShowFavoritesFiltersWidgetOptionsProps}
+     * @returns {ShowFavoritesFiltersWidgetOptions}
+     */
+    public from(props: IShowFavoritesFiltersWidgetOptionsProps): ShowFavoritesFiltersWidgetOptions {
+
+        this.max_visible_options = props.max_visible_options ?? this.max_visible_options;
+        this.vo_field_ref = props.vo_field_ref ?? this.vo_field_ref;
 
         return this;
     }
@@ -18,6 +37,7 @@ export default class ShowFavoritesFiltersWidgetOptions implements IExportableWid
         if (!page_widget_id) {
             return null;
         }
+
         return ShowFavoritesFiltersWidgetOptions.TITLE_CODE_PREFIX + page_widget_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     }
 

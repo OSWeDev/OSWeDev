@@ -37,15 +37,15 @@ export default class DashboardFavoritesFiltersVO implements IDistantVOBase {
     /**
      * Hydrate from the given properties
      *
-     * @param props {DashboardFavoritesFiltersVO}
+     * @param props {IDashboardFavoritesFiltersProps}
      * @returns {DashboardFavoritesFiltersVO}
      */
     public from(props: IDashboardFavoritesFiltersProps): DashboardFavoritesFiltersVO {
 
-        this.dashboard_id = props.dashboard_id;
-        this.owner_id = props.owner_id;
-        this.name = props.name;
-        this.page_filters = props.page_filters;
+        this.dashboard_id = props.dashboard_id ?? this.dashboard_id;
+        this.page_filters = props.page_filters ?? this.page_filters;
+        this.owner_id = props.owner_id ?? this.owner_id;
+        this.name = props.name ?? this.name;
 
         return this;
     }

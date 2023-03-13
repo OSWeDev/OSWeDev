@@ -1,6 +1,50 @@
 include ../../../../../views/mixins/loading.pug
 
 .show_favorites_filters_widget_component
-    button.btn-primary(@click="handle_validate") 
-        i.fa-solid.fa-spin.fa-spinner.mr-2(v-if="start_update")
-        span {{ label('dashboard_viewer.block_widgets_updates') }}
+    template(v-if='vo_field_ref')
+        .vo_field_ref_label {{ vo_field_ref_label }}
+    template
+        multiselect(
+            :options="filter_visible_options"
+            :multiple="can_select_multiple"
+            :preselect-first="false"
+            :close-on-select="false"
+            :show-labels="false"
+            
+            v-model="tmp_filter_active_options"
+            autocomplete="off"
+            label="name"
+
+            :internal-search="false"
+            :hide-selected="false"
+            :searchable="false"
+
+            track-by="text_uid"
+            
+            :key="'show_favorites_filters_widget_component_' + vo_field_ref.api_type_id + '__' + vo_field_ref.field_id"
+            
+            :deselect-group-label='label("multiselect.deselectGroupLabel")'
+            :select-group-label='label("multiselect.selectGroupLabel")'
+            :selected-label='label("multiselect.selectedLabel")'
+            :deselect-label='label("multiselect.deselectLabel")'
+            :select-label='label("multiselect.selectLabel")'
+
+            @search-change="query_update_visible_options"
+        )
+            
+            span(slot="noOptions") -
+
+            template(slot="option", slot-scope="props")
+                template(v-if='is_translatable_type')
+                    span.option__title {{ label(props.option.name) }}
+                template(v-else)
+                    span.option__title {{ props.option.name }}
+
+            template(slot="tag", slot-scope="props")
+                .pill_wrapper.bg-success
+                    template(v-if='is_translatable_type')
+                        span.option__tag {{ label(props.option.name) }}
+                    template(v-else)
+                        span.option__tag {{ props.option.name }}
+                    i.fa-duotone.fa-times(@click='props.remove(props.option)')
+

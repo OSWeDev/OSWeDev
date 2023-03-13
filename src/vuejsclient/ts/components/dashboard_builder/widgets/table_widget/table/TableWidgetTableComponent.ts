@@ -760,7 +760,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         }
 
         // Si colonne de type !vo_field_ref, on ne fait rien
-        if (column.type !== TableColumnDescVO.TYPE_vo_field_ref) {
+        if (column?.type !== TableColumnDescVO.TYPE_vo_field_ref) {
             return;
         }
 
@@ -912,7 +912,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         for (const u in res) {
             let column = res[u];
             let final_res = [];
-            if (column.type == TableColumnDescVO.TYPE_header || column.children.length > 0) {
+            if (column?.type == TableColumnDescVO.TYPE_header || column.children.length > 0) {
                 //pour mettre a plat les colonne pour l affichage
                 for (const r in column.children) {
                     let children = column.children[r];
@@ -1029,7 +1029,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                     let vo_id = row['__crud_actions'];
                     let vo = await query(field.vo_type_id).filter_by_id(vo_id).select_vo();
 
-                    switch (field.type) {
+                    switch (field?.type) {
                         case DatatableField.SIMPLE_FIELD_TYPE:
                             let simpleField = (field as SimpleDatatableFieldVO<any, any>);
                             vo[simpleField.module_table_field_id] = value;
@@ -1080,11 +1080,11 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             let column: TableColumnDescVO = this.columns[i];
             let moduleTable: ModuleTable<any>;
 
-            if (column.type != TableColumnDescVO.TYPE_header) {
+            if (column?.type != TableColumnDescVO.TYPE_header) {
                 moduleTable = VOsTypesManager.moduleTables_by_voType[column.api_type_id];
             }
 
-            switch (column.type) {
+            switch (column?.type) {
                 case TableColumnDescVO.TYPE_component:
                     res[column.id] = TableWidgetController.getInstance().components_by_translatable_title[column.component_name].auto_update_datatable_field_uid_with_vo_type();
                     break;
@@ -1266,7 +1266,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
     private switch_for_type_header(column: TableColumnDescVO, moduleTable: ModuleTable<any>) {
         let res: DatatableField<any, any>;
-        switch (column.type) {
+        switch (column?.type) {
             case TableColumnDescVO.TYPE_component:
                 res = TableWidgetController.getInstance().components_by_translatable_title[column.component_name].auto_update_datatable_field_uid_with_vo_type();
                 break;
@@ -1703,7 +1703,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             return false;
         }
 
-        return !!this.columns.find((column) => column.type == TableColumnDescVO.TYPE_header);
+        return !!this.columns.find((column) => column?.type == TableColumnDescVO.TYPE_header);
     }
 
     get title_name_code_text() {
@@ -1976,7 +1976,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         for (let i in this.default_widget_options_columns) {
             let column = this.default_widget_options_columns[i];
 
-            if (column.type !== TableColumnDescVO.TYPE_var_ref) {
+            if (column?.type !== TableColumnDescVO.TYPE_var_ref) {
                 continue;
             }
 
@@ -1997,7 +1997,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         for (let i in this.columns) {
             let column = this.columns[i];
 
-            if (column.type == TableColumnDescVO.TYPE_header) {
+            if (column?.type == TableColumnDescVO.TYPE_header) {
                 for (const key in column.children) {
                     let child = column.children[key];
                     res[child.datatable_field_uid] = this.t(child.get_translatable_name_code_text(this.page_widget.id));
@@ -2016,7 +2016,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         for (let i in this.default_widget_options_columns) {
             let column = this.default_widget_options_columns[i];
 
-            if (column.type == TableColumnDescVO.TYPE_header) {
+            if (column?.type == TableColumnDescVO.TYPE_header) {
                 for (const key in column.children) {
                     let child = column.children[key];
                     res[child.datatable_field_uid] = this.t(child.get_translatable_name_code_text(this.page_widget.id));

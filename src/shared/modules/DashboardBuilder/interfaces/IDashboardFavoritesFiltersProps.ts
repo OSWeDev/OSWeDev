@@ -1,6 +1,7 @@
 
 /**
  * IDashboardFavoritesFiltersProps
+ *  - Props for DashboardFavoritesFilters
  */
 export default interface IDashboardFavoritesFiltersProps {
     page_filters?: string;
