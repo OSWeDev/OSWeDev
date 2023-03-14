@@ -125,7 +125,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
     private throttled_update_visible_options = (timeout: number = 300) => (ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), timeout, { leading: false, trailing: true }))();
 
     private async mounted() {
-        ResetFiltersWidgetController.getInstance().register_updater(
+        ResetFiltersWidgetController.getInstance().register_reseter(
             this.dashboard_page,
             this.page_widget,
             this.reset_visible_options.bind(this),

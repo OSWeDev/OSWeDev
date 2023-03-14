@@ -587,7 +587,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             this.throttle_do_update_visible_options.bind(this),
         );
 
-        ResetFiltersWidgetController.getInstance().register_updater(
+        ResetFiltersWidgetController.getInstance().register_reseter(
             this.dashboard_page,
             this.page_widget,
             this.reset_visible_options.bind(this),

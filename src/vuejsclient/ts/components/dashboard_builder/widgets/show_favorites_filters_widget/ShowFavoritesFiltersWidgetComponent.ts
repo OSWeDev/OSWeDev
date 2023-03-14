@@ -58,7 +58,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
 
     private actual_query: string = null;
 
-    private is_init: boolean = false;
+    private is_initialized: boolean = false;
     private old_widget_options: ShowFavoritesFiltersWidgetOptions = null;
 
     private last_calculation_cpt: number = 0;
@@ -111,7 +111,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
 
         const page_filters = JSON.parse(this.tmp_filter_active_options?.page_filters ?? '{}');
 
-        if (!this.is_init) {
+        if (this.is_initialized) {
             this.set_active_field_filters(page_filters);
 
             if (isEmpty(page_filters)) {
@@ -119,7 +119,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
             }
         }
 
-        this.is_init = false;
+        this.is_initialized = true;
     }
 
     /**
@@ -262,30 +262,18 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
         await this.throttled_update_visible_options();
     }
 
-    // create single data filter to apply
-    private create_data_filter(text: string, index: string | number): DataFilterOption {
-        let dataFilter = new DataFilterOption(
-            DataFilterOption.STATE_SELECTED,
-            text,
-            parseInt(index.toString())
-        );
-        dataFilter.string_value = text;
-
-        return dataFilter;
-    }
-
     /**
      * Reset All Visible Active Filters
      */
     private reset_all_visible_active_filters(): void {
-        for (const db_id in ResetFiltersWidgetController.getInstance().updaters) {
-            const db_updaters = ResetFiltersWidgetController.getInstance().updaters[db_id];
+        for (const db_id in ResetFiltersWidgetController.getInstance().reseters) {
+            const db_reseters = ResetFiltersWidgetController.getInstance().reseters[db_id];
 
-            for (const p_id in db_updaters) {
-                const p_updaters = db_updaters[p_id];
+            for (const p_id in db_reseters) {
+                const p_reseters = db_reseters[p_id];
 
-                for (const w_id in p_updaters) {
-                    const reset = p_updaters[w_id];
+                for (const w_id in p_reseters) {
+                    const reset = p_reseters[w_id];
 
                     reset();
                 }
@@ -299,8 +287,6 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
      * @return {ShowFavoritesFiltersWidgetOptions}
      */
     get widget_options(): ShowFavoritesFiltersWidgetOptions {
-        this.is_init = true;
-
         if (!this.page_widget) {
             return null;
         }
