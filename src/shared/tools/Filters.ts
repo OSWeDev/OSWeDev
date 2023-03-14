@@ -648,20 +648,3 @@ export let positiveNumberFilter = FilterObj.createNew(
     writeTopositiveNumberFilter,
     FilterObj.FILTER_TYPE_positiveNumber,
 );
-
-export let filter_type_by_read_function: { [read_name: string]: string } = {
-    [hourFilter.read.name]: hourFilter.type,
-    [planningCheckFilter.read.name]: planningCheckFilter.type,
-    [alerteCheckFilter.read.name]: alerteCheckFilter.type,
-    [amountFilter.read.name]: amountFilter.type,
-    [percentFilter.read.name]: percentFilter.type,
-    [toFixedFilter.read.name]: toFixedFilter.type,
-    [toFixedCeilFilter.read.name]: toFixedCeilFilter.type,
-    [toFixedFloorFilter.read.name]: toFixedFloorFilter.type,
-    [hideZeroFilter.read.name]: hideZeroFilter.type,
-    [booleanFilter.read.name]: booleanFilter.type,
-    [padHourFilter.read.name]: padHourFilter.type,
-    [truncateFilter.read.name]: truncateFilter.type,
-    [bignumFilter.read.name]: bignumFilter.type,
-    [positiveNumberFilter.read.name]: positiveNumberFilter.type,
-};

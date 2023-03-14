@@ -14,7 +14,7 @@ import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataV
 import VarUpdateCallback from '../../../../../../shared/modules/Var/vos/VarUpdateCallback';
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
-import FilterObj, { filter_type_by_read_function } from '../../../../../../shared/tools/Filters';
+import FilterObj from '../../../../../../shared/tools/Filters';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../VueComponentBase';
@@ -43,6 +43,9 @@ export default class VarDataRefComponent extends VueComponentBase {
 
     @Prop({ default: null })
     public filter: () => any;
+
+    @Prop({ default: null })
+    public filter_obj: FilterObj<any, any>;
 
     @Prop({ default: null })
     public filter_additional_params: any[];
@@ -232,8 +235,8 @@ export default class VarDataRefComponent extends VueComponentBase {
 
         let res = SimpleDatatableFieldVO.createNew("value").setModuleTable(VOsTypesManager.moduleTables_by_voType[this.var_param._type]);
 
-        if (this.filter) {
-            let filter_type: string = filter_type_by_read_function[this.filter.name];
+        if (this.filter_obj) {
+            let filter_type: string = this.filter_obj.type;
 
             switch (filter_type) {
                 case FilterObj.FILTER_TYPE_hour:
