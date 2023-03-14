@@ -168,6 +168,14 @@
                             :width="160"
                             :labels="{checked: label('table_widget_column_conf.editable_column.show_tooltip.show'), unchecked: label('table_widget_column_conf.editable_column.show_tooltip.hide')}")
 
+                    template(v-if='is_type_number_vo_field_ref')
+                        toggle-button(
+                            @change="switch_sum_numeral_datas" 
+                            :value="column.sum_numeral_datas" 
+                            :sync="true"
+                            :width="160"
+                            :labels="{checked: label('table_widget_column_conf.editable_column.sum_numeral_datas.show'), unchecked: label('table_widget_column_conf.editable_column.sum_numeral_datas.hide')}")
+
                     template(v-if='column.type == 1')
                         .kanban_column
                             .input_label {{ label('table_widget_options_component.kanban_column') }}

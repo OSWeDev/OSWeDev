@@ -1744,6 +1744,8 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                     }
                 } else if (column.is_nullable) {
                     aggregator = VarConfVO.IS_NULLABLE_AGGREGATOR;
+                } else if (column.sum_numeral_datas) {
+                    aggregator = VarConfVO.SUM_AGGREGATOR;
                 }
             }
 
