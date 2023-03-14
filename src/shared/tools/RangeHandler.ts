@@ -1013,7 +1013,17 @@ export default class RangeHandler {
         return res;
     }
 
-    public static async foreach_ranges(ranges: IRange[], callback: (value: number) => Promise<void> | void, segment_type?: number, min_inclusiv: number = null, max_inclusiv: number = null) {
+    public static async foreach_ranges(
+        ranges: IRange[],
+        callback: (value: number) => Promise<void> | void,
+        segment_type?: number,
+        min_inclusiv: number = null,
+        max_inclusiv: number = null,
+        reverse: boolean = false) {
+
+        if (reverse && ranges && ranges.length) {
+            ranges = ranges.slice().reverse();
+        }
 
         for (let i in ranges) {
             await RangeHandler.foreach(ranges[i], callback, segment_type, min_inclusiv, max_inclusiv);
@@ -1028,7 +1038,18 @@ export default class RangeHandler {
      * @param min_inclusiv
      * @param max_inclusiv
      */
-    public static async foreach_ranges_batch_await(ranges: IRange[], callback: (value: number) => Promise<void> | void, segment_type?: number, min_inclusiv: number = null, max_inclusiv: number = null, batch_size: number = 50) {
+    public static async foreach_ranges_batch_await(
+        ranges: IRange[],
+        callback: (value: number) => Promise<void> | void,
+        segment_type?: number,
+        min_inclusiv: number = null,
+        max_inclusiv: number = null,
+        batch_size: number = 50,
+        reverse: boolean = false) {
+
+        if (reverse && ranges && ranges.length) {
+            ranges = ranges.slice().reverse();
+        }
 
         let promises = [];
         for (let i in ranges) {
@@ -1046,7 +1067,18 @@ export default class RangeHandler {
         }
     }
 
-    public static foreach_ranges_sync(ranges: IRange[], callback_sync: (value: number) => void | void, segment_type?: number, min_inclusiv: number = null, max_inclusiv: number = null) {
+    public static foreach_ranges_sync(
+        ranges: IRange[],
+        callback_sync: (value: number) => void | void,
+        segment_type?: number,
+        min_inclusiv: number = null,
+        max_inclusiv: number = null,
+        reverse: boolean = false) {
+
+        if (reverse && ranges && ranges.length) {
+            ranges = ranges.slice().reverse();
+        }
+
         for (let i in ranges) {
             RangeHandler.foreach_sync(ranges[i], callback_sync, segment_type, min_inclusiv, max_inclusiv);
         }
