@@ -10,6 +10,7 @@ import { SaveFavoritesFiltersWidgetOptions } from './options/SaveFavoritesFilter
 import { SaveFavoritesFiltersWidgetController } from './SaveFavoritesFiltersWidgetController';
 import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import './SaveFavoritesFiltersWidgetComponent.scss';
+import ReloadFiltersWidgetController from '../../../../../../../dist/vuejsclient/ts/components/dashboard_builder/widgets/reload_filters_widget/RealoadFiltersWidgetController';
 
 @Component({
     template: require('./SaveFavoritesFiltersWidgetComponent.pug'),
@@ -31,8 +32,10 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
     /**
      * Handle Save
      *  - Save active dashboard filters for the current user
+     *
+     * @return {Promise<void>}
      */
-    private async handle_save() {
+    private async handle_save(): Promise<void> {
         let self = this;
 
         if (self.start_update) {
@@ -82,7 +85,13 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
         self.start_update = false;
     }
 
-    private async save_favorites_filters(props: DashboardFavoritesFiltersVO) {
+    /**
+     * Save Favorites Filters
+     *
+     * @param props {DashboardFavoritesFiltersVO}
+     * @return {Promise<void>}
+     */
+    private async save_favorites_filters(props: DashboardFavoritesFiltersVO): Promise<void> {
         let self = this;
 
         self.snotify.async(self.label('dashboard_viewer.save_favorites_filters.start'), () =>
@@ -92,6 +101,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
                 );
 
                 if (success) {
+                    self.reload_all_visible_active_filters();
                     resolve({
                         body: self.label('dashboard_viewer.save_favorites_filters.ok'),
                         config: {
@@ -116,7 +126,33 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
         );
     }
 
-    get widget_options() {
+    /**
+     * Reload All Visible Active Filters
+     *
+     * @return {void}
+     */
+    private reload_all_visible_active_filters(): void {
+        for (const db_id in ReloadFiltersWidgetController.getInstance().reloaders) {
+            const db_reloaders = ReloadFiltersWidgetController.getInstance().reloaders[db_id];
+
+            for (const p_id in db_reloaders) {
+                const p_reloaders = db_reloaders[p_id];
+
+                for (const w_id in p_reloaders) {
+                    const reload = p_reloaders[w_id];
+
+                    reload();
+                }
+            }
+        }
+    }
+
+    /**
+     * Get widget_options
+     *
+     * @return {SaveFavoritesFiltersWidgetOptions}
+     */
+    get widget_options(): SaveFavoritesFiltersWidgetOptions {
 
         if (!this.page_widget) {
             return null;

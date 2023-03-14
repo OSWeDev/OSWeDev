@@ -773,7 +773,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         this.advanced_string_filters = [new AdvancedStringFilter()]; // Reset les champs saisie libre
 
         // On update le visuel de tout le monde suite au reset
-        await this.throttled_update_visible_options(10);
+        this.throttled_update_visible_options(0);
     }
 
     /**

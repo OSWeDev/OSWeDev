@@ -5,22 +5,21 @@ include ../../../../../views/mixins/loading.pug
         .vo_field_ref_label {{ vo_field_ref_label }}
     template
         multiselect(
-            :options="filter_visible_options"
+            :options="favorites_filters_visible_options"
             :multiple="can_select_multiple"
             :preselect-first="false"
             :close-on-select="false"
             :show-labels="false"
             
-            v-model="tmp_filter_active_options"
+            v-model="tmp_active_favorites_filters_option"
             autocomplete="off"
+            track-by="id"
             label="name"
 
             :internal-search="false"
             :hide-selected="false"
             :searchable="false"
 
-            track-by="id"
-            
             :key="'show_favorites_filters_widget_component_' + vo_field_ref.api_type_id + '__' + vo_field_ref.field_id"
             
             :deselect-group-label='label("multiselect.deselectGroupLabel")'

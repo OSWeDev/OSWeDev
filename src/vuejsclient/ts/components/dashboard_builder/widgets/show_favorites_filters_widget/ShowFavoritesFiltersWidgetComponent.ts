@@ -19,6 +19,7 @@ import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import { cloneDeep, isEmpty, isEqual } from 'lodash';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
+import ReloadFiltersWidgetController from '../reload_filters_widget/RealoadFiltersWidgetController';
 import ResetFiltersWidgetController from '../reset_filters_widget/ResetFiltersWidgetController';
 
 @Component({
@@ -48,9 +49,10 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
     @Prop({ default: null })
     private dashboard_page: DashboardPageVO;
 
-    private tmp_filter_active_options: DashboardFavoritesFiltersVO = null;
+    private tmp_active_favorites_filters_option: DashboardFavoritesFiltersVO = null;
+    private old_tmp_active_favorites_filters_option: DashboardFavoritesFiltersVO = null;
 
-    private filter_visible_options: DashboardFavoritesFiltersVO[] = [];
+    private favorites_filters_visible_options: DashboardFavoritesFiltersVO[] = [];
 
     private warn_existing_external_filters: boolean = false;
 
@@ -64,11 +66,24 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
     private last_calculation_cpt: number = 0;
 
     private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
+    private throttled_update_active_field_filters = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_active_field_filters.bind(this), 300, { leading: false, trailing: true });
+
+    /**
+     * On mounted
+     *  - Happen on component mount
+     */
+    private async mounted() {
+        ReloadFiltersWidgetController.getInstance().register_reloader(
+            this.dashboard_page,
+            this.page_widget,
+            this.reload_visible_options.bind(this),
+        );
+    }
 
     /**
      * Watch on widget_options
      *  - Shall happen first on component init or each time widget_options changes
-     *  - Initialize the tmp_filter_active_options with default widget options
+     *  - Initialize the tmp_active_favorites_filters_option with default widget options
      * @returns void
      */
     @Watch('widget_options', { immediate: true })
@@ -87,7 +102,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
     /**
      * Watch on get_active_field_filters
      *  - Shall happen first on component init or each time get_active_field_filters changes
-     *  - Initialize the tmp_filter_active_options with active filter options
+     *  - Initialize the tmp_active_favorites_filters_option with active filter options
      * @returns void
      */
     @Watch('get_active_field_filters', { deep: true })
@@ -97,27 +112,32 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
 
     /**
      * On Change Tmp Filter Active Options
-     * tmp_filter_active_options is the visible active filters of the widget
+     * tmp_active_favorites_filters_option is the visible active filters of the widget
      *  - Handle change on tmp filter active options
-     *  - Happen each time tmp_filter_active_options changes
+     *  - Happen each time tmp_active_favorites_filters_option changes
      * @returns void
      */
-    @Watch('tmp_filter_active_options')
+    @Watch('tmp_active_favorites_filters_option')
     private onchange_tmp_filter_active_options() {
 
         if (!this.widget_options) {
             return;
         }
 
-        const page_filters = JSON.parse(this.tmp_filter_active_options?.page_filters ?? '{}');
+        const page_filters = JSON.parse(this.tmp_active_favorites_filters_option?.page_filters ?? '{}');
 
         if (this.is_initialized) {
-            this.set_active_field_filters(page_filters);
-
-            if (isEmpty(page_filters)) {
+            if (
+                isEmpty(page_filters) ||
+                !isEqual(this.tmp_active_favorites_filters_option, this.old_tmp_active_favorites_filters_option)
+            ) {
                 this.reset_all_visible_active_filters();
             }
+
+            this.throttled_update_active_field_filters();
         }
+
+        this.old_tmp_active_favorites_filters_option = cloneDeep(this.tmp_active_favorites_filters_option);
 
         this.is_initialized = true;
     }
@@ -135,7 +155,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
         this.last_calculation_cpt = launch_cpt;
 
         if ((!this.vo_field_ref)) {
-            this.filter_visible_options = [];
+            this.favorites_filters_visible_options = [];
             return;
         }
 
@@ -155,7 +175,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
         //     // case when has active context filter but active visible filter empty
         //     // - try to apply context filter or display filter application fail alert
         //     if (has_active_field_filter &&
-        //         (!(this.tmp_filter_active_options?.length > 0))) {
+        //         (!(this.tmp_active_favorites_filters_option?.length > 0))) {
 
         //         this.warn_existing_external_filters = !this.try_apply_actual_active_favorites_filters(wholl_active_field_filters);
         //     }
@@ -163,7 +183,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
         // case when has active context filter but active visible filter empty
         // - try to apply context filter or display active favorites filter application fail alert
         if (has_active_field_filter &&
-            (!this.tmp_filter_active_options)) {
+            (!this.tmp_active_favorites_filters_option)) {
 
             this.warn_existing_external_filters = !this.try_apply_actual_active_favorites_filters(wholl_active_field_filters);
         }
@@ -215,8 +235,8 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
         }
 
         //     if (this.separation_active_filter && (tmp.length > 0)) {
-        //         for (const key in this.tmp_filter_active_options) {
-        //             let tfao = this.tmp_filter_active_options[key];
+        //         for (const key in this.tmp_active_favorites_filters_option) {
+        //             let tfao = this.tmp_active_favorites_filters_option[key];
         //             let index_opt = tmp.findIndex((e) => e.label == tfao.label);
         //             if (index_opt > -1) {
         //                 tmp.splice(index_opt, 1);
@@ -232,7 +252,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
         //         ));
         //     }
 
-        this.filter_visible_options = tmp;
+        this.favorites_filters_visible_options = tmp;
     }
 
     /**
@@ -244,7 +264,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
      */
     private try_apply_actual_active_favorites_filters(favorites_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }): boolean {
 
-        this.tmp_filter_active_options = this.filter_visible_options.find(
+        this.tmp_active_favorites_filters_option = this.favorites_filters_visible_options.find(
             (f) => isEqual(JSON.parse(f?.page_filters), favorites_filters)
         );
 
@@ -260,6 +280,24 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
     private async query_update_visible_options(query_: string): Promise<void> {
         this.actual_query = query_;
         await this.throttled_update_visible_options();
+    }
+
+    /**
+     * Reload Visible Options
+     */
+    private async reload_visible_options() {
+        // Reset favorite selected option
+        this.tmp_active_favorites_filters_option = null;
+        this.throttled_update_visible_options();
+    }
+
+    /**
+     * Update Active Field Filters
+     *  - Update page filters, we must have a delay
+     */
+    private update_active_field_filters(): void {
+        const page_filters = JSON.parse(this.tmp_active_favorites_filters_option?.page_filters ?? '{}');
+        this.set_active_field_filters(page_filters);
     }
 
     /**
