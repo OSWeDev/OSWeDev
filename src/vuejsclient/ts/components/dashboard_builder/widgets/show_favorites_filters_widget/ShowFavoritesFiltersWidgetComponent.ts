@@ -73,8 +73,10 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
     /**
      * On mounted
      *  - Happen on component mount
+     *
+     * @returns {void}
      */
-    private async mounted() {
+    private mounted(): void {
         ReloadFiltersWidgetController.getInstance().register_reloader(
             this.dashboard_page,
             this.page_widget,
@@ -86,10 +88,11 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
      * Watch on widget_options
      *  - Shall happen first on component init or each time widget_options changes
      *  - Initialize the tmp_active_favorites_filters_option with default widget options
-     * @returns void
+     *
+     * @returns {void}
      */
     @Watch('widget_options', { immediate: true })
-    private async onchange_widget_options() {
+    private onchange_widget_options(): void {
         if (!!this.old_widget_options) {
             if (isEqual(this.widget_options, this.old_widget_options)) {
                 return;
@@ -105,10 +108,11 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
      * Watch on get_active_field_filters
      *  - Shall happen first on component init or each time get_active_field_filters changes
      *  - Initialize the tmp_active_favorites_filters_option with active filter options
-     * @returns void
+     *
+     * @returns {void}
      */
     @Watch('get_active_field_filters', { deep: true })
-    private async onchange_active_field_filters() {
+    private onchange_active_field_filters(): void {
         this.throttled_update_visible_options();
     }
 
@@ -117,10 +121,11 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
      * tmp_active_favorites_filters_option is the visible active filters of the widget
      *  - Handle change on tmp filter active options
      *  - Happen each time tmp_active_favorites_filters_option changes
-     * @returns void
+     *
+     * @returns {void}
      */
     @Watch('tmp_active_favorites_filters_option')
-    private onchange_tmp_filter_active_options() {
+    private onchange_tmp_filter_active_options(): void {
 
         const page_filters = JSON.parse(this.tmp_active_favorites_filters_option?.page_filters ?? '{}');
 
@@ -145,7 +150,8 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
      * Update visible option
      *  - This happen | triggered with lodash throttle method (throttled_update_visible_options)
      *  - Each time visible option shall be updated
-     * @returns void
+     *
+     * @returns {Promise<void>}
      */
     private async update_visible_options(): Promise<void> {
 
@@ -216,8 +222,8 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
      * Try Apply Actual Active Favorites Filters
      *  - Make the showable favorite active filter options by the given filter
      *
-     * @param filter ContextFilterVO
-     * @returns boolean
+     * @param { { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} [favorites_filters]
+     * @returns {boolean}
      */
     private try_apply_actual_active_favorites_filters(favorites_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }): boolean {
 
@@ -241,10 +247,11 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
 
     /**
      * Reload Visible Options
+     *
+     * @returns {void}
      */
-    private async reload_visible_options() {
+    private reload_visible_options(): void {
         // Reset favorite selected option
-        // this.tmp_active_favorites_filters_option = null;
         this.throttled_update_visible_options();
     }
 
@@ -253,6 +260,8 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
      *  - Update page filters, we must have a delay
      *  - Must have to be a combination between current active_field_filters and favorites_field_filters
      *  - Overwrite active_field_filters with the favorites one
+     *
+     * @returns {void}
      */
     private update_active_field_filters(): void {
         const favorites_field_filters = JSON.parse(this.tmp_active_favorites_filters_option?.page_filters ?? '{}');
@@ -294,6 +303,8 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
 
     /**
      * Reset All Visible Active Filters
+     *
+     * @returns {void}
      */
     private reset_all_visible_active_field_filters(): void {
         for (const db_id in ResetFiltersWidgetController.getInstance().reseters) {
