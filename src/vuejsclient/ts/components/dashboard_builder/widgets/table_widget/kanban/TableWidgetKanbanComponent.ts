@@ -1419,8 +1419,12 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                     break;
                 case TableColumnDescVO.TYPE_var_ref:
                     let var_data_field: VarDatatableFieldVO<any, any> = VarDatatableFieldVO.createNew(
-                        column.id.toString(), column.var_id, column.filter_type, column.filter_additional_params,
-                        this.dashboard.id).auto_update_datatable_field_uid_with_vo_type(); //, column.get_translatable_name_code_text(this.page_widget.id)
+                        column.id.toString(),
+                        column.var_id,
+                        column.filter_type,
+                        column.filter_additional_params,
+                        this.dashboard.id
+                    ).auto_update_datatable_field_uid_with_vo_type(); //, column.get_translatable_name_code_text(this.page_widget.id)
                     res[column.id] = var_data_field;
                     break;
                 case TableColumnDescVO.TYPE_vo_field_ref:
@@ -1539,8 +1543,12 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 break;
             case TableColumnDescVO.TYPE_var_ref:
                 let var_data_field: VarDatatableFieldVO<any, any> = VarDatatableFieldVO.createNew(
-                    column.id.toString(), column.var_id, column.filter_type, column.filter_additional_params,
-                    this.dashboard.id).auto_update_datatable_field_uid_with_vo_type(); //, column.get_translatable_name_code_text(this.page_widget.id)
+                    column.id.toString(),
+                    column.var_id,
+                    column.filter_type,
+                    column.filter_additional_params,
+                    this.dashboard.id
+                ).auto_update_datatable_field_uid_with_vo_type(); //, column.get_translatable_name_code_text(this.page_widget.id)
                 res = var_data_field;
                 break;
             case TableColumnDescVO.TYPE_vo_field_ref:
@@ -2255,7 +2263,11 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             this.get_active_field_filters,
             this.columns_custom_filters,
             this.dashboard.api_type_ids,
-            this.get_discarded_field_paths
+            this.get_discarded_field_paths,
+            false,
+            null,
+            null,
+            this.do_not_user_filter_by_datatable_field_uid,
         );
     }
 
@@ -2272,6 +2284,50 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             res[column.datatable_field_uid] = VarWidgetComponent.get_var_custom_filters(
                 ObjectHandler.getInstance().hasAtLeastOneAttribute(column.filter_custom_field_filters) ? column.filter_custom_field_filters : null,
                 this.get_active_field_filters);
+        }
+
+        return res;
+    }
+
+    get do_not_user_filter_by_datatable_field_uid(): { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } {
+        let res: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } = {};
+
+        for (let i in this.columns) {
+            let column = this.columns[i];
+
+            if (column.type !== TableColumnDescVO.TYPE_var_ref) {
+                continue;
+            }
+
+            let do_not_use: { [vo_type: string]: { [field_id: string]: boolean } } = {};
+
+            // On supprime les filtres à ne pas prendre en compte pour créer le bon param
+            if (column.do_not_user_filter_active_ids && column.do_not_user_filter_active_ids.length) {
+                let all_page_widget_by_id: { [id: number]: DashboardPageWidgetVO } = VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
+
+                for (let j in column.do_not_user_filter_active_ids) {
+                    let page_filter_id = column.do_not_user_filter_active_ids[j];
+
+                    let page_widget: DashboardPageWidgetVO = all_page_widget_by_id[page_filter_id];
+                    if (!page_widget) {
+                        continue;
+                    }
+
+                    let page_widget_options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
+
+                    if (page_widget_options?.vo_field_ref) {
+                        if (!do_not_use[page_widget_options.vo_field_ref.api_type_id]) {
+                            do_not_use[page_widget_options.vo_field_ref.api_type_id] = {};
+                        }
+
+                        do_not_use[page_widget_options.vo_field_ref.api_type_id][page_widget_options.vo_field_ref.field_id] = true;
+                    }
+                }
+            }
+
+            if (Object.keys(do_not_use).length > 0) {
+                res[column.datatable_field_uid] = do_not_use;
+            }
         }
 
         return res;
@@ -2478,7 +2534,8 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 param.discarded_field_paths,
                 param.is_secured,
                 param.file_access_policy_name,
-                VueAppBase.getInstance().appController.data_user ? VueAppBase.getInstance().appController.data_user.id : null
+                VueAppBase.getInstance().appController.data_user ? VueAppBase.getInstance().appController.data_user.id : null,
+                param.do_not_user_filter_by_datatable_field_uid,
             );
         }
     }

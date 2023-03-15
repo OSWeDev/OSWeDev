@@ -109,6 +109,10 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_ValidationFilters();
 
         await this.initializeWidget_ResetFilters();
+
+        await this.initializeWidget_SaveFavoritesFilters();
+
+        await this.initializeWidget_ShowFavoritesFilters();
     }
 
     private async initializeWidget_BulkOps() {
@@ -238,7 +242,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         fieldValueFilter.icon_component = 'Fieldvaluefilterwidgeticoncomponent';
         fieldValueFilter.is_filter = true;
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(fieldValueFilter, () => new FieldValueFilterWidgetOptions(null, null, null, true, false, FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_1, 50, false, false, null, false, AdvancedStringFilter.FILTER_TYPE_CONTIENT, false, false, null, null, null, null, false, false, false, null, null, null, null, false, null, false, false, false, null, null, false, false, false), FieldValueFilterWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(fieldValueFilter, () => new FieldValueFilterWidgetOptions(null, null, null, true, false, FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_1, 50, false, false, null, false, AdvancedStringFilter.FILTER_TYPE_CONTIENT, false, false, null, null, null, null, false, false, false, null, null, null, null, false, null, false, false, false, null, null, false, false, false, null, null, null), FieldValueFilterWidgetOptions.get_selected_fields);
 
         Vue.component('Fieldvaluefilterwidgetcomponent', () => import(/* webpackChunkName: "FieldValueFilterWidgetComponent" */ './widgets/field_value_filter_widget/FieldValueFilterWidgetComponent'));
         Vue.component('Fieldvaluefilterwidgetoptionscomponent', () => import(/* webpackChunkName: "FieldValueFilterWidgetOptionsComponent" */ './widgets/field_value_filter_widget/options/FieldValueFilterWidgetOptionsComponent'));
@@ -340,6 +344,48 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         Vue.component('Validationfilterswidgetcomponent', () => import(/* webpackChunkName: "ValidationFiltersWidgetComponent" */ './widgets/validation_filters_widget/ValidationFiltersWidgetComponent'));
         Vue.component('Validationfilterswidgetoptionscomponent', () => import(/* webpackChunkName: "ValidationFiltersWidgetOptionsComponent" */ './widgets/validation_filters_widget/options/ValidationFiltersWidgetOptionsComponent'));
         Vue.component('Validationfilterswidgeticoncomponent', () => import(/* webpackChunkName: "ValidationFiltersWidgetIconComponent" */ './widgets/validation_filters_widget/icon/ValidationFiltersWidgetIconComponent'));
+    }
+
+    private async initializeWidget_SaveFavoritesFilters() {
+        let SaveFavoritesFilters = new DashboardWidgetVO();
+
+        SaveFavoritesFilters.default_height = 5;
+        SaveFavoritesFilters.default_width = 2;
+        SaveFavoritesFilters.name = DashboardWidgetVO.WIDGET_NAME_savefavoritesfilters;
+        SaveFavoritesFilters.widget_component = 'Savefavoritesfilterswidgetcomponent';
+        SaveFavoritesFilters.options_component = 'Savefavoritesfilterswidgetoptionscomponent';
+        SaveFavoritesFilters.weight = 3;
+        SaveFavoritesFilters.default_background = '#f5f5f5';
+        SaveFavoritesFilters.icon_component = 'Savefavoritesfilterswidgeticoncomponent';
+        SaveFavoritesFilters.is_validation_filters = true;
+        SaveFavoritesFilters.is_filter = true;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(SaveFavoritesFilters, null, null);
+
+        Vue.component('Savefavoritesfilterswidgetcomponent', () => import(/* webpackChunkName: "SaveFavoritesFiltersWidgetComponent" */ './widgets/save_favorites_filters_widget/SaveFavoritesFiltersWidgetComponent'));
+        Vue.component('Savefavoritesfilterswidgetoptionscomponent', () => import(/* webpackChunkName: "SaveFavoritesFiltersWidgetOptionsComponent" */ './widgets/save_favorites_filters_widget/options/SaveFavoritesFiltersWidgetOptionsComponent'));
+        Vue.component('Savefavoritesfilterswidgeticoncomponent', () => import(/* webpackChunkName: "SaveFavoritesFiltersWidgetIconComponent" */ './widgets/save_favorites_filters_widget/icon/SaveFavoritesFiltersWidgetIconComponent'));
+    }
+
+    private async initializeWidget_ShowFavoritesFilters() {
+        let ShowFavoritesFilters = new DashboardWidgetVO();
+
+        ShowFavoritesFilters.default_height = 5;
+        ShowFavoritesFilters.default_width = 2;
+        ShowFavoritesFilters.name = DashboardWidgetVO.WIDGET_NAME_showfavoritesfilters;
+        ShowFavoritesFilters.widget_component = 'Showfavoritesfilterswidgetcomponent';
+        ShowFavoritesFilters.options_component = 'Showfavoritesfilterswidgetoptionscomponent';
+        ShowFavoritesFilters.weight = 3;
+        ShowFavoritesFilters.default_background = '#f5f5f5';
+        ShowFavoritesFilters.icon_component = 'Showfavoritesfilterswidgeticoncomponent';
+        ShowFavoritesFilters.is_validation_filters = true;
+        ShowFavoritesFilters.is_filter = true;
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(ShowFavoritesFilters, null, null);
+
+        Vue.component('Showfavoritesfilterswidgetcomponent', () => import(/* webpackChunkName: "ShowFavoritesFiltersWidgetComponent" */ './widgets/show_favorites_filters_widget/ShowFavoritesFiltersWidgetComponent'));
+        Vue.component('Showfavoritesfilterswidgetoptionscomponent', () => import(/* webpackChunkName: "ShowFavoritesFiltersWidgetOptionsComponent" */ './widgets/show_favorites_filters_widget/options/ShowFavoritesFiltersWidgetOptionsComponent'));
+        Vue.component('Showfavoritesfilterswidgeticoncomponent', () => import(/* webpackChunkName: "ShowFavoritesFiltersWidgetIconComponent" */ './widgets/show_favorites_filters_widget/icon/ShowFavoritesFiltersWidgetIconComponent'));
     }
 
     private async initializeWidget_ResetFilters() {

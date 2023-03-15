@@ -463,6 +463,15 @@ export default abstract class VueAppBase {
 
             return null;
         };
+
+        // On applique un zoom auto si param à TRUE
+        if (EnvHandler.ZOOM_AUTO) {
+            let zoom: number = (1 - (window.devicePixelRatio - 1) / window.devicePixelRatio);
+
+            if (zoom) {
+                document.body.style['zoom'] = zoom.toString();
+            }
+        }
     }
 
     protected abstract createVueMain(): VueComponentBase;

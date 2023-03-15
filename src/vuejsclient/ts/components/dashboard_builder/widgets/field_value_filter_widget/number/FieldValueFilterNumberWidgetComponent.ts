@@ -113,7 +113,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
     }
 
     private async mounted() {
-        ResetFiltersWidgetController.getInstance().register_updater(
+        ResetFiltersWidgetController.getInstance().register_reseter(
             this.dashboard_page,
             this.page_widget,
             this.reset_visible_options.bind(this),
@@ -863,6 +863,9 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                     options.show_count_value,
                     options.active_field_on_autovalidate_advanced_filter,
                     options.force_filter_all_api_type_ids,
+                    options.bg_color,
+                    options.fg_color_value,
+                    options.fg_color_text,
                 ) : null;
             }
         } catch (error) {

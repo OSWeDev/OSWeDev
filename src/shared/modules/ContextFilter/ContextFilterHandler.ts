@@ -1,5 +1,6 @@
 import { cloneDeep, isArray } from "lodash";
 import ConsoleHandler from "../../tools/ConsoleHandler";
+import LocaleManager from "../../tools/LocaleManager";
 import { all_promises } from "../../tools/PromiseTools";
 import RangeHandler from "../../tools/RangeHandler";
 import DatatableField from "../DAO/vos/datatable/DatatableField";
@@ -19,6 +20,96 @@ import ContextFilterVO from "./vos/ContextFilterVO";
 import { query } from "./vos/ContextQueryVO";
 
 export default class ContextFilterHandler {
+    // MONTHS MIXIN
+    public static readonly MONTHS_LABELS = [
+        "label.month.janvier",
+        "label.month.fevrier",
+        "label.month.mars",
+        "label.month.avril",
+        "label.month.mai",
+        "label.month.juin",
+        "label.month.juillet",
+        "label.month.aout",
+        "label.month.septembre",
+        "label.month.octobre",
+        "label.month.novembre",
+        "label.month.decembre"
+    ];
+
+    public static readonly DAYS_LABELS = [
+        "label.day.dimanche",
+        "label.day.lundi",
+        "label.day.mardi",
+        "label.day.mercredi",
+        "label.day.jeudi",
+        "label.day.vendredi",
+        "label.day.samedi"
+    ];
+
+    /**
+     * Context Filter To Readable Ihm
+     *  - Human readable context filters
+     *
+     * @param context_filter {ContextFilterVO}
+     */
+    public static context_filter_to_readable_ihm(context_filter: ContextFilterVO) {
+        switch (context_filter?.filter_type) {
+            case ContextFilterVO.TYPE_FILTER_AND:
+                let unique_set = new Set<string>();
+                let res: string = '';
+
+                // case when AND
+                const left_hook = context_filter.left_hook;
+                const rigth_hook = context_filter.right_hook;
+
+                let ihm_left_hook = ContextFilterHandler.context_filter_to_readable_ihm(left_hook);
+                let ihm_right_hook = ContextFilterHandler.context_filter_to_readable_ihm(rigth_hook);
+
+                // Add dynamic regex checker
+                const rgx = RegExp(ihm_right_hook, 'g');
+                // Case when iteration may has already been done
+                if (rgx.test(ihm_left_hook)) {
+                    ihm_right_hook = null;
+                }
+
+                unique_set.add(ihm_left_hook);
+                if (ihm_right_hook?.length > 0) {
+                    unique_set.add(ihm_right_hook);
+                }
+
+                const data = Array.from(unique_set);
+
+                res = data.join(' - ');
+
+                return res;
+
+            case ContextFilterVO.TYPE_DATE_MONTH:
+                const months_selection: string[] = [];
+
+                // param_numranges of months is e.g. [1, ..., 12]
+                RangeHandler.foreach_ranges_sync(context_filter.param_numranges, (month: number) => {
+                    months_selection.push(ContextFilterHandler.MONTHS_LABELS[month - 1]);
+                });
+
+                return months_selection
+                    .map((month_label) => LocaleManager.getInstance().label(month_label))
+                    .join(', ');
+
+            case ContextFilterVO.TYPE_DATE_YEAR:
+                const years_selection: number[] = [];
+
+                // param_numranges of years is e.g. [..., 2020, ..., 2023, ...]
+                RangeHandler.foreach_ranges_sync(context_filter.param_numranges, (year: number) => {
+                    years_selection.push(year);
+                });
+
+                return years_selection.join(', ');
+
+            case ContextFilterVO.TYPE_TEXT_EQUALS_ANY:
+                // param_textarray of any string is e.g. [..., one_text_1, ..., one_text_2, ...]
+                return context_filter.param_textarray?.join(', ');
+        }
+    }
 
     public static getInstance(): ContextFilterHandler {
         if (!ContextFilterHandler.instance) {

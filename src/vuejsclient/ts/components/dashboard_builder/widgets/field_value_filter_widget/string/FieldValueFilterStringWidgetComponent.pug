@@ -6,7 +6,7 @@
                 .vo_field_ref_advanced
                     toggle-button(
                         @change="toggle_advanced_filters" 
-                        :value="advanced_string_filters" 
+                        :value="is_advanced_filters" 
                         :sync="true"
                         :width="100"
                         :labels="{checked: label('vo_field_ref_advanced.advanced_filters.visible'), unchecked: label('vo_field_ref_advanced.advanced_filters.hidden')}")
@@ -44,23 +44,27 @@
                             .advanced_string_filter_content(v-if='has_content_filter_type[advanced_string_filter.filter_type]', :class="{hide_advanced_string_filter_type: hide_advanced_string_filter_type}")
                                 input(v-model='advanced_string_filter.filter_content' :placeholder='advanced_mode_placeholder' @change="onchange_advanced_string_filter_content")
                             template(v-if='parseInt(i.toString()) == (advanced_string_filters.length - 1)')
-                                //- .advanced_string_filter_add_filter(v-tooltip.top='label("advanced_string_filters.add")' @click='add_advanced_string_filter')
+                                //- .advanced_string_filter_add_filter(v-tooltip.top='label("advanced_filters.add")' @click='add_advanced_string_filter')
                                 //-     i.fa-solid.fa-plus-circle.fa-lg.btn_icon
                                 template(v-if="!autovalidate_advanced_filter || active_field_on_autovalidate_advanced_filter")
-                                    .advanced_string_filter_validate_filter(v-tooltip.top='label("advanced_string_filters.validate")' @click='validate_advanced_string_filter' :class='{"disabled": !is_advanced_filter_valid}')
+                                    .advanced_string_filter_validate_filter(v-tooltip.top='label("advanced_filters.validate")' @click='validate_advanced_string_filter' :class='{"disabled": !is_advanced_filter_valid}')
                                         i.fa-duotone.fa-check-circle.fa-lg.btn_icon
                             template(v-else)
-                                .advanced_string_filter_link_type(v-tooltip.top='label("advanced_string_filters.link_type")' @click='switch_link_type(advanced_string_filter)')
+                                .advanced_string_filter_link_type(v-tooltip.top='label("advanced_filters.link_type")' @click='switch_link_type(advanced_string_filter)')
                                     i.fa-duotone.fa-circle.fa-lg.btn_icon
                                     .link_type {{ t(link_type_labels[advanced_string_filter.link_type]) }}
-                                .advanced_string_filter_delete_filter(v-tooltip.top='label("advanced_string_filters.delete")' @click='delete_advanced_string_filter(parseInt(i.toString()))')
+                                .advanced_string_filter_delete_filter(v-tooltip.top='label("advanced_filters.delete")' @click='delete_advanced_string_filter(parseInt(i.toString()))')
                                     i.fa-duotone.fa-trash.fa-lg.btn_icon
                             
-                            template
-                                .text_cliquable(@click='handle_select_all') {{ label('select_all') }}
-                                .inter_text -
-                                .text_cliquable(@click='handle_select_none') {{ label('select_none') }}
+                template 
+                    template(v-if="can_select_all")
+                        .text_cliquable(@click='handle_select_all') {{ label('select_all') }}
+                        template(v-if="can_select_all && can_select_none")
+                            .inter_text -
+                    template(v-if="can_select_none")
+                        .text_cliquable(@click='handle_select_none') {{ label('select_none') }}
 
+                        
         template(v-else)
             .vo_field_ref_filter                
                 template(v-if="is_checkbox")
@@ -102,6 +106,15 @@
                                                                     label.option__title.ml-2(:for="base_filter + '_' + column_index + '_' + index + '_lvl2_' + index_lvl2") {{ label(opt_lvl2.label) }}
                                                                 template(v-else)
                                                                     label.option__title.ml-2(:for="base_filter + '_' + column_index + '_' + index + '_lvl2_' + index_lvl2") {{ opt_lvl2.label }}
+
+                        template 
+                            template(v-if="can_select_all")
+                                .text_cliquable(@click='handle_select_all') {{ label('select_all') }}
+                                template(v-if="can_select_all && can_select_none")
+                                    .inter_text -
+                            template(v-if="can_select_none")
+                                .text_cliquable(@click='handle_select_none') {{ label('select_none') }}
+                        
 
                 template(v-else-if="is_button")
                     template(v-for="filter_visible_opt in filter_visible_options")
@@ -159,9 +172,9 @@
                                 i.fa-duotone.fa-times(@click='props.remove(props.option)')
                     
                     template 
-                        template(v-if="show_all")
+                        template(v-if="can_select_all")
                             .text_cliquable(@click='handle_select_all') {{ label('select_all') }}
-                            template(v-if="show_all && show_none")
+                            template(v-if="can_select_all && can_select_none")
                                 .inter_text -
-                        template(v-if="show_none")
+                        template(v-if="can_select_none")
                             .text_cliquable(@click='handle_select_none') {{ label('select_none') }}

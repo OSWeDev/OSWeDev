@@ -794,6 +794,11 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
      * On peut éditer si c'est un certain type de champs et directement sur le VO du crud type paramétré
      */
     get can_be_editable(): boolean {
+        // Si la colonne est de type VAR, on accepte la modif
+        if (this.column.type == TableColumnDescVO.TYPE_var_ref) {
+            return true;
+        }
+
         if (!this.column) {
             return false;
         }

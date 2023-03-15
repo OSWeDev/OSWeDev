@@ -1,6 +1,5 @@
 
-import cloneDeep from 'lodash/cloneDeep';
-import debounce from 'lodash/debounce';
+import { debounce, cloneDeep } from 'lodash';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';

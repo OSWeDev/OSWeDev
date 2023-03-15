@@ -74,7 +74,7 @@ export default class FieldValueFilterBooleanWidgetComponent extends VueComponent
     }
 
     private async mounted() {
-        ResetFiltersWidgetController.getInstance().register_updater(
+        ResetFiltersWidgetController.getInstance().register_reseter(
             this.dashboard_page,
             this.page_widget,
             this.reset_visible_options.bind(this),

@@ -54,6 +54,8 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private export_button: boolean = true;
     private update_button: boolean = true;
     private create_button: boolean = true;
+    private can_export_active_field_filters: boolean = false;
+    private can_export_vars_indicator: boolean = false;
     private show_limit_selectable: boolean = false;
     private show_pagination_resumee: boolean = true;
     private show_pagination_slider: boolean = true;
@@ -169,6 +171,12 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         }
         if (this.export_button != this.widget_options.export_button) {
             this.export_button = this.widget_options.export_button;
+        }
+        if (this.can_export_active_field_filters != this.widget_options.can_export_active_field_filters) {
+            this.can_export_active_field_filters = this.widget_options.can_export_active_field_filters;
+        }
+        if (this.can_export_vars_indicator != this.widget_options.can_export_vars_indicator) {
+            this.can_export_vars_indicator = this.widget_options.can_export_vars_indicator;
         }
         if (this.tmp_has_default_export_option != this.widget_options.has_default_export_option) {
             this.tmp_has_default_export_option = this.widget_options.has_default_export_option;
@@ -621,6 +629,8 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                     options.use_kanban_by_default_if_exists,
                     options.use_kanban_column_weight_if_exists,
                     options.use_for_count,
+                    options.can_export_active_field_filters,
+                    options.can_export_vars_indicator,
                 ) : null;
             }
         } catch (error) {
@@ -750,6 +760,38 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
         if (this.next_update_options.export_button != this.export_button) {
             this.next_update_options.export_button = this.export_button;
+            await this.throttled_update_options();
+        }
+    }
+
+    private async toggle_can_export_active_field_filters() {
+        this.can_export_active_field_filters = !this.can_export_active_field_filters;
+
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.next_update_options.can_export_active_field_filters != this.can_export_active_field_filters) {
+            this.next_update_options.can_export_active_field_filters = this.can_export_active_field_filters;
+
+            await this.throttled_update_options();
+        }
+    }
+
+    private async toggle_can_export_vars_indicator() {
+        this.can_export_vars_indicator = !this.can_export_vars_indicator;
+
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.next_update_options.can_export_vars_indicator != this.can_export_vars_indicator) {
+            this.next_update_options.can_export_vars_indicator = this.can_export_vars_indicator;
+
             await this.throttled_update_options();
         }
     }

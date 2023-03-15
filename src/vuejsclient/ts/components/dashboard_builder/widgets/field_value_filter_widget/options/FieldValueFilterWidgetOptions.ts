@@ -122,8 +122,8 @@ export default class FieldValueFilterWidgetOptions implements IExportableWidgetO
         public bg_color?: string,
         public fg_color_value?: string,
         public fg_color_text?: string,
-        public show_all?: boolean,
-        public show_none?: boolean,
+        public can_select_all?: boolean,
+        public can_select_none?: boolean,
     ) { }
 
     public get_placeholder_name_code_text(page_widget_id: number): string {
@@ -131,6 +131,7 @@ export default class FieldValueFilterWidgetOptions implements IExportableWidgetO
         if ((!this.vo_field_ref) || (!page_widget_id)) {
             return null;
         }
+
         return FieldValueFilterWidgetOptions.VO_FIELD_REF_PLACEHOLDER_CODE_PREFIX + page_widget_id + '.' + this.vo_field_ref.api_type_id + '.' + this.vo_field_ref.field_id;
     }
 
@@ -164,4 +165,5 @@ export default class FieldValueFilterWidgetOptions implements IExportableWidgetO
         }
         return res;
     }
+
 }

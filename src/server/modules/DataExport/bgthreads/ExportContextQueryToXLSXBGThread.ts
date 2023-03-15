@@ -33,6 +33,7 @@ export default class ExportContextQueryToXLSXBGThread implements IBGThread {
     }
 
     public async push_export_query(export_query: ExportContextQueryToXLSXQueryVO) {
+        // If (pseudo) Bg thread is not currently running do nothing.
         if (!await ForkedTasksController.getInstance().exec_self_on_bgthread(ExportContextQueryToXLSXBGThread.getInstance().name, ExportContextQueryToXLSXBGThread.TASK_NAME_push_export_query, export_query)) {
             return;
         }
@@ -68,7 +69,10 @@ export default class ExportContextQueryToXLSXBGThread implements IBGThread {
                 export_query.discarded_field_paths,
                 export_query.is_secured,
                 export_query.file_access_policy_name,
-                export_query.target_user_id
+                export_query.target_user_id,
+                export_query.do_not_user_filter_by_datatable_field_uid,
+                export_query.export_options,
+                export_query.vars_indicator,
             );
             return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
         } catch (error) {

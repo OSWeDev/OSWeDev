@@ -56,6 +56,7 @@ export default class InlineTranslatableText extends VueComponentBase {
     private thottled_check_existing_bdd_translation = ThrottleHelper.getInstance().declare_throttle_without_args(this.check_existing_bdd_translation.bind(this), 500);
 
     @Watch("code_text", { immediate: true })
+    @Watch("translation_params", { immediate: true })
     private async onchange_code_text() {
 
         if ((!this.get_initialized) || (this.get_initializing)) {
@@ -223,9 +224,10 @@ export default class InlineTranslatableText extends VueComponentBase {
                             },
                         });
                         this.semaphore = true;
+                        return;
                     }
 
-                    this.set_flat_locale_translation({ code_text, value: translation });
+                    this.set_flat_locale_translation({ code_text: code_text, value: translation });
                     resolve({
                         body: self.label('on_page_translation.save_translation.ok'),
                         config: {
