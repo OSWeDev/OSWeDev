@@ -365,11 +365,13 @@ export default class MonthFilterWidgetOptionsComponent extends VueComponentBase 
     }
 
     private async update_options() {
+
         try {
             this.page_widget.json_options = JSON.stringify(this.next_update_options);
         } catch (error) {
             ConsoleHandler.error(error);
         }
+
         await ModuleDAO.getInstance().insertOrUpdateVO(this.page_widget);
 
         this.set_page_widget(this.page_widget);

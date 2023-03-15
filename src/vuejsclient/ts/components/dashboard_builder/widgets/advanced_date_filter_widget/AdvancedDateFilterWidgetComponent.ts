@@ -58,7 +58,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
     private old_widget_options: AdvancedDateFilterWidgetOptions = null;
 
     private async mounted() {
-        ResetFiltersWidgetController.getInstance().register_updater(
+        ResetFiltersWidgetController.getInstance().register_reseter(
             this.dashboard_page,
             this.page_widget,
             this.reset_visible_options.bind(this),

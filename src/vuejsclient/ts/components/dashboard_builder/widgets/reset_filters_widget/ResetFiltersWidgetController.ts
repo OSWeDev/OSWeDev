@@ -13,20 +13,20 @@ export default class ResetFiltersWidgetController {
 
     private static instance = null;
 
-    public updaters: { [dashboard_id: number]: { [dashboard_page_id: number]: { [page_widget_id: number]: () => Promise<void> } } } = {};
+    public reseters: { [dashboard_id: number]: { [dashboard_page_id: number]: { [page_widget_id: number]: () => Promise<void> } } } = {};
     public is_init: { [dashboard_id: number]: { [dashboard_page_id: number]: { [page_widget_id: number]: boolean } } } = {};
 
     private constructor() { }
 
-    public register_updater(dashboard_page: DashboardPageVO, page_widget: DashboardPageWidgetVO, updater: () => Promise<void>) {
-        if (!this.updaters[dashboard_page.dashboard_id]) {
-            this.updaters[dashboard_page.dashboard_id] = {};
+    public register_reseter(dashboard_page: DashboardPageVO, page_widget: DashboardPageWidgetVO, reseter: () => Promise<void>) {
+        if (!this.reseters[dashboard_page.dashboard_id]) {
+            this.reseters[dashboard_page.dashboard_id] = {};
         }
 
-        if (!this.updaters[dashboard_page.dashboard_id][dashboard_page.id]) {
-            this.updaters[dashboard_page.dashboard_id][dashboard_page.id] = {};
+        if (!this.reseters[dashboard_page.dashboard_id][dashboard_page.id]) {
+            this.reseters[dashboard_page.dashboard_id][dashboard_page.id] = {};
         }
 
-        this.updaters[dashboard_page.dashboard_id][dashboard_page.id][page_widget.id] = updater;
+        this.reseters[dashboard_page.dashboard_id][dashboard_page.id][page_widget.id] = reseter;
     }
 }
