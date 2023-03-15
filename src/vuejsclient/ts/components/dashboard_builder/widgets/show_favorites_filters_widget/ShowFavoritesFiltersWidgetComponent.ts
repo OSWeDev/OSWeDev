@@ -52,6 +52,8 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
     private tmp_active_favorites_filters_option: DashboardFavoritesFiltersVO = null;
     private old_tmp_active_favorites_filters_option: DashboardFavoritesFiltersVO = null;
 
+    private old_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null;
+
     private favorites_filters_visible_options: DashboardFavoritesFiltersVO[] = [];
 
     private warn_existing_external_filters: boolean = false;
@@ -127,7 +129,8 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
                 isEmpty(page_filters) ||
                 !isEqual(this.tmp_active_favorites_filters_option, this.old_tmp_active_favorites_filters_option)
             ) {
-                this.reset_all_visible_active_filters();
+                this.old_active_field_filters = cloneDeep(this.get_active_field_filters);
+                this.reset_all_visible_active_field_filters();
             }
 
             this.throttled_update_active_field_filters();
@@ -156,20 +159,20 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
         }
 
         // Init context filter of the current filter
-        let wholl_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null;
+        let whole_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null;
 
-        // Get wholl active field filters from context
-        wholl_active_field_filters = this.get_active_field_filters ?? null;
+        // Get whole active field filters from context
+        whole_active_field_filters = this.get_active_field_filters ?? null;
 
         // Say if has active field filter
-        let has_active_field_filter: boolean = !!(wholl_active_field_filters);
+        let has_active_field_filter: boolean = !!(whole_active_field_filters);
 
         // case when has active context filter but active visible filter empty
         // - try to apply context filter or display active favorites filter application fail alert
         if (has_active_field_filter &&
             (!this.tmp_active_favorites_filters_option)) {
 
-            this.warn_existing_external_filters = !this.try_apply_actual_active_favorites_filters(wholl_active_field_filters);
+            this.warn_existing_external_filters = !this.try_apply_actual_active_favorites_filters(whole_active_field_filters);
         }
 
         let field_sort: VOFieldRefVO = this.vo_field_ref;
@@ -241,23 +244,58 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
      */
     private async reload_visible_options() {
         // Reset favorite selected option
-        this.tmp_active_favorites_filters_option = null;
+        // this.tmp_active_favorites_filters_option = null;
         this.throttled_update_visible_options();
     }
 
     /**
      * Update Active Field Filters
      *  - Update page filters, we must have a delay
+     *  - Must have to be a combination between current active_field_filters and favorites_field_filters
+     *  - Overwrite active_field_filters with the favorites one
      */
     private update_active_field_filters(): void {
-        const page_filters = JSON.parse(this.tmp_active_favorites_filters_option?.page_filters ?? '{}');
-        this.set_active_field_filters(page_filters);
+        const favorites_field_filters = JSON.parse(this.tmp_active_favorites_filters_option?.page_filters ?? '{}');
+        const old_active_field_filters = this.old_active_field_filters;
+
+        let active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = {};
+
+        // Add default active filters with the old one
+        for (const api_type_id in old_active_field_filters) {
+            const filters = old_active_field_filters[api_type_id];
+
+            for (const field_id in filters) {
+                // the actual filter
+                const filter = filters[field_id];
+
+                // Add default active filters
+                active_field_filters[api_type_id] = {};
+                active_field_filters[api_type_id][field_id] = filter;
+            }
+        }
+
+        // Add/Overwrite active filters with the favorites one
+        for (const api_type_id in favorites_field_filters) {
+            const filters = favorites_field_filters[api_type_id];
+
+            for (const field_id in filters) {
+                // the actual filter
+                const filter = filters[field_id];
+
+                active_field_filters[api_type_id] = (active_field_filters[api_type_id] != undefined) ?
+                    active_field_filters[api_type_id] :
+                    {};
+                active_field_filters[api_type_id][field_id] = filter;
+            }
+        }
+
+        this.set_active_field_filters(active_field_filters);
     }
 
     /**
      * Reset All Visible Active Filters
      */
-    private reset_all_visible_active_filters(): void {
+    private reset_all_visible_active_field_filters(): void {
         for (const db_id in ResetFiltersWidgetController.getInstance().reseters) {
             const db_reseters = ResetFiltersWidgetController.getInstance().reseters[db_id];
 

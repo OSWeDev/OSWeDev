@@ -1,26 +1,31 @@
 .save_favorites_filters_modal_component_wrapper
-    #save_favorites_filters_modal_component.modal.fade.in(ref="save_favorites_filters_modal_component",tabindex='-1', role='dialog')
+    #save_favorites_filters_modal_component.modal.fade.in(
+            ref="save_favorites_filters_modal_component",
+            tabindex='-1', 
+            role='dialog'
+        )
         .modal-dialog.modal-lg(role='document')
             .modal-content 
                 .modal-header
                     h4.modal-title {{ label('dashboard_viewer.save_favorites_filters.select_favorites') }}
-                    a.btn.close(data-dismiss="modal" @click='handle_close_modal') &times;
+                    a.btn.close(
+                        data-dismiss="modal" 
+                        @click='handle_close_modal'
+                    ) &times;
                 .modal-body
-                    template 
-                        .favorites_filters_name
-                            .input_label {{ label('dashboard_viewer.save_favorites_filters.enter_name') }}
-                            .input_wrapper
-                                input(
-                                    type="text"
-                                    v-model="favorites_filters_name"
-                                )
+                    div.favorites_filters_name
+                        .input_label {{ label('dashboard_viewer.save_favorites_filters.enter_name') }}
+                        .input_wrapper
+                            input(
+                                type="text"
+                                v-model="favorites_filters_name"
+                            )
 
-                    template 
-                        .select_favorites_filters
-                            .input_label {{ label('dashboard_viewer.save_favorites_filters.select_favorites') }}
-                        .row
+                    div.select_favorites_filters
+                        .input_label {{ label('dashboard_viewer.save_favorites_filters.select_favorites') }}
+                        .row.select_favorites_filters_options
                             template(v-for="(option, translatable_field_filters_code) in readable_active_field_filters_hmi")
-                                div.filter_opt.col-md-12
+                                div.option.col-md-12
                                     input(
                                         :name="base_filter + '_' + translatable_field_filters_code" 
                                         :id="base_filter + '_' + translatable_field_filters_code" 

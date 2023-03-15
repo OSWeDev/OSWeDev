@@ -53,7 +53,7 @@ export default class ContextFilterHandler {
      * @param context_filter {ContextFilterVO}
      */
     public static context_filter_to_readable_ihm(context_filter: ContextFilterVO) {
-        switch (context_filter.filter_type) {
+        switch (context_filter?.filter_type) {
             case ContextFilterVO.TYPE_FILTER_AND:
                 let unique_set = new Set<string>();
                 let res: string = '';

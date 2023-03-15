@@ -1,10 +1,12 @@
-.save_favorites_filters_modal_component {
+.save_favorites_filters_modal_component_wrapper {
     height: 100%;
     padding: 0.5em;
 
-    button {
-        height: 100%;
-        width: 100%;
-        border: 0;
+    .favorites_filters_name {
+        .input_wrapper {
+            input {
+                width: 100%;
+            }
+        }
     }
 }

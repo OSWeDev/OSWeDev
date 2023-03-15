@@ -4,7 +4,7 @@ import VueComponentBase from '../../../../VueComponentBase';
 import ContextFilterHandler from '../../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
-import './SaveFavoritesFiltersWidgetComponent.scss';
+import './SaveFavoritesFiltersModalComponent.scss';
 import { cloneDeep } from 'lodash';
 
 export interface IReadableActiveFieldFilters {
