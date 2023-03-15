@@ -6,7 +6,7 @@
     .fractionalDigits
         .label {{ label('amount_filter_options.fractionalDigits') }}
         .input
-            input(type='number' v-model='fractionalDigits' min="0" max="3" @change='onchange_inputs')
+            input(type='number' v-model='fractional_digits' min="0" max="3" @change='onchange_inputs')
     .humanize
         .label {{ label('amount_filter_options.humanize') }}
         .input
@@ -21,7 +21,7 @@
         .input
             toggle-button(
                 @change="switch_onlyPositive" 
-                :value="onlyPositive" 
+                :value="only_positive" 
                 :sync="false"
                 :width="60"
                 :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}")

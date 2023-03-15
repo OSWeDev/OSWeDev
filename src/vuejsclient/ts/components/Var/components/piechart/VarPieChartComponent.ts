@@ -1,4 +1,4 @@
-import debounce from 'lodash/debounce';
+import { debounce } from 'lodash';
 import { Pie } from 'vue-chartjs';
 import 'chartjs-plugin-labels';
 import { Component, Prop, Watch } from 'vue-property-decorator';

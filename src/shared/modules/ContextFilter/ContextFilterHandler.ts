@@ -49,7 +49,7 @@ export default class ContextFilterHandler {
     /**
      * Context Filter To Readable Ihm
      *  - Human readable context filters
-     * @param context_filter <ContextFilterVO>
+     * @param context_filter {ContextFilterVO}
      */
     public static context_filter_to_readable_ihm(context_filter: ContextFilterVO) {
         switch (context_filter.filter_type) {
@@ -103,6 +103,10 @@ export default class ContextFilterHandler {
                 });
 
                 return years_selection.join(', ');
+
+            case ContextFilterVO.TYPE_TEXT_EQUALS_ANY:
+                // param_textarray of any string is e.g. [..., one_text_1, ..., one_text_2, ...]
+                return context_filter.param_textarray?.join(', ');
         }
     }
 
