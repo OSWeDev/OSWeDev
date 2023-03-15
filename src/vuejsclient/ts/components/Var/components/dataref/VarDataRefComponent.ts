@@ -86,6 +86,9 @@ export default class VarDataRefComponent extends VueComponentBase {
     @Prop({ default: false })
     public show_import_aggregated: boolean;
 
+    @Prop({ default: true })
+    public show_tooltip_import: boolean;
+
     @Prop({ default: false })
     public show_tooltip: boolean;
 
@@ -467,7 +470,7 @@ export default class VarDataRefComponent extends VueComponentBase {
             formatted_date: formatted_date,
         });
 
-        if (!!this.var_data_value_import_tooltip) {
+        if (!!this.var_data_value_import_tooltip && this.show_tooltip_import) {
             res += this.var_data_value_import_tooltip;
         }
 
