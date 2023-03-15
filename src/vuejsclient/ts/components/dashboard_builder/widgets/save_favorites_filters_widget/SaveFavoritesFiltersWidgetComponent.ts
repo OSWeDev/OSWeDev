@@ -1,5 +1,5 @@
 import Component from 'vue-class-component';
-import { Prop } from 'vue-property-decorator';
+import { Prop, Watch } from 'vue-property-decorator';
 import DashboardFavoritesFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardFavoritesFiltersVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
@@ -10,7 +10,8 @@ import { SaveFavoritesFiltersWidgetOptions } from './options/SaveFavoritesFilter
 import { SaveFavoritesFiltersWidgetController } from './SaveFavoritesFiltersWidgetController';
 import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import './SaveFavoritesFiltersWidgetComponent.scss';
-import ReloadFiltersWidgetController from '../../../../../../../dist/vuejsclient/ts/components/dashboard_builder/widgets/reload_filters_widget/RealoadFiltersWidgetController';
+import ReloadFiltersWidgetController from '../reload_filters_widget/RealoadFiltersWidgetController';
+import SaveFavoritesFiltersModalComponent, { ISaveFavoritesFiltersModalValidationCallbackProps } from './modal/SaveFavoritesFiltersModalComponent';
 
 @Component({
     template: require('./SaveFavoritesFiltersWidgetComponent.pug'),
@@ -20,6 +21,8 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
 
     @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+    @ModuleDashboardPageGetter
+    private get_Savefavoritesfiltersmodalcomponent: SaveFavoritesFiltersModalComponent;
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
@@ -27,15 +30,87 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
     @Prop({ default: null })
     private dashboard_page: DashboardPageVO;
 
+    private modal_initialized: boolean = false;
+
     private start_update: boolean = false;
 
+    private is_modal_open: boolean = false;
+
     /**
-     * Handle Save
+     * On mounted
+     *  - Happen on component mount
+     */
+    private mounted() {
+        this.$nextTick(async () => {
+            if (!this.modal_initialized) {
+                this.modal_initialized = true;
+                $("#save_favorites_filters_modal").on("hidden.bs.modal", () => {
+                    this.is_modal_open = false;
+                });
+            }
+        });
+    }
+
+    /**
+     * Watch on is_modal_open
+     *  - Happen on component each time is_modal_open changes
+     * @returns void
+     */
+    @Watch('is_modal_open')
+    private is_modal_open_watcher() {
+        this.handle_modal_state();
+    }
+
+    /**
+     * Handle Open Modal
+     *
+     * @return {Promise<void>}
+     */
+    private async handle_open_modal(): Promise<void> {
+        this.get_Savefavoritesfiltersmodalcomponent.open_modal(null, this.handle_save.bind(this));
+    }
+
+    /**
+     * Handle Save V1
+     *  - Save active dashboard filters for the current user
+     *
+     * @param {ISaveFavoritesFiltersModalValidationCallbackProps} [props]
+     * @returns {Promise<void>}
+     */
+    private async handle_save(props: ISaveFavoritesFiltersModalValidationCallbackProps): Promise<void> {
+        if (!props) { return; }
+
+        if (this.start_update) { return; }
+
+        this.start_update = true;
+
+        let page_filters: string = null;
+
+        try {
+            page_filters = JSON.stringify(props.selected_field_filters);
+        } catch (error) {
+            ConsoleHandler.error(error);
+        }
+
+        const favorites_filters = new DashboardFavoritesFiltersVO().from({
+            dashboard_id: this.dashboard_page.dashboard_id,
+            name: props.favorites_filters_name,
+            owner_id: this.data_user.id,
+            page_filters,
+        });
+
+        this.save_favorites_filters(favorites_filters);
+
+        this.start_update = false;
+    }
+
+    /**
+     * Handle Save V1
      *  - Save active dashboard filters for the current user
      *
      * @return {Promise<void>}
      */
-    private async handle_save(): Promise<void> {
+    private async handle_save_v1(): Promise<void> {
         let self = this;
 
         if (self.start_update) {
@@ -124,6 +199,27 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
                 }
             })
         );
+    }
+
+    /**
+     * Toggle Modal Open
+     *  - Swich modal from show to hide (vice versa)
+     */
+    private toggle_modal_open() {
+        this.is_modal_open = !this.is_modal_open;
+    }
+
+    /**
+     * Handle Modal State
+     *  - Manage modal depending on its state
+     */
+    private handle_modal_state() {
+        if (!this.is_modal_open) {
+            $('#save_favorites_filters_modal').modal('hide');
+        }
+        if (this.is_modal_open) {
+            $('#save_favorites_filters_modal').modal('show');
+        }
     }
 
     /**

@@ -6,10 +6,10 @@ USER_UID := $(shell id -u)
 USER_GID := $(shell id -g)
 
 APPLICATION_NAME ?= oswedev
-DOCKER_USERNAME ?= wedev
+DOCKER_USERNAME ?= wedev 
 
 APPLICATION_IMG_NAME ?= ${DOCKER_USERNAME}/${APPLICATION_NAME}_img
-CONTAINER_NAME ?= oswedev_server_container
+CONTAINER_NAME ?= ${APPLICATION_NAME}_container
 
 COMPOSE_FILE ?= docker compose -f docker-compose.base.yml -f docker-compose.dev.yml
 

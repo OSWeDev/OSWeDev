@@ -1,6 +1,6 @@
 include ../../../../../views/mixins/loading.pug
 
 .save_favorites_filters_widget_component
-    button.btn-primary(@click="handle_save") 
+    button.btn-primary(@click="handle_open_modal") 
         i.fa-solid.fa-spin.fa-spinner.mr-2(v-if="start_update")
         span {{ label('dashboard_viewer.save_favorites_filters') }}

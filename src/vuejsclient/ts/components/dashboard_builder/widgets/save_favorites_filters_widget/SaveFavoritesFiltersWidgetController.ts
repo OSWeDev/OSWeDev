@@ -88,6 +88,6 @@ export class SaveFavoritesFiltersWidgetController {
 
         const res = await ModuleDAO.getInstance().insertOrUpdateVO(favorites_filters_props);
 
-        return res != null;
+        return res?.id != null;
     }
 }

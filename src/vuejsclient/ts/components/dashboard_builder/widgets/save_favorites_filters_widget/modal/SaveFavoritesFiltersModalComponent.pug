@@ -1,0 +1,37 @@
+.save_favorites_filters_modal_component_wrapper
+    #save_favorites_filters_modal_component.modal.fade.in(ref="save_favorites_filters_modal_component",tabindex='-1', role='dialog')
+        .modal-dialog.modal-lg(role='document')
+            .modal-content 
+                .modal-header
+                    h4.modal-title {{ label('dashboard_viewer.save_favorites_filters.select_favorites') }}
+                    a.btn.close(data-dismiss="modal" @click='handle_close_modal') &times;
+                .modal-body
+                    template 
+                        .favorites_filters_name
+                            .input_label {{ label('dashboard_viewer.save_favorites_filters.enter_name') }}
+                            .input_wrapper
+                                input(
+                                    type="text"
+                                    v-model="favorites_filters_name"
+                                )
+
+                    template 
+                        .select_favorites_filters
+                            .input_label {{ label('dashboard_viewer.save_favorites_filters.select_favorites') }}
+                        .row
+                            template(v-for="(option, translatable_field_filters_code) in readable_active_field_filters_hmi")
+                                div.filter_opt.col-md-12
+                                    input(
+                                        :name="base_filter + '_' + translatable_field_filters_code" 
+                                        :id="base_filter + '_' + translatable_field_filters_code" 
+                                        :checked="is_active_field_filter_selected(option)" 
+                                        :key="translatable_field_filters_code" 
+                                        :type="'checkbox'" 
+                                        @change="handle_toggle_select_favorite_filter(option)"    
+                                    )                            
+                                    template
+                                        label.option__title.ml-2(:for="base_filter + '_' + translatable_field_filters_code") {{ label(translatable_field_filters_code) }}: {{ option.readable_active_field_filters }}
+
+                .modal-footer
+                    a.btn.btn-success(data-dismiss="modal" @click='handle_save') {{ label('crud.update.modal.save') }}
+                    a.btn.btn-default(data-dismiss="modal" @click='handle_close_modal') {{ label('crud.update.modal.cancel') }}

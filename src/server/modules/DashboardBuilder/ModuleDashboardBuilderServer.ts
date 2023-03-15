@@ -1432,6 +1432,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'dashboard_viewer.save_favorites_filters.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Selectionner vos filtres favoris" },
+            'dashboard_viewer.save_favorites_filters.select_favorites.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Entrer le nom du favoris" },
             'dashboard_viewer.save_favorites_filters.enter_name.___LABEL___'
         ));

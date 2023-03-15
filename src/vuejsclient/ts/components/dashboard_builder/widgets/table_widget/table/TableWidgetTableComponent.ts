@@ -481,14 +481,14 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                     .find((key_b) => key_b === rgx_result?.groups?.filter_name)
                 );
 
-            // case when actve filter does not exist
+            // case when active filter does not exist
             if (!(field_filters_key?.length > 0)) { return; }
 
             // The actual required filter
             // - At this step it must be found
             const context_filter: ContextFilterVO = active_field_filters[field_filters_key][rgx_result.groups.filter_name];
 
-            // filter to IHM readable
+            // filter to HMI readable
             const filter_readable = ContextFilterHandler.context_filter_to_readable_ihm(context_filter);
 
             const params_key = `#active_filter:${rgx_result.groups.filter_name}`;
@@ -2380,6 +2380,11 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         return VOsTypesManager.vosArray_to_vosByIds(DashboardBuilderWidgetsController.getInstance().sorted_widgets);
     }
 
+    /**
+     * Get export_options
+     *
+     * @return {IExportOptions}
+     */
     get export_options(): IExportOptions {
 
         if (!this.widget_options) {
@@ -2395,6 +2400,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     /**
      * Var Indicator
      *  - All vars indicator on the actual page to be exported
+     *
+     * @return {ExportVarIndicator}
      */
     get vars_indicator(): ExportVarIndicator {
 
@@ -2405,7 +2412,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         // Find id of widget that have type "var"
         const var_widget_id = Object.values(this.widgets_by_id)?.find((e) => e.name == 'var').id;
 
-        // var_widget_id needed to continue
+        // var_widget_id required to continue
         if (!var_widget_id) { return; }
 
         // Find all var widgets of actual page

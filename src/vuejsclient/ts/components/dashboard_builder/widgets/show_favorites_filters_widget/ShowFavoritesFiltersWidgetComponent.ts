@@ -120,10 +120,6 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
     @Watch('tmp_active_favorites_filters_option')
     private onchange_tmp_filter_active_options() {
 
-        if (!this.widget_options) {
-            return;
-        }
-
         const page_filters = JSON.parse(this.tmp_active_favorites_filters_option?.page_filters ?? '{}');
 
         if (this.is_initialized) {
@@ -168,18 +164,6 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
         // Say if has active field filter
         let has_active_field_filter: boolean = !!(wholl_active_field_filters);
 
-        //     if (this.force_filter_change) {
-        //         this.force_filter_change = false;
-        //     }
-
-        //     // case when has active context filter but active visible filter empty
-        //     // - try to apply context filter or display filter application fail alert
-        //     if (has_active_field_filter &&
-        //         (!(this.tmp_active_favorites_filters_option?.length > 0))) {
-
-        //         this.warn_existing_external_filters = !this.try_apply_actual_active_favorites_filters(wholl_active_field_filters);
-        //     }
-
         // case when has active context filter but active visible filter empty
         // - try to apply context filter or display active favorites filter application fail alert
         if (has_active_field_filter &&
@@ -204,18 +188,6 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
             .set_sort(new SortByVO(field_sort.api_type_id, field_sort.field_id, true))
             .select_vos<DashboardFavoritesFiltersVO>();
 
-        //     FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(query_, this.get_discarded_field_paths);
-
-        //     query_.filters = ContextFilterHandler.getInstance().add_context_filters_exclude_values(
-        //         this.exclude_values,
-        //         this.vo_field_ref,
-        //         query_.filters,
-        //         false,
-        //     );
-
-        //     query_ = await FieldValueFilterWidgetController.getInstance()
-        //         .check_segmented_dependencies(this.dashboard, query_, this.get_discarded_field_paths, true);
-
         // We must keep and apply the last request response
         // - This widget may already have perform a request
         if (this.last_calculation_cpt != launch_cpt) {
@@ -233,24 +205,6 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
         if (!(tmp?.length > 0)) {
             tmp = [];
         }
-
-        //     if (this.separation_active_filter && (tmp.length > 0)) {
-        //         for (const key in this.tmp_active_favorites_filters_option) {
-        //             let tfao = this.tmp_active_favorites_filters_option[key];
-        //             let index_opt = tmp.findIndex((e) => e.label == tfao.label);
-        //             if (index_opt > -1) {
-        //                 tmp.splice(index_opt, 1);
-        //             }
-        //         }
-        //     }
-
-        //     if (this.add_is_null_selectable) {
-        //         tmp.unshift(new DataFilterOption(
-        //             DataFilterOption.STATE_SELECTABLE,
-        //             this.label('datafilteroption.is_null'),
-        //             RangeHandler.MIN_INT,
-        //         ));
-        //     }
 
         this.favorites_filters_visible_options = tmp;
     }

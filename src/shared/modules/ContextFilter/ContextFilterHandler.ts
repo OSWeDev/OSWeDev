@@ -49,6 +49,7 @@ export default class ContextFilterHandler {
     /**
      * Context Filter To Readable Ihm
      *  - Human readable context filters
+     *
      * @param context_filter {ContextFilterVO}
      */
     public static context_filter_to_readable_ihm(context_filter: ContextFilterVO) {
