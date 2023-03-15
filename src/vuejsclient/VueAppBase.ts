@@ -55,6 +55,7 @@ import VarDataBaseVO from "../shared/modules/Var/vos/VarDataBaseVO";
 import ConsoleHandler from "../shared/tools/ConsoleHandler";
 import { all_promises } from "../shared/tools/PromiseTools";
 import AlertsListContainerComponent from "./ts/components/alert/AlertsListContainerComponent";
+import * as i18next from 'i18next';
 require('moment-json-parser').overrideDefault();
 
 
@@ -176,6 +177,7 @@ export default abstract class VueAppBase {
             },
             silentTranslationWarn: true
         });
+        // TODO : il faudrait probablement forcer ce param côté client non ? LocaleManager.getInstance().i18n.nsSeparator = '¤';
         Vue.config['lang'] = default_locale;
 
         Vue.use(VueResource);
@@ -461,6 +463,15 @@ export default abstract class VueAppBase {
 
             return null;
         };
+
+        // On applique un zoom auto si param à TRUE
+        if (EnvHandler.ZOOM_AUTO) {
+            let zoom: number = (1 - (window.devicePixelRatio - 1) / window.devicePixelRatio);
+
+            if (zoom) {
+                document.body.style['zoom'] = zoom.toString();
+            }
+        }
     }
 
     protected abstract createVueMain(): VueComponentBase;

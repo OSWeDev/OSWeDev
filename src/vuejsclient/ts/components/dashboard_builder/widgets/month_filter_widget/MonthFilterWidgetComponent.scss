@@ -1,15 +1,29 @@
 .month_filter_widget_component {
-
-    .vo_field_ref_label, .custom_filter_name {
+    .vo_field_ref_label,
+    .custom_filter_name {
         font-size: 1.2em;
         margin-bottom: 0.4em;
         line-height: 1em;
     }
 
     .months {
-
         text-align: center;
-        
+
+        .all_months {
+            padding: 0.5em;
+            background: white;
+            margin: 0.2em;
+            display: inline-block;
+            cursor: pointer;
+            transition: all 0.5s ease-out;
+
+            &:hover,
+            &.selected {
+                background: #555;
+                color: white;
+            }
+        }
+
         .month {
             padding: 0.5em;
             background: white;
@@ -18,7 +32,8 @@
             cursor: pointer;
             transition: all 0.5s ease-out;
 
-            &:hover, &.selected {
+            &:hover,
+            &.selected {
                 background: #555;
                 color: white;
             }

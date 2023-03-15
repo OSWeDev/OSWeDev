@@ -138,6 +138,7 @@ export default abstract class ServerBase {
         EnvHandler.CODE_GOOGLE_ANALYTICS = this.envParam.CODE_GOOGLE_ANALYTICS;
         EnvHandler.VERSION = this.version;
         EnvHandler.ACTIVATE_PWA = !!this.envParam.ACTIVATE_PWA;
+        EnvHandler.ZOOM_AUTO = !!this.envParam.ZOOM_AUTO;
         EnvHandler.DEBUG_VARS = !!this.envParam.DEBUG_VARS;
 
         this.connectionString = this.envParam.CONNECTION_STRING;
@@ -410,35 +411,6 @@ export default abstract class ServerBase {
             res.header('Access-Control-Allow-Methods', 'OPTIONS,GET,PUT,POST,DELETE');
             res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept');
             next();
-        });
-
-        // Log request & response
-        this.app.use((req: Request, res: Response, next: NextFunction) => {
-            // logger.info('req', {
-            //     ip: req.ip,
-            //     method: req.method,
-            //     url: req.originalUrl,
-            //     sessionID: req.sessionID
-            // });
-
-            const requestEnd = res.end;
-
-            res.end = (chunk?: any, encoding?: any) => {
-
-                // logger.info('res', {
-                //     ip: req.ip,
-                //     method: req.method,
-                //     url: req.originalUrl,
-                //     sessionID: req.sessionID,
-                //     statusCode: res.statusCode
-                // });
-
-                // Do the work expected
-                res.end = requestEnd;
-                res.end(chunk, encoding);
-            };
-
-            return next();
         });
 
         /**

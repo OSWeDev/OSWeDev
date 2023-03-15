@@ -47,4 +47,5 @@ export default class EnvParam implements IEnvParam {
 
     public ACTIVATE_PWA: boolean = false;
     public RETRY_FAILED_FAST_TRACK_IMPORTS_WITH_NORMAL_IMPORTATION?: boolean = true;
+    public ZOOM_AUTO?: boolean = false;
 }
