@@ -468,7 +468,7 @@ export default abstract class VueAppBase {
         if (EnvHandler.ZOOM_AUTO) {
             let zoom: number = (1 - (window.devicePixelRatio - 1) / window.devicePixelRatio);
 
-            if (zoom) {
+            if (zoom <= 1) {
                 document.body.style['zoom'] = zoom.toString();
             }
         }
