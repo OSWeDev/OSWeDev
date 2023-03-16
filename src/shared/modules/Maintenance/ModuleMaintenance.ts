@@ -59,11 +59,13 @@ export default class ModuleMaintenance extends Module {
             [MaintenanceVO.API_TYPE_ID],
             StringParamVOStatic
         ));
+
         APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<void, void>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, MaintenanceVO.API_TYPE_ID),
             ModuleMaintenance.APINAME_END_PLANNED_MAINTENANCE,
             [MaintenanceVO.API_TYPE_ID]
         ));
+
         APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<NumberParamVO, void>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, MaintenanceVO.API_TYPE_ID),
             ModuleMaintenance.APINAME_END_MAINTENANCE,

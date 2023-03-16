@@ -15,6 +15,8 @@ import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import DashboardBuilderCronWorkersHandler from '../../../../dist/server/modules/DashboardBuilder/DashboardBuilderCronWorkersHandler';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 
 export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
@@ -29,6 +31,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
     private constructor() {
         super(ModuleDashboardBuilder.getInstance().name);
+    }
+
+    public registerCrons(): void {
+        DashboardBuilderCronWorkersHandler.getInstance();
     }
 
     public async configure() {
@@ -1738,6 +1744,20 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.onCDashboardPageWidgetVO);
         preCTrigger.registerHandler(DashboardVO.API_TYPE_ID, this, this.onCDashboardVO);
+    }
+
+    public registerServerApiHandlers() {
+        APIControllerWrapper.getInstance().registerServerApiHandler(
+            ModuleDashboardBuilder.APINAME_START_EXPORT_DATATABLE_USING_FAVORITES_FILTERS,
+            this.start_export_datatable_using_favorites_filters.bind(this)
+        );
+    }
+
+    /**
+     * Start Export Datatable Using Favorites Filters
+     */
+    public async start_export_datatable_using_favorites_filters(): Promise<void> {
+        // TODO: for all user favorites filters export by using export_params
     }
 
     public async registerAccessPolicies(): Promise<void> {

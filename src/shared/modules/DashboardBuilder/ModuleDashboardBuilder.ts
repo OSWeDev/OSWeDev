@@ -26,6 +26,9 @@ import TableColumnDescVO from './vos/TableColumnDescVO';
 import DashboardPageVO from './vos/DashboardPageVO';
 import VOFieldRefVO from './vos/VOFieldRefVO';
 import DashboardVO from './vos/DashboardVO';
+import APIControllerWrapper from '../API/APIControllerWrapper';
+import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import ModuleDAO from '../DAO/ModuleDAO';
 
 export default class ModuleDashboardBuilder extends Module {
 
@@ -35,19 +38,34 @@ export default class ModuleDashboardBuilder extends Module {
     public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".BO_ACCESS";
     public static POLICY_FO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".FO_ACCESS";
 
+    public static APINAME_START_EXPORT_DATATABLE_USING_FAVORITES_FILTERS: string = "start_export_datatable_using_favorites_filters";
+
     public static getInstance(): ModuleDashboardBuilder {
+
         if (!ModuleDashboardBuilder.instance) {
             ModuleDashboardBuilder.instance = new ModuleDashboardBuilder();
         }
+
         return ModuleDashboardBuilder.instance;
     }
 
     private static instance: ModuleDashboardBuilder = null;
 
+    public start_export_datatable_using_favorites_filters: () => Promise<void> = APIControllerWrapper.sah(ModuleDashboardBuilder.APINAME_START_EXPORT_DATATABLE_USING_FAVORITES_FILTERS);
+
     private constructor() {
 
         super("dashboardbuilder", ModuleDashboardBuilder.MODULE_NAME);
         this.forceActivationOnInstallation();
+    }
+
+    public registerApis() {
+        // Load all users favorites filters and start exporting by using their filters
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<void, void>(
+            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, DashboardFavoritesFiltersVO.API_TYPE_ID),
+            ModuleDashboardBuilder.APINAME_START_EXPORT_DATATABLE_USING_FAVORITES_FILTERS,
+            [DashboardFavoritesFiltersVO.API_TYPE_ID]
+        ));
     }
 
     public initialize() {
@@ -192,8 +210,8 @@ export default class ModuleDashboardBuilder extends Module {
 
     /**
      * Init Dashboard Active Filters Favorites
-     *  - Data table to stock user favorites active filters
-     *  - May be useful save the actual dashboard, owner_id and page_filters
+     *  - Database table to stock user favorites of active filters
+     *  - May be useful to save the actual dashboard, owner_id and page_filters
      */
     private init_DashboardActiveFiltersFavoritesVO(db_table: ModuleTable<any>) {
 
@@ -205,6 +223,8 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('owner_id', ModuleTableField.FIELD_TYPE_string, 'Owner Id', true),
             new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom des filtres', true),
             new ModuleTableField('page_filters', ModuleTableField.FIELD_TYPE_string, 'Page Filters', false),
+            // export_params: Specify frequence (month day number e.g. 1st, 10th or 20)
+            new ModuleTableField('export_params', ModuleTableField.FIELD_TYPE_string, 'Export Params', false),
         ];
 
         this.datatables.push(

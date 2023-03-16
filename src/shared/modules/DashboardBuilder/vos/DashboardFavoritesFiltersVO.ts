@@ -10,17 +10,9 @@ import IDistantVOBase from "../../IDistantVOBase";
 export default class DashboardFavoritesFiltersVO implements IDistantVOBase {
     public static API_TYPE_ID: string = "dashboard_p_favorites_filters";
 
-    public id: number;
     public _type: string = DashboardFavoritesFiltersVO.API_TYPE_ID;
 
-    get translatable_name_code_text(): string {
-
-        if (!this.dashboard_id) {
-            return null;
-        }
-
-        return DashboardBuilderController.DASHBOARD_NAME_CODE_PREFIX + this.dashboard_id;
-    }
+    public id: number;
 
     // dashboard id of this favorite list
     public dashboard_id: number;
@@ -31,13 +23,16 @@ export default class DashboardFavoritesFiltersVO implements IDistantVOBase {
     // Name which the owner gave to the current backup
     public name: string;
 
-    // JSON array of page active filters
+    // JSON object of page active field filters
     public page_filters: string;
+
+    // JSON object of export configurations
+    public export_params: string;
 
     /**
      * Hydrate from the given properties
      *
-     * @param props {IDashboardFavoritesFiltersProps}
+     * @param {IDashboardFavoritesFiltersProps} [props]
      * @returns {DashboardFavoritesFiltersVO}
      */
     public from(props: IDashboardFavoritesFiltersProps): DashboardFavoritesFiltersVO {
@@ -48,5 +43,19 @@ export default class DashboardFavoritesFiltersVO implements IDistantVOBase {
         this.name = props.name ?? this.name;
 
         return this;
+    }
+
+    /**
+     * Get translatable_name_code_text
+     *
+     * @returns {string}
+     */
+    get translatable_name_code_text(): string {
+
+        if (!this.dashboard_id) {
+            return null;
+        }
+
+        return DashboardBuilderController.DASHBOARD_NAME_CODE_PREFIX + this.dashboard_id;
     }
 }
