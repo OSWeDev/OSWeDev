@@ -847,6 +847,162 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': '<b>ID: </b>{id}'
         }, 'table_widget_component.id.___LABEL___'));
 
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Options du widget'
+        }, 'var_pie_chart_widget_options_component.separator.widget_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Titre du widget'
+        }, 'var_pie_chart_widget_options_component.widget_title.title_name_code_text.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Couleur du fond'
+        }, 'var_pie_chart_widget_options_component.bg_color.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Options du graphique'
+        }, 'var_pie_chart_widget_options_component.separator.chart_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Titre du graphique'
+        }, 'var_pie_chart_widget_options_component.separator.chart_title_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Afficher le titre'
+        }, 'var_pie_chart_widget_options_component.title_display.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Couleur du titre'
+        }, 'var_pie_chart_widget_options_component.title_font_color.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Taille du titre'
+        }, 'var_pie_chart_widget_options_component.title_font_size.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Padding du titre'
+        }, 'var_pie_chart_widget_options_component.title_padding.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Options de la légende'
+        }, 'var_pie_chart_widget_options_component.separator.chart_legend_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Afficher la légende'
+        }, 'var_pie_chart_widget_options_component.legend_display.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Position de la légende'
+        }, 'var_pie_chart_widget_options_component.legend_position.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Couleur de la légende'
+        }, 'var_pie_chart_widget_options_component.legend_font_color.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Taille du texte de la légende'
+        }, 'var_pie_chart_widget_options_component.legend_font_size.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Largeur des blocs de la légende'
+        }, 'var_pie_chart_widget_options_component.legend_box_width.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Padding de la légende'
+        }, 'var_pie_chart_widget_options_component.legend_padding.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Utiliser le style des points pour la légende à la place des blocs'
+        }, 'var_pie_chart_widget_options_component.legend_use_point_style.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Options de rendu du graphique'
+        }, 'var_pie_chart_widget_options_component.separator.chart_render_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': '% de découpe'
+        }, 'var_pie_chart_widget_options_component.cutout_percentage.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Indique la zone qui sera découpée dans le graphique en partant du centre vers les extrémités. 0 pour ne pas découper, 100 pour découper tout le graphique. Exemple : 50 pour un donut'
+        }, 'var_pie_chart_widget_options_component.cutout_percentage.tooltip.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Rotation'
+        }, 'var_pie_chart_widget_options_component.rotation.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Point de départ du graphique en degrés. Entre 0 et 2*PI. Exemple pour une jauge : PI'
+        }, 'var_pie_chart_widget_options_component.rotation.tooltip.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Circumference'
+        }, 'var_pie_chart_widget_options_component.circumference.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Circumference du graphique. Entre 0 et 2*PI. Exemple pour une jauge : PI'
+        }, 'var_pie_chart_widget_options_component.circumference.tooltip.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Options des données'
+        }, 'var_pie_chart_widget_options_component.separator.datas_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Options des dimensions'
+        }, 'var_pie_chart_widget_options_component.separator.datas_dimension_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Utiliser une dimension de donnée, issue d\'un champ ou d\'un filtre date segmenté'
+        }, 'var_pie_chart_widget_options_component.has_dimension.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'La dimension est un champ ?'
+        }, 'var_pie_chart_widget_options_component.dimension_is_vo_field_ref.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Champ de la dimension'
+        }, 'var_pie_chart_widget_options_component.dimension_vo_field_ref.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Segmentation de la dimension date'
+        }, 'var_pie_chart_widget_options_component.dimension_custom_filter_segment_type.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Max. de valeurs pour la dimension choisie'
+        }, 'var_pie_chart_widget_options_component.max_dimension_values.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Permet de définir un nombre max de résultats pris en compte pour le graphique sur la dimension proposée. Par exemple si on a sélectionné une année et qu\'on segmente au jour, on peut limiter aux 10 premiers jours en indiquant 10 ici.'
+        }, 'var_pie_chart_widget_options_component.max_dimension_values.tooltip.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Trier la dimension par un champ'
+        }, 'var_pie_chart_widget_options_component.sort_dimension_by_vo_field_ref.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Trier la dimension par ordre croissant ?'
+        }, 'var_pie_chart_widget_options_component.sort_dimension_by_asc.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Options de filtrage des valeurs'
+        }, 'var_pie_chart_widget_options_component.separator.datas_filter_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Filtre des valeurs'
+        }, 'var_pie_chart_widget_options_component.widget_filter_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Options de la variable principale'
+        }, 'var_pie_chart_widget_options_component.separator.var_1_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Nom de la variable principale'
+        }, 'var_pie_chart_widget_options_component.var_name_1.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Couleur de fond'
+        }, 'var_pie_chart_widget_options_component.bg_color_1.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Couleur de bordure'
+        }, 'var_pie_chart_widget_options_component.border_color_1.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Epaisseur de la bordure'
+        }, 'var_pie_chart_widget_options_component.border_width_1.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Options de la variable secondaire'
+        }, 'var_pie_chart_widget_options_component.separator.var_2_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Nom de la variable secondaire'
+        }, 'var_pie_chart_widget_options_component.var_name_2.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Couleur de fond'
+        }, 'var_pie_chart_widget_options_component.bg_color_2.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Couleur de bordure'
+        }, 'var_pie_chart_widget_options_component.border_color_2.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Epaisseur de la bordure'
+        }, 'var_pie_chart_widget_options_component.border_width_2.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Utiliser la somme des deux variables comme valeur max ?'
+        }, 'var_pie_chart_widget_options_component.max_is_sum_of_var_1_and_2.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Utiliser ce filtre de date personnalisé pour la dimension'
+        }, 'var_pie_chart_widget_options_component.dimension_custom_filter_name.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Année'
+        }, 'VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.0.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Mois'
+        }, 'VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.1.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Jour'
+        }, 'VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.2.___LABEL___'));
+
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Enregistrement en cours...'
         }, 'TableWidgetComponent.onchange_column.start.___LABEL___'));

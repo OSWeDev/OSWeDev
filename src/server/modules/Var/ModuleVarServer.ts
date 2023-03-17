@@ -1630,6 +1630,11 @@ export default class ModuleVarServer extends ModuleServerBase {
             return [RangeHandler.getMaxTSRange()];
         }
 
+        // si on a un filtre direct (x ranges par exemple) on gère directement
+        if ((custom_filter.filter_type == ContextFilterVO.TYPE_DATE_INTERSECTS) && !!custom_filter.param_tsranges) {
+            return custom_filter.param_tsranges;
+        }
+
         /**
          * Si on a pas de filtre année, on peut de toutes façons rien faire
          */

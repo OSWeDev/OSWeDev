@@ -1,1 +1,18 @@
-.var_pie_chart_widget_component {}
+.var_pie_chart_widget_component {
+
+    .chart_wrapper {
+        height: -webkit-fill-available;
+
+        .chart_frame {
+            height: -webkit-fill-available;
+
+            >div {
+                height: -webkit-fill-available;
+
+                .chartjs-size-monitor {
+                    height: -webkit-fill-available;
+                }
+            }
+        }
+    }
+}

@@ -1,7 +1,8 @@
 .var_pie_chart_widget_options_component
 
     template(v-if='widget_options')
-    .options_separator_lvl1 {{ label('var_pie_chart_widget_options_component.separator.widget_options') }}
+
+        .options_separator_lvl1 {{ label('var_pie_chart_widget_options_component.separator.widget_options') }}
         .widget_title(v-if='title_name_code_text')
             .widget_title_label {{ label('var_pie_chart_widget_options_component.widget_title.title_name_code_text') }}
             .widget_title_wrapper
@@ -13,58 +14,189 @@
             color-picker(v-model="bg_color" @change='throttled_update_colors')
 
 
-    .options_separator_lvl1 {{ label('var_pie_chart_widget_options_component.separator.chart_options') }}
+        .options_separator_lvl1 {{ label('var_pie_chart_widget_options_component.separator.chart_options') }}
 
         .options_separator_lvl2 {{ label('var_pie_chart_widget_options_component.separator.chart_title_options') }}
-            .field_title_display
-                .input_label {{ label('var_pie_chart_widget_options_component.title_display') }}
+        .field_title_display
+            .input_label {{ label('var_pie_chart_widget_options_component.title_display') }}
+            .input_wrapper
+                toggle-button(
+                    @change="switch_title_display" 
+                    :value="title_display" 
+                    :sync="false"
+                    :width="60"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                )
+        template(v-if='legend_display')
+            .title_font_color
+                .explication {{ label("var_pie_chart_widget_options_component.title_font_color") }}
+                color-picker(v-model="title_font_color" @change='throttled_update_colors')
+            .title_font_size
+                .input_label {{ label('var_pie_chart_widget_options_component.title_font_size') }}
                 .input_wrapper
-                    toggle-button(
-                        @change="switch_title_display" 
-                        :value="title_display" 
-                        :sync="false"
-                        :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                    input(
+                        type="number"
+                        v-model="title_font_size"
                     )
-            template(v-if='legend_display')
-                .title_font_color
-                    .explication {{ label("var_pie_chart_widget_options_component.title_font_color") }}
-                    color-picker(v-model="title_font_color" @change='throttled_update_colors')
-                .title_font_size
-                    .input_label {{ label('var_pie_chart_widget_options_component.title_font_size') }}
-                    .input_wrapper
-                        input(
-                            type="number"
-                            v-model="title_font_size"
-                        )
-                .title_padding
-                    .input_label {{ label('var_pie_chart_widget_options_component.title_padding') }}
-                    .input_wrapper
-                        input(
-                            type="number"
-                            v-model="title_padding"
-                        )
+            .title_padding
+                .input_label {{ label('var_pie_chart_widget_options_component.title_padding') }}
+                .input_wrapper
+                    input(
+                        type="number"
+                        v-model="title_padding"
+                    )
         
         .options_separator_lvl2 {{ label('var_pie_chart_widget_options_component.separator.chart_legend_options') }}
-            .field_legend_display
-                .input_label {{ label('var_pie_chart_widget_options_component.legend_display') }}
+        .field_legend_display
+            .input_label {{ label('var_pie_chart_widget_options_component.legend_display') }}
+            .input_wrapper
+                toggle-button(
+                    @change="switch_legend_display" 
+                    :value="legend_display" 
+                    :sync="false"
+                    :width="60"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                )
+        template(v-if='legend_display')
+            .legend_position 
+                .input_label {{ label('var_pie_chart_widget_options_component.legend_position') }}
+                .input_wrapper
+                    multiselect.var_name_selector(
+                        :preselect-first="false"
+                        :multiple="false"
+                        v-model="tmp_selected_legend_position"
+                        :options="legend_positions"
+                        :allow-empty="false",
+
+                        :searchable="true"
+                        :internal-search="true"
+                        
+                        select-label=''
+                        select-group-label=''
+                        selected-label=''
+                        deselect-label=''
+                        deselect-group-label=''
+
+                        placeholder=''
+                        
+                        name="legend_position_selector_1"
+                    )
+            .legend_font_color
+                .explication {{ label("var_pie_chart_widget_options_component.legend_font_color") }}
+                color-picker(v-model="legend_font_color" @change='throttled_update_colors')
+            .legend_font_size
+                .input_label {{ label('var_pie_chart_widget_options_component.legend_font_size') }}
+                .input_wrapper
+                    input(
+                        type="number"
+                        v-model="legend_font_size"
+                    )
+            .legend_box_width
+                .input_label {{ label('var_pie_chart_widget_options_component.legend_box_width') }}
+                .input_wrapper
+                    input(
+                        type="number"
+                        v-model="legend_box_width"
+                    )
+            .legend_padding
+                .input_label {{ label('var_pie_chart_widget_options_component.legend_padding') }}
+                .input_wrapper
+                    input(
+                        type="number"
+                        v-model="legend_padding"
+                    )
+            .field_legend_use_point_style
+                .input_label {{ label('var_pie_chart_widget_options_component.legend_use_point_style') }}
                 .input_wrapper
                     toggle-button(
-                        @change="switch_legend_display" 
-                        :value="legend_display" 
+                        @change="switch_legend_use_point_style" 
+                        :value="legend_use_point_style" 
                         :sync="false"
                         :width="60"
                         :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                     )
-            template(v-if='legend_display')
-                .legend_position 
-                    .input_label {{ label('var_pie_chart_widget_options_component.legend_position') }}
+
+        .options_separator_lvl2 {{ label('var_pie_chart_widget_options_component.separator.chart_render_options') }}
+        .cutout_percentage
+            .input_label {{ label('var_pie_chart_widget_options_component.cutout_percentage') }}
+            .input_wrapper
+                input(
+                    type="number"
+                    v-model="cutout_percentage"
+                    v-tooltip="label('var_pie_chart_widget_options_component.cutout_percentage.tooltip')"
+                )
+        .rotation
+            .input_label {{ label('var_pie_chart_widget_options_component.rotation') }}
+            .input_wrapper
+                input(
+                    type="number"
+                    v-model="rotation"
+                    v-tooltip="label('var_pie_chart_widget_options_component.rotation.tooltip')"
+                )
+        .circumference
+            .input_label {{ label('var_pie_chart_widget_options_component.circumference') }}
+            .input_wrapper
+                input(
+                    type="number"
+                    v-model="circumference"
+                    v-tooltip="label('var_pie_chart_widget_options_component.circumference.tooltip')"
+                )
+
+        .options_separator_lvl1 {{ label('var_pie_chart_widget_options_component.separator.datas_options') }}
+
+        .options_separator_lvl2 {{ label('var_pie_chart_widget_options_component.separator.datas_dimension_options') }}
+        .field_has_dimension
+            .input_label {{ label('var_pie_chart_widget_options_component.has_dimension') }}
+            .input_wrapper
+                toggle-button(
+                    @change="switch_has_dimension" 
+                    :value="has_dimension" 
+                    :sync="false"
+                    :width="60"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                )
+
+        template(v-if='has_dimension')
+            .field_dimension_is_vo_field_ref
+                .input_label {{ label('var_pie_chart_widget_options_component.dimension_is_vo_field_ref') }}
+                .input_wrapper
+                    toggle-button(
+                        @change="switch_dimension_is_vo_field_ref" 
+                        :value="dimension_is_vo_field_ref" 
+                        :sync="false"
+                        :width="60"
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                    )
+            
+            template(v-if='dimension_is_vo_field_ref')
+                .field_ref
+                    .input_label {{ label('var_pie_chart_widget_options_component.dimension_vo_field_ref') }}
+                    .input_wrapper
+                        Singlevofieldrefholdercomponent(
+                            :vo_field_ref="dimension_vo_field_ref" @remove_field_ref="remove_dimension_vo_field_ref" @add_field_ref="add_dimension_vo_field_ref"
+                            :page_widget_id='page_widget ? page_widget.id : null'
+                        )
+
+            template(v-else)
+                .dimension_custom_filter_name
+                    .field_id {{ label('var_pie_chart_widget_options_component.dimension_custom_filter_name') }}
+                    .custom_filter 
+                        input(
+                            type="text"
+                            v-model="dimension_custom_filter_name"
+                            :disabled="true"
+                        )
+                    .existing_custom_filters_list(v-if='get_custom_filters && get_custom_filters.length')
+                        template(v-for='custom_filter in get_custom_filters')
+                            .custom_filter.clickable(@click='change_custom_filter_dimension(custom_filter)') {{ custom_filter }}
+                .dimension_custom_filter_segment_type 
+                    .input_label {{ label('var_pie_chart_widget_options_component.dimension_custom_filter_segment_type') }}
                     .input_wrapper
                         multiselect.var_name_selector(
                             :preselect-first="false"
                             :multiple="false"
-                            v-model="tmp_selected_legend_position"
-                            :options="legend_positions"
+                            v-model="tmp_selected_dimension_custom_filter_segment_type"
+                            :options="dimension_custom_filter_segment_types"
                             :allow-empty="false",
 
                             :searchable="true"
@@ -78,187 +210,111 @@
 
                             placeholder=''
                             
-                            name="legend_position_selector_1"
-                        )
-                .legend_font_color
-                    .explication {{ label("var_pie_chart_widget_options_component.legend_font_color") }}
-                    color-picker(v-model="legend_font_color" @change='throttled_update_colors')
-                .legend_font_size
-                    .input_label {{ label('var_pie_chart_widget_options_component.legend_font_size') }}
-                    .input_wrapper
-                        input(
-                            type="number"
-                            v-model="legend_font_size"
-                        )
-                .legend_box_width
-                    .input_label {{ label('var_pie_chart_widget_options_component.legend_box_width') }}
-                    .input_wrapper
-                        input(
-                            type="number"
-                            v-model="legend_box_width"
-                        )
-                .legend_padding
-                    .input_label {{ label('var_pie_chart_widget_options_component.legend_padding') }}
-                    .input_wrapper
-                        input(
-                            type="number"
-                            v-model="legend_padding"
-                        )
-                .field_legend_use_point_style
-                    .input_label {{ label('var_pie_chart_widget_options_component.legend_use_point_style') }}
-                    .input_wrapper
-                        toggle-button(
-                            @change="switch_legend_use_point_style" 
-                            :value="legend_use_point_style" 
-                            :sync="false"
-                            :width="60"
-                            :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                            name="dimension_custom_filter_segment_type_selector_1"
                         )
 
-        .options_separator_lvl2 {{ label('var_pie_chart_widget_options_component.separator.chart_render_options') }}
-            .cutout_percentage
-                .input_label {{ label('var_pie_chart_widget_options_component.cutout_percentage') }}
+            .max_dimension_values
+                .input_label {{ label('var_pie_chart_widget_options_component.max_dimension_values') }}
                 .input_wrapper
                     input(
                         type="number"
-                        v-model="cutout_percentage"
-                        v-tooltip="label('var_pie_chart_widget_options_component.cutout_percentage.tooltip')"
-                    )
-            .rotation
-                .input_label {{ label('var_pie_chart_widget_options_component.rotation') }}
-                .input_wrapper
-                    input(
-                        type="number"
-                        v-model="rotation"
-                        v-tooltip="label('var_pie_chart_widget_options_component.rotation.tooltip')"
-                    )
-            .circumference
-                .input_label {{ label('var_pie_chart_widget_options_component.circumference') }}
-                .input_wrapper
-                    input(
-                        type="number"
-                        v-model="circumference"
-                        v-tooltip="label('var_pie_chart_widget_options_component.circumference.tooltip')"
+                        v-model="max_dimension_values"
+                        v-tooltip="label('var_pie_chart_widget_options_component.max_dimension_values.tooltip')"
                     )
 
-    .options_separator_lvl1 {{ label('var_pie_chart_widget_options_component.separator.datas_options') }}
-        .options_separator_lvl2 {{ label('var_pie_chart_widget_options_component.separator.datas_dimension_options') }}
-            .field_has_dimension
-                .input_label {{ label('var_pie_chart_widget_options_component.has_dimension') }}
+            template(v-if='dimension_is_vo_field_ref')
+                .field_ref
+                    .input_label {{ label('var_pie_chart_widget_options_component.sort_dimension_by_vo_field_ref') }}
+                    .input_wrapper
+                        Singlevofieldrefholdercomponent(
+                            :vo_field_ref="sort_dimension_by_vo_field_ref" @remove_field_ref="remove_sort_dimension_by_vo_field_ref" @add_field_ref="add_sort_dimension_by_vo_field_ref"
+                            :page_widget_id='page_widget ? page_widget.id : null'
+                        )
+
+            .field_sort_dimension_by_asc
+                .input_label {{ label('var_pie_chart_widget_options_component.sort_dimension_by_asc') }}
                 .input_wrapper
                     toggle-button(
-                        @change="switch_has_dimension" 
-                        :value="has_dimension" 
+                        @change="switch_sort_dimension_by_asc" 
+                        :value="sort_dimension_by_asc" 
                         :sync="false"
                         :width="60"
                         :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                     )
 
-            template(v-if='has_dimension')
-                .field_dimension_is_vo_field_ref
-                    .input_label {{ label('var_pie_chart_widget_options_component.dimension_is_vo_field_ref') }}
-                    .input_wrapper
-                        toggle-button(
-                            @change="switch_dimension_is_vo_field_ref" 
-                            :value="dimension_is_vo_field_ref" 
-                            :sync="false"
-                            :width="60"
-                            :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
-                        )
-                
-                template(v-if='dimension_is_vo_field_ref')
-                    .field_ref
-                        .input_label {{ label('var_pie_chart_widget_options_component.dimension_vo_field_ref') }}
-                        .input_wrapper
-                            Singlevofieldrefholdercomponent(
-                                :vo_field_ref="dimension_vo_field_ref" @remove_field_ref="remove_dimension_vo_field_ref" @add_field_ref="add_dimension_vo_field_ref"
-                                :page_widget_id='page_widget ? page_widget.id : null'
-                            )
+        .options_separator_lvl2 {{ label('var_pie_chart_widget_options_component.separator.datas_filter_options') }}
+        .widget_filter_options(v-if='title_name_code_text && widget_options')
+            .widget_filter_options_label {{ label('var_pie_chart_widget_options_component.widget_filter_options') }}
+            .widget_filter_options_wrapper
+                Widgetfilteroptionscomponent(
+                    :actual_additional_options="widget_options.filter_additional_params"
+                    :actual_filter_type="widget_options.filter_type"
+                    @update_additional_options="update_additional_options"
+                    @update_filter_type="update_filter_type"
+                )
 
-                template(v-else)
-                    .dimension_custom_filter_name
-                        .field_id {{ Filtre personnalisé }}
+        .options_separator_lvl2 {{ label('var_pie_chart_widget_options_component.separator.var_1_options') }}
+        .var_name_1 
+            .input_label {{ label('var_pie_chart_widget_options_component.var_name_1') }}
+            .input_wrapper
+                multiselect.var_name_selector(
+                    :preselect-first="false"
+                    :multiple="false"
+                    v-model="tmp_selected_var_name_1"
+                    :options="var_names"
+                    :allow-empty="false",
+
+                    :searchable="true"
+                    :internal-search="true"
+                    
+                    select-label=''
+                    select-group-label=''
+                    selected-label=''
+                    deselect-label=''
+                    deselect-group-label=''
+
+                    placeholder=''
+                    
+                    name="var_name_selector_1"
+                )
+                    .lang_selector_option(slot="noOptions") -
+        .bg_color_1
+            .explication {{ label("var_pie_chart_widget_options_component.bg_color_1") }}
+            color-picker(v-model="bg_color_1" @change='throttled_update_colors')
+        .border_color_1
+            .explication {{ label("var_pie_chart_widget_options_component.border_color_1") }}
+            color-picker(v-model="border_color_1" @change='throttled_update_colors')
+        .border_width_1
+            .input_label {{ label('var_pie_chart_widget_options_component.border_width_1') }}
+            .input_wrapper
+                input(
+                    type="number"
+                    v-model="border_width_1"
+                )
+        template(v-if='fields_that_could_get_custom_filter_1 && fields_that_could_get_custom_filter_1.length')
+            .fields_that_could_get_custom_filter_1
+                template(v-for='field_that_could_get_custom_filter in fields_that_could_get_custom_filter_1')
+                    .field_that_could_get_custom_filter
+                        .field_id {{ field_that_could_get_custom_filter }}
                         .custom_filter 
                             input(
                                 type="text"
-                                v-model="dimension_custom_filter_name"
+                                v-model="custom_filter_names_1[field_that_could_get_custom_filter]"
                                 :disabled="true"
                             )
                         .existing_custom_filters_list(v-if='get_custom_filters && get_custom_filters.length')
                             template(v-for='custom_filter in get_custom_filters')
-                                .custom_filter.clickable(@click='change_custom_filter_dimension(custom_filter)') {{ custom_filter }}
-                    .dimension_custom_filter_segment_type 
-                        .input_label {{ label('var_pie_chart_widget_options_component.dimension_custom_filter_segment_type') }}
-                        .input_wrapper
-                            multiselect.var_name_selector(
-                                :preselect-first="false"
-                                :multiple="false"
-                                v-model="tmp_selected_dimension_custom_filter_segment_type"
-                                :options="dimension_custom_filter_segment_types"
-                                :allow-empty="false",
+                                .custom_filter.clickable(@click='change_custom_filter_1(field_that_could_get_custom_filter, custom_filter)') {{ custom_filter }}
 
-                                :searchable="true"
-                                :internal-search="true"
-                                
-                                select-label=''
-                                select-group-label=''
-                                selected-label=''
-                                deselect-label=''
-                                deselect-group-label=''
-
-                                placeholder=''
-                                
-                                name="dimension_custom_filter_segment_type_selector_1"
-                            )
-
-                .max_dimension_values
-                    .input_label {{ label('var_pie_chart_widget_options_component.max_dimension_values') }}
-                    .input_wrapper
-                        input(
-                            type="number"
-                            v-model="max_dimension_values"
-                            v-tooltip="label('var_pie_chart_widget_options_component.max_dimension_values.tooltip')"
-                        )
-
-                template(v-if='dimension_is_vo_field_ref')
-                    .field_ref
-                        .input_label {{ label('var_pie_chart_widget_options_component.sort_dimension_by_vo_field_ref') }}
-                        .input_wrapper
-                            Singlevofieldrefholdercomponent(
-                                :vo_field_ref="sort_dimension_by_vo_field_ref" @remove_field_ref="remove_sort_dimension_by_vo_field_ref" @add_field_ref="add_sort_dimension_by_vo_field_ref"
-                                :page_widget_id='page_widget ? page_widget.id : null'
-                            )
-
-                .field_sort_dimension_by_asc
-                    .input_label {{ label('var_pie_chart_widget_options_component.sort_dimension_by_asc') }}
-                    .input_wrapper
-                        toggle-button(
-                            @change="switch_sort_dimension_by_asc" 
-                            :value="sort_dimension_by_asc" 
-                            :sync="false"
-                            :width="60"
-                            :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
-                        )
-
-        .options_separator_lvl2 {{ label('var_pie_chart_widget_options_component.separator.datas_filter_options') }}
-            .widget_filter_options(v-if='title_name_code_text && widget_options')
-                .widget_filter_options_label {{ label('var_pie_chart_widget_options_component.widget_filter_options') }}
-                .widget_filter_options_wrapper
-                    Widgetfilteroptionscomponent(
-                        :actual_additional_options="widget_options.filter_additional_params"
-                        :actual_filter_type="widget_options.filter_type"
-                        @update_additional_options="update_additional_options"
-                        @update_filter_type="update_filter_type"
-                    )
-
-        .options_separator_lvl2 {{ label('var_pie_chart_widget_options_component.separator.var_1_options') }}
-            .var_name_1 
-                .input_label {{ label('var_pie_chart_widget_options_component.var_name_1') }}
+        template(v-if='!has_dimension')
+            .options_separator_lvl2 {{ label('var_pie_chart_widget_options_component.separator.var_2_options') }}
+            .var_name_2 
+                .input_label {{ label('var_pie_chart_widget_options_component.var_name_2') }}
                 .input_wrapper
                     multiselect.var_name_selector(
                         :preselect-first="false"
                         :multiple="false"
-                        v-model="tmp_selected_var_name_1"
+                        v-model="tmp_selected_var_name_2"
                         :options="var_names"
                         :allow-empty="false",
 
@@ -273,98 +329,44 @@
 
                         placeholder=''
                         
-                        name="var_name_selector_1"
+                        name="var_name_selector_2"
                     )
                         .lang_selector_option(slot="noOptions") -
-            .bg_color_1
-                .explication {{ label("var_pie_chart_widget_options_component.bg_color_1") }}
-                color-picker(v-model="bg_color_1" @change='throttled_update_colors')
-            .border_color_1
-                .explication {{ label("var_pie_chart_widget_options_component.border_color_1") }}
-                color-picker(v-model="border_color_1" @change='throttled_update_colors')
-            .border_width_1
-                .input_label {{ label('var_pie_chart_widget_options_component.border_width_1') }}
+            .bg_color_2
+                .explication {{ label("var_pie_chart_widget_options_component.bg_color_2") }}
+                color-picker(v-model="bg_color_2" @change='throttled_update_colors')
+            .border_color_2
+                .explication {{ label("var_pie_chart_widget_options_component.border_color_2") }}
+                color-picker(v-model="border_color_2" @change='throttled_update_colors')
+            .border_width_2
+                .input_label {{ label('var_pie_chart_widget_options_component.border_width_2') }}
                 .input_wrapper
                     input(
                         type="number"
-                        v-model="border_width_1"
+                        v-model="border_width_2"
                     )
-            template(v-if='fields_that_could_get_custom_filter_1 && fields_that_could_get_custom_filter_1.length')
-                .fields_that_could_get_custom_filter_1
-                    template(v-for='field_that_could_get_custom_filter in fields_that_could_get_custom_filter_1')
+            template(v-if='fields_that_could_get_custom_filter_2 && fields_that_could_get_custom_filter_2.length')
+                .fields_that_could_get_custom_filter_2
+                    template(v-for='field_that_could_get_custom_filter in fields_that_could_get_custom_filter_2')
                         .field_that_could_get_custom_filter
                             .field_id {{ field_that_could_get_custom_filter }}
                             .custom_filter 
                                 input(
                                     type="text"
-                                    v-model="custom_filter_names_1[field_that_could_get_custom_filter]"
+                                    v-model="custom_filter_names_2[field_that_could_get_custom_filter]"
                                     :disabled="true"
                                 )
                             .existing_custom_filters_list(v-if='get_custom_filters && get_custom_filters.length')
                                 template(v-for='custom_filter in get_custom_filters')
-                                    .custom_filter.clickable(@click='change_custom_filter_1(field_that_could_get_custom_filter, custom_filter)') {{ custom_filter }}
+                                    .custom_filter.clickable(@click='change_custom_filter_2(field_that_could_get_custom_filter, custom_filter)') {{ custom_filter }}
 
-        template(v-if='!has_dimension')
-            .options_separator_lvl2 {{ label('var_pie_chart_widget_options_component.separator.var_2_options') }}
-                .var_name_2 
-                    .input_label {{ label('var_pie_chart_widget_options_component.var_name_2') }}
-                    .input_wrapper
-                        multiselect.var_name_selector(
-                            :preselect-first="false"
-                            :multiple="false"
-                            v-model="tmp_selected_var_name_2"
-                            :options="var_names"
-                            :allow-empty="false",
-
-                            :searchable="true"
-                            :internal-search="true"
-                            
-                            select-label=''
-                            select-group-label=''
-                            selected-label=''
-                            deselect-label=''
-                            deselect-group-label=''
-
-                            placeholder=''
-                            
-                            name="var_name_selector_2"
-                        )
-                            .lang_selector_option(slot="noOptions") -
-                .bg_color_2
-                    .explication {{ label("var_pie_chart_widget_options_component.bg_color_2") }}
-                    color-picker(v-model="bg_color_2" @change='throttled_update_colors')
-                .border_color_2
-                    .explication {{ label("var_pie_chart_widget_options_component.border_color_2") }}
-                    color-picker(v-model="border_color_2" @change='throttled_update_colors')
-                .border_width_2
-                    .input_label {{ label('var_pie_chart_widget_options_component.border_width_2') }}
-                    .input_wrapper
-                        input(
-                            type="number"
-                            v-model="border_width_2"
-                        )
-                template(v-if='fields_that_could_get_custom_filter_2 && fields_that_could_get_custom_filter_2.length')
-                    .fields_that_could_get_custom_filter_2
-                        template(v-for='field_that_could_get_custom_filter in fields_that_could_get_custom_filter_2')
-                            .field_that_could_get_custom_filter
-                                .field_id {{ field_that_could_get_custom_filter }}
-                                .custom_filter 
-                                    input(
-                                        type="text"
-                                        v-model="custom_filter_names_2[field_that_could_get_custom_filter]"
-                                        :disabled="true"
-                                    )
-                                .existing_custom_filters_list(v-if='get_custom_filters && get_custom_filters.length')
-                                    template(v-for='custom_filter in get_custom_filters')
-                                        .custom_filter.clickable(@click='change_custom_filter_2(field_that_could_get_custom_filter, custom_filter)') {{ custom_filter }}
-
-                .field_max_is_sum_of_var_1_and_2
-                    .input_label {{ label('var_pie_chart_widget_options_component.max_is_sum_of_var_1_and_2') }}
-                    .input_wrapper
-                        toggle-button(
-                            @change="switch_max_is_sum_of_var_1_and_2" 
-                            :value="max_is_sum_of_var_1_and_2" 
-                            :sync="false"
-                            :width="60"
-                            :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
-                        )
+            .field_max_is_sum_of_var_1_and_2
+                .input_label {{ label('var_pie_chart_widget_options_component.max_is_sum_of_var_1_and_2') }}
+                .input_wrapper
+                    toggle-button(
+                        @change="switch_max_is_sum_of_var_1_and_2" 
+                        :value="max_is_sum_of_var_1_and_2" 
+                        :sync="false"
+                        :width="60"
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                    )

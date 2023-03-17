@@ -65,6 +65,8 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
     private throttled_update_visible_options = debounce(this.update_visible_options.bind(this), 500);
     private throttle_do_update_visible_options = debounce(this.do_update_visible_options.bind(this), 500);
 
+    private ordered_dimension: number[] = null;
+    private label_by_index: { [index: string]: string } = null;
     private var_params_by_dimension: { [dimension_value: number]: VarDataBaseVO } = null;
     private var_params_1_et_2: { [dimension_value: number]: VarDataBaseVO } = null;
 
@@ -152,7 +154,11 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
     }
 
     private getlabel(var_param: VarDataBaseVO) {
-        return this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, var_param.var_id));
+
+        if (!this.label_by_index) {
+            return null;
+        }
+        return this.label_by_index[var_param.index];
     }
 
     /**
@@ -165,32 +171,91 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
         }
 
         if (this.widget_options.has_dimension) {
-            return new VarPieDataSetDescriptor(
-                VarsController.getInstance().var_conf_by_id[this.widget_options.var_id_1].name,
-                this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1)))
-                .set_backgrounds([this.widget_options.bg_color_1])
-                .set_bordercolors([this.widget_options.border_color_1])
-                .set_borderwidths([this.widget_options.border_width_1]);
+            if (this.widget_options.var_id_1 && VarsController.getInstance().var_conf_by_id[this.widget_options.var_id_1]) {
+
+                // tentative de faire un dégradé automatique de couleur pour les dimensions.
+                // à voir comment on peut proposer de paramétrer cette partie
+                let colors = [];
+                let base_color = '';
+                let is_rbga = false;
+                if (this.widget_options.bg_color_1.startsWith('#')) {
+                    base_color = this.widget_options.bg_color_1;
+                } else if (this.widget_options.bg_color_1.startsWith('rgb(')) {
+                    base_color = 'rgba(' + this.widget_options.bg_color_1.substring(4, this.widget_options.bg_color_1.length - 2);
+                    is_rbga = true;
+                }
+
+                for (let i in this.ordered_dimension) {
+                    let nb = parseInt(i);
+                    let color = base_color;
+                    if (is_rbga) {
+                        color += ',' + Math.floor(1 - (1 / this.ordered_dimension.length) * nb) + ')';
+                    } else {
+                        color += Math.floor(255 * (1 - (1 / this.ordered_dimension.length) * nb)).toString(16);
+                    }
+                    colors.push(color);
+                }
+
+                return new VarPieDataSetDescriptor(
+                    VarsController.getInstance().var_conf_by_id[this.widget_options.var_id_1].name,
+                    this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1)))
+                    .set_backgrounds(colors)
+                    .set_bordercolors([this.widget_options.border_color_1])
+                    .set_borderwidths([this.widget_options.border_width_1]);
+            }
+            return null;
         } else {
-            return new VarPieDataSetDescriptor(
-                VarsController.getInstance().var_conf_by_id[this.widget_options.var_id_1].name, // ?? flou le var_name à utiliser ici
-                this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1))) // ?? flou le label à utiliser ici
-                .set_backgrounds([this.widget_options.bg_color_1, this.widget_options.bg_color_2])
-                .set_bordercolors([this.widget_options.border_color_1, this.widget_options.border_color_2])
-                .set_borderwidths([this.widget_options.border_width_1, this.widget_options.border_width_2]);
+            if (this.widget_options.var_id_1 && VarsController.getInstance().var_conf_by_id[this.widget_options.var_id_1]) {
+                return new VarPieDataSetDescriptor(
+                    VarsController.getInstance().var_conf_by_id[this.widget_options.var_id_1].name, // ?? flou le var_name à utiliser ici
+                    this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1))) // ?? flou le label à utiliser ici
+                    .set_backgrounds([this.widget_options.bg_color_1, this.widget_options.bg_color_2])
+                    .set_bordercolors([this.widget_options.border_color_1, this.widget_options.border_color_2])
+                    .set_borderwidths([this.widget_options.border_width_1, this.widget_options.border_width_2]);
+            }
+            return null;
         }
     }
 
-    get var_params(): { [dimension_value: number]: VarDataBaseVO } {
+    get var_params(): VarDataBaseVO[] {
 
         if (!this.widget_options) {
             return null;
         }
 
+        let res: VarDataBaseVO[] = [];
         if (this.widget_options.has_dimension) {
-            return this.var_params_by_dimension;
+            if ((!this.var_params_by_dimension) || (!this.ordered_dimension) ||
+                (Object.keys(this.var_params_by_dimension).length != this.ordered_dimension.length)) {
+                return null;
+            }
+
+            for (let i in this.ordered_dimension) {
+                let dimension = this.ordered_dimension[i];
+
+                if (!this.var_params_by_dimension[dimension]) {
+                    return null;
+                }
+
+                res.push(this.var_params_by_dimension[dimension]);
+            }
+            return res;
         } else {
-            return this.var_params_1_et_2;
+            if ((!this.var_params_1_et_2) || (!this.ordered_dimension) ||
+                (Object.keys(this.var_params_1_et_2).length != this.ordered_dimension.length)) {
+                return null;
+            }
+
+            for (let i in this.ordered_dimension) {
+                let dimension = this.ordered_dimension[i];
+
+                if (!this.var_params_1_et_2[dimension]) {
+                    return null;
+                }
+
+                res.push(this.var_params_1_et_2[dimension]);
+            }
+            return res;
         }
     }
 
@@ -263,6 +328,10 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
     private async get_var_params_by_dimension_when_dimension_is_vo_field_ref(custom_filters_1: { [var_param_field_name: string]: ContextFilterVO })
         : Promise<{ [dimension_value: number]: VarDataBaseVO }> {
 
+        if ((!this.widget_options.var_id_1) || !VarsController.getInstance().var_conf_by_id[this.widget_options.var_id_1]) {
+            return null;
+        }
+
         let var_params_by_dimension: { [dimension_value: number]: VarDataBaseVO } = {};
 
         /**
@@ -300,9 +369,15 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
         }
 
         let promises = [];
+        let ordered_dimension: number[] = [];
+        let label_by_index: { [index: string]: string } = {};
+        let dimension_table = (this.widget_options.dimension_is_vo_field_ref && this.widget_options.dimension_vo_field_ref.api_type_id) ?
+            VOsTypesManager.moduleTables_by_voType[this.widget_options.dimension_vo_field_ref.api_type_id] : null;
         for (let i in dimensions) {
             let dimension: any = dimensions[i];
             let dimension_value: number = dimension[this.widget_options.dimension_vo_field_ref.field_id];
+
+            ordered_dimension.push(dimension_value);
 
             promises.push((async () => {
 
@@ -328,15 +403,32 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                     custom_filters_1,
                     this.dashboard.api_type_ids,
                     this.get_discarded_field_paths);
+
+                let label = null;
+
+                if (dimension_table && dimension_table.default_label_field) {
+                    label = dimension[dimension_table.default_label_field.field_id];
+                } else if (dimension_table && dimension_table.table_label_function) {
+                    label = dimension_table.table_label_function(dimension);
+                }
+
+                label_by_index[var_params_by_dimension[dimension_value].index] = label;
+
             })());
         }
         await all_promises(promises);
 
+        this.ordered_dimension = ordered_dimension;
+        this.label_by_index = label_by_index;
         return var_params_by_dimension;
     }
 
     private async get_var_params_by_dimension_when_dimension_is_custom_filter(custom_filters_1: { [var_param_field_name: string]: ContextFilterVO })
         : Promise<{ [dimension_value: number]: VarDataBaseVO }> {
+
+        if ((!this.widget_options.var_id_1) || !VarsController.getInstance().var_conf_by_id[this.widget_options.var_id_1]) {
+            return null;
+        }
 
         let var_params_by_dimension: { [dimension_value: number]: VarDataBaseVO } = {};
 
@@ -381,10 +473,15 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
 
         if ((!dimension_values) || (!dimension_values.length)) {
             this.var_params_by_dimension = null;
+            this.ordered_dimension = null;
+            this.label_by_index = null;
             return;
         }
 
+        this.ordered_dimension = dimension_values;
+
         let promises = [];
+        let label_by_index: { [index: string]: string } = {};
         for (let i in dimension_values) {
             let dimension_value: number = dimension_values[i];
 
@@ -399,17 +496,36 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                     this.widget_options.dimension_custom_filter_name
                 ).by_date_x_ranges([RangeHandler.create_single_elt_TSRange(dimension_value, this.widget_options.dimension_custom_filter_segment_type)]);
 
+                let update_custom_filters_1 = cloneDeep(custom_filters_1);
+                if (this.get_active_field_filters && this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] &&
+                    this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.widget_options.dimension_custom_filter_name]) {
+
+                    for (let field_name in this.widget_options.filter_custom_field_filters_1) {
+
+                        let custom_filter_name = this.widget_options.filter_custom_field_filters_1[field_name];
+                        if (custom_filter_name == this.widget_options.dimension_custom_filter_name) {
+                            if (!update_custom_filters_1) {
+                                update_custom_filters_1 = {};
+                            }
+                            update_custom_filters_1[field_name] = active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.widget_options.dimension_custom_filter_name];
+                        }
+                    }
+                }
+
                 var_params_by_dimension[dimension_value] = await ModuleVar.getInstance().getVarParamFromContextFilters(
                     VarsController.getInstance().var_conf_by_id[this.widget_options.var_id_1].name,
                     active_field_filters,
-                    custom_filters_1,
+                    update_custom_filters_1,
                     this.dashboard.api_type_ids,
                     this.get_discarded_field_paths);
+
+                label_by_index[var_params_by_dimension[dimension_value].index] = Dates.format_segment(dimension_value, this.widget_options.dimension_custom_filter_segment_type);
             })());
         }
 
         await all_promises(promises);
 
+        this.label_by_index = label_by_index;
         return var_params_by_dimension;
     }
 
@@ -458,7 +574,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                         return;
                     }
 
-                    ranges.push(RangeHandler.create_single_elt_TSRange(Dates.month(Dates.year(0, year), month), TimeSegment.TYPE_MONTH));
+                    ranges.push(RangeHandler.create_single_elt_TSRange(Dates.month(Dates.year(0, year), month - 1), TimeSegment.TYPE_MONTH));
                     nb_ranges++;
                 }, TimeSegment.TYPE_MONTH, null, null, !this.widget_options.sort_dimension_by_asc);
             }, TimeSegment.TYPE_YEAR, null, null, !this.widget_options.sort_dimension_by_asc);
@@ -488,6 +604,8 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
         this.last_calculation_cpt = launch_cpt;
 
         if (!this.widget_options) {
+            this.ordered_dimension = null;
+            this.label_by_index = null;
             this.var_params_1_et_2 = null;
             this.var_params_by_dimension = null;
             return;
@@ -529,6 +647,13 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
         launch_cpt: number
     ) {
 
+        if (((!this.widget_options.var_id_1) || !VarsController.getInstance().var_conf_by_id[this.widget_options.var_id_1]) ||
+            ((!this.widget_options.var_id_2) || !VarsController.getInstance().var_conf_by_id[this.widget_options.var_id_2])) {
+            this.var_params_by_dimension = null;
+            this.var_params_1_et_2 = null;
+            return null;
+        }
+
         if (this.var_params_by_dimension) {
             this.var_params_by_dimension = null;
         }
@@ -562,6 +687,11 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             return;
         }
 
+        this.ordered_dimension = [0, 1];
+        this.label_by_index = {
+            0: this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_1)),
+            1: this.t(this.widget_options.get_var_name_code_text(this.page_widget.id, this.widget_options.var_id_2))
+        };
         this.var_params_1_et_2 = {
             0: var_1,
             1: var_2

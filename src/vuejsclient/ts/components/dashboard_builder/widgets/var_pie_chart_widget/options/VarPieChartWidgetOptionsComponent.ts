@@ -6,6 +6,8 @@ import DashboardPageWidgetVO from '../../../../../../../shared/modules/Dashboard
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
+import DefaultTranslation from '../../../../../../../shared/modules/Translation/vos/DefaultTranslation';
+import TranslatableTextVO from '../../../../../../../shared/modules/Translation/vos/TranslatableTextVO';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
@@ -16,6 +18,7 @@ import VueComponentBase from '../../../../VueComponentBase';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import WidgetFilterOptionsComponent from '../../var_widget/options/filters/WidgetFilterOptionsComponent';
+import VarWidgetOptions from '../../var_widget/options/VarWidgetOptions';
 import VarPieChartWidgetOptions from './VarPieChartWidgetOptions';
 import './VarPieChartWidgetOptionsComponent.scss';
 
@@ -84,9 +87,9 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
     private widget_options: VarPieChartWidgetOptions = null;
 
     private dimension_custom_filter_segment_types: string[] = [
-        this.label(TimeSegment.TYPE_YEAR),
-        this.label(TimeSegment.TYPE_MONTH),
-        this.label(TimeSegment.TYPE_DAY)
+        this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_YEAR),
+        this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_MONTH),
+        this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_DAY),
     ];
 
     private legend_positions: string[] = [
@@ -385,7 +388,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
     }
 
 
-    private async change_custom_filter_dimension(field_id: string, custom_filter: string) {
+    private async change_custom_filter_dimension(custom_filter: string) {
         if (!this.widget_options) {
             return;
         }
@@ -566,7 +569,44 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
                         options = null;
                     }
 
-                    options = options ? this.get_default_options() : null;
+                    options = options ? new VarPieChartWidgetOptions(
+                        options.bg_color,
+                        options.legend_display,
+                        options.legend_position,
+                        options.legend_font_color,
+                        options.legend_font_size,
+                        options.legend_box_width,
+                        options.legend_padding,
+                        options.legend_use_point_style,
+                        options.title_display,
+                        options.title_font_color,
+                        options.title_font_size,
+                        options.title_padding,
+                        options.cutout_percentage,
+                        options.rotation,
+                        options.circumference,
+                        options.has_dimension,
+                        options.max_dimension_values,
+                        options.sort_dimension_by_vo_field_ref,
+                        options.sort_dimension_by_asc,
+                        options.dimension_is_vo_field_ref,
+                        options.dimension_vo_field_ref,
+                        options.dimension_custom_filter_name,
+                        options.dimension_custom_filter_segment_type,
+                        options.filter_type,
+                        options.filter_additional_params,
+                        options.var_id_1,
+                        options.filter_custom_field_filters_1,
+                        options.bg_color_1,
+                        options.border_color_1,
+                        options.border_width_1,
+                        options.var_id_2,
+                        options.filter_custom_field_filters_2,
+                        options.bg_color_2,
+                        options.border_color_2,
+                        options.border_width_2,
+                        options.max_is_sum_of_var_1_and_2
+                    ) : null;
                 }
             } catch (error) {
                 ConsoleHandler.error(error);
@@ -625,14 +665,14 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         if (this.legend_display != this.widget_options.legend_display) {
             this.legend_display = this.widget_options.legend_display;
         }
-        if (this.legend_font_size != this.widget_options.legend_font_size.toString()) {
-            this.legend_font_size = this.widget_options.legend_font_size.toString();
+        if (((!this.widget_options.legend_font_size) && this.legend_font_size) || (this.widget_options.legend_font_size && (this.legend_font_size != this.widget_options.legend_font_size.toString()))) {
+            this.legend_font_size = this.widget_options.legend_font_size ? this.widget_options.legend_font_size.toString() : null;
         }
-        if (this.legend_box_width != this.widget_options.legend_box_width.toString()) {
-            this.legend_box_width = this.widget_options.legend_box_width.toString();
+        if (((!this.widget_options.legend_box_width) && this.legend_box_width) || (this.widget_options.legend_box_width && (this.legend_box_width != this.widget_options.legend_box_width.toString()))) {
+            this.legend_box_width = this.widget_options.legend_box_width ? this.widget_options.legend_box_width.toString() : null;
         }
-        if (this.legend_padding != this.widget_options.legend_padding.toString()) {
-            this.legend_padding = this.widget_options.legend_padding.toString();
+        if (((!this.widget_options.legend_padding) && this.legend_padding) || (this.widget_options.legend_padding && (this.legend_padding != this.widget_options.legend_padding.toString()))) {
+            this.legend_padding = this.widget_options.legend_padding ? this.widget_options.legend_padding.toString() : null;
         }
         if (this.legend_use_point_style != this.widget_options.legend_use_point_style) {
             this.legend_use_point_style = this.widget_options.legend_use_point_style;
@@ -641,27 +681,27 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         if (this.title_display != this.widget_options.title_display) {
             this.title_display = this.widget_options.title_display;
         }
-        if (this.title_font_size != this.widget_options.title_font_size.toString()) {
-            this.title_font_size = this.widget_options.title_font_size.toString();
+        if (((!this.widget_options.title_font_size) && this.title_font_size) || (this.widget_options.title_font_size && (this.title_font_size != this.widget_options.title_font_size.toString()))) {
+            this.title_font_size = this.widget_options.title_font_size ? this.widget_options.title_font_size.toString() : null;
         }
-        if (this.title_padding != this.widget_options.title_padding.toString()) {
-            this.title_padding = this.widget_options.title_padding.toString();
+        if (((!this.widget_options.title_padding) && this.title_padding) || (this.widget_options.title_padding && (this.title_padding != this.widget_options.title_padding.toString()))) {
+            this.title_padding = this.widget_options.title_padding ? this.widget_options.title_padding.toString() : null;
         }
-        if (this.cutout_percentage != this.widget_options.cutout_percentage.toString()) {
-            this.cutout_percentage = this.widget_options.cutout_percentage.toString();
+        if (((!this.widget_options.cutout_percentage) && this.cutout_percentage) || (this.widget_options.cutout_percentage && (this.cutout_percentage != this.widget_options.cutout_percentage.toString()))) {
+            this.cutout_percentage = this.widget_options.cutout_percentage ? this.widget_options.cutout_percentage.toString() : null;
         }
-        if (this.rotation != this.widget_options.rotation.toString()) {
-            this.rotation = this.widget_options.rotation.toString();
+        if (((!this.widget_options.rotation) && this.rotation) || (this.widget_options.rotation && (this.rotation != this.widget_options.rotation.toString()))) {
+            this.rotation = this.widget_options.rotation ? this.widget_options.rotation.toString() : null;
         }
-        if (this.circumference != this.widget_options.circumference.toString()) {
-            this.circumference = this.widget_options.circumference.toString();
+        if (((!this.widget_options.circumference) && this.circumference) || (this.widget_options.circumference && (this.circumference != this.widget_options.circumference.toString()))) {
+            this.circumference = this.widget_options.circumference ? this.widget_options.circumference.toString() : null;
         }
 
         if (this.has_dimension != this.widget_options.has_dimension) {
             this.has_dimension = this.widget_options.has_dimension;
         }
-        if (this.max_dimension_values != this.widget_options.max_dimension_values.toString()) {
-            this.max_dimension_values = this.widget_options.max_dimension_values.toString();
+        if (((!this.widget_options.max_dimension_values) && this.max_dimension_values) || (this.widget_options.max_dimension_values && (this.max_dimension_values != this.widget_options.max_dimension_values.toString()))) {
+            this.max_dimension_values = this.widget_options.max_dimension_values ? this.widget_options.max_dimension_values.toString() : null;
         }
         if (this.sort_dimension_by_asc != this.widget_options.sort_dimension_by_asc) {
             this.sort_dimension_by_asc = this.widget_options.sort_dimension_by_asc;
@@ -673,11 +713,11 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
             this.dimension_custom_filter_name = this.widget_options.dimension_custom_filter_name;
         }
 
-        if (this.border_width_1 != this.widget_options.border_width_1.toString()) {
-            this.border_width_1 = this.widget_options.border_width_1.toString();
+        if (((!this.widget_options.border_width_1) && this.border_width_1) || (this.widget_options.border_width_1 && (this.border_width_1 != this.widget_options.border_width_1.toString()))) {
+            this.border_width_1 = this.widget_options.border_width_1 ? this.widget_options.border_width_1.toString() : null;
         }
-        if (this.border_width_2 != this.widget_options.border_width_2.toString()) {
-            this.border_width_2 = this.widget_options.border_width_2.toString();
+        if (((!this.widget_options.border_width_2) && this.border_width_2) || (this.widget_options.border_width_2 && (this.border_width_2 != this.widget_options.border_width_2.toString()))) {
+            this.border_width_2 = this.widget_options.border_width_2 ? this.widget_options.border_width_2.toString() : null;
         }
         if (this.max_is_sum_of_var_1_and_2 != this.widget_options.max_is_sum_of_var_1_and_2) {
             this.max_is_sum_of_var_1_and_2 = this.widget_options.max_is_sum_of_var_1_and_2;
@@ -740,7 +780,11 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         }
     }
 
-    @Watch('page_widget', { immediate: true })
+    @Watch('page_widget', { immediate: true, deep: true })
+    private async onchange_page_widget() {
+        await this.throttled_reload_options();
+    }
+
     @Watch('widget_options')
     private async onchange_widget_options() {
         await this.throttled_reload_options();

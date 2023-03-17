@@ -228,7 +228,8 @@ export default class VarPieChartComponent extends VueComponentBase {
         for (let j in this.var_params) {
             let var_param: VarDataBaseVO = this.var_params[j];
 
-            dataset_datas.push(this.get_filtered_value(this.var_datas[var_param.index]));
+            // dataset_datas.push(this.get_filtered_value(this.var_datas[var_param.index]));
+            dataset_datas.push(this.var_datas[var_param.index].value);
             if (this.var_dataset_descriptor && this.var_dataset_descriptor.backgrounds[j]) {
                 backgrounds.push(this.var_dataset_descriptor.backgrounds[j]);
             } else if (this.var_dataset_descriptor && this.var_dataset_descriptor.backgrounds[0]) {
@@ -307,7 +308,7 @@ export default class VarPieChartComponent extends VueComponentBase {
         let res = [];
 
         for (let i in this.var_params) {
-            res.push(this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(this.var_params[i].var_id)));
+            res.push(this.getlabel ? this.getlabel(this.var_params[i]) : this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(this.var_params[i].var_id)));
         }
 
         return res;
