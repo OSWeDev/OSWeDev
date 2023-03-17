@@ -13,29 +13,74 @@
                         @click='handle_close_modal'
                     ) &times;
                 .modal-body
-                    div.favorites_filters_name
-                        .input_label {{ label('dashboard_viewer.save_favorites_filters.enter_name') }}
-                        .input_wrapper
-                            input(
-                                type="text"
-                                v-model="favorites_filters_name"
-                            )
 
-                    div.select_favorites_filters
-                        .input_label {{ label('dashboard_viewer.save_favorites_filters.select_favorites') }}
-                        .row.select_favorites_filters_options
-                            template(v-for="(option, translatable_field_filters_code) in readable_active_field_filters_hmi")
-                                div.option.col-md-12
-                                    input(
-                                        :name="base_filter + '_' + translatable_field_filters_code" 
-                                        :id="base_filter + '_' + translatable_field_filters_code" 
-                                        :checked="is_active_field_filter_selected(option)" 
-                                        :key="translatable_field_filters_code" 
-                                        :type="'checkbox'" 
-                                        @change="handle_toggle_select_favorite_filter(option)"    
-                                    )                            
-                                    template
-                                        label.option__title.ml-2(:for="base_filter + '_' + translatable_field_filters_code") {{ label(translatable_field_filters_code) }}: {{ option.readable_active_field_filters }}
+                    template
+                        ul.nav.nav-pills.nav-fill(role="tablist")
+                            li(:class="{'active': active_tab_view == 'selection_tab'}")
+                                a#selection_pill.nav-item.nav-link(
+                                    :class="{'active': active_tab_view == 'selection_tab'}"
+                                    @click="set_active_tab_view('selection_tab')"
+                                ) {{ label('dashboard_viewer.save_favorites_filters.selection_tab') }}
+                            li(:class="{'active': active_tab_view == 'export_tab'}")
+                                a#export_pill.nav-item.nav-link(
+                                    :class="{'active': active_tab_view == 'export_tab'}"
+                                    @click="set_active_tab_view('export_tab')"
+                                )  {{ label('dashboard_viewer.save_favorites_filters.export_tab') }}
+
+                        .tab-content
+                            #selection_tab(v-show="active_tab_view == 'selection_tab'")
+                                template
+
+                                    div.favorites_filters_name
+                                        .input_label {{ label('dashboard_viewer.save_favorites_filters.enter_name') }}
+                                        .input_wrapper
+                                            input(
+                                                type="text"
+                                                v-model="favorites_filters_name"
+                                            )
+
+                                    div.select_favorites_filters
+                                        .input_label {{ label('dashboard_viewer.save_favorites_filters.select_favorites') }}
+                                        .row.select_favorites_filters_options
+                                            template(v-for="(option, translatable_field_filters_code) in readable_active_field_filters")
+                                                div.option.col-md-12
+                                                    input(
+                                                        :name="base_filter + '_' + translatable_field_filters_code" 
+                                                        :id="base_filter + '_' + translatable_field_filters_code" 
+                                                        :checked="is_active_field_filter_selected(option)" 
+                                                        :key="translatable_field_filters_code" 
+                                                        :type="'checkbox'" 
+                                                        @change="handle_toggle_select_favorite_filter(option)"    
+                                                    )                            
+                                                    template
+                                                        label.option__title.ml-2(:for="base_filter + '_' + translatable_field_filters_code") {{ label(translatable_field_filters_code) }}: {{ option.readable_active_field_filters }}
+
+                            #export_tab(v-show="active_tab_view == 'export_tab'")
+                                template 
+
+                                    div.export_frequency_day
+                                        .input_label {{ label('dashboard_viewer.save_favorites_filters.export_frequency_day') }}
+                                        .input_wrapper
+                                            input(
+                                                type="number"
+                                                v-model="export_frequency_day"
+                                            )
+
+                                    div.select_exportable_data
+                                        .input_label {{ label('dashboard_viewer.save_favorites_filters.select_exportable_data') }}
+                                        .row.select_exportable_data_options
+                                            template(v-for="(option, title_name_code) in exportable_data")
+                                                div.option.col-md-12
+                                                    input(
+                                                        :name="base_filter + '_' + title_name_code" 
+                                                        :id="base_filter + '_' + title_name_code" 
+                                                        :checked="is_exportable_data_selected(title_name_code)" 
+                                                        :key="title_name_code" 
+                                                        :type="'checkbox'" 
+                                                        @change="handle_toggle_select_exportable_data(title_name_code)"    
+                                                    )                            
+                                                    template
+                                                        label.option__title.ml-2(:for="base_filter + '_' + title_name_code") {{ t(title_name_code) }}
 
                 .modal-footer
                     a.btn.btn-success(data-dismiss="modal" @click='handle_save') {{ label('crud.update.modal.save') }}

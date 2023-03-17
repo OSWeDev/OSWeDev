@@ -1,3 +1,5 @@
+@import "skin-variables.scss";
+
 .save_favorites_filters_modal_component_wrapper {
     height: 100%;
     padding: 0.5em;
@@ -7,6 +9,27 @@
             input {
                 width: 100%;
             }
+        }
+    }
+
+    .nav-pills {
+        margin-bottom: 16px;
+
+        > li {
+            cursor: pointer;
+            margin-bottom: 2px;
+        }
+
+        > li.active > a,
+        > li.active > a:focus,
+        > li.active > a:hover {
+            color: #fff;
+            background-color: $button_primary_bg_color;
+        }
+        > li.active > a,
+        > li.active > a:hover,
+        > li.active > a:focus {
+            border-top-color: $button_primary_bg_color;
         }
     }
 }

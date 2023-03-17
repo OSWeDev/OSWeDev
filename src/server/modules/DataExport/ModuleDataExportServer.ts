@@ -261,6 +261,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             export_options,
             vars_indicator,
         );
+
         await ExportContextQueryToXLSXBGThread.getInstance().push_export_query(export_query);
 
         return null;

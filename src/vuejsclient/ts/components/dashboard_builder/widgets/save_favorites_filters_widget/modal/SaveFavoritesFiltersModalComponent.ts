@@ -1,6 +1,8 @@
 import Component from 'vue-class-component';
 import { Watch } from 'vue-property-decorator';
 import VueComponentBase from '../../../../VueComponentBase';
+import IDashboardFavoritesFiltersProps from '../../../../../../../shared/modules/DashboardBuilder/interfaces/IDashboardFavoritesFiltersProps';
+import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
 import ContextFilterHandler from '../../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
@@ -13,10 +15,6 @@ export interface IReadableActiveFieldFilters {
     path: { api_type_id: string, field_id: string };
 }
 
-export interface ISaveFavoritesFiltersModalValidationCallbackProps {
-    favorites_filters_name: string;
-    selected_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
-}
 
 @Component({
     template: require('./SaveFavoritesFiltersModalComponent.pug'),
@@ -30,11 +28,15 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
     private modal_initialized: boolean = false;
 
     private is_modal_open: boolean = false;
+    private active_tab_view: string = 'selection_tab';
+    private exportable_data: { [title_name_code: string]: ExportContextQueryToXLSXParamVO } = null;
 
     private favorites_filters_name: string = null;
+    private export_frequency_day: number = null;
     private selected_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null;
+    private selected_exportable_data: { [title_name_code: string]: ExportContextQueryToXLSXParamVO } = null;
 
-    private on_validation_callback: (props: ISaveFavoritesFiltersModalValidationCallbackProps) => Promise<void> = null;
+    private on_validation_callback: (props: IDashboardFavoritesFiltersProps) => Promise<void> = null;
 
     /**
      * Handle Open Modal
@@ -44,10 +46,12 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
      * @return {void}
      */
     public open_modal(
-        props: any = null,
-        validation_callback?: (props?: ISaveFavoritesFiltersModalValidationCallbackProps) => Promise<void>
+        props: { exportable_data: { [title_name_code: string]: ExportContextQueryToXLSXParamVO } } = null,
+        validation_callback?: (props?: IDashboardFavoritesFiltersProps) => Promise<void>
     ): void {
         this.is_modal_open = true;
+
+        this.exportable_data = props?.exportable_data ?? null;
 
         if (validation_callback) {
             this.on_validation_callback = validation_callback;
@@ -102,8 +106,8 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
 
         if (this.on_validation_callback) {
             await this.on_validation_callback({
-                favorites_filters_name: this.favorites_filters_name,
-                selected_field_filters: this.selected_field_filters
+                name: this.favorites_filters_name,
+                page_filters: JSON.stringify(this.selected_field_filters)
             });
         }
     }
@@ -149,6 +153,7 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
      * @return {void}
      */
     private reset_modal(): void {
+        this.active_tab_view = 'selection_tab';
         this.favorites_filters_name = null;
         this.selected_field_filters = null;
     }
@@ -198,12 +203,61 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
     }
 
     /**
+     * Is Exportable Data Selected
+     *
+     * @param {string} [title_name_code]
+     * @returns {boolean}
+     */
+    private is_exportable_data_selected(title_name_code: string): boolean {
+
+        if (!this.selected_exportable_data) {
+            return false;
+        }
+
+        return this.selected_exportable_data[title_name_code] != null;
+    }
+
+    /**
+     * Handle Toggle Select Exportable Data
+     *  - Select or unselect from Exportable Data the given props
+     *
+     * @param {string} [title_name_code]
+     * @returns {void}
+     */
+    private handle_toggle_select_exportable_data(title_name_code: string): void {
+        let tmp_selected_exportable_data = cloneDeep(this.selected_exportable_data);
+
+        const exportable_data = this.exportable_data;
+
+        if (!tmp_selected_exportable_data) {
+            tmp_selected_exportable_data = {};
+        }
+
+        if (this.is_exportable_data_selected(title_name_code)) {
+            delete tmp_selected_exportable_data[title_name_code];
+        } else {
+            tmp_selected_exportable_data[title_name_code] = exportable_data[title_name_code];
+        }
+
+        this.selected_exportable_data = tmp_selected_exportable_data;
+    }
+
+    /**
+     * Set Active Tab View
+     *
+     * @param {string} [tab_view]
+     */
+    private set_active_tab_view(tab_view: string): void {
+        this.active_tab_view = tab_view;
+    }
+
+    /**
      * Get Readable Active Field Filters HMI
      *  - For each selected active field filters get as Human readable filters
      *
      * @return {{ [translatable_field_filters_code: string]: IReadableActiveFieldFilters }}
      */
-    get readable_active_field_filters_hmi(): { [translatable_field_filters_code: string]: IReadableActiveFieldFilters } {
+    get readable_active_field_filters(): { [translatable_field_filters_code: string]: IReadableActiveFieldFilters } {
         let res: { [translatable_field_filters_code: string]: IReadableActiveFieldFilters } = {};
 
         const active_field_filters = this.get_active_field_filters;

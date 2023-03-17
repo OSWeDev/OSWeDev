@@ -27,7 +27,7 @@ export default class DashboardFavoritesFiltersVO implements IDistantVOBase {
     public page_filters: string;
 
     // JSON object of export configurations
-    public export_params: string;
+    public export_params: string; // e.g. {is_export_planned: boolean, export_frequency: {day:number }, exportable_data:{[name:string]:ExportContextQueryToXLSXParamVO}
 
     /**
      * Hydrate from the given properties

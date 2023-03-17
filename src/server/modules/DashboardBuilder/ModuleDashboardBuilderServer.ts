@@ -15,7 +15,7 @@ import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
-import DashboardBuilderCronWorkersHandler from '../../../../dist/server/modules/DashboardBuilder/DashboardBuilderCronWorkersHandler';
+import DashboardBuilderCronWorkersHandler from './DashboardBuilderCronWorkersHandler';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 
 export default class ModuleDashboardBuilderServer extends ModuleServerBase {
@@ -1436,6 +1436,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Sauvegarder les filtres favoris" },
             'dashboard_viewer.save_favorites_filters.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Selectionner favoris" },
+            'dashboard_viewer.save_favorites_filters.selection_tab.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Configurer vos exports" },
+            'dashboard_viewer.save_favorites_filters.export_tab.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Selectionner vos filtres favoris" },
