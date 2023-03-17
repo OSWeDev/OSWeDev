@@ -110,6 +110,8 @@ import ModuleTranslationServer from './Translation/ModuleTranslationServer';
 import ModuleVarServer from './Var/ModuleVarServer';
 import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
 import ModuleVocusServer from './Vocus/ModuleVocusServer';
+import ModuleStats from '../../shared/modules/Stats/ModuleStats';
+import ModuleStatsServer from './Stats/ModuleStatsServer';
 
 export default abstract class ModuleServiceBase {
 
@@ -536,7 +538,8 @@ export default abstract class ModuleServiceBase {
             ModulePowershell.getInstance(),
             ModuleNFCConnect.getInstance(),
             ModuleDashboardBuilder.getInstance(),
-            ModuleMenu.getInstance()
+            ModuleMenu.getInstance(),
+            ModuleStats.getInstance(),
         ];
     }
 
@@ -591,7 +594,8 @@ export default abstract class ModuleServiceBase {
             ModuleNFCConnectServer.getInstance(),
             ModuleDashboardBuilderServer.getInstance(),
             ModuleMenuServer.getInstance(),
-            ModuleFormatDatesNombresServer.getInstance()
+            ModuleFormatDatesNombresServer.getInstance(),
+            ModuleStatsServer.getInstance(),
         ];
     }
 

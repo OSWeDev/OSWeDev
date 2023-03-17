@@ -24,6 +24,7 @@ import AjaxCacheController from '../shared/modules/AjaxCache/AjaxCacheController
 import ModuleCommerce from '../shared/modules/Commerce/ModuleCommerce';
 import { query } from '../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
+import TimeSegment from '../shared/modules/DataRender/vos/TimeSegment';
 import ModuleFile from '../shared/modules/File/ModuleFile';
 import FileVO from '../shared/modules/File/vos/FileVO';
 import Dates from '../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -34,6 +35,8 @@ import ModuleMaintenance from '../shared/modules/Maintenance/ModuleMaintenance';
 import ModulesManager from '../shared/modules/ModulesManager';
 import ModuleParams from '../shared/modules/Params/ModuleParams';
 import ModulePushData from '../shared/modules/PushData/ModulePushData';
+import StatsController from '../shared/modules/Stats/StatsController';
+import StatVO from '../shared/modules/Stats/vos/StatVO';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
 import ConsoleHandler from '../shared/tools/ConsoleHandler';
 import EnvHandler from '../shared/tools/EnvHandler';
@@ -233,6 +236,32 @@ export default abstract class ServerBase {
             ConsoleHandler.log('ServerExpressController:express:START');
         }
         this.app = express();
+
+        let responseTime = require('response-time');
+        this.app.use(responseTime(async (req, res, time) => {
+            let url = req.originalUrl;
+            let method = req.method;
+            let status = res.statusCode;
+
+            let log = `${method} ${url} ${status} ${time.toFixed(3)} ms`;
+
+            let cleaned_url = req.url.toLowerCase()
+                .replace(/[:.]/g, '')
+                .replace(/\//g, '_');
+
+            if (status >= 500) {
+                await StatsController.register_stat('express.' + method + '.' + cleaned_url + '.500',
+                    1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                ConsoleHandler.error(log);
+            } else if (status >= 400) {
+                await StatsController.register_stat('express.' + method + '.' + cleaned_url + '.400',
+                    1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                ConsoleHandler.warn(log);
+            } else {
+                await StatsController.register_stat('express.' + method + '.' + cleaned_url,
+                    time, StatVO.AGGREGATOR_MEAN, TimeSegment.TYPE_MINUTE);
+            }
+        }));
 
         // createTerminus(this.app, { onSignal: ServerBase.getInstance().terminus });
 
