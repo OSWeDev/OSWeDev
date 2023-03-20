@@ -89,8 +89,14 @@ export default class VarDataRefComponent extends VueComponentBase {
     @Prop({ default: true })
     public show_tooltip_import: boolean;
 
+    @Prop({ default: true })
+    public show_tooltip_maj: boolean;
+
     @Prop({ default: false })
     public show_tooltip: boolean;
+
+    @Prop({ default: true })
+    public show_tooltip_prefix: boolean;
 
     private entered_once: boolean = false;
 
@@ -434,6 +440,7 @@ export default class VarDataRefComponent extends VueComponentBase {
     }
 
     get var_data_value_tooltip() {
+        let toshow: boolean = false;
 
         let res = null;
 
@@ -449,7 +456,12 @@ export default class VarDataRefComponent extends VueComponentBase {
             return res;
         }
 
-        res = (res ? res + '<hr>' : '') + this.label('VarDataRefComponent.var_data_value_tooltip_prefix');
+        if (this.show_tooltip_prefix) {
+            res = (res ? res + '<hr>' : '') + this.label('VarDataRefComponent.var_data_value_tooltip_prefix');
+        } else {
+            res = (res ? res : '') + '<ul>';
+        }
+
 
         let formatted_date: string = Dates.format(this.var_data.value_ts, ModuleFormatDatesNombres.FORMAT_YYYYMMDD_HHmmss);
 
@@ -465,18 +477,24 @@ export default class VarDataRefComponent extends VueComponentBase {
             value = this.filter.apply(null, params);
         }
 
-        res += this.label('VarDataRefComponent.var_data_value_tooltip', {
-            value: value,
-            formatted_date: formatted_date,
-        });
+        if (this.show_tooltip_maj) {
+            res += this.label('VarDataRefComponent.var_data_value_tooltip', {
+                value: value,
+                formatted_date: formatted_date,
+            });
+
+            toshow = true;
+        }
 
         if (!!this.var_data_value_import_tooltip && this.show_tooltip_import) {
             res += this.var_data_value_import_tooltip;
+
+            toshow = true;
         }
 
         res += this.label('VarDataRefComponent.var_data_value_tooltip_suffix');
 
-        return res;
+        return toshow ? res : null;
     }
 
     get var_data_value_import_tooltip() {
