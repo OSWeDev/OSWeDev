@@ -26,7 +26,10 @@ import './DatatableComponentField.scss';
 })
 export default class DatatableComponentField extends VueComponentBase {
 
-    @Prop()
+    @Prop({
+        type: Object,
+        default: () => ({})
+    })
     private field: DatatableField<any, any>;
 
     @Prop()

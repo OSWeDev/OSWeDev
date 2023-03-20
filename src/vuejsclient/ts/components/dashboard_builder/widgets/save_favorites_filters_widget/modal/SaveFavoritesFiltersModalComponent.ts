@@ -15,7 +15,6 @@ export interface IReadableActiveFieldFilters {
     path: { api_type_id: string, field_id: string };
 }
 
-
 @Component({
     template: require('./SaveFavoritesFiltersModalComponent.pug'),
     components: {}
@@ -31,8 +30,21 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
     private active_tab_view: string = 'selection_tab';
     private exportable_data: { [title_name_code: string]: ExportContextQueryToXLSXParamVO } = null;
 
+    private form_errors: string[] = [];
+
     private favorites_filters_name: string = null;
-    private export_frequency_day: number = null;
+    private is_export_planned: boolean = false;
+
+    private export_frequency_every: string = null;       // 1, 3, e.g. 1 day, 3 months
+    private export_frequency_day_in_month: string | null = null;  // day in the month e.g. every 3 months at day 15
+
+    private tmp_export_frequency_granularity: { label: string, value: string } = null; // e.g. day, month, year
+    private export_frequency_granularity_options: Array<{ label: string, value: string }> = [
+        { label: 'label.day', value: 'day' },
+        { label: 'label.month', value: 'month' },
+        { label: 'label.year', value: 'year' }
+    ];
+
     private selected_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null;
     private selected_exportable_data: { [title_name_code: string]: ExportContextQueryToXLSXParamVO } = null;
 
@@ -51,6 +63,7 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
     ): void {
         this.is_modal_open = true;
 
+        this.selected_exportable_data = props?.exportable_data ?? null;
         this.exportable_data = props?.exportable_data ?? null;
 
         if (validation_callback) {
@@ -102,14 +115,60 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
      * @return {Promise<void>}
      */
     private async handle_save(): Promise<void> {
+        if (!this.check_form_valid()) {
+            return;
+        }
+
         this.is_modal_open = false;
 
         if (this.on_validation_callback) {
             await this.on_validation_callback({
+                export_params: {
+                    export_frequency: {
+                        day_in_month: (this.export_frequency_day_in_month?.length > 0) ? parseInt(this.export_frequency_day_in_month) : null,
+                        every: (this.export_frequency_every?.length > 0) ? parseInt(this.export_frequency_every) : null,
+                        granularity: this.tmp_export_frequency_granularity?.value,
+                    },
+                    exportable_data: this.selected_exportable_data,
+                    is_export_planned: this.is_export_planned,
+                },
+                page_filters: this.selected_field_filters,
                 name: this.favorites_filters_name,
-                page_filters: JSON.stringify(this.selected_field_filters)
-            });
+            } as IDashboardFavoritesFiltersProps);
         }
+    }
+
+    /**
+     * Check Form Valid
+     *
+     * @returns boolean
+     */
+    private check_form_valid(): boolean {
+        this.form_errors = [];
+
+        if (!(this.favorites_filters_name?.length > 0)) {
+            this.form_errors.push(this.label('dashboard_viewer.favorites_filters.name_required'));
+        }
+
+        if (this.is_export_planned) {
+            if (!(this.export_frequency_every?.length > 0)) {
+                this.form_errors.push(this.label('dashboard_viewer.favorites_filters.export_frequency_every_required'));
+            }
+
+            if (!(this.tmp_export_frequency_granularity?.value.length > 0)) {
+                this.form_errors.push(this.label('dashboard_viewer.favorites_filters.export_frequency_granularity_required'));
+            }
+
+            if (this.tmp_export_frequency_granularity?.value === 'month' && !(this.export_frequency_day_in_month?.length > 0)) {
+                this.form_errors.push(this.label('dashboard_viewer.favorites_filters.export_frequency_day_in_month_required'));
+            }
+
+            if (!(Object.keys(this.selected_exportable_data).length > 0)) {
+                this.form_errors.push(this.label('dashboard_viewer.favorites_filters.selected_exportable_data_required'));
+            }
+        }
+
+        return !(this.form_errors?.length > 0);
     }
 
     /**
@@ -156,6 +215,19 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
         this.active_tab_view = 'selection_tab';
         this.favorites_filters_name = null;
         this.selected_field_filters = null;
+        this.reset_export_plan();
+    }
+
+    /**
+     * Reset Export Plan
+     *
+     * @return {void}
+     */
+    private reset_export_plan(): void {
+        this.is_export_planned = false;
+        this.export_frequency_day_in_month = null;
+        this.tmp_export_frequency_granularity = null;
+        this.export_frequency_every = null;
     }
 
     /**
@@ -218,6 +290,15 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
     }
 
     /**
+     * Can Add Export Frequency Day In Month
+     *
+     * @return {boolean}
+     */
+    private can_add_export_frequency_day_in_month(): boolean {
+        return this.tmp_export_frequency_granularity?.value == 'month';
+    }
+
+    /**
      * Handle Toggle Select Exportable Data
      *  - Select or unselect from Exportable Data the given props
      *
@@ -240,6 +321,19 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
         }
 
         this.selected_exportable_data = tmp_selected_exportable_data;
+    }
+
+    /**
+     * Handle Toggle Is Export Planned
+     *
+     * @returns {void}
+     */
+    private handle_toggle_is_export_planned(): void {
+        this.is_export_planned = !this.is_export_planned;
+
+        if (!this.is_export_planned) {
+            this.reset_export_plan();
+        }
     }
 
     /**

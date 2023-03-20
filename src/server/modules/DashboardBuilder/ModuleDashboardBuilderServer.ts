@@ -1435,39 +1435,87 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Sauvegarder les filtres favoris" },
-            'dashboard_viewer.save_favorites_filters.___LABEL___'
+            'dashboard_viewer.favorites_filters.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Configurer la sélection de vos filtres favoris" },
+            'dashboard_viewer.favorites_filters.modal_title.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Selectionner favoris" },
-            'dashboard_viewer.save_favorites_filters.selection_tab.___LABEL___'
+            'dashboard_viewer.favorites_filters.selection_tab.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Configurer vos exports" },
-            'dashboard_viewer.save_favorites_filters.export_tab.___LABEL___'
+            'dashboard_viewer.favorites_filters.export_tab.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Selectionner vos filtres favoris" },
-            'dashboard_viewer.save_favorites_filters.select_favorites.___LABEL___'
+            'dashboard_viewer.favorites_filters.select_favorites.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': "Entrer le nom du favoris" },
-            'dashboard_viewer.save_favorites_filters.enter_name.___LABEL___'
+            { 'fr-fr': "Erreurs de saisie" },
+            'dashboard_viewer.favorites_filters.form_errors.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Entrer le nom du favoris *" },
+            'dashboard_viewer.favorites_filters.enter_name.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Nom pour les filtres favoris requis" },
+            'dashboard_viewer.favorites_filters.name_required.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Fréquence d'export de données requise" },
+            'dashboard_viewer.favorites_filters.export_frequency_every_required.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Granularité d'export de données requise" },
+            'dashboard_viewer.favorites_filters.export_frequency_granularity_required.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Jour du mois pour l'export de données requis" },
+            'dashboard_viewer.favorites_filters.export_frequency_day_in_month_required.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Données à exporté requis" },
+            'dashboard_viewer.favorites_filters.selected_exportable_data_required.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Planifier les export" },
+            'dashboard_viewer.favorites_filters.plan_export.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Exproter tous les *:" },
+            'dashboard_viewer.favorites_filters.export_frequency_every.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Granularité *:" },
+            'dashboard_viewer.favorites_filters.export_frequency_granularity.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Fréquence d'export (jour du mois) *:" },
+            'dashboard_viewer.favorites_filters.export_frequency_day_in_month.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Sélectionner le tableau de valeurs à exporter *:" },
+            'dashboard_viewer.favorites_filters.select_exportable_data.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Sauver favoris" },
-            'dashboard_viewer.save_favorites_filters.save_favorites.___LABEL___'
+            'dashboard_viewer.favorites_filters.save_favorites.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Sauvegarde des filtres favoris en cours" },
-            'dashboard_viewer.save_favorites_filters.start.___LABEL___'
+            'dashboard_viewer.favorites_filters.start.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Filtres favoris sauvé avec success" },
-            'dashboard_viewer.save_favorites_filters.ok.___LABEL___'
+            'dashboard_viewer.favorites_filters.ok.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Erreur lors de la sauvegarde des filtres" },
-            'dashboard_viewer.save_favorites_filters.failed.___LABEL___'
+            'dashboard_viewer.favorites_filters.failed.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Masquer la pagination du bas" },
@@ -1766,6 +1814,8 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
      */
     public async start_export_datatable_using_favorites_filters(): Promise<void> {
         // TODO: for all user favorites filters export by using export_params
+        // TODO: introduce in export_params the last_export_at:Date
+        // TODO: if last_export_at == undefined and is_export_planned == true do export
     }
 
     public async registerAccessPolicies(): Promise<void> {

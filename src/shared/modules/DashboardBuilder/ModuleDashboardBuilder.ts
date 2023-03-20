@@ -73,7 +73,8 @@ export default class ModuleDashboardBuilder extends Module {
         this.datatables = [];
 
         let db_table = this.init_DashboardVO();
-        this.init_DashboardActiveFiltersFavoritesVO(db_table);
+        this.init_DashboardFavoritesFiltersVO(db_table);
+
         let db_page = this.init_DashboardPageVO(db_table);
         this.init_DashboardGraphVORefVO(db_table);
         let db_widget = this.init_DashboardWidgetVO();
@@ -209,11 +210,11 @@ export default class ModuleDashboardBuilder extends Module {
     }
 
     /**
-     * Init Dashboard Active Filters Favorites
+     * Init Dashboard Favorites Filters
      *  - Database table to stock user favorites of active filters
      *  - May be useful to save the actual dashboard, owner_id and page_filters
      */
-    private init_DashboardActiveFiltersFavoritesVO(db_table: ModuleTable<any>) {
+    private init_DashboardFavoritesFiltersVO(db_table: ModuleTable<any>) {
 
         let dashboard_id = new ModuleTableField('dashboard_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Dashboard', true);
 
@@ -222,9 +223,9 @@ export default class ModuleDashboardBuilder extends Module {
 
             new ModuleTableField('owner_id', ModuleTableField.FIELD_TYPE_string, 'Owner Id', true),
             new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom des filtres', true),
-            new ModuleTableField('page_filters', ModuleTableField.FIELD_TYPE_string, 'Page Filters', false),
+            new ModuleTableField('page_filters', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Page Filters', false),
             // export_params: Specify frequence (month day number e.g. 1st, 10th or 20)
-            new ModuleTableField('export_params', ModuleTableField.FIELD_TYPE_string, 'Export Params', false),
+            new ModuleTableField('export_params', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Export Params', false),
         ];
 
         this.datatables.push(

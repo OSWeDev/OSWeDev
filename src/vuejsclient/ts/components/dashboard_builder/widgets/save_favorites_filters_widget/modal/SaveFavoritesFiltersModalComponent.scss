@@ -12,6 +12,32 @@
         }
     }
 
+    .modal-body {
+        ul.error-list {
+            padding: 0;
+            list-style-type: none;
+        }
+        .error {
+            list-style: none;
+        }
+    }
+
+    .export_frequency_every {
+        .input_wrapper {
+            input {
+                width: 100%;
+            }
+        }
+    }
+
+    .export_frequency_day_in_month {
+        .input_wrapper {
+            input {
+                width: 100%;
+            }
+        }
+    }
+
     .nav-pills {
         margin-bottom: 16px;
 

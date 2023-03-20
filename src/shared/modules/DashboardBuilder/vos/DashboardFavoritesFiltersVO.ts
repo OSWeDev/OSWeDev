@@ -1,6 +1,7 @@
 
-import IDashboardFavoritesFiltersProps from '../interfaces/IDashboardFavoritesFiltersProps';
+import IDashboardFavoritesFiltersProps, { IExportParamsProps } from '../interfaces/IDashboardFavoritesFiltersProps';
 import DashboardBuilderController from "../DashboardBuilderController";
+import ContextFilterVO from '../../ContextFilter/vos/ContextFilterVO';
 import IDistantVOBase from "../../IDistantVOBase";
 
 /**
@@ -24,10 +25,10 @@ export default class DashboardFavoritesFiltersVO implements IDistantVOBase {
     public name: string;
 
     // JSON object of page active field filters
-    public page_filters: string;
+    public page_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
 
     // JSON object of export configurations
-    public export_params: string; // e.g. {is_export_planned: boolean, export_frequency: {day:number }, exportable_data:{[name:string]:ExportContextQueryToXLSXParamVO}
+    public export_params?: IExportParamsProps;
 
     /**
      * Hydrate from the given properties

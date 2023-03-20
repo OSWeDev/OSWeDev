@@ -2284,7 +2284,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             return res;
         }
 
-        if (column.type != TableColumnDescVO.TYPE_vo_field_ref) {
+        if (column?.type != TableColumnDescVO.TYPE_vo_field_ref) {
             return res;
         }
 
