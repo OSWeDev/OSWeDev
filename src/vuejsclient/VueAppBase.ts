@@ -417,6 +417,15 @@ export default abstract class VueAppBase {
 
         AppVuexStoreManager.getInstance().registerModule(DocumentStore.getInstance());
 
+        // On applique un zoom auto si param à TRUE
+        // if (EnvHandler.ZOOM_AUTO) {
+        //     let zoom: number = (1 - (window.devicePixelRatio - 1) / window.devicePixelRatio);
+
+        //     if (zoom <= 1) {
+        //         document.body.style['zoom'] = zoom.toString();
+        //     }
+        // }
+
         this.vueInstance = this.createVueMain();
         this.vueInstance.$mount('#vueDIV');
 
@@ -463,15 +472,6 @@ export default abstract class VueAppBase {
 
             return null;
         };
-
-        // On applique un zoom auto si param à TRUE
-        if (EnvHandler.ZOOM_AUTO) {
-            let zoom: number = (1 - (window.devicePixelRatio - 1) / window.devicePixelRatio);
-
-            if (zoom <= 1) {
-                document.body.style['zoom'] = zoom.toString();
-            }
-        }
     }
 
     protected abstract createVueMain(): VueComponentBase;
