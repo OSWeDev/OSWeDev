@@ -1,5 +1,8 @@
 
+import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import TSRange from '../../../../shared/modules/DataRender/vos/TSRange';
+import StatsController from '../../../../shared/modules/Stats/StatsController';
+import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
 import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
@@ -22,6 +25,12 @@ export default abstract class DataSourceControllerTSRangeIndexedBase extends Dat
      * @param node
      */
     public async load_node_data(node: VarDAGNode) {
+
+        await StatsController.register_stat('DataSources.' + node.var_data.var_id + '.load_node_data.nb',
+            1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        await StatsController.register_stat('DataSourceControllerTSRangeIndexedBase.' + node.var_data.var_id + '.load_node_data.nb',
+            1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+
         if (typeof node.datasources[this.name] !== 'undefined') {
             return;
         }
@@ -42,6 +51,12 @@ export default abstract class DataSourceControllerTSRangeIndexedBase extends Dat
 
             let ms_i = date;
             if (typeof VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][ms_i] === 'undefined') {
+
+                await StatsController.register_stat('DataSources.' + node.var_data.var_id + '.get_data.nb',
+                    1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                await StatsController.register_stat('DataSourceControllerTSRangeIndexedBase.' + node.var_data.var_id + '.get_data.nb',
+                    1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+
                 let data = await this.get_data(node.var_data);
 
                 for (let j in data) {

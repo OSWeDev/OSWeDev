@@ -2,10 +2,13 @@ import { cloneDeep } from 'lodash';
 import { performance } from 'perf_hooks';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
+import StatsController from '../../../shared/modules/Stats/StatsController';
+import StatVO from '../../../shared/modules/Stats/vos/StatVO';
 import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
 import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
@@ -19,6 +22,7 @@ import VarPixelFieldConfVO from '../../../shared/modules/Var/vos/VarPixelFieldCo
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
@@ -212,6 +216,13 @@ export default class VarsComputeController {
             var_dag.perfs.load_nodes_datas.skip_and_update_parents_perfs();
             return;
         }
+
+        await StatsController.register_stat('VarsComputeController.compute.has_node_to_compute_in_this_batch',
+            1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        await StatsController.register_stat('VarsComputeController.compute.nb_nodes_per_batch',
+            var_dag.nb_nodes, StatVO.AGGREGATOR_MEAN, TimeSegment.TYPE_MINUTE);
+        await StatsController.register_stat('VarsComputeController.compute.nb_nodes_in_those_batches',
+            var_dag.nb_nodes, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
         /**
          * On a l'arbre. On charge les données qui restent à charger
@@ -803,7 +814,7 @@ export default class VarsComputeController {
                             ':client_socket_id:' + wrapped_select_var.client_tab_id +
                             ':is_server_request:' + wrapped_select_var.is_server_request +
                             ':reason:' + wrapped_select_var.reason +
-                            ':creation_date:' + Dates.format(wrapped_select_var.creation_date, 'DD/MM/YYYY HH:mm:ss') +
+                            ':creation_date:' + Dates.format(wrapped_select_var.creation_date_ms, 'DD/MM/YYYY HH:mm:ss.SSS') +
                             ':var_data_origin_value:' + wrapped_select_var.var_data_origin_value +
                             ':var_data_origin_type:' + wrapped_select_var.var_data_origin_type +
                             ':last_insert_or_update:' + Dates.format(wrapped_select_var.last_insert_or_update, 'DD/MM/YYYY HH:mm:ss') +
@@ -1155,6 +1166,37 @@ export default class VarsComputeController {
             await VarsTabsSubsController.getInstance().notify_vardatas(
                 [new NotifVardatasParam([var_dag_node.var_data])]);
             await VarsServerCallBackSubsController.getInstance().notify_vardatas([var_dag_node.var_data]);
+
+            let cache_wrapper = VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes ? VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes[var_dag_node.var_data.index] : null;
+            if (cache_wrapper) {
+
+                let promises = [];
+
+                if (cache_wrapper.is_server_request) {
+                    promises.push(StatsController.register_stat('VarsComputeController.notify_var_data_post_deploy.nb_solved_server_requests',
+                        1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE));
+                }
+                if (cache_wrapper.client_tab_id) {
+                    promises.push(StatsController.register_stat('VarsComputeController.notify_var_data_post_deploy.nb_solved_client_requests',
+                        1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE));
+                }
+                if ((!cache_wrapper.client_tab_id) && (!cache_wrapper.is_server_request)) {
+                    promises.push(StatsController.register_stat('VarsComputeController.notify_var_data_post_deploy.nb_solved_noclientnoserver_requests',
+                        1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE));
+                }
+
+                if (cache_wrapper.last_insert_or_update == null) {
+                    promises.push(StatsController.register_stat('VarsComputeController.notify_var_data_post_deploy.delay_mean',
+                        Dates.now_ms() - cache_wrapper.creation_date_ms, StatVO.AGGREGATOR_MEAN, TimeSegment.TYPE_MINUTE));
+                    promises.push(StatsController.register_stat('VarsComputeController.notify_var_data_post_deploy.delay_max',
+                        Dates.now_ms() - cache_wrapper.creation_date_ms, StatVO.AGGREGATOR_MAX, TimeSegment.TYPE_MINUTE));
+                    promises.push(StatsController.register_stat('VarsComputeController.notify_var_data_post_deploy.delay_min',
+                        Dates.now_ms() - cache_wrapper.creation_date_ms, StatVO.AGGREGATOR_MIN, TimeSegment.TYPE_MINUTE));
+                }
+
+                await all_promises(promises);
+            }
+
         }
 
     }

@@ -27,7 +27,7 @@
                     :width="60"
                     :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                 )
-        template(v-if='legend_display')
+        template(v-if='title_display')
             .title_font_color
                 .explication {{ label("var_pie_chart_widget_options_component.title_font_color") }}
                 color-picker(v-model="title_font_color" @change='throttled_update_colors')

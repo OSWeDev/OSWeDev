@@ -1,6 +1,9 @@
 import cloneDeep = require('lodash/cloneDeep');
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
+import StatsController from '../../../shared/modules/Stats/StatsController';
+import StatVO from '../../../shared/modules/Stats/vos/StatVO';
 import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import MainAggregateOperatorsHandlers from '../../../shared/modules/Var/MainAggregateOperatorsHandlers';
@@ -101,6 +104,9 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      * @param varDAGNode
      */
     public async computeValue(varDAGNode: VarDAGNode) {
+
+        await StatsController.register_stat('VarServerControllerBase.' + varDAGNode.var_data.var_id + '.compute.nb',
+            1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
         let value: number;
         if (varDAGNode.is_aggregator) {

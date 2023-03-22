@@ -20,6 +20,8 @@ import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
+import StatsController from '../../../shared/modules/Stats/StatsController';
+import StatVO from '../../../shared/modules/Stats/vos/StatVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
@@ -1084,6 +1086,9 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
+        await StatsController.register_stat('ModuleVarServer.register_params.nb_registered_varsdatas',
+            params.length, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+
         /**
          * On commence par refuser les params mal construits (champs null)
          */
@@ -1107,6 +1112,9 @@ export default class ModuleVarServer extends ModuleServerBase {
         if ((!params) || (!params.length)) {
             return;
         }
+
+        await StatsController.register_stat('ModuleVarServer.register_params.nb_valid_registered_varsdatas',
+            params.length, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
         let uid = StackContext.get('UID');
         let client_tab_id = StackContext.get('CLIENT_TAB_ID');
@@ -1134,6 +1142,9 @@ export default class ModuleVarServer extends ModuleServerBase {
             notifyable_vars.forEach((notifyable_var) => vars_to_notif.push(new VarDataValueResVO().set_from_vardata(notifyable_var)));
 
             await PushDataServerController.getInstance().notifyVarsDatas(uid, client_tab_id, vars_to_notif);
+
+            await StatsController.register_stat('ModuleVarServer.register_params.nb_cache_notified_varsdatas',
+                notifyable_vars.length, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
             if (ConfigurationService.node_configuration.DEBUG_VARS) {
                 for (let i in notifyable_vars) {

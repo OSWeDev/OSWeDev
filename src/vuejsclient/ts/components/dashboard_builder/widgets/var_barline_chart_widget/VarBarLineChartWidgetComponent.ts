@@ -27,12 +27,12 @@ import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsControl
 import ValidationFiltersWidgetController from '../validation_filters_widget/ValidationFiltersWidgetController';
 import VarWidgetComponent from '../var_widget/VarWidgetComponent';
 import VarPieChartWidgetOptions from './options/VarPieChartWidgetOptions';
-import './VarPieChartWidgetComponent.scss';
+import './VarBarLineChartWidgetComponent.scss';
 
 @Component({
-    template: require('./VarPieChartWidgetComponent.pug')
+    template: require('./VarBarLineChartWidgetComponent.pug'),
 })
-export default class VarPieChartWidgetComponent extends VueComponentBase {
+export default class VarBarLineChartWidgetComponent extends VueComponentBase {
 
     @ModuleDashboardPageGetter
     private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
@@ -97,6 +97,63 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
         return {
             responsive: true,
             maintainAspectRatio: false,
+            tooltips: {
+                callbacks: {
+                    label: function (tooltipItem, data) {
+                        var label = data.datasets[tooltipItem.datasetIndex].label || '';
+
+                        if (label) {
+                            label += ': ';
+                        }
+                        label += self.const_filters.amount.read(tooltipItem.yLabel);
+                        return label;
+                    }
+                }
+            },
+            legend: {
+                position: 'bottom',
+                labels: {
+                    fontColor: '#002454',
+                }
+            },
+            scales: {
+                xAxes: [{
+                    ticks: {
+                        autoSkip: false
+                    },
+                    scaleLabel: {
+                        display: true,
+                        fontColor: '#002454',
+                    },
+                    gridLines: {
+                        display: false,
+                    }
+                }],
+                yAxes: [{
+                    id: 'y-axe',
+                    position: 'left',
+                    scaleLabel: {
+                        display: true,
+                        fontColor: '#002454',
+                    },
+                    ticks: {
+                        callback: function (value, index, values) {
+                            return self.const_filters.amount.read(value);
+                        }
+                    },
+                    gridLines: {
+                        display: false,
+                    }
+                }]
+            }
+        };
+    }
+
+    get options() {
+        let self = this;
+        return {
+            responsive: true,
+            maintainAspectRatio: false,
 
             title: {
                 display: self.widget_options.title_display ? self.widget_options.title_display : true,
@@ -149,12 +206,53 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
         };
     }
 
-    private getlabel(var_param: VarDataBaseVO) {
+    get var_dataset_descriptors(): VarsBarDataSetDescriptor[] {
+        return [
+            new VarsBarDataSetDescriptor(
+                (this.get_has_filter_code_ccs ? VarsNamesHolder.VarDayCAHTRealiseCCSController_VAR_NAME : VarsNamesHolder.VarDayCAHTRealiseController_VAR_NAME),
+                'crescendo_ca_pr_graph.var_dataset_descriptors.VarDayCAHTRealiseController_AM1.label_translatable_code',
+                'y-axe',
+                this.var_params_by_label_by_descriptor[(this.get_has_filter_code_ccs ? VarsNamesHolder.VarDayCAHTRealiseCCSController_VAR_NAME : VarsNamesHolder.VarDayCAHTRealiseController_VAR_NAME) + 'am1'],
+                null,
+                this.math_round
+            ).set_bg_color('#888'),
+            new VarsBarDataSetDescriptor(
+                (this.get_has_filter_code_ccs ? VarsNamesHolder.VarDayCAHTRealiseCCSController_VAR_NAME : VarsNamesHolder.VarDayCAHTRealiseController_VAR_NAME),
+                'crescendo_ca_pr_graph.var_dataset_descriptors.VarDayCAHTRealiseController.label_translatable_code',
+                'y-axe',
+                this.var_params_by_label_by_descriptor[(this.get_has_filter_code_ccs ? VarsNamesHolder.VarDayCAHTRealiseCCSController_VAR_NAME : VarsNamesHolder.VarDayCAHTRealiseController_VAR_NAME)],
+                null,
+                this.math_round
+            ).set_bg_color('#002454')];
+    }
+
+    get labels(): string[] {
+
+        if (!this.ordered_dimension) {
+            return [];
+        }
 
         if (!this.label_by_index) {
-            return null;
+            return [];
         }
-        return this.label_by_index[var_param.index];
+
+        if (!this.var_params_by_dimension) {
+            return [];
+        }
+
+        let res: string[] = [];
+
+        for (let i in this.ordered_dimension) {
+            let dimension = this.ordered_dimension[i];
+            let var_param: VarDataBaseVO = this.var_params_by_dimension[dimension];
+
+            if (!var_param) {
+                continue;
+            }
+
+            res.push(this.label_by_index[var_param.index]);
+        }
+        return res;
     }
 
     /**

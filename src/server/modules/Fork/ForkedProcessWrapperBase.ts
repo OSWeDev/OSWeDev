@@ -9,6 +9,7 @@ import ConfigurationService from '../../env/ConfigurationService';
 import EnvParam from '../../env/EnvParam';
 import FileLoggerHandler from '../../FileLoggerHandler';
 import I18nextInit from '../../I18nextInit';
+import MemoryUsageStat from '../../MemoryUsageStat';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ServerAPIController from '../API/ServerAPIController';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
@@ -158,5 +159,7 @@ export default abstract class ForkedProcessWrapperBase {
 
         // On prévient le process parent qu'on est ready
         await ForkMessageController.getInstance().send(new AliveForkMessage());
+
+        await MemoryUsageStat.updateMemoryUsageStat();
     }
 }

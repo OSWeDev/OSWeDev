@@ -12,6 +12,7 @@ import * as path from 'path';
 import * as pg from 'pg';
 import * as pg_promise from 'pg-promise';
 import { IDatabase } from 'pg-promise';
+import { disconnect } from 'process';
 import * as socketIO from 'socket.io';
 import * as winston from 'winston';
 import * as winston_daily_rotate_file from 'winston-daily-rotate-file';
@@ -46,6 +47,7 @@ import ConfigurationService from './env/ConfigurationService';
 import EnvParam from './env/EnvParam';
 import FileLoggerHandler from './FileLoggerHandler';
 import I18nextInit from './I18nextInit';
+import MemoryUsageStat from './MemoryUsageStat';
 import AccessPolicyDeleteSessionBGThread from './modules/AccessPolicy/bgthreads/AccessPolicyDeleteSessionBGThread';
 import ModuleAccessPolicyServer from './modules/AccessPolicy/ModuleAccessPolicyServer';
 import BGThreadServerController from './modules/BGThread/BGThreadServerController';
@@ -150,7 +152,25 @@ export default abstract class ServerBase {
 
         // this.jwtSecret = 'This is the jwt secret for the rest part';
 
-        let pgp: pg_promise.IMain = pg_promise({});
+        let pgp: pg_promise.IMain = pg_promise({
+            async connect(client, dc, useCount) {
+                await StatsController.register_stat('ServerBase.PGP.connect_count',
+                    1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            },
+            async disconnect(client, dc) {
+                await StatsController.register_stat('ServerBase.PGP.disconnect_count',
+                    1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            },
+            async query(e) {
+                await StatsController.register_stat('ServerBase.PGP.query_count',
+                    1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            },
+            async error(e) {
+                await StatsController.register_stat('ServerBase.PGP.error_count',
+                    1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                ConsoleHandler.error('ServerBase.PGP.error: ' + JSON.stringify(e));
+            },
+        });
         this.db = pgp({
             connectionString: this.connectionString,
             max: this.envParam.MAX_POOL,
@@ -1138,6 +1158,8 @@ export default abstract class ServerBase {
         process.on('uncaughtException', function (err) {
             ConsoleHandler.error("Node nearly failed: " + err.stack);
         });
+
+        await MemoryUsageStat.updateMemoryUsageStat();
 
         ConsoleHandler.log('listening on port: ' + ServerBase.getInstance().port);
         ServerBase.getInstance().db.one('SELECT 1')

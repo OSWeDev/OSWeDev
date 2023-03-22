@@ -6,8 +6,6 @@ import DashboardPageWidgetVO from '../../../../../../../shared/modules/Dashboard
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
-import DefaultTranslation from '../../../../../../../shared/modules/Translation/vos/DefaultTranslation';
-import TranslatableTextVO from '../../../../../../../shared/modules/Translation/vos/TranslatableTextVO';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
@@ -18,19 +16,21 @@ import VueComponentBase from '../../../../VueComponentBase';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import WidgetFilterOptionsComponent from '../../var_widget/options/filters/WidgetFilterOptionsComponent';
-import VarWidgetOptions from '../../var_widget/options/VarWidgetOptions';
-import VarPieChartWidgetOptions from './VarPieChartWidgetOptions';
-import './VarPieChartWidgetOptionsComponent.scss';
+import './VarBarLineChartWidgetOptionsComponent.scss';
+import VarBarLineChartWidgetOptions from './VarBarLineChartWidgetOptions';
+import VarBarLineDatasetChartWidgetOptionsComponent from './dataset/VarBarLineDatasetChartWidgetOptionsComponent';
+import VarBarLineDatasetChartWidgetOptions from './dataset/VarBarLineDatasetChartWidgetOptions';
 
 @Component({
-    template: require('./VarPieChartWidgetOptionsComponent.pug'),
+    template: require('./VarBarLineChartWidgetOptionsComponent.pug'),
     components: {
         Singlevofieldrefholdercomponent: SingleVoFieldRefHolderComponent,
         Inlinetranslatabletext: InlineTranslatableText,
-        Widgetfilteroptionscomponent: WidgetFilterOptionsComponent
+        Widgetfilteroptionscomponent: WidgetFilterOptionsComponent,
+        Varbarlinedatasetchartwidgetoptionscomponent: VarBarLineDatasetChartWidgetOptionsComponent
     }
 })
-export default class VarPieChartWidgetOptionsComponent extends VueComponentBase {
+export default class VarBarLineChartWidgetOptionsComponent extends VueComponentBase {
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
@@ -41,7 +41,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
     @ModuleDashboardPageGetter
     private get_custom_filters: string[];
 
-    private next_update_options: VarPieChartWidgetOptions = null;
+    private next_update_options: VarBarLineChartWidgetOptions = null;
     private throttled_reload_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.reload_options.bind(this), 50, { leading: false, trailing: true });
     private throttled_update_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_options.bind(this), 50, { leading: false, trailing: true });
     private throttled_update_colors = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_colors.bind(this), 800, { leading: false, trailing: true });
@@ -84,12 +84,12 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
     private tmp_selected_legend_position: string = null;
     private tmp_selected_dimension_custom_filter_segment_type: string = null;
 
-    private widget_options: VarPieChartWidgetOptions = null;
+    private widget_options: VarBarLineChartWidgetOptions = null;
 
     private dimension_custom_filter_segment_types: string[] = [
-        this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_YEAR),
-        this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_MONTH),
-        this.label('VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_DAY),
+        this.label('VarBarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_YEAR),
+        this.label('VarBarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_MONTH),
+        this.label('VarBarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_DAY),
     ];
 
     private legend_positions: string[] = [
@@ -100,7 +100,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
     ];
 
     get dimension_vo_field_ref(): VOFieldRefVO {
-        let options: VarPieChartWidgetOptions = this.widget_options;
+        let options: VarBarLineChartWidgetOptions = this.widget_options;
 
         if ((!options) || (!options.dimension_vo_field_ref)) {
             return null;
@@ -143,7 +143,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
     }
 
     get sort_dimension_by_vo_field_ref(): VOFieldRefVO {
-        let options: VarPieChartWidgetOptions = this.widget_options;
+        let options: VarBarLineChartWidgetOptions = this.widget_options;
 
         if ((!options) || (!options.sort_dimension_by_vo_field_ref)) {
             return null;
@@ -185,8 +185,8 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         await this.throttled_update_options();
     }
 
-    private get_default_options(): VarPieChartWidgetOptions {
-        return new VarPieChartWidgetOptions(
+    private get_default_options(): VarBarLineChartWidgetOptions {
+        return new VarBarLineChartWidgetOptions(
 
             /**
              * Paramètres du widget
@@ -521,10 +521,10 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
             this.widget_options = null;
         } else {
 
-            let options: VarPieChartWidgetOptions = null;
+            let options: VarBarLineChartWidgetOptions = null;
             try {
                 if (!!this.page_widget.json_options) {
-                    options = JSON.parse(this.page_widget.json_options) as VarPieChartWidgetOptions;
+                    options = JSON.parse(this.page_widget.json_options) as VarBarLineChartWidgetOptions;
                     if (this.widget_options &&
                         (this.widget_options.var_id_1 == options.var_id_1) &&
                         (this.widget_options.var_id_2 == options.var_id_2) &&
@@ -569,7 +569,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
                         options = null;
                     }
 
-                    options = options ? new VarPieChartWidgetOptions(
+                    options = options ? new VarBarLineChartWidgetOptions(
                         options.bg_color,
                         options.legend_display,
                         options.legend_position,
@@ -930,5 +930,9 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         }
 
         return this.widget_options.get_title_name_code_text(this.page_widget.id);
+    }
+
+    private async update_dataset_options(dataset_options: VarBarLineDatasetChartWidgetOptions) {
+        todo
     }
 }

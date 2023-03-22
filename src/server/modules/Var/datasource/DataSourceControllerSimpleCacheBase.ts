@@ -1,3 +1,6 @@
+import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
+import StatsController from '../../../../shared/modules/Stats/StatsController';
+import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
 import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarsdatasComputerBGThread from '../bgthreads/VarsdatasComputerBGThread';
@@ -24,6 +27,13 @@ export default abstract class DataSourceControllerSimpleCacheBase extends DataSo
      * @param node
      */
     public async load_node_data(node: VarDAGNode) {
+
+        await StatsController.register_stat('DataSources.' + node.var_data.var_id + '.load_node_data.nb',
+            1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        await StatsController.register_stat('DataSourceControllerSimpleCacheBase.' + node.var_data.var_id + '.load_node_data.nb',
+            1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+
+
         if (typeof node.datasources[this.name] !== 'undefined') {
             return;
         }
@@ -45,6 +55,11 @@ export default abstract class DataSourceControllerSimpleCacheBase extends DataSo
                 });
             }
             VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name]['semaphore'] = true;
+
+            await StatsController.register_stat('DataSources.' + node.var_data.var_id + '.get_data.nb',
+                1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            await StatsController.register_stat('DataSourceControllerSimpleCacheBase.' + node.var_data.var_id + '.get_data.nb',
+                1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
             let data = await this.get_data(node.var_data);
             VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name]['c'] = ((typeof data === 'undefined') ? null : data);
