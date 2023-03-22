@@ -16,6 +16,7 @@ mixin var_data_content()
                                 Crudcomponentfield(
                                     @onchangevo='onchangevo'
                                     @on_cancel_input='debounced_on_cancel_input'
+                                    @blur='on_blur'
                                     :field="editable_field"
                                     :vo="var_data_editing"
                                     :inline_input_mode='true'
