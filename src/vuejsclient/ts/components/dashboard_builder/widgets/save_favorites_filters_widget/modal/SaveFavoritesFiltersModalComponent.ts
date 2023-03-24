@@ -100,6 +100,19 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
     }
 
     /**
+     * Watch on tmp_export_frequency_granularity
+     *  - Happen on component each time tmp_export_frequency_granularity changes
+     *
+     * @returns {void}
+     */
+    @Watch('tmp_export_frequency_granularity')
+    private tmp_export_frequency_granularity_watcher(): void {
+        if (this.tmp_export_frequency_granularity?.value != 'month') {
+            this.export_frequency_day_in_month = null;
+        }
+    }
+
+    /**
      * Handle Close Modal
      *
      * @return {Promise<void>}
@@ -122,15 +135,22 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
         this.is_modal_open = false;
 
         if (this.on_validation_callback) {
+
+            const is_export_planned = this.is_export_planned;
+
+            const export_frequency = is_export_planned ? {
+                day_in_month: (this.export_frequency_day_in_month?.length > 0) ? parseInt(this.export_frequency_day_in_month) : null,
+                every: (this.export_frequency_every?.length > 0) ? parseInt(this.export_frequency_every) : null,
+                granularity: this.tmp_export_frequency_granularity?.value,
+            } : null;
+
+            const exportable_data = is_export_planned ? this.selected_exportable_data : null;
+
             await this.on_validation_callback({
                 export_params: {
-                    export_frequency: {
-                        day_in_month: (this.export_frequency_day_in_month?.length > 0) ? parseInt(this.export_frequency_day_in_month) : null,
-                        every: (this.export_frequency_every?.length > 0) ? parseInt(this.export_frequency_every) : null,
-                        granularity: this.tmp_export_frequency_granularity?.value,
-                    },
-                    exportable_data: this.selected_exportable_data,
-                    is_export_planned: this.is_export_planned,
+                    is_export_planned,
+                    export_frequency,
+                    exportable_data,
                 },
                 page_filters: this.selected_field_filters,
                 name: this.favorites_filters_name,

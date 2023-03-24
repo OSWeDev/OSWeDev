@@ -38,6 +38,7 @@ export default class DashboardFavoritesFiltersVO implements IDistantVOBase {
      */
     public from(props: IDashboardFavoritesFiltersProps): DashboardFavoritesFiltersVO {
 
+        this.export_params = props.export_params ?? this.export_params;
         this.dashboard_id = props.dashboard_id ?? this.dashboard_id;
         this.page_filters = props.page_filters ?? this.page_filters;
         this.owner_id = props.owner_id ?? this.owner_id;

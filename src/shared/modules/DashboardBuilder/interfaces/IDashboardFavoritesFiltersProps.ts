@@ -25,7 +25,7 @@ export default interface IDashboardFavoritesFiltersProps {
  */
 export interface IExportParamsProps {
     is_export_planned: boolean;         // Can the Cron worker export ?
-    last_export_at?: Date;
+    last_export_at_ts?: number;
     export_frequency: {
         every?: number,  // 1, 3, e.g. every 1 day, every 3 months
         granularity?: 'day' | 'month' | 'year',

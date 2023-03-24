@@ -31,7 +31,9 @@ export default class StackContext {
 
             try {
                 result = await callback();
-            } catch (error) { }
+            } catch (error) {
+
+            }
 
             for (let field_id in scope_overloads) {
                 StackContext.set(field_id, old_context_values[field_id]);

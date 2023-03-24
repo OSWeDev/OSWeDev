@@ -32,12 +32,23 @@ import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsControl
 import TableWidgetOptions from '../table_widget/options/TableWidgetOptions';
 import TableWidgetController from '../table_widget/TableWidgetController';
 import CRUD from '../../../../../../shared/modules/DAO/vos/CRUD';
+import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ContextFilterHandler from '../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
+import FieldValueFilterWidgetOptions from '../field_value_filter_widget/options/FieldValueFilterWidgetOptions';
+import ContextQueryFieldVO from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
+import VarConfVO from '../../../../../../shared/modules/Var/vos/VarConfVO';
+import { cloneDeep } from 'lodash';
+import VarWidgetComponent from '../var_widget/VarWidgetComponent';
+import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./SaveFavoritesFiltersWidgetComponent.pug'),
     components: {}
 })
 export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBase {
+
+    @ModuleDashboardPageGetter
+    private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
 
     @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
@@ -270,16 +281,17 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
      */
     private get_exportable_xlsx_params(limit_to_page: boolean = true): { [title_name_code: string]: ExportContextQueryToXLSXParamVO } {
 
-        const datatables_widgets_options = this.datatables_widgets_options;
+        const valuetables_widgets_options = this.valuetables_widgets_options;
         const res: { [title_name_code: string]: ExportContextQueryToXLSXParamVO } = {};
 
         let export_name = this.dashboard_page.translatable_name_code_text ?
-            `Export-${this.t(this.dashboard_page.translatable_name_code_text)}-{#Date}.xlsx"` :
+            `Export-${this.t(this.dashboard_page.translatable_name_code_text)}-{#Date}.xlsx` :
             `Export-{#Date}.xlsx`;
 
-        for (const name in datatables_widgets_options) {
+        for (const name in valuetables_widgets_options) {
 
-            const widget_options = datatables_widgets_options[name];
+            const page_widget_id = valuetables_widgets_options[name].page_widget_id;
+            const widget_options = valuetables_widgets_options[name].widget_options;
 
             const widget_options_fields = this.get_datatable_fields_by_widget_options(widget_options);
 
@@ -293,23 +305,202 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
 
             res[name] = new ExportContextQueryToXLSXParamVO(
                 export_name,
-                null, // shall be the favorites filters
+                this.get_context_query_by_widget_options(widget_options),
                 this.get_exportable_datatable_columns_by_widget_options(widget_options),
-                this.get_datatable_columns_labels_by_widget_options(widget_options),
+                this.get_datatable_columns_labels_by_widget_options({ widget_options, page_widget_id }),
                 this.get_exportable_datatable_custom_field_columns_by_widget_options(widget_options),
                 this.get_datatable_columns_by_widget_options(widget_options),
                 fields,
                 this.get_datatable_varcolumn_conf_by_widget_options(widget_options),
-                this.get_active_field_filters, // TODO: to ask
-                null, // TODO: to ask
+                this.get_active_field_filters,
+                this.get_columns_custom_filters_by_widget_options(widget_options),
                 this.dashboard.api_type_ids,
-                null,
+                this.get_discarded_field_paths,
                 false,
                 null,
                 null,
                 null,
                 this.get_export_options_by_widget_options(widget_options),
-                this.vars_indicator,
+                this.vars_indicator ?? null,
+            );
+        }
+
+        return res;
+    }
+
+    /**
+     * Get Context Query By Table Widget
+     *
+     * @param {TableWidgetOptions} [widget_options]
+     */
+    private get_context_query_by_widget_options(widget_options: TableWidgetOptions): ContextQueryVO {
+
+        const fields = this.get_datatable_fields_by_widget_options(widget_options);
+        const limit = (widget_options?.limit == null) ? TableWidgetOptions.DEFAULT_LIMIT : widget_options.limit;
+        const pagination_offset = 0;
+
+        let crud_api_type_id = widget_options.crud_api_type_id ? widget_options.crud_api_type_id : null;
+        if (!crud_api_type_id) {
+            for (let column_id in fields) {
+                let field = fields[column_id];
+
+                if (!field.vo_type_id) {
+                    continue;
+                }
+
+                crud_api_type_id = field.vo_type_id;
+                break;
+            }
+        }
+
+        if (!crud_api_type_id) {
+            ConsoleHandler.error('Pas de crud_api_type_id pour le table widget impossible de générer la requête');
+            return;
+        }
+
+        let context_query: ContextQueryVO = query(crud_api_type_id)
+            .set_limit(limit, pagination_offset)
+            .using(this.dashboard.api_type_ids)
+            .add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
+                ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters)
+            ));
+
+        //On évite les jointures supprimées.
+        for (let vo_type in this.get_discarded_field_paths) {
+            let discarded_field_paths_vo_type = this.get_discarded_field_paths[vo_type];
+
+            for (let field_id in discarded_field_paths_vo_type) {
+                context_query.discard_field_path(vo_type, field_id); //On annhile le chemin possible depuis la cellule source de champs field_id
+            }
+        }
+
+        let columns_by_field_id = cloneDeep(this.get_datatable_columns_by_field_id_by_widget_options(widget_options));
+        for (let field_id in columns_by_field_id) {
+            let field = columns_by_field_id[field_id];
+            if (field.type == TableColumnDescVO.TYPE_header) {
+                for (const key in field.children) {
+                    let child = field.children[key];
+                    columns_by_field_id[child.datatable_field_uid] = child;
+                }
+            }
+        }
+
+        for (let column_id in fields) {
+            let field = fields[column_id];
+
+            if ((field.type == DatatableField.VAR_FIELD_TYPE) ||
+                (field.type == DatatableField.COMPONENT_FIELD_TYPE) ||
+                (field.type == DatatableField.SELECT_BOX_FIELD_TYPE)) {
+
+                continue;
+            }
+
+            // let column: TableColumnDescVO = this.columns_by_field_id[field.datatable_field_uid];
+            let column: TableColumnDescVO = columns_by_field_id[field.datatable_field_uid];
+
+            let aggregator: number = VarConfVO.NO_AGGREGATOR;
+
+            if (column) {
+                if (column.many_to_many_aggregate) {
+                    if (column.is_nullable) {
+                        aggregator = VarConfVO.ARRAY_AGG_AND_IS_NULLABLE_AGGREGATOR;
+                    } else {
+                        aggregator = VarConfVO.ARRAY_AGG_AGGREGATOR;
+                    }
+                } else if (column.is_nullable) {
+                    aggregator = VarConfVO.IS_NULLABLE_AGGREGATOR;
+                }
+            }
+
+            context_query.add_fields([
+                new ContextQueryFieldVO(
+                    field.vo_type_id,
+                    field.module_table_field_id,
+                    field.datatable_field_uid,
+                    aggregator
+                )
+            ]);
+        }
+
+        // Si on a des widgets, on va ajouter les exclude values si y'en a
+        for (let i in this.all_page_widget) {
+            let page_widget: DashboardPageWidgetVO = this.all_page_widget[i];
+            let widget: DashboardWidgetVO = this.widgets_by_id[page_widget.widget_id];
+
+            if (!widget) {
+                continue;
+            }
+
+            if (!widget.is_filter) {
+                continue;
+            }
+
+            let options: FieldValueFilterWidgetOptions = null;
+            try {
+                if (!!page_widget.json_options) {
+                    options = JSON.parse(page_widget.json_options);
+                }
+            } catch (error) {
+                ConsoleHandler.error(error);
+                continue;
+            }
+
+            if (!options) {
+                continue;
+            }
+
+            context_query.filters = ContextFilterHandler.getInstance().add_context_filters_exclude_values(
+                options.exclude_filter_opt_values,
+                options.vo_field_ref,
+                context_query.filters,
+                true,
+            );
+        }
+
+        context_query.query_distinct = true;
+
+        return context_query;
+
+    }
+
+    private get_columns_custom_filters_by_widget_options(widget_options: TableWidgetOptions): { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } {
+        let res: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = {};
+
+        const active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = cloneDeep(this.get_active_field_filters);
+        const columns = this.get_datatable_columns_by_widget_options(widget_options);
+
+        for (let i in columns) {
+            let column = columns[i];
+
+            if (column.type !== TableColumnDescVO.TYPE_var_ref) {
+                continue;
+            }
+
+            // On supprime les filtres à ne pas prendre en compte pour créer le bon param
+            if (column.do_not_user_filter_active_ids && column.do_not_user_filter_active_ids.length) {
+                let all_page_widget_by_id: { [id: number]: DashboardPageWidgetVO } = VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
+
+                for (let j in column.do_not_user_filter_active_ids) {
+                    let page_filter_id = column.do_not_user_filter_active_ids[j];
+
+                    let page_widget: DashboardPageWidgetVO = all_page_widget_by_id[page_filter_id];
+                    if (!page_widget) {
+                        continue;
+                    }
+
+                    let page_widget_options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
+
+                    if (page_widget_options?.vo_field_ref) {
+                        if (active_field_filters && active_field_filters[page_widget_options.vo_field_ref.api_type_id]) {
+                            delete active_field_filters[page_widget_options.vo_field_ref.api_type_id][page_widget_options.vo_field_ref.field_id];
+                        }
+                    }
+                }
+            }
+
+            res[column.datatable_field_uid] = VarWidgetComponent.get_var_custom_filters(
+                ObjectHandler.getInstance().hasAtLeastOneAttribute(column.filter_custom_field_filters) ? column.filter_custom_field_filters : null,
+                active_field_filters
             );
         }
 
@@ -319,6 +510,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
     /**
      * Get Export Options By Table Widget
      *
+     * @param {TableWidgetOptions} [widget_options]
      * @return {IExportOptions}
      */
     private get_export_options_by_table_widget(widget_options: TableWidgetOptions): IExportOptions {
@@ -355,6 +547,32 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
                 column.column_width = 0;
             }
 
+            if (column.show_if_any_filter_active?.length > 0) {
+
+                let activated = false;
+                for (let j in column.show_if_any_filter_active) {
+                    let page_filter_id = column.show_if_any_filter_active[j];
+
+                    let page_widget = this.all_page_widget_by_id[page_filter_id];
+                    if (!page_widget) {
+                        column.show_if_any_filter_active = [];
+                        continue;
+                    }
+                    let page_widget_options = JSON.parse(page_widget.json_options) as FieldValueFilterWidgetOptions;
+                    if ((!this.get_active_field_filters) ||
+                        (!this.get_active_field_filters[page_widget_options.vo_field_ref.api_type_id]) ||
+                        (!this.get_active_field_filters[page_widget_options.vo_field_ref.api_type_id][page_widget_options.vo_field_ref.field_id])) {
+                        continue;
+                    }
+
+                    activated = true;
+                }
+
+                if (!activated) {
+                    continue;
+                }
+            }
+
             res.push(Object.assign(new TableColumnDescVO(), column));
         }
 
@@ -378,13 +596,15 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
             let column: TableColumnDescVO = columns[i];
             let moduleTable: ModuleTable<any>;
 
-            if (column.type != TableColumnDescVO.TYPE_header) {
+            if (column?.type != TableColumnDescVO.TYPE_header) {
                 moduleTable = VOsTypesManager.moduleTables_by_voType[column.api_type_id];
             }
 
-            switch (column.type) {
+            switch (column?.type) {
                 case TableColumnDescVO.TYPE_component:
-                    res[column.id] = TableWidgetController.getInstance().components_by_translatable_title[column.component_name].auto_update_datatable_field_uid_with_vo_type();
+                    res[column.id] = TableWidgetController.getInstance()
+                        .components_by_translatable_title[column.component_name]
+                        .auto_update_datatable_field_uid_with_vo_type();
                     break;
                 case TableColumnDescVO.TYPE_var_ref:
                     let var_data_field: VarDatatableFieldVO<any, any> = VarDatatableFieldVO.createNew(
@@ -426,13 +646,15 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
     /**
      * Get Datatable Columns Labels By Widget Options
      *
-     * @param {TableWidgetOptions} [widget_options]
+     * @param {TableWidgetOptions} [props.widget_options]
+     * @param {number} [props.page_widget_id]
+     *
      * @returns {any}
      */
-    private get_datatable_columns_labels_by_widget_options(widget_options: TableWidgetOptions): any {
+    private get_datatable_columns_labels_by_widget_options(props: { widget_options: TableWidgetOptions, page_widget_id: number }): any {
         let res: any = {};
 
-        const columns = this.get_datatable_columns_by_widget_options(widget_options);
+        const columns = this.get_datatable_columns_by_widget_options(props.widget_options);
 
         for (let i in columns) {
             let column = columns[i];
@@ -440,13 +662,32 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
             if (column?.type == TableColumnDescVO.TYPE_header) {
                 for (const key in column.children) {
                     let child = column.children[key];
-                    res[child.datatable_field_uid] = this.t(child.get_translatable_name_code_text(this.page_widget.id));
+                    res[child.datatable_field_uid] = this.t(child.get_translatable_name_code_text(props.page_widget_id));
                 }
             } else {
-                res[column.datatable_field_uid] = this.t(column.get_translatable_name_code_text(this.page_widget.id));
+                res[column.datatable_field_uid] = this.t(column.get_translatable_name_code_text(props.page_widget_id));
             }
         }
 
+        return res;
+    }
+
+    /**
+     * Get Datatable Columns By Field Id By Widget Options
+     *
+     * @param {TableWidgetOptions} [widget_options]
+     * @returns {{ [datatable_field_uid: string]: TableColumnDescVO }}
+     */
+    private get_datatable_columns_by_field_id_by_widget_options(widget_options: TableWidgetOptions): { [datatable_field_uid: string]: TableColumnDescVO } {
+        let res: { [datatable_field_uid: string]: TableColumnDescVO } = {};
+
+        const columns = this.get_datatable_columns_by_widget_options(widget_options);
+
+        for (let i in columns) {
+            let column = columns[i];
+
+            res[column.datatable_field_uid] = column;
+        }
         return res;
     }
 
@@ -574,8 +815,6 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
      */
     get vars_indicator(): ExportVarIndicator {
 
-        if (!this.widget_options) { return; }
-
         const varcolumn_conf: { [xlsx_sheet_row_code_name: string]: ExportVarcolumnConf } = {};
 
         // Find id of widget that have type "var"
@@ -645,9 +884,9 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
      *
      * @return { { [title_name_code: string]: TableWidgetOptions }}
      */
-    get datatables_widgets_options(): { [title_name_code: string]: TableWidgetOptions } {
+    get valuetables_widgets_options(): { [title_name_code: string]: { widget_options: TableWidgetOptions, page_widget_id: number } } {
 
-        const res: { [title_name_code: string]: TableWidgetOptions } = {};
+        const res: { [title_name_code: string]: { widget_options: TableWidgetOptions, page_widget_id: number } } = {};
 
         // Find id of widget that have type "valuetable"
         const valuetable_widget_id = Object.values(this.widgets_by_id)?.find((e) => e.name == 'valuetable').id;
@@ -668,9 +907,20 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
             const valuetable_widget_options = new TableWidgetOptions().from(options);
             const name = valuetable_widget_options.get_title_name_code_text(valuetable_page_widget.id);
 
-            res[name] = valuetable_widget_options;
+            res[name] = {
+                widget_options: valuetable_widget_options,
+                page_widget_id: valuetable_page_widget.id,
+            };
         }
 
         return res;
+    }
+
+    /**
+     * Get All Page Widget By Id
+     * @return {{ [id: number]: DashboardPageWidgetVO }}
+     */
+    get all_page_widget_by_id(): { [id: number]: DashboardPageWidgetVO } {
+        return VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
     }
 }

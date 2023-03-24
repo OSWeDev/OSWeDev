@@ -17,6 +17,13 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import DashboardBuilderCronWorkersHandler from './DashboardBuilderCronWorkersHandler';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ExportContextQueryToXLSXParamVO from '../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
+import DashboardFavoritesFiltersVO from '../../../shared/modules/DashboardBuilder/vos/DashboardFavoritesFiltersVO';
+import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import StackContext from '../../StackContext';
+import ModuleDataExportServer from '../DataExport/ModuleDataExportServer';
 
 export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
@@ -1458,7 +1465,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'dashboard_viewer.favorites_filters.form_errors.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': "Entrer le nom du favoris *" },
+            { 'fr-fr': "Entrer le nom du favoris *:" },
             'dashboard_viewer.favorites_filters.enter_name.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
@@ -1811,11 +1818,132 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
     /**
      * Start Export Datatable Using Favorites Filters
+     *
+     * @return {Promise<void>}
      */
     public async start_export_datatable_using_favorites_filters(): Promise<void> {
-        // TODO: for all user favorites filters export by using export_params
-        // TODO: introduce in export_params the last_export_at:Date
-        // TODO: if last_export_at == undefined and is_export_planned == true do export
+
+        // For all users favorites filters, Export by using export_params
+        const users_favorites_filters = await query(DashboardFavoritesFiltersVO.API_TYPE_ID)
+            .select_vos<DashboardFavoritesFiltersVO>();
+
+        for (const fav_i in users_favorites_filters) {
+            const favorites_filters = users_favorites_filters[fav_i];
+
+            const export_params = favorites_filters.export_params ?? null;
+
+            // is_export_planned, export_frequency and exportable_data must be sets
+            if (
+                !export_params?.is_export_planned ||
+                !export_params?.export_frequency ||
+                !export_params?.exportable_data
+            ) {
+                continue;
+            }
+
+            const export_frequency = export_params.export_frequency;
+            const exportable_data = export_params.exportable_data;
+
+            // Do I have to export ?
+            let do_export = false;
+
+            // Shall export the first time here
+            if (!export_params.last_export_at_ts) {
+                do_export = true;
+            }
+
+            // Define if the data shall be exported
+            if (!do_export) {
+                const last_export_at_ts: number = export_params.last_export_at_ts;
+                const now_ts = new Date().getTime();
+
+                const every = parseInt(export_frequency.every?.toString()); // 1, 3, e.g. every 1 day, every 3 months
+                const granularity = export_frequency.granularity; // 'day' | 'month' | 'year'
+                const day_in_month = export_frequency.day_in_month ? parseInt(export_frequency.day_in_month.toString()) : null; // day in the month e.g. every 3 months at day 15
+
+                // Get date offset (by using "every", "granularity" and "day_in_month")
+                let last_export_at_date = new Date(last_export_at_ts);
+                let offset_day_ts = null; // timestamp
+                switch (granularity) {
+                    case 'day':
+                        offset_day_ts = last_export_at_date.setDate(last_export_at_date.getDate() + every);
+
+                        break;
+                    case 'month':
+                        if (!(day_in_month)) {
+                            throw new Error(`Day in month must be given !`);
+                        }
+
+                        offset_day_ts = last_export_at_date.setMonth(last_export_at_date.getMonth() + every);
+                        offset_day_ts = new Date(offset_day_ts).setDate(day_in_month);
+                        break;
+                    case 'year':
+                        offset_day_ts = last_export_at_date.setFullYear(last_export_at_date.getFullYear() + every);
+
+                        break;
+                    default: throw new Error(`Invalid granularity given ! :${granularity}`);
+                }
+
+                // To export, the actual_days_diff shall be greater or equal of "0"
+                // That mean the actual "now" day has been outdated
+                const one_day_ts = (24 * 60 * 60 * 1000); // hours * minutes * seconds * milliseconds
+                const actual_days_diff = Math.round((now_ts - offset_day_ts) / one_day_ts);
+
+                if (actual_days_diff >= 0) {
+                    do_export = true;
+                }
+            }
+
+            if (!do_export) {
+                continue;
+            }
+
+            for (const key in exportable_data) {
+                const xlsx_data: ExportContextQueryToXLSXParamVO = new ExportContextQueryToXLSXParamVO().from(exportable_data[key]);
+
+                await StackContext.runPromise({
+                    UID: favorites_filters.owner_id,
+                    IS_CLIENT: false
+                }, async () => {
+
+                    // do replace the "{#Date}" placeholder with the current date
+                    const date_rgx = /\{(?<date_placeholder>\#Date)\}/;
+                    let filename: string = xlsx_data.filename;
+
+                    if (date_rgx.test(filename)) {
+                        filename = filename.replace(date_rgx, Dates.now().toString());
+                    }
+
+                    await ModuleDataExportServer.getInstance().do_exportContextQueryToXLSX(
+                        filename,
+                        xlsx_data.context_query,
+                        xlsx_data.ordered_column_list,
+                        xlsx_data.column_labels,
+                        xlsx_data.exportable_datatable_custom_field_columns,
+                        xlsx_data.columns,
+                        xlsx_data.fields,
+                        xlsx_data.varcolumn_conf,
+                        xlsx_data.active_field_filters,
+                        xlsx_data.custom_filters,
+                        xlsx_data.active_api_type_ids,
+                        xlsx_data.discarded_field_paths,
+                        xlsx_data.is_secured,
+                        xlsx_data.file_access_policy_name,
+                        xlsx_data.target_user_id,
+                        xlsx_data.do_not_user_filter_by_datatable_field_uid,
+                        xlsx_data.export_options,
+                        xlsx_data.vars_indicator,
+                    );
+
+                });
+            }
+
+            // Set up last_export_at_ts timestamp
+            export_params.last_export_at_ts = new Date().getTime();
+
+            // update this favorites_filters
+            await ModuleDAO.getInstance().insertOrUpdateVO(favorites_filters);
+        }
     }
 
     public async registerAccessPolicies(): Promise<void> {

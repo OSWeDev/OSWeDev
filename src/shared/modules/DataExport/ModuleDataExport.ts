@@ -75,6 +75,7 @@ export default class ModuleDataExport extends Module {
         is_secured?: boolean,
         file_access_policy_name?: string
     ) => Promise<string> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportDataToXLSXParamVO);
+
     public exportDataToXLSXFile: (
         filename: string,
         datas: any[],
@@ -83,12 +84,14 @@ export default class ModuleDataExport extends Module {
         api_type_id: string,
         is_secured?: boolean,
         file_access_policy_name?: string) => Promise<FileVO> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportDataToXLSXParamVOFile);
+
     public exportDataToMultiSheetsXLSX: (
         filename: string,
         sheets: IExportableSheet[],
         api_type_id: string,
         is_secured?: boolean,
         file_access_policy_name?: string) => Promise<string> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVO);
+
     public exportDataToMultiSheetsXLSXFile: (
         filename: string,
         sheets: IExportableSheet[],
