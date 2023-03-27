@@ -32,27 +32,41 @@ export default class YearFilterWidgetOptions implements IExportableWidgetOptions
     }
 
     public constructor(
-        public is_vo_field_ref: boolean,
-        public vo_field_ref: VOFieldRefVO,
-        public custom_filter_name: string,
-        public year_relative_mode: boolean,
-        public min_year: number,
-        public max_year: number,
-        public auto_select_year: boolean,
-        public auto_select_year_relative_mode: boolean,
-        public auto_select_year_min: number,
-        public auto_select_year_max: number,
-        public is_relative_to_other_filter: boolean,
-        public relative_to_other_filter_id: number,
-        public hide_filter: boolean,
+        public is_vo_field_ref?: boolean,
+        public vo_field_ref?: VOFieldRefVO,
+        public custom_filter_name?: string,
+        public year_relative_mode?: boolean,
+        public min_year?: number,
+        public max_year?: number,
+        public auto_select_year?: boolean,
+        public auto_select_year_relative_mode?: boolean,
+        public auto_select_year_min?: number,
+        public auto_select_year_max?: number,
+        public is_relative_to_other_filter?: boolean,
+        public relative_to_other_filter_id?: number,
+        public hide_filter?: boolean,
         public can_select_all?: boolean,
     ) { }
+
+    /**
+     * Hydrate from the given properties
+     *
+     * @param props {YearFilterWidgetOptions}
+     * @returns {YearFilterWidgetOptions}
+     */
+    public from(props: Partial<YearFilterWidgetOptions>): YearFilterWidgetOptions {
+
+        Object.assign(this, props);
+
+        return this;
+    }
 
     public get_placeholder_name_code_text(page_widget_id: number): string {
 
         if ((!this.vo_field_ref) || (!page_widget_id)) {
             return null;
         }
+
         return YearFilterWidgetOptions.VO_FIELD_REF_PLACEHOLDER_CODE_PREFIX + page_widget_id + '.' + this.vo_field_ref.api_type_id + '.' + this.vo_field_ref.field_id;
     }
 

@@ -32,21 +32,34 @@ export default class MonthFilterWidgetOptions implements IExportableWidgetOption
     }
 
     public constructor(
-        public is_vo_field_ref: boolean,
-        public vo_field_ref: VOFieldRefVO,
-        public custom_filter_name: string,
-        public month_relative_mode: boolean,
-        public min_month: number,
-        public max_month: number,
-        public auto_select_month: boolean,
-        public auto_select_month_relative_mode: boolean,
-        public auto_select_month_min: number,
-        public auto_select_month_max: number,
-        public is_relative_to_other_filter: boolean,
-        public relative_to_other_filter_id: number,
-        public hide_filter: boolean,
+        public is_vo_field_ref?: boolean,
+        public vo_field_ref?: VOFieldRefVO,
+        public custom_filter_name?: string,
+        public month_relative_mode?: boolean,
+        public min_month?: number,
+        public max_month?: number,
+        public auto_select_month?: boolean,
+        public auto_select_month_relative_mode?: boolean,
+        public auto_select_month_min?: number,
+        public auto_select_month_max?: number,
+        public is_relative_to_other_filter?: boolean,
+        public relative_to_other_filter_id?: number,
+        public hide_filter?: boolean,
         public can_select_all?: boolean,
     ) { }
+
+    /**
+     * Hydrate from the given properties
+     *
+     * @param props {MonthFilterWidgetOptions}
+     * @returns {MonthFilterWidgetOptions}
+     */
+    public from(props: Partial<MonthFilterWidgetOptions>): MonthFilterWidgetOptions {
+
+        Object.assign(this, props);
+
+        return this;
+    }
 
     public get_placeholder_name_code_text(page_widget_id: number): string {
 

@@ -223,7 +223,8 @@ export default class ModuleDashboardBuilder extends Module {
 
             new ModuleTableField('owner_id', ModuleTableField.FIELD_TYPE_string, 'Owner Id', true),
             new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom des filtres', true),
-            new ModuleTableField('page_filters', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Page Filters', false),
+            new ModuleTableField('favorites_page_filters', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Favorites Page Filters', false),
+            new ModuleTableField('default_page_filters', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Default Page Filters', false),
             // export_params: Specify frequence (month day number e.g. 1st, 10th or 20)
             new ModuleTableField('export_params', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Export Params', false),
         ];

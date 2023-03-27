@@ -1,8 +1,10 @@
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
 import IWeightedItem from "../../../tools/interfaces/IWeightedItem";
 import DashboardBuilderController from "../DashboardBuilderController";
-import { IVOFieldRefVOProps } from '../interfaces/IVOFieldRefVOProps';
 
+/**
+ * VOFieldRefVO
+ */
 export default class VOFieldRefVO implements IDistantVOBase, IWeightedItem {
     public static API_TYPE_ID: string = "vo_field_ref";
 
@@ -17,16 +19,12 @@ export default class VOFieldRefVO implements IDistantVOBase, IWeightedItem {
     /**
      * Hydrate from the given properties
      *
-     * @param props {IVOFieldRefVOProps}
+     * @param {Partial<VOFieldRefVO>} props
      * @returns {VOFieldRefVO}
      */
-    public from(props: IVOFieldRefVOProps): VOFieldRefVO {
+    public from(props: Partial<VOFieldRefVO>): VOFieldRefVO {
 
-        this.api_type_id = props.api_type_id ?? this.api_type_id;
-        this.field_id = props.field_id ?? this.field_id;
-        this.weight = props.weight ?? this.weight;
-        this._type = props._type ?? this._type;
-        this.id = props.id ?? this.id;
+        Object.assign(this, props);
 
         return this;
     }

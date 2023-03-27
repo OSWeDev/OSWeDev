@@ -1,6 +1,5 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import IDashboardFavoritesFiltersProps from '../../../../../../shared/modules/DashboardBuilder/interfaces/IDashboardFavoritesFiltersProps';
 import ExportContextQueryToXLSXParamVO from '../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
 import DashboardFavoritesFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardFavoritesFiltersVO';
 import CRUDActionsDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/CRUDActionsDatatableFieldVO';
@@ -40,6 +39,10 @@ import VarConfVO from '../../../../../../shared/modules/Var/vos/VarConfVO';
 import { cloneDeep } from 'lodash';
 import VarWidgetComponent from '../var_widget/VarWidgetComponent';
 import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
+import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
+import { FieldFilterHandler } from '../../../../../../shared/modules/ContextFilter/FieldFilterHandler';
+import MonthFilterWidgetOptions from '../month_filter_widget/options/MonthFilterWidgetOptions';
+import YearFilterWidgetOptions from '../year_filter_widget/options/YearFilterWidgetOptions';
 
 @Component({
     template: require('./SaveFavoritesFiltersWidgetComponent.pug'),
@@ -67,36 +70,13 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
     @Prop({ default: null })
     private dashboard: DashboardVO;
 
-    private modal_initialized: boolean = false;
-
     private start_update: boolean = false;
-
-    private is_modal_open: boolean = false;
 
     /**
      * On mounted
      *  - Happen on component mount
      */
-    private mounted() {
-        this.$nextTick(async () => {
-            if (!this.modal_initialized) {
-                this.modal_initialized = true;
-                $("#save_favorites_filters_modal").on("hidden.bs.modal", () => {
-                    this.is_modal_open = false;
-                });
-            }
-        });
-    }
-
-    /**
-     * Watch on is_modal_open
-     *  - Happen on component each time is_modal_open changes
-     * @returns void
-     */
-    @Watch('is_modal_open')
-    private is_modal_open_watcher() {
-        this.handle_modal_state();
-    }
+    private mounted() { }
 
     /**
      * Handle Open Modal
@@ -105,7 +85,11 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
      */
     private async handle_open_modal(): Promise<void> {
         this.get_Savefavoritesfiltersmodalcomponent.open_modal(
-            { exportable_data: this.get_exportable_xlsx_params() },
+            {
+                selectionnable_active_field_filters: this.get_selectionnable_active_field_filters(),
+                default_page_fields_filters: this.get_default_page_fields_filters(),
+                exportable_data: this.get_exportable_xlsx_params(),
+            },
             this.handle_save.bind(this)
         );
     }
@@ -114,10 +98,10 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
      * Handle Save V1
      *  - Save active dashboard filters for the current user
      *
-     * @param {IDashboardFavoritesFiltersProps} [props]
+     * @param {Partial<DashboardFavoritesFiltersVO>} [props]
      * @returns {Promise<void>}
      */
-    private async handle_save(props: IDashboardFavoritesFiltersProps): Promise<void> {
+    private async handle_save(props: Partial<DashboardFavoritesFiltersVO>): Promise<void> {
         if (!props) { return; }
 
         if (this.start_update) { return; }
@@ -133,62 +117,6 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
         this.save_favorites_filters(favorites_filters);
 
         this.start_update = false;
-    }
-
-    /**
-     * Handle Save V1
-     *  - Save active dashboard filters for the current user
-     *
-     * @return {Promise<void>}
-     */
-    private async handle_save_v1(): Promise<void> {
-        let self = this;
-
-        if (self.start_update) {
-            return;
-        }
-
-        self.start_update = true;
-
-        let page_filters = null;
-
-        try {
-            page_filters = JSON.stringify(self.get_active_field_filters);
-        } catch (error) {
-            ConsoleHandler.error(error);
-        }
-
-        const props = new DashboardFavoritesFiltersVO().from({
-            dashboard_id: self.dashboard_page.dashboard_id,
-            owner_id: self.data_user.id,
-            page_filters,
-        });
-
-        self.snotify.prompt(
-            self.label('dashboard_viewer.save_favorites_filters.enter_name'),
-            self.label('dashboard_viewer.save_favorites_filters.save_favorites'),
-            {
-                buttons: [
-                    {
-                        text: self.label('crud.update.modal.save'),
-                        action: (toast) => {
-                            props.name = toast.value;
-                            self.save_favorites_filters(props);
-
-                            return self.snotify.remove(toast.id);
-                        },
-                    },
-                    {
-                        text: self.label('crud.update.modal.cancel'),
-                        action: (toast) => self.snotify.remove(toast.id)
-                    },
-                ],
-                placeholder: 'Nom', // Max-length = 40,
-                showProgressBar: true,
-                timeout: 10000,
-            });
-
-        self.start_update = false;
     }
 
     /**
@@ -230,27 +158,6 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
                 }
             })
         );
-    }
-
-    /**
-     * Toggle Modal Open
-     *  - Swich modal from show to hide (vice versa)
-     */
-    private toggle_modal_open() {
-        this.is_modal_open = !this.is_modal_open;
-    }
-
-    /**
-     * Handle Modal State
-     *  - Manage modal depending on its state
-     */
-    private handle_modal_state() {
-        if (!this.is_modal_open) {
-            $('#save_favorites_filters_modal').modal('hide');
-        }
-        if (this.is_modal_open) {
-            $('#save_favorites_filters_modal').modal('show');
-        }
     }
 
     /**
@@ -323,6 +230,83 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
                 this.get_export_options_by_widget_options(widget_options),
                 this.vars_indicator ?? null,
             );
+        }
+
+        return res;
+    }
+
+    /**
+     * Get Selectionnable Active Field Filters
+     */
+    private get_selectionnable_active_field_filters(): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
+
+        const res: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = cloneDeep(this.get_active_field_filters);
+
+        const field_value_filters_widgets_options = this.field_value_filters_widgets_options;
+        const month_filters_widgets_options = this.month_filters_widgets_options;
+        const year_filters_widgets_options = this.year_filters_widgets_options;
+
+        for (const name in field_value_filters_widgets_options) {
+            const widget_options = field_value_filters_widgets_options[name].widget_options;
+
+            const vo_field_ref = this.get_vo_field_ref_by_widget_options(widget_options);
+
+            if (widget_options.hide_filter) {
+                delete res[vo_field_ref.api_type_id][vo_field_ref.field_id];
+            }
+        }
+
+        for (const name in month_filters_widgets_options) {
+            const widget_options = month_filters_widgets_options[name].widget_options;
+
+            const vo_field_ref = widget_options.is_vo_field_ref ? this.get_vo_field_ref_by_widget_options(widget_options) : {
+                api_type_id: ContextFilterVO.CUSTOM_FILTERS_TYPE,
+                field_id: widget_options.custom_filter_name,
+            };
+
+            if (widget_options.hide_filter) {
+                delete res[vo_field_ref.api_type_id][vo_field_ref.field_id];
+            }
+        }
+
+        for (const name in year_filters_widgets_options) {
+            const widget_options = year_filters_widgets_options[name].widget_options;
+
+            const vo_field_ref = widget_options.is_vo_field_ref ? this.get_vo_field_ref_by_widget_options(widget_options) : {
+                api_type_id: ContextFilterVO.CUSTOM_FILTERS_TYPE,
+                field_id: widget_options.custom_filter_name,
+            };
+
+            if (widget_options.hide_filter) {
+                delete res[vo_field_ref.api_type_id][vo_field_ref.field_id];
+            }
+        }
+
+        return res;
+    }
+
+    /**
+     * Get Default Page Filters
+     */
+    private get_default_page_fields_filters(): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
+
+        const field_value_filters_widgets_options = this.field_value_filters_widgets_options;
+        const res: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = {};
+
+        for (const name in field_value_filters_widgets_options) {
+            const widget_options = field_value_filters_widgets_options[name].widget_options;
+
+            // We must transform this default filters into { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
+            const default_filters_options = widget_options.default_filter_opt_values;
+
+            const vo_field_ref = this.get_vo_field_ref_by_widget_options(widget_options);
+
+            const context_filter = FieldFilterHandler.get_active_field_filter(vo_field_ref, default_filters_options, { vo_field_ref });
+
+            if (!!context_filter) {
+                res[vo_field_ref.api_type_id] = {};
+                res[vo_field_ref.api_type_id][vo_field_ref.field_id] = context_filter;
+            }
         }
 
         return res;
@@ -463,6 +447,12 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
 
     }
 
+    /**
+     * Get Columns Custom Filters By Widget Options
+     *
+     * @param {TableWidgetOptions} [widget_options]
+     * @returns {{ [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } }}
+     */
     private get_columns_custom_filters_by_widget_options(widget_options: TableWidgetOptions): { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } {
         let res: { [datatable_field_uid: string]: { [var_param_field_name: string]: ContextFilterVO } } = {};
 
@@ -505,19 +495,6 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
         }
 
         return res;
-    }
-
-    /**
-     * Get Export Options By Table Widget
-     *
-     * @param {TableWidgetOptions} [widget_options]
-     * @return {IExportOptions}
-     */
-    private get_export_options_by_table_widget(widget_options: TableWidgetOptions): IExportOptions {
-        return {
-            export_active_field_filters: widget_options.can_export_active_field_filters,
-            export_vars_indicator: widget_options.can_export_vars_indicator
-        };
     }
 
     /**
@@ -799,6 +776,60 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
     }
 
     /**
+     * Get Vo Field Ref By Widget Options
+     *
+     * @param {FieldValueFilterWidgetOptions} widget_options
+     * @returns {VOFieldRefVO}
+     */
+    private get_vo_field_ref_by_widget_options(
+        widget_options: FieldValueFilterWidgetOptions | MonthFilterWidgetOptions | YearFilterWidgetOptions
+    ): VOFieldRefVO {
+
+        if (!widget_options?.vo_field_ref) {
+            return null;
+        }
+
+        return new VOFieldRefVO().from(widget_options.vo_field_ref);
+    }
+
+    /**
+     * Get Filter Widgets Options By Widget Name
+     *
+     * @param {string} widget_name
+     * @returns {{ [page_widget_id: string]: { widget_options: any, page_widget_id: number } }}
+     */
+    private get_filter_widgets_options_by_widget_name(widget_name: string): { [page_widget_id: string]: { widget_options: any, page_widget_id: number } } {
+        const res: { [page_widget_id: string]: { widget_options: any, page_widget_id: number } } = {};
+
+        // Find id of widget that have type "yearfilter"
+        const filter_widget_id = Object.values(this.widgets_by_id)?.find((e) => e.name == widget_name).id;
+
+        // filter_widget_id required to continue
+        if (!filter_widget_id) { return; }
+
+        // Find all yearfilter widgets of actual page
+        const filter_page_widgets = Object.values(this.all_page_widget)?.filter(
+            (pw) => pw.widget_id == filter_widget_id
+        );
+
+        for (const key in filter_page_widgets) {
+            const filter_page_widget = filter_page_widgets[key];
+
+            const options = JSON.parse(filter_page_widget?.json_options ?? '{}');
+
+            const page_widget_id = filter_page_widget.id;
+            const filter_widget_options = options;
+
+            res[page_widget_id] = {
+                widget_options: filter_widget_options,
+                page_widget_id: filter_page_widget.id,
+            };
+        }
+
+        return res;
+    }
+
+    /**
      * Get Widgets By Id
      *
      * @return { [id: number]: DashboardWidgetVO }
@@ -880,37 +911,100 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
     }
 
     /**
-     * Get Exportable Valuetable Widgets Options
+     * Get Valuetable Widgets Options
      *
-     * @return { { [title_name_code: string]: TableWidgetOptions }}
+     * @return {{ [title_name_code: string]: { widget_options: TableWidgetOptions, page_widget_id: number } }}
      */
     get valuetables_widgets_options(): { [title_name_code: string]: { widget_options: TableWidgetOptions, page_widget_id: number } } {
 
+        const options: { [page_widget_id: string]: { widget_options: any, page_widget_id: number } } =
+            this.get_filter_widgets_options_by_widget_name('valuetable');
+
         const res: { [title_name_code: string]: { widget_options: TableWidgetOptions, page_widget_id: number } } = {};
 
-        // Find id of widget that have type "valuetable"
-        const valuetable_widget_id = Object.values(this.widgets_by_id)?.find((e) => e.name == 'valuetable').id;
+        for (const key in options) {
 
-        // valuetable_widget_id required to continue
-        if (!valuetable_widget_id) { return; }
+            const widget_options = new TableWidgetOptions().from(options[key].widget_options);
+            const name = widget_options.get_title_name_code_text(options[key].page_widget_id);
 
-        // Find all valuetable widgets of actual page
-        const valuetable_page_widgets = Object.values(this.all_page_widget)?.filter(
-            (pw) => pw.widget_id == valuetable_widget_id
-        );
+            res[name] = {} as any;
+            res[name].page_widget_id = options[key].page_widget_id;
+            res[name].widget_options = widget_options;
+        }
 
-        for (const key in valuetable_page_widgets) {
-            const valuetable_page_widget = valuetable_page_widgets[key];
+        return res;
+    }
 
-            const options = JSON.parse(valuetable_page_widget?.json_options ?? '{}');
+    /**
+     * Get Field Value Filters Widgets Options
+     *
+     * @return {{ [title_name_code: string]: { widget_options: FieldValueFilterWidgetOptions, page_widget_id: number } }}
+     */
+    get field_value_filters_widgets_options(): { [title_name_code: string]: { widget_options: FieldValueFilterWidgetOptions, page_widget_id: number } } {
 
-            const valuetable_widget_options = new TableWidgetOptions().from(options);
-            const name = valuetable_widget_options.get_title_name_code_text(valuetable_page_widget.id);
+        const options: { [page_widget_id: string]: { widget_options: any, page_widget_id: number } } =
+            this.get_filter_widgets_options_by_widget_name('fieldvaluefilter');
 
-            res[name] = {
-                widget_options: valuetable_widget_options,
-                page_widget_id: valuetable_page_widget.id,
-            };
+        const res: { [title_name_code: string]: { widget_options: FieldValueFilterWidgetOptions, page_widget_id: number } } = {};
+
+        for (const key in options) {
+
+            const widget_options = new FieldValueFilterWidgetOptions().from(options[key].widget_options);
+            const name = widget_options.get_placeholder_name_code_text(options[key].page_widget_id);
+
+            res[name] = {} as any;
+            res[name].page_widget_id = options[key].page_widget_id;
+            res[name].widget_options = widget_options;
+        }
+
+        return res;
+    }
+
+    /**
+     * Get Month Filters Widgets Options
+     *
+     * @return {{ [title_name_code: string]: { widget_options: MonthFilterWidgetOptions, page_widget_id: number } }}
+     */
+    get month_filters_widgets_options(): { [title_name_code: string]: { widget_options: MonthFilterWidgetOptions, page_widget_id: number } } {
+
+        const options: { [page_widget_id: string]: { widget_options: any, page_widget_id: number } } =
+            this.get_filter_widgets_options_by_widget_name('monthfilter');
+
+        const res: { [title_name_code: string]: { widget_options: MonthFilterWidgetOptions, page_widget_id: number } } = {};
+
+        for (const key in options) {
+
+            const widget_options = new MonthFilterWidgetOptions().from(options[key].widget_options);
+            const name = widget_options.get_placeholder_name_code_text(options[key].page_widget_id);
+
+            res[name] = {} as any;
+            res[name].page_widget_id = options[key].page_widget_id;
+            res[name].widget_options = widget_options;
+        }
+
+        return res;
+    }
+
+    /**
+     * Get Year Filters Widgets Options
+     *
+     * @return {{ [title_name_code: string]: { widget_options: YearFilterWidgetOptions, page_widget_id: number } }}
+     */
+    get year_filters_widgets_options(): { [title_name_code: string]: { widget_options: YearFilterWidgetOptions, page_widget_id: number } } {
+
+        const options: { [page_widget_id: string]: { widget_options: any, page_widget_id: number } } =
+            this.get_filter_widgets_options_by_widget_name('yearfilter');
+
+        const res: { [title_name_code: string]: { widget_options: YearFilterWidgetOptions, page_widget_id: number } } = {};
+
+        for (const key in options) {
+
+            const widget_options = new YearFilterWidgetOptions().from(options[key].widget_options);
+            const name = widget_options.get_placeholder_name_code_text(options[key].page_widget_id);
+
+            res[name] = {} as any;
+            res[name].page_widget_id = options[key].page_widget_id;
+            res[name].widget_options = widget_options;
         }
 
         return res;

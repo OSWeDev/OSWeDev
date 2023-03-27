@@ -126,7 +126,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
     @Watch('tmp_active_favorites_filters_option')
     private onchange_tmp_filter_active_options(): void {
 
-        const page_filters = this.tmp_active_favorites_filters_option?.page_filters;
+        const page_filters = this.tmp_active_favorites_filters_option?.favorites_page_filters;
 
         if (this.is_initialized) {
             if (
@@ -227,7 +227,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
     private try_apply_actual_active_favorites_filters(favorites_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }): boolean {
 
         this.tmp_active_favorites_filters_option = this.favorites_filters_visible_options.find(
-            (f) => isEqual(f?.page_filters, favorites_filters)
+            (f) => isEqual(f?.favorites_page_filters, favorites_filters)
         );
 
         return true;
@@ -263,7 +263,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
      * @returns {void}
      */
     private update_active_field_filters(): void {
-        const favorites_field_filters = this.tmp_active_favorites_filters_option?.page_filters;
+        const favorites_field_filters = this.tmp_active_favorites_filters_option?.favorites_page_filters;
         const old_active_field_filters = this.old_active_field_filters;
 
         let active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = {};

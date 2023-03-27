@@ -3,12 +3,6 @@ import VOFieldRefVO from "../../../../../../../shared/modules/DashboardBuilder/v
 import DefaultTranslation from "../../../../../../../shared/modules/Translation/vos/DefaultTranslation";
 import IExportableWidgetOptions from "../../IExportableWidgetOptions";
 
-
-export interface IShowFavoritesFiltersWidgetOptionsProps {
-    vo_field_ref?: VOFieldRefVO;
-    max_visible_options?: number;
-}
-
 export default class ShowFavoritesFiltersWidgetOptions implements IExportableWidgetOptions {
 
     public static TITLE_CODE_PREFIX: string = "ShowFavoritesFiltersWidgetOptions.title.";
@@ -21,13 +15,12 @@ export default class ShowFavoritesFiltersWidgetOptions implements IExportableWid
     /**
      * Hydrate from the given properties
      *
-     * @param props {IShowFavoritesFiltersWidgetOptionsProps}
+     * @param props {ShowFavoritesFiltersWidgetOptions}
      * @returns {ShowFavoritesFiltersWidgetOptions}
      */
-    public from(props: IShowFavoritesFiltersWidgetOptionsProps): ShowFavoritesFiltersWidgetOptions {
+    public from(props: Partial<ShowFavoritesFiltersWidgetOptions>): ShowFavoritesFiltersWidgetOptions {
 
-        this.max_visible_options = props.max_visible_options ?? this.max_visible_options;
-        this.vo_field_ref = props.vo_field_ref ?? this.vo_field_ref;
+        Object.assign(this, props);
 
         return this;
     }

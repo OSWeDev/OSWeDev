@@ -1,8 +1,9 @@
 
-import IDashboardFavoritesFiltersProps, { IExportParamsProps } from '../interfaces/IDashboardFavoritesFiltersProps';
+import { IExportParamsProps } from '../interfaces/IExportParamsProps';
 import DashboardBuilderController from "../DashboardBuilderController";
 import ContextFilterVO from '../../ContextFilter/vos/ContextFilterVO';
 import IDistantVOBase from "../../IDistantVOBase";
+import { IDefaultFiltersParams } from '../interfaces/IDefaultFiltersParams';
 
 /**
  * DashboardFavoritesFiltersVO
@@ -24,8 +25,11 @@ export default class DashboardFavoritesFiltersVO implements IDistantVOBase {
     // Name which the owner gave to the current backup
     public name: string;
 
-    // JSON object of page active field filters
-    public page_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+    // JSON object of favorites_page active field filters
+    public favorites_page_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+
+    // JSON object of default_filters_params
+    public default_filters_params: IDefaultFiltersParams;
 
     // JSON object of export configurations
     public export_params?: IExportParamsProps;
@@ -33,14 +37,15 @@ export default class DashboardFavoritesFiltersVO implements IDistantVOBase {
     /**
      * Hydrate from the given properties
      *
-     * @param {IDashboardFavoritesFiltersProps} [props]
+     * @param {Partial<DashboardFavoritesFiltersVO>} [props]
      * @returns {DashboardFavoritesFiltersVO}
      */
-    public from(props: IDashboardFavoritesFiltersProps): DashboardFavoritesFiltersVO {
+    public from(props: Partial<DashboardFavoritesFiltersVO>): DashboardFavoritesFiltersVO {
 
         this.export_params = props.export_params ?? this.export_params;
         this.dashboard_id = props.dashboard_id ?? this.dashboard_id;
-        this.page_filters = props.page_filters ?? this.page_filters;
+        this.favorites_page_filters = props.favorites_page_filters ?? this.favorites_page_filters;
+        this.default_filters_params = props.default_filters_params ?? this.default_filters_params;
         this.owner_id = props.owner_id ?? this.owner_id;
         this.name = props.name ?? this.name;
 

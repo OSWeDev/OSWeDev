@@ -84,47 +84,60 @@ export default class FieldValueFilterWidgetOptions implements IExportableWidgetO
     }
 
     public constructor(
-        public vo_field_ref: VOFieldRefVO,
-        public vo_field_ref_lvl2: VOFieldRefVO,
-        public vo_field_sort: VOFieldRefVO,
-        public can_select_multiple: boolean,
-        public is_checkbox: boolean,
-        public checkbox_columns: number,
-        public max_visible_options: number,
-        public show_search_field: boolean,
-        public hide_lvl2_if_lvl1_not_selected: boolean,
-        public segmentation_type: number,
-        public advanced_mode: boolean,
-        public default_advanced_string_filter_type: number,
-        public hide_btn_switch_advanced: boolean,
-        public hide_advanced_string_filter_type: boolean,
-        public vo_field_ref_multiple: VOFieldRefVO[],
-        public default_filter_opt_values: DataFilterOption[],
-        public default_ts_range_values: TSRange,
-        public default_boolean_values: number[],
-        public hide_filter: boolean,
-        public no_inter_filter: boolean,
-        public has_other_ref_api_type_id: boolean,
-        public other_ref_api_type_id: string,
-        public exclude_filter_opt_values: DataFilterOption[],
-        public exclude_ts_range_values: TSRange,
-        public placeholder_advanced_mode: string,
-        public separation_active_filter: boolean,
-        public vo_field_sort_lvl2: VOFieldRefVO,
-        public autovalidate_advanced_filter: boolean,
-        public add_is_null_selectable: boolean,
-        public is_button: boolean,
-        public enum_bg_colors: { [enum_value: number]: string },
-        public enum_fg_colors: { [enum_value: number]: string },
-        public show_count_value: boolean, // Seulement pour enum pour l'instant
-        public active_field_on_autovalidate_advanced_filter: boolean,
-        public force_filter_all_api_type_ids: boolean, // (Pour la supervision)
+        public vo_field_ref?: VOFieldRefVO,
+        public vo_field_ref_lvl2?: VOFieldRefVO,
+        public vo_field_sort?: VOFieldRefVO,
+        public can_select_multiple?: boolean,
+        public is_checkbox?: boolean,
+        public checkbox_columns?: number,
+        public max_visible_options?: number,
+        public show_search_field?: boolean,
+        public hide_lvl2_if_lvl1_not_selected?: boolean,
+        public segmentation_type?: number,
+        public advanced_mode?: boolean,
+        public default_advanced_string_filter_type?: number,
+        public hide_btn_switch_advanced?: boolean,
+        public hide_advanced_string_filter_type?: boolean,
+        public vo_field_ref_multiple?: VOFieldRefVO[],
+        public default_filter_opt_values?: DataFilterOption[],
+        public default_ts_range_values?: TSRange,
+        public default_boolean_values?: number[],
+        public hide_filter?: boolean,
+        public no_inter_filter?: boolean,
+        public has_other_ref_api_type_id?: boolean,
+        public other_ref_api_type_id?: string,
+        public exclude_filter_opt_values?: DataFilterOption[],
+        public exclude_ts_range_values?: TSRange,
+        public placeholder_advanced_mode?: string,
+        public separation_active_filter?: boolean,
+        public vo_field_sort_lvl2?: VOFieldRefVO,
+        public autovalidate_advanced_filter?: boolean,
+        public add_is_null_selectable?: boolean,
+        public is_button?: boolean,
+        public enum_bg_colors?: { [enum_value: number]: string },
+        public enum_fg_colors?: { [enum_value: number]: string },
+        public show_count_value?: boolean, // Seulement pour enum pour l'instant
+        public active_field_on_autovalidate_advanced_filter?: boolean,
+        public force_filter_all_api_type_ids?: boolean, // (Pour la supervision)
         public bg_color?: string,
         public fg_color_value?: string,
         public fg_color_text?: string,
         public can_select_all?: boolean,
         public can_select_none?: boolean,
     ) { }
+
+    /**
+     * Hydrate from the given properties
+     *
+     * @param props {FieldValueFilterWidgetOptions}
+     * @returns {FieldValueFilterWidgetOptions}
+     */
+    public from(props: Partial<FieldValueFilterWidgetOptions>): FieldValueFilterWidgetOptions {
+
+        Object.assign(this, props);
+
+        return this;
+    }
 
     public get_placeholder_name_code_text(page_widget_id: number): string {
 

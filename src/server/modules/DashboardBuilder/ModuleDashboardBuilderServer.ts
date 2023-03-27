@@ -22,8 +22,8 @@ import ExportContextQueryToXLSXParamVO from '../../../shared/modules/DataExport/
 import DashboardFavoritesFiltersVO from '../../../shared/modules/DashboardBuilder/vos/DashboardFavoritesFiltersVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import StackContext from '../../StackContext';
 import ModuleDataExportServer from '../DataExport/ModuleDataExportServer';
+import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 
 export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
@@ -1819,17 +1819,21 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
     /**
      * Start Export Datatable Using Favorites Filters
      *
+     *  - TODO: Apply default date calculation based on widget_options for "monthfilter" or "yearfilter"
+     *
      * @return {Promise<void>}
      */
     public async start_export_datatable_using_favorites_filters(): Promise<void> {
 
         // For all users favorites filters, Export by using export_params
-        const users_favorites_filters = await query(DashboardFavoritesFiltersVO.API_TYPE_ID)
+        const users_favorites_filters: DashboardFavoritesFiltersVO[] = await query(DashboardFavoritesFiltersVO.API_TYPE_ID)
             .select_vos<DashboardFavoritesFiltersVO>();
 
         for (const fav_i in users_favorites_filters) {
             const favorites_filters = users_favorites_filters[fav_i];
 
+            const default_fields_filters = favorites_filters.default_filters_params?.fields_filters ?? null;
+            const page_filters = favorites_filters.favorites_page_filters;
             const export_params = favorites_filters.export_params ?? null;
 
             // is_export_planned, export_frequency and exportable_data must be sets
@@ -1841,11 +1845,41 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
                 continue;
             }
 
+            let context_fields_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = {};
+
             const export_frequency = export_params.export_frequency;
             const exportable_data = export_params.exportable_data;
 
+            // Merge/replace default_fields_filters with page_filters
+            // Add context fields filters with the default one
+            for (const api_type_id in default_fields_filters) {
+                const filters = default_fields_filters[api_type_id];
+
+                for (const field_id in filters) {
+                    // the actual filter
+                    const filter = filters[field_id];
+
+                    // Add default context filters
+                    context_fields_filters[api_type_id] = {};
+                    context_fields_filters[api_type_id][field_id] = filter;
+                }
+            }
+
+            // Add/Overwrite default filters with the favorites one
+            for (const api_type_id in page_filters) {
+                const filters = page_filters[api_type_id];
+
+                for (const field_id in filters) {
+                    // the actual filter
+                    const filter = filters[field_id];
+
+                    context_fields_filters[api_type_id] = context_fields_filters[api_type_id] ?? {};
+                    context_fields_filters[api_type_id][field_id] = filter;
+                }
+            }
+
             // Do I have to export ?
-            let do_export = false;
+            let do_export = true;
 
             // Shall export the first time here
             if (!export_params.last_export_at_ts) {
@@ -1901,41 +1935,34 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             for (const key in exportable_data) {
                 const xlsx_data: ExportContextQueryToXLSXParamVO = new ExportContextQueryToXLSXParamVO().from(exportable_data[key]);
 
-                await StackContext.runPromise({
-                    UID: favorites_filters.owner_id,
-                    IS_CLIENT: false
-                }, async () => {
+                // Replace the "{#Date}" placeholder with the current date
+                const date_rgx = /\{(?<date_placeholder>\#Date)\}/;
+                let filename: string = xlsx_data.filename;
 
-                    // do replace the "{#Date}" placeholder with the current date
-                    const date_rgx = /\{(?<date_placeholder>\#Date)\}/;
-                    let filename: string = xlsx_data.filename;
+                if (date_rgx.test(filename)) {
+                    filename = filename.replace(date_rgx, Dates.now().toString());
+                }
 
-                    if (date_rgx.test(filename)) {
-                        filename = filename.replace(date_rgx, Dates.now().toString());
-                    }
-
-                    await ModuleDataExportServer.getInstance().do_exportContextQueryToXLSX(
-                        filename,
-                        xlsx_data.context_query,
-                        xlsx_data.ordered_column_list,
-                        xlsx_data.column_labels,
-                        xlsx_data.exportable_datatable_custom_field_columns,
-                        xlsx_data.columns,
-                        xlsx_data.fields,
-                        xlsx_data.varcolumn_conf,
-                        xlsx_data.active_field_filters,
-                        xlsx_data.custom_filters,
-                        xlsx_data.active_api_type_ids,
-                        xlsx_data.discarded_field_paths,
-                        xlsx_data.is_secured,
-                        xlsx_data.file_access_policy_name,
-                        xlsx_data.target_user_id,
-                        xlsx_data.do_not_user_filter_by_datatable_field_uid,
-                        xlsx_data.export_options,
-                        xlsx_data.vars_indicator,
-                    );
-
-                });
+                await ModuleDataExportServer.getInstance().prepare_exportContextQueryToXLSX(
+                    filename,
+                    xlsx_data.context_query,
+                    xlsx_data.ordered_column_list,
+                    xlsx_data.column_labels,
+                    xlsx_data.exportable_datatable_custom_field_columns,
+                    xlsx_data.columns,
+                    xlsx_data.fields,
+                    xlsx_data.varcolumn_conf,
+                    page_filters,
+                    xlsx_data.custom_filters,
+                    xlsx_data.active_api_type_ids,
+                    xlsx_data.discarded_field_paths,
+                    xlsx_data.is_secured,
+                    xlsx_data.file_access_policy_name,
+                    xlsx_data.target_user_id,
+                    xlsx_data.do_not_user_filter_by_datatable_field_uid,
+                    xlsx_data.export_options,
+                    xlsx_data.vars_indicator,
+                );
             }
 
             // Set up last_export_at_ts timestamp
