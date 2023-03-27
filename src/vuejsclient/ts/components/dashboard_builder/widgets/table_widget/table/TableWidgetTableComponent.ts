@@ -27,6 +27,7 @@ import ModuleDataExport from '../../../../../../../shared/modules/DataExport/Mod
 import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
 import ExportVarcolumnConf from '../../../../../../../shared/modules/DataExport/vos/ExportVarcolumnConf';
 import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import IArchivedVOBase from '../../../../../../../shared/modules/IArchivedVOBase';
 import ModuleTable from '../../../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
 import VarConfVO from '../../../../../../../shared/modules/Var/vos/VarConfVO';
@@ -746,6 +747,10 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
     get delete_button(): boolean {
         return (this.widget_options && this.widget_options.delete_button);
+    }
+
+    get archive_button(): boolean {
+        return (this.widget_options && this.widget_options.archive_button);
     }
 
     private async sort_by(column: TableColumnDescVO) {
@@ -1733,7 +1738,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                     options.has_default_export_option,
                     options.use_kanban_by_default_if_exists,
                     options.use_kanban_column_weight_if_exists,
-                    options.use_for_count
+                    options.use_for_count,
+                    options.archive_button,
                 ) : null;
             }
         } catch (error) {
@@ -1772,6 +1778,68 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                             self.snotify.success(self.label('TableWidgetComponent.confirm_delete.ok'));
                         }
                         await this.throttle_do_update_visible_options();
+                    },
+                    bold: false
+                },
+                {
+                    text: self.t('NO'),
+                    action: (toast) => {
+                        self.$snotify.remove(toast.id);
+                    }
+                }
+            ]
+        });
+    }
+
+    private async confirm_archive(api_type_id: string, id: number) {
+        let self = this;
+
+        // On demande confirmation avant toute chose.
+        // si on valide, on lance la suppression
+        self.snotify.confirm(self.label('TableWidgetComponent.confirm_archive.body'), self.label('TableWidgetComponent.confirm_archive.title'), {
+            timeout: 10000,
+            showProgressBar: true,
+            closeOnClick: false,
+            pauseOnHover: true,
+            buttons: [
+                {
+                    text: self.t('YES'),
+                    action: async (toast) => {
+                        self.$snotify.remove(toast.id);
+                        self.snotify.async(self.label('TableWidgetComponent.confirm_archive.start'), () =>
+                            new Promise(async (resolve, reject) => {
+                                let vo: IArchivedVOBase = await query(api_type_id).filter_by_id(id).select_vo();
+                                let res: InsertOrDeleteQueryResult = null;
+
+                                if (vo) {
+                                    vo.archived = true;
+                                    res = await ModuleDAO.getInstance().insertOrUpdateVO(vo);
+                                }
+
+                                if (!res?.id) {
+                                    reject({
+                                        body: self.label('TableWidgetComponent.confirm_archive.ko'),
+                                        config: {
+                                            timeout: 10000,
+                                            showProgressBar: true,
+                                            closeOnClick: false,
+                                            pauseOnHover: true,
+                                        },
+                                    });
+                                } else {
+                                    resolve({
+                                        body: self.label('TableWidgetComponent.confirm_archive.ok'),
+                                        config: {
+                                            timeout: 10000,
+                                            showProgressBar: true,
+                                            closeOnClick: false,
+                                            pauseOnHover: true,
+                                        },
+                                    });
+                                }
+                                await this.throttle_do_update_visible_options();
+                            })
+                        );
                     },
                     bold: false
                 },
