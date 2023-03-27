@@ -26,7 +26,7 @@ export default class ExpressDBSessionsWorkersHandler {
         planCronWorker.date_heure_planifiee = Dates.add(Dates.startOf(Dates.now(), TimeSegment.TYPE_DAY), 3, TimeSegment.TYPE_HOUR);
         planCronWorker.intervale_recurrence = 1;
         planCronWorker.planification_uid = DeleteOldExpressSessionsCronWorker.getInstance().worker_uid;
-        planCronWorker.type_recurrence = CronWorkerPlanification.TYPE_RECURRENCE_JOURS;
+        planCronWorker.type_recurrence = CronWorkerPlanification.TYPE_RECURRENCE_HEURES;
         planCronWorker.worker_uid = DeleteOldExpressSessionsCronWorker.getInstance().worker_uid;
 
         ModuleCronServer.getInstance().planCronWorker(planCronWorker).then().catch((error) => ConsoleHandler.error(error));
