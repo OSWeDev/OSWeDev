@@ -11,11 +11,23 @@
     border-color: $button_primary_bg_color !important;
 }
 
+.btn-primary:hover,
+.btn-primary:active {
+    background-color: $button_primary_active_bg_color !important;
+    color: $button_text_color !important;
+    border-color: $button_primary_active_bg_color !important;
+}
+
 .btn-danger,
 .btn-danger:visited {
     background-color: $danger_color !important;
     color: $button_text_color !important;
     border-color: $danger_color !important;
+}
+
+.btn-danger:hover,
+.btn-danger:active {
+    background-color: darken($color: $danger_color, $amount: 10%) !important;
 }
 
 .bg-danger {
@@ -40,6 +52,11 @@
     border-color: $button_warning_color !important;
 }
 
+.btn-warning:hover,
+.btn-warning:active {
+    background-color: darken($color: $button_warning_color, $amount: 10%) !important;
+}
+
 .bg-warning {
     background-color: $button_warning_color !important;
 }
@@ -48,12 +65,6 @@
     background-color: $button_primary_bg_color !important;
 }
 
-.btn-primary:hover,
-.btn-primary:active {
-    background-color: $button_primary_active_bg_color !important;
-    color: $button_text_color !important;
-    border-color: $button_primary_active_bg_color !important;
-}
 
 .text-primary,
 a.text-primary:focus {
