@@ -10,6 +10,7 @@ import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/Conte
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ParameterizedQueryWrapper from '../../../shared/modules/ContextFilter/vos/ParameterizedQueryWrapper';
 import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
+import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
@@ -118,6 +119,44 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     private constructor() {
         super(ModuleVar.getInstance().name);
+    }
+
+    /**
+     * Called after all modules have been configured and initialized
+     */
+    public async late_configuration(): Promise<void> {
+        /**
+         * On checke la cohérence des confs qu'on a chargées pour les vars, en particulier s'assurer que les
+         *  pixels sont correctement configurés
+         */
+        let has_errors = false;
+        for (let var_id_str in VarsServerController.getInstance().varcacheconf_by_var_ids) {
+            let var_id = parseInt(var_id_str);
+            let varcacheconf = VarsServerController.getInstance().varcacheconf_by_var_ids[var_id_str];
+            let varconf = VarsServerController.getInstance().getVarConfById(var_id);
+
+            if (!varconf) {
+                has_errors = true;
+                ConsoleHandler.error('Varconf not found for var_id ' + var_id);
+                continue;
+            }
+
+            if (varconf.pixel_activated) {
+                if (varcacheconf.cache_startegy != VarCacheConfVO.VALUE_CACHE_STRATEGY_PIXEL) {
+                    ConsoleHandler.warn('Pixel varconf but varcacheconf strategy is not set to PIXEL for var_id :' + var_id + ': ' + varconf.name + ' - Correction automatique ...');
+
+                    varcacheconf.cache_startegy = VarCacheConfVO.VALUE_CACHE_STRATEGY_PIXEL;
+                    await ModuleDAO.getInstance().insertOrUpdateVO(varcacheconf);
+
+                    ConsoleHandler.warn('Correction automatique terminée');
+                    continue;
+                }
+            }
+        }
+
+        if (has_errors) {
+            throw new Error('Failed varconf / varcacheconf consistency check. See logs to get more details');
+        }
     }
 
     public async configure() {
@@ -1911,6 +1950,5 @@ export default class ModuleVarServer extends ModuleServerBase {
             await this.throttle_get_var_data_by_index();
         });
     }
-
 
 }

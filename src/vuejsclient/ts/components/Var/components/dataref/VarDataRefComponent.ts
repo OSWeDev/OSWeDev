@@ -261,12 +261,14 @@ export default class VarDataRefComponent extends VueComponentBase {
 
             if (this.show_import_aggregated) {
                 await ModuleVar.getInstance().getAggregatedVarDatas((var_param ? var_param : this.var_param)).then((datas: { [var_data_index: string]: VarDataBaseVO }) => {
+                    let aggregated_var_param = null;
                     for (let var_data_index in datas) {
                         if (datas[var_data_index].value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) {
-                            this.aggregated_var_param = cloneDeep(datas[var_data_index]);
+                            aggregated_var_param = cloneDeep(datas[var_data_index]);
                             break;
                         }
                     }
+                    this.aggregated_var_param = aggregated_var_param;
                 });
             }
         }
