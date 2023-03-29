@@ -73,9 +73,11 @@ export default class ModuleDashboardBuilder extends Module {
         this.datatables = [];
 
         let db_table = this.init_DashboardVO();
-        this.init_DashboardFavoritesFiltersVO(db_table);
 
         let db_page = this.init_DashboardPageVO(db_table);
+
+        this.init_DashboardFavoritesFiltersVO(db_page);
+
         this.init_DashboardGraphVORefVO(db_table);
         let db_widget = this.init_DashboardWidgetVO();
         this.init_DashboardPageWidgetVO(db_page, db_widget);
@@ -214,17 +216,16 @@ export default class ModuleDashboardBuilder extends Module {
      *  - Database table to stock user favorites of active filters
      *  - May be useful to save the actual dashboard, owner_id and page_filters
      */
-    private init_DashboardFavoritesFiltersVO(db_table: ModuleTable<any>) {
+    private init_DashboardFavoritesFiltersVO(db_page: ModuleTable<any>) {
 
-        let dashboard_id = new ModuleTableField('dashboard_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Dashboard', true);
+        let page_id = new ModuleTableField('page_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Page Dashboard', true);
 
         let datatable_fields = [
-            dashboard_id,
+            page_id,
 
             new ModuleTableField('owner_id', ModuleTableField.FIELD_TYPE_string, 'Owner Id', true),
             new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom des filtres', true),
-            new ModuleTableField('favorites_page_filters', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Favorites Page Filters', false),
-            new ModuleTableField('default_filters_params', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Default Filters Params', false),
+            new ModuleTableField('field_filters', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Field Filters', false),
             // export_params: Specify frequence (month day number e.g. 1st, 10th or 20)
             new ModuleTableField('export_params', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Export Params', false),
         ];
@@ -240,7 +241,7 @@ export default class ModuleDashboardBuilder extends Module {
             )
         );
 
-        dashboard_id.addManyToOneRelation(db_table);
+        page_id.addManyToOneRelation(db_page);
     }
 
     private init_VOFieldRefVO() {

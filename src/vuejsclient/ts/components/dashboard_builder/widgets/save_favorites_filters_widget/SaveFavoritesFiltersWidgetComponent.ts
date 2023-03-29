@@ -40,7 +40,6 @@ import { cloneDeep } from 'lodash';
 import VarWidgetComponent from '../var_widget/VarWidgetComponent';
 import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
 import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import { FieldFilterHandler } from '../../../../../../shared/modules/ContextFilter/FieldFilterHandler';
 import MonthFilterWidgetOptions from '../month_filter_widget/options/MonthFilterWidgetOptions';
 import YearFilterWidgetOptions from '../year_filter_widget/options/YearFilterWidgetOptions';
 
@@ -87,7 +86,6 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
         this.get_Savefavoritesfiltersmodalcomponent.open_modal(
             {
                 selectionnable_active_field_filters: this.get_selectionnable_active_field_filters(),
-                default_page_fields_filters: this.get_default_page_fields_filters(),
                 exportable_data: this.get_exportable_xlsx_params(),
             },
             this.handle_save.bind(this)
@@ -109,7 +107,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
         this.start_update = true;
 
         const favorites_filters = new DashboardFavoritesFiltersVO().from({
-            dashboard_id: this.dashboard_page.dashboard_id,
+            page_id: this.dashboard_page.id,
             owner_id: this.data_user.id,
             ...props,
         });
@@ -237,6 +235,8 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
 
     /**
      * Get Selectionnable Active Field Filters
+     *
+     * @return {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO }}
      */
     private get_selectionnable_active_field_filters(): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
 
@@ -252,7 +252,9 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
             const vo_field_ref = this.get_vo_field_ref_by_widget_options(widget_options);
 
             if (widget_options.hide_filter) {
-                delete res[vo_field_ref.api_type_id][vo_field_ref.field_id];
+                if (res[vo_field_ref.api_type_id] && res[vo_field_ref.api_type_id][vo_field_ref.field_id]) {
+                    delete res[vo_field_ref.api_type_id][vo_field_ref.field_id];
+                }
             }
         }
 
@@ -265,7 +267,9 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
             };
 
             if (widget_options.hide_filter) {
-                delete res[vo_field_ref.api_type_id][vo_field_ref.field_id];
+                if (res[vo_field_ref.api_type_id] && res[vo_field_ref.api_type_id][vo_field_ref.field_id]) {
+                    delete res[vo_field_ref.api_type_id][vo_field_ref.field_id];
+                }
             }
         }
 
@@ -278,34 +282,9 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
             };
 
             if (widget_options.hide_filter) {
-                delete res[vo_field_ref.api_type_id][vo_field_ref.field_id];
-            }
-        }
-
-        return res;
-    }
-
-    /**
-     * Get Default Page Filters
-     */
-    private get_default_page_fields_filters(): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
-
-        const field_value_filters_widgets_options = this.field_value_filters_widgets_options;
-        const res: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = {};
-
-        for (const name in field_value_filters_widgets_options) {
-            const widget_options = field_value_filters_widgets_options[name].widget_options;
-
-            // We must transform this default filters into { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
-            const default_filters_options = widget_options.default_filter_opt_values;
-
-            const vo_field_ref = this.get_vo_field_ref_by_widget_options(widget_options);
-
-            const context_filter = FieldFilterHandler.get_active_field_filter(vo_field_ref, default_filters_options, { vo_field_ref });
-
-            if (!!context_filter) {
-                res[vo_field_ref.api_type_id] = {};
-                res[vo_field_ref.api_type_id][vo_field_ref.field_id] = context_filter;
+                if (res[vo_field_ref.api_type_id] && res[vo_field_ref.api_type_id][vo_field_ref.field_id]) {
+                    delete res[vo_field_ref.api_type_id][vo_field_ref.field_id];
+                }
             }
         }
 
@@ -316,6 +295,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
      * Get Context Query By Table Widget
      *
      * @param {TableWidgetOptions} [widget_options]
+     * @return {ContextQueryVO}
      */
     private get_context_query_by_widget_options(widget_options: TableWidgetOptions): ContextQueryVO {
 
@@ -796,10 +776,12 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
      * Get Filter Widgets Options By Widget Name
      *
      * @param {string} widget_name
-     * @returns {{ [page_widget_id: string]: { widget_options: any, page_widget_id: number } }}
+     * @returns {{ [page_widget_id: string]: { widget_options: any, widget_name: string, page_widget_id: number } }}
      */
-    private get_filter_widgets_options_by_widget_name(widget_name: string): { [page_widget_id: string]: { widget_options: any, page_widget_id: number } } {
-        const res: { [page_widget_id: string]: { widget_options: any, page_widget_id: number } } = {};
+    private get_filter_widgets_options_by_widget_name(
+        widget_name: string
+    ): { [page_widget_id: string]: { widget_options: any, widget_name: string, page_widget_id: number } } {
+        const res: { [page_widget_id: string]: { widget_options: any, widget_name: string, page_widget_id: number } } = {};
 
         // Find id of widget that have type "yearfilter"
         const filter_widget_id = Object.values(this.widgets_by_id)?.find((e) => e.name == widget_name).id;
@@ -823,6 +805,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
             res[page_widget_id] = {
                 widget_options: filter_widget_options,
                 page_widget_id: filter_page_widget.id,
+                widget_name,
             };
         }
 
@@ -913,14 +896,14 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
     /**
      * Get Valuetable Widgets Options
      *
-     * @return {{ [title_name_code: string]: { widget_options: TableWidgetOptions, page_widget_id: number } }}
+     * @return {{ [title_name_code: string]: { widget_options: TableWidgetOptions, widget_name: string, page_widget_id: number } }}
      */
-    get valuetables_widgets_options(): { [title_name_code: string]: { widget_options: TableWidgetOptions, page_widget_id: number } } {
+    get valuetables_widgets_options(): { [title_name_code: string]: { widget_options: TableWidgetOptions, widget_name: string, page_widget_id: number } } {
 
-        const options: { [page_widget_id: string]: { widget_options: any, page_widget_id: number } } =
+        const options: { [page_widget_id: string]: { widget_options: any, widget_name: string, page_widget_id: number } } =
             this.get_filter_widgets_options_by_widget_name('valuetable');
 
-        const res: { [title_name_code: string]: { widget_options: TableWidgetOptions, page_widget_id: number } } = {};
+        const res: { [title_name_code: string]: { widget_options: TableWidgetOptions, widget_name: string, page_widget_id: number } } = {};
 
         for (const key in options) {
 
@@ -929,6 +912,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
 
             res[name] = {} as any;
             res[name].page_widget_id = options[key].page_widget_id;
+            res[name].widget_name = options[key].widget_name;
             res[name].widget_options = widget_options;
         }
 
@@ -938,14 +922,14 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
     /**
      * Get Field Value Filters Widgets Options
      *
-     * @return {{ [title_name_code: string]: { widget_options: FieldValueFilterWidgetOptions, page_widget_id: number } }}
+     * @return {{ [title_name_code: string]: { widget_options: FieldValueFilterWidgetOptions, widget_name: string, page_widget_id: number } }}
      */
-    get field_value_filters_widgets_options(): { [title_name_code: string]: { widget_options: FieldValueFilterWidgetOptions, page_widget_id: number } } {
+    get field_value_filters_widgets_options(): { [title_name_code: string]: { widget_options: FieldValueFilterWidgetOptions, widget_name: string, page_widget_id: number } } {
 
-        const options: { [page_widget_id: string]: { widget_options: any, page_widget_id: number } } =
+        const options: { [page_widget_id: string]: { widget_options: any, widget_name: string, page_widget_id: number } } =
             this.get_filter_widgets_options_by_widget_name('fieldvaluefilter');
 
-        const res: { [title_name_code: string]: { widget_options: FieldValueFilterWidgetOptions, page_widget_id: number } } = {};
+        const res: { [title_name_code: string]: { widget_options: FieldValueFilterWidgetOptions, widget_name: string, page_widget_id: number } } = {};
 
         for (const key in options) {
 
@@ -954,6 +938,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
 
             res[name] = {} as any;
             res[name].page_widget_id = options[key].page_widget_id;
+            res[name].widget_name = options[key].widget_name;
             res[name].widget_options = widget_options;
         }
 
@@ -963,14 +948,14 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
     /**
      * Get Month Filters Widgets Options
      *
-     * @return {{ [title_name_code: string]: { widget_options: MonthFilterWidgetOptions, page_widget_id: number } }}
+     * @return {{ [title_name_code: string]: { widget_options: MonthFilterWidgetOptions, widget_name: string, page_widget_id: number } }}
      */
-    get month_filters_widgets_options(): { [title_name_code: string]: { widget_options: MonthFilterWidgetOptions, page_widget_id: number } } {
+    get month_filters_widgets_options(): { [title_name_code: string]: { widget_options: MonthFilterWidgetOptions, widget_name: string, page_widget_id: number } } {
 
-        const options: { [page_widget_id: string]: { widget_options: any, page_widget_id: number } } =
+        const options: { [page_widget_id: string]: { widget_options: any, widget_name: string, page_widget_id: number } } =
             this.get_filter_widgets_options_by_widget_name('monthfilter');
 
-        const res: { [title_name_code: string]: { widget_options: MonthFilterWidgetOptions, page_widget_id: number } } = {};
+        const res: { [title_name_code: string]: { widget_options: MonthFilterWidgetOptions, widget_name: string, page_widget_id: number } } = {};
 
         for (const key in options) {
 
@@ -979,6 +964,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
 
             res[name] = {} as any;
             res[name].page_widget_id = options[key].page_widget_id;
+            res[name].widget_name = options[key].widget_name;
             res[name].widget_options = widget_options;
         }
 
@@ -988,14 +974,14 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
     /**
      * Get Year Filters Widgets Options
      *
-     * @return {{ [title_name_code: string]: { widget_options: YearFilterWidgetOptions, page_widget_id: number } }}
+     * @return {{ [title_name_code: string]: { widget_options: YearFilterWidgetOptions, widget_name: string, page_widget_id: number } }}
      */
-    get year_filters_widgets_options(): { [title_name_code: string]: { widget_options: YearFilterWidgetOptions, page_widget_id: number } } {
+    get year_filters_widgets_options(): { [title_name_code: string]: { widget_options: YearFilterWidgetOptions, widget_name: string, page_widget_id: number } } {
 
-        const options: { [page_widget_id: string]: { widget_options: any, page_widget_id: number } } =
+        const options: { [page_widget_id: string]: { widget_options: any, widget_name: string, page_widget_id: number } } =
             this.get_filter_widgets_options_by_widget_name('yearfilter');
 
-        const res: { [title_name_code: string]: { widget_options: YearFilterWidgetOptions, page_widget_id: number } } = {};
+        const res: { [title_name_code: string]: { widget_options: YearFilterWidgetOptions, widget_name: string, page_widget_id: number } } = {};
 
         for (const key in options) {
 
@@ -1004,6 +990,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
 
             res[name] = {} as any;
             res[name].page_widget_id = options[key].page_widget_id;
+            res[name].widget_name = options[key].widget_name;
             res[name].widget_options = widget_options;
         }
 

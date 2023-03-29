@@ -7,7 +7,6 @@ import ContextFilterHandler from '../../../../../../../shared/modules/ContextFil
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import './SaveFavoritesFiltersModalComponent.scss';
 import { cloneDeep } from 'lodash';
-import { IDefaultFiltersParams } from '../../../../../../../shared/modules/DashboardBuilder/interfaces/IDefaultFiltersParams';
 
 export interface IReadableActiveFieldFilters {
     readable_active_field_filters: string;
@@ -44,7 +43,6 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
 
     private selected_favorite_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null;
     private selected_exportable_data: { [title_name_code: string]: ExportContextQueryToXLSXParamVO } = null;
-    private default_page_fields_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null;
 
     private selectionnable_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null;
 
@@ -60,7 +58,6 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
     public open_modal(
         props: {
             selectionnable_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
-            default_page_fields_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
             exportable_data: { [title_name_code: string]: ExportContextQueryToXLSXParamVO },
         } = null,
         validation_callback?: (props?: Partial<DashboardFavoritesFiltersVO>) => Promise<void>
@@ -72,9 +69,6 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
         // We must set all selected by default
         this.selected_favorite_field_filters = props?.selectionnable_active_field_filters ?? null;
         this.selected_exportable_data = props?.exportable_data ?? null;
-        // Default filters from all page widget options
-        this.default_page_fields_filters = props.default_page_fields_filters ?? null;
-
         this.exportable_data = props?.exportable_data ?? null;
 
         if (typeof validation_callback == 'function') {
@@ -143,8 +137,6 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
             return;
         }
 
-        this.is_modal_open = false;
-
         if (typeof this.on_validation_callback === 'function') {
 
             const is_export_planned = this.is_export_planned;
@@ -157,22 +149,18 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
 
             const exportable_data = is_export_planned ? this.selected_exportable_data : null;
 
-            const default_filters_params: IDefaultFiltersParams = {
-                fields_filters: this.default_page_fields_filters,
-                widget_options: {}
-            };
-
             await this.on_validation_callback({
                 export_params: {
                     is_export_planned,
                     export_frequency,
                     exportable_data,
                 },
-                favorites_page_filters: this.selected_favorite_field_filters,
+                field_filters: this.selected_favorite_field_filters,
                 name: this.favorites_filters_name,
-                default_filters_params,
             });
         }
+
+        this.is_modal_open = false;
     }
 
     /**
@@ -239,6 +227,7 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
      * @return {void}
      */
     private reset_modal(): void {
+        this.form_errors = [];
         this.active_tab_view = 'selection_tab';
         this.favorites_filters_name = null;
         this.selected_favorite_field_filters = null;
@@ -388,7 +377,7 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
 
             for (const field_id in filters) {
                 // Label of filter to be displayed
-                const label = api_type_id.concat(`.${field_id}`);
+                const label = `${api_type_id}.${field_id}`;
 
                 // the actual filter
                 const filter = filters[field_id];

@@ -5,6 +5,10 @@ import IDistantVOBase from './IDistantVOBase';
 import ModuleTable from './ModuleTable';
 import ModuleTableField from './ModuleTableField';
 
+/**
+ * VOsTypesManager
+ *  - Manager for each VOs Fields
+ */
 export default class VOsTypesManager {
 
     /**
