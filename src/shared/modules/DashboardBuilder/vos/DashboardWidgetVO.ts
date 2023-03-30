@@ -4,6 +4,10 @@ import IWeightedItem from "../../../tools/interfaces/IWeightedItem";
 import DefaultTranslation from "../../Translation/vos/DefaultTranslation";
 import DashboardBuilderController from "../DashboardBuilderController";
 
+
+/**
+ * DashboardWidgetVO
+ */
 export default class DashboardWidgetVO implements IDistantVOBase, IWeightedItem, INamedVO {
     public static API_TYPE_ID: string = "dashboard_widget";
 

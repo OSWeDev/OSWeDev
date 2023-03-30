@@ -7,9 +7,9 @@ export default class DataFilterOption {
     public text_uid: string = null;
 
     public constructor(
-        public select_state: number,
-        public label: string,
-        public id: number,
+        public select_state?: number,
+        public label?: string,
+        public id?: number,
         public disabled_state_selected: boolean = false,
         public disabled_state_selectable: boolean = false,
         public disabled_state_unselectable: boolean = false,
@@ -19,7 +19,7 @@ export default class DataFilterOption {
         public numeric_value: number = null,
         public string_value: string = null,
         public tstz_value: number = null,
-        init: boolean = false,
+        public init: boolean = false,
         public options: DataFilterOption[] = [],
         public custom_name: string = null,
     ) {
@@ -30,6 +30,19 @@ export default class DataFilterOption {
         if (init) {
             this.init_text_uid();
         }
+    }
+
+    /**
+     * Hydrate from the given properties
+     *
+     * @param {Partial<DataFilterOption>} [props]
+     * @returns {DataFilterOption}
+     */
+    public from(props: Partial<DataFilterOption>): DataFilterOption {
+
+        Object.assign(this, props);
+
+        return this;
     }
 
     public init_text_uid() {

@@ -1716,7 +1716,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         numranges = numranges ? numranges : custom_filter.param_numranges;
 
-        if ((!numranges) || (!numranges.length)) {
+        if (!(numranges?.length > 0)) {
             return tsranges;
         }
 

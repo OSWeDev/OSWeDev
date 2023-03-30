@@ -231,8 +231,8 @@ Namespace.prototype.enter = function enter(context) {
     //     debug2(`${indentStr}CONTEXT-ENTER: (${this.name}) currentUid:${currentUid} triggerId:${triggerId} asyncHooksCurrentId:${asyncHooksCurrentId} len:${this._set.length} ${util.inspect(context)}`);
     // }
 
-    this._set.push(this.active);
     this.active = context;
+    this._set.push(this.active);
 };
 
 Namespace.prototype.exit = function exit(context) {
@@ -244,9 +244,13 @@ Namespace.prototype.exit = function exit(context) {
     //     debug2(`${indentStr}CONTEXT-EXIT: (${this.name}) currentUid:${currentUid} triggerId:${triggerId} asyncHooksCurrentId:${asyncHooksCurrentId} len:${this._set.length} ${util.inspect(context)}`);
     // }
 
+    if (!(this._set?.length > 0)) {
+        return;
+    }
+
     // Fast path for most exits that are at the top of the stack
     if (this.active === context) {
-        assert.ok(this._set.length, 'can\'t remove top context');
+        assert.ok(this._set.length > 0, `can\'t remove top context`);
         this.active = this._set.pop();
         // this._set.pop();
         // this.active = this._set.length ? this._set[this._set.length - 1] : null;
@@ -266,7 +270,6 @@ Namespace.prototype.exit = function exit(context) {
         }
         assert.ok(index >= 0, 'context not currently entered; can\'t exit. \n' + util.inspect(this) + '\n' + util.inspect(context));
     } else {
-        assert.ok(index, 'can\'t remove top context');
         this._set.splice(index, 1);
     }
 };

@@ -507,6 +507,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
                 res.push(i.toString());
             }
         }
+
         return res;
     }
 }

@@ -49,42 +49,57 @@ export default class TableWidgetOptions implements IExportableWidgetOptions {
     }
 
     public constructor(
-        public columns: TableColumnDescVO[],
-        public is_focus_api_type_id: boolean,
-        public limit: number,
-        public crud_api_type_id: string,
-        public vocus_button: boolean,
-        public delete_button: boolean,
-        public delete_all_button: boolean,
-        public create_button: boolean,
-        public update_button: boolean,
-        public refresh_button: boolean,
-        public export_button: boolean,
-        public can_filter_by: boolean,
-        public show_pagination_resumee: boolean,
-        public show_pagination_slider: boolean,
-        public show_pagination_form: boolean,
-        public show_limit_selectable: boolean,
-        public limit_selectable: string,
-        public show_pagination_list: boolean,
-        public nbpages_pagination_list: number,
-        public has_table_total_footer: boolean,
-        public hide_pagination_bottom: boolean,
-        public default_export_option: number,
-        public has_default_export_option: boolean,
-        public use_kanban_by_default_if_exists: boolean,
-        public use_kanban_column_weight_if_exists: boolean,
-        public use_for_count: boolean, // Seulement pour enum pour l'instant
+        public columns?: TableColumnDescVO[],
+        public is_focus_api_type_id?: boolean,
+        public limit?: number,
+        public crud_api_type_id?: string,
+        public vocus_button?: boolean,
+        public delete_button?: boolean,
+        public delete_all_button?: boolean,
+        public create_button?: boolean,
+        public update_button?: boolean,
+        public refresh_button?: boolean,
+        public export_button?: boolean,
+        public can_filter_by?: boolean,
+        public show_pagination_resumee?: boolean,
+        public show_pagination_slider?: boolean,
+        public show_pagination_form?: boolean,
+        public show_limit_selectable?: boolean,
+        public limit_selectable?: string,
+        public show_pagination_list?: boolean,
+        public nbpages_pagination_list?: number,
+        public has_table_total_footer?: boolean,
+        public hide_pagination_bottom?: boolean,
+        public default_export_option?: number,
+        public has_default_export_option?: boolean,
+        public use_kanban_by_default_if_exists?: boolean,
+        public use_kanban_column_weight_if_exists?: boolean,
+        public use_for_count?: boolean, // Seulement pour enum pour l'instant
         public archive_button?: boolean,
         public can_export_active_field_filters?: boolean,
         public can_export_vars_indicator?: boolean,
     ) { }
+
+    /**
+     * Fill this TableWidgetOptionsProps with the given properties
+     *  - Hydrate from JSON Options
+     *
+     * @param {Partial<TableWidgetOptions>} [props]
+     * @returns {TableWidgetOptions}
+     */
+    public from(props: Partial<TableWidgetOptions>): TableWidgetOptions {
+
+        Object.assign(this, props);
+
+        return this;
+    }
 
     public get_title_name_code_text(page_widget_id: number): string {
 
         if (!page_widget_id) {
             return null;
         }
+
         return TableWidgetOptions.TITLE_CODE_PREFIX + page_widget_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     }
 
