@@ -26,10 +26,8 @@ import ModuleDataExportServer from '../DataExport/ModuleDataExportServer';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { DashboardBuilderVOFactory } from '../../../shared/modules/DashboardBuilder/factory/DashboardBuilderVOFactory';
 import DashboardWidgetVO from '../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
-import { VOFieldRefVOTypeHandler } from '../../../shared/modules/DashboardBuilder/handlers/VOFieldRefVOTypeHandler';
+import ContextFilterFactory from '../../../shared/modules/ContextFilter/factory/ContextFilterFactory';
 import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
-import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
-import RangeHandler from '../../../shared/tools/RangeHandler';
 
 export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
@@ -1825,8 +1823,6 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
     /**
      * Start Export Datatable Using Favorites Filters
      *
-     *  - TODO: Apply default date calculation based on widget_options for "monthfilter" or "yearfilter"
-     *
      * @return {Promise<void>}
      */
     public async start_export_datatable_using_favorites_filters(): Promise<void> {
@@ -1866,9 +1862,6 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             const export_frequency = export_params.export_frequency;
             const exportable_data = export_params.exportable_data;
 
-
-            // TODO - Get Default widget_options properties for calculations
-
             for (const key in widgets) {
                 const widget = widgets[key];
                 const typed_page_widgets = page_widgets.filter((pw) => widget.id === pw.widget_id);
@@ -1889,6 +1882,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
                     }
 
+                    // We must have widget_options to keep proceed
                     if (!widget_options) {
                         return;
                     }
@@ -1902,18 +1896,32 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
                         };
                     }
 
-                    context_filter = ContextFilterHandler.get_context_filter_from_widget_options(widget_options);
+                    context_filter = ContextFilterFactory.create_context_filter_from_widget_options(widget.name, widget_options);
 
                     // We must transform this ContextFilterVO into { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
                     if (vo_field_ref && context_filter) {
-                        default_field_filters[vo_field_ref.api_type_id] = default_field_filters[vo_field_ref.api_type_id] ?? {};
-                        default_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id] = context_filter;
+                        if (default_field_filters[vo_field_ref.api_type_id]) {
+                            if (default_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id]) {
+                                // We must combine context_filter with each other when needed
+                                // e.g. For date Year and Month widget (this widgets have the same api_type_id and field_id)
+                                const new_constex_filter = ContextFilterHandler.getInstance().add_context_filter_to_tree(
+                                    default_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id],
+                                    context_filter
+                                );
+                                default_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id] = new_constex_filter;
+                            } else {
+                                default_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id] = context_filter;
+                            }
+                        } else {
+                            default_field_filters[vo_field_ref.api_type_id] = {};
+                            default_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id] = context_filter;
+                        }
                     }
                 });
             }
 
-            // // Merge/replace default_field_filters with favorites_field_filters
-            // // Add context fields filters with the default one
+            // Merge/replace default_field_filters with favorites_field_filters
+            // Add context fields filters with the default one
             for (const api_type_id in default_field_filters) {
                 const filters = default_field_filters[api_type_id];
 
@@ -1941,7 +1949,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             }
 
             // Do I have to export ?
-            let do_export = true;
+            let do_export = true; // TODO - change to false for prod
 
             // Shall export the first time here
             if (!export_params.last_export_at_ts) {
@@ -1953,16 +1961,16 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
                 const last_export_at_ts: number = export_params.last_export_at_ts;
                 const now_ts = new Date().getTime();
 
-                const every = parseInt(export_frequency.every?.toString()); // 1, 3, e.g. every 1 day, every 3 months
+                const offset = parseInt(export_frequency.every?.toString()); // 1, 3, e.g. every 1 day, every 3 months
                 const granularity = export_frequency.granularity; // 'day' | 'month' | 'year'
                 const day_in_month = export_frequency.day_in_month ? parseInt(export_frequency.day_in_month.toString()) : null; // day in the month e.g. every 3 months at day 15
 
                 // Get date offset (by using "every", "granularity" and "day_in_month")
                 let last_export_at_date = new Date(last_export_at_ts);
-                let offset_day_ts = null; // timestamp
+                let offset_day_ts = null; // (timestamp)
                 switch (granularity) {
                     case 'day':
-                        offset_day_ts = last_export_at_date.setDate(last_export_at_date.getDate() + every);
+                        offset_day_ts = last_export_at_date.setDate(last_export_at_date.getDate() + offset);
 
                         break;
                     case 'month':
@@ -1970,19 +1978,19 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
                             throw new Error(`Day in month must be given !`);
                         }
 
-                        offset_day_ts = last_export_at_date.setMonth(last_export_at_date.getMonth() + every);
+                        offset_day_ts = last_export_at_date.setMonth(last_export_at_date.getMonth() + offset);
                         offset_day_ts = new Date(offset_day_ts).setDate(day_in_month);
                         break;
                     case 'year':
-                        offset_day_ts = last_export_at_date.setFullYear(last_export_at_date.getFullYear() + every);
+                        offset_day_ts = last_export_at_date.setFullYear(last_export_at_date.getFullYear() + offset);
 
                         break;
-                    default: throw new Error(`Invalid granularity given ! :${granularity}`);
+                    default: throw new Error(`Invalid granularity given! :${granularity}`);
                 }
 
                 // To export, the actual_days_diff shall be greater or equal of "0"
                 // That mean the actual "now" day has been outdated
-                const one_day_ts = (24 * 60 * 60 * 1000); // hours * minutes * seconds * milliseconds
+                const one_day_ts = (24 * 60 * 60 * 1000); // hours * minutes * seconds * milliseconds (timestamp)
                 const actual_days_diff = Math.round((now_ts - offset_day_ts) / one_day_ts);
 
                 if (actual_days_diff >= 0) {
