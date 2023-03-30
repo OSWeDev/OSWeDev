@@ -48,7 +48,7 @@ export default class ContextFilterFactory {
     }
 
     /**
-     * Create Context Filter From Year Widget Options
+     * Create Context Filter From Field Value Filter Widget Options
      *
      * @param {YearFilterWidgetOptionsVO} [widget_options]
      *
@@ -115,7 +115,7 @@ export default class ContextFilterFactory {
     }
 
     /**
-     * Create Context Filter From Month Widget Options
+     * Create Context Filter From Month Filter Widget Options
      *
      * @param {MonthFilterWidgetOptionsVO} [widget_options]
      *
@@ -198,7 +198,7 @@ export default class ContextFilterFactory {
     }
 
     /**
-     * Create Context Filter From Year Widget Options
+     * Create Context Filter From Year Filter Widget Options
      *
      * @param {YearFilterWidgetOptionsVO} [widget_options]
      *
