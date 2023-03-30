@@ -1233,6 +1233,11 @@ export default class CRUDComponent extends VueComponentBase {
             VOsTypesManager.moduleTables_by_voType[this.crud.readDatatable.API_TYPE_ID].isModuleParamTable : false;
     }
 
+    get is_archived_moduletable() {
+        return VOsTypesManager.moduleTables_by_voType[this.crud.readDatatable.API_TYPE_ID] ?
+            VOsTypesManager.moduleTables_by_voType[this.crud.readDatatable.API_TYPE_ID].is_archived : false;
+    }
+
     get api_type_id(): string {
         if (!this.crud) {
             return null;

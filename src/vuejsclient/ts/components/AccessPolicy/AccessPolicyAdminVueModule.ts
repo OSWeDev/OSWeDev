@@ -263,6 +263,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
 
         if (this.policies_loaded[ModuleAccessPolicy.POLICY_BO_USERS_MANAGMENT_ACCESS]) {
             crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("blocked"));
+            crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("archived"));
 
             crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("password_change_date"));
             crud.readDatatable.pushField(SimpleDatatableFieldVO.createNew("reminded_pwd_1"));

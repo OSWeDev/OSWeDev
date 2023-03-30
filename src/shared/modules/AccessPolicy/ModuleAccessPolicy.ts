@@ -427,6 +427,9 @@ export default class ModuleAccessPolicy extends Module {
         let datatable: ModuleTable<any> = new ModuleTable(this, UserVO.API_TYPE_ID, () => new UserVO(), datatable_fields, label_field, new DefaultTranslation({ 'fr-fr': "Utilisateurs" }));
         field_lang_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[LangVO.API_TYPE_ID]);
         datatable.set_bdd_ref('ref', 'user');
+
+        datatable.set_is_archived();
+
         this.datatables.push(datatable);
     }
 

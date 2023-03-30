@@ -259,6 +259,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
      */
     public is_segmented: boolean = false;
     public is_versioned: boolean = false;
+    public is_archived: boolean = false;
     public table_segmented_field: ModuleTableField<any> = null;
     public table_segmented_field_range_type: number = null;
     public table_segmented_field_segment_type: number = null;
@@ -1157,6 +1158,14 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
         this.label.code_text = "fields.labels." + this.full_name + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
         DefaultTranslationManager.registerDefaultTranslation(this.label);
+    }
+
+    public set_is_archived(): ModuleTable<any> {
+        this.is_archived = true;
+
+        this.push_field((new ModuleTableField('archived', ModuleTableField.FIELD_TYPE_boolean, 'Archivé ?')).setModuleTable(this));
+
+        return this;
     }
 
     /**

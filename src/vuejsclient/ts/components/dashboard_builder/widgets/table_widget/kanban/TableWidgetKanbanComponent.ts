@@ -2118,7 +2118,8 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                     options.has_default_export_option,
                     options.use_kanban_by_default_if_exists,
                     options.use_kanban_column_weight_if_exists,
-                    options.use_for_count
+                    options.use_for_count,
+                    options.archive_button,
                 ) : null;
             }
         } catch (error) {
