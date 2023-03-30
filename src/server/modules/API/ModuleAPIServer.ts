@@ -1,16 +1,19 @@
 import { Express, Request, Response } from 'express';
 import IServerUserSession from '../../../shared/modules/AccessPolicy/vos/IServerUserSession';
+import AjaxCacheController from '../../../shared/modules/AjaxCache/AjaxCacheController';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import IAPIParamTranslator from '../../../shared/modules/API/interfaces/IAPIParamTranslator';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import APIDefinition from '../../../shared/modules/API/vos/APIDefinition';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import ConfigurationService from '../../env/ConfigurationService';
 import ServerBase from '../../ServerBase';
 import ServerExpressController from '../../ServerExpressController';
 import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
+const zlib = require('zlib');
 
 export default class ModuleAPIServer extends ModuleServerBase {
 
@@ -72,10 +75,36 @@ export default class ModuleAPIServer extends ModuleServerBase {
             let param: IAPIParamTranslator<T> = null;
             let has_params = false;
 
-            if (((api.api_type == APIDefinition.API_TYPE_POST) && (req.body)) ||
-                ((api.api_type == APIDefinition.API_TYPE_POST_FOR_GET) && (req.body))) {
-                param = APIControllerWrapper.getInstance().try_translate_vo_from_api(req.body);
-                has_params = ObjectHandler.getInstance().hasAtLeastOneAttribute(req.body);
+            if (
+                ((api.api_type == APIDefinition.API_TYPE_POST) && (req.body)) ||
+                ((api.api_type == APIDefinition.API_TYPE_POST_FOR_GET) && (req.body))
+            ) {
+                let req_body: any = req.body;
+
+                if (ConfigurationService.node_configuration.COMPRESS) {
+                    // Si je suis en compresse, je vais recevoir mes POST en gzip (BLOB)
+                    // Du coup, il faut que je unzip pour récupérer au bon format
+                    if (req.method === 'POST' && req.headers[AjaxCacheController.HEADER_GZIP] === 'true') {
+
+                        // Décompresse les données gzipées
+                        try {
+                            let decoded = zlib.gunzipSync(Buffer.from(req_body));
+
+                            // Utilisez les données décompressées ici
+                            // ConsoleHandler.log("gunzipSync :: " + decoded.toString());
+                            req_body = JSON.parse(decoded.toString());
+                        } catch (e) {
+                            ConsoleHandler.error("gunzipSync :: " + e);
+                            // Gérer l'erreur
+                            res.writeHead(500);
+                            res.end();
+                            return;
+                        }
+                    }
+                }
+
+                param = APIControllerWrapper.getInstance().try_translate_vo_from_api(req_body);
+                has_params = ObjectHandler.getInstance().hasAtLeastOneAttribute(req_body);
             } else if (api.param_translator && api.param_translator.fromREQ) {
                 try {
                     has_params = ObjectHandler.getInstance().hasAtLeastOneAttribute(req.params);

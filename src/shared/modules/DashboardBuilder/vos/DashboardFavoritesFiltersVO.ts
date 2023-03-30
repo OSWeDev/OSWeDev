@@ -1,6 +1,7 @@
 
-import IDashboardFavoritesFiltersProps from '../interfaces/IDashboardFavoritesFiltersProps';
+import { IExportParamsProps } from '../interfaces/IExportParamsProps';
 import DashboardBuilderController from "../DashboardBuilderController";
+import ContextFilterVO from '../../ContextFilter/vos/ContextFilterVO';
 import IDistantVOBase from "../../IDistantVOBase";
 
 /**
@@ -10,20 +11,12 @@ import IDistantVOBase from "../../IDistantVOBase";
 export default class DashboardFavoritesFiltersVO implements IDistantVOBase {
     public static API_TYPE_ID: string = "dashboard_p_favorites_filters";
 
-    public id: number;
     public _type: string = DashboardFavoritesFiltersVO.API_TYPE_ID;
 
-    get translatable_name_code_text(): string {
+    public id: number;
 
-        if (!this.dashboard_id) {
-            return null;
-        }
-
-        return DashboardBuilderController.DASHBOARD_NAME_CODE_PREFIX + this.dashboard_id;
-    }
-
-    // dashboard id of this favorite list
-    public dashboard_id: number;
+    // page id of this favorite list (required for export params widget_options for calculations)
+    public page_id: number;
 
     // User id of saved active filters
     public owner_id: number;
@@ -31,22 +24,36 @@ export default class DashboardFavoritesFiltersVO implements IDistantVOBase {
     // Name which the owner gave to the current backup
     public name: string;
 
-    // JSON array of page active filters
-    public page_filters: string;
+    // JSON object of favorites active field filters
+    public field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+
+    // JSON object of export configurations
+    public export_params: Partial<IExportParamsProps>;
 
     /**
      * Hydrate from the given properties
      *
-     * @param props {IDashboardFavoritesFiltersProps}
+     * @param {Partial<DashboardFavoritesFiltersVO>} [props]
      * @returns {DashboardFavoritesFiltersVO}
      */
-    public from(props: IDashboardFavoritesFiltersProps): DashboardFavoritesFiltersVO {
+    public from(props: Partial<DashboardFavoritesFiltersVO>): DashboardFavoritesFiltersVO {
 
-        this.dashboard_id = props.dashboard_id ?? this.dashboard_id;
-        this.page_filters = props.page_filters ?? this.page_filters;
-        this.owner_id = props.owner_id ?? this.owner_id;
-        this.name = props.name ?? this.name;
+        Object.assign(this, props);
 
         return this;
+    }
+
+    /**
+     * Get translatable_name_code_text
+     *
+     * @returns {string}
+     */
+    get translatable_name_code_text(): string {
+
+        if (!this.page_id) {
+            return null;
+        }
+
+        return DashboardBuilderController.DASHBOARD_NAME_CODE_PREFIX + this.page_id;
     }
 }

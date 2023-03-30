@@ -15,6 +15,19 @@ import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import DashboardBuilderCronWorkersHandler from './DashboardBuilderCronWorkersHandler';
+import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ExportContextQueryToXLSXParamVO from '../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
+import DashboardFavoritesFiltersVO from '../../../shared/modules/DashboardBuilder/vos/DashboardFavoritesFiltersVO';
+import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import ModuleDataExportServer from '../DataExport/ModuleDataExportServer';
+import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import { DashboardBuilderVOFactory } from '../../../shared/modules/DashboardBuilder/factory/DashboardBuilderVOFactory';
+import DashboardWidgetVO from '../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import ContextFilterFactory from '../../../shared/modules/ContextFilter/factory/ContextFilterFactory';
+import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
 
 export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
@@ -29,6 +42,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
     private constructor() {
         super(ModuleDashboardBuilder.getInstance().name);
+    }
+
+    public registerCrons(): void {
+        DashboardBuilderCronWorkersHandler.getInstance();
     }
 
     public async configure() {
@@ -1429,31 +1446,87 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Sauvegarder les filtres favoris" },
-            'dashboard_viewer.save_favorites_filters.___LABEL___'
+            'dashboard_viewer.favorites_filters.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Configurer la sélection de vos filtres favoris" },
+            'dashboard_viewer.favorites_filters.modal_title.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Selectionner favoris" },
+            'dashboard_viewer.favorites_filters.selection_tab.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Configurer vos exports" },
+            'dashboard_viewer.favorites_filters.export_tab.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Selectionner vos filtres favoris" },
-            'dashboard_viewer.save_favorites_filters.select_favorites.___LABEL___'
+            'dashboard_viewer.favorites_filters.select_favorites.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': "Entrer le nom du favoris" },
-            'dashboard_viewer.save_favorites_filters.enter_name.___LABEL___'
+            { 'fr-fr': "Erreurs de saisie" },
+            'dashboard_viewer.favorites_filters.form_errors.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Entrer le nom du favoris *:" },
+            'dashboard_viewer.favorites_filters.enter_name.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Nom pour les filtres favoris requis" },
+            'dashboard_viewer.favorites_filters.name_required.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Fréquence d'export de données requise" },
+            'dashboard_viewer.favorites_filters.export_frequency_every_required.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Granularité d'export de données requise" },
+            'dashboard_viewer.favorites_filters.export_frequency_granularity_required.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Jour du mois pour l'export de données requis" },
+            'dashboard_viewer.favorites_filters.export_frequency_day_in_month_required.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Données à exporté requis" },
+            'dashboard_viewer.favorites_filters.selected_exportable_data_required.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Planifier les export" },
+            'dashboard_viewer.favorites_filters.plan_export.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Exproter tous les *:" },
+            'dashboard_viewer.favorites_filters.export_frequency_every.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Granularité *:" },
+            'dashboard_viewer.favorites_filters.export_frequency_granularity.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Fréquence d'export (jour du mois) *:" },
+            'dashboard_viewer.favorites_filters.export_frequency_day_in_month.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Sélectionner le tableau de valeurs à exporter *:" },
+            'dashboard_viewer.favorites_filters.select_exportable_data.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Sauver favoris" },
-            'dashboard_viewer.save_favorites_filters.save_favorites.___LABEL___'
+            'dashboard_viewer.favorites_filters.save_favorites.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Sauvegarde des filtres favoris en cours" },
-            'dashboard_viewer.save_favorites_filters.start.___LABEL___'
+            'dashboard_viewer.favorites_filters.start.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Filtres favoris sauvé avec success" },
-            'dashboard_viewer.save_favorites_filters.ok.___LABEL___'
+            'dashboard_viewer.favorites_filters.ok.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Erreur lors de la sauvegarde des filtres" },
-            'dashboard_viewer.save_favorites_filters.failed.___LABEL___'
+            'dashboard_viewer.favorites_filters.failed.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Masquer la pagination du bas" },
@@ -1738,6 +1811,236 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.onCDashboardPageWidgetVO);
         preCTrigger.registerHandler(DashboardVO.API_TYPE_ID, this, this.onCDashboardVO);
+    }
+
+    public registerServerApiHandlers() {
+        APIControllerWrapper.getInstance().registerServerApiHandler(
+            ModuleDashboardBuilder.APINAME_START_EXPORT_DATATABLE_USING_FAVORITES_FILTERS,
+            this.start_export_datatable_using_favorites_filters.bind(this)
+        );
+    }
+
+    /**
+     * Start Export Datatable Using Favorites Filters
+     *
+     * @return {Promise<void>}
+     */
+    public async start_export_datatable_using_favorites_filters(): Promise<void> {
+
+        // For all users favorites filters, Export by using export_params
+        const users_favorites_filters: DashboardFavoritesFiltersVO[] = await query(DashboardFavoritesFiltersVO.API_TYPE_ID)
+            .select_vos<DashboardFavoritesFiltersVO>();
+
+        const widgets: DashboardWidgetVO[] = await query(DashboardWidgetVO.API_TYPE_ID)
+            .select_vos<DashboardWidgetVO>();
+
+        for (const fav_i in users_favorites_filters) {
+            const favorites_filters = users_favorites_filters[fav_i];
+
+            const export_params = favorites_filters.export_params ?? null;
+
+            // There is no need to process export if there is no export_planned
+            // is_export_planned, export_frequency and exportable_data must be sets
+            if (
+                !export_params?.is_export_planned ||
+                !export_params?.export_frequency ||
+                !export_params?.exportable_data
+            ) {
+                continue;
+            }
+
+            // Get widgets of the given favorites filters page
+            const page_widgets: DashboardPageWidgetVO[] = await query(DashboardPageWidgetVO.API_TYPE_ID)
+                .filter_by_num_eq('page_id', favorites_filters.page_id)
+                .select_vos<DashboardPageWidgetVO>();
+
+            // Default field_filters from each page widget_options
+            const default_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = {};
+            // Actual context field filters to be used for the export
+            const context_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = {};
+            const favorites_field_filters = favorites_filters.field_filters;
+            const export_frequency = export_params.export_frequency;
+            const exportable_data = export_params.exportable_data;
+
+            for (const key in widgets) {
+                const widget = widgets[key];
+                const typed_page_widgets = page_widgets.filter((pw) => widget.id === pw.widget_id);
+
+                // Get Default fields filters
+                typed_page_widgets.filter((page_widget: DashboardPageWidgetVO) => {
+                    // page_widget must have json_options to continue
+                    return page_widget.json_options?.length > 0;
+                }).map((page_widget: DashboardPageWidgetVO) => {
+                    const options = JSON.parse(page_widget.json_options ?? '{}');
+
+                    let context_filter: ContextFilterVO = null;
+                    let widget_options: any = null;
+
+                    try {
+                        widget_options = DashboardBuilderVOFactory.create_widget_options_vo_by_name(widget.name, options);
+                    } catch (e) {
+
+                    }
+
+                    // We must have widget_options to keep proceed
+                    if (!widget_options) {
+                        return;
+                    }
+
+                    let vo_field_ref = widget_options?.vo_field_ref ?? null;
+
+                    if (widget_options?.is_vo_field_ref != null) {
+                        vo_field_ref = widget_options?.is_vo_field_ref ? vo_field_ref : {
+                            api_type_id: ContextFilterVO.CUSTOM_FILTERS_TYPE,
+                            field_id: widget_options.custom_filter_name,
+                        };
+                    }
+
+                    context_filter = ContextFilterFactory.create_context_filter_from_widget_options(widget.name, widget_options);
+
+                    // We must transform this ContextFilterVO into { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
+                    if (vo_field_ref && context_filter) {
+                        if (default_field_filters[vo_field_ref.api_type_id]) {
+                            if (default_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id]) {
+                                // We must combine context_filter with each other when needed
+                                // e.g. For date Year and Month widget (this widgets have the same api_type_id and field_id)
+                                const new_constex_filter = ContextFilterHandler.getInstance().add_context_filter_to_tree(
+                                    default_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id],
+                                    context_filter
+                                );
+                                default_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id] = new_constex_filter;
+                            } else {
+                                default_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id] = context_filter;
+                            }
+                        } else {
+                            default_field_filters[vo_field_ref.api_type_id] = {};
+                            default_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id] = context_filter;
+                        }
+                    }
+                });
+            }
+
+            // Merge/replace default_field_filters with favorites_field_filters
+            // Add context fields filters with the default one
+            for (const api_type_id in default_field_filters) {
+                const filters = default_field_filters[api_type_id];
+
+                for (const field_id in filters) {
+                    // the actual filter
+                    const filter = filters[field_id];
+
+                    // Add default context filters
+                    context_field_filters[api_type_id] = context_field_filters[api_type_id] ?? {};
+                    context_field_filters[api_type_id][field_id] = filter;
+                }
+            }
+
+            // Add/Overwrite default filters with the favorites one
+            for (const api_type_id in favorites_field_filters) {
+                const filters = favorites_field_filters[api_type_id];
+
+                for (const field_id in filters) {
+                    // the actual filter
+                    const filter = filters[field_id];
+
+                    context_field_filters[api_type_id] = context_field_filters[api_type_id] ?? {};
+                    context_field_filters[api_type_id][field_id] = filter;
+                }
+            }
+
+            // Do I have to export ?
+            let do_export = true; // TODO - change to false for prod
+
+            // Shall export the first time here
+            if (!export_params.last_export_at_ts) {
+                do_export = true;
+            }
+
+            // Define if the data shall be exported
+            if (!do_export) {
+                const last_export_at_ts: number = export_params.last_export_at_ts;
+                const now_ts = new Date().getTime();
+
+                const offset = parseInt(export_frequency.every?.toString()); // 1, 3, e.g. every 1 day, every 3 months
+                const granularity = export_frequency.granularity; // 'day' | 'month' | 'year'
+                const day_in_month = export_frequency.day_in_month ? parseInt(export_frequency.day_in_month.toString()) : null; // day in the month e.g. every 3 months at day 15
+
+                // Get date offset (by using "every", "granularity" and "day_in_month")
+                let last_export_at_date = new Date(last_export_at_ts);
+                let offset_day_ts = null; // (timestamp)
+                switch (granularity) {
+                    case 'day':
+                        offset_day_ts = last_export_at_date.setDate(last_export_at_date.getDate() + offset);
+
+                        break;
+                    case 'month':
+                        if (!(day_in_month)) {
+                            throw new Error(`Day in month must be given !`);
+                        }
+
+                        offset_day_ts = last_export_at_date.setMonth(last_export_at_date.getMonth() + offset);
+                        offset_day_ts = new Date(offset_day_ts).setDate(day_in_month);
+                        break;
+                    case 'year':
+                        offset_day_ts = last_export_at_date.setFullYear(last_export_at_date.getFullYear() + offset);
+
+                        break;
+                    default: throw new Error(`Invalid granularity given! :${granularity}`);
+                }
+
+                // To export, the actual_days_diff shall be greater or equal of "0"
+                // That mean the actual "now" day has been outdated
+                const one_day_ts = (24 * 60 * 60 * 1000); // hours * minutes * seconds * milliseconds (timestamp)
+                const actual_days_diff = Math.round((now_ts - offset_day_ts) / one_day_ts);
+
+                if (actual_days_diff >= 0) {
+                    do_export = true;
+                }
+            }
+
+            if (!do_export) {
+                continue;
+            }
+
+            for (const key in exportable_data) {
+                const xlsx_data: ExportContextQueryToXLSXParamVO = new ExportContextQueryToXLSXParamVO().from(exportable_data[key]);
+
+                // Replace the "{#Date}" placeholder with the current date
+                const date_rgx = /\{(?<date_placeholder>\#Date)\}/;
+                let filename: string = xlsx_data.filename;
+
+                if (date_rgx.test(filename)) {
+                    filename = filename.replace(date_rgx, Dates.now().toString());
+                }
+
+                await ModuleDataExportServer.getInstance().prepare_exportContextQueryToXLSX(
+                    filename,
+                    xlsx_data.context_query,
+                    xlsx_data.ordered_column_list,
+                    xlsx_data.column_labels,
+                    xlsx_data.exportable_datatable_custom_field_columns,
+                    xlsx_data.columns,
+                    xlsx_data.fields,
+                    xlsx_data.varcolumn_conf,
+                    context_field_filters,
+                    xlsx_data.custom_filters,
+                    xlsx_data.active_api_type_ids,
+                    xlsx_data.discarded_field_paths,
+                    xlsx_data.is_secured,
+                    xlsx_data.file_access_policy_name,
+                    xlsx_data.target_user_id,
+                    xlsx_data.do_not_user_filter_by_datatable_field_uid,
+                    xlsx_data.export_options,
+                    xlsx_data.vars_indicator,
+                );
+            }
+
+            // Set up last_export_at_ts timestamp
+            export_params.last_export_at_ts = new Date().getTime();
+
+            // update this favorites_filters
+            await ModuleDAO.getInstance().insertOrUpdateVO(favorites_filters);
+        }
     }
 
     public async registerAccessPolicies(): Promise<void> {

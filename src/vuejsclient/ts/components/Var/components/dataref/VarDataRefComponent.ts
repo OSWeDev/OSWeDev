@@ -5,6 +5,7 @@ import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
+import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
 import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
@@ -12,6 +13,7 @@ import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataV
 import VarUpdateCallback from '../../../../../../shared/modules/Var/vos/VarUpdateCallback';
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import FilterObj from '../../../../../../shared/tools/Filters';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import VueComponentBase from '../../../VueComponentBase';
@@ -40,6 +42,9 @@ export default class VarDataRefComponent extends VueComponentBase {
 
     @Prop({ default: null })
     public filter: () => any;
+
+    @Prop({ default: null })
+    public filter_obj: FilterObj<any, any, any>;
 
     @Prop({ default: null })
     public filter_additional_params: any[];
@@ -92,6 +97,7 @@ export default class VarDataRefComponent extends VueComponentBase {
     private debounced_on_cancel_input = debounce(this.on_cancel_input, 100);
 
     private is_inline_editing: boolean = false;
+    private var_data_editing: VarDataValueResVO = null;
 
     private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
         [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_data_updater.bind(this), VarUpdateCallback.VALUE_TYPE_ALL)
@@ -225,7 +231,43 @@ export default class VarDataRefComponent extends VueComponentBase {
         if (!this.var_param) {
             return null;
         }
-        return SimpleDatatableFieldVO.createNew("value").setModuleTable(VOsTypesManager.moduleTables_by_voType[this.var_param._type]);
+
+        let res = SimpleDatatableFieldVO.createNew("value").setModuleTable(VOsTypesManager.moduleTables_by_voType[this.var_param._type]);
+
+        if (this.filter_obj) {
+            let filter_type: string = this.filter_obj.type;
+
+            switch (filter_type) {
+                case FilterObj.FILTER_TYPE_hour:
+                    res.moduleTableField.field_type = ModuleTableField.FIELD_TYPE_hour;
+                    break;
+                case FilterObj.FILTER_TYPE_amount:
+                    res.moduleTableField.field_type = ModuleTableField.FIELD_TYPE_amount;
+                    break;
+                case FilterObj.FILTER_TYPE_percent:
+                    res.moduleTableField.field_type = ModuleTableField.FIELD_TYPE_prct;
+                    break;
+                case FilterObj.FILTER_TYPE_toFixedCeil:
+                case FilterObj.FILTER_TYPE_toFixedFloor:
+                case FilterObj.FILTER_TYPE_toFixed:
+                case FilterObj.FILTER_TYPE_padHour:
+                case FilterObj.FILTER_TYPE_positiveNumber:
+                case FilterObj.FILTER_TYPE_hideZero:
+                    res.moduleTableField.field_type = ModuleTableField.FIELD_TYPE_float;
+                    break;
+                case FilterObj.FILTER_TYPE_bignum:
+                    res.moduleTableField.field_type = ModuleTableField.FIELD_TYPE_int;
+                    break;
+                case FilterObj.FILTER_TYPE_boolean:
+                    res.moduleTableField.field_type = ModuleTableField.FIELD_TYPE_boolean;
+                    break;
+                case FilterObj.FILTER_TYPE_truncate:
+                    res.moduleTableField.field_type = ModuleTableField.FIELD_TYPE_string;
+                    break;
+            }
+        }
+
+        return res;
     }
 
     private var_data_updater() {
@@ -372,6 +414,7 @@ export default class VarDataRefComponent extends VueComponentBase {
             }
             VarsClientController.getInstance().inline_editing_cb = this.close_inline_editing.bind(this);
 
+            this.var_data_editing = cloneDeep(this.var_data);
             this.is_inline_editing = true;
         }
 

@@ -261,6 +261,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             export_options,
             vars_indicator,
         );
+
         await ExportContextQueryToXLSXBGThread.getInstance().push_export_query(export_query);
 
         return null;
@@ -724,6 +725,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             for (const context_filter_name in active_filter) {
                 const context_filter: ContextFilterVO = active_filter[context_filter_name];
 
+                if (context_filter == null) { continue; }
+
                 sheet.datas.push({
                     filter_name: `${context_filter.vo_type} - ${context_filter.field_id}`,
                     value: ContextFilterHandler.context_filter_to_readable_ihm(context_filter)
@@ -1183,7 +1186,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         for (const field_id in exportable_datatable_custom_field_columns) {
             const custom_field_translatable_name = exportable_datatable_custom_field_columns[field_id];
             // cb mean callback
-            const cb = TableWidgetCustomFieldsController.getInstance().custom_components_export_cb_by_translatable_title[custom_field_translatable_name];
+            const cb = TableWidgetCustomFieldsController.getInstance()
+                .custom_components_export_cb_by_translatable_title[custom_field_translatable_name];
 
             if (!cb) {
                 continue;
@@ -1229,11 +1233,11 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             for (const row_key in rows) {
                 let row = rows[row_key];
 
-                row[column.datatable_field_uid + '__raw'] = row[column.datatable_field_uid];
-
                 if (row[column.datatable_field_uid] == null) {
                     continue;
                 }
+
+                row[column.datatable_field_uid + '__raw'] = row[column.datatable_field_uid];
 
                 let params = [row[column.datatable_field_uid]];
                 params = params.concat(filter_additional_params);
@@ -1287,8 +1291,12 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 }
 
                 const this_varcolumn_conf = cloneDeep(varcolumn_conf[row_field_name]);
-                const this_custom_filters = cloneDeep(custom_filters[row_field_name]);
-                const do_not_user_filter: { [vo_type: string]: { [field_id: string]: boolean } } = do_not_user_filter_by_datatable_field_uid[row_field_name];
+                const this_custom_filters = custom_filters ?
+                    cloneDeep(custom_filters[row_field_name]) :
+                    null;
+                const do_not_user_filter: { [vo_type: string]: { [field_id: string]: boolean } } = do_not_user_filter_by_datatable_field_uid ?
+                    do_not_user_filter_by_datatable_field_uid[row_field_name] :
+                    null;
 
                 let current_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = cloneDeep(active_field_filters);
 
@@ -1324,7 +1332,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     ConsoleHandler.log('add_var_columns_values_for_xlsx_datas:INSIDE PIPELINE CB 2:nb :' + i + ':' + debug_uid + ':' + JSON.stringify(var_param));
 
                     let var_data = await VarsServerCallBackSubsController.getInstance().get_var_data(var_param, 'add_var_columns_values_for_xlsx_datas: exporting data');
-                    row[row_field_name] = var_data ? var_data.value : null;
+                    row[row_field_name] = var_data?.value ?? null;
 
                     ConsoleHandler.log('add_var_columns_values_for_xlsx_datas:INSIDE PIPELINE CB 3:nb :' + i + ':' + debug_uid);
                 });

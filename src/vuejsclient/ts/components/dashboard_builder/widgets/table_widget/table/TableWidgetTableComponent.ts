@@ -2213,7 +2213,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 param.discarded_field_paths,
                 param.is_secured,
                 param.file_access_policy_name,
-                VueAppBase.getInstance().appController.data_user ? VueAppBase.getInstance().appController.data_user.id : null,
+                VueAppBase.getInstance().appController?.data_user?.id,
                 param.do_not_user_filter_by_datatable_field_uid,
                 param.export_options,
                 param.vars_indicator,
@@ -2284,7 +2284,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             return res;
         }
 
-        if (column.type != TableColumnDescVO.TYPE_vo_field_ref) {
+        if (column?.type != TableColumnDescVO.TYPE_vo_field_ref) {
             return res;
         }
 

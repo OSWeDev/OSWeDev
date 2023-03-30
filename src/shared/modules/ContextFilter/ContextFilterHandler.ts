@@ -111,6 +111,74 @@ export default class ContextFilterHandler {
         }
     }
 
+    /**
+     * Merge Context Filter VOs
+     *
+     * @param {ContextFilterVO} merge_from
+     * @param {ContextFilterVO} merge_with
+     * @param {boolean} try_union
+     * @returns {ContextFilterVO}
+     */
+    public static merge_context_filter_vos(merge_from: ContextFilterVO, merge_with: ContextFilterVO, try_union: boolean = false): ContextFilterVO {
+        if (!merge_from) {
+            return merge_with;
+        }
+
+        if (!merge_with) {
+            return merge_from;
+        }
+
+        if (merge_from.filter_type == merge_with.filter_type) {
+            if (merge_from.param_numranges && merge_with.param_numranges) {
+                merge_from.param_numranges = merge_from.param_numranges.concat(merge_with.param_numranges);
+                if (try_union) {
+                    merge_from.param_numranges = RangeHandler.getRangesUnion(merge_from.param_numranges);
+                }
+                return merge_from;
+            }
+
+            if (merge_from.param_tsranges && merge_with.param_tsranges) {
+                merge_from.param_tsranges = merge_from.param_tsranges.concat(merge_with.param_tsranges);
+                if (try_union) {
+                    merge_from.param_tsranges = RangeHandler.getRangesUnion(merge_from.param_tsranges);
+                }
+                return merge_from;
+            }
+
+            if (merge_from.param_textarray && merge_with.param_textarray) {
+                if (!merge_from.param_textarray.length) {
+                    merge_from.param_textarray = merge_with.param_textarray;
+                } else if (!merge_with.param_textarray.length) {
+                } else {
+                    merge_from.param_textarray = merge_from.param_textarray.concat(merge_with.param_textarray);
+                }
+                return merge_from;
+            }
+
+            /**
+             * On doit gérer les merges booleans, en supprimant potentiellement la condition
+             *  (par exemple si on merge un true any avec un false any par définition c'est juste plus un filtre)
+             */
+            switch (merge_from.filter_type) {
+                case ContextFilterVO.TYPE_BOOLEAN_TRUE_ANY:
+                    throw new Error('Not Implemented');
+                case ContextFilterVO.TYPE_BOOLEAN_TRUE_ALL:
+                    throw new Error('Not Implemented');
+                case ContextFilterVO.TYPE_BOOLEAN_FALSE_ANY:
+                    throw new Error('Not Implemented');
+                case ContextFilterVO.TYPE_BOOLEAN_FALSE_ALL:
+                    throw new Error('Not Implemented');
+
+                case ContextFilterVO.TYPE_TEXT_INCLUDES_ALL:
+
+                default:
+                    break;
+            }
+        }
+
+        return merge_from;
+    }
+
     public static getInstance(): ContextFilterHandler {
         if (!ContextFilterHandler.instance) {
             ContextFilterHandler.instance = new ContextFilterHandler();
@@ -512,10 +580,7 @@ export default class ContextFilterHandler {
     /**
      * Add context_filter to the root, using the and/or/xor .... type of operator if necessary
      * Returns the new root
-     * @param context_filter_tree_root
-     * @param context_filter_to_delete
-     * @param operator_type
-     * @returns
+     * @deprecated Have to be staic method (no need to use Instance)
      */
     public add_context_filter_to_tree(context_filter_tree_root: ContextFilterVO, context_filter_to_add: ContextFilterVO, operator_type: number = ContextFilterVO.TYPE_FILTER_AND): ContextFilterVO {
 
@@ -666,11 +731,15 @@ export default class ContextFilterHandler {
         }
     }
 
+    /**
+     * @deprecated We must use a Factory to create Objects depending on properties (the right way)
+     * @use ContextFilterFactory.create_context_filter_from_data_filter_option enstead
+     */
     public get_ContextFilterVO_from_DataFilterOption(active_option: DataFilterOption, ts_range: TSRange, field: ModuleTableField<any>, vo_field_ref: VOFieldRefVO): ContextFilterVO {
-        let translated_active_options = new ContextFilterVO();
+        let context_filter = new ContextFilterVO();
 
-        translated_active_options.field_id = vo_field_ref.field_id;
-        translated_active_options.vo_type = vo_field_ref.api_type_id;
+        context_filter.field_id = vo_field_ref.field_id;
+        context_filter.vo_type = vo_field_ref.api_type_id;
 
         let field_type = null;
 
@@ -687,8 +756,8 @@ export default class ContextFilterHandler {
             case ModuleTableField.FIELD_TYPE_decimal_full_precision:
             case ModuleTableField.FIELD_TYPE_amount:
             case ModuleTableField.FIELD_TYPE_prct:
-                translated_active_options.filter_type = ContextFilterVO.TYPE_NUMERIC_INTERSECTS;
-                translated_active_options.param_numranges = RangeHandler.get_ids_ranges_from_list([active_option.numeric_value]);
+                context_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_INTERSECTS;
+                context_filter.param_numranges = RangeHandler.get_ids_ranges_from_list([active_option.numeric_value]);
                 break;
 
             case ModuleTableField.FIELD_TYPE_html:
@@ -698,21 +767,21 @@ export default class ContextFilterHandler {
             case ModuleTableField.FIELD_TYPE_string:
             case ModuleTableField.FIELD_TYPE_textarea:
             case ModuleTableField.FIELD_TYPE_translatable_text:
-                translated_active_options.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ANY;
-                translated_active_options.param_textarray = [active_option.string_value];
+                context_filter.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ANY;
+                context_filter.param_textarray = [active_option.string_value];
                 break;
 
             case ModuleTableField.FIELD_TYPE_enum:
-                translated_active_options.filter_type = ContextFilterVO.TYPE_NUMERIC_INTERSECTS;
-                translated_active_options.param_numranges = [RangeHandler.create_single_elt_NumRange(active_option.numeric_value, NumSegment.TYPE_INT)];
+                context_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_INTERSECTS;
+                context_filter.param_numranges = [RangeHandler.create_single_elt_NumRange(active_option.numeric_value, NumSegment.TYPE_INT)];
                 break;
 
             case ModuleTableField.FIELD_TYPE_tstz:
             case ModuleTableField.FIELD_TYPE_tsrange:
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
             case ModuleTableField.FIELD_TYPE_tstz_array:
-                translated_active_options.filter_type = ContextFilterVO.TYPE_DATE_INTERSECTS;
-                translated_active_options.param_tsranges = [ts_range];
+                context_filter.filter_type = ContextFilterVO.TYPE_DATE_INTERSECTS;
+                context_filter.param_tsranges = [ts_range];
                 break;
 
             case ModuleTableField.FIELD_TYPE_plain_vo_obj:
@@ -724,66 +793,14 @@ export default class ContextFilterHandler {
                 throw new Error('Not Implemented');
         }
 
-        return translated_active_options;
+        return context_filter;
     }
 
+    /**
+     * @deprecated there is no need to use instance to proceed
+     * @use ContextFilterHandler.merge_context_filter_vos instead
+     */
     public merge_ContextFilterVOs(a: ContextFilterVO, b: ContextFilterVO, try_union: boolean = false): ContextFilterVO {
-        if (!a) {
-            return b;
-        }
-
-        if (!b) {
-            return a;
-        }
-
-        if (a.filter_type == b.filter_type) {
-            if (a.param_numranges && b.param_numranges) {
-                a.param_numranges = a.param_numranges.concat(b.param_numranges);
-                if (try_union) {
-                    a.param_numranges = RangeHandler.getRangesUnion(a.param_numranges);
-                }
-                return a;
-            }
-
-            if (a.param_tsranges && b.param_tsranges) {
-                a.param_tsranges = a.param_tsranges.concat(b.param_tsranges);
-                if (try_union) {
-                    a.param_tsranges = RangeHandler.getRangesUnion(a.param_tsranges);
-                }
-                return a;
-            }
-
-            if (a.param_textarray && b.param_textarray) {
-                if (!a.param_textarray.length) {
-                    a.param_textarray = b.param_textarray;
-                } else if (!b.param_textarray.length) {
-                } else {
-                    a.param_textarray = a.param_textarray.concat(b.param_textarray);
-                }
-                return a;
-            }
-
-            /**
-             * On doit gérer les merges booleans, en supprimant potentiellement la condition
-             *  (par exemple si on merge un true any avec un false any par définition c'est juste plus un filtre)
-             */
-            switch (a.filter_type) {
-                case ContextFilterVO.TYPE_BOOLEAN_TRUE_ANY:
-                    throw new Error('Not Implemented');
-                case ContextFilterVO.TYPE_BOOLEAN_TRUE_ALL:
-                    throw new Error('Not Implemented');
-                case ContextFilterVO.TYPE_BOOLEAN_FALSE_ANY:
-                    throw new Error('Not Implemented');
-                case ContextFilterVO.TYPE_BOOLEAN_FALSE_ALL:
-                    throw new Error('Not Implemented');
-
-                case ContextFilterVO.TYPE_TEXT_INCLUDES_ALL:
-
-                default:
-                    break;
-            }
-        }
-
-        return a;
+        return ContextFilterHandler.merge_context_filter_vos(a, b, try_union);
     }
 }

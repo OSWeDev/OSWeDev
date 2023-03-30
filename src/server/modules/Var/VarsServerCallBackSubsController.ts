@@ -139,7 +139,12 @@ export default class VarsServerCallBackSubsController {
             }
 
             if (!await ForkedTasksController.getInstance().exec_self_on_main_process_and_return_value(
-                reject, VarsServerCallBackSubsController.TASK_NAME_get_var_data, resolve, param, reason)) {
+                reject,
+                VarsServerCallBackSubsController.TASK_NAME_get_var_data,
+                resolve,
+                param,
+                reason
+            )) {
 
                 if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
                     ConsoleHandler.log("get_var_data:OUT not main:" + param.index);
@@ -155,7 +160,17 @@ export default class VarsServerCallBackSubsController {
             if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
                 ConsoleHandler.log("get_var_data:get_var_datas_or_ask_to_bgthread:IN:" + param.index);
             }
-            await VarsDatasProxy.getInstance().get_var_datas_or_ask_to_bgthread([param], notifyable_vars, needs_computation, null, null, true, 'getvardata:' + reason);
+
+            await VarsDatasProxy.getInstance().get_var_datas_or_ask_to_bgthread(
+                [param],
+                notifyable_vars,
+                needs_computation,
+                null,
+                null,
+                true,
+                'getvardata:' + reason
+            );
+
             if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
                 ConsoleHandler.log("get_var_data:get_var_datas_or_ask_to_bgthread:OUT:" + param.index);
             }
@@ -164,7 +179,9 @@ export default class VarsServerCallBackSubsController {
                 if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
                     ConsoleHandler.log("get_var_data:notify_vardatas:IN:" + param.index);
                 }
+
                 await this.notify_vardatas(notifyable_vars);
+
                 if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
                     ConsoleHandler.log("get_var_data:notify_vardatas:OUT:" + param.index);
                 }

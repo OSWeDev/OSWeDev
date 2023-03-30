@@ -8,7 +8,6 @@ import DashboardFavoritesFiltersVO from '../../../../../../shared/modules/Dashbo
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import DataFilterOption from '../../../../../../shared/modules/DataRender/vos/DataFilterOption';
 import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
@@ -127,7 +126,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
     @Watch('tmp_active_favorites_filters_option')
     private onchange_tmp_filter_active_options(): void {
 
-        const page_filters = JSON.parse(this.tmp_active_favorites_filters_option?.page_filters ?? '{}');
+        const page_filters = this.tmp_active_favorites_filters_option?.field_filters;
 
         if (this.is_initialized) {
             if (
@@ -183,16 +182,13 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
 
         let field_sort: VOFieldRefVO = this.vo_field_ref;
 
-        let active_field_filters_query: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null;
-
         let tmp: DashboardFavoritesFiltersVO[] = [];
 
         let query_api_type_id: string = this.vo_field_ref.api_type_id;
 
         tmp = await query(query_api_type_id)
-            // .field(this.vo_field_ref.field_id, 'label', this.vo_field_ref.api_type_id)
+            .filter_by_text_eq('page_id', this.dashboard_page.id.toString())
             .filter_by_text_eq('owner_id', this.data_user.id.toString())
-            .filter_by_text_eq('dashboard_id', this.dashboard_page.dashboard_id.toString())
             .set_limit(this.widget_options?.max_visible_options)
             .set_sort(new SortByVO(field_sort.api_type_id, field_sort.field_id, true))
             .select_vos<DashboardFavoritesFiltersVO>();
@@ -228,7 +224,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
     private try_apply_actual_active_favorites_filters(favorites_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }): boolean {
 
         this.tmp_active_favorites_filters_option = this.favorites_filters_visible_options.find(
-            (f) => isEqual(JSON.parse(f?.page_filters), favorites_filters)
+            (f) => isEqual(f?.field_filters, favorites_filters)
         );
 
         return true;
@@ -264,7 +260,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
      * @returns {void}
      */
     private update_active_field_filters(): void {
-        const favorites_field_filters = JSON.parse(this.tmp_active_favorites_filters_option?.page_filters ?? '{}');
+        const favorites_field_filters = this.tmp_active_favorites_filters_option?.field_filters;
         const old_active_field_filters = this.old_active_field_filters;
 
         let active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = {};
