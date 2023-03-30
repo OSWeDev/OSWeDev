@@ -1949,7 +1949,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             }
 
             // Do I have to export ?
-            let do_export = false; // TODO - change to false for prod
+            let do_export = false;
 
             // Shall export the first time here
             if (!export_params.last_export_at_ts) {
