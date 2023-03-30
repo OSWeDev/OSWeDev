@@ -201,7 +201,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             }
 
             if ((typeof cache.postdatas != 'undefined') && (cache.postdatas != null)) {
-                if (EnvHandler.COMPRESS) {
+                if ((EnvHandler.COMPRESS) && (typeof cache.postdatas == 'string')) {
                     options.data = JSON.stringify(zlib.gzipSync(cache.postdatas));
                     options.headers[AjaxCacheController.HEADER_GZIP] = 'true';
                 } else {

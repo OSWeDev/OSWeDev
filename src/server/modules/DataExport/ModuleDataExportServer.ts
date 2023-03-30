@@ -1179,21 +1179,30 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         const max_connections_to_use = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
         const promise_pipeline = new PromisePipeline(max_connections_to_use);
+        let cpt_custom_field_translatable_name: { [custom_field_translatable_name: string]: number } = {};
 
-        for (const field_id in exportable_datatable_custom_field_columns) {
-            const custom_field_translatable_name = exportable_datatable_custom_field_columns[field_id];
-            // cb mean callback
-            const cb = TableWidgetCustomFieldsController.getInstance().custom_components_export_cb_by_translatable_title[custom_field_translatable_name];
+        for (let field_id in exportable_datatable_custom_field_columns) {
+            let custom_field_translatable_name = exportable_datatable_custom_field_columns[field_id];
+
+            let cb = TableWidgetCustomFieldsController.getInstance().custom_components_export_cb_by_translatable_title[custom_field_translatable_name];
 
             if (!cb) {
                 continue;
             }
+
+            cpt_custom_field_translatable_name[custom_field_translatable_name] = 1;
 
             for (const key_i in datas) {
                 let data = datas[key_i];
 
                 await promise_pipeline.push(async () => {
                     data[field_id] = await cb(data);
+
+                    if (ConfigurationService.node_configuration.DEBUG_EXPORTS) {
+                        ConsoleHandler.log('update_custom_fields :: ' + custom_field_translatable_name + ' :: ' + cpt_custom_field_translatable_name[custom_field_translatable_name] + '/' + datas.length);
+                    }
+
+                    cpt_custom_field_translatable_name[custom_field_translatable_name]++;
                 });
             }
         }
@@ -1275,6 +1284,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         ConsoleHandler.log('add_var_columns_values_for_xlsx_datas:nb rows:' + rows.length);
         for (let j in rows) {
             let row = rows[j];
+            let data_n: number = parseInt(j) + 1;
 
             ConsoleHandler.log('add_var_columns_values_for_xlsx_datas:nb rows:' + rows.length);
 

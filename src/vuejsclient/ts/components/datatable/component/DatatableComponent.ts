@@ -3,17 +3,21 @@ import * as moment from 'moment';
 import { Moment } from 'moment';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import { Event } from 'vue-tables-2';
+import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import Datatable from '../../../../../shared/modules/DAO/vos/datatable/Datatable';
 import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import ManyToManyReferenceDatatableFieldVO from '../../../../../shared/modules/DAO/vos/datatable/ManyToManyReferenceDatatableFieldVO';
 import ManyToOneReferenceDatatableFieldVO from '../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableFieldVO';
 import OneToManyReferenceDatatableFieldVO from '../../../../../shared/modules/DAO/vos/datatable/OneToManyReferenceDatatableFieldVO';
 import SimpleDatatableFieldVO from '../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
+import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ExportDataToXLSXParamVO from '../../../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO';
 import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
 import TSRange from '../../../../../shared/modules/DataRender/vos/TSRange';
 import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
+import IArchivedVOBase from '../../../../../shared/modules/IArchivedVOBase';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
 import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
@@ -78,6 +82,9 @@ export default class DatatableComponent extends VueComponentBase {
     private vocus_button: boolean;
 
     @Prop({ default: false })
+    private archive_button: boolean;
+
+    @Prop({ default: false })
     private delete_button: boolean;
 
     @Prop({ default: false })
@@ -113,6 +120,11 @@ export default class DatatableComponent extends VueComponentBase {
     get isModuleParamTable() {
         return VOsTypesManager.moduleTables_by_voType[this.datatable.API_TYPE_ID] ?
             VOsTypesManager.moduleTables_by_voType[this.datatable.API_TYPE_ID].isModuleParamTable : false;
+    }
+
+    get is_archived_api_type_id() {
+        return VOsTypesManager.moduleTables_by_voType[this.datatable.API_TYPE_ID] ?
+            VOsTypesManager.moduleTables_by_voType[this.datatable.API_TYPE_ID].is_archived : false;
     }
 
     public async mounted() {
@@ -912,7 +924,7 @@ export default class DatatableComponent extends VueComponentBase {
             }
 
             // TODO en fait on peut vérifier suivant les droits en édition sur ce vo...
-            if (this.vocus_button || this.update_button || this.delete_button) {
+            if (this.vocus_button || this.update_button || this.delete_button || this.archive_button) {
                 resData[DatatableRowController.ACTIONS_COLUMN_ID] = true;
             }
 
@@ -950,7 +962,7 @@ export default class DatatableComponent extends VueComponentBase {
             res[DatatableRowController.MULTISELECT_COLUMN_ID] = null;
         }
 
-        if (this.vocus_button || this.update_button || this.delete_button) {
+        if (this.vocus_button || this.update_button || this.delete_button || this.archive_button) {
             res[DatatableRowController.ACTIONS_COLUMN_ID] = this.t(DatatableComponent.ACTIONS_COLUMN_TRANSLATABLE_CODE);
         }
 
@@ -964,7 +976,7 @@ export default class DatatableComponent extends VueComponentBase {
         if (this.multiselectable && !this.isModuleParamTable) {
             res.push(DatatableRowController.MULTISELECT_COLUMN_ID);
         }
-        if (this.vocus_button || this.update_button || this.delete_button) {
+        if (this.vocus_button || this.update_button || this.delete_button || this.archive_button) {
             res.push(DatatableRowController.ACTIONS_COLUMN_ID);
         }
 
@@ -1013,7 +1025,7 @@ export default class DatatableComponent extends VueComponentBase {
 
             customFilters.push({
                 name: field.vo_type_id + '_' + field.datatable_field_uid,
-                callback: function (row, query) {
+                callback: function (row, query_cf) {
                     switch (field.type) {
                         case DatatableField.SIMPLE_FIELD_TYPE:
                             let simpleField: SimpleDatatableFieldVO<any, any> = field as SimpleDatatableFieldVO<any, any>;
@@ -1021,18 +1033,18 @@ export default class DatatableComponent extends VueComponentBase {
                             switch (simpleField.moduleTableField.field_type) {
                                 case ModuleTableField.FIELD_TYPE_boolean:
 
-                                    if ((query == null) || (typeof query == 'undefined')) {
+                                    if ((query_cf == null) || (typeof query_cf == 'undefined')) {
                                         return true;
                                     }
 
-                                    let istrue: boolean = (query == 'VRAI');
+                                    let istrue: boolean = (query_cf == 'VRAI');
 
                                     let data_is_true = (!!row[field.datatable_field_uid]) && ((row[field.datatable_field_uid] == 'true') || (TypesHandler.getInstance().isBoolean(row[field.datatable_field_uid])));
                                     return (data_is_true && istrue) || ((!data_is_true) && !istrue);
 
                                 case ModuleTableField.FIELD_TYPE_daterange:
                                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                                    if ((!query) || ((!query.start) && (!query.end))) {
+                                    if ((!query_cf) || ((!query_cf.start) && (!query_cf.end))) {
                                         return true;
                                     }
 
@@ -1060,9 +1072,9 @@ export default class DatatableComponent extends VueComponentBase {
                                             dateEnd = ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(parts[1].trim());
                                         }
 
-                                        let queryStart = moment(query.start).utc(true);
-                                        let queryEnd = moment(query.end).utc(true);
-                                        if (((!query.start) || (!dateEnd) || (!dateEnd.isBefore(queryStart))) && ((!query.end) || (!dateStart) || (!dateStart.isAfter(queryEnd)))) {
+                                        let queryStart = moment(query_cf.start).utc(true);
+                                        let queryEnd = moment(query_cf.end).utc(true);
+                                        if (((!query_cf.start) || (!dateEnd) || (!dateEnd.isBefore(queryStart))) && ((!query_cf.end) || (!dateStart) || (!dateStart.isAfter(queryEnd)))) {
                                             return true;
                                         }
                                     }
@@ -1071,19 +1083,19 @@ export default class DatatableComponent extends VueComponentBase {
 
                                 case ModuleTableField.FIELD_TYPE_tstz:
                                     if (simpleField.moduleTableField.segmentation_type == TimeSegment.TYPE_YEAR) {
-                                        if (!query) {
+                                        if (!query_cf) {
                                             return true;
                                         }
-                                        return ((!!row[field.datatable_field_uid]) && row[field.datatable_field_uid].toString().indexOf(query.toString()) >= 0);
+                                        return ((!!row[field.datatable_field_uid]) && row[field.datatable_field_uid].toString().indexOf(query_cf.toString()) >= 0);
                                     }
 
-                                    if ((!query) || ((!query.start) && (!query.end))) {
+                                    if ((!query_cf) || ((!query_cf.start) && (!query_cf.end))) {
                                         return true;
                                     }
                                     let date_tstz: number = self.getStoredDatas[self.datatable.API_TYPE_ID][row['id']][field.datatable_field_uid];
 
-                                    let queryStart_tstz: Moment = moment(query.start).utc(true);
-                                    let queryEnd_tstz: Moment = moment(query.end).utc(true);
+                                    let queryStart_tstz: Moment = moment(query_cf.start).utc(true);
+                                    let queryEnd_tstz: Moment = moment(query_cf.end).utc(true);
 
                                     if (((queryStart_tstz && queryStart_tstz.isValid()) || (queryEnd_tstz && queryEnd_tstz.isValid())) && (date_tstz == null)) {
                                         return false;
@@ -1098,14 +1110,14 @@ export default class DatatableComponent extends VueComponentBase {
 
                                 case ModuleTableField.FIELD_TYPE_date:
                                 case ModuleTableField.FIELD_TYPE_day:
-                                    if ((!query) || ((!query.start) && (!query.end))) {
+                                    if ((!query_cf) || ((!query_cf.start) && (!query_cf.end))) {
                                         return true;
                                     }
 
                                     let date: Moment = ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(row[field.datatable_field_uid]);
 
-                                    let queryStart_date = moment(query.start).utc(true);
-                                    let queryEnd_date = moment(query.end).utc(true);
+                                    let queryStart_date = moment(query_cf.start).utc(true);
+                                    let queryEnd_date = moment(query_cf.end).utc(true);
 
                                     if (((queryStart_date && queryStart_date.isValid()) || (queryEnd_date && queryEnd_date.isValid())) && ((!date) || (!date.isValid()))) {
                                         return false;
@@ -1120,25 +1132,25 @@ export default class DatatableComponent extends VueComponentBase {
                                     return true;
 
                                 case ModuleTableField.FIELD_TYPE_month:
-                                    if ((!query) || ((!query.start) && (!query.end))) {
+                                    if ((!query_cf) || ((!query_cf.start) && (!query_cf.end))) {
                                         return true;
                                     }
 
                                     date = moment(row[field.datatable_field_uid], 'MMM YYYY').utc(true);
-                                    let queryStart_month = moment(query.start).utc(true);
-                                    if (query.start && date.isBefore(queryStart_month)) {
+                                    let queryStart_month = moment(query_cf.start).utc(true);
+                                    if (query_cf.start && date.isBefore(queryStart_month)) {
                                         return false;
                                     }
 
-                                    let queryEnd_month = moment(query.end).utc(true);
-                                    if (query.end && date.isAfter(queryEnd_month)) {
+                                    let queryEnd_month = moment(query_cf.end).utc(true);
+                                    if (query_cf.end && date.isAfter(queryEnd_month)) {
                                         return false;
                                     }
 
                                     return true;
 
                                 case ModuleTableField.FIELD_TYPE_tsrange:
-                                    if ((!query) || ((!query.start) && (!query.end))) {
+                                    if ((!query_cf) || ((!query_cf.start) && (!query_cf.end))) {
                                         return true;
                                     }
 
@@ -1150,12 +1162,12 @@ export default class DatatableComponent extends VueComponentBase {
 
                                     let is_ok: boolean = false;
 
-                                    let has_start: boolean = query.start && (query.start.length > 0);
-                                    let has_end: boolean = query.end && (query.end.length > 0);
+                                    let has_start: boolean = query_cf.start && (query_cf.start.length > 0);
+                                    let has_end: boolean = query_cf.end && (query_cf.end.length > 0);
 
                                     let filter_tsrange: TSRange = TSRange.createNew(
-                                        has_start ? moment(query.start).utc(true).unix() : RangeHandler.MIN_TS,
-                                        has_end ? moment(query.end).utc(true).unix() : RangeHandler.MAX_TS,
+                                        has_start ? moment(query_cf.start).utc(true).unix() : RangeHandler.MIN_TS,
+                                        has_end ? moment(query_cf.end).utc(true).unix() : RangeHandler.MAX_TS,
                                         true,
                                         true,
                                         tsrange.segment_type
@@ -1182,12 +1194,12 @@ export default class DatatableComponent extends VueComponentBase {
                                     return is_ok;
 
                                 case ModuleTableField.FIELD_TYPE_enum:
-                                    if ((!query) || (!query.length)) {
+                                    if ((!query_cf) || (!query_cf.length)) {
                                         return true;
                                     }
 
-                                    for (let i in query) {
-                                        if (query[i].value == row[field.datatable_field_uid]) {
+                                    for (let i in query_cf) {
+                                        if (query_cf[i].value == row[field.datatable_field_uid]) {
                                             return true;
                                         }
                                     }
@@ -1196,23 +1208,23 @@ export default class DatatableComponent extends VueComponentBase {
                                 case ModuleTableField.FIELD_TYPE_tstz_array:
                                 //TODO ?
                                 default:
-                                    if (!query) {
+                                    if (!query_cf) {
                                         return true;
                                     }
 
-                                    if (row[field.datatable_field_uid] && ((row[field.datatable_field_uid].toString().toLowerCase()).indexOf(query.toLowerCase()) >= 0)) {
+                                    if (row[field.datatable_field_uid] && ((row[field.datatable_field_uid].toString().toLowerCase()).indexOf(query_cf.toLowerCase()) >= 0)) {
                                         return true;
                                     }
                                     return false;
                             }
 
                         case DatatableField.MANY_TO_ONE_FIELD_TYPE:
-                            if ((!query) || (!query.length)) {
+                            if ((!query_cf) || (!query_cf.length)) {
                                 return true;
                             }
 
-                            for (let i in query) {
-                                if (query[i].value == row[field.datatable_field_uid]) {
+                            for (let i in query_cf) {
+                                if (query_cf[i].value == row[field.datatable_field_uid]) {
                                     return true;
                                 }
                             }
@@ -1221,7 +1233,7 @@ export default class DatatableComponent extends VueComponentBase {
                         case DatatableField.REF_RANGES_FIELD_TYPE:
                         case DatatableField.MANY_TO_MANY_FIELD_TYPE:
                         case DatatableField.ONE_TO_MANY_FIELD_TYPE:
-                            if ((!query) || (!query.length)) {
+                            if ((!query_cf) || (!query_cf.length)) {
                                 return true;
                             }
 
@@ -1229,10 +1241,10 @@ export default class DatatableComponent extends VueComponentBase {
                                 return false;
                             }
 
-                            for (let i in query) {
+                            for (let i in query_cf) {
 
                                 for (let k in row[field.datatable_field_uid]) {
-                                    if (row[field.datatable_field_uid][k].id == query[i].value) {
+                                    if (row[field.datatable_field_uid][k].id == query_cf[i].value) {
                                         return true;
                                     }
                                 }
@@ -1240,11 +1252,11 @@ export default class DatatableComponent extends VueComponentBase {
                             return false;
 
                         case DatatableField.COMPUTED_FIELD_TYPE:
-                            if (!query) {
+                            if (!query_cf) {
                                 return true;
                             }
 
-                            if (row[field.datatable_field_uid] && ((row[field.datatable_field_uid].toString().toLowerCase()).indexOf(query.toLowerCase()) >= 0)) {
+                            if (row[field.datatable_field_uid] && ((row[field.datatable_field_uid].toString().toLowerCase()).indexOf(query_cf.toLowerCase()) >= 0)) {
                                 return true;
                             }
                             return false;
@@ -1489,18 +1501,80 @@ export default class DatatableComponent extends VueComponentBase {
         return filter_item.label;
     }
 
-    private updateMultiSelectFilterOptions(query, datatable_field) {
+    private updateMultiSelectFilterOptions(query_cf, datatable_field) {
         let options = this.getMultiSelectFilterOptions(datatable_field);
         let res: CustomFilterItem[] = [];
 
         for (let i in options) {
             let option = options[i];
 
-            if ((new RegExp('.*' + query + '.*', 'i')).test(option.label)) {
+            if ((new RegExp('.*' + query_cf + '.*', 'i')).test(option.label)) {
                 res.push(option);
             }
         }
 
         this.custom_filters_options[datatable_field.datatable_field_uid] = res;
+    }
+
+    private async confirm_archive(api_type_id: string, id: number) {
+        let self = this;
+
+        // On demande confirmation avant toute chose.
+        // si on valide, on lance la suppression
+        self.snotify.confirm(self.label('DatatableComponent.confirm_archive.body'), self.label('DatatableComponent.confirm_archive.title'), {
+            timeout: 10000,
+            showProgressBar: true,
+            closeOnClick: false,
+            pauseOnHover: true,
+            buttons: [
+                {
+                    text: self.t('YES'),
+                    action: async (toast) => {
+                        self.$snotify.remove(toast.id);
+                        self.snotify.async(self.label('DatatableComponent.confirm_archive.start'), () =>
+                            new Promise(async (resolve, reject) => {
+                                let vo: IArchivedVOBase = await query(api_type_id).filter_by_id(id).select_vo();
+                                let res: InsertOrDeleteQueryResult = null;
+
+                                if (vo) {
+                                    vo.archived = true;
+                                    res = await ModuleDAO.getInstance().insertOrUpdateVO(vo);
+                                }
+
+                                if (!res?.id) {
+                                    reject({
+                                        body: self.label('DatatableComponent.confirm_archive.ko'),
+                                        config: {
+                                            timeout: 10000,
+                                            showProgressBar: true,
+                                            closeOnClick: false,
+                                            pauseOnHover: true,
+                                        },
+                                    });
+                                } else {
+                                    resolve({
+                                        body: self.label('DatatableComponent.confirm_archive.ok'),
+                                        config: {
+                                            timeout: 10000,
+                                            showProgressBar: true,
+                                            closeOnClick: false,
+                                            pauseOnHover: true,
+                                        },
+                                    });
+                                }
+                                await this.debounced_update_datatable_data();
+                            })
+                        );
+                    },
+                    bold: false
+                },
+                {
+                    text: self.t('NO'),
+                    action: (toast) => {
+                        self.$snotify.remove(toast.id);
+                    }
+                }
+            ]
+        });
     }
 }
