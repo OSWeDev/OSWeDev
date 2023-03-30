@@ -1163,7 +1163,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
     public set_is_archived(): ModuleTable<any> {
         this.is_archived = true;
 
-        this.push_field((new ModuleTableField('archived', ModuleTableField.FIELD_TYPE_boolean, 'Archivé ?')).setModuleTable(this));
+        this.push_field((new ModuleTableField('archived', ModuleTableField.FIELD_TYPE_boolean, 'Archivé ?', true, true, false)).setModuleTable(this));
 
         return this;
     }
