@@ -15,8 +15,6 @@ import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import DatatableField from '../../../shared/modules/DAO/vos/datatable/DatatableField';
 import TableColumnDescVO from '../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
-import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
-import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
@@ -26,7 +24,6 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
-import RangeHandler from '../../../shared/tools/RangeHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
@@ -49,6 +46,8 @@ export default class ContextQueryServerController {
     }
 
     private static instance: ContextQueryServerController = null;
+
+    private static SORT_ALIAS_UID: number = 0;
 
     private constructor() { }
 
@@ -1121,7 +1120,7 @@ export default class ContextQueryServerController {
                     }
                 } else {
 
-                    let sort_alias = 'sort_alias_' + Math.ceil(Math.random() * 100);
+                    let sort_alias = 'sort_alias_' + (ContextQueryServerController.SORT_ALIAS_UID++);
                     SORT_BY += modifier_start + sort_alias + modifier_end + (sort_by.sort_asc ? ' ASC ' : ' DESC ');
 
                     if (!tables_aliases_by_type[sort_by.vo_type]) {
