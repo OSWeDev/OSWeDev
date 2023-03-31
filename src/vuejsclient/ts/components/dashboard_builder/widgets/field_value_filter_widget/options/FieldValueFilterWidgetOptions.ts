@@ -165,4 +165,5 @@ export default class FieldValueFilterWidgetOptions implements IExportableWidgetO
         }
         return res;
     }
+
 }

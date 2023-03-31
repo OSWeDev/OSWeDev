@@ -15,7 +15,7 @@
             template(v-else)
                 template(v-if="!selected_widget_type")
                     i.fa-solid.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
-                template(v-else)
+                template(v-else) 
                     .widget_options(
                         :is="selected_widget_type.options_component" 
                         :page_widget='selected_widget' 
@@ -24,4 +24,4 @@
                         :dashboard_page="dashboard_page"
                         
                         @update_layout_widget='update_layout_widget'
-                        )
+                    )

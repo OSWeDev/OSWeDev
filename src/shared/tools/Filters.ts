@@ -51,16 +51,16 @@ export default class FilterObj<T, U, K> {
     // readToHideZeroFilter = (value: number)
     public static FILTER_TYPE_hideZero = 'hideZero';
     // readToTruncateFilter = (value: string, nbChars: number)
-    public static FILTER_TYPE_truncate = 'truncate';
 
     public static FILTER_TYPE_bignum = 'bignum';
     public static FILTER_TYPE_positiveNumber = 'positiveNumber';
+    public static FILTER_TYPE_truncate = 'truncate';
 
     public static createNew<T, U, K>(
         read: T,
         write: U,
-        type: string,
         toObject?: K,
+        type?: string,
     ): FilterObj<T, U, K> {
         let res: FilterObj<T, U, K> = new FilterObj<T, U, K>();
 
@@ -74,8 +74,8 @@ export default class FilterObj<T, U, K> {
 
     public read: T;
     public write: U;
-    public type: string;
     public toObject: K;
+    public type: string;
 }
 // // FILTERS MIXIN
 // function FilterObj<T>(read: T, write) {
@@ -178,6 +178,7 @@ let writeToHourFilter = (value: string | number): number => {
 export let hourFilter = FilterObj.createNew(
     readToHourFilter,
     writeToHourFilter,
+    null,
     FilterObj.FILTER_TYPE_hour,
 );
 
@@ -199,6 +200,7 @@ export let planningCheckFilter = FilterObj.createNew(
     readToPlanningCheckFilter,
     writeToPlanningCheckFilter,
     null,
+    null,
 );
 
 
@@ -219,6 +221,7 @@ let writeToAlerteCheckFilter = (value: string): number => {
 export let alerteCheckFilter = FilterObj.createNew(
     readToAlerteCheckFilter,
     writeToAlerteCheckFilter,
+    null,
     null,
 );
 
@@ -331,8 +334,8 @@ const amontFilterToObject = (
 export const amountFilter = FilterObj.createNew(
     readToAmountFilter,
     writeToAmountFilter,
-    FilterObj.FILTER_TYPE_amount,
     amontFilterToObject,
+    FilterObj.FILTER_TYPE_amount,
 );
 
 /**
@@ -436,8 +439,8 @@ const percentFilterToObject = (
 export const percentFilter = FilterObj.createNew(
     readToPercentFilter,
     writeToPercentFilter,
+    percentFilterToObject,
     FilterObj.FILTER_TYPE_percent,
-    percentFilterToObject
 );
 
 export let ARRONDI_TYPE_CEIL: number = 0;
@@ -528,8 +531,8 @@ const fixedFilterToObject = (
 export const toFixedFilter = FilterObj.createNew(
     readToFixed,
     writeToFixed,
-    FilterObj.FILTER_TYPE_toFixed,
     fixedFilterToObject,
+    FilterObj.FILTER_TYPE_toFixed,
 );
 
 // let readToFixedCeilAndFloor = (value: number | string, fractional_digits: number = 0, rounded_type: number = null): string => {
@@ -599,6 +602,7 @@ let readToFixedCeilFilter = (value: number, fractional_digits: number, rounded: 
 export let toFixedCeilFilter = FilterObj.createNew(
     readToFixedCeilFilter,
     writeToFixed,
+    null,
     FilterObj.FILTER_TYPE_toFixedCeil,
 );
 
@@ -609,6 +613,7 @@ let readToFixedFloorFilter = (value: number, fractional_digits: number, rounded:
 export let toFixedFloorFilter = FilterObj.createNew(
     readToFixedFloorFilter,
     writeToFixed,
+    null,
     FilterObj.FILTER_TYPE_toFixedFloor,
 );
 
@@ -627,6 +632,7 @@ let writeToHideZeroFilter = (value: string | number): number => {
 export let hideZeroFilter = FilterObj.createNew(
     readToHideZeroFilter,
     writeToHideZeroFilter,
+    null,
     FilterObj.FILTER_TYPE_hideZero,
 );
 
@@ -647,6 +653,7 @@ let writeToBooleanFilter = (value: string): boolean => {
 export let booleanFilter = FilterObj.createNew(
     readToBooleanFilter,
     writeToBooleanFilter,
+    null,
     FilterObj.FILTER_TYPE_boolean,
 );
 
@@ -668,6 +675,7 @@ let writeToPadHour = (value: string): number => {
 export let padHourFilter = FilterObj.createNew(
     readToPadHour,
     writeToPadHour,
+    null,
     FilterObj.FILTER_TYPE_padHour,
 );
 
@@ -685,6 +693,7 @@ let writeToTruncateFilter = (value: string): string => {
 export let truncateFilter = FilterObj.createNew(
     readToTruncateFilter,
     writeToTruncateFilter,
+    null,
     FilterObj.FILTER_TYPE_truncate,
 );
 
@@ -717,6 +726,7 @@ let writeToBignumFilter = (value: string): number => {
 export let bignumFilter = FilterObj.createNew(
     readToBignumFilter,
     writeToBignumFilter,
+    null,
     FilterObj.FILTER_TYPE_bignum,
 );
 
@@ -747,8 +757,8 @@ let writeTopositiveNumberFilter = (value: string): number => {
 export let positiveNumberFilter = FilterObj.createNew(
     readTopositiveNumberFilter,
     writeTopositiveNumberFilter,
+    null,
     FilterObj.FILTER_TYPE_positiveNumber,
-    writeTopositiveNumberFilter
 );
 
 export const filter_by_name = {

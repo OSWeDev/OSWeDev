@@ -41,10 +41,10 @@ export default class ResetFiltersWidgetComponent extends VueComponentBase {
         let updaters: { [page_widget_id: number]: () => Promise<void> } = {};
 
         if (
-            ResetFiltersWidgetController.getInstance().updaters &&
-            ResetFiltersWidgetController.getInstance().updaters[this.dashboard_page.dashboard_id]
+            ResetFiltersWidgetController.getInstance().reseters &&
+            ResetFiltersWidgetController.getInstance().reseters[this.dashboard_page.dashboard_id]
         ) {
-            updaters = ResetFiltersWidgetController.getInstance().updaters[this.dashboard_page.dashboard_id][this.dashboard_page.id];
+            updaters = ResetFiltersWidgetController.getInstance().reseters[this.dashboard_page.dashboard_id][this.dashboard_page.id];
         }
 
         let promises = [];

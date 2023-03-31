@@ -44,7 +44,7 @@ export default class VarDataRefComponent extends VueComponentBase {
     public filter: () => any;
 
     @Prop({ default: null })
-    public filter_obj: FilterObj<any, any>;
+    public filter_obj: FilterObj<any, any, any>;
 
     @Prop({ default: null })
     public filter_additional_params: any[];

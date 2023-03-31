@@ -57,19 +57,22 @@ export default class ThrottleHelper {
     public declare_throttle_with_stackable_args(
         func: (stackable_args: any[]) => any,
         wait_ms: number,
-        options?: ThrottleSettings) {
+        options?: ThrottleSettings
+    ) {
 
         let UID = this.UID++;
         this.throttles[UID] = throttle(() => {
 
             let params = this.throttles_stackable_args[UID];
             this.throttles_stackable_args[UID] = [];
-            func(params);
+
+            return func(params);
+
         }, wait_ms, options);
 
         return (stackable_args: any | any[]) => {
             let stack = stackable_args ? (isArray(stackable_args) ? stackable_args : [stackable_args]) : [];
-            ThrottleHelper.getInstance().throttle_with_stackable_args(UID, stack);
+            return ThrottleHelper.getInstance().throttle_with_stackable_args(UID, stack);
         };
     }
 
@@ -112,6 +115,6 @@ export default class ThrottleHelper {
             this.throttles_stackable_args[throttle_id] = this.throttles_stackable_args[throttle_id].concat(stackable_args);
         }
 
-        this.throttles[throttle_id]();
+        return this.throttles[throttle_id]();
     }
 }
