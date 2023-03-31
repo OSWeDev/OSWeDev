@@ -395,7 +395,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
         return new VOFieldRefVO().from({
             api_type_id: vo._type,
             field_id: "name",
-            _type: "vo_field_ref"
+            _type: VOFieldRefVO.API_TYPE_ID
         });
     }
 
