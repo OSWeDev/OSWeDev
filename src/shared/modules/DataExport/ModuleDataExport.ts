@@ -75,6 +75,7 @@ export default class ModuleDataExport extends Module {
         is_secured?: boolean,
         file_access_policy_name?: string
     ) => Promise<string> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportDataToXLSXParamVO);
+
     public exportDataToXLSXFile: (
         filename: string,
         datas: any[],
@@ -83,12 +84,14 @@ export default class ModuleDataExport extends Module {
         api_type_id: string,
         is_secured?: boolean,
         file_access_policy_name?: string) => Promise<FileVO> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportDataToXLSXParamVOFile);
+
     public exportDataToMultiSheetsXLSX: (
         filename: string,
         sheets: IExportableSheet[],
         api_type_id: string,
         is_secured?: boolean,
         file_access_policy_name?: string) => Promise<string> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVO);
+
     public exportDataToMultiSheetsXLSXFile: (
         filename: string,
         sheets: IExportableSheet[],
@@ -149,7 +152,7 @@ export default class ModuleDataExport extends Module {
 
     private initializeExportHistoricVO(): void {
         let export_to_uid = new ModuleTableField('export_to_uid', ModuleTableField.FIELD_TYPE_foreign_key, new DefaultTranslation({ 'fr-fr': "Destinataire - Utilisateur" }), false);
-        let exported_file_id = new ModuleTableField('exported_file_id', ModuleTableField.FIELD_TYPE_foreign_key, new DefaultTranslation({ 'fr-fr': "Fichier exporté" }), false);
+        let exported_file_id = new ModuleTableField('exported_file_id', ModuleTableField.FIELD_TYPE_foreign_key, new DefaultTranslation({ 'fr-fr': "Fichier exporté" }), false).not_add_to_crud();
 
         let datatable_fields = [
             new ModuleTableField('export_type_id', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': "Type d'export" }), true),

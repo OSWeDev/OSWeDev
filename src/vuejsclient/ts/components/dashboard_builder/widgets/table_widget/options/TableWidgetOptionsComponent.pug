@@ -183,6 +183,16 @@
             :width="100"
             :labels="{checked: label('table_widget_options_component.delete_all_button.visible'), unchecked: label('table_widget_options_component.delete_all_button.hidden')}")
 
+    .archive_button(v-if='widget_options && widget_options.crud_api_type_id && is_archived_api_type_id')
+        .input_label {{ label('table_widget_options_component.archive_button') }}
+        
+        toggle-button(
+            @change="switch_archive_button" 
+            :value="archive_button" 
+            :sync="true"
+            :width="100"
+            :labels="{checked: label('table_widget_options_component.archive_button.visible'), unchecked: label('table_widget_options_component.archive_button.hidden')}")
+
     .refresh_button(v-if='widget_options && widget_options.crud_api_type_id')
         .input_label {{ label('table_widget_options_component.refresh_button') }}
         

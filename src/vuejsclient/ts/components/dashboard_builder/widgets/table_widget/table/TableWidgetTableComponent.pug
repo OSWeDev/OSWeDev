@@ -136,6 +136,9 @@ include ../../../../../../views/mixins/loading.pug
                                                     template(v-if="delete_button")
                                                         .btn.btn-sm.btn-danger(@click="confirm_delete(column.api_type_id, row.__crud_actions?parseInt(row.__crud_actions):null)")
                                                             i.fa.fa-trash
+                                                    template(v-if="archive_button")
+                                                        .btn.btn-sm.btn-secondary(@click="confirm_archive(column.api_type_id, row.__crud_actions?parseInt(row.__crud_actions):null)")
+                                                            i.fa-regular.fa-box-archive
 
                                             //- If it's a component
                                             //-  or any other type of fields

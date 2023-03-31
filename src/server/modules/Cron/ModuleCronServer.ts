@@ -160,7 +160,14 @@ export default class ModuleCronServer extends ModuleServerBase {
         CronServerController.getInstance().cronWorkers_semaphores[cronWorker.worker_uid] = true;
     }
 
-    public async planCronWorker(cronWorkerPlan: CronWorkerPlanification) {
+    /**
+     * planCronWorker
+     *  - Create or load Plan Cron Worker
+     *
+     * @param {CronWorkerPlanification} [cronWorkerPlan]
+     * @returns {Promise<void>}
+     */
+    public async planCronWorker(cronWorkerPlan: CronWorkerPlanification): Promise<void> {
 
         if (!CronServerController.getInstance().register_crons) {
             return;
@@ -170,10 +177,12 @@ export default class ModuleCronServer extends ModuleServerBase {
             return;
         }
 
-        let vo: CronWorkerPlanification = await query(CronWorkerPlanification.API_TYPE_ID).filter_by_text_eq('planification_uid', cronWorkerPlan.planification_uid).select_vo<CronWorkerPlanification>();
+        // Create or load cron worker
+        let vo: CronWorkerPlanification = await query(CronWorkerPlanification.API_TYPE_ID)
+            .filter_by_text_eq('planification_uid', cronWorkerPlan.planification_uid)
+            .select_vo<CronWorkerPlanification>();
 
         if (!vo) {
-
             await ModuleDAO.getInstance().insertOrUpdateVO(cronWorkerPlan);
         }
     }

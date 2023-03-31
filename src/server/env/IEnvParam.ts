@@ -31,6 +31,7 @@ export default interface IEnvParam {
     DEBUG_VARS_SERVER_SUBS_CBS?: boolean;
     DEBUG_START_SERVER?: boolean;
     DEBUG_IMPORTS?: boolean;
+    DEBUG_EXPORTS?: boolean;
     DEBUG_DELETEVOS?: boolean;
     DEBUG_THROTTLED_SELECT?: boolean;
     DEBUG_DB_FULL_QUERY_PERF?: boolean;

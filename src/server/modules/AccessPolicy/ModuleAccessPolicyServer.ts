@@ -782,6 +782,37 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': "Nouvelle version disponible, votre page se recharge automatiquement"
         }, 'app_version_changed.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Archivage en cours"
+        }, 'DatatableComponent.confirm_archive.start.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Erreur archivage"
+        }, 'DatatableComponent.confirm_archive.ko.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Element archivé"
+        }, 'DatatableComponent.confirm_archive.ok.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Confirmation archivage"
+        }, 'DatatableComponent.confirm_archive.body.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Confirmation archivage"
+        }, 'DatatableComponent.confirm_archive.title.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Archivage en cours"
+        }, 'TableWidgetComponent.confirm_archive.start.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Erreur archivage"
+        }, 'TableWidgetComponent.confirm_archive.ko.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Element archivé"
+        }, 'TableWidgetComponent.confirm_archive.ok.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Confirmation archivage"
+        }, 'TableWidgetComponent.confirm_archive.body.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': "Confirmation archivage"
+        }, 'TableWidgetComponent.confirm_archive.title.___LABEL___'));
     }
 
     public registerServerApiHandlers() {

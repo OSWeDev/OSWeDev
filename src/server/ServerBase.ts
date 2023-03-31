@@ -47,6 +47,7 @@ import AccessPolicyDeleteSessionBGThread from './modules/AccessPolicy/bgthreads/
 import ModuleAccessPolicyServer from './modules/AccessPolicy/ModuleAccessPolicyServer';
 import BGThreadServerController from './modules/BGThread/BGThreadServerController';
 import CronServerController from './modules/Cron/CronServerController';
+import ExpressDBSessionsServerController from './modules/ExpressDBSessions/ExpressDBSessionsServerController';
 import ModuleFileServer from './modules/File/ModuleFileServer';
 import ForkedTasksController from './modules/Fork/ForkedTasksController';
 import ForkServerController from './modules/Fork/ForkServerController';
@@ -59,7 +60,6 @@ import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
 import ServerExpressController from './ServerExpressController';
 import StackContext from './StackContext';
 require('moment-json-parser').overrideDefault();
-const pgSession = require('oswedev-connect-pg-simple')(expressSession);
 
 export default abstract class ServerBase {
 
@@ -464,7 +464,7 @@ export default abstract class ServerBase {
             proxy: true,
             resave: false,
             saveUninitialized: false,
-            store: new pgSession({
+            store: ExpressDBSessionsServerController.getInstance({
                 conString: this.connectionString,
                 schemaName: 'ref',
                 tableName: UserSessionVO.API_TYPE_ID,
