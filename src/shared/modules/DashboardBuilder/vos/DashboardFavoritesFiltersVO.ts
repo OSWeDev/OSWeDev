@@ -28,7 +28,7 @@ export default class DashboardFavoritesFiltersVO implements IDistantVOBase {
     public field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
 
     // JSON object of export configurations
-    public export_params: Partial<IExportParamsProps>;
+    public export_params: IExportParamsProps;
 
     /**
      * Hydrate from the given properties

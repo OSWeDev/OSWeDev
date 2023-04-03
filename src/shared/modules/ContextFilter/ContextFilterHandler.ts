@@ -179,6 +179,31 @@ export default class ContextFilterHandler {
         return merge_from;
     }
 
+    /**
+     * Add context_filter to the root, using the and/or/xor .... type of operator if necessary
+     * Returns the new root
+     */
+    public static add_context_filter_to_tree(context_filter_tree_root: ContextFilterVO, context_filter_to_add: ContextFilterVO, operator_type: number = ContextFilterVO.TYPE_FILTER_AND): ContextFilterVO {
+
+        if (!context_filter_tree_root) {
+            return context_filter_to_add;
+        }
+
+        if (!context_filter_to_add) {
+            return context_filter_tree_root;
+        }
+
+        // Le root est déjà rempli, on renvoie un nouvel operateur
+        let new_root = new ContextFilterVO();
+
+        new_root.vo_type = context_filter_to_add.vo_type;
+        new_root.field_id = context_filter_to_add.field_id;
+        new_root.filter_type = operator_type;
+        new_root.left_hook = context_filter_tree_root;
+        new_root.right_hook = context_filter_to_add;
+        return new_root;
+    }
+
     public static getInstance(): ContextFilterHandler {
         if (!ContextFilterHandler.instance) {
             ContextFilterHandler.instance = new ContextFilterHandler();
@@ -583,24 +608,7 @@ export default class ContextFilterHandler {
      * @deprecated Have to be staic method (no need to use Instance)
      */
     public add_context_filter_to_tree(context_filter_tree_root: ContextFilterVO, context_filter_to_add: ContextFilterVO, operator_type: number = ContextFilterVO.TYPE_FILTER_AND): ContextFilterVO {
-
-        if (!context_filter_tree_root) {
-            return context_filter_to_add;
-        }
-
-        if (!context_filter_to_add) {
-            return context_filter_tree_root;
-        }
-
-        // Le root est déjà rempli, on renvoie un nouvel operateur
-        let new_root = new ContextFilterVO();
-
-        new_root.vo_type = context_filter_to_add.vo_type;
-        new_root.field_id = context_filter_to_add.field_id;
-        new_root.filter_type = operator_type;
-        new_root.left_hook = context_filter_tree_root;
-        new_root.right_hook = context_filter_to_add;
-        return new_root;
+        return ContextFilterHandler.add_context_filter_to_tree(context_filter_tree_root, context_filter_to_add, operator_type);
     }
 
     /**
@@ -733,7 +741,7 @@ export default class ContextFilterHandler {
 
     /**
      * @deprecated We must use a Factory to create Objects depending on properties (the right way)
-     * @use ContextFilterFactory.create_context_filter_from_data_filter_option enstead
+     * @use ContextFilterVOFactory.create_context_filter_from_data_filter_option instead
      */
     public get_ContextFilterVO_from_DataFilterOption(active_option: DataFilterOption, ts_range: TSRange, field: ModuleTableField<any>, vo_field_ref: VOFieldRefVO): ContextFilterVO {
         let context_filter = new ContextFilterVO();

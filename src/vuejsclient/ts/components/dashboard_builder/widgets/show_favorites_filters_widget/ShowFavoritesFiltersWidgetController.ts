@@ -1,4 +1,3 @@
-import { all_promises } from "../../../../../../shared/tools/PromiseTools";
 import ThrottleHelper from "../../../../../../shared/tools/ThrottleHelper";
 
 export default class ShowFavoritesFiltersWidgetController {

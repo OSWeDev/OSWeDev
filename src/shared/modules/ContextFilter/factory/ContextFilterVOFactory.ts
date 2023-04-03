@@ -12,16 +12,16 @@ import Dates from "../../FormatDatesNombres/Dates/Dates";
 import ModuleTableField from "../../ModuleTableField";
 import VOsTypesManager from "../../VOsTypesManager";
 import ContextFilterVO from "../vos/ContextFilterVO";
-import FieldValueFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
-import MonthFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/MonthFilterWidgetOptionsVO';
-import YearFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
+import FieldValueFilterWidgetOptionsVO from '../../DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
+import MonthFilterWidgetOptionsVO from '../../DashboardBuilder/vos/MonthFilterWidgetOptionsVO';
+import YearFilterWidgetOptionsVO from '../../DashboardBuilder/vos/YearFilterWidgetOptionsVO';
 import ContextFilterHandler from "../ContextFilterHandler";
 
 /**
- * ContextFilterFactory
+ * ContextFilterVOFactory
  *  - Create ContextFilterVO depending on all possible given properties
  */
-export default class ContextFilterFactory {
+export default class ContextFilterVOFactory {
 
     /**
      * Create Context Filter From Widget Options
@@ -34,11 +34,11 @@ export default class ContextFilterFactory {
     public static create_context_filter_from_widget_options(widget_name: string, widget_options: any): ContextFilterVO {
         switch (widget_name) {
             case DashboardWidgetVO.WIDGET_NAME_fieldvaluefilter:
-                return ContextFilterFactory.create_context_filter_from_field_value_filter_widget_options(widget_options);
+                return ContextFilterVOFactory.create_context_filter_from_field_value_filter_widget_options(widget_options);
             case DashboardWidgetVO.WIDGET_NAME_monthfilter:
-                return ContextFilterFactory.create_context_filter_from_month_filter_widget_options(widget_options);
+                return ContextFilterVOFactory.create_context_filter_from_month_filter_widget_options(widget_options);
             case DashboardWidgetVO.WIDGET_NAME_yearfilter:
-                return ContextFilterFactory.create_context_filter_from_year_filter_widget_options(widget_options);
+                return ContextFilterVOFactory.create_context_filter_from_year_filter_widget_options(widget_options);
             default:
                 throw new Error(
                     `ContextFilter for the given WidgetOptionsVO ` +
@@ -63,7 +63,7 @@ export default class ContextFilterFactory {
 
         if (VOFieldRefVOTypeHandler.is_type_boolean(vo_field_ref)) {
             const default_filters_options = widget_options?.default_boolean_values;
-            context_filter = ContextFilterFactory.create_context_filter_from_boolean_filter_types(vo_field_ref, default_filters_options);
+            context_filter = ContextFilterVOFactory.create_context_filter_from_boolean_filter_types(vo_field_ref, default_filters_options);
         }
 
         if (VOFieldRefVOTypeHandler.is_type_date(vo_field_ref)) {
@@ -72,7 +72,7 @@ export default class ContextFilterFactory {
 
             const default_filters_options = widget_options?.default_ts_range_values;
 
-            context_filter = ContextFilterFactory.create_context_filter_from_data_filter_option(null, default_filters_options, field, vo_field_ref);
+            context_filter = ContextFilterVOFactory.create_context_filter_from_data_filter_option(null, default_filters_options, field, vo_field_ref);
         }
 
         if (VOFieldRefVOTypeHandler.is_type_enum(vo_field_ref)) {
@@ -84,7 +84,7 @@ export default class ContextFilterFactory {
                 default_filters_options.push(data_filter_option);
             }
 
-            context_filter = ContextFilterFactory.create_context_filter_from_enum_filter_types(vo_field_ref, default_filters_options);
+            context_filter = ContextFilterVOFactory.create_context_filter_from_enum_filter_types(vo_field_ref, default_filters_options);
         }
 
         if (VOFieldRefVOTypeHandler.is_type_number(vo_field_ref)) {
@@ -96,7 +96,7 @@ export default class ContextFilterFactory {
                 default_filters_options.push(data_filter_option);
             }
 
-            context_filter = ContextFilterFactory.create_context_filter_from_number_filter_types(vo_field_ref, default_filters_options);
+            context_filter = ContextFilterVOFactory.create_context_filter_from_number_filter_types(vo_field_ref, default_filters_options);
         }
 
         if (VOFieldRefVOTypeHandler.is_type_string(vo_field_ref)) {
@@ -108,7 +108,7 @@ export default class ContextFilterFactory {
                 default_filters_options.push(data_filter_option);
             }
 
-            context_filter = ContextFilterFactory.create_context_filter_from_string_filter_options(vo_field_ref, default_filters_options, { vo_field_ref });
+            context_filter = ContextFilterVOFactory.create_context_filter_from_string_filter_options(vo_field_ref, default_filters_options, { vo_field_ref });
         }
 
         return context_filter;
@@ -327,7 +327,7 @@ export default class ContextFilterFactory {
                         continue;
                     }
 
-                    let new_context_filter = ContextFilterFactory.create_context_filter_from_data_filter_option(active_option, null, field_multiple, options.vo_field_ref_multiple[i]);
+                    let new_context_filter = ContextFilterVOFactory.create_context_filter_from_data_filter_option(active_option, null, field_multiple, options.vo_field_ref_multiple[i]);
 
                     if (!new_context_filter) {
                         continue;
@@ -370,7 +370,7 @@ export default class ContextFilterFactory {
                 continue;
             }
 
-            let new_context_filter = ContextFilterFactory.create_context_filter_from_data_filter_option(active_option, null, field, vo_field_ref);
+            let new_context_filter = ContextFilterVOFactory.create_context_filter_from_data_filter_option(active_option, null, field, vo_field_ref);
 
             if (!new_context_filter) {
                 continue;
@@ -488,7 +488,7 @@ export default class ContextFilterFactory {
                 continue;
             }
 
-            let new_context_filter = ContextFilterFactory.create_context_filter_from_data_filter_option(active_option, null, field, vo_field_ref);
+            let new_context_filter = ContextFilterVOFactory.create_context_filter_from_data_filter_option(active_option, null, field, vo_field_ref);
 
             if (!new_context_filter) {
                 continue;
@@ -553,7 +553,7 @@ export default class ContextFilterFactory {
                 continue;
             }
 
-            let new_context_filter = ContextFilterFactory.create_context_filter_from_data_filter_option(active_option, null, field, vo_field_ref);
+            let new_context_filter = ContextFilterVOFactory.create_context_filter_from_data_filter_option(active_option, null, field, vo_field_ref);
 
             if (!new_context_filter) {
                 continue;
@@ -658,14 +658,14 @@ export default class ContextFilterFactory {
         return context_filter;
     }
 
-    public static getInstance(): ContextFilterFactory {
-        if (!ContextFilterFactory.instance) {
-            ContextFilterFactory.instance = new ContextFilterFactory();
+    public static getInstance(): ContextFilterVOFactory {
+        if (!ContextFilterVOFactory.instance) {
+            ContextFilterVOFactory.instance = new ContextFilterVOFactory();
         }
-        return ContextFilterFactory.instance;
+        return ContextFilterVOFactory.instance;
     }
 
-    private static instance: ContextFilterFactory = null;
+    private static instance: ContextFilterVOFactory = null;
 
     private constructor() { }
 
