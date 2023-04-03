@@ -1203,7 +1203,7 @@ export default abstract class ServerBase {
                 if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
                     ConsoleHandler.log('ServerExpressController:fork_threads:END');
                 }
-                BGThreadServerController.getInstance().server_ready = true;
+                BGThreadServerController.SERVER_READY = true;
 
                 if (ConfigurationService.node_configuration.AUTO_END_MAINTENANCE_ON_START) {
                     await ModuleMaintenance.getInstance().end_planned_maintenance();

@@ -149,7 +149,7 @@ export default abstract class ForkedProcessWrapperBase {
             ConsoleHandler.log('ServerExpressController:i18nextInit:getALL_LOCALES:END');
         }
 
-        BGThreadServerController.getInstance().server_ready = true;
+        BGThreadServerController.SERVER_READY = true;
         CronServerController.getInstance().server_ready = true;
 
         process.on('message', async (msg: IForkMessage) => {

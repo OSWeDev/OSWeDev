@@ -158,7 +158,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
 
             try {
 
-                if (!BGThreadServerController.getInstance().server_ready) {
+                if (!BGThreadServerController.SERVER_READY) {
                     continue;
                 }
 

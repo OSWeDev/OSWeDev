@@ -59,6 +59,13 @@ export default class StatsController {
      */
     public static async register_stat(name: string, value: number, aggregator: number, min_segment_type: number) {
 
+        /**
+         * Si le serveur n'est pas up, on peut pas stocker des stats
+         */
+        if (!BGThreadServerController.SERVER_READY) {
+            return;
+        }
+
         let stat = new StatVO();
         stat.value = value;
         stat.timestamp_s = Dates.now();
