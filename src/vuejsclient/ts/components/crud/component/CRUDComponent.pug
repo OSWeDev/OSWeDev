@@ -39,6 +39,7 @@ include ../../../../views/mixins/loading.pug
                 :update_button="!crud.forced_readonly || crud.forced_updateonly",
                 :vocus_button="(!crud.forced_updateonly) && can_access_vocus",
                 :delete_button="!crud.forced_readonly && !crud.forced_updateonly",
+                :archive_button="!crud.forced_readonly && !crud.forced_updateonly && is_archived_moduletable",
                 :multiselectable="false",
                 :api_types_involved="api_types_involved",
                 :load_datas="false",

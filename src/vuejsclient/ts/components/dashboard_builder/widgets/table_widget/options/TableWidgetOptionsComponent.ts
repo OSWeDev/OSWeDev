@@ -49,6 +49,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private crud_api_type_id_selected: string = null;
     private vocus_button: boolean = false;
     private delete_button: boolean = true;
+    private archive_button: boolean = false;
     private delete_all_button: boolean = false;
     private refresh_button: boolean = true;
     private export_button: boolean = true;
@@ -112,6 +113,9 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             if (!this.delete_button) {
                 this.delete_button = true;
             }
+            if (this.archive_button) {
+                this.archive_button = false;
+            }
             if (!!this.delete_all_button) {
                 this.delete_all_button = false;
             }
@@ -151,6 +155,9 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         }
         if (this.delete_button != this.widget_options.delete_button) {
             this.delete_button = this.widget_options.delete_button;
+        }
+        if (this.archive_button != this.widget_options.archive_button) {
+            this.archive_button = this.widget_options.archive_button;
         }
         if (this.create_button != this.widget_options.create_button) {
             this.create_button = this.widget_options.create_button;
@@ -459,7 +466,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     }
 
     private get_default_options(): TableWidgetOptions {
-        return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, false, false, null, false, true, true, false);
+        return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, false, false, null, false, true, true, false, false);
     }
     private async add_column(add_column: TableColumnDescVO) {
 
@@ -621,6 +628,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                     options.use_kanban_by_default_if_exists,
                     options.use_kanban_column_weight_if_exists,
                     options.use_for_count,
+                    options.archive_button,
                 ) : null;
             }
         } catch (error) {
@@ -675,6 +683,21 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
         if (this.next_update_options.delete_button != this.delete_button) {
             this.next_update_options.delete_button = this.delete_button;
+            await this.throttled_update_options();
+        }
+    }
+
+    private async switch_archive_button() {
+        this.archive_button = !this.archive_button;
+
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.next_update_options.archive_button != this.archive_button) {
+            this.next_update_options.archive_button = this.archive_button;
             await this.throttled_update_options();
         }
     }
@@ -906,5 +929,13 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             this.next_update_options.use_for_count = this.use_for_count;
             await this.throttled_update_options();
         }
+    }
+
+    get is_archived_api_type_id(): boolean {
+        if (!this.widget_options?.crud_api_type_id) {
+            return false;
+        }
+
+        return VOsTypesManager.moduleTables_by_voType[this.widget_options.crud_api_type_id].is_archived;
     }
 }

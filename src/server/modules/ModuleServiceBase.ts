@@ -116,6 +116,8 @@ import StatsController from '../../shared/modules/Stats/StatsController';
 import StatVO from '../../shared/modules/Stats/vos/StatVO';
 import TimeSegment from '../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../shared/modules/FormatDatesNombres/Dates/Dates';
+import ModuleExpressDBSessionServer from './ExpressDBSessions/ModuleExpressDBSessionsServer';
+import ModuleExpressDBSessions from '../../shared/modules/ExpressDBSessions/ModuleExpressDBSessions';
 
 export default abstract class ModuleServiceBase {
 
@@ -544,6 +546,7 @@ export default abstract class ModuleServiceBase {
             ModuleDashboardBuilder.getInstance(),
             ModuleMenu.getInstance(),
             ModuleStats.getInstance(),
+            ModuleExpressDBSessions.getInstance()
         ];
     }
 
@@ -600,6 +603,7 @@ export default abstract class ModuleServiceBase {
             ModuleMenuServer.getInstance(),
             ModuleFormatDatesNombresServer.getInstance(),
             ModuleStatsServer.getInstance(),
+            ModuleExpressDBSessionServer.getInstance()
         ];
     }
 

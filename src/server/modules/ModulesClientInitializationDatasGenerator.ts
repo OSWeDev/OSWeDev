@@ -85,6 +85,7 @@ export default class ModulesClientInitializationDatasGenerator {
         fileContent += "    EnvHandler.VERSION = '" + GeneratorBase.getInstance().getVersion() + "';\n";
         fileContent += "    EnvHandler.ACTIVATE_PWA = " + ((!!ConfigurationService.node_configuration.ACTIVATE_PWA) ? 'true' : 'false') + ';\n';
         fileContent += "    EnvHandler.MAX_POOL = " + ConfigurationService.node_configuration.MAX_POOL + ";\n";
+        fileContent += "    EnvHandler.ZOOM_AUTO = " + ((!!ConfigurationService.node_configuration.ZOOM_AUTO) ? 'true' : 'false') + ';\n';
 
 
         fileContent += this.generateModulesCode(this.generateModuleData, target);

@@ -51,6 +51,7 @@ import AccessPolicyDeleteSessionBGThread from './modules/AccessPolicy/bgthreads/
 import ModuleAccessPolicyServer from './modules/AccessPolicy/ModuleAccessPolicyServer';
 import BGThreadServerController from './modules/BGThread/BGThreadServerController';
 import CronServerController from './modules/Cron/CronServerController';
+import ExpressDBSessionsServerController from './modules/ExpressDBSessions/ExpressDBSessionsServerController';
 import ModuleFileServer from './modules/File/ModuleFileServer';
 import ForkedTasksController from './modules/Fork/ForkedTasksController';
 import ForkServerController from './modules/Fork/ForkServerController';
@@ -63,8 +64,6 @@ import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
 import ServerExpressController from './ServerExpressController';
 import StackContext from './StackContext';
 require('moment-json-parser').overrideDefault();
-const pgSession = require('oswedev-connect-pg-simple')(expressSession);
-const zlib = require('zlib');
 
 export default abstract class ServerBase {
 
@@ -145,6 +144,7 @@ export default abstract class ServerBase {
         EnvHandler.CODE_GOOGLE_ANALYTICS = this.envParam.CODE_GOOGLE_ANALYTICS;
         EnvHandler.VERSION = this.version;
         EnvHandler.ACTIVATE_PWA = !!this.envParam.ACTIVATE_PWA;
+        EnvHandler.ZOOM_AUTO = !!this.envParam.ZOOM_AUTO;
         EnvHandler.DEBUG_VARS = !!this.envParam.DEBUG_VARS;
 
         this.connectionString = this.envParam.CONNECTION_STRING;
@@ -348,45 +348,6 @@ export default abstract class ServerBase {
         // this.app.use(csrfMiddleware);
 
         if (this.envParam.COMPRESS) {
-            // Si je suis en compresse, je vais recevoir mes POST en gzip (BLOB)
-            // Du coup, il faut que je unzip pour récupérer au bon format
-            this.app.use((req: Request, res: Response, next: NextFunction) => {
-                if (req.method === 'POST' && req.headers[AjaxCacheController.HEADER_GZIP] === 'true') {
-                    let buffer: any = [];
-
-                    // Collecte les données de la requête dans un tableau de buffer
-                    req.on('data', function (data) {
-                        buffer.push(data);
-                    });
-
-                    // Décompresse les données de la requête lorsqu'elles ont toutes été collectées
-                    req.on('end', function () {
-                        // Combine tous les buffers dans un seul
-                        buffer = Buffer.concat(buffer);
-
-                        // Décompresse les données gzipées
-                        zlib.gunzip(Buffer.from(JSON.parse(buffer).data), function (err, decoded) {
-                            if (err) {
-                                // Gérer l'erreur
-                                res.writeHead(500);
-                                res.end();
-                                return;
-                            }
-
-                            // Utilisez les données décompressées ici
-                            console.log(decoded.toString());
-                            // res.writeHead(200);
-                            // res.end(decoded.toString());
-                            req.body = JSON.parse(decoded.toString());
-                            next();
-                        });
-                    });
-
-                }
-
-                next();
-            });
-
             let shouldCompress = function (req, res) {
                 if (req.headers['x-no-compression']) {
                     // don't compress responses with this request header
@@ -568,7 +529,7 @@ export default abstract class ServerBase {
             proxy: true,
             resave: false,
             saveUninitialized: false,
-            store: new pgSession({
+            store: ExpressDBSessionsServerController.getInstance({
                 conString: this.connectionString,
                 schemaName: 'ref',
                 tableName: UserSessionVO.API_TYPE_ID,

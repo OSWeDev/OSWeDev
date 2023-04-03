@@ -1128,7 +1128,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     vo_id = null;
                 }
 
-                let values = [];
+                let vos_values = [];
                 let setters: any[] = [];
                 let is_update: boolean = false;
 
@@ -1147,6 +1147,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 for (let i in vos_by_ids[vo_id]) {
                     let vo: IDistantVOBase = moduleTable.get_bdd_version(vos_by_ids[vo_id][i]);
                     let is_valid: boolean = true;
+
+                    let vo_values: any[] = [];
 
                     for (const f in moduleTable.get_fields()) {
                         let field: ModuleTableField<any> = moduleTable.get_fields()[f];
@@ -1172,7 +1174,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         setters.push(field.field_id + ' = ' + securized_fieldValue);
                         // cpt_field_vo++;
 
-                        // vo_values.push(fieldValue);
+                        vo_values.push(securized_fieldValue);
 
                         /**
                          * Cas des ranges
@@ -1188,7 +1190,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                             securized_fieldValue = pgPromise.as.format('$1', [vo[field.field_id + '_ndx']]);
                             setters.push(field.field_id + '_ndx = ' + securized_fieldValue);
-                            // vo_values.push(vo[field.field_id + '_ndx']);
+                            vo_values.push(securized_fieldValue);
 
                             // cpt_field_vo++;
                         }
@@ -1203,6 +1205,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         is_update = true;
                         updated_vo_id = vo.id;
                     }
+
+                    if (vo_values.length > 0) {
+                        vos_values.push(vo_values);
+                    }
                 }
 
 
@@ -1215,7 +1221,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                     let sql_values: string = '';
 
-                    for (let i in values) {
+                    for (let i in vos_values) {
                         if (sql_values != '') {
                             sql_values += ",";
                         }
@@ -1223,12 +1229,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         sql_values += "(";
                         let sub_sql: string = '';
 
-                        for (let j in values[i]) {
+                        for (let j in vos_values[i]) {
                             if (sub_sql != '') {
                                 sub_sql += ',';
                             }
 
-                            sub_sql += pgPromise.as.format('$1', [values[i][j]]);
+                            sub_sql += pgPromise.as.format('$1', [vos_values[i][j]]);
                         }
 
                         sql_values += sub_sql;
@@ -1248,7 +1254,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                     for (let i in results) {
                         let result = results[i];
-                        res.push(new InsertOrDeleteQueryResult((result && result.id) ? parseInt(result.id.toString()) : null));
+
+                        let res_id: number = result?.id ? parseInt(result.id.toString()) : null;
+
+                        if (!res_id) {
+                            ConsoleHandler.error('insertOrUpdateVOs_without_triggers : no id returned for query : ' + sql);
+                        }
+
+                        res.push(new InsertOrDeleteQueryResult(res_id));
                     }
                 });
             }

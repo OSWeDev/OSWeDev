@@ -23,6 +23,7 @@ import ForkedTasksController from '../Fork/ForkedTasksController';
 import VarsCacheController from '../Var/VarsCacheController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import NotifVardatasParam from './notifs/NotifVardatasParam';
+import PixelVarDataController from './PixelVarDataController';
 import VarsServerCallBackSubsController from './VarsServerCallBackSubsController';
 import VarsServerController from './VarsServerController';
 import VarsTabsSubsController from './VarsTabsSubsController';
@@ -358,9 +359,20 @@ export default class VarsDatasProxy {
                     // }
                 }
 
+                /**
+                 * Cas particulier des pixels qui ne sont pas des pixels : on les supprime du cache et on ne les insert pas en bdd !
+                 */
                 if (conf.pixel_activated) {
+
                     // Si c'est un pixel, on peut le supprimer du cache (en mémoire pas en base évidemment)
                     do_delete_from_cache_indexes[index] = true;
+
+                    // c'est géré en aval par la stratégie de cache en théorie => c'est le cas, mais si incohérence de param entre la strétégie de cache et
+                    // le varconf, cela permet de s'assurer qu'on n'insère pas en bdd un non pixel qui sera traité comme tel
+                    if (PixelVarDataController.getInstance().get_pixel_card(handle_var) != 1) {
+                        // Si la var est pixellisée mais que le param n'est pas un pixel, on ne l'insert pas en bdd
+                        do_insert = false;
+                    }
                 }
 
                 if (do_insert && VarsCacheController.getInstance().BDD_do_cache_param_data(handle_var, controller, (!!wrapper.is_server_request) || (!!wrapper.client_tab_id))) {
