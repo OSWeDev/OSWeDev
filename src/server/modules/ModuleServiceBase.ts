@@ -112,6 +112,10 @@ import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
 import ModuleVocusServer from './Vocus/ModuleVocusServer';
 import ModuleStats from '../../shared/modules/Stats/ModuleStats';
 import ModuleStatsServer from './Stats/ModuleStatsServer';
+import StatsController from '../../shared/modules/Stats/StatsController';
+import StatVO from '../../shared/modules/Stats/vos/StatVO';
+import TimeSegment from '../../shared/modules/DataRender/vos/TimeSegment';
+import Dates from '../../shared/modules/FormatDatesNombres/Dates/Dates';
 
 export default abstract class ModuleServiceBase {
 
@@ -601,6 +605,8 @@ export default abstract class ModuleServiceBase {
 
     private async db_none(query: string, values?: []) {
 
+        let time_in = Dates.now_ms();
+
         try {
             await this.db_.none(query, values);
         } catch (error) {
@@ -609,6 +615,8 @@ export default abstract class ModuleServiceBase {
             if (error &&
                 ((error['message'] == 'Connection terminated unexpectedly') ||
                     (error['message'].startsWith('connect ETIMEDOUT ')))) {
+
+                await StatsController.register_stat('db_none.error.connect_error', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                 ConsoleHandler.error(error + ' - retrying once');
 
                 try {
@@ -621,6 +629,8 @@ export default abstract class ModuleServiceBase {
 
                 return;
             } else if (error && (error['message'] == 'sorry, too many clients already')) {
+
+                await StatsController.register_stat('db_none.error.too_many_clients', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                 ConsoleHandler.error(error + ' - retrying in 100 ms');
 
                 return new Promise((resolve, reject) => {
@@ -639,12 +649,18 @@ export default abstract class ModuleServiceBase {
             }
 
             ConsoleHandler.error(error);
+            return;
         }
+
+        let time_out = Dates.now_ms();
+        await StatsController.register_stat('db_none.ok', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        await StatsController.register_stats('db_none.time', time_out - time_in, [StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN, StatVO.AGGREGATOR_SUM], TimeSegment.TYPE_MINUTE);
     }
 
     private async db_query(query: string, values?: []) {
 
         let res = null;
+        let time_in = Dates.now_ms();
 
         try {
             res = (values && values.length) ? await this.db_.query(query, values) : await this.db_.query(query);
@@ -654,6 +670,8 @@ export default abstract class ModuleServiceBase {
             if (error &&
                 ((error['message'] == 'Connection terminated unexpectedly') ||
                     (error['message'].startsWith('connect ETIMEDOUT ')))) {
+
+                await StatsController.register_stat('db_query.error.connect_error', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                 ConsoleHandler.error(error + ' - retrying once');
 
                 try {
@@ -666,6 +684,8 @@ export default abstract class ModuleServiceBase {
 
                 return res;
             } else if (error && (error['message'] == 'sorry, too many clients already')) {
+
+                await StatsController.register_stat('db_query.error.too_many_clients', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                 ConsoleHandler.error(error + ' - retrying in 100 ms');
 
                 return new Promise((resolve, reject) => {
@@ -684,7 +704,13 @@ export default abstract class ModuleServiceBase {
             }
 
             ConsoleHandler.error(error);
+            await StatsController.register_stat('db_query.error.others', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            return res;
         }
+
+        let time_out = Dates.now_ms();
+        await StatsController.register_stat('db_query.ok', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        await StatsController.register_stats('db_query.time', time_out - time_in, [StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN, StatVO.AGGREGATOR_SUM], TimeSegment.TYPE_MINUTE);
 
         return res;
     }
@@ -695,6 +721,7 @@ export default abstract class ModuleServiceBase {
          * Handle query cache update
          */
         let res = null;
+        let time_in = Dates.now_ms();
 
         try {
             res = await this.db_.oneOrNone(query, values);
@@ -704,6 +731,8 @@ export default abstract class ModuleServiceBase {
             if (error &&
                 ((error['message'] == 'Connection terminated unexpectedly') ||
                     (error['message'].startsWith('connect ETIMEDOUT ')))) {
+
+                await StatsController.register_stat('db_oneOrNone.error.connect_error', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                 ConsoleHandler.error(error + ' - retrying once');
 
                 try {
@@ -716,6 +745,8 @@ export default abstract class ModuleServiceBase {
 
                 return res;
             } else if (error && (error['message'] == 'sorry, too many clients already')) {
+
+                await StatsController.register_stat('db_oneOrNone.error.too_many_clients', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                 ConsoleHandler.error(error + ' - retrying in 100 ms');
 
                 return new Promise((resolve, reject) => {
@@ -734,8 +765,12 @@ export default abstract class ModuleServiceBase {
             }
 
             ConsoleHandler.error(error);
+            return res;
         }
 
+        let time_out = Dates.now_ms();
+        await StatsController.register_stat('db_oneOrNone.ok', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        await StatsController.register_stats('db_oneOrNone.time', time_out - time_in, [StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN, StatVO.AGGREGATOR_SUM], TimeSegment.TYPE_MINUTE);
         return res;
     }
 }

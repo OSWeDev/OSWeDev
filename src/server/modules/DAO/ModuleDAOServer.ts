@@ -74,6 +74,9 @@ import VarsController from '../../../shared/modules/Var/VarsController';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import ContextQueryInjectionCheckHandler from '../../../shared/modules/ContextFilter/ContextQueryInjectionCheckHandler';
 import ParameterizedQueryWrapperField from '../../../shared/modules/ContextFilter/vos/ParameterizedQueryWrapperField';
+import StatsController from '../../../shared/modules/Stats/StatsController';
+import StatVO from '../../../shared/modules/Stats/vos/StatVO';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -2647,6 +2650,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 query_.ignore_access_hooks();
 
                 let uniquevos: IDistantVOBase[] = null;
+
+                await StatsController.register_stat('dao.check_uniq_indexes.query', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+
                 await StackContext.runPromise({ IS_CLIENT: false }, async () => {
                     uniquevos = await ModuleContextFilter.getInstance().select_vos(query_);
                 });
@@ -2661,6 +2667,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             if (uid && CLIENT_TAB_ID) {
                                 await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'dao.check_uniq_indexes.error' + DefaultTranslation.DEFAULT_LABEL_EXTENSION, true);
                             }
+                            await StatsController.register_stat('dao.check_uniq_indexes.error', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
                             let msg: string = "Ajout impossible car un élément existe déjà avec les mêmes valeurs sur le champ : " + field_id + " : " + JSON.stringify(vo);
                             ConsoleHandler.error(msg);
@@ -2677,20 +2684,26 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     private async insertOrUpdateVO(vo: IDistantVOBase): Promise<InsertOrDeleteQueryResult> {
 
+        let time_in = Dates.now_ms();
+        await StatsController.register_stat('dao.insertOrUpdateVO.in', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+
         if (this.global_update_blocker) {
             let uid: number = StackContext.get('UID');
             let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
             if (uid && CLIENT_TAB_ID) {
                 this.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
             }
+            await StatsController.register_stat('dao.insertOrUpdateVO.global_update_blocker', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
             return null;
         }
 
         // On vérifie qu'on peut faire un insert ou update
         if ((!vo) || (!vo._type) || (!VOsTypesManager.moduleTables_by_voType[vo._type])) {
+            await StatsController.register_stat('dao.insertOrUpdateVO.invalid_vo', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
             return null;
         }
         if (!this.checkAccessSync(VOsTypesManager.moduleTables_by_voType[vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE)) {
+            await StatsController.register_stat('dao.insertOrUpdateVO.failed_checkAccessSync', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
             return null;
         }
 
@@ -2698,6 +2711,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let tmp_vo = await this.filterVOAccess(VOsTypesManager.moduleTables_by_voType[vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, vo);
 
         if (!tmp_vo) {
+            await StatsController.register_stat('dao.insertOrUpdateVO.failed_filterVOAccess', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
             return null;
         }
         vo = tmp_vo;
@@ -2708,6 +2722,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             vos = await this.filterByForeignKeys([vo]);
 
             if ((!vos) || (vos.length != 1)) {
+                await StatsController.register_stat('dao.insertOrUpdateVO.filterByForeignKeys', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                 return null;
             }
         }
@@ -2722,6 +2737,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let moduleTable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[vo._type];
 
             if (!moduleTable) {
+                await StatsController.register_stat('dao.insertOrUpdateVO.no_moduletable', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                 resolve(null);
                 return null;
             }
@@ -2734,6 +2750,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 try {
                     vo.id = await this.check_uniq_indexes(vo, moduleTable);
                 } catch (err) {
+                    await StatsController.register_stat('dao.insertOrUpdateVO.failed_check_uniq_indexes', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                     return null;
                 }
             }
@@ -2752,6 +2769,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     preUpdate = await query_.select_vo();
 
                     if (!preUpdate) {
+                        await StatsController.register_stat('dao.insertOrUpdateVO.update_autochange_to_insert', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                         // Cas d'un objet en cache server ou client mais qui n'existe plus sur la BDD => on doit insérer du coup un nouveau
                         isUpdate = false;
                         vo.id = null;
@@ -2764,6 +2782,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             if (!sql) {
                 ConsoleHandler.warn('Est-ce bien normal ? insertOrUpdateVO :(!sql):' + JSON.stringify(vo));
+                await StatsController.register_stat('dao.insertOrUpdateVO.no_sql', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                 resolve(null);
                 return null;
             }
@@ -2779,6 +2798,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let res: InsertOrDeleteQueryResult = new InsertOrDeleteQueryResult((db_result && db_result.id) ? parseInt(db_result.id.toString()) : null);
 
             if (failed) {
+                await StatsController.register_stat('dao.insertOrUpdateVO.failed', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                 resolve(null);
                 return null;
             }
@@ -2792,11 +2812,17 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }
             }
 
+            await StatsController.register_stat('dao.insertOrUpdateVO.ok', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            let time_out = Dates.now_ms();
+            await StatsController.register_stats('dao.insertOrUpdateVO.ok_time', time_out - time_in, [StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN, StatVO.AGGREGATOR_SUM], TimeSegment.TYPE_MINUTE);
             resolve(res);
         });
     }
 
     private async deleteVOs(vos: IDistantVOBase[]): Promise<InsertOrDeleteQueryResult[]> {
+
+        let time_in = Dates.now_ms();
+        await StatsController.register_stat('dao.deleteVOs.in', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
         if (this.global_update_blocker) {
             let uid: number = StackContext.get('UID');
@@ -2804,14 +2830,17 @@ export default class ModuleDAOServer extends ModuleServerBase {
             if (uid && CLIENT_TAB_ID) {
                 this.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
             }
+            await StatsController.register_stat('dao.deleteVOs.global_update_blocker', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
             return null;
         }
 
         // On vérifie qu'on peut faire un delete
         if ((!vos) || (!vos.length) || (!vos[0]) || (!vos[0]._type) || (!VOsTypesManager.moduleTables_by_voType[vos[0]._type])) {
+            await StatsController.register_stat('dao.deleteVOs.invalid_vo', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
             return null;
         }
         if (!this.checkAccessSync(VOsTypesManager.moduleTables_by_voType[vos[0]._type], ModuleDAO.DAO_ACCESS_TYPE_DELETE)) {
+            await StatsController.register_stat('dao.deleteVOs.failed_checkAccessSync', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
             return null;
         }
 
@@ -2826,6 +2855,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
         }
         if ((!tmp_vos) || (!tmp_vos.length)) {
+            await StatsController.register_stat('dao.deleteVOs.failed_filterVOAccess', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
             return null;
         }
         vos = tmp_vos;
@@ -2842,6 +2872,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 let vo = vos[i];
 
                 if (!vo._type) {
+                    await StatsController.register_stat('dao.deleteVOs.no_vo_type', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                     ConsoleHandler.error("Un VO sans _type dans le DAO ! " + JSON.stringify(vo));
                     continue;
                 }
@@ -2849,6 +2880,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 let moduletable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[vo._type];
 
                 if (!moduletable) {
+                    await StatsController.register_stat('dao.deleteVOs.no_moduletable', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                     ConsoleHandler.error("Impossible de trouver le datatable de ce _type ! " + JSON.stringify(vo));
                     continue;
                 }
@@ -2857,6 +2889,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 //  Attention si un des output est false avant suppression, on annule la suppression
                 let res: boolean[] = await DAOServerController.getInstance().pre_delete_trigger_hook.trigger(vo._type, vo);
                 if (!BooleanHandler.getInstance().AND(res, true)) {
+                    await StatsController.register_stat('dao.deleteVOs.pre_delete_trigger_hook_rejection', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                     continue;
                 }
 
@@ -2942,6 +2975,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
         }
 
+        let time_out = Dates.now_ms();
+        await StatsController.register_stats('dao.deleteVOs.time', time_out - time_in, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
+        await StatsController.register_stat('dao.deleteVOs.out', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
         return InsertOrDeleteQueryResults;
     }
 
@@ -3006,6 +3042,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 //  Attention si un des output est false avant modification, on annule la modification
                 let res: boolean[] = await DAOServerController.getInstance().pre_update_trigger_hook.trigger(vo._type, new DAOUpdateVOHolder(pre_update_vo, vo));
                 if (!BooleanHandler.getInstance().AND(res, true)) {
+                    await StatsController.register_stat('dao.insertOrUpdateVO.pre_update_trigger_hook_rejection', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                     return null;
                 }
             }
@@ -3060,6 +3097,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 //  Attention si un des output est false avant modification, on annule la modification
                 let res: boolean[] = await DAOServerController.getInstance().pre_create_trigger_hook.trigger(vo._type, vo);
                 if (!BooleanHandler.getInstance().AND(res, true)) {
+                    await StatsController.register_stat('dao.insertOrUpdateVO.pre_create_trigger_hook_rejection', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                     return null;
                 }
             }
