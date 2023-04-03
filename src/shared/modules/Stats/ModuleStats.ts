@@ -69,6 +69,7 @@ export default class ModuleStats extends Module {
         ];
 
         let table = new ModuleTable(this, StatVO.API_TYPE_ID, () => new StatVO(), fields, null, 'Stats');
+        table.segment_on_field('stat_group_id', NumSegment.TYPE_INT);
         this.datatables.push(table);
         stat_group_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[StatsGroupVO.API_TYPE_ID]);
     }

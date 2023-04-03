@@ -12,7 +12,6 @@ import * as path from 'path';
 import * as pg from 'pg';
 import * as pg_promise from 'pg-promise';
 import { IDatabase } from 'pg-promise';
-import { disconnect } from 'process';
 import * as socketIO from 'socket.io';
 import * as winston from 'winston';
 import * as winston_daily_rotate_file from 'winston-daily-rotate-file';
@@ -73,6 +72,8 @@ export default abstract class ServerBase {
     public static getInstance(): ServerBase {
         return ServerBase.instance;
     }
+
+    protected static SLOW_EXPRESS_QUERY_LIMIT_MS_PARAM_NAME: string = 'ServerBase.SLOW_EXPRESS_QUERY_LIMIT_MS';
 
     /* istanbul ignore next: nothing to test here */
     protected static instance: ServerBase = null;
@@ -154,19 +155,19 @@ export default abstract class ServerBase {
 
         let pgp: pg_promise.IMain = pg_promise({
             async connect(client, dc, useCount) {
-                await StatsController.register_stat('ServerBase.PGP.connect_count',
+                await StatsController.register_stat('ServerBase.PGP.connect',
                     1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
             },
             async disconnect(client, dc) {
-                await StatsController.register_stat('ServerBase.PGP.disconnect_count',
+                await StatsController.register_stat('ServerBase.PGP.disconnect',
                     1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
             },
             async query(e) {
-                await StatsController.register_stat('ServerBase.PGP.query_count',
+                await StatsController.register_stat('ServerBase.PGP.query',
                     1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
             },
             async error(e) {
-                await StatsController.register_stat('ServerBase.PGP.error_count',
+                await StatsController.register_stat('ServerBase.PGP.error',
                     1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                 ConsoleHandler.error('ServerBase.PGP.error: ' + JSON.stringify(e));
             },
@@ -265,21 +266,36 @@ export default abstract class ServerBase {
 
             let log = `${method} ${url} ${status} ${time.toFixed(3)} ms`;
 
-            let cleaned_url = req.url.toLowerCase()
-                .replace(/[:.]/g, '')
-                .replace(/\//g, '_');
+            // let cleaned_url = req.url.toLowerCase()
+            //     .replace(/[:.]/g, '')
+            //     .replace(/\//g, '_');
+
+            await StatsController.register_stats('express.' + method + '.' + status,
+                time, [StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
 
             if (status >= 500) {
-                await StatsController.register_stat('express.' + method + '.' + cleaned_url + '.500',
+                await StatsController.register_stat('express.' + method + '.' + status,
                     1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                 ConsoleHandler.error(log);
             } else if (status >= 400) {
-                await StatsController.register_stat('express.' + method + '.' + cleaned_url + '.400',
+                await StatsController.register_stat('express.' + method + '.' + status,
                     1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                 ConsoleHandler.warn(log);
             } else {
-                await StatsController.register_stat('express.' + method + '.' + cleaned_url,
-                    time, StatVO.AGGREGATOR_MEAN, TimeSegment.TYPE_MINUTE);
+
+                /**
+                 * On stocke les requêtes par :
+                 *  - par méthode
+                 *  - par status
+                 *  - par temps de réponse - en 2 catégories : toutes les requêtes et les requêtes qui ont pris plus de 1s (paramétrable)
+                 */
+                let slow_queries_limit = await ModuleParams.getInstance().getParamValueAsInt(
+                    ServerBase.SLOW_EXPRESS_QUERY_LIMIT_MS_PARAM_NAME, 1000, 60000
+                );
+                if (time > slow_queries_limit) {
+                    await StatsController.register_stat('express.' + method + '.' + status + '.slow',
+                        1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                }
             }
         }));
 

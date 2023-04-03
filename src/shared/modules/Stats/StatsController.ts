@@ -1,3 +1,5 @@
+import BGThreadServerController from '../../../server/modules/BGThread/BGThreadServerController';
+import ForkServerController from '../../../server/modules/Fork/ForkServerController';
 import ThrottleHelper from '../../tools/ThrottleHelper';
 import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
 import { query } from '../ContextFilter/vos/ContextQueryVO';
@@ -17,8 +19,40 @@ export default class StatsController {
     }
 
     /**
+     * Attention : si on met le ppid dans le nom de la stat on va avoir une table par processus,
+     *  or on veut plutôt identifier le thread principal, ou thread des vars, ....
+     */
+    public static get_thread_name(): string {
+        let thread_name = 'main';
+
+        if (!ForkServerController.getInstance().is_main_process) {
+
+            thread_name = 'fork.';
+            if (BGThreadServerController.getInstance()) {
+                thread_name += Object.keys(BGThreadServerController.getInstance().valid_bgthreads_names).join('.').replaceAll(' ', '_');
+            }
+        }
+
+        return thread_name;
+    }
+
+    /**
+     * Sucre syntaxique pour register_stat sur plusieurs aggrégateurs
+     * @param name cf. register_stat
+     * @param value
+     * @param aggregators on applique register_stat sur chaque élément du tableau
+     * @param min_segment_type cf. register_stat
+     */
+    public static async register_stats(name: string, value: number, aggregators: number[], min_segment_type: number) {
+        for (let i in aggregators) {
+            await StatsController.register_stat(name, value, aggregators[i], min_segment_type);
+        }
+    }
+
+
+    /**
      *
-     * @param name le nom de la stat, avec des . pour gérer les groupes hiérarchiquement
+     * @param name le nom de la stat, avec des . pour gérer les groupes hiérarchiquement. La fonction ajoute automatiquement l'aggrégateur en fin de nom pour éviter les erreurs de duplicate sur des aggrégateurs différents. (donc ne pas mettre l'aggrégateur dans le nom en amont)
      * @param value
      * @param aggregator à choisir parmi les constantes AGGREGATOR_* de StatVO
      * @param min_segment_type à choisir parmi les constantes TYPE_* de TimeSegmentHandler
@@ -28,6 +62,8 @@ export default class StatsController {
         let stat = new StatVO();
         stat.value = value;
         stat.timestamp_s = Dates.now();
+
+        name += StatsController.get_aggregator_extension(aggregator);
 
         /**
          * Si on trouve pas le groupe, on renouvelle d'abord le cache, et on crée au besoin
@@ -57,6 +93,21 @@ export default class StatsController {
         stat.stat_group_id = StatsController.cached_stack_groupes_by_name[name].id;
         StatsController.stacked_registered_stats.push(stat);
         StatsController.throttled_unstack_stats();
+    }
+
+    public static get_aggregator_extension(aggregator: number): string {
+        switch (aggregator) {
+            case StatVO.AGGREGATOR_MEAN:
+                return '.mean';
+            case StatVO.AGGREGATOR_SUM:
+                return '.sum';
+            case StatVO.AGGREGATOR_MIN:
+                return '.min';
+            case StatVO.AGGREGATOR_MAX:
+                return '.max';
+            default:
+                throw new Error('Aggregator inconnu ' + aggregator);
+        }
     }
 
     private static instance: StatsController = null;

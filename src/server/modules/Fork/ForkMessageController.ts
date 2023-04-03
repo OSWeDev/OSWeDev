@@ -49,7 +49,7 @@ export default class ForkMessageController {
             return false;
         }
 
-        await StatsController.register_stat('ForkMessageController.' + ((process && process.pid) ? process.pid + ':' : '') + '.send.' + msg.message_type + '.nb',
+        await StatsController.register_stat('ForkMessageController.' + StatsController.get_thread_name() + '.receive.' + msg.message_type + '.nb',
             1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
         return await this.registered_messages_handlers[msg.message_type](msg, sendHandle);
@@ -80,7 +80,7 @@ export default class ForkMessageController {
 
     public async send(msg: IForkMessage, child_process: ChildProcess = null, forked_target: IFork = null): Promise<boolean> {
 
-        await StatsController.register_stat('ForkMessageController.' + ((process && process.pid) ? process.pid + ':' : '') + '.send.' + msg.message_type + '.nb',
+        await StatsController.register_stat('ForkMessageController.' + StatsController.get_thread_name() + '.send.' + msg.message_type + '.nb',
             1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
         return new Promise((resolve, reject) => {

@@ -219,10 +219,8 @@ export default class VarsComputeController {
 
         await StatsController.register_stat('VarsComputeController.compute.has_node_to_compute_in_this_batch',
             1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        await StatsController.register_stat('VarsComputeController.compute.nb_nodes_per_batch',
-            var_dag.nb_nodes, StatVO.AGGREGATOR_MEAN, TimeSegment.TYPE_MINUTE);
-        await StatsController.register_stat('VarsComputeController.compute.nb_nodes_in_those_batches',
-            var_dag.nb_nodes, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        await StatsController.register_stats('VarsComputeController.compute.nb_nodes_per_batch',
+            var_dag.nb_nodes, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
 
         /**
          * On a l'arbre. On charge les données qui restent à charger
@@ -1186,12 +1184,8 @@ export default class VarsComputeController {
                 }
 
                 if (cache_wrapper.last_insert_or_update == null) {
-                    promises.push(StatsController.register_stat('VarsComputeController.notify_var_data_post_deploy.delay_mean',
-                        Dates.now_ms() - cache_wrapper.creation_date_ms, StatVO.AGGREGATOR_MEAN, TimeSegment.TYPE_MINUTE));
-                    promises.push(StatsController.register_stat('VarsComputeController.notify_var_data_post_deploy.delay_max',
-                        Dates.now_ms() - cache_wrapper.creation_date_ms, StatVO.AGGREGATOR_MAX, TimeSegment.TYPE_MINUTE));
-                    promises.push(StatsController.register_stat('VarsComputeController.notify_var_data_post_deploy.delay_min',
-                        Dates.now_ms() - cache_wrapper.creation_date_ms, StatVO.AGGREGATOR_MIN, TimeSegment.TYPE_MINUTE));
+                    promises.push(StatsController.register_stats('VarsComputeController.notify_var_data_post_deploy.delay',
+                        Dates.now_ms() - cache_wrapper.creation_date_ms, [StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE));
                 }
 
                 await all_promises(promises);

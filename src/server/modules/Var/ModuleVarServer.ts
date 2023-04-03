@@ -1086,8 +1086,8 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
-        await StatsController.register_stat('ModuleVarServer.register_params.nb_registered_varsdatas',
-            params.length, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        await StatsController.register_stats('ModuleVarServer.register_params.nb_params',
+            params.length, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
 
         /**
          * On commence par refuser les params mal construits (champs null)
@@ -1099,7 +1099,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         /**
-         * On check qu'on essaie pas d'ajoute une var avec un maxrange quelque part qui casserait tout
+         * On check qu'on essaie pas d'ajouter une var avec un maxrange quelque part qui casserait tout
          */
         params = params.filter((param) => {
             if (!MatroidController.getInstance().check_bases_not_max_ranges(param)) {
@@ -1113,8 +1113,8 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
-        await StatsController.register_stat('ModuleVarServer.register_params.nb_valid_registered_varsdatas',
-            params.length, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        await StatsController.register_stats('ModuleVarServer.register_params.nb_valid_registered_varsdatas',
+            params.length, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
 
         let uid = StackContext.get('UID');
         let client_tab_id = StackContext.get('CLIENT_TAB_ID');
@@ -1143,8 +1143,8 @@ export default class ModuleVarServer extends ModuleServerBase {
 
             await PushDataServerController.getInstance().notifyVarsDatas(uid, client_tab_id, vars_to_notif);
 
-            await StatsController.register_stat('ModuleVarServer.register_params.nb_cache_notified_varsdatas',
-                notifyable_vars.length, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            await StatsController.register_stats('ModuleVarServer.register_params.nb_cache_notified_varsdatas',
+                notifyable_vars.length, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
 
             if (ConfigurationService.node_configuration.DEBUG_VARS) {
                 for (let i in notifyable_vars) {
