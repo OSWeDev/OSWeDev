@@ -21,6 +21,7 @@ export default class ModuleEvolizAPI extends Module {
     public static APINAME_list_clients: string = "list_clients";
     public static APINAME_create_client: string = "create_client";
     public static APINAME_create_contact_client: string = "create_contact_client";
+    public static APINAME_list_contact_clients: string = "list_contact_clients";
 
     public static MODULE_NAME: string = 'EvolizAPI';
 
@@ -42,6 +43,7 @@ export default class ModuleEvolizAPI extends Module {
     public list_clients: () => Promise<EvolizClientVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_clients);
     public create_client: (client: EvolizClientVO) => Promise<string> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_create_client);
     public create_contact_client: (contact: EvolizContactClientVO) => Promise<string> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_create_contact_client);
+    public list_contact_clients: () => Promise<EvolizContactClientVO[]> = APIControllerWrapper.sah(ModuleEvolizAPI.APINAME_list_contact_clients);
 
     private constructor() {
 
@@ -80,6 +82,12 @@ export default class ModuleEvolizAPI extends Module {
             ModuleEvolizAPI.APINAME_create_contact_client,
             [],
             EvolizContactClientParamStatic
+        ));
+
+        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<null, EvolizContactClientVO[]>(
+            null,
+            ModuleEvolizAPI.APINAME_list_contact_clients,
+            []
         ));
     }
 

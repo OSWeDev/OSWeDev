@@ -1,6 +1,8 @@
 export default class EvolizContactClientVO {
     // ID unique Evoliz (required & non null)
     public clientid: number;
+    // Client
+    public client: { clientid: number, code: string, civility: string, name: string };
     // Nom de famille (required & non null)
     public lastname: string;
     // Email (required & non null)

@@ -73,6 +73,7 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleEvolizAPI.APINAME_list_clients, this.list_clients.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleEvolizAPI.APINAME_create_client, this.create_client.bind(this));
         APIControllerWrapper.getInstance().registerServerApiHandler(ModuleEvolizAPI.APINAME_create_contact_client, this.create_contact_client.bind(this));
+        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleEvolizAPI.APINAME_list_contact_clients, this.list_contact_clients.bind(this));
     }
 
     public async getToken(): Promise<EvolizAPIToken> {
@@ -178,6 +179,16 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
 
         } catch (error) {
             console.error("Erreur: client: " + client.name);
+        }
+    }
+
+    public async list_contact_clients(): Promise<EvolizContactClientVO[]> {
+        try {
+            let contacts: EvolizContactClientVO[] = await this.get_all_pages('/api/v1/contacts-clients') as EvolizContactClientVO[];
+
+            return contacts;
+        } catch (error) {
+            console.error(error);
         }
     }
 
