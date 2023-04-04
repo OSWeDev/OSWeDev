@@ -1498,7 +1498,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'dashboard_viewer.favorites_filters.plan_export.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': "Exproter tous les *:" },
+            { 'fr-fr': "Exporter tous les *:" },
             'dashboard_viewer.favorites_filters.export_frequency_every.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
@@ -1522,7 +1522,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'dashboard_viewer.favorites_filters.start.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': "Filtres favoris sauvé avec success" },
+            { 'fr-fr': "Filtres favoris sauvegardés avec succès" },
             'dashboard_viewer.favorites_filters.ok.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
@@ -1811,6 +1811,22 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Utiliser cette table pour la comptage des valeurs dans les filtres (si activé)" },
             'table_widget_options_component.use_for_count.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Sauvegarder les requêtes en favoris" },
+            'dashboards.widgets.icons_tooltips.savefavoritesfilters.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Voir les requêtes favoris" },
+            'dashboards.widgets.icons_tooltips.showfavoritesfilters.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Nom du filtre" },
+            'show_favorites_filters_widget_component.vo_field_ref.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Nombre maximum d'éléments à afficher" },
+            'show_favorites_filters_widget_component.max_visible_options.___LABEL___'
         ));
 
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
