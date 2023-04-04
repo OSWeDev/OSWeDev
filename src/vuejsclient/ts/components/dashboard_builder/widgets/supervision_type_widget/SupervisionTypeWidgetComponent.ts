@@ -25,6 +25,7 @@ import PromisePipeline from '../../../../../../shared/tools/PromisePipeline/Prom
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
+import ISupervisedItem from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 
 @Component({
     template: require('./SupervisionTypeWidgetComponent.pug'),
@@ -89,13 +90,15 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
 
         if (this.get_active_field_filters && this.get_active_field_filters[SupervisedCategoryVO.API_TYPE_ID]) {
             for (let field_id in this.get_active_field_filters[SupervisedCategoryVO.API_TYPE_ID]) {
+                let field = this.get_active_field_filters[SupervisedCategoryVO.API_TYPE_ID][field_id];
+
                 if (!this.get_active_field_filters[SupervisedCategoryVO.API_TYPE_ID][field_id]) {
                     continue;
                 }
 
                 available_api_type_ids = [];
 
-                let category: SupervisedCategoryVO = this.categorys_by_name[this.get_active_field_filters[SupervisedCategoryVO.API_TYPE_ID][field_id].param_text];
+                let category: SupervisedCategoryVO = this.categorys_by_name[this.get_active_field_filters[SupervisedCategoryVO.API_TYPE_ID][field_id].param_textarray[0]];
 
                 if (!category) {
                     continue;
@@ -122,6 +125,10 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
                         let items_count: number = await query(api_type_id)
                             .using(this.dashboard.api_type_ids)
                             .select_count();
+                        // let first_item: ISupervisedItem = await query(api_type_id)
+                        //     .using(this.dashboard.api_type_ids)
+                        //     .select_vosip();
+                        //     // ajouter une commande pour recuperer le category_id des ISupervisedItem
 
                         if (items_count > 0) {
                             available_api_type_ids.push(api_type_id);
