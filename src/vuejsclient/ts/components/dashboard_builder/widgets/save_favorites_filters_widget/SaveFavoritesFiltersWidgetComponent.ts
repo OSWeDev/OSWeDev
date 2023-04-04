@@ -359,7 +359,6 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
                 continue;
             }
 
-            // let column: TableColumnDescVO = this.columns_by_field_id[field.datatable_field_uid];
             let column: TableColumnDescVO = columns_by_field_id[field.datatable_field_uid];
 
             let aggregator: number = VarConfVO.NO_AGGREGATOR;

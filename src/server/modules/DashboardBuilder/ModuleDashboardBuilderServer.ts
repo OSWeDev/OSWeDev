@@ -26,8 +26,9 @@ import ModuleDataExportServer from '../DataExport/ModuleDataExportServer';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { DashboardBuilderVOFactory } from '../../../shared/modules/DashboardBuilder/factory/DashboardBuilderVOFactory';
 import DashboardWidgetVO from '../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
-import ContextFilterFactory from '../../../shared/modules/ContextFilter/factory/ContextFilterFactory';
+import ContextFilterVOFactory from '../../../shared/modules/ContextFilter/factory/ContextFilterVOFactory';
 import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
+import { IExportParamsProps } from '../../../shared/modules/DashboardBuilder/interfaces/IExportParamsProps';
 
 export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
@@ -1823,6 +1824,8 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
     /**
      * Start Export Datatable Using Favorites Filters
      *
+     * TODO: - Exportable data must have to be created from the backend
+     *
      * @return {Promise<void>}
      */
     public async start_export_datatable_using_favorites_filters(): Promise<void> {
@@ -1835,9 +1838,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             .select_vos<DashboardWidgetVO>();
 
         for (const fav_i in users_favorites_filters) {
-            const favorites_filters = users_favorites_filters[fav_i];
+            const favorites_filters: DashboardFavoritesFiltersVO = users_favorites_filters[fav_i];
 
-            const export_params = favorites_filters.export_params ?? null;
+            const export_params: IExportParamsProps = favorites_filters.export_params ?? null;
 
             // There is no need to process export if there is no export_planned
             // is_export_planned, export_frequency and exportable_data must be sets
@@ -1862,101 +1865,15 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             const export_frequency = export_params.export_frequency;
             const exportable_data = export_params.exportable_data;
 
-            for (const key in widgets) {
-                const widget = widgets[key];
-                const typed_page_widgets = page_widgets.filter((pw) => widget.id === pw.widget_id);
-
-                // Get Default fields filters
-                typed_page_widgets.filter((page_widget: DashboardPageWidgetVO) => {
-                    // page_widget must have json_options to continue
-                    return page_widget.json_options?.length > 0;
-                }).map((page_widget: DashboardPageWidgetVO) => {
-                    const options = JSON.parse(page_widget.json_options ?? '{}');
-
-                    let context_filter: ContextFilterVO = null;
-                    let widget_options: any = null;
-
-                    try {
-                        widget_options = DashboardBuilderVOFactory.create_widget_options_vo_by_name(widget.name, options);
-                    } catch (e) {
-
-                    }
-
-                    // We must have widget_options to keep proceed
-                    if (!widget_options) {
-                        return;
-                    }
-
-                    let vo_field_ref = widget_options?.vo_field_ref ?? null;
-
-                    if (widget_options?.is_vo_field_ref != null) {
-                        vo_field_ref = widget_options?.is_vo_field_ref ? vo_field_ref : {
-                            api_type_id: ContextFilterVO.CUSTOM_FILTERS_TYPE,
-                            field_id: widget_options.custom_filter_name,
-                        };
-                    }
-
-                    context_filter = ContextFilterFactory.create_context_filter_from_widget_options(widget.name, widget_options);
-
-                    // We must transform this ContextFilterVO into { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
-                    if (vo_field_ref && context_filter) {
-                        if (default_field_filters[vo_field_ref.api_type_id]) {
-                            if (default_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id]) {
-                                // We must combine context_filter with each other when needed
-                                // e.g. For date Year and Month widget (this widgets have the same api_type_id and field_id)
-                                const new_constex_filter = ContextFilterHandler.getInstance().add_context_filter_to_tree(
-                                    default_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id],
-                                    context_filter
-                                );
-                                default_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id] = new_constex_filter;
-                            } else {
-                                default_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id] = context_filter;
-                            }
-                        } else {
-                            default_field_filters[vo_field_ref.api_type_id] = {};
-                            default_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id] = context_filter;
-                        }
-                    }
-                });
-            }
-
-            // Merge/replace default_field_filters with favorites_field_filters
-            // Add context fields filters with the default one
-            for (const api_type_id in default_field_filters) {
-                const filters = default_field_filters[api_type_id];
-
-                for (const field_id in filters) {
-                    // the actual filter
-                    const filter = filters[field_id];
-
-                    // Add default context filters
-                    context_field_filters[api_type_id] = context_field_filters[api_type_id] ?? {};
-                    context_field_filters[api_type_id][field_id] = filter;
-                }
-            }
-
-            // Add/Overwrite default filters with the favorites one
-            for (const api_type_id in favorites_field_filters) {
-                const filters = favorites_field_filters[api_type_id];
-
-                for (const field_id in filters) {
-                    // the actual filter
-                    const filter = filters[field_id];
-
-                    context_field_filters[api_type_id] = context_field_filters[api_type_id] ?? {};
-                    context_field_filters[api_type_id][field_id] = filter;
-                }
-            }
-
             // Do I have to export ?
-            let do_export = true; // TODO - change to false for prod
+            let do_export = false;
 
             // Shall export the first time here
             if (!export_params.last_export_at_ts) {
                 do_export = true;
             }
 
-            // Define if the data shall be exported
+            // Define if the data have to be exported
             if (!do_export) {
                 const last_export_at_ts: number = export_params.last_export_at_ts;
                 const now_ts = new Date().getTime();
@@ -2002,7 +1919,97 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
                 continue;
             }
 
+            // Process the export
+            // - Create context field filters and then export
+            for (const key in widgets) {
+                const widget = widgets[key];
+
+                // Get Default fields filters
+                page_widgets.filter((page_widget: DashboardPageWidgetVO) => {
+                    // page_widget must have json_options to continue
+                    return page_widget.widget_id === widget.id &&
+                        page_widget.json_options?.length > 0;
+                }).map((page_widget: DashboardPageWidgetVO) => {
+                    const options = JSON.parse(page_widget.json_options ?? '{}');
+
+                    let context_filter: ContextFilterVO = null;
+                    let widget_options: any = null;
+
+                    try {
+                        widget_options = DashboardBuilderVOFactory.create_widget_options_vo_by_name(widget.name, options);
+                    } catch (e) {
+
+                    }
+
+                    // We must have widget_options to keep proceed
+                    if (!widget_options) {
+                        return;
+                    }
+
+                    let vo_field_ref = widget_options?.vo_field_ref ?? null;
+
+                    if (widget_options?.is_vo_field_ref != null) {
+                        vo_field_ref = widget_options?.is_vo_field_ref ? vo_field_ref : {
+                            api_type_id: ContextFilterVO.CUSTOM_FILTERS_TYPE,
+                            field_id: widget_options.custom_filter_name,
+                        };
+                    }
+
+                    context_filter = ContextFilterVOFactory.create_context_filter_from_widget_options(widget.name, widget_options);
+
+                    // We must transform this ContextFilterVO into { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
+                    if (vo_field_ref && context_filter) {
+                        if (default_field_filters[vo_field_ref.api_type_id]) {
+                            if (default_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id]) {
+                                // We must combine context_filter with each other when needed
+                                // e.g. For date Year and Month widget (this widgets have the same api_type_id and field_id)
+                                const new_constex_filter = ContextFilterHandler.add_context_filter_to_tree(
+                                    default_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id],
+                                    context_filter
+                                );
+                                default_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id] = new_constex_filter;
+                            } else {
+                                default_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id] = context_filter;
+                            }
+                        } else {
+                            default_field_filters[vo_field_ref.api_type_id] = {};
+                            default_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id] = context_filter;
+                        }
+                    }
+                });
+            }
+
+            // Merge/replace default_field_filters with favorites_field_filters
+            // Create context_field_filters with the default one
+            for (const api_type_id in default_field_filters) {
+                const filters = default_field_filters[api_type_id];
+
+                for (const field_id in filters) {
+                    // the actual filter
+                    const filter = filters[field_id];
+
+                    // Add default context filters
+                    context_field_filters[api_type_id] = context_field_filters[api_type_id] ?? {};
+                    context_field_filters[api_type_id][field_id] = filter;
+                }
+            }
+
+            // Add/Overwrite default context_field_filters with the favorites_field_filters one
+            for (const api_type_id in favorites_field_filters) {
+                const filters = favorites_field_filters[api_type_id];
+
+                for (const field_id in filters) {
+                    // the actual filter
+                    const filter = filters[field_id];
+
+                    context_field_filters[api_type_id] = context_field_filters[api_type_id] ?? {};
+                    context_field_filters[api_type_id][field_id] = filter;
+                }
+            }
+
+            // Export all exportable data
             for (const key in exportable_data) {
+                // TODO - This exportable data must have to be created from the backend
                 const xlsx_data: ExportContextQueryToXLSXParamVO = new ExportContextQueryToXLSXParamVO().from(exportable_data[key]);
 
                 // Replace the "{#Date}" placeholder with the current date
