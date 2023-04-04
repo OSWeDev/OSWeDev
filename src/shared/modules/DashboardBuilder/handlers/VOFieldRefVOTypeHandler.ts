@@ -1,5 +1,6 @@
 import ModuleTableField from "../../ModuleTableField";
 import VOsTypesManager from "../../VOsTypesManager";
+import VOFieldRefVO from "../vos/VOFieldRefVO";
 
 /**
  * VO Field Ref VO Type Handler
@@ -7,7 +8,7 @@ import VOsTypesManager from "../../VOsTypesManager";
  */
 export class VOFieldRefVOTypeHandler {
 
-    public static is_type_boolean(vo_field_ref: any): boolean {
+    public static is_type_boolean(vo_field_ref: VOFieldRefVO): boolean {
 
         if ((!vo_field_ref) || (!vo_field_ref.api_type_id) || (!vo_field_ref.field_id)) {
             return false;
@@ -28,7 +29,7 @@ export class VOFieldRefVOTypeHandler {
         }
     }
 
-    public static is_type_enum(vo_field_ref: any): boolean {
+    public static is_type_enum(vo_field_ref: VOFieldRefVO): boolean {
 
         if ((!vo_field_ref) || (!vo_field_ref.api_type_id) || (!vo_field_ref.field_id)) {
             return false;
@@ -49,7 +50,7 @@ export class VOFieldRefVOTypeHandler {
         }
     }
 
-    public static is_type_date(vo_field_ref: any): boolean {
+    public static is_type_date(vo_field_ref: VOFieldRefVO): boolean {
 
         if ((!vo_field_ref) || (!vo_field_ref.api_type_id) || (!vo_field_ref.field_id)) {
             return false;
@@ -73,7 +74,7 @@ export class VOFieldRefVOTypeHandler {
         }
     }
 
-    public static is_type_string(vo_field_ref: any): boolean {
+    public static is_type_string(vo_field_ref: VOFieldRefVO): boolean {
 
         if ((!vo_field_ref) || (!vo_field_ref.api_type_id) || (!vo_field_ref.field_id)) {
             return false;
@@ -135,7 +136,7 @@ export class VOFieldRefVOTypeHandler {
         }
     }
 
-    public static is_type_number(vo_field_ref: any): boolean {
+    public static is_type_number(vo_field_ref: VOFieldRefVO): boolean {
 
         if ((!vo_field_ref) || (!vo_field_ref.api_type_id) || (!vo_field_ref.field_id)) {
             return false;
