@@ -125,10 +125,11 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
                         let items_count: number = await query(api_type_id)
                             .using(this.dashboard.api_type_ids)
                             .select_count();
-                        // let first_item: ISupervisedItem = await query(api_type_id)
+
+                        // TODO manifestement on ne filtre pas selon la/les category => en plus du count  si > 0 il faut recuperer 1 elem pour filtre selon category_id
+                        // let first_item: ISupervisedItem[] = await query(api_type_id)
                         //     .using(this.dashboard.api_type_ids)
-                        //     .select_vosip();
-                        //     // ajouter une commande pour recuperer le category_id des ISupervisedItem
+                        //     .select_vos();
 
                         if (items_count > 0) {
                             available_api_type_ids.push(api_type_id);
