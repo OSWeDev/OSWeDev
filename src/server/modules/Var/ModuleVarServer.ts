@@ -21,7 +21,6 @@ import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
-import StatsController from '../../../shared/modules/Stats/StatsController';
 import StatVO from '../../../shared/modules/Stats/vos/StatVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
@@ -63,6 +62,7 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
+import StatsServerController from '../Stats/StatsServerController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import DataSourcesController from './datasource/DataSourcesController';
@@ -426,6 +426,17 @@ export default class ModuleVarServer extends ModuleServerBase {
              * api_type_id => les vos des datasources
              */
             for (let api_type_id in VarsServerController.getInstance().registered_vars_controller_by_api_type_id) {
+
+
+                /**
+                 * On isole un cas, celui des stats qui ne doivent pas invalider les caches pour des raisons de perfs, et
+                 *  on invalide directement dans le module stats via un bgthread qui invalide par intersection toutes les perfs
+                 *  de la minute précédente et de la minute en cours toutes les 30 secondes par exemple indépendemment des
+                 *  modifications de données
+                 */
+                if (api_type_id == StatVO.API_TYPE_ID) {
+                    continue;
+                }
 
                 postCTrigger.registerHandler(api_type_id, this, this.invalidate_var_cache_from_vo_cd);
                 postUTrigger.registerHandler(api_type_id, this, this.invalidate_var_cache_from_vo_u);
@@ -1165,7 +1176,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
-        await StatsController.register_stats('ModuleVarServer.register_params.nb_params',
+        StatsServerController.register_stats('ModuleVarServer.register_params.nb_params',
             params.length, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
 
         /**
@@ -1192,7 +1203,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
-        await StatsController.register_stats('ModuleVarServer.register_params.nb_valid_registered_varsdatas',
+        StatsServerController.register_stats('ModuleVarServer.register_params.nb_valid_registered_varsdatas',
             params.length, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
 
         let uid = StackContext.get('UID');
@@ -1222,7 +1233,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
             await PushDataServerController.getInstance().notifyVarsDatas(uid, client_tab_id, vars_to_notif);
 
-            await StatsController.register_stats('ModuleVarServer.register_params.nb_cache_notified_varsdatas',
+            StatsServerController.register_stats('ModuleVarServer.register_params.nb_cache_notified_varsdatas',
                 notifyable_vars.length, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
 
             if (ConfigurationService.node_configuration.DEBUG_VARS) {

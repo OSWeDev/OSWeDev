@@ -1,4 +1,3 @@
-import { performance } from 'perf_hooks';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MatroidController from '../../../../shared/modules/Matroid/MatroidController';
@@ -24,7 +23,6 @@ import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ForkedTasksController from '../../Fork/ForkedTasksController';
 import SlowVarKiHandler from '../SlowVarKi/SlowVarKiHandler';
 import VarDagPerfsServerController from '../VarDagPerfsServerController';
-import VarsCacheController from '../VarsCacheController';
 import VarsComputeController from '../VarsComputeController';
 import VarsDatasProxy from '../VarsDatasProxy';
 import VarsDatasVoUpdateHandler from '../VarsDatasVoUpdateHandler';

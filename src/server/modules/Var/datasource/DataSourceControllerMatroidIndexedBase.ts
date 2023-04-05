@@ -1,8 +1,8 @@
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
-import StatsController from '../../../../shared/modules/Stats/StatsController';
 import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
 import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
+import StatsServerController from '../../Stats/StatsServerController';
 import VarsdatasComputerBGThread from '../bgthreads/VarsdatasComputerBGThread';
 import DataSourceControllerBase from './DataSourceControllerBase';
 
@@ -25,9 +25,9 @@ export default abstract class DataSourceControllerMatroidIndexedBase extends Dat
      */
     public async load_node_data(node: VarDAGNode) {
 
-        await StatsController.register_stat('DataSources.' + node.var_data.var_id + '.load_node_data.nb',
+        StatsServerController.register_stat('DataSources.' + node.var_data.var_id + '.load_node_data.nb',
             1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        await StatsController.register_stat('DataSourceControllerMatroidIndexedBase.' + node.var_data.var_id + '.load_node_data.nb',
+        StatsServerController.register_stat('DataSourceControllerMatroidIndexedBase.' + node.var_data.var_id + '.load_node_data.nb',
             1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
         if (typeof node.datasources[this.name] !== 'undefined') {
@@ -41,9 +41,9 @@ export default abstract class DataSourceControllerMatroidIndexedBase extends Dat
         let data_index: string = this.get_data_index(node.var_data) as string;
         if (typeof VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][data_index] === 'undefined') {
 
-            await StatsController.register_stat('DataSources.' + node.var_data.var_id + '.get_data.nb',
+            StatsServerController.register_stat('DataSources.' + node.var_data.var_id + '.get_data.nb',
                 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-            await StatsController.register_stat('DataSourceControllerMatroidIndexedBase.' + node.var_data.var_id + '.get_data.nb',
+            StatsServerController.register_stat('DataSourceControllerMatroidIndexedBase.' + node.var_data.var_id + '.get_data.nb',
                 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
             let data = await this.get_data(node.var_data);

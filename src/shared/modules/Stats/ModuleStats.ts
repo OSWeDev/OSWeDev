@@ -76,7 +76,7 @@ export default class ModuleStats extends Module {
 
     private initializeStatsGroupVO() {
 
-        let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom du groupe', true).unique();
+        let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom du groupe', true).unique(true);
         let fields = [
             name_field,
 

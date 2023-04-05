@@ -35,7 +35,6 @@ import ModuleMaintenance from '../shared/modules/Maintenance/ModuleMaintenance';
 import ModulesManager from '../shared/modules/ModulesManager';
 import ModuleParams from '../shared/modules/Params/ModuleParams';
 import ModulePushData from '../shared/modules/PushData/ModulePushData';
-import StatsController from '../shared/modules/Stats/StatsController';
 import StatVO from '../shared/modules/Stats/vos/StatVO';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
 import ConsoleHandler from '../shared/tools/ConsoleHandler';
@@ -58,6 +57,7 @@ import ForkServerController from './modules/Fork/ForkServerController';
 import MaintenanceServerController from './modules/Maintenance/MaintenanceServerController';
 import ModuleServiceBase from './modules/ModuleServiceBase';
 import PushDataServerController from './modules/PushData/PushDataServerController';
+import StatsServerController from './modules/Stats/StatsServerController';
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
 // import { createTerminus } from '@godaddy/terminus';
 import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
@@ -155,19 +155,19 @@ export default abstract class ServerBase {
 
         let pgp: pg_promise.IMain = pg_promise({
             async connect(client, dc, useCount) {
-                await StatsController.register_stat('ServerBase.PGP.connect',
+                StatsServerController.register_stat('ServerBase.PGP.connect',
                     1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
             },
             async disconnect(client, dc) {
-                await StatsController.register_stat('ServerBase.PGP.disconnect',
+                StatsServerController.register_stat('ServerBase.PGP.disconnect',
                     1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
             },
             async query(e) {
-                await StatsController.register_stat('ServerBase.PGP.query',
+                StatsServerController.register_stat('ServerBase.PGP.query',
                     1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
             },
             async error(e) {
-                await StatsController.register_stat('ServerBase.PGP.error',
+                StatsServerController.register_stat('ServerBase.PGP.error',
                     1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                 ConsoleHandler.error('ServerBase.PGP.error: ' + JSON.stringify(e));
             },
@@ -270,15 +270,15 @@ export default abstract class ServerBase {
             //     .replace(/[:.]/g, '')
             //     .replace(/\//g, '_');
 
-            await StatsController.register_stats('express.' + method + '.' + status,
+            StatsServerController.register_stats('express.' + method + '.' + status,
                 time, [StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
 
             if (status >= 500) {
-                await StatsController.register_stat('express.' + method + '.' + status,
+                StatsServerController.register_stat('express.' + method + '.' + status,
                     1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                 ConsoleHandler.error(log);
             } else if (status >= 400) {
-                await StatsController.register_stat('express.' + method + '.' + status,
+                StatsServerController.register_stat('express.' + method + '.' + status,
                     1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                 ConsoleHandler.warn(log);
             } else {
@@ -293,7 +293,7 @@ export default abstract class ServerBase {
                     ServerBase.SLOW_EXPRESS_QUERY_LIMIT_MS_PARAM_NAME, 1000, 60000
                 );
                 if (time > slow_queries_limit) {
-                    await StatsController.register_stat('express.' + method + '.' + status + '.slow',
+                    StatsServerController.register_stat('express.' + method + '.' + status + '.slow',
                         1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                 }
             }

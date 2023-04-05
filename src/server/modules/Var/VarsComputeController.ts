@@ -7,7 +7,6 @@ import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
-import StatsController from '../../../shared/modules/Stats/StatsController';
 import StatVO from '../../../shared/modules/Stats/vos/StatVO';
 import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
 import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
@@ -25,6 +24,7 @@ import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeli
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ConfigurationService from '../../env/ConfigurationService';
+import StatsServerController from '../Stats/StatsServerController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import DataSourcesController from './datasource/DataSourcesController';
@@ -217,9 +217,9 @@ export default class VarsComputeController {
             return;
         }
 
-        await StatsController.register_stat('VarsComputeController.compute.has_node_to_compute_in_this_batch',
+        StatsServerController.register_stat('VarsComputeController.compute.has_node_to_compute_in_this_batch',
             1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        await StatsController.register_stats('VarsComputeController.compute.nb_nodes_per_batch',
+        StatsServerController.register_stats('VarsComputeController.compute.nb_nodes_per_batch',
             var_dag.nb_nodes, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
 
         /**
@@ -1168,31 +1168,25 @@ export default class VarsComputeController {
             let cache_wrapper = VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes ? VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes[var_dag_node.var_data.index] : null;
             if (cache_wrapper) {
 
-                let promises = [];
-
                 if (cache_wrapper.is_server_request) {
-                    promises.push(StatsController.register_stat('VarsComputeController.notify_var_data_post_deploy.nb_solved_server_requests',
-                        1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE));
+                    StatsServerController.register_stat('VarsComputeController.notify_var_data_post_deploy.nb_solved_server_requests',
+                        1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                 }
                 if (cache_wrapper.client_tab_id) {
-                    promises.push(StatsController.register_stat('VarsComputeController.notify_var_data_post_deploy.nb_solved_client_requests',
-                        1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE));
+                    StatsServerController.register_stat('VarsComputeController.notify_var_data_post_deploy.nb_solved_client_requests',
+                        1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                 }
                 if ((!cache_wrapper.client_tab_id) && (!cache_wrapper.is_server_request)) {
-                    promises.push(StatsController.register_stat('VarsComputeController.notify_var_data_post_deploy.nb_solved_noclientnoserver_requests',
-                        1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE));
+                    StatsServerController.register_stat('VarsComputeController.notify_var_data_post_deploy.nb_solved_noclientnoserver_requests',
+                        1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                 }
 
                 if (cache_wrapper.last_insert_or_update == null) {
-                    promises.push(StatsController.register_stats('VarsComputeController.notify_var_data_post_deploy.delay',
-                        Dates.now_ms() - cache_wrapper.creation_date_ms, [StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE));
+                    StatsServerController.register_stats('VarsComputeController.notify_var_data_post_deploy.delay',
+                        Dates.now_ms() - cache_wrapper.creation_date_ms, [StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
                 }
-
-                await all_promises(promises);
             }
-
         }
-
     }
 
     /**
