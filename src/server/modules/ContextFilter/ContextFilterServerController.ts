@@ -2391,7 +2391,9 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numranges && active_field_filter.param_numranges.length) {
                             let dows: number[] = [];
 
-                            RangeHandler.foreach_ranges_sync(active_field_filter.param_numranges, (dow) => dows.push(dow));
+                            RangeHandler.foreach_ranges_sync(active_field_filter.param_numranges, (dow) => {
+                                dows.push(dow);
+                            });
                             if ((!dows) || (!dows.length)) {
                                 break;
                             }
@@ -2415,7 +2417,10 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numranges && active_field_filter.param_numranges.length) {
                             let years: number[] = [];
 
-                            RangeHandler.foreach_ranges_sync(active_field_filter.param_numranges, (year) => years.push(year));
+                            RangeHandler.foreach_ranges_sync(active_field_filter.param_numranges, (year) => {
+                                years.push(year);
+                            });
+
                             if ((!years) || (!years.length)) {
                                 break;
                             }
@@ -2440,7 +2445,10 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numranges && active_field_filter.param_numranges.length) {
                             let years: number[] = [];
 
-                            RangeHandler.foreach_ranges_sync(active_field_filter.param_numranges, (year) => years.push(year));
+                            RangeHandler.foreach_ranges_sync(active_field_filter.param_numranges, (year) => {
+                                years.push(year);
+                            });
+
                             if ((!years) || (!years.length)) {
                                 break;
                             }
@@ -2465,7 +2473,10 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numranges && active_field_filter.param_numranges.length) {
                             let years: number[] = [];
 
-                            RangeHandler.foreach_ranges_sync(active_field_filter.param_numranges, (year) => years.push(year));
+                            RangeHandler.foreach_ranges_sync(active_field_filter.param_numranges, (year) => {
+                                years.push(year);
+                            });
+
                             if ((!years) || (!years.length)) {
                                 break;
                             }
@@ -2494,7 +2505,10 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numranges && active_field_filter.param_numranges.length) {
                             let months: number[] = [];
 
-                            RangeHandler.foreach_ranges_sync(active_field_filter.param_numranges, (month) => months.push(month));
+                            RangeHandler.foreach_ranges_sync(active_field_filter.param_numranges, (month) => {
+                                months.push(month);
+                            });
+
                             if ((!months) || (!months.length)) {
                                 break;
                             }
@@ -3048,7 +3062,14 @@ export default class ContextFilterServerController {
             case ContextFilterVO.TYPE_TEXT_STARTSWITH_ALL:
             case ContextFilterVO.TYPE_TEXT_ENDSWITH_ALL:
 
-
+            case ContextFilterVO.TYPE_MINUTE_INTERSECTS:
+            case ContextFilterVO.TYPE_MINUTE_EQUALS:
+            case ContextFilterVO.TYPE_MINUTE_INCLUDES:
+            case ContextFilterVO.TYPE_MINUTE_IS_INCLUDED_IN:
+            case ContextFilterVO.TYPE_SECOND_INTERSECTS:
+            case ContextFilterVO.TYPE_SECOND_EQUALS:
+            case ContextFilterVO.TYPE_SECOND_INCLUDES:
+            case ContextFilterVO.TYPE_SECOND_IS_INCLUDED_IN:
 
             case ContextFilterVO.TYPE_DATE_DOM:
             case ContextFilterVO.TYPE_DATE_WEEK:

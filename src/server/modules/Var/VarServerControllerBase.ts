@@ -170,7 +170,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
         /**
          * On peut pas les mettre en // ?
          */
-        let limit = ConfigurationService.node_configuration.MAX_POOL / 3;
+        let limit = ConfigurationService.node_configuration ? ConfigurationService.node_configuration.MAX_POOL / 3 : 10;
         let promise_pipeline = new PromisePipeline(limit);
 
         for (let k in c_or_d_vos) {
@@ -199,7 +199,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
         /**
          * On peut pas les mettre en // ?
          */
-        let limit = ConfigurationService.node_configuration.MAX_POOL / 3;
+        let limit = ConfigurationService.node_configuration ? ConfigurationService.node_configuration.MAX_POOL / 3 : 10;
         let promise_pipeline = new PromisePipeline(limit);
 
         for (let k in u_vo_holders) {

@@ -62,9 +62,9 @@ describe('VarsImportsHandler', () => {
 
         FakeDataHandler.initializeFakeDataVO();
 
-        let var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
-        let var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B();
-        let var_data_C: FakeDataVO = FakeDataHandler.get_var_data_C();
+        let var_data_C: FakeDataVO = FakeDataHandler.get_var_data_A_A3(); // 3
+        let var_data_B: FakeDataVO = FakeDataHandler.get_var_data_A_A2(); // 2
+        let var_data_A: FakeDataVO = FakeDataHandler.get_var_data_C(); // 1
 
         expect(VarsImportsHandler.getInstance()['sort_matroids_per_cardinal_desc'](var_data_A, var_data_B)).to.be.gte(1);
         expect(VarsImportsHandler.getInstance()['sort_matroids_per_cardinal_desc'](var_data_A, var_data_A)).to.equal(0);
@@ -85,10 +85,10 @@ describe('VarsImportsHandler', () => {
          * C dans F et indépendant de E et B
          * card C > card B
          */
-        let var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B();
+        let var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B(); // 2020-02-01 2 TYPE_MONTH
         let var_data_E: FakeDataVO = FakeDataHandler.get_var_data_E();
-        let var_data_F: FakeDataVO = FakeDataHandler.get_var_data_F();
-        let var_data_C: FakeDataVO = FakeDataHandler.get_var_data_C();
+        let var_data_F: FakeDataVO = FakeDataHandler.get_var_data_F(); // 2020-02-01 4 TYPE_ROLLING_YEAR_MONTH_START
+        let var_data_C: FakeDataVO = FakeDataHandler.get_var_data_C(); // 2020-03-01 2 TYPE_MONTH
 
         expect(VarsImportsHandler.getInstance().get_selection_imports([var_data_B, var_data_E], var_data_B)).to.deep.equal([var_data_B]);
         expect(VarsImportsHandler.getInstance().get_selection_imports([var_data_E], var_data_B)).to.deep.equal([var_data_E]);

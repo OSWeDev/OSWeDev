@@ -100,6 +100,18 @@ export default class FakeDataHandler {
         return var_data;
     }
 
+    public static get_var_data_A_A3(): FakeDataVO {
+        let var_data: FakeDataVO = new FakeDataVO();
+        var_data.var_id = 1;
+        var_data.ts_ranges = [
+            RangeHandler.create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY),
+            RangeHandler.create_single_elt_TSRange(moment('2020-05-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY),
+            RangeHandler.create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY)
+        ];
+        let a = var_data.index;
+        return var_data;
+    }
+
     public static get_var_data_B(): FakeDataVO {
         let var_data: FakeDataVO = new FakeDataVO();
         var_data.var_id = 2;

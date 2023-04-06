@@ -34,6 +34,11 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
     public async configure() {
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Graphique de var - Donut, Jauge ou Camembert'
+        }, 'dashboards.widgets.icons_tooltips.varpiechart.___LABEL___'));
+
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Cliquer pour éditer'
         }, 'table_widget_kanban_component.edit_card.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
@@ -1002,6 +1007,21 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Jour'
         }, 'VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.2.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Semaine'
+        }, 'VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.3.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Année glissante'
+        }, 'VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.4.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Heure'
+        }, 'VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.5.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Minute'
+        }, 'VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.6.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Seconde'
+        }, 'VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.7.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Enregistrement en cours...'

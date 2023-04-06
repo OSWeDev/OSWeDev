@@ -239,7 +239,7 @@ export default class VarsDatasVoUpdateHandler {
         let intersectors_by_index: { [index: string]: VarDataBaseVO } = await this.init_leaf_intersectors(vo_types, vos_update_buffer, vos_create_or_delete_buffer);
         let solved_invalidators_by_index: { [conf_id: string]: VarDataInvalidatorVO } = {};
 
-        let max = Math.max(ConfigurationService.node_configuration.MAX_POOL / 2, 1);
+        let max = ConfigurationService.node_configuration ? Math.max(ConfigurationService.node_configuration.MAX_POOL / 2, 1) : 10;
         let promise_pipeline = new PromisePipeline(max);
         for (let i in intersectors_by_index) {
             let intersector = intersectors_by_index[i];
@@ -1431,28 +1431,6 @@ export default class VarsDatasVoUpdateHandler {
     }
 
     /**
-     * L'idée est de noter les noeuds de l'arbre en partant des noeuds de base (ctrls_to_update_1st_stage) et en remontant dans l'arbre en
-     *  indiquant un +1 sur chaque noeud. Ce marqueur est utlisé par le suite pour savoir les dépendances en attente ou résolues
-     * @param ctrls_to_update_1st_stage
-     * @param markers
-     */
-    private async init_markers(ctrls_to_update_1st_stage: { [var_id: number]: VarServerControllerBase<VarDataBaseVO> }, markers: { [var_id: number]: number }) {
-        for (let i in ctrls_to_update_1st_stage) {
-            let ctrl = ctrls_to_update_1st_stage[i];
-
-            await DAGController.getInstance().visit_bottom_up_from_node(
-                VarCtrlDAGNode.getInstance(VarsServerController.getInstance().varcontrollers_dag, ctrl),
-                async (node: VarCtrlDAGNode) => {
-                    let controller = node.var_controller;
-                    if (!markers[controller.varConf.id]) {
-                        markers[controller.varConf.id] = 0;
-                    }
-                    markers[controller.varConf.id]++;
-                });
-        }
-    }
-
-    /**
      * Pour chaque vo_type, on prend tous les varcontrollers concernés et on demande les intersecteurs en CD et en U
      */
     private async init_leaf_intersectors(
@@ -1479,7 +1457,7 @@ export default class VarsDatasVoUpdateHandler {
 
                 if ((!!vos_create_or_delete_buffer[vo_type]) && vos_create_or_delete_buffer[vo_type].length) {
 
-                    if (ConfigurationService.node_configuration.DEBUG_VARS) {
+                    if (ConfigurationService.node_configuration && ConfigurationService.node_configuration.DEBUG_VARS) {
                         ConsoleHandler.log(
                             'init_leaf_intersectors:get_invalid_params_intersectors_on_POST_C_POST_D_group:' +
                             var_controller.varConf.id + ':' + var_controller.varConf.name + ':' + vos_create_or_delete_buffer[vo_type].length);
@@ -1493,7 +1471,7 @@ export default class VarsDatasVoUpdateHandler {
 
                 if ((!!vos_update_buffer[vo_type]) && vos_update_buffer[vo_type].length) {
 
-                    if (ConfigurationService.node_configuration.DEBUG_VARS) {
+                    if (ConfigurationService.node_configuration && ConfigurationService.node_configuration.DEBUG_VARS) {
                         ConsoleHandler.log(
                             'init_leaf_intersectors:get_invalid_params_intersectors_on_POST_U_group:' +
                             var_controller.varConf.id + ':' + var_controller.varConf.name + ':' + vos_update_buffer[vo_type].length);

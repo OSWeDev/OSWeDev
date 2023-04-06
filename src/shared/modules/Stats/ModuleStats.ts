@@ -65,7 +65,7 @@ export default class ModuleStats extends Module {
         let fields = [
             stat_group_id,
             new ModuleTableField('value', ModuleTableField.FIELD_TYPE_float, 'Valeur', true, true, 0),
-            new ModuleTableField('timestamp_s', ModuleTableField.FIELD_TYPE_tstz, 'Timestamp (sec)', true, true, 0),
+            new ModuleTableField('timestamp_s', ModuleTableField.FIELD_TYPE_tstz, 'Timestamp (sec)', true, true, 0).set_segmentation_type(TimeSegment.TYPE_SECOND).set_format_localized_time(true),
         ];
 
         let table = new ModuleTable(this, StatVO.API_TYPE_ID, () => new StatVO(), fields, null, 'Stats');

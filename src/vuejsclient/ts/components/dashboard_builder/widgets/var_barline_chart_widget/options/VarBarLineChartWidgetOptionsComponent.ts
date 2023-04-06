@@ -90,6 +90,9 @@ export default class VarBarLineChartWidgetOptionsComponent extends VueComponentB
         this.label('VarBarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_YEAR),
         this.label('VarBarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_MONTH),
         this.label('VarBarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_DAY),
+        this.label('VarBarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_HOUR),
+        this.label('VarBarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_MINUTE),
+        this.label('VarBarLineChartWidgetOptionsComponent.dimension_custom_filter_segment_types.' + TimeSegment.TYPE_SECOND),
     ];
 
     private legend_positions: string[] = [

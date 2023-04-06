@@ -3225,6 +3225,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return vo;
     }
 
+    /**
+     * @deprecated prefer context queries
+     * @param API_TYPE_ID
+     * @param id
+     * @param segmentation_ranges
+     * @returns
+     */
     private async getVoById<T extends IDistantVOBase>(
         API_TYPE_ID: string,
         id: number,

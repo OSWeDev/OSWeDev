@@ -172,12 +172,17 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                 // tentative de faire un dégradé automatique de couleur pour les dimensions.
                 // à voir comment on peut proposer de paramétrer cette partie
                 let colors = [];
-                let base_color = '';
+                let base_color = null;
                 let is_rbga = false;
-                if (this.widget_options.bg_color_1.startsWith('#')) {
+                if (this.widget_options.bg_color_1 && this.widget_options.bg_color_1.startsWith('#')) {
                     base_color = this.widget_options.bg_color_1;
-                } else if (this.widget_options.bg_color_1.startsWith('rgb(')) {
+                } else if (this.widget_options.bg_color_1 && this.widget_options.bg_color_1.startsWith('rgb(')) {
                     base_color = 'rgba(' + this.widget_options.bg_color_1.substring(4, this.widget_options.bg_color_1.length - 2);
+                    is_rbga = true;
+                }
+
+                if (!base_color) {
+                    base_color = 'rgba(0,0,0';
                     is_rbga = true;
                 }
 

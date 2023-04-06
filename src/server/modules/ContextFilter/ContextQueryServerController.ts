@@ -1356,6 +1356,7 @@ export default class ContextQueryServerController {
 
             if (!loaded) {
                 loaded = true;
+
                 uid = StackContext.get('UID');
                 user = await ModuleAccessPolicyServer.getInstance().getSelfUser();
                 user_roles_by_role_id = AccessPolicyServerController.getInstance().getUsersRoles(true, uid);

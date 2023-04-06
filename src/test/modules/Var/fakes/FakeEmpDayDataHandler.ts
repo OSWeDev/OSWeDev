@@ -62,6 +62,18 @@ export default class FakeEmpDayDataHandler {
         return var_data;
     }
 
+    public static get_data_A_day(): FakeEmpDayDataVO {
+        let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
+        var_data.var_id = 2;
+        var_data.ts_ranges = [
+            RangeHandler.create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day').unix(), TimeSegment.TYPE_DAY)
+        ];
+        var_data.employee_id_ranges = [NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT)];
+        let a = var_data.index;
+        return var_data;
+    }
+
+
     public static get_data_A(): FakeEmpDayDataVO {
         let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
         var_data.var_id = 2;
