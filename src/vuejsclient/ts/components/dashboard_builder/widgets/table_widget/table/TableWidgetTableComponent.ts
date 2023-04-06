@@ -1781,7 +1781,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                     options.use_kanban_by_default_if_exists,
                     options.use_kanban_column_weight_if_exists,
                     options.use_for_count,
-                    options.archive_button,,
+                    options.archive_button,
                     options.show_bulk_edit,
                     options.cb_bulk_actions,
                     options.show_bulk_select_all,
