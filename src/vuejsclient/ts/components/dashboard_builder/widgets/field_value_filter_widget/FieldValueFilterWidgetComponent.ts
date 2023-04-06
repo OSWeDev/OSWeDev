@@ -256,6 +256,9 @@ export default class FieldValueFilterWidgetComponent extends VueComponentBase {
                     options.show_count_value,
                     options.active_field_on_autovalidate_advanced_filter,
                     options.force_filter_all_api_type_ids,
+                    options.bg_color,
+                    options.fg_color_value,
+                    options.fg_color_text,
                 ) : null;
             }
         } catch (error) {

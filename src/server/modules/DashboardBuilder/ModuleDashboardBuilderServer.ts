@@ -356,6 +356,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Masquer le filtre" },
             'month_filter_widget_component.hide_filter.___LABEL___'
         ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher Option Selectionner Tout" },
+            'month_filter_widget_component.can_select_all_option.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Selectionner Tout" },
+            'month_filter_widget_component.select_all.___LABEL___'
+        ));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Copie du tableau de bord en cours...'
@@ -503,6 +511,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Année maximale'
         }, 'year_filter_widget_component.max_year.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher Option Selectionner Tout" },
+            'year_filter_widget_component.can_select_all_option.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Selectionner Tout" },
+            'year_filter_widget_component.select_all.___LABEL___'
+        ));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Sélectionner un Dashboard...'
@@ -1384,6 +1400,18 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'field_value_filter_widget_component.add_is_null_selectable.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Couleur du fond" },
+            'field_value_filter_widget_component.bg_color.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Couleur de la valeur" },
+            'field_value_filter_widget_component.fg_color_value.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Couleur du texte" },
+            'field_value_filter_widget_component.fg_color_text.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Non renseigné" },
             'datafilteroption.is_null.___LABEL___'
         ));
@@ -1673,6 +1701,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Afficher Bulk Edit" },
             'supervision_widget_options_component.show_bulk_edit.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher Option Selectionner Tout" },
+            'field_value_filter_widget_component.can_select_all_option.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Afficher Option Selectionner Aucun" },
+            'field_value_filter_widget_component.can_select_none_option.___LABEL___'
         ));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(

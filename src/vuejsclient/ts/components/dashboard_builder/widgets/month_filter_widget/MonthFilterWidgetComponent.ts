@@ -51,6 +51,12 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
 
     private selected_months: { [month: number]: boolean } = {};
 
+    // Is All Months Selected Toggle Button
+    // - Shall be highlight or true when selected_months empty
+    // - Shall be false when selected_months has at least one selected
+    private is_all_months_selected: boolean = false;
+    private force_selected_months_reset: boolean = false;
+
     private auto_select_month: boolean = null;
     private auto_select_month_relative_mode: boolean = null;
     private auto_select_month_min: number = null;
@@ -64,16 +70,36 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
             pwid: this.page_widget.id,
             page_widget_component: this
         });
-        // TODO: load selected_months from the context store
     }
 
     /**
-     * Handle toggle slected month
-     *  - Happen when we click on toggle month button
+     * Handle toggle selected month
+     *  - Called when we click on toggle month button
      * @param i index in selected month array
      */
-    private handle_toggle_slected_month(i: string) {
+    private handle_toggle_selected_month(i: string) {
         Vue.set(this.selected_months, i, !this.selected_months[i]);
+
+        if (!(Object.keys(this.selected_months)?.length > 0)) {
+            // if there is no selected_months
+            this.is_all_months_selected = true;
+        } else {
+            this.is_all_months_selected = false;
+        }
+    }
+
+    /**
+     * Handle Toggle Select All
+     *  - Called when we click on toggle select all
+     */
+    private handle_toggle_select_all() {
+        this.is_all_months_selected = !this.is_all_months_selected;
+
+        if (this.is_all_months_selected) {
+            // If is all months selected reset selected_months
+            this.selected_months = {};
+            this.force_selected_months_reset = true;
+        }
     }
 
     get vo_field_ref_label(): string {
@@ -101,7 +127,8 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
     }
 
     /**
-     * computed widget_options
+     * Computed widget options
+     *  - Called on component|widget creation
      * @returns MonthFilterWidgetOptions
      */
     get widget_options(): MonthFilterWidgetOptions {
@@ -114,10 +141,21 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
             if (!!this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as MonthFilterWidgetOptions;
                 options = options ? new MonthFilterWidgetOptions(
-                    options.is_vo_field_ref, options.vo_field_ref, options.custom_filter_name, options.month_relative_mode,
-                    options.min_month, options.max_month, options.auto_select_month, options.auto_select_month_relative_mode,
-                    options.auto_select_month_min, options.auto_select_month_max, options.is_relative_to_other_filter, options.relative_to_other_filter_id,
-                    options.hide_filter) : null;
+                    options.is_vo_field_ref,
+                    options.vo_field_ref,
+                    options.custom_filter_name,
+                    options.month_relative_mode,
+                    options.min_month,
+                    options.max_month,
+                    options.auto_select_month,
+                    options.auto_select_month_relative_mode,
+                    options.auto_select_month_min,
+                    options.auto_select_month_max,
+                    options.is_relative_to_other_filter,
+                    options.relative_to_other_filter_id,
+                    options.hide_filter,
+                    options.can_select_all,
+                ) : null;
             }
         } catch (error) {
             ConsoleHandler.error(error);
@@ -128,7 +166,7 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
 
     /**
      * Watch on widget_options
-     *  - Shall happen first on component init
+     *  - Shall happen first on component init or each time widget_options changes
      *  - Initialize the selected_months with default widget options
      * @returns void
      */
@@ -293,9 +331,9 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
     }
 
     /**
-     * Watch on select changes
-     *  - Happen each time the selected_months changes
-     *  - This initialize the context store on first call
+     * Watch on selected_months
+     *  - Called each time the selected_months changes
+     *  - This (re)initialize the context store on each call
      * @returns void
      */
     @Watch('selected_months', { immediate: true, deep: true })
@@ -306,15 +344,19 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
             if (!this.vo_field_ref) {
                 return null;
             }
-            root_context_filter = this.get_active_field_filters[this.vo_field_ref.api_type_id] ? this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id] : null;
+            root_context_filter = this.get_active_field_filters[this.vo_field_ref.api_type_id] ?
+                this.get_active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id] :
+                null;
         } else {
             if (!this.custom_filter_name) {
                 return null;
             }
-            root_context_filter = this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] ? this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.custom_filter_name] : null;
+            root_context_filter = this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE] ?
+                this.get_active_field_filters[ContextFilterVO.CUSTOM_FILTERS_TYPE][this.custom_filter_name] :
+                null;
         }
 
-        // (on initialization) if context exist and range exist overwrite selected_range
+        // (on initialization) if context exist and selected_months exist overwrite months_range
         let months_ranges: NumRange[] = [];
         for (let i in this.selected_months) {
             if (!this.selected_months[i]) {
@@ -335,7 +377,7 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
         /**
          * Si on a pas de contextfilter actuellement et qu'on a pas besoin d'en avoir, inutile de continuer
          */
-        if ((!context_filter) && ((!months_ranges) || (!months_ranges.length))) {
+        if ((!context_filter) && (!(months_ranges?.length > 0))) {
             return;
         }
 
@@ -374,9 +416,9 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
         }
 
         /**
-         * Si on a un contextfilter et qu'on en a plus besoin on le supprime
+         * Si on a un context_filter et qu'on en a plus besoin on le supprime
          */
-        if ((!!context_filter) && ((!months_ranges) || (!months_ranges.length))) {
+        if ((!!context_filter) && (!this.force_selected_months_reset) && (!(months_ranges?.length > 0))) {
             let new_root = ContextFilterHandler.getInstance().remove_context_filter_from_tree(root_context_filter, context_filter);
             if (new_root != root_context_filter) {
                 if (!new_root) {
@@ -409,6 +451,9 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
                     vo_type: this.is_vo_field_ref ? this.vo_field_ref.api_type_id : ContextFilterVO.CUSTOM_FILTERS_TYPE,
                     active_field_filter: new_root,
                 });
+
+                // Reset default value
+                this.force_selected_months_reset = false;
             }
             return;
         }
@@ -463,5 +508,18 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
             }
         }
         return res;
+    }
+
+    /**
+     * Can Select All
+     *  - Can select all clickable button
+     */
+    get can_select_all(): boolean {
+
+        if (!this.widget_options) {
+            return false;
+        }
+
+        return !!this.widget_options.can_select_all;
     }
 }

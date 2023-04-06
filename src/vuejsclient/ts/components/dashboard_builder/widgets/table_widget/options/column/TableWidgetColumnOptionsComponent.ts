@@ -522,6 +522,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
                     options.use_kanban_by_default_if_exists,
                     options.use_kanban_column_weight_if_exists,
                     options.use_for_count,
+                    options.archive_button,
                     options.show_bulk_edit,
                     options.cb_bulk_actions,
                     options.show_bulk_select_all,
@@ -806,6 +807,11 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
      * On peut éditer si c'est un certain type de champs et directement sur le VO du crud type paramétré
      */
     get can_be_editable(): boolean {
+        // Si la colonne est de type VAR, on accepte la modif
+        if (this.column.type == TableColumnDescVO.TYPE_var_ref) {
+            return true;
+        }
+
         if (!this.column) {
             return false;
         }

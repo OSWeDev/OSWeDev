@@ -1,5 +1,4 @@
 import debounce from 'lodash/debounce';
-import { decode, encode } from 'messagepack';
 import AjaxCacheController from '../../../../shared/modules/AjaxCache/AjaxCacheController';
 import IAjaxCacheClientController from '../../../../shared/modules/AjaxCache/interfaces/IAjaxCacheClientController';
 import CacheInvalidationRegexpRuleVO from '../../../../shared/modules/AjaxCache/vos/CacheInvalidationRegexpRuleVO';
@@ -13,6 +12,7 @@ import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import EnvHandler from '../../../../shared/tools/EnvHandler';
 import { all_promises } from '../../../../shared/tools/PromiseTools';
+const zlib = require('zlib');
 
 export default class AjaxCacheClientController implements IAjaxCacheClientController {
 
@@ -194,8 +194,18 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 type: "POST",
                 url: url
             };
+
+            if (!options.headers) {
+                options.headers = {};
+            }
+
             if ((typeof cache.postdatas != 'undefined') && (cache.postdatas != null)) {
-                options.data = cache.postdatas;
+                if ((EnvHandler.COMPRESS) && (typeof cache.postdatas == 'string')) {
+                    options.data = JSON.stringify(zlib.gzipSync(cache.postdatas));
+                    options.headers[AjaxCacheController.HEADER_GZIP] = 'true';
+                } else {
+                    options.data = cache.postdatas;
+                }
             }
             if (contentType == null) {
                 options.contentType = false;
@@ -212,9 +222,6 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 options.timeout = cache.timeout;
             }
             if (!!self.csrf_token) {
-                if (!options.headers) {
-                    options.headers = {};
-                }
                 options.headers['X-CSRF-Token'] = self.csrf_token;
                 options.headers['client_tab_id'] = AjaxCacheClientController.getInstance().client_tab_id;
             }

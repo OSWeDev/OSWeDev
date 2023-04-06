@@ -23,6 +23,8 @@ export default class ExportContextQueryToXLSXQueryVO {
         public is_secured: boolean = false,
         public file_access_policy_name: string = null,
 
-        public target_user_id: number = null) {
-    }
+        public target_user_id: number = null,
+
+        public do_not_user_filter_by_datatable_field_uid: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } } = null,
+    ) { }
 }

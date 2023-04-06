@@ -539,7 +539,8 @@ export default class ContextQueryVO implements IDistantVOBase {
         for (let i in matroids) {
             let matroid = matroids[i];
             if (matroid._type != matroid_api_type_id) {
-                throw new Error('filter_by_matroids_inclusion: Tous les matroids doivent être du même type');
+                throw new Error('filter_by_matroids_inclusion: Tous les matroids doivent être du même type : '
+                    + matroid_api_type_id + '(index 0) != ' + matroid._type + '(index ' + i + ')');
             }
         }
 
@@ -617,7 +618,8 @@ export default class ContextQueryVO implements IDistantVOBase {
         for (let i in matroids) {
             let matroid = matroids[i];
             if (matroid._type != matroid_api_type_id) {
-                throw new Error('filter_by_matroids_inclusion: Tous les matroids doivent être du même type');
+                throw new Error('filter_by_matroids_inclusion: Tous les matroids doivent être du même type : '
+                    + matroid_api_type_id + '(index 0) != ' + matroid._type + '(index ' + i + ')');
             }
         }
 
@@ -880,7 +882,7 @@ export default class ContextQueryVO implements IDistantVOBase {
     public async select_vo<T extends IDistantVOBase>(): Promise<T> {
         let res: T[] = await ModuleContextFilter.getInstance().select_vos(this);
         if (res && (res.length > 1)) {
-            throw new Error('Multiple results on select_vo is not allowed');
+            throw new Error('Multiple results on select_vo is not allowed  : ' + this.base_api_type_id);
         }
         return (res && res.length) ? res[0] : null;
     }
@@ -932,7 +934,7 @@ export default class ContextQueryVO implements IDistantVOBase {
     public async select_one(): Promise<any> {
         let res = await ModuleContextFilter.getInstance().select(this);
         if (res && (res.length > 1)) {
-            throw new Error('Multiple results on select_one is not allowed');
+            throw new Error('Multiple results on select_one is not allowed : ' + this.base_api_type_id);
         }
         return (res && res.length) ? res[0] : null;
     }
@@ -946,7 +948,7 @@ export default class ContextQueryVO implements IDistantVOBase {
         fields: { [datatable_field_uid: string]: DatatableField<any, any> }): Promise<any> {
         let res = await ModuleContextFilter.getInstance().select_datatable_rows(this, columns_by_field_id, fields);
         if (res && (res.length > 1)) {
-            throw new Error('Multiple results on select_datatable_row is not allowed');
+            throw new Error('Multiple results on select_datatable_row is not allowed : ' + this.base_api_type_id);
         }
         return (res && res.length) ? res[0] : null;
     }

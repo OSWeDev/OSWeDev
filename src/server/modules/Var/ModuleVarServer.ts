@@ -10,6 +10,7 @@ import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/Conte
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ParameterizedQueryWrapper from '../../../shared/modules/ContextFilter/vos/ParameterizedQueryWrapper';
 import ManualTasksController from '../../../shared/modules/Cron/ManualTasksController';
+import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
@@ -88,6 +89,7 @@ export default class ModuleVarServer extends ModuleServerBase {
     public static TASK_NAME_wait_for_computation_hole = 'Var.wait_for_computation_hole';
     public static TASK_NAME_invalidate_imports_for_u = 'VarsDatasProxy.invalidate_imports_for_u';
     public static TASK_NAME_invalidate_imports_for_c = 'VarsDatasProxy.invalidate_imports_for_c';
+    public static TASK_NAME_invalidate_imports_for_d = 'VarsDatasProxy.invalidate_imports_for_d';
 
     public static PARAM_NAME_limit_nb_ts_ranges_on_param_by_context_filter = 'Var.limit_nb_ts_ranges_on_param_by_context_filter';
 
@@ -118,6 +120,44 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     private constructor() {
         super(ModuleVar.getInstance().name);
+    }
+
+    /**
+     * Called after all modules have been configured and initialized
+     */
+    public async late_configuration(): Promise<void> {
+        /**
+         * On checke la cohérence des confs qu'on a chargées pour les vars, en particulier s'assurer que les
+         *  pixels sont correctement configurés
+         */
+        let has_errors = false;
+        for (let var_id_str in VarsServerController.getInstance().varcacheconf_by_var_ids) {
+            let var_id = parseInt(var_id_str);
+            let varcacheconf = VarsServerController.getInstance().varcacheconf_by_var_ids[var_id_str];
+            let varconf = VarsServerController.getInstance().getVarConfById(var_id);
+
+            if (!varconf) {
+                has_errors = true;
+                ConsoleHandler.error('Varconf not found for var_id ' + var_id);
+                continue;
+            }
+
+            if (varconf.pixel_activated) {
+                if (varcacheconf.cache_startegy != VarCacheConfVO.VALUE_CACHE_STRATEGY_PIXEL) {
+                    ConsoleHandler.warn('Pixel varconf but varcacheconf strategy is not set to PIXEL for var_id :' + var_id + ': ' + varconf.name + ' - Correction automatique ...');
+
+                    varcacheconf.cache_startegy = VarCacheConfVO.VALUE_CACHE_STRATEGY_PIXEL;
+                    await ModuleDAO.getInstance().insertOrUpdateVO(varcacheconf);
+
+                    ConsoleHandler.warn('Correction automatique terminée');
+                    continue;
+                }
+            }
+        }
+
+        if (has_errors) {
+            throw new Error('Failed varconf / varcacheconf consistency check. See logs to get more details');
+        }
     }
 
     public async configure() {
@@ -402,6 +442,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 // On invalide l'arbre par intersection si on passe un type en import, ou si on change la valeur d'un import, ou si on passe de import à calculé
                 postCTrigger.registerHandler(api_type_id, this, this.invalidate_imports_for_c);
                 postUTrigger.registerHandler(api_type_id, this, this.invalidate_imports_for_u);
+                postDTrigger.registerHandler(api_type_id, this, this.invalidate_imports_for_d);
             }
 
             VarsServerController.getInstance().init_varcontrollers_dag();
@@ -475,6 +516,44 @@ export default class ModuleVarServer extends ModuleServerBase {
             resolve();
         });
     }
+
+    public async invalidate_imports_for_d(vo: VarDataBaseVO): Promise<void> {
+
+        return new Promise(async (resolve, reject) => {
+
+            if (!await ForkedTasksController.getInstance().exec_self_on_bgthread_and_return_value(
+                reject,
+                VarsdatasComputerBGThread.getInstance().name,
+                ModuleVarServer.TASK_NAME_invalidate_imports_for_d,
+                resolve,
+                vo)) {
+                return;
+            }
+
+            // Si on delete une data en import, on doit forcer le recalcul, sinon osef
+            if (vo.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) {
+
+                await ModuleVar.getInstance().invalidate_cache_intersection_and_parents([vo]);
+
+                // et mettre à jour la version potentiellement en cache actuellement
+                vo.id = null;
+                vo.value_ts = null;
+                vo.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
+                vo.value = null;
+
+                await VarsDatasProxy.getInstance().update_existing_buffered_older_datas([vo], 'invalidate_imports_for_c');
+
+                // // Si on supprime une var, mais que celle-ci est actuellement registered, il faut la remettre en attente de calcul
+                // //  En la supprimant, on a forcé la suppression en DB & en cache, donc en l'état on a plus de calcul en attente sinon
+                // let filtered_by_subs: string[] = await VarsTabsSubsController.getInstance().filter_by_subs([vo._bdd_only_index]);
+                // if (filtered_by_subs && filtered_by_subs.length) {
+                //     await VarsDatasProxy.getInstance().append_var_datas([vo], 'invalidate_imports_for_d onregistered_var_param');
+                // }
+            }
+            resolve();
+        });
+    }
+
 
     public async invalidate_imports_for_u(vo_update_handler: DAOUpdateVOHolder<VarDataBaseVO>): Promise<void> {
 
@@ -1911,6 +1990,5 @@ export default class ModuleVarServer extends ModuleServerBase {
             await this.throttle_get_var_data_by_index();
         });
     }
-
 
 }

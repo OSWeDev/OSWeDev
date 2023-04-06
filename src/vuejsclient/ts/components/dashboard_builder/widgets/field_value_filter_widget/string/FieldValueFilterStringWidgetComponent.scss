@@ -1,4 +1,4 @@
-@import '../../../../../../scss/base/skin.scss';
+@import "../../../../../../scss/base/skin.scss";
 
 .field_value_filter_string_widget_component {
     height: -webkit-fill-available;
@@ -12,7 +12,7 @@
     .vo_field_ref_advanced {
         right: 1em;
         position: absolute;
-        top: .8em;
+        top: 0.8em;
     }
 
     .advanced_string_filter_content {
@@ -21,7 +21,7 @@
 
         input {
             width: -webkit-fill-available;
-            padding: .5em;
+            padding: 0.5em;
             border: none;
             margin-left: 1em;
         }
@@ -34,25 +34,25 @@
             }
         }
 
-        margin-right: .3em;
+        margin-right: 0.3em;
     }
 
     .advanced_string_filter_add_filter {
-        padding: .4em .1em .4em .1em;
+        padding: 0.4em 0.1em 0.4em 0.1em;
         display: inline-block;
         cursor: pointer;
         color: dodgerblue;
     }
 
     .advanced_string_filter_validate_filter {
-        padding: .4em .1em .4em .1em;
+        padding: 0.4em 0.1em 0.4em 0.1em;
         display: inline-block;
         cursor: pointer;
         color: $success_color;
     }
 
     .advanced_string_filter_link_type {
-        padding: .4em 0em .4em .4em;
+        padding: 0.4em 0em 0.4em 0.4em;
         display: inline-block;
         cursor: pointer;
         color: dodgerblue;
@@ -60,14 +60,14 @@
         .link_type {
             position: absolute;
             margin-top: -1.68em;
-            font-size: .7em;
+            font-size: 0.7em;
             color: white;
-            margin-left: .2em;
+            margin-left: 0.2em;
         }
     }
 
     .advanced_string_filter_delete_filter {
-        padding: .4em .2em .4em .2em;
+        padding: 0.4em 0.2em 0.4em 0.2em;
         display: inline-block;
         cursor: pointer;
         color: $danger_color;
@@ -78,7 +78,7 @@
     }
 
     .advanced_string_filter_type {
-        margin-right: .2em;
+        margin-right: 0.2em;
         width: 40%;
         display: inline-block;
 
@@ -86,7 +86,7 @@
         .multiselect__input,
         .multiselect__single,
         .multiselect__option {
-            font-size: .8em;
+            font-size: 0.8em;
         }
     }
 
@@ -111,7 +111,7 @@
             height: 100%;
             overflow-x: auto;
 
-            >.row {
+            > .row {
                 margin-right: 0;
 
                 label {
@@ -133,5 +133,19 @@
                 }
             }
         }
+    }
+
+    .text_cliquable {
+        display: inline-block;
+        // color: #555;
+        text-decoration: underline;
+        cursor: pointer;
+        font-size: 0.8em;
+    }
+
+    .inter_text {
+        display: inline-block;
+        font-size: 0.8em;
+        margin: 0em 0.2em;
     }
 }

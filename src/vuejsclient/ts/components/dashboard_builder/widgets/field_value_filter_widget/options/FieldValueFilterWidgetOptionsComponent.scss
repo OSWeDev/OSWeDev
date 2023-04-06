@@ -1,6 +1,5 @@
-.field_value_filter_widget_component {
-
-    >div {
+.field_value_filter_widget_options_component {
+    > div {
         margin-bottom: 0.5em;
 
         .input_label {
@@ -11,7 +10,7 @@
         input[type="text"] {
             width: 100%;
             padding: 0.3em;
-            border: solid 1px #BBB;
+            border: solid 1px #bbb;
             border-radius: 2px;
 
             &.multiselect__input {

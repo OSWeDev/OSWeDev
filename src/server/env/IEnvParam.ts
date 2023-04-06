@@ -31,6 +31,7 @@ export default interface IEnvParam {
     DEBUG_VARS_SERVER_SUBS_CBS?: boolean;
     DEBUG_START_SERVER?: boolean;
     DEBUG_IMPORTS?: boolean;
+    DEBUG_EXPORTS?: boolean;
     DEBUG_DELETEVOS?: boolean;
     DEBUG_THROTTLED_SELECT?: boolean;
     DEBUG_DB_FULL_QUERY_PERF?: boolean;
@@ -45,4 +46,5 @@ export default interface IEnvParam {
     LAUNCH_INIT?: boolean;
     ACTIVATE_PWA: boolean;
     RETRY_FAILED_FAST_TRACK_IMPORTS_WITH_NORMAL_IMPORTATION?: boolean;
+    ZOOM_AUTO?: boolean;
 }

@@ -56,7 +56,8 @@ export default class ModuleDataExport extends Module {
 
         is_secured?: boolean,
         file_access_policy_name?: string,
-        target_user_id?: number
+        target_user_id?: number,
+        do_not_user_filter_by_datatable_field_uid?: { [datatable_field_uid: string]: { [vo_type: string]: { [field_id: string]: boolean } } },
     ) => Promise<string> = APIControllerWrapper.sah(ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVO);
 
     public exportDataToXLSX: (
@@ -142,7 +143,7 @@ export default class ModuleDataExport extends Module {
 
     private initializeExportHistoricVO(): void {
         let export_to_uid = new ModuleTableField('export_to_uid', ModuleTableField.FIELD_TYPE_foreign_key, new DefaultTranslation({ 'fr-fr': "Destinataire - Utilisateur" }), false);
-        let exported_file_id = new ModuleTableField('exported_file_id', ModuleTableField.FIELD_TYPE_foreign_key, new DefaultTranslation({ 'fr-fr': "Fichier exporté" }), false);
+        let exported_file_id = new ModuleTableField('exported_file_id', ModuleTableField.FIELD_TYPE_foreign_key, new DefaultTranslation({ 'fr-fr': "Fichier exporté" }), false).not_add_to_crud();
 
         let datatable_fields = [
             new ModuleTableField('export_type_id', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr-fr': "Type d'export" }), true),

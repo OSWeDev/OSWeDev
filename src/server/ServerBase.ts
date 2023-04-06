@@ -47,6 +47,7 @@ import AccessPolicyDeleteSessionBGThread from './modules/AccessPolicy/bgthreads/
 import ModuleAccessPolicyServer from './modules/AccessPolicy/ModuleAccessPolicyServer';
 import BGThreadServerController from './modules/BGThread/BGThreadServerController';
 import CronServerController from './modules/Cron/CronServerController';
+import ExpressDBSessionsServerController from './modules/ExpressDBSessions/ExpressDBSessionsServerController';
 import ModuleFileServer from './modules/File/ModuleFileServer';
 import ForkedTasksController from './modules/Fork/ForkedTasksController';
 import ForkServerController from './modules/Fork/ForkServerController';
@@ -59,7 +60,6 @@ import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
 import ServerExpressController from './ServerExpressController';
 import StackContext from './StackContext';
 require('moment-json-parser').overrideDefault();
-const pgSession = require('oswedev-connect-pg-simple')(expressSession);
 
 export default abstract class ServerBase {
 
@@ -138,6 +138,7 @@ export default abstract class ServerBase {
         EnvHandler.CODE_GOOGLE_ANALYTICS = this.envParam.CODE_GOOGLE_ANALYTICS;
         EnvHandler.VERSION = this.version;
         EnvHandler.ACTIVATE_PWA = !!this.envParam.ACTIVATE_PWA;
+        EnvHandler.ZOOM_AUTO = !!this.envParam.ZOOM_AUTO;
         EnvHandler.DEBUG_VARS = !!this.envParam.DEBUG_VARS;
 
         this.connectionString = this.envParam.CONNECTION_STRING;
@@ -412,35 +413,6 @@ export default abstract class ServerBase {
             next();
         });
 
-        // Log request & response
-        this.app.use((req: Request, res: Response, next: NextFunction) => {
-            // logger.info('req', {
-            //     ip: req.ip,
-            //     method: req.method,
-            //     url: req.originalUrl,
-            //     sessionID: req.sessionID
-            // });
-
-            const requestEnd = res.end;
-
-            res.end = (chunk?: any, encoding?: any) => {
-
-                // logger.info('res', {
-                //     ip: req.ip,
-                //     method: req.method,
-                //     url: req.originalUrl,
-                //     sessionID: req.sessionID,
-                //     statusCode: res.statusCode
-                // });
-
-                // Do the work expected
-                res.end = requestEnd;
-                res.end(chunk, encoding);
-            };
-
-            return next();
-        });
-
         /**
          * On tente de récupérer un ID unique de session en request, et si on en trouve, on essaie de charger la session correspondante
          * cf : https://stackoverflow.com/questions/29425070/is-it-possible-to-get-an-express-session-by-sessionid
@@ -492,7 +464,7 @@ export default abstract class ServerBase {
             proxy: true,
             resave: false,
             saveUninitialized: false,
-            store: new pgSession({
+            store: ExpressDBSessionsServerController.getInstance({
                 conString: this.connectionString,
                 schemaName: 'ref',
                 tableName: UserSessionVO.API_TYPE_ID,

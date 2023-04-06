@@ -1,7 +1,8 @@
 
+import IArchivedVOBase from '../../IArchivedVOBase';
 import IDistantVOBase from '../../IDistantVOBase';
 
-export default class UserVO implements IDistantVOBase {
+export default class UserVO implements IArchivedVOBase {
     public static API_TYPE_ID: string = "user";
 
     public static createNew(
@@ -68,4 +69,6 @@ export default class UserVO implements IDistantVOBase {
     public creation_date: number;
 
     public lang_id: number;
+
+    public archived: boolean;
 }

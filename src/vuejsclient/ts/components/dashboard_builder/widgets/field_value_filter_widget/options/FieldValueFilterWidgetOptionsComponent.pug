@@ -1,4 +1,4 @@
-.field_value_filter_widget_component
+.field_value_filter_widget_options_component
     .page_widget_options(:id="'page_widget_options_' + page_widget.id" :key="'page_widget_options_' + page_widget.id")
         .can_select_multiple 
             .input_label {{ label('field_value_filter_widget_component.can_select_multiple') }}
@@ -144,6 +144,30 @@
                     toggle-button(
                         @change="switch_advanced_mode" 
                         :value="advanced_mode" 
+                        :sync="false"
+                        :width="60"
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                    ) 
+
+        template(v-if="is_type_string || is_type_enum")
+            .can_select_all_option
+                .input_label {{ label('field_value_filter_widget_component.can_select_all_option') }}
+                .input_wrapper
+                    toggle-button(
+                        @change="toggle_can_select_all" 
+                        :value="can_select_all" 
+                        :sync="false"
+                        :width="60"
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                    ) 
+
+        template(v-if="is_type_string || is_type_enum")
+            .can_select_none_option
+                .input_label {{ label('field_value_filter_widget_component.can_select_none_option') }}
+                .input_wrapper
+                    toggle-button(
+                        @change="toggle_can_select_none" 
+                        :value="can_select_none" 
                         :sync="false"
                         :width="60"
                         :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
@@ -465,3 +489,14 @@
                             .enum_fg_color
                                 color-picker(v-model="enum_fg_colors[visible_option.numeric_value]")
                             .enum_preview.btn.btn-primary(:style='getStyle(visible_option)') {{ filter_visible_label(visible_option) }}
+
+        .color_options 
+            .color_option
+                .bg_color
+                    .explication {{ label("field_value_filter_widget_component.bg_color") }}
+                    color-picker(v-model="bg_color" @change='handle_colors_change')
+                .fg_color_text
+                    .explication {{ label("field_value_filter_widget_component.fg_color_text") }}
+                    color-picker(v-model="fg_color_text" @change='handle_colors_change')
+                    
+                .preview(:style='{background: bg_color, color: fg_color_text}') {{ t(title_name_code_text) }}
