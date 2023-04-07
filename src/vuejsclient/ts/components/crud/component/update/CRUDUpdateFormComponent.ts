@@ -208,7 +208,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
                     .filter_is_true('is_update')
                     .select_vo<CRUDFieldRemoverConfVO>();
             } catch (error) {
-                if (error.message == 'Multiple results on select_vo is not allowed') {
+                if (error.message == 'Multiple results on select_vo is not allowed : ' + this.api_type_id) {
                     /**
                      * On gère les doublons au cas où on ait un problème de synchronisation en supprimant les plus récents
                      */
