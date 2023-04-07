@@ -643,9 +643,9 @@ describe('VarsDatasVoUpdateHandler', () => {
         await FakeVarControllerDsEmpDistant.getInstance().initialize();
         await FakeVarControllerDeps.getInstance().initialize();
         await VarsController.getInstance().initializeasync({
-            [FakeVarControllerDsDistant.getInstance().varConf.name]: FakeVarControllerDsDistant.getInstance().varConf,
-            [FakeVarControllerDsEmpDistant.getInstance().varConf.name]: FakeVarControllerDsEmpDistant.getInstance().varConf,
-            [FakeVarControllerDeps.getInstance().varConf.name]: FakeVarControllerDeps.getInstance().varConf
+            [FakeVarControllerDsDistant.getInstance().varConf.id]: FakeVarControllerDsDistant.getInstance().varConf,
+            [FakeVarControllerDsEmpDistant.getInstance().varConf.id]: FakeVarControllerDsEmpDistant.getInstance().varConf,
+            [FakeVarControllerDeps.getInstance().varConf.id]: FakeVarControllerDeps.getInstance().varConf
         });
 
         let vo_types: string[] = [];

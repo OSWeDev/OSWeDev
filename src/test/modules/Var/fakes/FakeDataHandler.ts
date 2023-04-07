@@ -76,7 +76,7 @@ export default class FakeDataHandler {
         return var_data;
     }
     public static get_expected_var_data_A_index() {
-        return "1_[[1577836800,1577923200)]";
+        return "1|LmreE";
     }
 
     public static get_var_data_A2(): FakeDataVO {
@@ -122,7 +122,7 @@ export default class FakeDataHandler {
         return var_data;
     }
     public static get_expected_var_data_B_index() {
-        return "2_[[1580515200,1583020800)]";
+        return "2|Lsy_M";
     }
 
     public static get_var_data_C(): FakeDataVO {
@@ -135,7 +135,7 @@ export default class FakeDataHandler {
         return var_data;
     }
     public static get_expected_var_data_C_index() {
-        return "2_[[1583020800,1585695600)]";
+        return "2|LycR4";
     }
 
     public static get_var_data_E(): FakeDataVO {
@@ -148,7 +148,7 @@ export default class FakeDataHandler {
         return var_data;
     }
     public static get_expected_var_data_E_index() {
-        return "3_[[1580515200,1580601600)]";
+        return "3|Lsy_M";
     }
 
     public static get_var_data_F(): FakeDataVO {
@@ -161,7 +161,7 @@ export default class FakeDataHandler {
         return var_data;
     }
     public static get_expected_var_data_F_index() {
-        return "4_[[1580515200,1612137600)]";
+        return "4|Lsy_M";
     }
 
     public static get_var_data_G(): FakeDataVO {
@@ -174,7 +174,7 @@ export default class FakeDataHandler {
         return var_data;
     }
     public static get_expected_var_data_G_index() {
-        return "4_[[1577836800,1580515200)]";
+        return "4|LmreE";
     }
 
     public static get_var_data_H(): FakeDataVO {
@@ -187,7 +187,7 @@ export default class FakeDataHandler {
         return var_data;
     }
     public static get_expected_var_data_H_index() {
-        return "1_[[1577836800,1609459200)]";
+        return "5|LmreE";
     }
 
     public static get_var_data_F_moins_BC(): FakeDataVO {
