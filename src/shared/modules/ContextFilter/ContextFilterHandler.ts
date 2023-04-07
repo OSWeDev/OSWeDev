@@ -1121,7 +1121,7 @@ export default class ContextFilterHandler {
                     //         throw new Error('Year and rolling year filters cannot be used together');
                     //     }
 
-                    if ((!year_filter.param_numranges) || (!year_filter.param_numranges)) {
+                    if ((!current_filter.param_numranges) || (!current_filter.param_numranges)) {
                         throw new Error('Year filter without num_ranges is not supported');
                     }
 
@@ -1141,7 +1141,7 @@ export default class ContextFilterHandler {
                         throw new Error('Too many month filters');
                     }
 
-                    if ((!month_filter.param_numranges) || (!month_filter.param_numranges)) {
+                    if ((!current_filter.param_numranges) || (!current_filter.param_numranges)) {
                         throw new Error('Month filter without num_ranges is not supported');
                     }
 
@@ -1205,7 +1205,7 @@ export default class ContextFilterHandler {
                         throw new Error('Too many hour filters');
                     }
 
-                    if ((!hour_filter.param_numranges) || (!hour_filter.param_numranges)) {
+                    if ((!current_filter.param_numranges) || (!current_filter.param_numranges)) {
                         throw new Error('Hour filter without num_ranges is not supported');
                     }
 
@@ -1220,11 +1220,11 @@ export default class ContextFilterHandler {
                         throw new Error('Too many minute filters');
                     }
 
-                    if ((!minute_filter.param_numranges) || (!minute_filter.param_numranges)) {
+                    if ((!current_filter.param_numranges) || (!current_filter.param_numranges)) {
                         throw new Error('Minute filter without num_ranges is not supported');
                     }
 
-                    if (segment_type >= TimeSegment.TYPE_HOUR) {
+                    if (segment_type >= TimeSegment.TYPE_MINUTE) {
                         minute_filter = current_filter;
                     }
 
@@ -1235,11 +1235,11 @@ export default class ContextFilterHandler {
                         throw new Error('Too many second filters');
                     }
 
-                    if ((!second_filter.param_numranges) || (!second_filter.param_numranges)) {
+                    if ((!current_filter.param_numranges) || (!current_filter.param_numranges)) {
                         throw new Error('Second filter without num_ranges is not supported');
                     }
 
-                    if (segment_type >= TimeSegment.TYPE_HOUR) {
+                    if (segment_type >= TimeSegment.TYPE_SECOND) {
                         second_filter = current_filter;
                     }
 
