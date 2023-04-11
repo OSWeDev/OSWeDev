@@ -60,14 +60,14 @@ export default class ModuleFacturationProAPI extends Module {
             FactuProInvoiceVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<FactuProInvoiceEmailVO, void>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<FactuProInvoiceEmailVO, void>(
             null,
             ModuleFacturationProAPI.APINAME_send_email_facture,
             [],
             FactuProInvoiceEmailVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<FactuProInvoiceFinaliseVO, void>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<FactuProInvoiceFinaliseVO, void>(
             null,
             ModuleFacturationProAPI.APINAME_finalise_invoice,
             [],
