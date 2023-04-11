@@ -1,8 +1,8 @@
 import { cloneDeep, isEqual } from 'lodash';
+import Vue from 'vue';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import ICheckList from '../../../../../../shared/modules/CheckList/interfaces/ICheckList';
 import ICheckListItem from '../../../../../../shared/modules/CheckList/interfaces/ICheckListItem';
 import ICheckPoint from '../../../../../../shared/modules/CheckList/interfaces/ICheckPoint';
 import ModuleCheckListBase from '../../../../../../shared/modules/CheckList/ModuleCheckListBase';
@@ -21,12 +21,12 @@ import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import WeightHandler from '../../../../../../shared/tools/WeightHandler';
 import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
 import CheckListControllerBase from '../../../CheckList/CheckListControllerBase';
 import CheckListItemComponent from '../../../CheckList/Item/CheckListItemComponent';
-import CheckListModalComponent from '../../../CheckList/modal/CheckListModalComponent';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../../dao/store/DaoStore';
 import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
@@ -36,8 +36,6 @@ import TablePaginationComponent from '../table_widget/pagination/TablePagination
 import './ChecklistWidgetComponent.scss';
 import ChecklistItemModalComponent from './checklist_item_modal/ChecklistItemModalComponent';
 import ChecklistWidgetOptions from './options/ChecklistWidgetOptions';
-import Vue from 'vue';
-import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 
 @Component({
     template: require('./ChecklistWidgetComponent.pug'),
@@ -189,7 +187,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
             return;
         }
 
-        Vue.set(this.checklistitems, vo.id, await ModuleDAO.getInstance().getVoById(this.checklist_shared_module.checklistitem_type_id, vo.id));
+        Vue.set(this.checklistitems, vo.id, await query(this.checklist_shared_module.checklistitem_type_id).filter_by_id(vo.id).select_vo());
 
         this.get_Checklistitemmodalcomponent.change_selected_checklist_item(this.checklistitems[vo.id]);
 

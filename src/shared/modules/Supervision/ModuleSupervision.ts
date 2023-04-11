@@ -37,13 +37,13 @@ export default class ModuleSupervision extends Module {
     }
 
     public registerApis() {
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<StringParamVO, void>(
             ModuleSupervision.POLICY_BO_ACCESS,
             ModuleSupervision.APINAME_execute_manually,
             (param: StringParamVO) => [param.text],
             StringParamVOStatic
         ));
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<String2ParamVO, void>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<String2ParamVO, void>(
             ModuleSupervision.POLICY_BO_ACCESS,
             ModuleSupervision.APINAME_refresh_one_manually,
             (param: String2ParamVO) => [param.text],

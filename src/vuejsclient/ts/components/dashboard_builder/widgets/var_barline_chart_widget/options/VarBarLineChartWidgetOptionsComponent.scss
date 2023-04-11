@@ -1,0 +1,40 @@
+.var_barline_chart_widget_options_component {
+
+    .options_separator_lvl1 {
+        font-size: medium;
+        margin-top: 1em;
+        background: white;
+        text-align: center;
+        border-radius: 1em;
+        padding: 0.5em;
+        font-weight: bold;
+        margin-bottom: 0.3em;
+        color: #333;
+    }
+
+    .options_separator_lvl2 {
+        margin-top: 1em;
+        text-align: center;
+        text-decoration: underline;
+    }
+
+    >div {
+        margin-bottom: 0.5em;
+
+        .input_label {
+            font-size: small;
+            color: #555;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 0.3em;
+            border: solid 1px #BBB;
+            border-radius: 2px;
+
+            &.multiselect__input {
+                border: none;
+            }
+        }
+    }
+}

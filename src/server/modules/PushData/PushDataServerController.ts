@@ -1008,7 +1008,7 @@ export default class PushDataServerController {
             if (socketWrappers && socketWrappers.length) {
 
                 let notification_type = NotificationVO.TYPE_NAMES[notification.notification_type];
-                notification = APIControllerWrapper.getInstance().try_translate_vo_to_api(notification);
+                notification = APIControllerWrapper.try_translate_vo_to_api(notification);
 
                 for (let i in socketWrappers) {
                     let socketWrapper: SocketWrapper = socketWrappers[i];
@@ -1040,7 +1040,7 @@ export default class PushDataServerController {
         notification.client_tab_id = client_tab_id;
         notification.user_id = user_id;
         notification.auto_read_if_connected = true;
-        notification.vos = JSON.stringify(APIControllerWrapper.getInstance().try_translate_vos_to_api(vos));
+        notification.vos = JSON.stringify(APIControllerWrapper.try_translate_vos_to_api(vos));
         return notification;
     }
 

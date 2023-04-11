@@ -16,6 +16,7 @@ import FakeEmpDayDataHandler from '../Var/fakes/FakeEmpDayDataHandler';
 import FakeDataVO from '../Var/fakes/vos/FakeDataVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 
+ConsoleHandler.init();
 
 describe('MatroidController', () => {
     FakeEmpDayDataHandler.initializeFakeEmpDayDataVO();

@@ -41,7 +41,7 @@ export default class ModuleSurvey extends Module {
 
     public registerApis() {
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<APISimpleVOParamVO, boolean>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<APISimpleVOParamVO, boolean>(
             ModuleSurvey.POLICY_FO_ACCESS,
             ModuleSurvey.APINAME_survey,
             [SurveyVO.API_TYPE_ID],

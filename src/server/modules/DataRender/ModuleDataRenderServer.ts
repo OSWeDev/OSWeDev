@@ -81,10 +81,10 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
     public registerExpressApis(app: Express): void { }
 
     public registerServerApiHandlers() {
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataRender.APINAME_GET_DATA_RENDERERS, this.getDataRenderers.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataRender.APINAME_GET_DATA_RENDERER, this.getDataRenderer.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataRender.APINAME_GET_DATA_RENDERING_LOGS, this.getDataRenderingLogs.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataRender.APINAME_getLatestAvailableSegment, this.getLatestAvailableSegment.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleDataRender.APINAME_GET_DATA_RENDERERS, this.getDataRenderers.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleDataRender.APINAME_GET_DATA_RENDERER, this.getDataRenderer.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleDataRender.APINAME_GET_DATA_RENDERING_LOGS, this.getDataRenderingLogs.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleDataRender.APINAME_getLatestAvailableSegment, this.getLatestAvailableSegment.bind(this));
     }
 
     public async getLatestAvailableSegment(text: string): Promise<TimeSegment> {

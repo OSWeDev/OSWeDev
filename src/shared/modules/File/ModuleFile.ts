@@ -77,7 +77,7 @@ export default class ModuleFile extends Module {
 
     public registerApis() {
 
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, boolean>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<NumberParamVO, boolean>(
             ModuleAccessPolicy.POLICY_FO_ACCESS,
             ModuleFile.APINAME_TEST_FILE_EXISTENZ,
             [FileVO.API_TYPE_ID],

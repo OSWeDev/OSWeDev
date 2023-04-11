@@ -120,7 +120,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     private async onchange_supervised_item_vo_id() {
         if (this.supervised_item_vo_id && this.supervised_item_vo_type) {
             this.set_selected_item(
-                await ModuleDAO.getInstance().getVoById(this.supervised_item_vo_type, parseInt(this.supervised_item_vo_id))
+                await query(this.supervised_item_vo_type).filter_by_id(parseInt(this.supervised_item_vo_id)).select_vo()
             );
         }
     }

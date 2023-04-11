@@ -161,12 +161,12 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleNFCConnect.APINAME_connect, this.connect.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleNFCConnect.APINAME_connect_and_redirect, this.connect_and_redirect.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleNFCConnect.APINAME_checktag_user, this.checktag_user.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleNFCConnect.APINAME_add_tag, this.add_tag.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleNFCConnect.APINAME_remove_user_tag, this.remove_user_tag.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleNFCConnect.APINAME_get_own_tags, this.get_own_tags.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleNFCConnect.APINAME_connect, this.connect.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleNFCConnect.APINAME_connect_and_redirect, this.connect_and_redirect.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleNFCConnect.APINAME_checktag_user, this.checktag_user.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleNFCConnect.APINAME_add_tag, this.add_tag.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleNFCConnect.APINAME_remove_user_tag, this.remove_user_tag.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleNFCConnect.APINAME_get_own_tags, this.get_own_tags.bind(this));
     }
 
     private async get_own_tags(): Promise<NFCTagVO[]> {

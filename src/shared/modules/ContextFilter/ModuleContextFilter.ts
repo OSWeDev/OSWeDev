@@ -155,70 +155,70 @@ export default class ModuleContextFilter extends Module {
 
     public registerApis() {
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<CountValidSegmentationsParamVO, any[]>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<CountValidSegmentationsParamVO, any[]>(
             null,
             ModuleContextFilter.APINAME_count_valid_segmentations,
             null,
             CountValidSegmentationsParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<SelectVosParamVO, any[]>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<SelectVosParamVO, any[]>(
             null,
             ModuleContextFilter.APINAME_select,
             null,
             SelectVosParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<SelectFilterVisibleOptionsParamVO, DataFilterOption[]>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<SelectFilterVisibleOptionsParamVO, DataFilterOption[]>(
             null,
             ModuleContextFilter.APINAME_select_filter_visible_options,
             null,
             SelectFilterVisibleOptionsParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<SelectDatatableRowsParamVO, any[]>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<SelectDatatableRowsParamVO, any[]>(
             null,
             ModuleContextFilter.APINAME_select_datatable_rows,
             null,
             SelectDatatableRowsParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<SelectCountParamVO, any[]>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<SelectCountParamVO, any[]>(
             null,
             ModuleContextFilter.APINAME_select_count,
             null,
             SelectCountParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<QueryVOFromUniqueFieldContextFiltersParamVO, any[]>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<QueryVOFromUniqueFieldContextFiltersParamVO, any[]>(
             null,
             ModuleContextFilter.APINAME_select_vo_from_unique_field,
             null,
             QueryVOFromUniqueFieldContextFiltersParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<BuildSelectQueryParamVO, ParameterizedQueryWrapper>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<BuildSelectQueryParamVO, ParameterizedQueryWrapper>(
             null,
             ModuleContextFilter.APINAME_build_select_query,
             null,
             BuildSelectQueryParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<SelectVosParamVO, IDistantVOBase[]>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<SelectVosParamVO, IDistantVOBase[]>(
             null,
             ModuleContextFilter.APINAME_select_vos,
             null,
             SelectVosParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<DeleteVosParamVO, void>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<DeleteVosParamVO, void>(
             null,
             ModuleContextFilter.APINAME_delete_vos,
             null,
             DeleteVosParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<UpdateVosParamVO, void>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<UpdateVosParamVO, void>(
             null,
             ModuleContextFilter.APINAME_update_vos,
             null,

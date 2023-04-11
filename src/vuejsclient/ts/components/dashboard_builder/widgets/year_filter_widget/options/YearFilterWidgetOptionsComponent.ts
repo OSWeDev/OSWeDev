@@ -412,6 +412,23 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase {
         await this.throttled_update_options();
     }
 
+    private async add_field_ref(api_type_id: string, field_id: string) {
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = new YearFilterWidgetOptions(this.is_vo_field_ref, null, null, true, null, null, true, true, null, null, false, null, false);
+        }
+
+        let vo_field_ref = new VOFieldRefVO();
+        vo_field_ref.api_type_id = api_type_id;
+        vo_field_ref.field_id = field_id;
+        vo_field_ref.weight = 0;
+
+        this.next_update_options.vo_field_ref = vo_field_ref;
+
+        await this.throttled_update_options();
+    }
+
     get default_placeholder_translation(): string {
         return this.label('DOWFilterWidget.filter_placeholder');
     }
@@ -452,22 +469,5 @@ export default class YearFilterWidgetOptionsComponent extends VueComponentBase {
         }
 
         return options;
-    }
-
-    private async add_field_ref(api_type_id: string, field_id: string) {
-        this.next_update_options = this.widget_options;
-
-        if (!this.next_update_options) {
-            this.next_update_options = new YearFilterWidgetOptions(this.is_vo_field_ref, null, null, true, null, null, true, true, null, null, false, null, false);
-        }
-
-        let vo_field_ref = new VOFieldRefVO();
-        vo_field_ref.api_type_id = api_type_id;
-        vo_field_ref.field_id = field_id;
-        vo_field_ref.weight = 0;
-
-        this.next_update_options.vo_field_ref = vo_field_ref;
-
-        await this.throttled_update_options();
     }
 }

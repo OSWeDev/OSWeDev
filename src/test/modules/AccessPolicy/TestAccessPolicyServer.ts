@@ -13,6 +13,9 @@ import RolePolicyVO from '../../../shared/modules/AccessPolicy/vos/RolePolicyVO'
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import DAOServerController from '../../../server/modules/DAO/DAOServerController';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+
+ConsoleHandler.init();
 
 describe('AccessPolicyServer', () => {
 

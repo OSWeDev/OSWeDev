@@ -66,10 +66,10 @@ export default class ModuleEvolizAPIServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleEvolizAPI.APINAME_list_invoices, this.list_invoices.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleEvolizAPI.APINAME_create_invoice, this.create_invoice.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleEvolizAPI.APINAME_list_clients, this.list_clients.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleEvolizAPI.APINAME_create_client, this.create_client.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_invoices, this.list_invoices.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_create_invoice, this.create_invoice.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_list_clients, this.list_clients.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleEvolizAPI.APINAME_create_client, this.create_client.bind(this));
     }
 
     public async getToken(): Promise<EvolizAPIToken> {

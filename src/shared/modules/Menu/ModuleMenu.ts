@@ -42,13 +42,13 @@ export default class ModuleMenu extends Module {
 
     public registerApis() {
 
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<StringParamVO, MenuElementVO[]>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<StringParamVO, MenuElementVO[]>(
             null,
             ModuleMenu.APINAME_get_menu,
             [MenuElementVO.API_TYPE_ID],
             StringParamVOStatic
         ));
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<StringParamVO, void>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, MenuElementVO.API_TYPE_ID),
             ModuleMenu.APINAME_add_menu,
             [MenuElementVO.API_TYPE_ID],

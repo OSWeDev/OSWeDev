@@ -141,7 +141,7 @@ export default class CheckListComponent extends VueComponentBase {
             filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
             filter.param_numeric = self.list_id;
 
-            checklist = await ModuleDAO.getInstance().getVoById<ICheckList>(self.checklist_shared_module.checklist_type_id, self.list_id);
+            checklist = await query(self.checklist_shared_module.checklist_type_id).filter_by_id(self.list_id).select_vo<ICheckList>();
             if (!checklist) {
                 return;
             }
@@ -292,7 +292,7 @@ export default class CheckListComponent extends VueComponentBase {
             return;
         }
 
-        Vue.set(this.checklistitems, vo.id, await ModuleDAO.getInstance().getVoById(this.checklist_shared_module.checklistitem_type_id, vo.id));
+        Vue.set(this.checklistitems, vo.id, await query(this.checklist_shared_module.checklistitem_type_id).filter_by_id(vo.id).select_vo());
 
         this.selected_checklist_item = this.checklistitems[vo.id];
 

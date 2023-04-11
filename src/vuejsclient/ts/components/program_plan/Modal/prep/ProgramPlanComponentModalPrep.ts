@@ -1,4 +1,5 @@
 import { Component, Prop, Watch } from 'vue-property-decorator';
+import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
@@ -203,7 +204,7 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
 
                     // TODO passer par une synchro via les notifs de dao ...
                     AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([self.program_plan_shared_module.rdv_type_id]);
-                    let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(self.program_plan_shared_module.rdv_type_id, self.selected_rdv.id);
+                    let rdv = await query(self.program_plan_shared_module.rdv_type_id).filter_by_id(self.selected_rdv.id).select_vo<IPlanRDV>();
                     self.updateRdv(rdv);
                 } catch (error) {
                     ConsoleHandler.error(error);
@@ -447,7 +448,7 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
 
                                     // TODO passer par une synchro via les notifs de dao ...
                                     AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([self.program_plan_shared_module.rdv_type_id]);
-                                    let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(self.program_plan_shared_module.rdv_type_id, prep.rdv_id);
+                                    let rdv = await query(self.program_plan_shared_module.rdv_type_id).filter_by_id(prep.rdv_id).select_vo<IPlanRDV>();
                                     self.updateRdv(rdv);
                                 } catch (error) {
                                     ConsoleHandler.error(error);
@@ -524,7 +525,7 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
 
                                     // TODO passer par une synchro via les notifs de dao ...
                                     AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([this.program_plan_shared_module.rdv_type_id]);
-                                    let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.program_plan_shared_module.rdv_type_id, prep.rdv_id);
+                                    let rdv = await query(this.program_plan_shared_module.rdv_type_id).filter_by_id(prep.rdv_id).select_vo<IPlanRDV>();
                                     self.updateRdv(rdv);
                                 } catch (error) {
                                     ConsoleHandler.error(error);

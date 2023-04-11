@@ -1,4 +1,5 @@
 import { Component, Prop } from 'vue-property-decorator';
+import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
@@ -346,7 +347,7 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
                 this.setCrById(cr);
                 // TODO passer par une synchro via les notifs de dao ...
                 AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([this.program_plan_shared_module.rdv_type_id]);
-                let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.program_plan_shared_module.rdv_type_id, cr.rdv_id);
+                let rdv = await query(this.program_plan_shared_module.rdv_type_id).filter_by_id(cr.rdv_id).select_vo<IPlanRDV>();
                 this.updateRdv(rdv);
             } catch (error) {
                 ConsoleHandler.error(error);
@@ -428,7 +429,7 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
 
                 // TODO passer par une synchro via les notifs de dao ...
                 AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([this.program_plan_shared_module.rdv_type_id]);
-                let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.program_plan_shared_module.rdv_type_id, cr.rdv_id);
+                let rdv = await query(this.program_plan_shared_module.rdv_type_id).filter_by_id(cr.rdv_id).select_vo<IPlanRDV>();
                 this.updateRdv(rdv);
 
                 if (!autosave) {
@@ -505,7 +506,7 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
 
                                     // TODO passer par une synchro via les notifs de dao ...
                                     AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([this.program_plan_shared_module.rdv_type_id]);
-                                    let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.program_plan_shared_module.rdv_type_id, cr.rdv_id);
+                                    let rdv = await query(this.program_plan_shared_module.rdv_type_id).filter_by_id(cr.rdv_id).select_vo<IPlanRDV>();
                                     self.updateRdv(rdv);
                                 } catch (error) {
                                     ConsoleHandler.error(error);

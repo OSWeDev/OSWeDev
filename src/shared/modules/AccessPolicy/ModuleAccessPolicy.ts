@@ -163,221 +163,221 @@ export default class ModuleAccessPolicy extends Module {
     }
 
     public registerApis() {
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<StringParamVO, boolean>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<StringParamVO, boolean>(
             null,
             ModuleAccessPolicy.APINAME_CHECK_ACCESS,
             [AccessPolicyVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, RolePolicyVO.API_TYPE_ID, RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID],
             StringParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<StringParamVO, boolean>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<StringParamVO, boolean>(
             null,
             ModuleAccessPolicy.APINAME_TEST_ACCESS,
             [AccessPolicyVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, RolePolicyVO.API_TYPE_ID, RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID],
             StringParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<void, string>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<void, string>(
             ModuleAccessPolicy.POLICY_SESSIONSHARE_ACCESS,
             ModuleAccessPolicy.APINAME_get_my_sid,
             []
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<void, boolean>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<void, boolean>(
             null,
             ModuleAccessPolicy.APINAME_logout,
             [UserLogVO.API_TYPE_ID]
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<void, boolean>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<void, boolean>(
             null,
             ModuleAccessPolicy.APINAME_delete_session,
             [UserLogVO.API_TYPE_ID]
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<String2ParamVO, boolean>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<String2ParamVO, boolean>(
             ModuleAccessPolicy.POLICY_SESSIONSHARE_ACCESS,
             ModuleAccessPolicy.APINAME_send_session_share_email,
             [],
             String2ParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<String2ParamVO, boolean>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<String2ParamVO, boolean>(
             ModuleAccessPolicy.POLICY_SESSIONSHARE_ACCESS,
             ModuleAccessPolicy.APINAME_send_session_share_sms,
             [],
             String2ParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<void, boolean>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<void, boolean>(
             null,
             ModuleAccessPolicy.APINAME_IS_ADMIN,
             [UserRoleVO.API_TYPE_ID, RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID]
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<void, UserVO>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<void, UserVO>(
             null,
             ModuleAccessPolicy.APINAME_getSelfUser,
             [UserVO.API_TYPE_ID]
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<StringParamVO, boolean>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<StringParamVO, boolean>(
             null,
             ModuleAccessPolicy.APINAME_IS_ROLE,
             [UserRoleVO.API_TYPE_ID, RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID],
             StringParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<BooleanParamVO, { [policy_id: number]: { [role_id: number]: boolean } }>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<BooleanParamVO, { [policy_id: number]: { [role_id: number]: boolean } }>(
             null,
             ModuleAccessPolicy.APINAME_GET_ACCESS_MATRIX,
             [AccessPolicyVO.API_TYPE_ID, RolePolicyVO.API_TYPE_ID, PolicyDependencyVO.API_TYPE_ID, RoleVO.API_TYPE_ID, RolePolicyVO.API_TYPE_ID],
             BooleanParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, RoleVO[]>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<NumberParamVO, RoleVO[]>(
             null,
             ModuleAccessPolicy.APINAME_GET_USER_ROLES,
             [RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID],
             NumberParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<void, RoleVO[]>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<void, RoleVO[]>(
             null,
             ModuleAccessPolicy.APINAME_GET_MY_ROLES,
             [RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID]
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<void, number>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<void, number>(
             null,
             ModuleAccessPolicy.APINAME_GET_LOGGED_USER_ID,
             [UserVO.API_TYPE_ID]
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<void, string>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<void, string>(
             null,
             ModuleAccessPolicy.APINAME_GET_LOGGED_USER_NAME,
             [UserVO.API_TYPE_ID]
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<void, LangVO>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<void, LangVO>(
             null,
             ModuleAccessPolicy.APINAME_getMyLang,
             [UserVO.API_TYPE_ID, LangVO.API_TYPE_ID]
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<StringParamVO, void>(
             null,
             ModuleAccessPolicy.APINAME_begininitpwdsms,
             [UserVO.API_TYPE_ID],
             StringParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<StringParamVO, void>(
             null,
             ModuleAccessPolicy.APINAME_sendrecapture,
             [UserVO.API_TYPE_ID],
             StringParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<StringParamVO, void>(
             null,
             ModuleAccessPolicy.APINAME_begininitpwd,
             [UserVO.API_TYPE_ID],
             StringParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<NumberParamVO, void>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<NumberParamVO, void>(
             null,
             ModuleAccessPolicy.APINAME_begininitpwd_uid,
             [UserVO.API_TYPE_ID],
             NumberParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<NumberParamVO, boolean>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<NumberParamVO, boolean>(
             null,
             ModuleAccessPolicy.APINAME_BEGIN_RECOVER_UID,
             [UserVO.API_TYPE_ID],
             NumberParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<NumberParamVO, boolean>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<NumberParamVO, boolean>(
             null,
             ModuleAccessPolicy.APINAME_BEGIN_RECOVER_SMS_UID,
             [UserVO.API_TYPE_ID],
             NumberParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<StringParamVO, boolean>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<StringParamVO, boolean>(
             null,
             ModuleAccessPolicy.APINAME_BEGIN_RECOVER,
             [UserVO.API_TYPE_ID],
             StringParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<StringParamVO, boolean>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<StringParamVO, boolean>(
             null,
             ModuleAccessPolicy.APINAME_BEGIN_RECOVER_SMS,
             [UserVO.API_TYPE_ID],
             StringParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<ResetPwdParamVO, boolean>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<ResetPwdParamVO, boolean>(
             null,
             ModuleAccessPolicy.APINAME_RESET_PWD,
             [UserVO.API_TYPE_ID],
             ResetPwdParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<ResetPwdUIDParamVO, boolean>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<ResetPwdUIDParamVO, boolean>(
             null,
             ModuleAccessPolicy.APINAME_RESET_PWDUID,
             [UserVO.API_TYPE_ID],
             ResetPwdUIDParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<ResetPwdParamVO, boolean>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<ResetPwdParamVO, boolean>(
             null,
             ModuleAccessPolicy.APINAME_checkCode,
             [UserVO.API_TYPE_ID],
             ResetPwdParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<ResetPwdUIDParamVO, boolean>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<ResetPwdUIDParamVO, boolean>(
             null,
             ModuleAccessPolicy.APINAME_checkCodeUID,
             [UserVO.API_TYPE_ID],
             ResetPwdUIDParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<ToggleAccessParamVO, boolean>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<ToggleAccessParamVO, boolean>(
             null,
             ModuleAccessPolicy.APINAME_TOGGLE_ACCESS,
             [RolePolicyVO.API_TYPE_ID],
             ToggleAccessParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<LoginParamVO, number>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<LoginParamVO, number>(
             null,
             ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT,
             [UserVO.API_TYPE_ID],
             LoginParamVOStatic
         ));
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<SigninParamVO, number>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<SigninParamVO, number>(
             null,
             ModuleAccessPolicy.APINAME_SIGNIN_AND_REDIRECT,
             [UserVO.API_TYPE_ID],
             SigninParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<LoginParamVO, number>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<LoginParamVO, number>(
             null,
             ModuleAccessPolicy.APINAME_impersonateLogin,
             [UserVO.API_TYPE_ID],
             LoginParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<NumberParamVO, UserVO>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<NumberParamVO, UserVO>(
             null,
             ModuleAccessPolicy.APINAME_change_lang,
             [UserVO.API_TYPE_ID, LangVO.API_TYPE_ID],

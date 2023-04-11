@@ -1,0 +1,11 @@
+.table_kanban_card_header_collage {
+    .vue-photo-collage-wrapper {
+        padding: 0.25rem;
+
+        .vue-photo-grid {
+            box-shadow: 0px 10px 12px -10px #555;
+            border: solid 1px #CCC;
+            border-radius: var(--vue-photo-grid-radius);
+        }
+    }
+}

@@ -57,13 +57,13 @@ export default class ModuleSendInBlue extends Module {
 
     public registerApis() {
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<SendInBlueMailEventVO, any>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<SendInBlueMailEventVO, any>(
             null,
             ModuleSendInBlue.APINAME_sendinblue_event_webhook,
             [SendInBlueMailEventVO.API_TYPE_ID, MailEventVO.API_TYPE_ID, MailVO.API_TYPE_ID]
         ).disable_csrf_protection());
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<NumberParamVO, any>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<NumberParamVO, any>(
             null,
             ModuleSendInBlue.APINAME_sendinblue_refresh_mail_events,
             [MailEventVO.API_TYPE_ID, MailVO.API_TYPE_ID],
