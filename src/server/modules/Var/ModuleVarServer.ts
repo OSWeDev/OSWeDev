@@ -1514,6 +1514,8 @@ export default class ModuleVarServer extends ModuleServerBase {
             return null;
         }
 
+        let uid = StackContext.get('UID');
+
         return new Promise(async (resolve, reject) => {
             let param = new GetVarParamFromContextFiltersParam(
                 var_name,
@@ -1522,7 +1524,8 @@ export default class ModuleVarServer extends ModuleServerBase {
                 active_api_type_ids,
                 discarded_field_paths,
                 accept_max_ranges,
-                resolve
+                resolve,
+                uid
             );
 
             await this.throttle_getVarParamFromContextFilters(param);
@@ -1597,13 +1600,17 @@ export default class ModuleVarServer extends ModuleServerBase {
 
                                 /**
                                  * Utilisation du cache local
+                                 * On réinsère le contexte client pour les requêtes
                                  */
-                                let query_wrapper: ParameterizedQueryWrapper = await ModuleContextFilterServer.getInstance().build_select_query(context_query);
-                                if (!cache_local[query_wrapper.query]) {
-                                    cache_local[query_wrapper.query] = ContextQueryServerController.getInstance().select_vos(context_query, query_wrapper);
-                                }
+                                await StackContext.runPromise({ IS_CLIENT: true, UID: param.uid }, async () => {
 
-                                ids_db = await cache_local[query_wrapper.query];
+                                    let query_wrapper: ParameterizedQueryWrapper = await ModuleContextFilterServer.getInstance().build_select_query(context_query);
+                                    if (!cache_local[query_wrapper.query]) {
+                                        cache_local[query_wrapper.query] = ContextQueryServerController.getInstance().select_vos(context_query, query_wrapper);
+                                    }
+
+                                    ids_db = await cache_local[query_wrapper.query];
+                                });
                             }
                             if (ConfigurationService.node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
                                 ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':select_vos:OUT');

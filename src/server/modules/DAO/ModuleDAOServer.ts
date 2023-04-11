@@ -4469,7 +4469,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         case ModuleTableField.FIELD_TYPE_refrange_array:
                         case ModuleTableField.FIELD_TYPE_isoweekdays:
                         case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                            ranges_clause = "'" + MatroidIndexHandler.getInstance().get_normalized_ranges(ranges) + "'";
+                            ranges_clause = "'" + MatroidIndexHandler.get_normalized_ranges(ranges) + "'";
                             break;
 
                         default:

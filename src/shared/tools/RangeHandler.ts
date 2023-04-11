@@ -900,7 +900,7 @@ export default class RangeHandler {
     }
 
     public static getIndex(range: IRange): string {
-        return MatroidIndexHandler.getInstance().get_normalized_range(range);
+        return MatroidIndexHandler.get_normalized_range(range);
     }
 
     public static humanize(range: IRange): string {
@@ -941,11 +941,11 @@ export default class RangeHandler {
     }
 
     public static rangesFromIndex(index: string, range_type: number): IRange[] {
-        return MatroidIndexHandler.getInstance().from_normalized_ranges(index, range_type);
+        return MatroidIndexHandler.from_normalized_ranges(index, range_type);
     }
 
     public static getIndexRanges(ranges: IRange[]): string {
-        return MatroidIndexHandler.getInstance().get_normalized_ranges(ranges);
+        return MatroidIndexHandler.get_normalized_ranges(ranges);
     }
 
     /**
@@ -1080,7 +1080,7 @@ export default class RangeHandler {
         }
 
         for (let i in ranges) {
-            const callback_sync_res: void | boolean = RangeHandler.foreach_sync(ranges[i], callback_sync, segment_type, min_inclusiv, max_inclusiv);
+            const callback_sync_res: void | boolean = RangeHandler.foreach_sync(ranges[i], callback_sync, segment_type, min_inclusiv, max_inclusiv, reverse);
 
             // On ajoute un comportement de break si le callback_sync retourne false
             if ((typeof callback_sync_res === 'boolean') && (callback_sync_res === false)) {
@@ -1520,7 +1520,7 @@ export default class RangeHandler {
     }
 
     public static translate_from_api<U extends NumRange>(range_type: number, ranges: string): U[] {
-        return MatroidIndexHandler.getInstance().from_normalized_ranges(ranges, range_type) as U[];
+        return MatroidIndexHandler.from_normalized_ranges(ranges, range_type) as U[];
     }
 
     public static translate_to_bdd(ranges: IRange[]): any {
@@ -1904,7 +1904,8 @@ export default class RangeHandler {
         callback_sync: (value: number) => void | boolean,
         segment_type: number = null,
         min_inclusiv: number = null,
-        max_inclusiv: number = null): void | boolean {
+        max_inclusiv: number = null,
+        reverse: boolean = false): void | boolean {
 
         if (!range) {
             return false;
@@ -1948,36 +1949,78 @@ export default class RangeHandler {
         switch (range.range_type) {
 
             case NumRange.RANGE_TYPE:
-                for (let i = min; i <= max; (i)++) {
+                if (reverse) {
 
-                    const callback_sync_res: void | boolean = callback_sync(i);
-                    if (callback_sync_res === false) {
-                        return false;
+                    for (let i = max; i >= min; (i)--) {
+
+                        const callback_sync_res: void | boolean = callback_sync(i);
+                        if (callback_sync_res === false) {
+                            return false;
+                        }
+                    }
+                } else {
+
+                    for (let i = min; i <= max; (i)++) {
+
+                        const callback_sync_res: void | boolean = callback_sync(i);
+                        if (callback_sync_res === false) {
+                            return false;
+                        }
                     }
                 }
                 return;
 
             case HourRange.RANGE_TYPE:
-                while (min && RangeHandler.is_elt_equals_or_inf_elt(range.range_type, min, max)) {
 
-                    const callback_sync_res: void | boolean = callback_sync(min);
-                    if (callback_sync_res === false) {
-                        return false;
+                if (reverse) {
+
+                    while (max && RangeHandler.is_elt_equals_or_inf_elt(range.range_type, min, max)) {
+
+                        const callback_sync_res: void | boolean = callback_sync(max);
+                        if (callback_sync_res === false) {
+                            return false;
+                        }
+
+                        max = Dates.add(max, -1, segment_type);
                     }
+                } else {
 
-                    min = Dates.add(min, 1, segment_type);
+                    while (min && RangeHandler.is_elt_equals_or_inf_elt(range.range_type, min, max)) {
+
+                        const callback_sync_res: void | boolean = callback_sync(min);
+                        if (callback_sync_res === false) {
+                            return false;
+                        }
+
+                        min = Dates.add(min, 1, segment_type);
+                    }
                 }
                 return;
 
             case TSRange.RANGE_TYPE:
-                while (min && RangeHandler.is_elt_equals_or_inf_elt(range.range_type, min, max)) {
 
-                    const callback_sync_res: void | boolean = callback_sync(min);
-                    if (callback_sync_res === false) {
-                        return false;
+                if (reverse) {
+
+                    while (max && RangeHandler.is_elt_equals_or_inf_elt(range.range_type, min, max)) {
+
+                        const callback_sync_res: void | boolean = callback_sync(max);
+                        if (callback_sync_res === false) {
+                            return false;
+                        }
+
+                        max = Dates.add(max, -1, segment_type);
                     }
+                } else {
 
-                    min = Dates.add(min, 1, segment_type);
+                    while (min && RangeHandler.is_elt_equals_or_inf_elt(range.range_type, min, max)) {
+
+                        const callback_sync_res: void | boolean = callback_sync(min);
+                        if (callback_sync_res === false) {
+                            return false;
+                        }
+
+                        min = Dates.add(min, 1, segment_type);
+                    }
                 }
                 return;
         }

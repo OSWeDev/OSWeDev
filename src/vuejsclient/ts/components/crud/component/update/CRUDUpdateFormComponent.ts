@@ -134,6 +134,10 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
             crud_field_remover_conf.is_update = true;
         }
 
+        if (!crud_field_remover_conf.module_table_field_ids) {
+            crud_field_remover_conf.module_table_field_ids = [];
+        }
+
         crud_field_remover_conf.module_table_field_ids.push(module_table_field_id);
         let self = this;
         self.crud_field_remover_conf = crud_field_remover_conf;
@@ -365,7 +369,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
                         return;
                     }
 
-                    updatedVO = await ModuleDAO.getInstance().getVoById<any>(self.selected_vo._type, self.selected_vo.id);
+                    updatedVO = await query(self.selected_vo._type).filter_by_id(self.selected_vo.id).select_vo();
                     if ((!updatedVO) || (updatedVO.id !== self.selected_vo.id) || (updatedVO._type !== self.selected_vo._type)) {
                         self.updating_vo = false;
                         reject({
@@ -381,8 +385,8 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
                     }
 
                     // On doit mettre à jour les OneToMany, et ManyToMany dans les tables correspondantes
-                    await CRUDFormServices.getInstance().updateManyToMany(self.editableVO, self.crud.createDatatable, updatedVO, self.removeData, self.storeData, self);
-                    await CRUDFormServices.getInstance().updateOneToMany(self.editableVO, self.crud.createDatatable, updatedVO, self.getStoredDatas, self.updateData);
+                    await CRUDFormServices.getInstance().updateManyToMany(self.editableVO, self.crud.updateDatatable, updatedVO, self.removeData, self.storeData, self);
+                    await CRUDFormServices.getInstance().updateOneToMany(self.editableVO, self.crud.updateDatatable, updatedVO, self.getStoredDatas, self.updateData);
 
                     if (self.crud.postUpdate) {
                         await self.crud.postUpdate(self.editableVO);

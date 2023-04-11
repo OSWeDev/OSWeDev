@@ -1,3 +1,4 @@
+import { cloneDeep } from 'lodash';
 import ModuleAccessPolicy from '../../AccessPolicy/ModuleAccessPolicy';
 import IDistantVOBase from '../../IDistantVOBase';
 import ModuleTable from '../../ModuleTable';
@@ -24,8 +25,8 @@ export default class CRUD<T extends IDistantVOBase> {
 
         crud.readDatatable.removeFields(['version_num', 'trashed', 'parent_id']);
 
-        crud.updateDatatable = Object.assign(new Datatable(api_type_id), crud.readDatatable);
-        crud.createDatatable = Object.assign(new Datatable(api_type_id), crud.readDatatable);
+        crud.updateDatatable = cloneDeep(crud.readDatatable);
+        crud.createDatatable = cloneDeep(crud.readDatatable);
 
         crud.updateDatatable.removeFields([
             'version_num', 'trashed', 'parent_id',

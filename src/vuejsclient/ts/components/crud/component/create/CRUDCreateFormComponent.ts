@@ -151,6 +151,10 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
             crud_field_remover_conf.is_update = false;
         }
 
+        if (!crud_field_remover_conf.module_table_field_ids) {
+            crud_field_remover_conf.module_table_field_ids = [];
+        }
+
         crud_field_remover_conf.module_table_field_ids.push(module_table_field_id);
         this.crud_field_remover_conf = crud_field_remover_conf;
 
@@ -235,7 +239,7 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
                 }
             }
             if (this.crud_field_remover_conf && this.crud_field_remover_conf.module_table_field_ids && this.crud_field_remover_conf.module_table_field_ids.length) {
-                this.crud.updateDatatable.removeFields(this.crud_field_remover_conf.module_table_field_ids);
+                this.crud.createDatatable.removeFields(this.crud_field_remover_conf.module_table_field_ids);
             }
         }
     }
@@ -363,7 +367,7 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
                     self.newVO.id = id;
                     apiokVo.id = id;
 
-                    let n_createdVO = await ModuleDAO.getInstance().getVoById<any>(self.crud.readDatatable.API_TYPE_ID, id);
+                    let n_createdVO = await query(self.crud.readDatatable.API_TYPE_ID).filter_by_id(id).select_vo();
                     createdVO = n_createdVO ? n_createdVO : apiokVo;
                     /**
                      * A SUIVRE en prod suivant les projets

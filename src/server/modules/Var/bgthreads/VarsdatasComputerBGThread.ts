@@ -420,7 +420,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                 let node = this.current_batch_vardag.nodes[i];
                 let var_data = node.var_data;
                 indexes.push(var_data.index);
-                human_readable_indexes.push(MatroidIndexHandler.getInstance().get_human_readable_index(var_data));
+                human_readable_indexes.push(MatroidIndexHandler.get_human_readable_index(var_data));
             }
         }
 

@@ -92,6 +92,10 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
         return this.t(this.widget_options.get_title_name_code_text(this.page_widget.id));
     }
 
+    private get_bool_option(option: string, default_value: boolean): boolean {
+        return (this.widget_options && (typeof this.widget_options[option] === 'boolean')) ? this.widget_options[option] : default_value;
+    }
+
     get options() {
         let self = this;
         return {
@@ -99,11 +103,11 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             maintainAspectRatio: false,
 
             title: {
-                display: self.widget_options.title_display ? self.widget_options.title_display : true,
-                text: self.translated_title ? self.translated_title : '',
-                fontColor: self.widget_options.title_font_color ? self.widget_options.title_font_color : '#666',
-                fontSize: self.widget_options.title_font_size ? self.widget_options.title_font_size : 16,
-                padding: self.widget_options.title_padding ? self.widget_options.title_padding : 10,
+                display: this.get_bool_option('title_display', true),
+                text: this.translated_title ? this.translated_title : '',
+                fontColor: this.widget_options.title_font_color ? this.widget_options.title_font_color : '#666',
+                fontSize: this.widget_options.title_font_size ? this.widget_options.title_font_size : 16,
+                padding: this.widget_options.title_padding ? this.widget_options.title_padding : 10,
             },
 
             tooltips: {
@@ -131,7 +135,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             },
 
             legend: {
-                display: self.widget_options.legend_display ? self.widget_options.legend_display : true,
+                display: this.get_bool_option('legend_display', true),
                 position: self.widget_options.legend_position ? self.widget_options.legend_position : 'bottom',
 
                 labels: {
@@ -139,7 +143,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                     fontSize: self.widget_options.legend_font_size ? self.widget_options.legend_font_size : 12,
                     boxWidth: self.widget_options.legend_box_width ? self.widget_options.legend_box_width : 40,
                     padding: self.widget_options.legend_padding ? self.widget_options.legend_padding : 10,
-                    usePointStyle: self.widget_options.legend_use_point_style ? self.widget_options.legend_use_point_style : false
+                    usePointStyle: this.get_bool_option('legend_use_point_style', false)
                 },
             },
 
@@ -550,52 +554,65 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             return null;
         }
 
-        let year_filter = ContextFilterHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_YEAR);
-        let month_filter = ContextFilterHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_MONTH);
-        let dom_filter = ContextFilterHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_DOM);
-        let dow_filter = ContextFilterHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_DOW);
-        let week_filter = ContextFilterHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_WEEK);
+        let ts_ranges = ContextFilterHandler.getInstance().get_ts_ranges_from_context_filter_root(
+            root_context_filter,
+            this.widget_options.dimension_custom_filter_segment_type,
+            this.widget_options.max_dimension_values,
+            this.widget_options.sort_dimension_by_asc
+        );
 
-        /**
-         * Pour l'instant on ne gère que mois et année, avec obligation de saisir l'année et possibilité de filtrer sur le mois
-         */
-        if (dom_filter || dow_filter || week_filter || !year_filter) {
-            throw new Error('Not implemented');
-        }
-
-        let ranges = [];
-        let nb_ranges = 0;
-        // Si la semgentation est annuelle, inutile/impossible de filtrer sur le mois => on prend tous les mois, est-ce qu'on devrait renvoyer une erreur ?
-        // On part du principe que les ranges sont déjà ordonnés, via une union par exemple ou une normalisation quelconque - voir si c'est ok
-        if (month_filter && (this.widget_options.dimension_custom_filter_segment_type >= TimeSegment.TYPE_MONTH)) {
-            RangeHandler.foreach_ranges_sync(year_filter.param_numranges, (year: number) => {
-                RangeHandler.foreach_ranges_sync(month_filter.param_numranges, (month: number) => {
-
-                    if (nb_ranges >= this.widget_options.max_dimension_values) {
-                        return;
-                    }
-
-                    ranges.push(RangeHandler.create_single_elt_TSRange(Dates.month(Dates.year(0, year), month - 1), TimeSegment.TYPE_MONTH));
-                    nb_ranges++;
-                }, TimeSegment.TYPE_MONTH, null, null, !this.widget_options.sort_dimension_by_asc);
-            }, TimeSegment.TYPE_YEAR, null, null, !this.widget_options.sort_dimension_by_asc);
-        } else {
-            ranges = year_filter.param_numranges;
-        }
-
-        nb_ranges = 0;
         let dimension_values: number[] = [];
-        RangeHandler.foreach_ranges_sync(ranges, (d: number) => {
-
-            if (nb_ranges >= this.widget_options.max_dimension_values) {
-                return;
-            }
-
+        RangeHandler.foreach_ranges_sync(ts_ranges, (d: number) => {
             dimension_values.push(d);
-            nb_ranges++;
-        }, this.widget_options.dimension_custom_filter_segment_type, null, null, !this.widget_options.sort_dimension_by_asc);
-
+        });
         return dimension_values;
+
+        // let year_filter = ContextFilterHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_YEAR);
+        // let month_filter = ContextFilterHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_MONTH);
+        // let dom_filter = ContextFilterHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_DOM);
+        // let dow_filter = ContextFilterHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_DOW);
+        // let week_filter = ContextFilterHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_WEEK);
+
+        // /**
+        //  * Pour l'instant on ne gère que mois et année, avec obligation de saisir l'année et possibilité de filtrer sur le mois
+        //  */
+        // if (dom_filter || dow_filter || week_filter || !year_filter) {
+        //     throw new Error('Not implemented');
+        // }
+
+        // let ranges = [];
+        // let nb_ranges = 0;
+        // // Si la semgentation est annuelle, inutile/impossible de filtrer sur le mois => on prend tous les mois, est-ce qu'on devrait renvoyer une erreur ?
+        // // On part du principe que les ranges sont déjà ordonnés, via une union par exemple ou une normalisation quelconque - voir si c'est ok
+        // if (month_filter && (this.widget_options.dimension_custom_filter_segment_type >= TimeSegment.TYPE_MONTH)) {
+        //     RangeHandler.foreach_ranges_sync(year_filter.param_numranges, (year: number) => {
+        //         RangeHandler.foreach_ranges_sync(month_filter.param_numranges, (month: number) => {
+
+        //             if (nb_ranges >= this.widget_options.max_dimension_values) {
+        //                 return;
+        //             }
+
+        //             ranges.push(RangeHandler.create_single_elt_TSRange(Dates.month(Dates.year(0, year), month - 1), TimeSegment.TYPE_MONTH));
+        //             nb_ranges++;
+        //         }, TimeSegment.TYPE_MONTH, null, null, !this.widget_options.sort_dimension_by_asc);
+        //     }, TimeSegment.TYPE_YEAR, null, null, !this.widget_options.sort_dimension_by_asc);
+        // } else {
+        //     ranges = year_filter.param_numranges;
+        // }
+
+        // nb_ranges = 0;
+        // let dimension_values: number[] = [];
+        // RangeHandler.foreach_ranges_sync(ranges, (d: number) => {
+
+        //     if (nb_ranges >= this.widget_options.max_dimension_values) {
+        //         return;
+        //     }
+
+        //     dimension_values.push(d);
+        //     nb_ranges++;
+        // }, this.widget_options.dimension_custom_filter_segment_type, null, null, !this.widget_options.sort_dimension_by_asc);
+
+        // return dimension_values;
     }
 
     private async do_update_visible_options() {

@@ -1050,7 +1050,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                         throw new Error('Erreur côté serveur');
                     }
 
-                    rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.program_plan_shared_module.rdv_type_id, rdv.id);
+                    rdv = await query(this.program_plan_shared_module.rdv_type_id).filter_by_id(rdv.id).select_vo<IPlanRDV>();
 
                 } catch (error) {
                     ConsoleHandler.error(error);
@@ -1415,7 +1415,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                     }
 
                     rdv.id = insertOrDeleteQueryResult.id;
-                    rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(self.program_plan_shared_module.rdv_type_id, rdv.id);
+                    rdv = await query(self.program_plan_shared_module.rdv_type_id).filter_by_id(rdv.id).select_vo<IPlanRDV>();
 
                 } catch (error) {
                     ConsoleHandler.error(error);

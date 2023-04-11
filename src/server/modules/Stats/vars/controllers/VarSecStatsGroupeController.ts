@@ -30,7 +30,7 @@ export default class VarSecStatsGroupeController extends VarServerControllerBase
     protected constructor() {
         super(
             new VarConfVO(StatsVarsNamesHolder.VarSecStatsGroupeController_VAR_NAME, StatsGroupSecDataRangesVO.API_TYPE_ID, {
-                ts_ranges: TimeSegment.TYPE_MONTH,
+                ts_ranges: TimeSegment.TYPE_SECOND,
             }),
             { 'fr-fr': 'Stats' },
             {

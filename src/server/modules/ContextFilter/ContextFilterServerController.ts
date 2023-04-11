@@ -406,7 +406,7 @@ export default class ContextFilterServerController {
                              * Check injection ok : get_normalized_ranges ok
                              */
                             let ranges_clause = null;
-                            ranges_clause = "'" + MatroidIndexHandler.getInstance().get_normalized_ranges(active_field_filter.param_tsranges) + "'";
+                            ranges_clause = "'" + MatroidIndexHandler.get_normalized_ranges(active_field_filter.param_tsranges) + "'";
                             where_conditions.push(ranges_clause + " = " + field.field_id + '_ndx');
 
                             break;
@@ -2107,7 +2107,7 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numranges && active_field_filter.param_numranges.length) {
 
                             let ranges_clause = null;
-                            ranges_clause = "'" + MatroidIndexHandler.getInstance().get_normalized_ranges(active_field_filter.param_numranges) + "'";
+                            ranges_clause = "'" + MatroidIndexHandler.get_normalized_ranges(active_field_filter.param_numranges) + "'";
                             where_conditions.push(ranges_clause + " = " + field.field_id + '_ndx');
 
                             break;
@@ -2185,19 +2185,19 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numranges && active_field_filter.param_numranges.length) {
 
                             let ranges_clause = null;
-                            ranges_clause = "'" + MatroidIndexHandler.getInstance().get_normalized_ranges(active_field_filter.param_numranges) + "'";
+                            ranges_clause = "'" + MatroidIndexHandler.get_normalized_ranges(active_field_filter.param_numranges) + "'";
                             where_conditions.push(ranges_clause + " = " + field.field_id + '_ndx');
 
                             break;
                         } else if (active_field_filter.param_numeric != null) {
                             let ranges_clause = null;
-                            ranges_clause = "'" + MatroidIndexHandler.getInstance().get_normalized_ranges(RangeHandler.get_ids_ranges_from_list([active_field_filter.param_numeric])) + "'";
+                            ranges_clause = "'" + MatroidIndexHandler.get_normalized_ranges(RangeHandler.get_ids_ranges_from_list([active_field_filter.param_numeric])) + "'";
                             where_conditions.push(ranges_clause + " = " + field.field_id + '_ndx');
 
                             break;
                         } else if (active_field_filter.param_numeric_array && active_field_filter.param_numeric_array.length) {
                             let ranges_clause = null;
-                            ranges_clause = "'" + MatroidIndexHandler.getInstance().get_normalized_ranges(RangeHandler.get_ids_ranges_from_list(active_field_filter.param_numeric_array)) + "'";
+                            ranges_clause = "'" + MatroidIndexHandler.get_normalized_ranges(RangeHandler.get_ids_ranges_from_list(active_field_filter.param_numeric_array)) + "'";
                             where_conditions.push(ranges_clause + " = " + field.field_id + '_ndx');
 
                             break;
