@@ -1,3 +1,4 @@
+import { cloneDeep } from 'lodash';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import Alert from '../../../../../../shared/modules/Alert/vos/Alert';
@@ -154,7 +155,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
                         self.crud_field_remover_conf.id = res.id;
                     }
 
-                    this.crud.updateDatatable.removeFields([module_table_field_id]);
+                    self.remove_fields([module_table_field_id]);
 
                     resolve({
                         body: self.label('crud_update_form_body_add_removed_crud_field_id.ok'),
@@ -227,9 +228,21 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
             }
 
             if (this.crud_field_remover_conf && this.crud_field_remover_conf.module_table_field_ids && this.crud_field_remover_conf.module_table_field_ids.length) {
-                this.crud.updateDatatable.removeFields(this.crud_field_remover_conf.module_table_field_ids);
+                this.remove_fields(this.crud_field_remover_conf.module_table_field_ids);
             }
         }
+    }
+
+    /**
+     * Si on a toujours un datatable par défaut, donc celui du read, on doit d'abord le cloner pour le modifier uniquement dans notre cas
+     * @param fields les champs à supprimer du CRUD
+     */
+    private remove_fields(fields) {
+
+        if (this.crud.updateDatatable == this.crud.readDatatable) {
+            this.crud.updateDatatable = CRUD.copy_datatable(this.crud.readDatatable);
+        }
+        this.crud.updateDatatable.removeFields(this.crud_field_remover_conf.module_table_field_ids);
     }
 
     private async loaddatas() {
