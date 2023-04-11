@@ -373,14 +373,14 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
 
     public registerServerApiHandlers() {
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportHistorics, this.getDataImportHistorics.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportHistoric, this.getDataImportHistoric.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportLogs, this.getDataImportLogs.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportFiles, this.getDataImportFiles.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportFile, this.getDataImportFile.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportColumnsFromFormatId, this.getDataImportColumnsFromFormatId.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_reimportdih, this.reimportdih.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_importJSON, this.importJSON.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleDataImport.APINAME_getDataImportHistorics, this.getDataImportHistorics.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleDataImport.APINAME_getDataImportHistoric, this.getDataImportHistoric.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleDataImport.APINAME_getDataImportLogs, this.getDataImportLogs.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleDataImport.APINAME_getDataImportFiles, this.getDataImportFiles.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleDataImport.APINAME_getDataImportFile, this.getDataImportFile.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleDataImport.APINAME_getDataImportColumnsFromFormatId, this.getDataImportColumnsFromFormatId.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleDataImport.APINAME_reimportdih, this.reimportdih.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleDataImport.APINAME_importJSON, this.importJSON.bind(this));
     }
 
     public async importJSON(import_json: string, import_on_vo: IDistantVOBase): Promise<IDistantVOBase[]> {

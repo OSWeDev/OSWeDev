@@ -42,24 +42,24 @@ export default class ModuleCron extends Module {
 
     public registerApis() {
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<void, string[]>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<void, string[]>(
             ModuleCron.POLICY_BO_ACCESS,
             ModuleCron.APINAME_get_manual_tasks,
             null
         ));
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<void, void>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<void, void>(
             ModuleCron.POLICY_BO_ACCESS,
             ModuleCron.APINAME_executeWorkersManually,
             [CronWorkerPlanification.API_TYPE_ID]
         ));
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<StringParamVO, void>(
             ModuleCron.POLICY_BO_ACCESS,
             ModuleCron.APINAME_executeWorkerManually,
             [CronWorkerPlanification.API_TYPE_ID],
             StringParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<StringParamVO, void>(
             ModuleCron.POLICY_BO_ACCESS,
             ModuleCron.APINAME_run_manual_task,
             [CronWorkerPlanification.API_TYPE_ID],

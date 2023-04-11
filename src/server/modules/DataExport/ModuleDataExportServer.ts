@@ -123,12 +123,12 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     public registerServerApiHandlers() {
 
 
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVO, this.prepare_exportContextQueryToXLSX.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVO, this.prepare_exportContextQueryToXLSX.bind(this));
 
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToXLSXParamVO, this.exportDataToXLSX.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToXLSXParamVOFile, this.exportDataToXLSXFile.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVO, this.exportDataToMultiSheetsXLSX.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVOFile, this.exportDataToMultiSheetsXLSXFile.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToXLSXParamVO, this.exportDataToXLSX.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToXLSXParamVOFile, this.exportDataToXLSXFile.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVO, this.exportDataToMultiSheetsXLSX.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVOFile, this.exportDataToMultiSheetsXLSXFile.bind(this));
     }
 
     public async exportDataToXLSX(

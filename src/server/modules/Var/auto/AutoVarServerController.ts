@@ -20,108 +20,283 @@ export default class AutoVarServerController extends VarServerControllerBase<Var
 
     public static do_calculation(deps_values: number[], auto_operator: number): number {
 
+        let res = null;
         switch (auto_operator) {
 
             case VarConfVO.AUTO_OPERATEUR_UNITAIRE_VOFIELDREF:
-                return ((deps_values[0] == null) || isNaN(deps_values[0])) ? null : deps_values[0];
+                AutoVarServerController.assert_has_1_dep(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => deps_values[0]
+                );
 
             case VarConfVO.AUTO_OPERATEUR_UNITAIRE_NOT:
-                return deps_values[0] ? 0 : 1;
+                AutoVarServerController.assert_has_1_dep(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => deps_values[0] ? 0 : 1
+                );
             case VarConfVO.AUTO_OPERATEUR_UNITAIRE_ISNULL:
-                return (deps_values[0] == null) ? 1 : 0;
+                AutoVarServerController.assert_has_1_dep(auto_operator, deps_values);
+                return ((deps_values[0] == null) || (isNaN(deps_values[0]))) ? 1 : 0;
             case VarConfVO.AUTO_OPERATEUR_UNITAIRE_ISNOTNULL:
-                return (deps_values[0] == null) ? 0 : 1;
+                AutoVarServerController.assert_has_1_dep(auto_operator, deps_values);
+                return ((deps_values[0] == null) || (isNaN(deps_values[0]))) ? 0 : 1;
 
             case VarConfVO.AUTO_OPERATEUR_UNITAIRE_MOINS:
-                return deps_values[0] ? -deps_values[0] : deps_values[0];
+                AutoVarServerController.assert_has_1_dep(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => -deps_values[0]
+                );
             case VarConfVO.AUTO_OPERATEUR_UNITAIRE_ABS:
-                return deps_values[0] ? Math.abs(deps_values[0]) : deps_values[0];
+                AutoVarServerController.assert_has_1_dep(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => Math.abs(deps_values[0])
+                );
             case VarConfVO.AUTO_OPERATEUR_UNITAIRE_LN:
-                return deps_values[0] ? Math.log(deps_values[0]) : deps_values[0];
+                AutoVarServerController.assert_has_1_dep(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => Math.log(deps_values[0])
+                );
             case VarConfVO.AUTO_OPERATEUR_UNITAIRE_RACINE:
-                return deps_values[0] ? Math.sqrt(deps_values[0]) : deps_values[0];
+                AutoVarServerController.assert_has_1_dep(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => Math.sqrt(deps_values[0])
+                );
+            case VarConfVO.AUTO_OPERATEUR_UNITAIRE_FACTORIELLE:
+                AutoVarServerController.assert_has_1_dep(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => deps_values[0]!
+                );
 
             case VarConfVO.AUTO_OPERATEUR_UNITAIRE_ANNEE:
-                return deps_values[0] ? Dates.year(deps_values[0]) : deps_values[0];
+                AutoVarServerController.assert_has_1_dep(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => Dates.year(deps_values[0])
+                );
             case VarConfVO.AUTO_OPERATEUR_UNITAIRE_MOIS:
-                return deps_values[0] ? Dates.month(deps_values[0]) : deps_values[0];
+                AutoVarServerController.assert_has_1_dep(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => Dates.month(deps_values[0])
+                );
             case VarConfVO.AUTO_OPERATEUR_UNITAIRE_JOUR_DU_MOIS:
-                return deps_values[0] ? Dates.date(deps_values[0]) : deps_values[0];
+                AutoVarServerController.assert_has_1_dep(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => Dates.date(deps_values[0])
+                );
             case VarConfVO.AUTO_OPERATEUR_UNITAIRE_JOUR_DE_LA_SEMAINE:
-                return deps_values[0] ? Dates.isoWeekday(deps_values[0]) : deps_values[0];
+                AutoVarServerController.assert_has_1_dep(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => Dates.isoWeekday(deps_values[0])
+                );
             case VarConfVO.AUTO_OPERATEUR_UNITAIRE_HEURE:
-                return deps_values[0] ? Dates.hour(deps_values[0]) : deps_values[0];
+                AutoVarServerController.assert_has_1_dep(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => Dates.hour(deps_values[0])
+                );
             case VarConfVO.AUTO_OPERATEUR_UNITAIRE_MINUTE:
-                return deps_values[0] ? Dates.minute(deps_values[0]) : deps_values[0];
+                AutoVarServerController.assert_has_1_dep(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => Dates.minute(deps_values[0])
+                );
             case VarConfVO.AUTO_OPERATEUR_UNITAIRE_SECONDE:
-                return deps_values[0] ? Dates.second(deps_values[0]) : deps_values[0];
+                AutoVarServerController.assert_has_1_dep(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => Dates.second(deps_values[0])
+                );
 
             case VarConfVO.AUTO_OPERATEUR_UNITAIRE_EN_ANNEES:
-                return deps_values[0] ? Durations.as(deps_values[0], TimeSegment.TYPE_YEAR) : deps_values[0];
+                AutoVarServerController.assert_has_1_dep(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => Durations.as(deps_values[0], TimeSegment.TYPE_YEAR)
+                );
             case VarConfVO.AUTO_OPERATEUR_UNITAIRE_EN_MOIS:
-                return deps_values[0] ? Durations.as(deps_values[0], TimeSegment.TYPE_MONTH) : deps_values[0];
+                AutoVarServerController.assert_has_1_dep(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => Durations.as(deps_values[0], TimeSegment.TYPE_MONTH)
+                );
             case VarConfVO.AUTO_OPERATEUR_UNITAIRE_EN_SEMAINES:
-                return deps_values[0] ? Durations.as(deps_values[0], TimeSegment.TYPE_WEEK) : deps_values[0];
+                AutoVarServerController.assert_has_1_dep(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => Durations.as(deps_values[0], TimeSegment.TYPE_WEEK)
+                );
             case VarConfVO.AUTO_OPERATEUR_UNITAIRE_EN_JOURS:
-                return deps_values[0] ? Durations.as(deps_values[0], TimeSegment.TYPE_DAY) : deps_values[0];
+                AutoVarServerController.assert_has_1_dep(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => Durations.as(deps_values[0], TimeSegment.TYPE_DAY)
+                );
             case VarConfVO.AUTO_OPERATEUR_UNITAIRE_EN_HEURES:
-                return deps_values[0] ? Durations.as(deps_values[0], TimeSegment.TYPE_HOUR) : deps_values[0];
+                AutoVarServerController.assert_has_1_dep(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => Durations.as(deps_values[0], TimeSegment.TYPE_HOUR)
+                );
             case VarConfVO.AUTO_OPERATEUR_UNITAIRE_EN_MINUTES:
-                return deps_values[0] ? Durations.as(deps_values[0], TimeSegment.TYPE_MINUTE) : deps_values[0];
+                AutoVarServerController.assert_has_1_dep(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => Durations.as(deps_values[0], TimeSegment.TYPE_MINUTE)
+                );
             case VarConfVO.AUTO_OPERATEUR_UNITAIRE_EN_SECONDES:
-                return deps_values[0] ? Durations.as(deps_values[0], TimeSegment.TYPE_SECOND) : deps_values[0];
+                AutoVarServerController.assert_has_1_dep(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => Durations.as(deps_values[0], TimeSegment.TYPE_SECOND)
+                );
 
             case VarConfVO.AUTO_OPERATEUR_BINAIRE_PLUS:
-                return (deps_values[0] == null) ? deps_values[1] : ((deps_values[1] == null) ? deps_values[0] : deps_values[0] + deps_values[1]);
+                AutoVarServerController.assert_has_2_deps(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => deps_values[0] + deps_values[1]
+                );
             case VarConfVO.AUTO_OPERATEUR_BINAIRE_MOINS:
-                return (deps_values[0] == null) ? -deps_values[1] : ((deps_values[1] == null) ? deps_values[0] : deps_values[0] - deps_values[1]);
+                AutoVarServerController.assert_has_2_deps(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => deps_values[0] - deps_values[1]
+                );
             case VarConfVO.AUTO_OPERATEUR_BINAIRE_MULT:
-                return (deps_values[0] == null) ? null : ((deps_values[1] == null) ? null : deps_values[0] * deps_values[1]);
+                AutoVarServerController.assert_has_2_deps(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => deps_values[0] * deps_values[1]
+                );
             case VarConfVO.AUTO_OPERATEUR_BINAIRE_DIV:
-                return (deps_values[0] == null) ? null : (!deps_values[1]) ? null : (deps_values[0] / deps_values[1]);
+                AutoVarServerController.assert_has_2_deps(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => deps_values[1] ? deps_values[0] / deps_values[1] : null
+                );
             case VarConfVO.AUTO_OPERATEUR_BINAIRE_MODULO:
-                return (deps_values[0] == null) ? null : (!deps_values[1]) ? null : (deps_values[0] % deps_values[1]);
+                AutoVarServerController.assert_has_2_deps(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => deps_values[1] ? deps_values[0] % deps_values[1] : null
+                );
             case VarConfVO.AUTO_OPERATEUR_BINAIRE_MAX:
-                return (deps_values[0] == null) ? deps_values[1] : ((deps_values[1] == null) ? deps_values[0] : Math.max(deps_values[0], deps_values[1]));
+                AutoVarServerController.assert_has_2_deps(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => Math.max(deps_values[0], deps_values[1])
+                );
             case VarConfVO.AUTO_OPERATEUR_BINAIRE_MIN:
-                return (deps_values[0] == null) ? deps_values[1] : ((deps_values[1] == null) ? deps_values[0] : Math.min(deps_values[0], deps_values[1]));
+                AutoVarServerController.assert_has_2_deps(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => Math.min(deps_values[0], deps_values[1])
+                );
             case VarConfVO.AUTO_OPERATEUR_BINAIRE_EGAL:
+                AutoVarServerController.assert_has_2_deps(auto_operator, deps_values);
                 return (deps_values[0] == deps_values[1]) ? 1 : 0;
             case VarConfVO.AUTO_OPERATEUR_BINAIRE_INF:
-                return (deps_values[0] == null) ? 0 : ((deps_values[1] == null) ? 0 : ((deps_values[0] < deps_values[1]) ? 1 : 0));
+                AutoVarServerController.assert_has_2_deps(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => (deps_values[0] < deps_values[1]) ? 1 : 0
+                );
             case VarConfVO.AUTO_OPERATEUR_BINAIRE_SUP:
-                return (deps_values[0] == null) ? 0 : ((deps_values[1] == null) ? 0 : ((deps_values[0] > deps_values[1]) ? 1 : 0));
+                AutoVarServerController.assert_has_2_deps(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => (deps_values[0] > deps_values[1]) ? 1 : 0
+                );
             case VarConfVO.AUTO_OPERATEUR_BINAIRE_INFEGAL:
-                return (deps_values[0] == null) ? 0 : ((deps_values[1] == null) ? 0 : ((deps_values[0] <= deps_values[1]) ? 1 : 0));
+                AutoVarServerController.assert_has_2_deps(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => (deps_values[0] <= deps_values[1]) ? 1 : 0
+                );
             case VarConfVO.AUTO_OPERATEUR_BINAIRE_SUPEGAL:
-                return (deps_values[0] == null) ? 0 : ((deps_values[1] == null) ? 0 : ((deps_values[0] <= deps_values[1]) ? 1 : 0));
+                AutoVarServerController.assert_has_2_deps(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => (deps_values[0] >= deps_values[1]) ? 1 : 0
+                );
             case VarConfVO.AUTO_OPERATEUR_BINAIRE_DIFFERENT:
+                AutoVarServerController.assert_has_2_deps(auto_operator, deps_values);
                 return (deps_values[0] == deps_values[1]) ? 0 : 1;
             case VarConfVO.AUTO_OPERATEUR_BINAIRE_ET:
-                return (deps_values[0] && deps_values[1]) ? 1 : 0;
+                AutoVarServerController.assert_has_2_deps(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => (deps_values[0] && deps_values[1]) ? 1 : 0
+                );
             case VarConfVO.AUTO_OPERATEUR_BINAIRE_OU:
-                return (deps_values[0] || deps_values[1]) ? 1 : 0;
+                AutoVarServerController.assert_has_2_deps(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => (deps_values[0] || deps_values[1]) ? 1 : 0
+                );
             case VarConfVO.AUTO_OPERATEUR_BINAIRE_XOR:
-                return ((!!deps_values[0]) !== (!!deps_values[1])) ? 1 : 0;
+                AutoVarServerController.assert_has_2_deps(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => ((!!deps_values[0]) !== (!!deps_values[1])) ? 1 : 0
+                );
             case VarConfVO.AUTO_OPERATEUR_BINAIRE_ROUND:
-                return (deps_values[0] == null) ? null : ((deps_values[1] == null) ? Math.round(deps_values[0]) : Math.round(deps_values[0] * Math.pow(10, deps_values[1])) / Math.pow(10, deps_values[1]));
+                AutoVarServerController.assert_has_2_deps(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => Math.round(deps_values[0] * Math.pow(10, deps_values[1])) / Math.pow(10, deps_values[1])
+                );
             case VarConfVO.AUTO_OPERATEUR_BINAIRE_CEIL:
-                return (deps_values[0] == null) ? null : ((deps_values[1] == null) ? Math.ceil(deps_values[0]) : Math.ceil(deps_values[0] * Math.pow(10, deps_values[1])) / Math.pow(10, deps_values[1]));
+                AutoVarServerController.assert_has_2_deps(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => Math.ceil(deps_values[0] * Math.pow(10, deps_values[1])) / Math.pow(10, deps_values[1])
+                );
             case VarConfVO.AUTO_OPERATEUR_BINAIRE_FLOOR:
-                return (deps_values[0] == null) ? null : ((deps_values[1] == null) ? Math.floor(deps_values[0]) : Math.floor(deps_values[0] * Math.pow(10, deps_values[1])) / Math.pow(10, deps_values[1]));
+                AutoVarServerController.assert_has_2_deps(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => Math.floor(deps_values[0] * Math.pow(10, deps_values[1])) / Math.pow(10, deps_values[1])
+                );
             case VarConfVO.AUTO_OPERATEUR_BINAIRE_EXP:
-                return (deps_values[0] == null) ? null : ((deps_values[1] == null) ? null : Math.pow(deps_values[0], deps_values[1]));
+                AutoVarServerController.assert_has_2_deps(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => Math.pow(deps_values[0], deps_values[1])
+                );
 
             case VarConfVO.AUTO_OPERATEUR_BINAIRE_STARTOF:
-                return (deps_values[0] == null) ? null : ((deps_values[1] == null) ? null : Dates.startOf(deps_values[0], deps_values[1]));
+                AutoVarServerController.assert_has_2_deps(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => Dates.startOf(deps_values[0], deps_values[1])
+                );
 
             case VarConfVO.AUTO_OPERATEUR_TERNAIRE_SI:
-                return (!deps_values[0]) ? deps_values[2] : deps_values[1];
+                AutoVarServerController.assert_has_3_deps(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => (!deps_values[0]) ? deps_values[2] : deps_values[1]
+                );
             case VarConfVO.AUTO_OPERATEUR_TERNAIRE_AJOUT_DUREE:
-                return ((deps_values[0] == null) || (deps_values[1] == null) || (deps_values[2] == null)) ? null : Dates.add(deps_values[0], deps_values[1], deps_values[2]);
+                AutoVarServerController.assert_has_3_deps(auto_operator, deps_values);
+                return AutoVarServerController.return_null_if_has_null_undefined_or_nan_dep(
+                    deps_values,
+                    () => Dates.add(deps_values[0], deps_values[1], deps_values[2])
+                );
 
             case VarConfVO.AUTO_OPERATEUR_BINAIRE_LOG:
-            case VarConfVO.AUTO_OPERATEUR_UNITAIRE_FACTORIELLE:
+
             default:
                 throw new Error('AutoVarServerController.getValue: auto_operator NOT IMPLEMENTED : ' + auto_operator);
         }
@@ -138,6 +313,36 @@ export default class AutoVarServerController extends VarServerControllerBase<Var
 
     private static DEP_PREFIX: string = 'DEP';
     private static DEP_SEPARATOR: string = '_';
+
+    private static return_null_if_has_null_undefined_or_nan_dep(deps_values: number[], else_function: () => number): number {
+        if ((!deps_values) || (deps_values.length == 0)) {
+            return null;
+        }
+
+        for (let i in deps_values) {
+            if ((deps_values[i] == null) || (isNaN(deps_values[i]))) {
+                return null;
+            }
+        }
+
+        return else_function();
+    }
+
+    private static assert_has_1_dep(auto_operator: number, deps_values: number[]): void {
+        if ((!deps_values) || (deps_values.length != 1)) {
+            throw new Error('AutoVarServerController.assert_has_1_dep: auto_operator needs 1 dep : ' + auto_operator);
+        }
+    }
+    private static assert_has_2_deps(auto_operator: number, deps_values: number[]): void {
+        if ((!deps_values) || (deps_values.length != 2)) {
+            throw new Error('AutoVarServerController.assert_has_2_deps: auto_operator needs 2 deps : ' + auto_operator);
+        }
+    }
+    private static assert_has_3_deps(auto_operator: number, deps_values: number[]): void {
+        if ((!deps_values) || (deps_values.length != 3)) {
+            throw new Error('AutoVarServerController.getValue: auto_operator needs 3 deps : ' + auto_operator);
+        }
+    }
 
     private constructor(varconf: VarConfVO) {
         super(varconf, null, null, null, null);

@@ -32,7 +32,7 @@ export default class ModuleVersioned extends Module {
     }
 
     public registerApis() {
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<IVersionedVO, boolean>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<IVersionedVO, boolean>(
             null,
             ModuleVersioned.APINAME_RESTORE_TRASHED_VO,
             (param: IVersionedVO) => [param._type]

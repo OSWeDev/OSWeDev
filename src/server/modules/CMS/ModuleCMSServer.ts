@@ -32,8 +32,8 @@ export default class ModuleCMSServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleCMS.APINAME_getPageComponents, this.getPageComponents.bind(this));
-        // APIControllerWrapper.getInstance().registerServerApiHandler(ModuleCMS.APINAME_registerTemplateComponent, this.registerTemplateComponent.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleCMS.APINAME_getPageComponents, this.getPageComponents.bind(this));
+        // APIControllerWrapper.registerServerApiHandler(ModuleCMS.APINAME_registerTemplateComponent, this.registerTemplateComponent.bind(this));
     }
 
     /**

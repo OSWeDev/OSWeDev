@@ -28,7 +28,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
     }
 
     public registerServerApiHandlers() {
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleFile.APINAME_TEST_FILE_EXISTENZ, this.testFileExistenz.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleFile.APINAME_TEST_FILE_EXISTENZ, this.testFileExistenz.bind(this));
     }
 
     public registerCrons(): void {

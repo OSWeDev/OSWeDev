@@ -1,3 +1,4 @@
+import { cloneDeep } from 'lodash';
 import ModuleAccessPolicy from '../../AccessPolicy/ModuleAccessPolicy';
 import IDistantVOBase from '../../IDistantVOBase';
 import ModuleTable from '../../ModuleTable';
@@ -18,14 +19,27 @@ import SimpleDatatableFieldVO from './datatable/SimpleDatatableFieldVO';
 
 export default class CRUD<T extends IDistantVOBase> {
 
+    public static copy_datatable<T extends IDistantVOBase>(datatable: Datatable<T>): Datatable<T> {
+        let res: Datatable<T> = new Datatable(datatable.API_TYPE_ID);
+
+        Object.assign(res, datatable, { sortedFields: [] });
+
+        for (let i in datatable.fields) {
+            let field: DatatableField<any, any> = datatable.fields[i];
+
+            res.pushField(field);
+        }
+        return res;
+    }
+
     public static getDefaultCRUDDatatable<V extends IVersionedVO>(api_type_id: string): CRUD<V> {
         let moduleTable: ModuleTable<V> = VOsTypesManager.moduleTables_by_voType[api_type_id];
         let crud: CRUD<V> = CRUD.getNewCRUD(moduleTable.vo_type);
 
         crud.readDatatable.removeFields(['version_num', 'trashed', 'parent_id']);
 
-        crud.updateDatatable = Object.assign(new Datatable(api_type_id), crud.readDatatable);
-        crud.createDatatable = Object.assign(new Datatable(api_type_id), crud.readDatatable);
+        crud.updateDatatable = CRUD.copy_datatable(crud.readDatatable);
+        crud.createDatatable = CRUD.copy_datatable(crud.readDatatable);
 
         crud.updateDatatable.removeFields([
             'version_num', 'trashed', 'parent_id',

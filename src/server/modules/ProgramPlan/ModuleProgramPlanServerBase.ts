@@ -132,12 +132,12 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
     }
 
     public registerServerApiHandlers() {
-        APIControllerWrapper.getInstance().registerServerApiHandler(this.programplan_shared_module.APINAME_GET_RDVS_OF_PROGRAM_SEGMENT, this.getRDVsOfProgramSegment.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(this.programplan_shared_module.APINAME_GET_CRS_OF_PROGRAM_SEGMENT, this.getCRsOfProgramSegment.bind(this));
+        APIControllerWrapper.registerServerApiHandler(this.programplan_shared_module.APINAME_GET_RDVS_OF_PROGRAM_SEGMENT, this.getRDVsOfProgramSegment.bind(this));
+        APIControllerWrapper.registerServerApiHandler(this.programplan_shared_module.APINAME_GET_CRS_OF_PROGRAM_SEGMENT, this.getCRsOfProgramSegment.bind(this));
 
         if (!!this.programplan_shared_module.rdv_prep_type_id) {
 
-            APIControllerWrapper.getInstance().registerServerApiHandler(this.programplan_shared_module.APINAME_GET_PREPS_OF_PROGRAM_SEGMENT, this.getPrepsOfProgramSegment.bind(this));
+            APIControllerWrapper.registerServerApiHandler(this.programplan_shared_module.APINAME_GET_PREPS_OF_PROGRAM_SEGMENT, this.getPrepsOfProgramSegment.bind(this));
         }
     }
 
@@ -850,7 +850,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return true;
         }
 
-        let rdv: IPlanRDV = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.programplan_shared_module.rdv_type_id, cr.rdv_id);
+        let rdv: IPlanRDV = await query(this.programplan_shared_module.rdv_type_id).filter_by_id(cr.rdv_id).select_vo<IPlanRDV>();
 
         if ((!rdv) || (!rdv.id)) {
             return true;
@@ -882,7 +882,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return false;
         }
 
-        let rdv: IPlanRDV = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.programplan_shared_module.rdv_type_id, prep.rdv_id);
+        let rdv: IPlanRDV = await query(this.programplan_shared_module.rdv_type_id).filter_by_id(prep.rdv_id).select_vo<IPlanRDV>();
 
         if ((!rdv) || (!rdv.id)) {
             return true;
@@ -907,7 +907,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return true;
         }
 
-        let rdv: IPlanRDV = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.programplan_shared_module.rdv_type_id, cr.rdv_id);
+        let rdv: IPlanRDV = await query(this.programplan_shared_module.rdv_type_id).filter_by_id(cr.rdv_id).select_vo<IPlanRDV>();
 
         if ((!rdv) || (!rdv.id)) {
             return true;

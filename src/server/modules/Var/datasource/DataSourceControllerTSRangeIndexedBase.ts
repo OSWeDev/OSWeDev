@@ -1,8 +1,11 @@
 
+import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import TSRange from '../../../../shared/modules/DataRender/vos/TSRange';
+import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
 import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
+import StatsServerController from '../../Stats/StatsServerController';
 import VarsdatasComputerBGThread from '../bgthreads/VarsdatasComputerBGThread';
 import DataSourceControllerBase from './DataSourceControllerBase';
 
@@ -22,6 +25,12 @@ export default abstract class DataSourceControllerTSRangeIndexedBase extends Dat
      * @param node
      */
     public async load_node_data(node: VarDAGNode) {
+
+        StatsServerController.register_stat('DataSources.' + node.var_data.var_id + '.load_node_data.nb',
+            1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsServerController.register_stat('DataSourceControllerTSRangeIndexedBase.' + node.var_data.var_id + '.load_node_data.nb',
+            1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+
         if (typeof node.datasources[this.name] !== 'undefined') {
             return;
         }
@@ -42,6 +51,12 @@ export default abstract class DataSourceControllerTSRangeIndexedBase extends Dat
 
             let ms_i = date;
             if (typeof VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][ms_i] === 'undefined') {
+
+                StatsServerController.register_stat('DataSources.' + node.var_data.var_id + '.get_data.nb',
+                    1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                StatsServerController.register_stat('DataSourceControllerTSRangeIndexedBase.' + node.var_data.var_id + '.get_data.nb',
+                    1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+
                 let data = await this.get_data(node.var_data);
 
                 for (let j in data) {

@@ -122,7 +122,7 @@ export default class CMSPageComponent extends VueComponentBase {
         this.snotify.info(this.label('cms.change_order.start'));
 
         let instantiated_page_component_id: number = parseInt($(ui.item).attr('instantiated_page_component_id').toString());
-        let instantiated_page_component: IInstantiatedPageComponent = await ModuleDAO.getInstance().getVoById<IInstantiatedPageComponent>(instantiated_page_component_vo_type, instantiated_page_component_id);
+        let instantiated_page_component: IInstantiatedPageComponent = await query(instantiated_page_component_vo_type).filter_by_id(instantiated_page_component_id).select_vo<IInstantiatedPageComponent>();
         let index = ui.item.index();
 
         if (!await this.updateWeights()) {
@@ -150,7 +150,7 @@ export default class CMSPageComponent extends VueComponentBase {
             }
 
             let instantiated_page_component_id: number = parseInt($(item).attr('instantiated_page_component_id').toString());
-            let instantiated_page_component: IInstantiatedPageComponent = await ModuleDAO.getInstance().getVoById<IInstantiatedPageComponent>(instantiated_page_component_vo_type, instantiated_page_component_id);
+            let instantiated_page_component: IInstantiatedPageComponent = await query(instantiated_page_component_vo_type).filter_by_id(instantiated_page_component_id).select_vo<IInstantiatedPageComponent>();
 
             let index: number = parseInt(i.toString());
 

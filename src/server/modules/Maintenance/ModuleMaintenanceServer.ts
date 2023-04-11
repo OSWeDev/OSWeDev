@@ -123,9 +123,9 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleMaintenance.APINAME_END_MAINTENANCE, this.end_maintenance.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleMaintenance.APINAME_START_MAINTENANCE, this.start_maintenance.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleMaintenance.APINAME_END_PLANNED_MAINTENANCE, this.end_planned_maintenance.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleMaintenance.APINAME_END_MAINTENANCE, this.end_maintenance.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleMaintenance.APINAME_START_MAINTENANCE, this.start_maintenance.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleMaintenance.APINAME_END_PLANNED_MAINTENANCE, this.end_planned_maintenance.bind(this));
     }
 
     public async end_maintenance(num: number): Promise<void> {

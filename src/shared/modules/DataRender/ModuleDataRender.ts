@@ -39,23 +39,23 @@ export default class ModuleDataRender extends Module {
 
     public registerApis() {
 
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<void, DataRendererVO[]>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<void, DataRendererVO[]>(
             null,
             ModuleDataRender.APINAME_GET_DATA_RENDERERS,
             [DataRendererVO.API_TYPE_ID]
         ));
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<StringParamVO, DataRendererVO>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<StringParamVO, DataRendererVO>(
             null,
             ModuleDataRender.APINAME_GET_DATA_RENDERER,
             [DataRendererVO.API_TYPE_ID],
             StringParamVOStatic
         ));
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<void, DataRenderingLogVO[]>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<void, DataRenderingLogVO[]>(
             null,
             ModuleDataRender.APINAME_GET_DATA_RENDERING_LOGS,
             [DataRenderingLogVO.API_TYPE_ID]
         ));
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<StringParamVO, TimeSegment>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<StringParamVO, TimeSegment>(
             null,
             ModuleDataRender.APINAME_getLatestAvailableSegment,
             [DataRendererVO.API_TYPE_ID],

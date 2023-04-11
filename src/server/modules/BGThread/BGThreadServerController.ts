@@ -9,6 +9,8 @@ export default class BGThreadServerController {
 
     public static ForkedProcessType: string = "BGT";
 
+    public static SERVER_READY: boolean = false;
+
     public static getInstance() {
         if (!BGThreadServerController.instance) {
             BGThreadServerController.instance = new BGThreadServerController();
@@ -26,7 +28,6 @@ export default class BGThreadServerController {
     public register_bgthreads: boolean = false;
     public run_bgthreads: boolean = false;
     public valid_bgthreads_names: { [name: string]: boolean } = {};
-    public server_ready: boolean = false;
     /**
      * ----- Local thread cache
      */

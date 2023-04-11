@@ -159,81 +159,81 @@ export default class ModuleVar extends Module {
 
     public registerApis() {
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<APISimpleVOsParamVO, void>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<APISimpleVOsParamVO, void>(
             ModuleVar.POLICY_FO_ACCESS,
             ModuleVar.APINAME_register_params,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
             APISimpleVOsParamVOStatic
         ));
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<APISimpleVOsParamVO, void>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<APISimpleVOsParamVO, void>(
             ModuleVar.POLICY_FO_ACCESS,
             ModuleVar.APINAME_update_params_registration,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
             APISimpleVOsParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<APISimpleVOsParamVO, void>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<APISimpleVOsParamVO, void>(
             ModuleVar.POLICY_FO_ACCESS,
             ModuleVar.APINAME_unregister_params,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
             APISimpleVOsParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<StringParamVO, { [dep_name: string]: string }>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<StringParamVO, { [dep_name: string]: string }>(
             ModuleVar.POLICY_DESC_MODE_ACCESS,
             ModuleVar.APINAME_getVarControllerVarsDeps,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
             StringParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<StringParamVO, string[]>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<StringParamVO, string[]>(
             ModuleVar.POLICY_DESC_MODE_ACCESS,
             ModuleVar.APINAME_getVarControllerDSDeps,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
             StringParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<APISimpleVOParamVO, { [dep_id: string]: VarDataBaseVO }>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APISimpleVOParamVO, { [dep_id: string]: VarDataBaseVO }>(
             ModuleVar.POLICY_DESC_MODE_ACCESS,
             ModuleVar.APINAME_getParamDependencies,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
             APISimpleVOParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<APISimpleVOParamVO, { [ds_name: string]: string }>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APISimpleVOParamVO, { [ds_name: string]: string }>(
             ModuleVar.POLICY_DESC_MODE_ACCESS,
             ModuleVar.APINAME_getVarParamDatas,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
             APISimpleVOParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<GetVarParamFromContextFiltersParamVO, VarDataBaseVO>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<GetVarParamFromContextFiltersParamVO, VarDataBaseVO>(
             ModuleVar.POLICY_FO_ACCESS,
             ModuleVar.APINAME_getVarParamFromContextFilters,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
             GetVarParamFromContextFiltersParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<APISimpleVOParamVO, { [var_data_index: string]: VarDataBaseVO }>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APISimpleVOParamVO, { [var_data_index: string]: VarDataBaseVO }>(
             ModuleVar.POLICY_FO_ACCESS,
             ModuleVar.APINAME_getAggregatedVarDatas,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
             APISimpleVOParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<void, VarConfIds>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<void, VarConfIds>(
             ModuleVar.POLICY_FO_ACCESS,
             ModuleVar.APINAME_get_var_id_by_names,
             [VarConfVO.API_TYPE_ID]
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<APIGetVarDataByIndexParamVO, VarConfIds>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<APIGetVarDataByIndexParamVO, VarConfIds>(
             ModuleVar.POLICY_FO_ACCESS,
             ModuleVar.APINAME_get_var_data_by_index,
             ((param: APIGetVarDataByIndexParamVO) => [param.api_type_id])
         ));
 
-        // APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<VarDataBaseVO[], void>(
+        // APIControllerWrapper.registerApi(new PostAPIDefinition<VarDataBaseVO[], void>(
         //     ModuleVar.POLICY_DESC_MODE_ACCESS,
         //     ModuleVar.APINAME_invalidate_cache_intersection,
         //     (params: VarDataBaseVO[]) => {
@@ -251,7 +251,7 @@ export default class ModuleVar extends Module {
         //     }
         // ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<VarDataBaseVO[], void>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<VarDataBaseVO[], void>(
             ModuleVar.POLICY_DESC_MODE_ACCESS,
             ModuleVar.APINAME_delete_cache_and_imports_intersection,
             (params: VarDataBaseVO[]) => {
@@ -269,7 +269,7 @@ export default class ModuleVar extends Module {
             }
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<VarDataBaseVO[], void>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<VarDataBaseVO[], void>(
             ModuleVar.POLICY_DESC_MODE_ACCESS,
             ModuleVar.APINAME_delete_cache_intersection,
             (params: VarDataBaseVO[]) => {
@@ -287,7 +287,7 @@ export default class ModuleVar extends Module {
             }
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<VarDataBaseVO[], void>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<VarDataBaseVO[], void>(
             ModuleVar.POLICY_DESC_MODE_ACCESS,
             ModuleVar.APINAME_invalidate_cache_exact_and_parents,
             (params: VarDataBaseVO[]) => {
@@ -305,7 +305,7 @@ export default class ModuleVar extends Module {
             }
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<VarDataBaseVO[], void>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<VarDataBaseVO[], void>(
             ModuleVar.POLICY_DESC_MODE_ACCESS,
             ModuleVar.APINAME_invalidate_cache_exact,
             (params: VarDataBaseVO[]) => {
@@ -323,7 +323,7 @@ export default class ModuleVar extends Module {
             }
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<VarDataBaseVO[], void>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<VarDataBaseVO[], void>(
             ModuleVar.POLICY_DESC_MODE_ACCESS,
             ModuleVar.APINAME_invalidate_cache_intersection_and_parents,
             (params: VarDataBaseVO[]) => {
