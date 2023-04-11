@@ -278,6 +278,7 @@ export default class StatsServerController {
                 // On a le caneva du groupe, mais pas l'id, on tente de reload le cache si c'est pas déjà tenté, et sinon on le crée
                 if (!reloaded_cache) {
                     await this.reload_groups_cache();
+                    group = StatsServerController.cached_stack_groupes_by_name[group_name];
                     reloaded_cache = true;
                 }
 

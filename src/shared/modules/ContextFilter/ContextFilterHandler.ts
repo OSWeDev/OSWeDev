@@ -830,26 +830,42 @@ export default class ContextFilterHandler {
             return ts_ranges;
         }
 
+        // Attention en order_asc false, on doit remettre l'array dans le bon sens avant de continuer
+        if (!order_asc) {
+            ts_ranges = ts_ranges.reverse();
+        }
         ts_ranges = this.get_filter_ts_ranges_month_from_year(ts_ranges, month_filter, limit, order_asc);
         if (target_segment_type == TimeSegment.TYPE_MONTH) {
             return ts_ranges;
         }
 
+        if (!order_asc) {
+            ts_ranges = ts_ranges.reverse();
+        }
         ts_ranges = this.get_filter_ts_ranges_day_from_month(ts_ranges, null, limit, order_asc);
         if (target_segment_type == TimeSegment.TYPE_DAY) {
             return ts_ranges;
         }
 
+        if (!order_asc) {
+            ts_ranges = ts_ranges.reverse();
+        }
         ts_ranges = this.get_filter_ts_ranges_hour_from_day(ts_ranges, hour_filter, limit, order_asc);
         if (target_segment_type == TimeSegment.TYPE_HOUR) {
             return ts_ranges;
         }
 
+        if (!order_asc) {
+            ts_ranges = ts_ranges.reverse();
+        }
         ts_ranges = this.get_filter_ts_ranges_minute_from_hour(ts_ranges, minute_filter, limit, order_asc);
         if (target_segment_type == TimeSegment.TYPE_MINUTE) {
             return ts_ranges;
         }
 
+        if (!order_asc) {
+            ts_ranges = ts_ranges.reverse();
+        }
         ts_ranges = this.get_filter_ts_ranges_second_from_minute(ts_ranges, second_filter, limit, order_asc);
         if (target_segment_type == TimeSegment.TYPE_SECOND) {
             return ts_ranges;
@@ -859,7 +875,7 @@ export default class ContextFilterHandler {
     }
 
     private get_filter_ts_ranges_minute_from_hour(
-        hour_ts_ranges: TSRange[],
+        ordered_hour_ts_ranges: TSRange[],
         minute_filter: ContextFilterVO,
         limit: number = 10,
         order_asc: boolean = true): TSRange[] {
@@ -867,7 +883,7 @@ export default class ContextFilterHandler {
         let res: TSRange[] = [];
 
         if (!minute_filter) {
-            RangeHandler.foreach_ranges_sync(hour_ts_ranges, (minute_ts: number) => {
+            RangeHandler.foreach_ranges_sync(ordered_hour_ts_ranges, (minute_ts: number) => {
 
                 if (res.length >= limit) {
                     // en retournant false, on arrête le foreach
@@ -881,7 +897,7 @@ export default class ContextFilterHandler {
             return res;
         }
 
-        RangeHandler.foreach_ranges_sync(hour_ts_ranges, (hour_ts: number) => {
+        RangeHandler.foreach_ranges_sync(ordered_hour_ts_ranges, (hour_ts: number) => {
             RangeHandler.foreach_ranges_sync(minute_filter.param_numranges, (minute: number) => {
 
                 if (res.length >= limit) {
@@ -898,7 +914,7 @@ export default class ContextFilterHandler {
     }
 
     private get_filter_ts_ranges_second_from_minute(
-        minute_ts_ranges: TSRange[],
+        ordered_minute_ts_ranges: TSRange[],
         second_filter: ContextFilterVO,
         limit: number = 10,
         order_asc: boolean = true): TSRange[] {
@@ -906,7 +922,7 @@ export default class ContextFilterHandler {
         let res: TSRange[] = [];
 
         if (!second_filter) {
-            RangeHandler.foreach_ranges_sync(minute_ts_ranges, (second_ts: number) => {
+            RangeHandler.foreach_ranges_sync(ordered_minute_ts_ranges, (second_ts: number) => {
 
                 if (res.length >= limit) {
                     // en retournant false, on arrête le foreach
@@ -920,7 +936,7 @@ export default class ContextFilterHandler {
             return res;
         }
 
-        RangeHandler.foreach_ranges_sync(minute_ts_ranges, (minute_ts: number) => {
+        RangeHandler.foreach_ranges_sync(ordered_minute_ts_ranges, (minute_ts: number) => {
             RangeHandler.foreach_ranges_sync(second_filter.param_numranges, (second: number) => {
 
                 if (res.length >= limit) {
@@ -937,7 +953,7 @@ export default class ContextFilterHandler {
     }
 
     private get_filter_ts_ranges_hour_from_day(
-        day_ts_ranges: TSRange[],
+        ordered_day_ts_ranges: TSRange[],
         hour_filter: ContextFilterVO,
         limit: number = 10,
         order_asc: boolean = true): TSRange[] {
@@ -945,7 +961,7 @@ export default class ContextFilterHandler {
         let res: TSRange[] = [];
 
         if (!hour_filter) {
-            RangeHandler.foreach_ranges_sync(day_ts_ranges, (hour_ts: number) => {
+            RangeHandler.foreach_ranges_sync(ordered_day_ts_ranges, (hour_ts: number) => {
 
                 if (res.length >= limit) {
                     // en retournant false, on arrête le foreach
@@ -959,7 +975,7 @@ export default class ContextFilterHandler {
             return res;
         }
 
-        RangeHandler.foreach_ranges_sync(day_ts_ranges, (day_ts: number) => {
+        RangeHandler.foreach_ranges_sync(ordered_day_ts_ranges, (day_ts: number) => {
             RangeHandler.foreach_ranges_sync(hour_filter.param_numranges, (hour: number) => {
 
                 if (res.length >= limit) {
@@ -976,7 +992,7 @@ export default class ContextFilterHandler {
     }
 
     private get_filter_ts_ranges_day_from_month(
-        month_ts_ranges: TSRange[],
+        ordered_month_ts_ranges: TSRange[],
         dom_filter: ContextFilterVO,
         limit: number = 10,
         order_asc: boolean = true): TSRange[] {
@@ -984,7 +1000,7 @@ export default class ContextFilterHandler {
         let res: TSRange[] = [];
 
         if (!dom_filter) {
-            RangeHandler.foreach_ranges_sync(month_ts_ranges, (day_ts: number) => {
+            RangeHandler.foreach_ranges_sync(ordered_month_ts_ranges, (day_ts: number) => {
 
                 if (res.length >= limit) {
                     // en retournant false, on arrête le foreach
@@ -998,7 +1014,7 @@ export default class ContextFilterHandler {
             return res;
         }
 
-        RangeHandler.foreach_ranges_sync(month_ts_ranges, (month_ts: number) => {
+        RangeHandler.foreach_ranges_sync(ordered_month_ts_ranges, (month_ts: number) => {
             RangeHandler.foreach_ranges_sync(dom_filter.param_numranges, (dom: number) => {
 
                 if (res.length >= limit) {
@@ -1035,7 +1051,7 @@ export default class ContextFilterHandler {
     }
 
     private get_filter_ts_ranges_month_from_year(
-        year_ts_ranges: TSRange[],
+        ordered_year_ts_ranges: TSRange[],
         month_filter: ContextFilterVO,
         limit: number = 10,
         order_asc: boolean = true): TSRange[] {
@@ -1043,7 +1059,7 @@ export default class ContextFilterHandler {
         let res: TSRange[] = [];
 
         if (!month_filter) {
-            RangeHandler.foreach_ranges_sync(year_ts_ranges, (month_ts: number) => {
+            RangeHandler.foreach_ranges_sync(ordered_year_ts_ranges, (month_ts: number) => {
 
                 if (res.length >= limit) {
                     // en retournant false, on arrête le foreach
@@ -1057,7 +1073,7 @@ export default class ContextFilterHandler {
             return res;
         }
 
-        RangeHandler.foreach_ranges_sync(year_ts_ranges, (year_ts: number) => {
+        RangeHandler.foreach_ranges_sync(ordered_year_ts_ranges, (year_ts: number) => {
             RangeHandler.foreach_ranges_sync(month_filter.param_numranges, (month: number) => {
 
                 if (res.length >= limit) {

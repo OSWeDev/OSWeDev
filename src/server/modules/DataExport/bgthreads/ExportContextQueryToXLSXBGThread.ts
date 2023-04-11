@@ -1,7 +1,11 @@
+import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ForkedTasksController from '../../Fork/ForkedTasksController';
+import StatsServerController from '../../Stats/StatsServerController';
 import ModuleDataExportServer from '../ModuleDataExportServer';
 import ExportContextQueryToXLSXQueryVO from './vos/ExportContextQueryToXLSXQueryVO';
 
@@ -43,12 +47,17 @@ export default class ExportContextQueryToXLSXBGThread implements IBGThread {
 
     public async work(): Promise<number> {
 
+        let time_in = Dates.now_ms();
+
         try {
+
+            StatsServerController.register_stat('ExportContextQueryToXLSXBGThread.work.IN', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
             /**
              * On dépile une demande d'export
              */
             if ((!this.waiting_export_queries) || (!this.waiting_export_queries.length)) {
+                this.stats_out('inactive', time_in);
                 return ModuleBGThreadServer.TIMEOUT_COEF_SLEEP;
             }
 
@@ -72,11 +81,21 @@ export default class ExportContextQueryToXLSXBGThread implements IBGThread {
                 export_query.target_user_id,
                 export_query.do_not_user_filter_by_datatable_field_uid,
             );
+            this.stats_out('ok', time_in);
             return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
         } catch (error) {
             ConsoleHandler.error(error);
         }
 
+        this.stats_out('throws', time_in);
         return ModuleBGThreadServer.TIMEOUT_COEF_SLEEP;
+    }
+
+    private stats_out(activity: string, time_in: number) {
+
+        let time_out = Dates.now_ms();
+        StatsServerController.register_stat('ExportContextQueryToXLSXBGThread.work.' + activity + '.OUT.nb', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsServerController.register_stats('ExportContextQueryToXLSXBGThread.work.' + activity + '.OUT.time', time_out - time_in,
+            [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
     }
 }

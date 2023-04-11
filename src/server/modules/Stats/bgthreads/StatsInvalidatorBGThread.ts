@@ -3,10 +3,13 @@ import TSRange from '../../../../shared/modules/DataRender/vos/TSRange';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import StatsGroupSecDataRangesVO from '../../../../shared/modules/Stats/vars/vos/StatsGroupDayDataRangesVO';
+import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
+import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ModuleVarServer from '../../Var/ModuleVarServer';
+import StatsServerController from '../StatsServerController';
 import VarSecStatsGroupeController from '../vars/controllers/VarSecStatsGroupeController';
 
 export default class StatsInvalidatorBGThread implements IBGThread {
@@ -40,24 +43,47 @@ export default class StatsInvalidatorBGThread implements IBGThread {
      * On recharge régulièrement les stats en fonction des paramètres
      */
     public async work(): Promise<number> {
-        let invalidation_interval_sec = await ModuleParams.getInstance().getParamValueAsInt(StatsInvalidatorBGThread.PARAM_NAME_invalidation_interval_sec, 30, 300000);
-        let invalidate_x_previous_minutes = await ModuleParams.getInstance().getParamValueAsInt(StatsInvalidatorBGThread.PARAM_NAME_invalidate_x_previous_minutes, 2, 300000);
-        let invalidate_current_minute = await ModuleParams.getInstance().getParamValueAsBoolean(StatsInvalidatorBGThread.PARAM_NAME_invalidate_current_minute, true, 300000);
 
-        let now_sec = Dates.now();
+        let time_in = Dates.now_ms();
 
-        if ((!this.last_update_date_sec) || (this.last_update_date_sec + invalidation_interval_sec < now_sec)) {
-            this.last_update_date_sec = now_sec;
+        try {
 
-            // On invalide les stats
-            await this.invalidateStats(invalidate_x_previous_minutes, invalidate_current_minute);
+            StatsServerController.register_stat('StatsInvalidatorBGThread.work.IN', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+
+            let invalidation_interval_sec = await ModuleParams.getInstance().getParamValueAsInt(StatsInvalidatorBGThread.PARAM_NAME_invalidation_interval_sec, 30, 300000);
+            let invalidate_x_previous_minutes = await ModuleParams.getInstance().getParamValueAsInt(StatsInvalidatorBGThread.PARAM_NAME_invalidate_x_previous_minutes, 2, 300000);
+            let invalidate_current_minute = await ModuleParams.getInstance().getParamValueAsBoolean(StatsInvalidatorBGThread.PARAM_NAME_invalidate_current_minute, true, 300000);
+
+            let now_sec = Dates.now();
+
+            if ((!this.last_update_date_sec) || (this.last_update_date_sec + invalidation_interval_sec < now_sec)) {
+                this.last_update_date_sec = now_sec;
+
+                // On invalide les stats
+                await this.invalidateStats(invalidate_x_previous_minutes, invalidate_current_minute);
+            }
+
+            if (invalidation_interval_sec < this.current_timeout) {
+                this.stats_out('inactive', time_in);
+                return ModuleBGThreadServer.TIMEOUT_COEF_FASTER;
+            }
+
+            this.stats_out('ok', time_in);
+            return ModuleBGThreadServer.TIMEOUT_COEF_NEUTRAL;
+        } catch (error) {
+            ConsoleHandler.error('StatsInvalidatorBGThread:FAILED:' + error);
         }
 
-        if (invalidation_interval_sec < this.current_timeout) {
-            return ModuleBGThreadServer.TIMEOUT_COEF_FASTER;
-        }
-
+        this.stats_out('throws', time_in);
         return ModuleBGThreadServer.TIMEOUT_COEF_NEUTRAL;
+    }
+
+    private stats_out(activity: string, time_in: number) {
+
+        let time_out = Dates.now_ms();
+        StatsServerController.register_stat('StatsInvalidatorBGThread.work.' + activity + '.OUT.nb', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsServerController.register_stats('StatsInvalidatorBGThread.work.' + activity + '.OUT.time', time_out - time_in,
+            [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
     }
 
     private async invalidateStats(invalidate_x_previous_minutes: number, invalidate_current_minute: boolean) {

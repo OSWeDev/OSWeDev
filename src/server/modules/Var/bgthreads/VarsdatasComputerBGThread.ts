@@ -1,6 +1,8 @@
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
+import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MatroidController from '../../../../shared/modules/Matroid/MatroidController';
+import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
 import VarDAG from '../../../../shared/modules/Var/graph/VarDAG';
 import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
 import VarsController from '../../../../shared/modules/Var/VarsController';
@@ -21,6 +23,7 @@ import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ForkedTasksController from '../../Fork/ForkedTasksController';
+import StatsServerController from '../../Stats/StatsServerController';
 import SlowVarKiHandler from '../SlowVarKi/SlowVarKiHandler';
 import VarDagPerfsServerController from '../VarDagPerfsServerController';
 import VarsComputeController from '../VarsComputeController';
@@ -160,27 +163,51 @@ export default class VarsdatasComputerBGThread implements IBGThread {
      */
     public async work(): Promise<number> {
 
-        /**
-         * On change de méthode, on lance immédiatement si c'est utile/demandé, sinon on attend le timeout
-         */
-        if (this.semaphore) {
-            this.last_calculation_unix = Dates.now();
-            return;
-        }
+        let time_in = Dates.now_ms();
 
-        let do_run: boolean = this.run_asap;
+        try {
+            StatsServerController.register_stat('VarsdatasComputerBGThread.work.IN', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
-        if (!do_run) {
-            if (Dates.now() > (this.last_calculation_unix + this.timeout_calculation)) {
-                do_run = true;
+            /**
+             * On change de méthode, on lance immédiatement si c'est utile/demandé, sinon on attend le timeout
+             */
+            if (this.semaphore) {
+                this.last_calculation_unix = Dates.now();
+                this.stats_out('inactive_semaphore', time_in);
+                return;
             }
+
+            let do_run: boolean = this.run_asap;
+
+            if (!do_run) {
+                if (Dates.now() > (this.last_calculation_unix + this.timeout_calculation)) {
+                    do_run = true;
+                }
+            }
+
+            if (do_run) {
+                await this.do_calculation_run();
+                this.last_calculation_unix = Dates.now();
+                this.stats_out('ok', time_in);
+            } else {
+                this.stats_out('inactive', time_in);
+            }
+
+            return ModuleBGThreadServer.TIMEOUT_COEF_NEUTRAL;
+        } catch (error) {
+            ConsoleHandler.error('VarsdatasComputerBGThread.work error : ' + error);
         }
 
-        if (do_run) {
-            await this.do_calculation_run();
-            this.last_calculation_unix = Dates.now();
-        }
+        this.stats_out('throws', time_in);
         return ModuleBGThreadServer.TIMEOUT_COEF_NEUTRAL;
+    }
+
+    private stats_out(activity: string, time_in: number) {
+
+        let time_out = Dates.now_ms();
+        StatsServerController.register_stat('VarsdatasComputerBGThread.work.' + activity + '.OUT.nb', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsServerController.register_stats('VarsdatasComputerBGThread.work.' + activity + '.OUT.time', time_out - time_in,
+            [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
     }
 
     private async do_calculation_run(): Promise<void> {

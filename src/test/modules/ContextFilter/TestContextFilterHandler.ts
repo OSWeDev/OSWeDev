@@ -289,7 +289,7 @@ describe('TestContextFilterHandler: get_ts_ranges_from_year_filter', () => {
 describe('TestContextFilterHandler: get_filter_ts_ranges_month_from_year', () => {
     it('should return the correct ranges 1', () => {
 
-        const year_ts_ranges: TSRange[] = [
+        const month_ts_ranges: TSRange[] = [
             RangeHandler.create_single_elt_TSRange(1577836800, TimeSegment.TYPE_YEAR),
             RangeHandler.create_single_elt_TSRange(1609459200, TimeSegment.TYPE_YEAR),
             RangeHandler.create_single_elt_TSRange(1640995200, TimeSegment.TYPE_YEAR)
@@ -301,7 +301,7 @@ describe('TestContextFilterHandler: get_filter_ts_ranges_month_from_year', () =>
             RangeHandler.createNew(NumRange.RANGE_TYPE, 1, 3, true, true, NumSegment.TYPE_INT)
         ];
 
-        const result = ContextFilterHandler.getInstance()['get_filter_ts_ranges_month_from_year'](year_ts_ranges, month_filter, 3, true);
+        const result = ContextFilterHandler.getInstance()['get_filter_ts_ranges_month_from_year'](month_ts_ranges, month_filter, 3, true);
 
         expect(result).to.deep.equal([
             RangeHandler.create_single_elt_TSRange(1577836800, TimeSegment.TYPE_MONTH),
@@ -312,7 +312,7 @@ describe('TestContextFilterHandler: get_filter_ts_ranges_month_from_year', () =>
 
     it('should return the correct ranges 2', () => {
 
-        const year_ts_ranges: TSRange[] = [
+        const month_ts_ranges: TSRange[] = [
             RangeHandler.create_single_elt_TSRange(1577836800, TimeSegment.TYPE_YEAR),
             RangeHandler.create_single_elt_TSRange(1609459200, TimeSegment.TYPE_YEAR),
             RangeHandler.create_single_elt_TSRange(1640995200, TimeSegment.TYPE_YEAR)
@@ -324,7 +324,7 @@ describe('TestContextFilterHandler: get_filter_ts_ranges_month_from_year', () =>
             RangeHandler.createNew(NumRange.RANGE_TYPE, 1, 3, true, true, NumSegment.TYPE_INT)
         ];
 
-        const result = ContextFilterHandler.getInstance()['get_filter_ts_ranges_month_from_year'](year_ts_ranges, month_filter, 3, false);
+        const result = ContextFilterHandler.getInstance()['get_filter_ts_ranges_month_from_year'](month_ts_ranges, month_filter, 3, false);
 
         expect(result).to.deep.equal([
             RangeHandler.create_single_elt_TSRange(1646092800, TimeSegment.TYPE_MONTH),
@@ -335,7 +335,7 @@ describe('TestContextFilterHandler: get_filter_ts_ranges_month_from_year', () =>
 
     it('should return the correct ranges 3', () => {
 
-        const year_ts_ranges: TSRange[] = [
+        const month_ts_ranges: TSRange[] = [
             RangeHandler.create_single_elt_TSRange(1577836800, TimeSegment.TYPE_YEAR),
             RangeHandler.create_single_elt_TSRange(1609459200, TimeSegment.TYPE_YEAR),
             RangeHandler.create_single_elt_TSRange(1640995200, TimeSegment.TYPE_YEAR)
@@ -347,7 +347,7 @@ describe('TestContextFilterHandler: get_filter_ts_ranges_month_from_year', () =>
             RangeHandler.createNew(NumRange.RANGE_TYPE, 1, 2, true, true, NumSegment.TYPE_INT)
         ];
 
-        const result = ContextFilterHandler.getInstance()['get_filter_ts_ranges_month_from_year'](year_ts_ranges, month_filter, 3, true);
+        const result = ContextFilterHandler.getInstance()['get_filter_ts_ranges_month_from_year'](month_ts_ranges, month_filter, 3, true);
 
         expect(result).to.deep.equal([
             RangeHandler.create_single_elt_TSRange(1577836800, TimeSegment.TYPE_MONTH),
@@ -358,7 +358,7 @@ describe('TestContextFilterHandler: get_filter_ts_ranges_month_from_year', () =>
 
     it('should return the correct ranges 4', () => {
 
-        const year_ts_ranges: TSRange[] = [
+        const month_ts_ranges: TSRange[] = [
             RangeHandler.create_single_elt_TSRange(1577836800, TimeSegment.TYPE_YEAR),
             RangeHandler.create_single_elt_TSRange(1609459200, TimeSegment.TYPE_YEAR),
             RangeHandler.create_single_elt_TSRange(1640995200, TimeSegment.TYPE_YEAR)
@@ -370,7 +370,7 @@ describe('TestContextFilterHandler: get_filter_ts_ranges_month_from_year', () =>
             RangeHandler.createNew(NumRange.RANGE_TYPE, 1, 2, true, true, NumSegment.TYPE_INT)
         ];
 
-        const result = ContextFilterHandler.getInstance()['get_filter_ts_ranges_month_from_year'](year_ts_ranges, month_filter, 3, false);
+        const result = ContextFilterHandler.getInstance()['get_filter_ts_ranges_month_from_year'](month_ts_ranges, month_filter, 3, false);
 
         expect(result).to.deep.equal([
             RangeHandler.create_single_elt_TSRange(1643673600, TimeSegment.TYPE_MONTH),
@@ -381,7 +381,7 @@ describe('TestContextFilterHandler: get_filter_ts_ranges_month_from_year', () =>
 
     it('should return the correct ranges 5', () => {
 
-        const year_ts_ranges: TSRange[] = [
+        const month_ts_ranges: TSRange[] = [
             RangeHandler.create_single_elt_TSRange(1577836800, TimeSegment.TYPE_YEAR),
             RangeHandler.create_single_elt_TSRange(1609459200, TimeSegment.TYPE_YEAR),
             RangeHandler.create_single_elt_TSRange(1640995200, TimeSegment.TYPE_YEAR)
@@ -393,7 +393,7 @@ describe('TestContextFilterHandler: get_filter_ts_ranges_month_from_year', () =>
             RangeHandler.createNew(NumRange.RANGE_TYPE, 1, 2, true, true, NumSegment.TYPE_INT)
         ];
 
-        const result = ContextFilterHandler.getInstance()['get_filter_ts_ranges_month_from_year'](year_ts_ranges, month_filter, 1, true);
+        const result = ContextFilterHandler.getInstance()['get_filter_ts_ranges_month_from_year'](month_ts_ranges, month_filter, 1, true);
 
         expect(result).to.deep.equal([
             RangeHandler.create_single_elt_TSRange(1577836800, TimeSegment.TYPE_MONTH)
@@ -402,7 +402,7 @@ describe('TestContextFilterHandler: get_filter_ts_ranges_month_from_year', () =>
 
     it('should return the correct ranges 6', () => {
 
-        const year_ts_ranges: TSRange[] = [
+        const month_ts_ranges: TSRange[] = [
             RangeHandler.create_single_elt_TSRange(1577836800, TimeSegment.TYPE_YEAR),
             RangeHandler.create_single_elt_TSRange(1609459200, TimeSegment.TYPE_YEAR),
             RangeHandler.create_single_elt_TSRange(1640995200, TimeSegment.TYPE_YEAR)
@@ -414,7 +414,7 @@ describe('TestContextFilterHandler: get_filter_ts_ranges_month_from_year', () =>
             RangeHandler.createNew(NumRange.RANGE_TYPE, 1, 2, true, true, NumSegment.TYPE_INT)
         ];
 
-        const result = ContextFilterHandler.getInstance()['get_filter_ts_ranges_month_from_year'](year_ts_ranges, month_filter, 1, false);
+        const result = ContextFilterHandler.getInstance()['get_filter_ts_ranges_month_from_year'](month_ts_ranges, month_filter, 1, false);
 
         expect(result).to.deep.equal([
             RangeHandler.create_single_elt_TSRange(1643673600, TimeSegment.TYPE_MONTH)
@@ -423,7 +423,7 @@ describe('TestContextFilterHandler: get_filter_ts_ranges_month_from_year', () =>
 
     it('should return the correct ranges - cas reel 1', () => {
 
-        const year_ts_ranges: TSRange[] = [
+        const month_ts_ranges: TSRange[] = [
             RangeHandler.create_single_elt_TSRange(1672531200, TimeSegment.TYPE_YEAR)
         ];
 
@@ -432,7 +432,7 @@ describe('TestContextFilterHandler: get_filter_ts_ranges_month_from_year', () =>
             JSON.parse('{"_type":"context_filter","text_ignore_case":true,"sub_query":null,"filter_type":42,"param_numranges":[{"range_type":1,"max":5,"max_inclusiv":false,"min":4,"min_inclusiv":true,"segment_type":0}],"vo_type":"__custom_filters__","field_id":"Dates"}')
         );
 
-        const result = ContextFilterHandler.getInstance()['get_filter_ts_ranges_month_from_year'](year_ts_ranges, month_filter, 10, false);
+        const result = ContextFilterHandler.getInstance()['get_filter_ts_ranges_month_from_year'](month_ts_ranges, month_filter, 10, false);
 
         expect(result).to.deep.equal([
             RangeHandler.create_single_elt_TSRange(1680307200, TimeSegment.TYPE_MONTH)
@@ -444,153 +444,186 @@ describe('TestContextFilterHandler: get_filter_ts_ranges_month_from_year', () =>
 describe('TestContextFilterHandler: get_filter_ts_ranges_day_from_month', () => {
     it('should return the correct ranges 1', () => {
 
-        const year_ts_ranges: TSRange[] = [
-            RangeHandler.create_single_elt_TSRange(1577836800, TimeSegment.TYPE_YEAR),
-            RangeHandler.create_single_elt_TSRange(1609459200, TimeSegment.TYPE_YEAR),
-            RangeHandler.create_single_elt_TSRange(1640995200, TimeSegment.TYPE_YEAR)
-        ];
-
-        const month_filter = new ContextFilterVO();
-        month_filter.filter_type = ContextFilterVO.TYPE_DATE_MONTH;
-        month_filter.param_numranges = [
-            RangeHandler.createNew(NumRange.RANGE_TYPE, 1, 3, true, true, NumSegment.TYPE_INT)
-        ];
-
-        const result = ContextFilterHandler.getInstance()['get_filter_ts_ranges_day_from_month'](year_ts_ranges, month_filter, 3, true);
-
-        expect(result).to.deep.equal([
+        const month_ts_ranges: TSRange[] = [
             RangeHandler.create_single_elt_TSRange(1577836800, TimeSegment.TYPE_MONTH),
             RangeHandler.create_single_elt_TSRange(1580515200, TimeSegment.TYPE_MONTH),
             RangeHandler.create_single_elt_TSRange(1583020800, TimeSegment.TYPE_MONTH)
+        ];
+
+        const day_filter = new ContextFilterVO();
+        day_filter.filter_type = ContextFilterVO.TYPE_DATE_MONTH;
+        day_filter.param_numranges = [
+            RangeHandler.createNew(NumRange.RANGE_TYPE, 1, 3, true, true, NumSegment.TYPE_INT)
+        ];
+
+        const result = ContextFilterHandler.getInstance()['get_filter_ts_ranges_day_from_month'](month_ts_ranges, day_filter, 3, true);
+
+        expect(result).to.deep.equal([
+            RangeHandler.create_single_elt_TSRange(1577836800, TimeSegment.TYPE_DAY),
+            RangeHandler.create_single_elt_TSRange(1577923200, TimeSegment.TYPE_DAY),
+            RangeHandler.create_single_elt_TSRange(1578009600, TimeSegment.TYPE_DAY)
         ]);
     });
 
     it('should return the correct ranges 2', () => {
 
-        const year_ts_ranges: TSRange[] = [
-            RangeHandler.create_single_elt_TSRange(1577836800, TimeSegment.TYPE_YEAR),
-            RangeHandler.create_single_elt_TSRange(1609459200, TimeSegment.TYPE_YEAR),
-            RangeHandler.create_single_elt_TSRange(1640995200, TimeSegment.TYPE_YEAR)
+        const month_ts_ranges: TSRange[] = [
+            RangeHandler.create_single_elt_TSRange(1577836800, TimeSegment.TYPE_MONTH),
+            RangeHandler.create_single_elt_TSRange(1580515200, TimeSegment.TYPE_MONTH),
+            RangeHandler.create_single_elt_TSRange(1583020800, TimeSegment.TYPE_MONTH)
         ];
 
-        const month_filter = new ContextFilterVO();
-        month_filter.filter_type = ContextFilterVO.TYPE_DATE_MONTH;
-        month_filter.param_numranges = [
+        const day_filter = new ContextFilterVO();
+        day_filter.filter_type = ContextFilterVO.TYPE_DATE_MONTH;
+        day_filter.param_numranges = [
             RangeHandler.createNew(NumRange.RANGE_TYPE, 1, 3, true, true, NumSegment.TYPE_INT)
         ];
 
-        const result = ContextFilterHandler.getInstance()['get_filter_ts_ranges_day_from_month'](year_ts_ranges, month_filter, 3, false);
+        const result = ContextFilterHandler.getInstance()['get_filter_ts_ranges_day_from_month'](month_ts_ranges, day_filter, 3, false);
 
         expect(result).to.deep.equal([
-            RangeHandler.create_single_elt_TSRange(1646092800, TimeSegment.TYPE_MONTH),
-            RangeHandler.create_single_elt_TSRange(1643673600, TimeSegment.TYPE_MONTH),
-            RangeHandler.create_single_elt_TSRange(1640995200, TimeSegment.TYPE_MONTH)
+            RangeHandler.create_single_elt_TSRange(1583193600, TimeSegment.TYPE_DAY),
+            RangeHandler.create_single_elt_TSRange(1583107200, TimeSegment.TYPE_DAY),
+            RangeHandler.create_single_elt_TSRange(1583020800, TimeSegment.TYPE_DAY)
         ]);
     });
 
     it('should return the correct ranges 3', () => {
 
-        const year_ts_ranges: TSRange[] = [
-            RangeHandler.create_single_elt_TSRange(1577836800, TimeSegment.TYPE_YEAR),
-            RangeHandler.create_single_elt_TSRange(1609459200, TimeSegment.TYPE_YEAR),
-            RangeHandler.create_single_elt_TSRange(1640995200, TimeSegment.TYPE_YEAR)
-        ];
-
-        const month_filter = new ContextFilterVO();
-        month_filter.filter_type = ContextFilterVO.TYPE_DATE_MONTH;
-        month_filter.param_numranges = [
-            RangeHandler.createNew(NumRange.RANGE_TYPE, 1, 2, true, true, NumSegment.TYPE_INT)
-        ];
-
-        const result = ContextFilterHandler.getInstance()['get_filter_ts_ranges_day_from_month'](year_ts_ranges, month_filter, 3, true);
-
-        expect(result).to.deep.equal([
+        const month_ts_ranges: TSRange[] = [
             RangeHandler.create_single_elt_TSRange(1577836800, TimeSegment.TYPE_MONTH),
             RangeHandler.create_single_elt_TSRange(1580515200, TimeSegment.TYPE_MONTH),
-            RangeHandler.create_single_elt_TSRange(1609459200, TimeSegment.TYPE_MONTH)
+            RangeHandler.create_single_elt_TSRange(1583020800, TimeSegment.TYPE_MONTH)
+        ];
+
+        const result = ContextFilterHandler.getInstance()['get_filter_ts_ranges_day_from_month'](month_ts_ranges, null, 3, false);
+
+        expect(result).to.deep.equal([
+            RangeHandler.create_single_elt_TSRange(1585612800, TimeSegment.TYPE_DAY),
+            RangeHandler.create_single_elt_TSRange(1585526400, TimeSegment.TYPE_DAY),
+            RangeHandler.create_single_elt_TSRange(1585440000, TimeSegment.TYPE_DAY)
         ]);
     });
 
-    it('should return the correct ranges 4', () => {
 
-        const year_ts_ranges: TSRange[] = [
-            RangeHandler.create_single_elt_TSRange(1577836800, TimeSegment.TYPE_YEAR),
-            RangeHandler.create_single_elt_TSRange(1609459200, TimeSegment.TYPE_YEAR),
-            RangeHandler.create_single_elt_TSRange(1640995200, TimeSegment.TYPE_YEAR)
+
+    it('should return the correct ranges - cas reel 1', () => {
+
+        const month_ts_ranges: TSRange[] = [
+            RangeHandler.create_single_elt_TSRange(1680307200, TimeSegment.TYPE_MONTH)
         ];
 
-        const month_filter = new ContextFilterVO();
-        month_filter.filter_type = ContextFilterVO.TYPE_DATE_MONTH;
-        month_filter.param_numranges = [
-            RangeHandler.createNew(NumRange.RANGE_TYPE, 1, 2, true, true, NumSegment.TYPE_INT)
-        ];
-
-        const result = ContextFilterHandler.getInstance()['get_filter_ts_ranges_day_from_month'](year_ts_ranges, month_filter, 3, false);
+        const result = ContextFilterHandler.getInstance()['get_filter_ts_ranges_day_from_month'](month_ts_ranges, null, 10, false);
 
         expect(result).to.deep.equal([
-            RangeHandler.create_single_elt_TSRange(1643673600, TimeSegment.TYPE_MONTH),
-            RangeHandler.create_single_elt_TSRange(1640995200, TimeSegment.TYPE_MONTH),
-            RangeHandler.create_single_elt_TSRange(1612137600, TimeSegment.TYPE_MONTH)
+            RangeHandler.create_single_elt_TSRange(1682812800, TimeSegment.TYPE_DAY),
+            RangeHandler.create_single_elt_TSRange(1682726400, TimeSegment.TYPE_DAY),
+            RangeHandler.create_single_elt_TSRange(1682640000, TimeSegment.TYPE_DAY),
+            RangeHandler.create_single_elt_TSRange(1682553600, TimeSegment.TYPE_DAY),
+            RangeHandler.create_single_elt_TSRange(1682467200, TimeSegment.TYPE_DAY),
+            RangeHandler.create_single_elt_TSRange(1682380800, TimeSegment.TYPE_DAY),
+            RangeHandler.create_single_elt_TSRange(1682294400, TimeSegment.TYPE_DAY),
+            RangeHandler.create_single_elt_TSRange(1682208000, TimeSegment.TYPE_DAY),
+            RangeHandler.create_single_elt_TSRange(1682121600, TimeSegment.TYPE_DAY),
+            RangeHandler.create_single_elt_TSRange(1682035200, TimeSegment.TYPE_DAY)
         ]);
     });
 
-    it('should return the correct ranges 5', () => {
+});
 
-        const year_ts_ranges: TSRange[] = [
-            RangeHandler.create_single_elt_TSRange(1577836800, TimeSegment.TYPE_YEAR),
-            RangeHandler.create_single_elt_TSRange(1609459200, TimeSegment.TYPE_YEAR),
-            RangeHandler.create_single_elt_TSRange(1640995200, TimeSegment.TYPE_YEAR)
+describe('TestContextFilterHandler: get_filter_ts_ranges_hour_from_day', () => {
+    it('should return the correct ranges 1', () => {
+
+        const day_ts_ranges: TSRange[] = [
+            RangeHandler.create_single_elt_TSRange(1577836800, TimeSegment.TYPE_DAY),
+            RangeHandler.create_single_elt_TSRange(1577923200, TimeSegment.TYPE_DAY),
+            RangeHandler.create_single_elt_TSRange(1578009600, TimeSegment.TYPE_DAY)
         ];
 
-        const month_filter = new ContextFilterVO();
-        month_filter.filter_type = ContextFilterVO.TYPE_DATE_MONTH;
-        month_filter.param_numranges = [
-            RangeHandler.createNew(NumRange.RANGE_TYPE, 1, 2, true, true, NumSegment.TYPE_INT)
+        const hour_filter = new ContextFilterVO();
+        hour_filter.filter_type = ContextFilterVO.TYPE_HOUR_INTERSECTS;
+        hour_filter.param_numranges = [
+            RangeHandler.createNew(NumRange.RANGE_TYPE, 4, 6, true, true, NumSegment.TYPE_INT)
         ];
 
-        const result = ContextFilterHandler.getInstance()['get_filter_ts_ranges_day_from_month'](year_ts_ranges, month_filter, 1, true);
+        const result = ContextFilterHandler.getInstance()['get_filter_ts_ranges_hour_from_day'](day_ts_ranges, hour_filter, 3, true);
 
         expect(result).to.deep.equal([
-            RangeHandler.create_single_elt_TSRange(1577836800, TimeSegment.TYPE_MONTH)
+            RangeHandler.create_single_elt_TSRange(1577851200, TimeSegment.TYPE_HOUR),
+            RangeHandler.create_single_elt_TSRange(1577854800, TimeSegment.TYPE_HOUR),
+            RangeHandler.create_single_elt_TSRange(1577858400, TimeSegment.TYPE_HOUR)
         ]);
     });
 
-    it('should return the correct ranges 6', () => {
+    it('should return the correct ranges 2', () => {
 
-        const year_ts_ranges: TSRange[] = [
-            RangeHandler.create_single_elt_TSRange(1577836800, TimeSegment.TYPE_YEAR),
-            RangeHandler.create_single_elt_TSRange(1609459200, TimeSegment.TYPE_YEAR),
-            RangeHandler.create_single_elt_TSRange(1640995200, TimeSegment.TYPE_YEAR)
+        const day_ts_ranges: TSRange[] = [
+            RangeHandler.create_single_elt_TSRange(1577836800, TimeSegment.TYPE_DAY),
+            RangeHandler.create_single_elt_TSRange(1577923200, TimeSegment.TYPE_DAY),
+            RangeHandler.create_single_elt_TSRange(1578009600, TimeSegment.TYPE_DAY)
         ];
 
-        const month_filter = new ContextFilterVO();
-        month_filter.filter_type = ContextFilterVO.TYPE_DATE_MONTH;
-        month_filter.param_numranges = [
-            RangeHandler.createNew(NumRange.RANGE_TYPE, 1, 2, true, true, NumSegment.TYPE_INT)
+        const hour_filter = new ContextFilterVO();
+        hour_filter.filter_type = ContextFilterVO.TYPE_HOUR_INTERSECTS;
+        hour_filter.param_numranges = [
+            RangeHandler.createNew(NumRange.RANGE_TYPE, 4, 6, true, true, NumSegment.TYPE_INT)
         ];
 
-        const result = ContextFilterHandler.getInstance()['get_filter_ts_ranges_day_from_month'](year_ts_ranges, month_filter, 1, false);
+        const result = ContextFilterHandler.getInstance()['get_filter_ts_ranges_hour_from_day'](day_ts_ranges, hour_filter, 3, false);
 
         expect(result).to.deep.equal([
-            RangeHandler.create_single_elt_TSRange(1643673600, TimeSegment.TYPE_MONTH)
+            RangeHandler.create_single_elt_TSRange(1578031200, TimeSegment.TYPE_HOUR),
+            RangeHandler.create_single_elt_TSRange(1578027600, TimeSegment.TYPE_HOUR),
+            RangeHandler.create_single_elt_TSRange(1578024000, TimeSegment.TYPE_HOUR)
+        ]);
+    });
+
+    it('should return the correct ranges 3', () => {
+
+        const day_ts_ranges: TSRange[] = [
+            RangeHandler.create_single_elt_TSRange(1577836800, TimeSegment.TYPE_DAY),
+            RangeHandler.create_single_elt_TSRange(1577923200, TimeSegment.TYPE_DAY),
+            RangeHandler.create_single_elt_TSRange(1578009600, TimeSegment.TYPE_DAY)
+        ];
+
+        const result = ContextFilterHandler.getInstance()['get_filter_ts_ranges_hour_from_day'](day_ts_ranges, null, 3, false);
+
+        expect(result).to.deep.equal([
+            RangeHandler.create_single_elt_TSRange(1578092400, TimeSegment.TYPE_HOUR),
+            RangeHandler.create_single_elt_TSRange(1578088800, TimeSegment.TYPE_HOUR),
+            RangeHandler.create_single_elt_TSRange(1578085200, TimeSegment.TYPE_HOUR)
         ]);
     });
 
     it('should return the correct ranges - cas reel 1', () => {
 
-        const year_ts_ranges: TSRange[] = [
-            RangeHandler.create_single_elt_TSRange(1672531200, TimeSegment.TYPE_YEAR)
+        const day_ts_ranges: TSRange[] = [
+            RangeHandler.create_single_elt_TSRange(1682812800, TimeSegment.TYPE_DAY),
+            RangeHandler.create_single_elt_TSRange(1682726400, TimeSegment.TYPE_DAY),
+            RangeHandler.create_single_elt_TSRange(1682640000, TimeSegment.TYPE_DAY),
+            RangeHandler.create_single_elt_TSRange(1682553600, TimeSegment.TYPE_DAY),
+            RangeHandler.create_single_elt_TSRange(1682467200, TimeSegment.TYPE_DAY),
+            RangeHandler.create_single_elt_TSRange(1682380800, TimeSegment.TYPE_DAY),
+            RangeHandler.create_single_elt_TSRange(1682294400, TimeSegment.TYPE_DAY),
+            RangeHandler.create_single_elt_TSRange(1682208000, TimeSegment.TYPE_DAY),
+            RangeHandler.create_single_elt_TSRange(1682121600, TimeSegment.TYPE_DAY),
+            RangeHandler.create_single_elt_TSRange(1682035200, TimeSegment.TYPE_DAY)
         ];
+        day_ts_ranges.reverse();
 
-        const month_filter = Object.assign(
-            new ContextFilterVO(),
-            JSON.parse('{"_type":"context_filter","text_ignore_case":true,"sub_query":null,"filter_type":42,"param_numranges":[{"range_type":1,"max":5,"max_inclusiv":false,"min":4,"min_inclusiv":true,"segment_type":0}],"vo_type":"__custom_filters__","field_id":"Dates"}')
-        );
-
-        const result = ContextFilterHandler.getInstance()['get_filter_ts_ranges_day_from_month'](year_ts_ranges, month_filter, 10, false);
+        const result = ContextFilterHandler.getInstance()['get_filter_ts_ranges_hour_from_day'](day_ts_ranges, null, 10, false);
 
         expect(result).to.deep.equal([
-            RangeHandler.create_single_elt_TSRange(1680307200, TimeSegment.TYPE_MONTH)
+            RangeHandler.create_single_elt_TSRange(1682895600, TimeSegment.TYPE_HOUR),
+            RangeHandler.create_single_elt_TSRange(1682892000, TimeSegment.TYPE_HOUR),
+            RangeHandler.create_single_elt_TSRange(1682888400, TimeSegment.TYPE_HOUR),
+            RangeHandler.create_single_elt_TSRange(1682884800, TimeSegment.TYPE_HOUR),
+            RangeHandler.create_single_elt_TSRange(1682881200, TimeSegment.TYPE_HOUR),
+            RangeHandler.create_single_elt_TSRange(1682877600, TimeSegment.TYPE_HOUR),
+            RangeHandler.create_single_elt_TSRange(1682874000, TimeSegment.TYPE_HOUR),
+            RangeHandler.create_single_elt_TSRange(1682870400, TimeSegment.TYPE_HOUR),
+            RangeHandler.create_single_elt_TSRange(1682866800, TimeSegment.TYPE_HOUR),
+            RangeHandler.create_single_elt_TSRange(1682863200, TimeSegment.TYPE_HOUR)
         ]);
     });
 

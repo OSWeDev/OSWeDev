@@ -12,12 +12,14 @@ import NumSegment from '../../../../shared/modules/DataRender/vos/NumSegment';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
+import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
 import TypesHandler from '../../../../shared/tools/TypesHandler';
 import ConfigurationService from '../../../env/ConfigurationService';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
+import StatsServerController from '../../Stats/StatsServerController';
 import VarsDatasProxy from '../../Var/VarsDatasProxy';
 import VarsDatasVoUpdateHandler from '../../Var/VarsDatasVoUpdateHandler';
 import ModuleDataImportServer from '../ModuleDataImportServer';
@@ -55,7 +57,11 @@ export default class DataImportBGThread implements IBGThread {
 
     public async work(): Promise<number> {
 
+        let time_in = Dates.now_ms();
+
         try {
+
+            StatsServerController.register_stat('DataImportBGThread.work.IN', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
             /**
              * Pour éviter de surcharger le système, on attend que le vos_cud des vars soit vidé (donc on a vraiment fini de traiter les imports précédents et rien de complexe en cours)
@@ -66,6 +72,7 @@ export default class DataImportBGThread implements IBGThread {
                     if (await VarsDatasVoUpdateHandler.getInstance().has_vos_cud()) {
                         ConsoleHandler.log('DataImportBGThread:wait_for_empty_vars_vos_cud KO ... next try in ' + this.current_timeout + ' ms');
                         this.waiting_for_empty_vars_vos_cud = true;
+                        this.stats_out('waiting_for_empty_vars_vos_cud', time_in);
                         return ModuleBGThreadServer.TIMEOUT_COEF_LITTLE_BIT_SLOWER;
                     }
 
@@ -77,6 +84,7 @@ export default class DataImportBGThread implements IBGThread {
             } catch (error) {
                 ConsoleHandler.error('DataImportBGThread:wait_for_empty_vars_vos_cud varbgthread did not answer. waiting for it to get back up');
                 this.waiting_for_empty_vars_vos_cud = true;
+                this.stats_out('waiting_for_empty_vars_vos_cud_failed', time_in);
                 return ModuleBGThreadServer.TIMEOUT_COEF_LITTLE_BIT_SLOWER;
             }
 
@@ -158,6 +166,7 @@ export default class DataImportBGThread implements IBGThread {
             }
 
             if (!dih) {
+                this.stats_out('inactive', time_in);
                 return ModuleBGThreadServer.TIMEOUT_COEF_LITTLE_BIT_SLOWER;
             }
 
@@ -172,21 +181,37 @@ export default class DataImportBGThread implements IBGThread {
                 ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT,
                 ModuleDataImport.IMPORTATION_STATE_IMPORTED
             ].indexOf(dih.state) >= 0) {
+                this.stats_out('ok', time_in);
                 return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
             }
 
             // Si on est pas dans un état de continuation, on arrête cet import
             //  Tant qu'on gère des imports, on run
             await ModuleParams.getInstance().setParamValue(DataImportBGThread.importing_dih_id_param_name, null);
+            this.stats_out('ok', time_in);
             return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
         } catch (error) {
             ConsoleHandler.error(error);
         }
 
+        this.stats_out('throws', time_in);
         return ModuleBGThreadServer.TIMEOUT_COEF_LITTLE_BIT_SLOWER;
     }
 
+    private stats_out(activity: string, time_in: number) {
+
+        let time_out = Dates.now_ms();
+        StatsServerController.register_stat('DataImportBGThread.work.' + activity + '.OUT.nb', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsServerController.register_stats('DataImportBGThread.work.' + activity + '.OUT.time', time_out - time_in,
+            [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
+    }
+
     private async prepare_reimports() {
+
+        let time_in = Dates.now_ms();
+
+        StatsServerController.register_stat('DataImportBGThread.prepare_reimports.IN', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+
         let dihs = await query(DataImportHistoricVO.API_TYPE_ID)
             .filter_by_num_eq('state', ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT)
             .set_sorts([
@@ -200,6 +225,11 @@ export default class DataImportBGThread implements IBGThread {
             await this.handleImportHistoricProgression(dih);
             ConsoleHandler.log('DataImportBGThread REIMPORT DIH[' + dih.id + '] state:' + dih.state + ':');
         }
+
+        let time_out = Dates.now_ms();
+        StatsServerController.register_stat('DataImportBGThread.prepare_reimports.ok.OUT.nb', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsServerController.register_stats('DataImportBGThread.prepare_reimports.ok.OUT.time', time_out - time_in,
+            [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
     }
 
     private async handleImportHistoricProgression(importHistoric: DataImportHistoricVO): Promise<boolean> {
