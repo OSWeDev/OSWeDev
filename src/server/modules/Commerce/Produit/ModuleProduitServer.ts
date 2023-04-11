@@ -25,9 +25,9 @@ export default class ModuleProduitServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        // APIControllerWrapper.getInstance().registerServerApiHandler(ModuleProduit.APINAME_getProduitAjoutPanier, this.getProduitAjoutPanier.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleProduit.APINAME_getFacturationProduitByIdProduit, this.getFacturationProduitByIdProduit.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleProduit.APINAME_getPrixProduit, this.getPrixProduit.bind(this));
+        // APIControllerWrapper.registerServerApiHandler(ModuleProduit.APINAME_getProduitAjoutPanier, this.getProduitAjoutPanier.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleProduit.APINAME_getFacturationProduitByIdProduit, this.getFacturationProduitByIdProduit.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleProduit.APINAME_getPrixProduit, this.getPrixProduit.bind(this));
     }
 
     public async getFacturationProduitByIdProduit(num: number): Promise<FacturationProduitVO[]> {

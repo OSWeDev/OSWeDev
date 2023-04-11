@@ -105,24 +105,24 @@ export default class ModuleDataImport extends Module {
 
     public registerApis() {
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<DataImportHistoricVO, void>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<DataImportHistoricVO, void>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, DataImportHistoricVO.API_TYPE_ID),
             ModuleDataImport.APINAME_reimportdih,
             [DataImportHistoricVO.API_TYPE_ID]
         ));
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, DataImportHistoricVO[]>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<NumberParamVO, DataImportHistoricVO[]>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DataImportHistoricVO.API_TYPE_ID),
             ModuleDataImport.APINAME_getDataImportHistorics,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
             NumberParamVOStatic
         ));
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, DataImportHistoricVO>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<NumberParamVO, DataImportHistoricVO>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DataImportHistoricVO.API_TYPE_ID),
             ModuleDataImport.APINAME_getDataImportHistoric,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
             NumberParamVOStatic
         ));
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<APIStringAndVOParamVO, IDistantVOBase[]>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<APIStringAndVOParamVO, IDistantVOBase[]>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, DataImportHistoricVO.API_TYPE_ID),
             ModuleDataImport.APINAME_importJSON,
             (value: APIStringAndVOParamVO) => {
@@ -150,24 +150,24 @@ export default class ModuleDataImport extends Module {
             },
             APIStringAndVOParamVOStatic
         ));
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, DataImportLogVO[]>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<NumberParamVO, DataImportLogVO[]>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DataImportLogVO.API_TYPE_ID),
             ModuleDataImport.APINAME_getDataImportLogs,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
             NumberParamVOStatic
         ));
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<void, DataImportFormatVO[]>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<void, DataImportFormatVO[]>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DataImportFormatVO.API_TYPE_ID),
             ModuleDataImport.APINAME_getDataImportFiles,
             [DataImportFormatVO.API_TYPE_ID]
         ));
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<StringParamVO, DataImportFormatVO>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<StringParamVO, DataImportFormatVO>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DataImportFormatVO.API_TYPE_ID),
             ModuleDataImport.APINAME_getDataImportFile,
             [DataImportFormatVO.API_TYPE_ID],
             StringParamVOStatic
         ));
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, DataImportColumnVO[]>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<NumberParamVO, DataImportColumnVO[]>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DataImportColumnVO.API_TYPE_ID),
             ModuleDataImport.APINAME_getDataImportColumnsFromFormatId,
             [DataImportColumnVO.API_TYPE_ID],

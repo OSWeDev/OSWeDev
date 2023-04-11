@@ -74,13 +74,13 @@ export default class ModuleMailer extends Module {
 
     public registerApis() {
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<SendMailOptions, any>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<SendMailOptions, any>(
             null, // droit null ok ???,
             ModuleMailer.APINAME_sendMail,
             [],
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<PrepareHTMLParamVO, string>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<PrepareHTMLParamVO, string>(
             null, // droit null ok ???,
             ModuleMailer.APINAME_prepareHTML,
             [],

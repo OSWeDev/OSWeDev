@@ -68,11 +68,11 @@ export default class ModuleAnimationServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAnimation.APINAME_getQRsByThemesAndModules, this.getQRsByThemesAndModules.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAnimation.APINAME_getUQRsByThemesAndModules, this.getUQRsByThemesAndModules.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAnimation.APINAME_startModule, this.startModule.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAnimation.APINAME_endModule, this.endModule.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAnimation.APINAME_getAumsFiltered, this.getAumsFiltered.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAnimation.APINAME_getQRsByThemesAndModules, this.getQRsByThemesAndModules.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAnimation.APINAME_getUQRsByThemesAndModules, this.getUQRsByThemesAndModules.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAnimation.APINAME_startModule, this.startModule.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAnimation.APINAME_endModule, this.endModule.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAnimation.APINAME_getAumsFiltered, this.getAumsFiltered.bind(this));
     }
 
     /**

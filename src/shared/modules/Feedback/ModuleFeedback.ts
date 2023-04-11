@@ -42,7 +42,7 @@ export default class ModuleFeedback extends Module {
 
     public registerApis() {
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<APISimpleVOParamVO, boolean>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<APISimpleVOParamVO, boolean>(
             ModuleFeedback.POLICY_FO_ACCESS,
             ModuleFeedback.APINAME_feedback,
             [FeedbackVO.API_TYPE_ID],

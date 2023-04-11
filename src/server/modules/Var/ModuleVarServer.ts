@@ -821,28 +821,28 @@ export default class ModuleVarServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        // APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_INVALIDATE_MATROID, this.invalidate_matroid.bind(this));
-        // APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_register_matroid_for_precalc, this.register_matroid_for_precalc.bind(this));
-        // APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getSimpleVarDataValueSumFilterByMatroids, this.getSimpleVarDataValueSumFilterByMatroids.bind(this));
-        // APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getSimpleVarDataCachedValueFromParam, this.getSimpleVarDataCachedValueFromParam.bind(this));
-        // APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_configureVarCache, this.configureVarCache.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_register_params, this.register_params.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_update_params_registration, this.update_params_registration.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_unregister_params, this.unregister_params.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_get_var_id_by_names, this.get_var_id_by_names.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_get_var_data_by_index, this.get_var_data_by_index.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getVarControllerVarsDeps, this.getVarControllerVarsDeps.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getVarControllerDSDeps, this.getVarControllerDSDeps.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getParamDependencies, this.getParamDependencies.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getVarParamDatas, this.getVarParamDatas.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getVarParamFromContextFilters, this.getVarParamFromContextFilters.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getAggregatedVarDatas, this.getAggregatedVarDatas.bind(this));
-        // APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_intersection, this.invalidate_cache_intersection.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_delete_cache_intersection, this.delete_cache_intersection.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_delete_cache_and_imports_intersection, this.delete_cache_and_imports_intersection.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_intersection_and_parents, this.invalidate_cache_intersection_and_parents.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_exact, this.invalidate_cache_exact.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_exact_and_parents, this.invalidate_cache_exact_and_parents.bind(this));
+        // APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_INVALIDATE_MATROID, this.invalidate_matroid.bind(this));
+        // APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_register_matroid_for_precalc, this.register_matroid_for_precalc.bind(this));
+        // APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_getSimpleVarDataValueSumFilterByMatroids, this.getSimpleVarDataValueSumFilterByMatroids.bind(this));
+        // APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_getSimpleVarDataCachedValueFromParam, this.getSimpleVarDataCachedValueFromParam.bind(this));
+        // APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_configureVarCache, this.configureVarCache.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_register_params, this.register_params.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_update_params_registration, this.update_params_registration.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_unregister_params, this.unregister_params.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_get_var_id_by_names, this.get_var_id_by_names.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_get_var_data_by_index, this.get_var_data_by_index.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_getVarControllerVarsDeps, this.getVarControllerVarsDeps.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_getVarControllerDSDeps, this.getVarControllerDSDeps.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_getParamDependencies, this.getParamDependencies.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_getVarParamDatas, this.getVarParamDatas.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_getVarParamFromContextFilters, this.getVarParamFromContextFilters.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_getAggregatedVarDatas, this.getAggregatedVarDatas.bind(this));
+        // APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_intersection, this.invalidate_cache_intersection.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_delete_cache_intersection, this.delete_cache_intersection.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_delete_cache_and_imports_intersection, this.delete_cache_and_imports_intersection.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_intersection_and_parents, this.invalidate_cache_intersection_and_parents.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_exact, this.invalidate_cache_exact.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_exact_and_parents, this.invalidate_cache_exact_and_parents.bind(this));
     }
     public registerCrons(): void {
         VarCronWorkersHandler.getInstance();

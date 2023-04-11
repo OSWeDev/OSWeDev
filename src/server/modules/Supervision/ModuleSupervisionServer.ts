@@ -58,8 +58,8 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleSupervision.APINAME_execute_manually, this.execute_manually.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleSupervision.APINAME_refresh_one_manually, this.refresh_one_manually.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleSupervision.APINAME_execute_manually, this.execute_manually.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleSupervision.APINAME_refresh_one_manually, this.refresh_one_manually.bind(this));
     }
 
     public async configure() {

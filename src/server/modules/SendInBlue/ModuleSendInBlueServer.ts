@@ -36,8 +36,8 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleSendInBlue.APINAME_sendinblue_event_webhook, this.sendinblue_event_webhook.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleSendInBlue.APINAME_sendinblue_refresh_mail_events, this.sendinblue_refresh_mail_events.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleSendInBlue.APINAME_sendinblue_event_webhook, this.sendinblue_event_webhook.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleSendInBlue.APINAME_sendinblue_refresh_mail_events, this.sendinblue_refresh_mail_events.bind(this));
     }
 
     public async configure() {

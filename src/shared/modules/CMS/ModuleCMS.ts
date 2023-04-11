@@ -57,7 +57,7 @@ export default class ModuleCMS extends Module {
     }
 
     public registerApis() {
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, boolean>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<NumberParamVO, boolean>(
             null,
             ModuleCMS.APINAME_getPageComponents,
             (param: NumberParamVO) => {
@@ -73,7 +73,7 @@ export default class ModuleCMS extends Module {
             NumberParamVOStatic
         ));
 
-        // APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<TemplateComponentVO, TemplateComponentVO>(
+        // APIControllerWrapper.registerApi(new PostAPIDefinition<TemplateComponentVO, TemplateComponentVO>(
         //     null,
         //     ModuleCMS.APINAME_registerTemplateComponent,
         //     [TemplateComponentVO.API_TYPE_ID]

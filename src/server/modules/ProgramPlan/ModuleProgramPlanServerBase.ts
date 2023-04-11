@@ -132,12 +132,12 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
     }
 
     public registerServerApiHandlers() {
-        APIControllerWrapper.getInstance().registerServerApiHandler(this.programplan_shared_module.APINAME_GET_RDVS_OF_PROGRAM_SEGMENT, this.getRDVsOfProgramSegment.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(this.programplan_shared_module.APINAME_GET_CRS_OF_PROGRAM_SEGMENT, this.getCRsOfProgramSegment.bind(this));
+        APIControllerWrapper.registerServerApiHandler(this.programplan_shared_module.APINAME_GET_RDVS_OF_PROGRAM_SEGMENT, this.getRDVsOfProgramSegment.bind(this));
+        APIControllerWrapper.registerServerApiHandler(this.programplan_shared_module.APINAME_GET_CRS_OF_PROGRAM_SEGMENT, this.getCRsOfProgramSegment.bind(this));
 
         if (!!this.programplan_shared_module.rdv_prep_type_id) {
 
-            APIControllerWrapper.getInstance().registerServerApiHandler(this.programplan_shared_module.APINAME_GET_PREPS_OF_PROGRAM_SEGMENT, this.getPrepsOfProgramSegment.bind(this));
+            APIControllerWrapper.registerServerApiHandler(this.programplan_shared_module.APINAME_GET_PREPS_OF_PROGRAM_SEGMENT, this.getPrepsOfProgramSegment.bind(this));
         }
     }
 

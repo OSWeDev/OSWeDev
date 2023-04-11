@@ -85,7 +85,7 @@ export default class ForkMessageController {
 
         return new Promise((resolve, reject) => {
 
-            msg = APIControllerWrapper.getInstance().try_translate_vo_to_api(msg);
+            msg = APIControllerWrapper.try_translate_vo_to_api(msg);
             let res: boolean = false;
             let sendHandle = (!child_process) ? process : child_process;
             let self = this;

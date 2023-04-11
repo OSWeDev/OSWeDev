@@ -128,7 +128,7 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
             this.get_filter_module_termine_active_option,
             this.get_filter_module_valide_active_option,
         );
-        exhi.export_params_stringified = JSON.stringify(APIControllerWrapper.getInstance().try_translate_vo_to_api(export_params));
+        exhi.export_params_stringified = JSON.stringify(APIControllerWrapper.try_translate_vo_to_api(export_params));
         exhi.export_to_uid = VueAppController.getInstance().data_user.id;
         exhi.export_type_id = ModuleAnimation.EXPORT_API_TYPE_ID;
 

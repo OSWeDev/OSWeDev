@@ -144,10 +144,10 @@ export default class ModuleCronServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleCron.APINAME_executeWorkersManually, this.executeWorkersManually.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleCron.APINAME_executeWorkerManually, this.executeWorkerManually.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleCron.APINAME_run_manual_task, this.run_manual_task.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleCron.APINAME_get_manual_tasks, this.get_manual_tasks.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleCron.APINAME_executeWorkersManually, this.executeWorkersManually.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleCron.APINAME_executeWorkerManually, this.executeWorkerManually.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleCron.APINAME_run_manual_task, this.run_manual_task.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleCron.APINAME_get_manual_tasks, this.get_manual_tasks.bind(this));
     }
 
     public registerCronWorker(cronWorker: ICronWorker) {

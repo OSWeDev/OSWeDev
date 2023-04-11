@@ -138,7 +138,7 @@ export default class ModuleSurveyServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleSurvey.APINAME_survey, this.survey.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleSurvey.APINAME_survey, this.survey.bind(this));
     }
 
     /**

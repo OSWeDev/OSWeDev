@@ -1569,12 +1569,12 @@ export default class VarsDatasVoUpdateHandler {
             let vo_cud = this.ordered_vos_cud[i];
 
             if (!!vo_cud['_type']) {
-                let tmp = APIControllerWrapper.getInstance().try_translate_vo_to_api(vo_cud);
+                let tmp = APIControllerWrapper.try_translate_vo_to_api(vo_cud);
                 res.push(tmp);
             } else {
                 let tmp = new DAOUpdateVOHolder<IDistantVOBase>(
-                    APIControllerWrapper.getInstance().try_translate_vo_to_api((vo_cud as DAOUpdateVOHolder<IDistantVOBase>).pre_update_vo),
-                    APIControllerWrapper.getInstance().try_translate_vo_to_api((vo_cud as DAOUpdateVOHolder<IDistantVOBase>).post_update_vo)
+                    APIControllerWrapper.try_translate_vo_to_api((vo_cud as DAOUpdateVOHolder<IDistantVOBase>).pre_update_vo),
+                    APIControllerWrapper.try_translate_vo_to_api((vo_cud as DAOUpdateVOHolder<IDistantVOBase>).post_update_vo)
                 );
                 res.push(tmp);
             }
@@ -1593,12 +1593,12 @@ export default class VarsDatasVoUpdateHandler {
                 let vo_cud = res[i];
 
                 if (!!vo_cud['_type']) {
-                    let tmp = APIControllerWrapper.getInstance().try_translate_vo_from_api(vo_cud);
+                    let tmp = APIControllerWrapper.try_translate_vo_from_api(vo_cud);
                     this.ordered_vos_cud.push(tmp);
                 } else {
                     let tmp = new DAOUpdateVOHolder<IDistantVOBase>(
-                        APIControllerWrapper.getInstance().try_translate_vo_from_api((vo_cud as DAOUpdateVOHolder<IDistantVOBase>).pre_update_vo),
-                        APIControllerWrapper.getInstance().try_translate_vo_from_api((vo_cud as DAOUpdateVOHolder<IDistantVOBase>).post_update_vo)
+                        APIControllerWrapper.try_translate_vo_from_api((vo_cud as DAOUpdateVOHolder<IDistantVOBase>).pre_update_vo),
+                        APIControllerWrapper.try_translate_vo_from_api((vo_cud as DAOUpdateVOHolder<IDistantVOBase>).post_update_vo)
                     );
                     res.push(tmp);
                 }

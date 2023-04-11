@@ -26,7 +26,7 @@ export default class ModuleGeneratePDFServer extends ModuleServerBase {
     public async configure() { }
 
     public registerServerApiHandlers() {
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleGeneratePDF.APINAME_generatePDF, this.generatePDF.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleGeneratePDF.APINAME_generatePDF, this.generatePDF.bind(this));
     }
 
     public async generatePDF(sous_rep: string, file_name: string, html: string, save_to_desktop: boolean, options: {} = { encoding: 'utf-8' }): Promise<string> {

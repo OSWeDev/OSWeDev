@@ -37,8 +37,8 @@ export default class ModulePushDataServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModulePushData.APINAME_set_prompt_result, this.set_prompt_result.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModulePushData.APINAME_get_app_version, this.get_app_version.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModulePushData.APINAME_set_prompt_result, this.set_prompt_result.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModulePushData.APINAME_get_app_version, this.get_app_version.bind(this));
     }
 
     public async configure() {

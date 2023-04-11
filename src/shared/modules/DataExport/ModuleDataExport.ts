@@ -105,7 +105,7 @@ export default class ModuleDataExport extends Module {
 
     public registerApis() {
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<ExportContextQueryToXLSXParamVO, string>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<ExportContextQueryToXLSXParamVO, string>(
             ModuleAccessPolicy.POLICY_FO_ACCESS,
             ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVO,
             [FileVO.API_TYPE_ID],
@@ -113,27 +113,27 @@ export default class ModuleDataExport extends Module {
             APIDefinition.API_RETURN_TYPE_FILE
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<ExportDataToXLSXParamVO, string>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<ExportDataToXLSXParamVO, string>(
             ModuleAccessPolicy.POLICY_FO_ACCESS,
             ModuleDataExport.APINAME_ExportDataToXLSXParamVO,
             [FileVO.API_TYPE_ID],
             ExportDataToXLSXParamVOStatic,
             APIDefinition.API_RETURN_TYPE_FILE
         ));
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<ExportDataToXLSXParamVO, FileVO>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<ExportDataToXLSXParamVO, FileVO>(
             ModuleAccessPolicy.POLICY_FO_ACCESS,
             ModuleDataExport.APINAME_ExportDataToXLSXParamVOFile,
             [FileVO.API_TYPE_ID],
             ExportDataToXLSXParamVOStatic
         ));
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<ExportDataToMultiSheetsXLSXParamVO, string>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<ExportDataToMultiSheetsXLSXParamVO, string>(
             ModuleAccessPolicy.POLICY_FO_ACCESS,
             ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVO,
             [FileVO.API_TYPE_ID],
             ExportDataToXLSXParamVOStatic,
             APIDefinition.API_RETURN_TYPE_FILE
         ));
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<ExportDataToMultiSheetsXLSXParamVO, FileVO>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<ExportDataToMultiSheetsXLSXParamVO, FileVO>(
             ModuleAccessPolicy.POLICY_FO_ACCESS,
             ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVOFile,
             [FileVO.API_TYPE_ID],

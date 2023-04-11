@@ -241,7 +241,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleFeedback.APINAME_feedback, this.feedback.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleFeedback.APINAME_feedback, this.feedback.bind(this));
     }
 
     private async pre_create_feedback_assign_default_state(feedback: FeedbackVO): Promise<boolean> {

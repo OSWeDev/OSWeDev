@@ -47,7 +47,7 @@ export default class ModuleImageFormat extends Module {
 
     public registerApis() {
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<GetFormattedImageParamVO, FormattedImageVO>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<GetFormattedImageParamVO, FormattedImageVO>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, ImageFormatVO.API_TYPE_ID),
             ModuleImageFormat.APINAME_get_formatted_image,
             [ImageFormatVO.API_TYPE_ID],

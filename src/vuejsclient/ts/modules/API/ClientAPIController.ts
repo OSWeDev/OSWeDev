@@ -59,7 +59,7 @@ export default class ClientAPIController implements IAPIController {
     }
 
     private async handleAPI<T extends IAPIParamTranslator<T>, U>(apiDefinition: APIDefinition<T, U>, ...api_params): Promise<U> {
-        let translated_param: IAPIParamTranslator<T> = APIControllerWrapper.getInstance().translate_param(apiDefinition, ...api_params);
+        let translated_param: IAPIParamTranslator<T> = APIControllerWrapper.translate_param(apiDefinition, ...api_params);
         let api_name = apiDefinition.api_name;
 
         let API_TYPES_IDS_involved = apiDefinition.API_TYPES_IDS_involved;
@@ -89,7 +89,7 @@ export default class ClientAPIController implements IAPIController {
                     apiDefinition,
                     (APIControllerWrapper.BASE_API_URL + api_name).toLowerCase(),
                     API_TYPES_IDS_involved,
-                    ((typeof translated_param != 'undefined') && (translated_param != null)) ? (JSON.stringify(APIControllerWrapper.getInstance().try_translate_vos_to_api(translated_param))) : null,
+                    ((typeof translated_param != 'undefined') && (translated_param != null)) ? (JSON.stringify(APIControllerWrapper.try_translate_vos_to_api(translated_param))) : null,
                     null,
                     'application/json; charset=utf-8',
                     null,
@@ -104,7 +104,7 @@ export default class ClientAPIController implements IAPIController {
                         apiDefinition,
                         (APIControllerWrapper.BASE_API_URL + api_name).toLowerCase(),
                         API_TYPES_IDS_involved,
-                        ((typeof translated_param != 'undefined') && (translated_param != null)) ? (JSON.stringify(APIControllerWrapper.getInstance().try_translate_vos_to_api(translated_param))) : null,
+                        ((typeof translated_param != 'undefined') && (translated_param != null)) ? (JSON.stringify(APIControllerWrapper.try_translate_vos_to_api(translated_param))) : null,
                         null,
                         'application/json; charset=utf-8') as string;
 
@@ -118,14 +118,14 @@ export default class ClientAPIController implements IAPIController {
                         apiDefinition,
                         (APIControllerWrapper.BASE_API_URL + api_name).toLowerCase(),
                         API_TYPES_IDS_involved,
-                        ((typeof translated_param != 'undefined') && (translated_param != null)) ? (JSON.stringify(APIControllerWrapper.getInstance().try_translate_vos_to_api(translated_param))) : null,
+                        ((typeof translated_param != 'undefined') && (translated_param != null)) ? (JSON.stringify(APIControllerWrapper.try_translate_vos_to_api(translated_param))) : null,
                         null,
                         'application/json; charset=utf-8') as U;
                 }
         }
 
         // On tente de traduire si on reconnait un type de vo
-        api_res = APIControllerWrapper.getInstance().try_translate_vo_from_api(api_res);
+        api_res = APIControllerWrapper.try_translate_vo_from_api(api_res);
 
         return api_res;
     }
