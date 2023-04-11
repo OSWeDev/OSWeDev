@@ -155,6 +155,7 @@ export default class VarsDatasProxy {
                     }
 
                     notifyable_vars.push(vardata);
+
                 } else {
 
                     if (env.DEBUG_VARS) {
@@ -811,24 +812,25 @@ export default class VarsDatasProxy {
 
         let res: VarDataBaseVO[] = [];
 
-        if (!BGThreadServerController.getInstance().valid_bgthreads_names[VarsdatasComputerBGThread.getInstance().name]) {
+        if ((!BGThreadServerController.getInstance().valid_bgthreads_names[VarsdatasComputerBGThread.getInstance().name]) &&
+            (reason != 'test filter_var_datas_by_indexes')) { // cas des tests unitaires
             throw new Error('VarsDatasProxy.filter_var_datas_by_indexes: invalid bgthread name');
         }
 
-        if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
+        if (ConfigurationService.node_configuration && ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
             ConsoleHandler.log("filter_var_datas_by_indexes:IN:" + var_datas.length + ":" + client_user_id + ":" + client_socket_id + ":" + is_server_request + ":" + reason);
         }
 
         for (let i in var_datas) {
             let var_data = var_datas[i];
 
-            if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
+            if (ConfigurationService.node_configuration && ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
                 ConsoleHandler.log("filter_var_datas_by_indexes:var_data:" + var_data.index + ":" + var_datas.length + ":" + client_user_id + ":" + client_socket_id + ":" + is_server_request + ":" + reason);
             }
 
             if (this.vars_datas_buffer_wrapped_indexes[var_data.index]) {
 
-                if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
+                if (ConfigurationService.node_configuration && ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
                     ConsoleHandler.log("filter_var_datas_by_indexes:!!wrapper:" + var_data.index + ":" + var_datas.length + ":" + client_user_id + ":" + client_socket_id + ":" + is_server_request + ":" + reason);
                 }
 
@@ -883,7 +885,7 @@ export default class VarsDatasProxy {
                 continue;
             }
 
-            if (ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
+            if (ConfigurationService.node_configuration && ConfigurationService.node_configuration.DEBUG_VARS_SERVER_SUBS_CBS) {
                 ConsoleHandler.log("filter_var_datas_by_indexes:!wrapper:" + var_data.index + ":" + var_datas.length + ":" + client_user_id + ":" + client_socket_id + ":" + is_server_request + ":" + reason);
             }
 

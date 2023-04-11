@@ -9,4 +9,5 @@ export default class FeedbackStateVO implements IDistantVOBase {
 
     public name: string;
     public weight: number;
+    public is_default_state: number;
 }

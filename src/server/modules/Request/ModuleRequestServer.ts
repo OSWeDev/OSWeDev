@@ -24,7 +24,7 @@ export default class ModuleRequestServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleRequest.APINAME_sendRequestFromApp, this.sendRequestFromApp.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleRequest.APINAME_sendRequestFromApp, this.sendRequestFromApp.bind(this));
     }
 
     /**

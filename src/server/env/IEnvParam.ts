@@ -37,8 +37,6 @@ export default interface IEnvParam {
     DEBUG_DB_FULL_QUERY_PERF?: boolean;
     DEBUG_INTERTHREADS_MESSAGES?: boolean;
     DEBUG_PROMISE_PIPELINE?: boolean;
-    DEBUG_FORK_MESSAGE_RECEIVED_NB?: boolean;
-    DEBUG_FORK_MESSAGE_SENT_NB?: boolean;
 
     START_MAINTENANCE_ACCEPTATION_CODE: string;
     AUTO_END_MAINTENANCE_ON_START: boolean;

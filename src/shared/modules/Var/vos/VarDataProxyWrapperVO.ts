@@ -5,7 +5,7 @@ import VarDataBaseVO from './VarDataBaseVO';
 
 export default class VarDataProxyWrapperVO<T extends VarDataBaseVO> {
 
-    public creation_date: number;
+    public creation_date_ms: number;
 
     public var_data_origin_value: number;
     public var_data_origin_type: number;
@@ -36,7 +36,7 @@ export default class VarDataProxyWrapperVO<T extends VarDataBaseVO> {
         this.last_insert_or_update = last_insert_or_update ? last_insert_or_update : Dates.now();
         this.nb_reads_since_last_check = 0;
         this.update_timeout();
-        this.creation_date = Dates.now();
+        this.creation_date_ms = Dates.now_ms();
     }
 
     public update_timeout() {

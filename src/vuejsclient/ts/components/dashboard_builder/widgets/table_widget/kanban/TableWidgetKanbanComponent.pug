@@ -87,11 +87,17 @@ include ../../../../../../views/mixins/loading.pug
 
                                     template(slot-scope="slot_props")
                                         .card.kanban_row
-                                            .card-body(@click='open_update(crud_activated_api_type, slot_props.sortable_list_item.__crud_actions?parseInt(slot_props.sortable_list_item.__crud_actions):slot_props.sortable_list_item.id)' v-tooltip.top='label("table_widget_kanban_component.edit_card")')
+                                            Tablewidgetkanbancardheadercollagecomponent.card-img-top(
+                                                :image_ids="get_images_ids(slot_props.sortable_list_item)" 
+                                                v-if='sorted_image_datatable_field_uids && sorted_image_datatable_field_uids.length'
+                                                :collage_gap_size='".25rem"'
+                                                :collage_border_radius='".25rem"')
+                                            .card-body(@click='open_update(crud_activated_api_type, slot_props.sortable_list_item.__crud_actions?parseInt(slot_props.sortable_list_item.__crud_actions):slot_props.sortable_list_item.id)') 
+                                                //-  v-tooltip.top='label("table_widget_kanban_component.edit_card")'
                                                 .card-text
                                                     template(v-for='(column, column_index) in table_columns')
                                                         template(v-if='kanban_column && (kanban_column.datatable_field_uid != column.datatable_field_uid)')
-                                                            template(v-if="!column.hide_from_table")
+                                                            template(v-if="(!column.hide_from_table) && ((!sorted_link_datatable_field_uids) || (sorted_link_datatable_field_uids.indexOf(column.datatable_field_uid) == -1)) && ((!sorted_image_datatable_field_uids) || (sorted_image_datatable_field_uids.indexOf(column.datatable_field_uid) == -1))")
                                                                 template(v-if="column.type == 0")
                                                                 template(v-else-if="column.type == 3")
                                                                 template(v-else-if="column.type == 4")
@@ -130,6 +136,10 @@ include ../../../../../../views/mixins/loading.pug
                                                                                             :filter_additional_params='get_column_filter_additional_params(column)'
                                                                                             :table_is_busy="is_busy"
                                                                                         )
+                                                Tablewidgetkanbancardfooterlinkscomponent(
+                                                    :links="get_links(slot_props.sortable_list_item)" 
+                                                    :titles="get_links_titles(slot_props.sortable_list_item)" 
+                                                    v-if='sorted_link_datatable_field_uids && sorted_link_datatable_field_uids.length')
                     template(slot='create_new')
                         .kanban_column.create_new_kanban_column(v-if='can_create_kanban_column')
                             .kanban_column_header

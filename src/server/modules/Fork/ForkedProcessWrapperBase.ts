@@ -9,6 +9,7 @@ import ConfigurationService from '../../env/ConfigurationService';
 import EnvParam from '../../env/EnvParam';
 import FileLoggerHandler from '../../FileLoggerHandler';
 import I18nextInit from '../../I18nextInit';
+import MemoryUsageStat from '../../MemoryUsageStat';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ServerAPIController from '../API/ServerAPIController';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
@@ -148,15 +149,17 @@ export default abstract class ForkedProcessWrapperBase {
             ConsoleHandler.log('ServerExpressController:i18nextInit:getALL_LOCALES:END');
         }
 
-        BGThreadServerController.getInstance().server_ready = true;
+        BGThreadServerController.SERVER_READY = true;
         CronServerController.getInstance().server_ready = true;
 
         process.on('message', async (msg: IForkMessage) => {
-            msg = APIControllerWrapper.getInstance().try_translate_vo_from_api(msg);
+            msg = APIControllerWrapper.try_translate_vo_from_api(msg);
             await ForkMessageController.getInstance().message_handler(msg, process);
         });
 
         // On prévient le process parent qu'on est ready
         await ForkMessageController.getInstance().send(new AliveForkMessage());
+
+        await MemoryUsageStat.updateMemoryUsageStat();
     }
 }

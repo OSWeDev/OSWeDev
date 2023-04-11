@@ -176,7 +176,7 @@ export default class PushDataVueModule extends VueModuleBase {
         if (!(VueAppBase.instance_ && LocaleManager.getInstance().i18n)) {
             return;
         }
-        notifications = APIControllerWrapper.getInstance().try_translate_vos_from_api(notifications);
+        notifications = APIControllerWrapper.try_translate_vos_from_api(notifications);
 
         /**
          * On regroupe par type pour gérer en bloc ensuite
@@ -380,7 +380,7 @@ export default class PushDataVueModule extends VueModuleBase {
             let notification = notifications[i];
 
             if (!!notification.vos) {
-                let tmp = APIControllerWrapper.getInstance().try_translate_vos_from_api(JSON.parse(notification.vos));
+                let tmp = APIControllerWrapper.try_translate_vos_from_api(JSON.parse(notification.vos));
                 if (tmp && tmp.length) {
                     for (let j in tmp) {
                         let e: VarDataValueResVO = tmp[j];
@@ -472,7 +472,7 @@ export default class PushDataVueModule extends VueModuleBase {
             let notification = notifications[i];
 
             if (!!notification.vos) {
-                let tmp = APIControllerWrapper.getInstance().try_translate_vos_from_api(JSON.parse(notification.vos));
+                let tmp = APIControllerWrapper.try_translate_vos_from_api(JSON.parse(notification.vos));
                 if (tmp && tmp.length) {
                     for (let j in tmp) {
                         let vo = tmp[j];

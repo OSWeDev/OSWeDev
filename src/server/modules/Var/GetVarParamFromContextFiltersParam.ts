@@ -9,5 +9,10 @@ export default class GetVarParamFromContextFiltersParam {
         public discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
         public accept_max_ranges: boolean = false,
         public resolve: (var_param: any) => void,
+        /**
+         * Doit ête forcé côté serveur à la réception de la requête pour éviter une injection malveillante du client,
+         * et est nécessaire pour assurer le bon UID lors des requêtes en parallèle
+         */
+        public uid: number
     ) { }
 }

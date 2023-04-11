@@ -53,7 +53,7 @@ export default class ModuleFacturationProAPI extends Module {
     }
 
     public registerApis() {
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<FactuProInvoiceVO, string>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<FactuProInvoiceVO, string>(
             null,
             ModuleFacturationProAPI.APINAME_download_invoice,
             [],

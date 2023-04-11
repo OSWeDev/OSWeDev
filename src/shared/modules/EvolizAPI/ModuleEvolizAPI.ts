@@ -51,40 +51,40 @@ export default class ModuleEvolizAPI extends Module {
     }
 
     public registerApis() {
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<null, EvolizInvoiceVO[]>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<null, EvolizInvoiceVO[]>(
             null,
             ModuleEvolizAPI.APINAME_list_invoices,
             []
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<EvolizInvoiceVO, string>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<EvolizInvoiceVO, string>(
             null,
             ModuleEvolizAPI.APINAME_create_invoice,
             [],
             EvolizInvoiceParamStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<null, EvolizClientVO[]>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<null, EvolizClientVO[]>(
             null,
             ModuleEvolizAPI.APINAME_list_clients,
             []
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<EvolizClientVO, string>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<EvolizClientVO, string>(
             null,
             ModuleEvolizAPI.APINAME_create_client,
             [],
             EvolizClientParamStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<EvolizContactClientVO, string>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<EvolizContactClientVO, string>(
             null,
             ModuleEvolizAPI.APINAME_create_contact_client,
             [],
             EvolizContactClientParamStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<null, EvolizContactClientVO[]>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<null, EvolizContactClientVO[]>(
             null,
             ModuleEvolizAPI.APINAME_list_contact_clients,
             []

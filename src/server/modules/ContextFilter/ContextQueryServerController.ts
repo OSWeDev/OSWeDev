@@ -73,7 +73,15 @@ export default class ContextQueryServerController {
         //     context_query.query_distinct = false;
         // }
 
+        /**
+         * Le contexte client est utilisé pour builder la requête, pas pour la réaliser en base,
+         * donc on a pas de problème à throttle le select en base, en revanche le build doit se faire sans throttle ou il faut gérer
+         * une save du contexte client. Idem pour l'anonymisation post requete. D'ailleurs ça sous-entend qu'en l'état
+         * l'anonymisation ne peut pas fonctionner en bdd puisque le contexte client est perdu. Sauf à ce que la requête soit impactée pour
+         * indiquer d'utiliser l'anonymisation en bdd, et que la requête n'ai pas besoin de connaitre le contexte client.
+         */
         query_wrapper = query_wrapper ? query_wrapper : await this.build_select_query(context_query);
+
         //Requête
         if ((!query_wrapper) || ((!query_wrapper.query)) && (!query_wrapper.is_segmented_non_existing_table)) {
             ConsoleHandler.error('Invalid query:select_vos:INFOS context_query:' + (query_wrapper ? (query_wrapper.query ? query_wrapper.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
@@ -1355,6 +1363,7 @@ export default class ContextQueryServerController {
 
             if (!loaded) {
                 loaded = true;
+
                 uid = StackContext.get('UID');
                 user = await ModuleAccessPolicyServer.getInstance().getSelfUser();
                 user_roles_by_role_id = AccessPolicyServerController.getInstance().getUsersRoles(true, uid);

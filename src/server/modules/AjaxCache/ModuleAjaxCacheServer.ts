@@ -31,7 +31,7 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleAjaxCache.APINAME_REQUESTS_WRAPPER, this.requests_wrapper.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleAjaxCache.APINAME_REQUESTS_WRAPPER, this.requests_wrapper.bind(this));
     }
 
     /**
@@ -73,7 +73,7 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
 
                 for (let j in APIControllerWrapper.registered_apis) {
                     let registered_api = APIControllerWrapper.registered_apis[j];
-                    if (APIControllerWrapper.getInstance().requestUrlMatchesApiUrl(wrapped_request.url, APIControllerWrapper.getInstance().getAPI_URL(registered_api))) {
+                    if (APIControllerWrapper.requestUrlMatchesApiUrl(wrapped_request.url, APIControllerWrapper.getAPI_URL(registered_api))) {
                         apiDefinition = registered_api;
                         break;
                     }
@@ -100,9 +100,9 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
                             // Il faut un objet request.params à ce niveau avec chaque param séparé si c'est possible.
                             //
                             param = apiDefinition.param_translator.fromREQ(
-                                APIControllerWrapper.getInstance().getFakeRequestParamsFromUrl(
+                                APIControllerWrapper.getFakeRequestParamsFromUrl(
                                     wrapped_request.url,
-                                    APIControllerWrapper.getInstance().getAPI_URL(apiDefinition)));
+                                    APIControllerWrapper.getAPI_URL(apiDefinition)));
                         }
                         break;
 
@@ -110,7 +110,7 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
                         try {
                             param = (wrapped_request.postdatas) ? JSON.parse(wrapped_request.postdatas) : wrapped_request.postdatas;
                             // On doit traduire ici ce qui ne l'a pas été puisque encodé en JSON
-                            param = APIControllerWrapper.getInstance().try_translate_vo_from_api(param);
+                            param = APIControllerWrapper.try_translate_vo_from_api(param);
                         } catch (error) {
                             ConsoleHandler.error('Erreur récupération params post_for_get wrapped:' + error + ':');
                         }

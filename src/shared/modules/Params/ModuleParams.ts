@@ -82,45 +82,45 @@ export default class ModuleParams extends Module {
 
     public registerApis() {
 
-        // APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<GetParamParamVO, string>(
+        // APIControllerWrapper.registerApi(new GetAPIDefinition<GetParamParamVO, string>(
         //     ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, ParamVO.API_TYPE_ID),
         //     ModuleParams.APINAME_getParamValue,
         //     [ParamVO.API_TYPE_ID],
         //     GetParamParamVOStatic
         // ));
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<GetParamParamAsStringVO, string>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<GetParamParamAsStringVO, string>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, ParamVO.API_TYPE_ID),
             ModuleParams.APINAME_getParamValueAsString,
             [ParamVO.API_TYPE_ID],
             GetParamParamAsStringVOStatic
         ));
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<GetParamParamAsNumberVO, number>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<GetParamParamAsNumberVO, number>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, ParamVO.API_TYPE_ID),
             ModuleParams.APINAME_getParamValueAsInt,
             [ParamVO.API_TYPE_ID],
             GetParamParamAsNumberVOStatic
         ));
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<GetParamParamAsBooleanVO, boolean>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<GetParamParamAsBooleanVO, boolean>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, ParamVO.API_TYPE_ID),
             ModuleParams.APINAME_getParamValueAsBoolean,
             [ParamVO.API_TYPE_ID],
             GetParamParamAsBooleanVOStatic
         ));
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<GetParamParamAsNumberVO, number>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<GetParamParamAsNumberVO, number>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, ParamVO.API_TYPE_ID),
             ModuleParams.APINAME_getParamValueAsFloat,
             [ParamVO.API_TYPE_ID],
             GetParamParamAsNumberVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<SetParamParamVO, void>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<SetParamParamVO, void>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, ParamVO.API_TYPE_ID),
             ModuleParams.APINAME_setParamValue,
             [ParamVO.API_TYPE_ID],
             SetParamParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<SetParamParamVO, void>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<SetParamParamVO, void>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, ParamVO.API_TYPE_ID),
             ModuleParams.APINAME_setParamValue_if_not_exists,
             [ParamVO.API_TYPE_ID],

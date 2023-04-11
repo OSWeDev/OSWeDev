@@ -31,16 +31,16 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_select_filter_visible_options, this.select_filter_visible_options.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_select_count, this.select_count.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_select_datatable_rows, this.select_datatable_rows.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_select_vos, this.select_vos.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_select, this.select.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_delete_vos, this.delete_vos.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_update_vos, this.update_vos.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_build_select_query, this.build_select_query.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_select_vo_from_unique_field, this.select_vo_from_unique_field.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleContextFilter.APINAME_count_valid_segmentations, this.count_valid_segmentations.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleContextFilter.APINAME_select_filter_visible_options, this.select_filter_visible_options.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleContextFilter.APINAME_select_count, this.select_count.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleContextFilter.APINAME_select_datatable_rows, this.select_datatable_rows.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleContextFilter.APINAME_select_vos, this.select_vos.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleContextFilter.APINAME_select, this.select.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleContextFilter.APINAME_delete_vos, this.delete_vos.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleContextFilter.APINAME_update_vos, this.update_vos.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleContextFilter.APINAME_build_select_query, this.build_select_query.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleContextFilter.APINAME_select_vo_from_unique_field, this.select_vo_from_unique_field.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleContextFilter.APINAME_count_valid_segmentations, this.count_valid_segmentations.bind(this));
     }
 
     public async count_valid_segmentations(api_type_id: string, context_query: ContextQueryVO, ignore_self_filter: boolean = true): Promise<number> {

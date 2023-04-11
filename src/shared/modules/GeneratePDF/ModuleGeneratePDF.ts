@@ -32,7 +32,7 @@ export default class ModuleGeneratePDF extends Module {
     }
 
     public registerApis() {
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<GeneratePdfParamVO, string>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<GeneratePdfParamVO, string>(
             ModuleAccessPolicy.POLICY_FO_ACCESS,
             ModuleGeneratePDF.APINAME_generatePDF,
             [],

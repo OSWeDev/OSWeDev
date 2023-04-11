@@ -647,17 +647,17 @@ export default class ModuleTranslationServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_ALL_TRANSLATIONS, this.getAllTranslations.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_LANGS, this.getLangs.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_LANG, this.getLang.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXT, this.getTranslatableText.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXTS, this.getTranslatableTexts.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATION, this.getTranslation.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATIONS, this.getTranslations.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_getALL_LOCALES, this.getALL_LOCALES.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_getALL_FLAT_LOCALE_TRANSLATIONS, this.getALL_FLAT_LOCALE_TRANSLATIONS.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_LABEL, this.label.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_T, this.t.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_GET_ALL_TRANSLATIONS, this.getAllTranslations.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_GET_LANGS, this.getLangs.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_GET_LANG, this.getLang.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXT, this.getTranslatableText.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXTS, this.getTranslatableTexts.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATION, this.getTranslation.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATIONS, this.getTranslations.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_getALL_LOCALES, this.getALL_LOCALES.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_getALL_FLAT_LOCALE_TRANSLATIONS, this.getALL_FLAT_LOCALE_TRANSLATIONS.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_LABEL, this.label.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleTranslation.APINAME_T, this.t.bind(this));
     }
 
     public async getTranslatableTexts(): Promise<TranslatableTextVO[]> {

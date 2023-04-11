@@ -2,6 +2,7 @@ import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
+import VarsController from '../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import VarsServerController from './VarsServerController';
@@ -94,6 +95,10 @@ export default class VarsImportsHandler {
      */
     public get_selection_imports(ordered_imports: VarDataBaseVO[], var_data: VarDataBaseVO): VarDataBaseVO[] {
 
+        if (!VarsController.getInstance().var_conf_by_id[var_data.var_id]) {
+            throw new Error('VarsImportsHandler:get_selection_imports:Unknown var_data.var_id:' + var_data.var_id);
+        }
+
         let cardinal_max = MatroidController.getInstance().get_cardinal(var_data);
         let imports_valides: VarDataBaseVO[] = [];
 
@@ -120,6 +125,9 @@ export default class VarsImportsHandler {
             }
 
             tested_import = ordered_imports[i];
+            if (tested_import.var_id != var_data.var_id) {
+                throw new Error('VarsImportsHandler:get_selection_imports:Import var_id different from var_data.var_id:' + tested_import.var_id + ':' + var_data.var_id);
+            }
 
             let tested_cardinal = MatroidController.getInstance().get_cardinal(tested_import);
 

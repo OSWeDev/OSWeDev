@@ -30,7 +30,7 @@ export default class ModuleExpressDBSessions extends Module {
     }
 
     private initializeExpressSessionVO() {
-        let sid = new ModuleTableField('sid', ModuleTableField.FIELD_TYPE_string, 'SID', true).unique();
+        let sid = new ModuleTableField('sid', ModuleTableField.FIELD_TYPE_string, 'SID', true).unique(true);
 
         let fields = [
             sid,

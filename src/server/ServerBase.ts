@@ -24,6 +24,7 @@ import AjaxCacheController from '../shared/modules/AjaxCache/AjaxCacheController
 import ModuleCommerce from '../shared/modules/Commerce/ModuleCommerce';
 import { query } from '../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
+import TimeSegment from '../shared/modules/DataRender/vos/TimeSegment';
 import ModuleFile from '../shared/modules/File/ModuleFile';
 import FileVO from '../shared/modules/File/vos/FileVO';
 import Dates from '../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -34,6 +35,7 @@ import ModuleMaintenance from '../shared/modules/Maintenance/ModuleMaintenance';
 import ModulesManager from '../shared/modules/ModulesManager';
 import ModuleParams from '../shared/modules/Params/ModuleParams';
 import ModulePushData from '../shared/modules/PushData/ModulePushData';
+import StatVO from '../shared/modules/Stats/vos/StatVO';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
 import ConsoleHandler from '../shared/tools/ConsoleHandler';
 import EnvHandler from '../shared/tools/EnvHandler';
@@ -43,6 +45,7 @@ import ConfigurationService from './env/ConfigurationService';
 import EnvParam from './env/EnvParam';
 import FileLoggerHandler from './FileLoggerHandler';
 import I18nextInit from './I18nextInit';
+import MemoryUsageStat from './MemoryUsageStat';
 import AccessPolicyDeleteSessionBGThread from './modules/AccessPolicy/bgthreads/AccessPolicyDeleteSessionBGThread';
 import ModuleAccessPolicyServer from './modules/AccessPolicy/ModuleAccessPolicyServer';
 import BGThreadServerController from './modules/BGThread/BGThreadServerController';
@@ -54,6 +57,7 @@ import ForkServerController from './modules/Fork/ForkServerController';
 import MaintenanceServerController from './modules/Maintenance/MaintenanceServerController';
 import ModuleServiceBase from './modules/ModuleServiceBase';
 import PushDataServerController from './modules/PushData/PushDataServerController';
+import StatsServerController from './modules/Stats/StatsServerController';
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
 // import { createTerminus } from '@godaddy/terminus';
 import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
@@ -67,6 +71,8 @@ export default abstract class ServerBase {
     public static getInstance(): ServerBase {
         return ServerBase.instance;
     }
+
+    protected static SLOW_EXPRESS_QUERY_LIMIT_MS_PARAM_NAME: string = 'ServerBase.SLOW_EXPRESS_QUERY_LIMIT_MS';
 
     /* istanbul ignore next: nothing to test here */
     protected static instance: ServerBase = null;
@@ -147,7 +153,25 @@ export default abstract class ServerBase {
 
         // this.jwtSecret = 'This is the jwt secret for the rest part';
 
-        let pgp: pg_promise.IMain = pg_promise({});
+        let pgp: pg_promise.IMain = pg_promise({
+            async connect(client, dc, useCount) {
+                StatsServerController.register_stat('ServerBase.PGP.connect',
+                    1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            },
+            async disconnect(client, dc) {
+                StatsServerController.register_stat('ServerBase.PGP.disconnect',
+                    1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            },
+            async query(e) {
+                StatsServerController.register_stat('ServerBase.PGP.query',
+                    1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            },
+            async error(e) {
+                StatsServerController.register_stat('ServerBase.PGP.error',
+                    1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                ConsoleHandler.error('ServerBase.PGP.error: ' + JSON.stringify(e));
+            },
+        });
         this.db = pgp({
             connectionString: this.connectionString,
             max: this.envParam.MAX_POOL,
@@ -233,6 +257,47 @@ export default abstract class ServerBase {
             ConsoleHandler.log('ServerExpressController:express:START');
         }
         this.app = express();
+
+        let responseTime = require('response-time');
+        this.app.use(responseTime(async (req, res, time) => {
+            let url = req.originalUrl;
+            let method = req.method;
+            let status = res.statusCode;
+
+            let log = `${method} ${url} ${status} ${time.toFixed(3)} ms`;
+
+            // let cleaned_url = req.url.toLowerCase()
+            //     .replace(/[:.]/g, '')
+            //     .replace(/\//g, '_');
+
+            StatsServerController.register_stats('express.' + method + '.' + status,
+                time, [StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
+
+            if (status >= 500) {
+                StatsServerController.register_stat('express.' + method + '.' + status,
+                    1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                ConsoleHandler.error(log);
+            } else if (status >= 400) {
+                StatsServerController.register_stat('express.' + method + '.' + status,
+                    1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                ConsoleHandler.warn(log);
+            } else {
+
+                /**
+                 * On stocke les requêtes par :
+                 *  - par méthode
+                 *  - par status
+                 *  - par temps de réponse - en 2 catégories : toutes les requêtes et les requêtes qui ont pris plus de 1s (paramétrable)
+                 */
+                let slow_queries_limit = await ModuleParams.getInstance().getParamValueAsInt(
+                    ServerBase.SLOW_EXPRESS_QUERY_LIMIT_MS_PARAM_NAME, 1000, 60000
+                );
+                if (time > slow_queries_limit) {
+                    StatsServerController.register_stat('express.' + method + '.' + status + '.slow',
+                        1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                }
+            }
+        }));
 
         // createTerminus(this.app, { onSignal: ServerBase.getInstance().terminus });
 
@@ -1071,6 +1136,8 @@ export default abstract class ServerBase {
             ConsoleHandler.error("Node nearly failed: " + err.stack);
         });
 
+        await MemoryUsageStat.updateMemoryUsageStat();
+
         ConsoleHandler.log('listening on port: ' + ServerBase.getInstance().port);
         ServerBase.getInstance().db.one('SELECT 1')
             .then(async () => {
@@ -1136,7 +1203,7 @@ export default abstract class ServerBase {
                 if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
                     ConsoleHandler.log('ServerExpressController:fork_threads:END');
                 }
-                BGThreadServerController.getInstance().server_ready = true;
+                BGThreadServerController.SERVER_READY = true;
 
                 if (ConfigurationService.node_configuration.AUTO_END_MAINTENANCE_ON_START) {
                     await ModuleMaintenance.getInstance().end_planned_maintenance();

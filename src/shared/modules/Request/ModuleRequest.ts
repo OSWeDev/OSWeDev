@@ -64,7 +64,7 @@ export default class ModuleRequest extends Module {
 
     public registerApis() {
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<SendRequestParamVO, any>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<SendRequestParamVO, any>(
             null,
             ModuleRequest.APINAME_sendRequestFromApp,
             [],

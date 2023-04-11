@@ -699,7 +699,7 @@ export default class CRUDComponent extends VueComponentBase {
                     let id = res.id ? res.id : null;
                     self.newVO.id = id;
 
-                    createdVO = await ModuleDAO.getInstance().getVoById<any>(self.crud.readDatatable.API_TYPE_ID, id);
+                    createdVO = await query(self.crud.readDatatable.API_TYPE_ID).filter_by_id(id).select_vo();
                     if ((!createdVO) || (createdVO.id !== id) || (createdVO._type !== self.crud.readDatatable.API_TYPE_ID)) {
                         self.creating_vo = false;
                         reject({

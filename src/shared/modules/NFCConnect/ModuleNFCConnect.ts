@@ -51,14 +51,14 @@ export default class ModuleNFCConnect extends Module {
 
     public registerApis() {
 
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<StringParamVO, boolean>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<StringParamVO, boolean>(
             null,
             ModuleNFCConnect.APINAME_connect,
             [NFCTagVO.API_TYPE_ID, NFCTagUserVO.API_TYPE_ID],
             StringParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<StringParamVO, boolean>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<StringParamVO, boolean>(
             null,
             ModuleNFCConnect.APINAME_connect_and_redirect,
             [NFCTagVO.API_TYPE_ID, NFCTagUserVO.API_TYPE_ID],
@@ -66,28 +66,28 @@ export default class ModuleNFCConnect extends Module {
         ));
 
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<APIDAOParamVO, boolean>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<APIDAOParamVO, boolean>(
             null,
             ModuleNFCConnect.APINAME_checktag_user,
             [],
             APIDAOParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<StringParamVO, boolean>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<StringParamVO, boolean>(
             null,
             ModuleNFCConnect.APINAME_add_tag,
             [NFCTagVO.API_TYPE_ID, NFCTagUserVO.API_TYPE_ID],
             StringParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<StringParamVO, boolean>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<StringParamVO, boolean>(
             null,
             ModuleNFCConnect.APINAME_remove_user_tag,
             [NFCTagVO.API_TYPE_ID, NFCTagUserVO.API_TYPE_ID],
             StringParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<void, NFCTagVO[]>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<void, NFCTagVO[]>(
             null,
             ModuleNFCConnect.APINAME_get_own_tags,
             [NFCTagVO.API_TYPE_ID, NFCTagUserVO.API_TYPE_ID]

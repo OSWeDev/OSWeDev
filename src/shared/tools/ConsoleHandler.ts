@@ -10,6 +10,11 @@ export default class ConsoleHandler {
     public static logger_handler: ILoggerHandler = null;
 
     public static init() {
+
+        if (!!ConsoleHandler.old_console_log) {
+            return;
+        }
+
         ConsoleHandler.old_console_log = console.log;
         console.log = function (msg, ...params) {
             ConsoleHandler.log(msg, ...params);
