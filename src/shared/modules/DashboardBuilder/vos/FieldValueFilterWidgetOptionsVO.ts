@@ -7,7 +7,7 @@ import TSRange from "../../DataRender/vos/TSRange";
 /**
  * FieldValueFilterWidgetOptionsVO
  */
-export default class FieldValueFilterWidgetOptionsVO {
+export class FieldValueFilterWidgetOptionsVO {
 
     public static VO_FIELD_REF_PLACEHOLDER_CODE_PREFIX: string = "FieldValueFilterWidgetOptions.vo_field_ref.placeholder.";
     public static VO_FIELD_REF_ADVANCED_MODE_PLACEHOLDER_CODE_PREFIX: string = "FieldValueFilterWidgetOptions.vo_field_ref.advanced_mode_placeholder.";
@@ -182,4 +182,23 @@ export default class FieldValueFilterWidgetOptionsVO {
         return res;
     }
 
+    /**
+     * Get Exclude Values
+     *
+     * @returns {DataFilterOption[]}
+     */
+    public get_exclude_values(): DataFilterOption[] {
+
+        if ((!this.exclude_filter_opt_values) || (!this.exclude_filter_opt_values.length)) {
+            return null;
+        }
+
+        let res: DataFilterOption[] = [];
+
+        for (let i in this.exclude_filter_opt_values) {
+            res.push(new DataFilterOption().from(this.exclude_filter_opt_values[i]));
+        }
+
+        return res;
+    }
 }

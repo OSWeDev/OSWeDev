@@ -478,7 +478,7 @@
                         :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                     )
 
-            .btn.btn-primary(@click="set_show_hide_enum_color_options") {{ label('field_value_filter_widget_component.show_hide_enum_color_options') }}
+            .btn.btn-primary(@click="toggle_show_hide_enum_color_options") {{ label('field_value_filter_widget_component.show_hide_enum_color_options') }}
 
             template(v-if="show_hide_enum_color_options")
                 .enum_color_options

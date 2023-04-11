@@ -12,7 +12,7 @@ import Dates from "../../FormatDatesNombres/Dates/Dates";
 import ModuleTableField from "../../ModuleTableField";
 import VOsTypesManager from "../../VOsTypesManager";
 import ContextFilterVO from "../vos/ContextFilterVO";
-import FieldValueFilterWidgetOptionsVO from '../../DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
+import { FieldValueFilterWidgetOptionsVO } from '../../DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
 import MonthFilterWidgetOptionsVO from '../../DashboardBuilder/vos/MonthFilterWidgetOptionsVO';
 import YearFilterWidgetOptionsVO from '../../DashboardBuilder/vos/YearFilterWidgetOptionsVO';
 import ContextFilterHandler from "../ContextFilterHandler";
@@ -656,6 +656,32 @@ export default class ContextFilterVOFactory {
         }
 
         return context_filter;
+    }
+
+    /**
+     * Create Filters From Active Field Filters
+     *
+     * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} active_field_filters
+     * @returns {ContextFilterVO[]}
+     */
+    public static create_filters_from_active_field_filters(active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }): ContextFilterVO[] {
+        let res: ContextFilterVO[] = [];
+
+        for (let i in active_field_filters) {
+            let filters = active_field_filters[i];
+
+            for (let j in filters) {
+                let filter = filters[j];
+
+                if (!filter) {
+                    continue;
+                }
+
+                res.push(filter);
+            }
+        }
+
+        return res;
     }
 
     public static getInstance(): ContextFilterVOFactory {

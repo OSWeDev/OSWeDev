@@ -41,7 +41,7 @@ export interface IDashboardPageState {
     page_history: DashboardPageVO[];
 
     custom_filters: string[];
-    active_api_type_ids: string[]; // Setted on selection (select option) to specify query on specified vos api ids
+    active_api_type_ids: string[]; // Setted on user selection (select option) to specify query on specified vos api ids
     query_api_type_ids: string[]; // Setted from widget options to have custom|default query on specified vos api ids
 
     widgets_invisibility: { [w_id: number]: boolean };

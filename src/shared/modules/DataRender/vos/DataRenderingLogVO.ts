@@ -1,6 +1,4 @@
 import IDistantVOBase from '../../IDistantVOBase';
-import ConversionHandler from '../../../tools/ConversionHandler';
-import DateHandler from '../../../tools/DateHandler';
 
 
 export default class DataRenderingLogVO implements IDistantVOBase {

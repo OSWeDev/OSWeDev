@@ -16,6 +16,7 @@ import TSRange from "../DataRender/vos/TSRange";
 import IDistantVOBase from "../IDistantVOBase";
 import ModuleTableField from "../ModuleTableField";
 import VOsTypesManager from "../VOsTypesManager";
+import ContextFilterVOFactory from "./factory/ContextFilterVOFactory";
 import ContextFilterVO from "./vos/ContextFilterVO";
 import { query } from "./vos/ContextQueryVO";
 
@@ -437,26 +438,12 @@ export default class ContextFilterHandler {
         return res;
     }
 
+    /**
+     * @deprecated use static ContextFilterVOFactory.create_filters_from_active_field_filters instead
+     */
     public get_filters_from_active_field_filters(active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }): ContextFilterVO[] {
-        let res: ContextFilterVO[] = [];
-
-        for (let i in active_field_filters) {
-            let filters = active_field_filters[i];
-
-            for (let j in filters) {
-                let filter = filters[j];
-
-                if (!filter) {
-                    continue;
-                }
-
-                res.push(filter);
-            }
-        }
-
-        return res;
+        return ContextFilterVOFactory.create_filters_from_active_field_filters(active_field_filters);
     }
-
 
     /**
      * @param context_filter_tree_root
