@@ -155,6 +155,22 @@
             }
         }
     }
+
+    .span_dismiss_export_banner_alert {
+        display: inline-flex;
+        width: 100%;
+        align-items: center;
+        justify-content: space-between;
+
+        .btn_dismiss_export_banner_alert {
+            background-color: transparent;
+            border-color: transparent;
+
+            i::after {
+                opacity: 1 !important;
+            }
+        }
+    }
 }
 
 .dashboard_builder_board .grid_item_wrapper.widget_name__datatable .vue-grid-item {

@@ -168,6 +168,8 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
     private new_kanban_column_value: string = "";
     private can_create_kanban_column: boolean = false;
 
+    private show_export_banner_alert: boolean = false;
+
     public async getquerystr() {
         if (!this.actual_rows_query) {
             return null;
@@ -1040,6 +1042,10 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
     get can_refresh(): boolean {
         return this.widget_options && this.widget_options.refresh_button;
+    }
+
+    get show_export_notification_banner_alert(): boolean {
+        return this.widget_options && this.widget_options.has_notification_banner_alert;
     }
 
     get can_export(): boolean {
@@ -2247,6 +2253,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                     options.show_bulk_edit,
                     options.cb_bulk_actions,
                     options.show_bulk_select_all,
+                    options.has_notification_banner_alert,
                 ) : null;
             }
         } catch (error) {
@@ -2587,7 +2594,6 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
      * On demande si on veut exporter tout en juste la page actuellement lue
      */
     private async choose_export_type() {
-
         let self = this;
 
         if (this.default_export_option) {
@@ -2630,6 +2636,10 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         }
     }
 
+    private dismiss_export_banner_alert() {
+        this.show_export_banner_alert = false;
+    }
+
     /**
      * Export de toutes les données (en appliquant les filtrages)
      * @param limit_to_page se limiter à la page vue, ou renvoyer toutes les datas suivant les filtres actifs
@@ -2638,6 +2648,12 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         let param: ExportContextQueryToXLSXParamVO = this.get_export_params_for_context_query_xlsx(limit_to_page);
 
         if (!!param) {
+
+            this.show_export_banner_alert = false;
+
+            if (this.show_export_notification_banner_alert) {
+                this.show_export_banner_alert = true;
+            }
 
             await ModuleDataExport.getInstance().exportContextQueryToXLSX(
                 param.filename,

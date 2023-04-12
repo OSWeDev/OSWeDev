@@ -24,6 +24,8 @@ import ExportVarcolumnConf from './vos/ExportVarcolumnConf';
 
 export default class ModuleDataExport extends Module {
 
+    public static CODE_TEXT_MAIL_SUBJECT_export_dashboard: string = 'mails.export.dashboard.subject';
+
     public static APINAME_ExportDataToXLSXParamVO: string = 'ExportDataToXLSXParamVO';
     public static APINAME_ExportDataToXLSXParamVOFile: string = 'ExportDataToXLSXParamVOFile';
     public static APINAME_ExportDataToMultiSheetsXLSXParamVO: string = 'ExportDataToMultiSheetsXLSXParamVO';

@@ -79,6 +79,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.label('table_widget.choose_export_type.all'), 2),
     ];
     private tmp_has_default_export_option: boolean = false;
+    private tmp_has_notification_banner_alert: boolean = false;
 
     private editable_columns: TableColumnDescVO[] = null;
     private current_column: TableColumnDescVO = null;
@@ -138,6 +139,9 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
             if (!this.tmp_has_default_export_option) {
                 this.tmp_has_default_export_option = false;
             }
+            if (!this.tmp_has_notification_banner_alert) {
+                this.tmp_has_notification_banner_alert = false;
+            }
             if (!!this.tmp_default_export_option) {
                 this.tmp_default_export_option = null;
             }
@@ -196,6 +200,9 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
         }
         if (this.tmp_has_default_export_option != this.widget_options.has_default_export_option) {
             this.tmp_has_default_export_option = this.widget_options.has_default_export_option;
+        }
+        if (this.tmp_has_notification_banner_alert != this.widget_options.has_notification_banner_alert) {
+            this.tmp_has_notification_banner_alert = this.widget_options.has_notification_banner_alert;
         }
         if ((this.widget_options.default_export_option != null) && (!this.tmp_default_export_option || (this.tmp_default_export_option.id != this.widget_options.default_export_option))) {
             this.tmp_default_export_option = this.export_page_options.find((e) => e.id == this.widget_options.default_export_option);
@@ -533,7 +540,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     }
 
     private get_default_options(): TableWidgetOptions {
-        return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, false, false, null, false, true, true, false, false, false, [], true);
+        return new TableWidgetOptions(null, false, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, false, false, null, false, true, true, false, false, false, [], true, false);
     }
     private async add_column(add_column: TableColumnDescVO) {
 
@@ -700,6 +707,7 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
                     options.show_bulk_edit,
                     options.cb_bulk_actions,
                     options.show_bulk_select_all,
+                    options.has_notification_banner_alert,
                 ) : null;
             }
         } catch (error) {
@@ -829,6 +837,21 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
 
         if (this.next_update_options.has_default_export_option != this.tmp_has_default_export_option) {
             this.next_update_options.has_default_export_option = this.tmp_has_default_export_option;
+            await this.throttled_update_options();
+        }
+    }
+
+    private async switch_tmp_has_notification_banner_alert() {
+        this.tmp_has_notification_banner_alert = !this.tmp_has_notification_banner_alert;
+
+        this.next_update_options = this.widget_options;
+
+        if (!this.next_update_options) {
+            this.next_update_options = this.get_default_options();
+        }
+
+        if (this.next_update_options.has_notification_banner_alert != this.tmp_has_notification_banner_alert) {
+            this.next_update_options.has_notification_banner_alert = this.tmp_has_notification_banner_alert;
             await this.throttled_update_options();
         }
     }

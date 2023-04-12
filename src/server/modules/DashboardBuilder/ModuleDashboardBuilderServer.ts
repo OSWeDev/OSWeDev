@@ -206,6 +206,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Attribuer une option d\'export par défaut'
         }, 'table_widget_options_component.has_default_export_option.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Notification par bandeau d\'alerte'
+        }, 'table_widget_options_component.has_notification_banner_alert.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Confirmer la suppression'

@@ -50,6 +50,12 @@ include ../../../../../../views/mixins/loading.pug
                             i.fa-duotone.fa-plus-circle.fa-lg.btn_icon
                             | {{ label('crud.actions.create') }}
 
+            template(v-if='!!show_export_notification_banner_alert')
+                .alert.alert-success.mt-2(v-if="show_export_banner_alert")
+                    span.span_dismiss_export_banner_alert {{ label('exportContextQueryToXLSX.starting') }}
+                        button.btn_dismiss_export_banner_alert(@click="dismiss_export_banner_alert")
+                            i.fa-duotone.fa-times.fa-lg.btn_icon(aria-hidden="true")
+
             .table_wrapper
                 table.table-striped.table-hover(:class='{"has_sticky_cols": has_sticky_cols}')
                     thead

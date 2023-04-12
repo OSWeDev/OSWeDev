@@ -79,6 +79,7 @@ export default class TableWidgetOptions implements IExportableWidgetOptions {
         public show_bulk_edit: boolean,
         public cb_bulk_actions: string[],
         public show_bulk_select_all: boolean,
+        public has_notification_banner_alert: boolean,
     ) { }
 
     public get_title_name_code_text(page_widget_id: number): string {

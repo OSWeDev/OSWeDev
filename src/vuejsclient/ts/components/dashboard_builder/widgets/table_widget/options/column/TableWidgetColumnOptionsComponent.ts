@@ -526,6 +526,7 @@ export default class TableWidgetColumnOptionsComponent extends VueComponentBase 
                     options.show_bulk_edit,
                     options.cb_bulk_actions,
                     options.show_bulk_select_all,
+                    options.has_notification_banner_alert,
                 ) : null;
             }
         } catch (error) {
