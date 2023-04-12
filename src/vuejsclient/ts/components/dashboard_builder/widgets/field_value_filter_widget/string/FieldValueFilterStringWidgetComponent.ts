@@ -330,9 +330,15 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         await this.throttled_update_visible_options();
     }
 
+    /**
+     * Watch on active_field_filters
+     *  - Shall happen first on component init or each time active_field_filters changes
+     *  - Initialize the tmp_filter_active_options with default widget options
+     * @returns {void}
+     */
     @Watch('get_active_field_filters', { deep: true })
-    private async onchange_active_field_filters() {
-        await this.throttled_update_visible_options();
+    private onchange_active_field_filters(): void {
+        this.throttled_update_visible_options();
     }
 
     /**
@@ -389,10 +395,12 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             return;
         }
 
+        const active_field_filter = this.get_active_field_filter(this.vo_field_ref, this.tmp_filter_active_options);
+
         this.set_active_field_filter({
             field_id: this.vo_field_ref.field_id,
             vo_type: this.vo_field_ref.api_type_id,
-            active_field_filter: this.get_active_field_filter(this.vo_field_ref, this.tmp_filter_active_options),
+            active_field_filter: active_field_filter,
         });
     }
 
