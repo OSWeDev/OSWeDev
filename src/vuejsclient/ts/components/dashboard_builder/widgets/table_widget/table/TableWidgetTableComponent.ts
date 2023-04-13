@@ -164,7 +164,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
     private selected_vos: { [id: number]: boolean } = {};
     private vos_by_id: { [id: number]: any } = {};
 
-    private show_export_banner_alert: boolean = false;
+    private show_export_alert: boolean = false;
 
     get all_page_widget_by_id(): { [id: number]: DashboardPageWidgetVO } {
         return VOsTypesManager.vosArray_to_vosByIds(this.all_page_widget);
@@ -513,8 +513,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         return this.widget_options && this.widget_options.refresh_button;
     }
 
-    get show_export_notification_banner_alert(): boolean {
-        return this.widget_options && this.widget_options.has_notification_banner_alert;
+    get show_export_maintenance_alert(): boolean {
+        return this.widget_options && this.widget_options.has_export_maintenance_alert;
     }
 
     get can_export(): boolean {
@@ -1791,7 +1791,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                     options.show_bulk_edit,
                     options.cb_bulk_actions,
                     options.show_bulk_select_all,
-                    options.has_notification_banner_alert,
+                    options.has_export_maintenance_alert,
                 ) : null;
             }
         } catch (error) {
@@ -2307,8 +2307,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         }
     }
 
-    private dismiss_export_banner_alert() {
-        this.show_export_banner_alert = false;
+    private dismiss_export_alert() {
+        this.show_export_alert = false;
     }
 
     /**
@@ -2320,10 +2320,11 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
         if (!!param) {
 
-            this.show_export_banner_alert = false;
+            this.show_export_alert = false;
 
-            if (this.show_export_notification_banner_alert) {
-                this.show_export_banner_alert = true;
+            if (this.show_export_maintenance_alert) {
+                this.show_export_alert = true;
+                return;
             }
 
             await ModuleDataExport.getInstance().exportContextQueryToXLSX(

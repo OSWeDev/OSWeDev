@@ -215,11 +215,11 @@
 
     template(v-if="export_button")
 
-        .has_notification_banner_alert
-            .input_label {{ label('table_widget_options_component.has_notification_banner_alert') }}
+        .has_export_maintenance_alert
+            .input_label {{ label('table_widget_options_component.has_export_maintenance_alert') }}
             toggle-button(
-                @change="switch_tmp_has_notification_banner_alert" 
-                :value="tmp_has_notification_banner_alert" 
+                @change="switch_tmp_has_export_maintenance_alert" 
+                :value="tmp_has_export_maintenance_alert" 
                 :sync="true"
                 :width="100"
                 :labels="{checked: label('table_widget_options_component.export_button.visible'), unchecked: label('table_widget_options_component.export_button.hidden')}")
