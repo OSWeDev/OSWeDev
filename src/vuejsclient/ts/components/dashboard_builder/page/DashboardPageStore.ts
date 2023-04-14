@@ -13,6 +13,7 @@ import ChecklistItemModalComponent from "../widgets/checklist_widget/checklist_i
 import VueComponentBase from "../../VueComponentBase";
 import DashboardCopyWidgetComponent from "../copy_widget/DashboardCopyWidgetComponent";
 import SupervisionItemModalComponent from "../widgets/supervision_widget/supervision_item_modal/SupervisionItemModalComponent";
+import SaveFavoritesFiltersModalComponent from "../widgets/save_favorites_filters_widget/modal/SaveFavoritesFiltersModalComponent";
 
 export type DashboardPageContext = ActionContext<IDashboardPageState, any>;
 
@@ -29,6 +30,7 @@ export interface IDashboardPageState {
 
     active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
 
+    Savefavoritesfiltersmodalcomponent: SaveFavoritesFiltersModalComponent;
     Checklistitemmodalcomponent: ChecklistItemModalComponent;
     Supervisionitemmodal: SupervisionItemModalComponent;
     Crudupdatemodalcomponent: CRUDUpdateModalComponent;
@@ -76,6 +78,7 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             active_field_filters: {},
             Checklistitemmodalcomponent: null,
             Supervisionitemmodal: null,
+            Savefavoritesfiltersmodalcomponent: null,
             Crudupdatemodalcomponent: null,
             Crudcreatemodalcomponent: null,
             Dashboardcopywidgetcomponent: null,
@@ -124,6 +127,10 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
             get_Supervisionitemmodal(state: IDashboardPageState): SupervisionItemModalComponent {
                 return state.Supervisionitemmodal;
+            },
+
+            get_Savefavoritesfiltersmodalcomponent(state: IDashboardPageState): SaveFavoritesFiltersModalComponent {
+                return state.Savefavoritesfiltersmodalcomponent;
             },
 
             get_Crudupdatemodalcomponent(state: IDashboardPageState): CRUDUpdateModalComponent {
@@ -206,6 +213,10 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
 
             set_Supervisionitemmodal(state: IDashboardPageState, Supervisionitemmodal: SupervisionItemModalComponent) {
                 state.Supervisionitemmodal = Supervisionitemmodal;
+            },
+
+            set_Savefavoritesfiltersmodalcomponent(state: IDashboardPageState, Savefavoritesfiltersmodalcomponent: SaveFavoritesFiltersModalComponent) {
+                state.Savefavoritesfiltersmodalcomponent = Savefavoritesfiltersmodalcomponent;
             },
 
             set_Crudupdatemodalcomponent(state: IDashboardPageState, Crudupdatemodalcomponent: CRUDUpdateModalComponent) {
@@ -336,6 +347,9 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             pop_page_history(context: DashboardPageContext, fk) {
                 commit_pop_page_history(context, null);
             },
+            set_Savefavoritesfiltersmodalcomponent(context: DashboardPageContext, Savefavoritesfiltersmodalcomponent: SaveFavoritesFiltersModalComponent) {
+                commit_set_Savefavoritesfiltersmodalcomponent(context, Savefavoritesfiltersmodalcomponent);
+            },
             set_Crudupdatemodalcomponent(context: DashboardPageContext, Crudupdatemodalcomponent: CRUDUpdateModalComponent) {
                 commit_set_Crudupdatemodalcomponent(context, Crudupdatemodalcomponent);
             },
@@ -407,6 +421,7 @@ export const commit_set_active_field_filter = commit(DashboardPageStoreInstance.
 export const commit_remove_active_field_filter = commit(DashboardPageStoreInstance.mutations.remove_active_field_filter);
 export const commit_set_Checklistitemmodalcomponent = commit(DashboardPageStoreInstance.mutations.set_Checklistitemmodalcomponent);
 export const commit_set_Supervisionitemmodal = commit(DashboardPageStoreInstance.mutations.set_Supervisionitemmodal);
+export const commit_set_Savefavoritesfiltersmodalcomponent = commit(DashboardPageStoreInstance.mutations.set_Savefavoritesfiltersmodalcomponent);
 export const commit_set_Crudupdatemodalcomponent = commit(DashboardPageStoreInstance.mutations.set_Crudupdatemodalcomponent);
 export const commit_set_Crudcreatemodalcomponent = commit(DashboardPageStoreInstance.mutations.set_Crudcreatemodalcomponent);
 export const commit_set_Dashboardcopywidgetcomponent = commit(DashboardPageStoreInstance.mutations.set_Dashboardcopywidgetcomponent);

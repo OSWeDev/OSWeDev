@@ -470,6 +470,13 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Année'
+        }, 'label.year.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Mois'
+        }, 'label.month.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Janvier'
         }, 'label.month.janvier.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
@@ -506,6 +513,9 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             'fr-fr': 'Décembre'
         }, 'label.month.decembre.___LABEL___'));
 
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Jour'
+        }, 'label.day.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Dimanche'
         }, 'label.day.dimanche.___LABEL___'));

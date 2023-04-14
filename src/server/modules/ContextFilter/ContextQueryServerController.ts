@@ -216,7 +216,8 @@ export default class ContextQueryServerController {
     public async select_datatable_rows(
         context_query: ContextQueryVO,
         columns_by_field_id: { [datatable_field_uid: string]: TableColumnDescVO },
-        fields: { [datatable_field_uid: string]: DatatableField<any, any> }): Promise<any[]> {
+        fields: { [datatable_field_uid: string]: DatatableField<any, any> }
+    ): Promise<any[]> {
 
         if (!context_query) {
             throw new Error('Invalid context_query param');
@@ -327,7 +328,14 @@ export default class ContextQueryServerController {
                 row[field_id + '__raw'] = forced_numeric_field[field_id];
 
                 // si on est en édition on laisse la data raw
-                if (columns_by_field_id && fields && fields[field_id] && ((!columns_by_field_id[field_id]) || columns_by_field_id[field_id].readonly)) {
+                if (
+                    columns_by_field_id &&
+                    fields &&
+                    fields[field_id] &&
+                    (fields[field_id] instanceof DatatableField) && (
+                        (!columns_by_field_id[field_id]) ||
+                        columns_by_field_id[field_id].readonly)
+                ) {
                     await promise_pipeline.push(async () => {
                         await ContextFilterHandler.getInstance().get_datatable_row_field_data_async(row, row, fields[field_id]);
                     });
@@ -580,6 +588,7 @@ export default class ContextQueryServerController {
         if (context_query.do_count_results) {
             return await this.build_query_count(context_query);
         }
+
         return await this.build_select_query_not_count(context_query);
     }
 

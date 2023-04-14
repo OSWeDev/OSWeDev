@@ -1,6 +1,5 @@
 
-import cloneDeep from 'lodash/cloneDeep';
-import debounce from 'lodash/debounce';
+import { debounce, cloneDeep } from 'lodash';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
@@ -45,7 +44,7 @@ export default class VarDataRefComponent extends VueComponentBase {
     public filter: () => any;
 
     @Prop({ default: null })
-    public filter_obj: FilterObj<any, any>;
+    public filter_obj: FilterObj<any, any, any>;
 
     @Prop({ default: null })
     public filter_additional_params: any[];

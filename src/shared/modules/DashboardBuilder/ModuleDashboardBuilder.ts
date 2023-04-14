@@ -1,15 +1,15 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
-import ComponentDatatableFieldVO from '../DAO/vos/datatable/ComponentDatatableFieldVO';
-import ComputedDatatableFieldVO from '../DAO/vos/datatable/ComputedDatatableFieldVO';
-import CRUDActionsDatatableFieldVO from '../DAO/vos/datatable/CRUDActionsDatatableFieldVO';
-import FileDatatableFieldVO from '../DAO/vos/datatable/FileDatatableFieldVO';
-import InputDatatableFieldVO from '../DAO/vos/datatable/InputDatatableFieldVO';
 import ManyToManyReferenceDatatableFieldVO from '../DAO/vos/datatable/ManyToManyReferenceDatatableFieldVO';
 import ManyToOneReferenceDatatableFieldVO from '../DAO/vos/datatable/ManyToOneReferenceDatatableFieldVO';
 import OneToManyReferenceDatatableFieldVO from '../DAO/vos/datatable/OneToManyReferenceDatatableFieldVO';
 import RefRangesReferenceDatatableFieldVO from '../DAO/vos/datatable/RefRangesReferenceDatatableFieldVO';
+import CRUDActionsDatatableFieldVO from '../DAO/vos/datatable/CRUDActionsDatatableFieldVO';
 import SelectBoxDatatableFieldVO from '../DAO/vos/datatable/SelectBoxDatatableFieldVO';
+import ComponentDatatableFieldVO from '../DAO/vos/datatable/ComponentDatatableFieldVO';
+import ComputedDatatableFieldVO from '../DAO/vos/datatable/ComputedDatatableFieldVO';
 import SimpleDatatableFieldVO from '../DAO/vos/datatable/SimpleDatatableFieldVO';
+import InputDatatableFieldVO from '../DAO/vos/datatable/InputDatatableFieldVO';
+import FileDatatableFieldVO from '../DAO/vos/datatable/FileDatatableFieldVO';
 import VarDatatableFieldVO from '../DAO/vos/datatable/VarDatatableFieldVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
@@ -18,13 +18,17 @@ import ModuleTableField from '../ModuleTableField';
 import VarConfVO from '../Var/vos/VarConfVO';
 import VOsTypesManager from '../VOsTypesManager';
 import AdvancedDateFilterOptDescVO from './vos/AdvancedDateFilterOptDescVO';
+import DashboardFavoritesFiltersVO from './vos/DashboardFavoritesFiltersVO';
 import DashboardGraphVORefVO from './vos/DashboardGraphVORefVO';
-import DashboardPageVO from './vos/DashboardPageVO';
 import DashboardPageWidgetVO from './vos/DashboardPageWidgetVO';
-import DashboardVO from './vos/DashboardVO';
 import DashboardWidgetVO from './vos/DashboardWidgetVO';
 import TableColumnDescVO from './vos/TableColumnDescVO';
+import DashboardPageVO from './vos/DashboardPageVO';
 import VOFieldRefVO from './vos/VOFieldRefVO';
+import DashboardVO from './vos/DashboardVO';
+import APIControllerWrapper from '../API/APIControllerWrapper';
+import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import ModuleDAO from '../DAO/ModuleDAO';
 
 export default class ModuleDashboardBuilder extends Module {
 
@@ -34,14 +38,20 @@ export default class ModuleDashboardBuilder extends Module {
     public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".BO_ACCESS";
     public static POLICY_FO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDashboardBuilder.MODULE_NAME + ".FO_ACCESS";
 
+    public static APINAME_START_EXPORT_DATATABLE_USING_FAVORITES_FILTERS: string = "start_export_datatable_using_favorites_filters";
+
     public static getInstance(): ModuleDashboardBuilder {
+
         if (!ModuleDashboardBuilder.instance) {
             ModuleDashboardBuilder.instance = new ModuleDashboardBuilder();
         }
+
         return ModuleDashboardBuilder.instance;
     }
 
     private static instance: ModuleDashboardBuilder = null;
+
+    public start_export_datatable_using_favorites_filters: () => Promise<void> = APIControllerWrapper.sah(ModuleDashboardBuilder.APINAME_START_EXPORT_DATATABLE_USING_FAVORITES_FILTERS);
 
     private constructor() {
 
@@ -49,12 +59,25 @@ export default class ModuleDashboardBuilder extends Module {
         this.forceActivationOnInstallation();
     }
 
+    public registerApis() {
+        // Load all users favorites filters and start exporting by using their filters
+        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<void, void>(
+            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, DashboardFavoritesFiltersVO.API_TYPE_ID),
+            ModuleDashboardBuilder.APINAME_START_EXPORT_DATATABLE_USING_FAVORITES_FILTERS,
+            [DashboardFavoritesFiltersVO.API_TYPE_ID]
+        ));
+    }
+
     public initialize() {
         this.fields = [];
         this.datatables = [];
 
         let db_table = this.init_DashboardVO();
+
         let db_page = this.init_DashboardPageVO(db_table);
+
+        this.init_DashboardFavoritesFiltersVO(db_page);
+
         this.init_DashboardGraphVORefVO(db_table);
         let db_widget = this.init_DashboardWidgetVO();
         this.init_DashboardPageWidgetVO(db_page, db_widget);
@@ -144,7 +167,9 @@ export default class ModuleDashboardBuilder extends Module {
         ];
 
         let res = new ModuleTable(this, DashboardWidgetVO.API_TYPE_ID, () => new DashboardWidgetVO(), datatable_fields, name, "Widgets de Dashboard");
+
         this.datatables.push(res);
+
         return res;
     }
 
@@ -181,7 +206,41 @@ export default class ModuleDashboardBuilder extends Module {
         ];
 
         this.datatables.push(new ModuleTable(this, DashboardPageWidgetVO.API_TYPE_ID, () => new DashboardPageWidgetVO(), datatable_fields, null, "Pages de Dashboard"));
+
         widget_id.addManyToOneRelation(db_widget);
+        page_id.addManyToOneRelation(db_page);
+    }
+
+    /**
+     * Init Dashboard Favorites Filters
+     *  - Database table to stock user favorites of active filters
+     *  - May be useful to save the actual dashboard, owner_id and page_filters
+     */
+    private init_DashboardFavoritesFiltersVO(db_page: ModuleTable<any>) {
+
+        let page_id = new ModuleTableField('page_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Page Dashboard', true);
+
+        let datatable_fields = [
+            page_id,
+
+            new ModuleTableField('owner_id', ModuleTableField.FIELD_TYPE_string, 'Owner Id', true),
+            new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom des filtres', true),
+            new ModuleTableField('field_filters', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Field Filters', false),
+            // export_params: Specify frequence (month day number e.g. 1st, 10th or 20)
+            new ModuleTableField('export_params', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Export Params', false),
+        ];
+
+        this.datatables.push(
+            new ModuleTable(
+                this,
+                DashboardFavoritesFiltersVO.API_TYPE_ID,
+                () => new DashboardFavoritesFiltersVO(),
+                datatable_fields,
+                null,
+                "Filtres Favoris"
+            )
+        );
+
         page_id.addManyToOneRelation(db_page);
     }
 

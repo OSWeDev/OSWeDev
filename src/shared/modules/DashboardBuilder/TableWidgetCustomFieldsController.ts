@@ -1,3 +1,7 @@
+
+/**
+ * TableWidgetCustomFieldsController
+ */
 export default class TableWidgetCustomFieldsController {
 
     public static getInstance(): TableWidgetCustomFieldsController {

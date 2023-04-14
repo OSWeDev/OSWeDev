@@ -1,0 +1,141 @@
+.save_favorites_filters_modal_component_wrapper
+    #save_favorites_filters_modal_component.modal.fade.in(
+            ref="save_favorites_filters_modal_component",
+            tabindex='-1', 
+            role='dialog'
+        )
+        .modal-dialog.modal-lg(role='document')
+            .modal-content 
+                .modal-header
+                    h4.modal-title {{ label('dashboard_viewer.favorites_filters.modal_title') }}
+                    a.btn.close(
+                        data-dismiss="modal" 
+                        @click='handle_close_modal'
+                    ) &times;
+                .modal-body
+
+                    template
+                        
+                        p(v-if="form_errors?.length > 0")
+                            b {{ label('dashboard_viewer.favorites_filters.form_errors') }}
+                            ul.error-list
+                                li.error(v-for="error in form_errors")
+                                    div.alert.alert-danger {{ error }}
+
+                        ul.nav.nav-pills.nav-fill(role="tablist")
+                            li(:class="{'active': active_tab_view == 'selection_tab'}")
+                                a#selection_pill.nav-item.nav-link(
+                                    :class="{'active': active_tab_view == 'selection_tab'}"
+                                    @click="set_active_tab_view('selection_tab')"
+                                ) {{ label('dashboard_viewer.favorites_filters.selection_tab') }}
+                            li(:class="{'active': active_tab_view == 'export_tab'}")
+                                a#export_pill.nav-item.nav-link(
+                                    :class="{'active': active_tab_view == 'export_tab'}"
+                                    @click="set_active_tab_view('export_tab')"
+                                )  {{ label('dashboard_viewer.favorites_filters.export_tab') }}
+
+                        .tab-content
+                            #selection_tab(v-show="active_tab_view == 'selection_tab'")
+                                template
+
+                                    div.favorites_filters_name
+                                        .input_label {{ label('dashboard_viewer.favorites_filters.enter_name') }}
+                                        .input_wrapper
+                                            input(
+                                                type="text"
+                                                v-model="favorites_filters_name"
+                                            )
+
+                                    div.select_favorites_filters
+                                        .input_label {{ label('dashboard_viewer.favorites_filters.select_favorites') }}
+                                        .row.select_favorites_filters_options
+                                            template(v-for="(option, translatable_field_filters_code) in readable_active_field_filters")
+                                                div.option.col-md-12
+                                                    input(
+                                                        :name="base_filter + '_' + translatable_field_filters_code" 
+                                                        :id="base_filter + '_' + translatable_field_filters_code" 
+                                                        :checked="is_active_field_filter_selected(option)" 
+                                                        :key="translatable_field_filters_code" 
+                                                        :type="'checkbox'" 
+                                                        @change="handle_toggle_select_favorite_filter(option)"    
+                                                    )                            
+                                                    template
+                                                        label.option__title.ml-2(:for="base_filter + '_' + translatable_field_filters_code") {{ label(translatable_field_filters_code) }}: {{ option.readable_active_field_filters }}
+
+                            #export_tab(v-show="active_tab_view == 'export_tab'")
+                                template 
+
+                                    .plan_export
+                                        .input_label {{ label('dashboard_viewer.favorites_filters.plan_export') }}
+                                        .input_wrapper
+                                            input(
+                                                type="checkbox"
+                                                v-model="is_export_planned"
+                                                @click="handle_toggle_is_export_planned"
+                                            )
+
+                                    template(v-if="is_export_planned")
+
+                                        .export_frequency_every
+                                            .input_label {{ label('dashboard_viewer.favorites_filters.export_frequency_every') }}
+                                            .input_wrapper
+                                                input(
+                                                    type="number"
+                                                    v-model="export_frequency_every"
+                                                )
+
+                                        .export_frequency_granularity
+                                            .export_frequency_granularity_label {{ label('dashboard_viewer.favorites_filters.export_frequency_granularity') }}
+                                            .export_frequency_granularity_select
+                                                multiselect(
+                                                    :options="export_frequency_granularity_options"                                                    
+                                                    v-model="tmp_export_frequency_granularity"
+
+                                                    :close-on-select="true"
+                                                    :show-labels="false"
+                                                    :searchable="false"
+                                                    :allow-empty="true"
+                                                    track-by="value"
+                                                    :custom-label='(e) => label(e.label)'
+                                                    
+                                                    :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                                                    :select-group-label='label("multiselect.selectGroupLabel")'
+                                                    :selected-label='label("multiselect.selectedLabel")'
+                                                    :deselect-label='label("multiselect.deselectLabel")'
+                                                    :select-label='label("multiselect.selectLabel")'
+                                                )
+                                                    
+                                                    span(slot="noOptions") -
+
+                                                    template(slot="option", slot-scope="props")
+                                                        span.option__title {{ label(props.option.label) }}
+
+                                        .export_frequency_day_in_month(v-if="can_add_export_frequency_day_in_month()")
+                                            .input_label {{ label('dashboard_viewer.favorites_filters.export_frequency_day_in_month') }}
+                                            .input_wrapper
+                                                input(
+                                                    v-model="export_frequency_day_in_month"
+                                                    type="number"
+                                                    max='31'
+                                                    min='1'
+                                                )
+
+                                        .select_exportable_data
+                                            .input_label {{ label('dashboard_viewer.favorites_filters.select_exportable_data') }}
+                                            .row.select_exportable_data_options
+                                                template(v-for="(option, title_name_code) in exportable_data")
+                                                    .option.col-md-12
+                                                        input(
+                                                            :name="base_filter + '_' + title_name_code" 
+                                                            :id="base_filter + '_' + title_name_code" 
+                                                            :checked="is_exportable_data_selected(title_name_code)" 
+                                                            :key="title_name_code" 
+                                                            :type="'checkbox'" 
+                                                            @change="handle_toggle_select_exportable_data(title_name_code)"    
+                                                        )                            
+                                                        template
+                                                            label.option__title.ml-2(:for="base_filter + '_' + title_name_code") {{ t(title_name_code) }}
+
+                .modal-footer
+                    a.btn.btn-success(@click='handle_save') {{ label('crud.update.modal.save') }}
+                    a.btn.btn-default(data-dismiss="modal" @click='handle_close_modal') {{ label('crud.update.modal.cancel') }}
