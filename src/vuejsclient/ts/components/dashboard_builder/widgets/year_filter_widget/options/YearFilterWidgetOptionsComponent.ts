@@ -13,15 +13,15 @@ import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/Drop
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
-import './YearFilterWidgetOptionsVOComponent.scss';
+import './YearFilterWidgetOptionsComponent.scss';
 
 @Component({
-    template: require('./YearFilterWidgetOptionsVOComponent.pug'),
+    template: require('./YearFilterWidgetOptionsComponent.pug'),
     components: {
         Singlevofieldrefholdercomponent: SingleVoFieldRefHolderComponent
     }
 })
-export default class YearFilterWidgetOptionsVOComponent extends VueComponentBase {
+export default class YearFilterWidgetOptionsComponent extends VueComponentBase {
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
