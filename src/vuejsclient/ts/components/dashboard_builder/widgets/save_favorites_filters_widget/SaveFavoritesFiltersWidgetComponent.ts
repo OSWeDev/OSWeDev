@@ -41,7 +41,7 @@ import VarWidgetComponent from '../var_widget/VarWidgetComponent';
 import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
 import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import MonthFilterWidgetOptions from '../month_filter_widget/options/MonthFilterWidgetOptions';
-import YearFilterWidgetOptions from '../year_filter_widget/options/YearFilterWidgetOptions';
+import YearFilterWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
 
 @Component({
     template: require('./SaveFavoritesFiltersWidgetComponent.pug'),
@@ -761,7 +761,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
      * @returns {VOFieldRefVO}
      */
     private get_vo_field_ref_by_widget_options(
-        widget_options: FieldValueFilterWidgetOptions | MonthFilterWidgetOptions | YearFilterWidgetOptions
+        widget_options: FieldValueFilterWidgetOptions | MonthFilterWidgetOptions | YearFilterWidgetOptionsVO
     ): VOFieldRefVO {
 
         if (!widget_options?.vo_field_ref) {
@@ -973,18 +973,18 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
     /**
      * Get Year Filters Widgets Options
      *
-     * @return {{ [title_name_code: string]: { widget_options: YearFilterWidgetOptions, widget_name: string, page_widget_id: number } }}
+     * @return {{ [title_name_code: string]: { widget_options: YearFilterWidgetOptionsVO, widget_name: string, page_widget_id: number } }}
      */
-    get year_filters_widgets_options(): { [title_name_code: string]: { widget_options: YearFilterWidgetOptions, widget_name: string, page_widget_id: number } } {
+    get year_filters_widgets_options(): { [title_name_code: string]: { widget_options: YearFilterWidgetOptionsVO, widget_name: string, page_widget_id: number } } {
 
         const options: { [page_widget_id: string]: { widget_options: any, widget_name: string, page_widget_id: number } } =
             this.get_filter_widgets_options_by_widget_name('yearfilter');
 
-        const res: { [title_name_code: string]: { widget_options: YearFilterWidgetOptions, widget_name: string, page_widget_id: number } } = {};
+        const res: { [title_name_code: string]: { widget_options: YearFilterWidgetOptionsVO, widget_name: string, page_widget_id: number } } = {};
 
         for (const key in options) {
 
-            const widget_options = new YearFilterWidgetOptions().from(options[key].widget_options);
+            const widget_options = new YearFilterWidgetOptionsVO().from(options[key].widget_options);
             const name = widget_options.get_placeholder_name_code_text(options[key].page_widget_id);
 
             res[name] = {} as any;

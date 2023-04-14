@@ -2,6 +2,7 @@ import Vue from 'vue';
 import DashboardBuilderController from '../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import ModuleDashboardBuilder from '../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
 import DashboardWidgetVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import YearFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import AdvancedDateFilterWidgetOptions from './widgets/advanced_date_filter_widget/options/AdvancedDateFilterWidgetOptions';
@@ -18,7 +19,6 @@ import SupervisionWidgetOptions from './widgets/supervision_widget/options/Super
 import TableWidgetOptions from './widgets/table_widget/options/TableWidgetOptions';
 import VarPieChartWidgetOptions from './widgets/var_pie_chart_widget/options/VarPieChartWidgetOptions';
 import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
-import YearFilterWidgetOptions from './widgets/year_filter_widget/options/YearFilterWidgetOptions';
 
 export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
@@ -411,7 +411,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         YearFilter.default_background = '#f5f5f5';
         YearFilter.icon_component = 'Yearfilterwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(YearFilter, () => new YearFilterWidgetOptions(true, null, null, true, -2, 2, true, true, 0, 0, false, null, false), YearFilterWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(YearFilter, () => new YearFilterWidgetOptionsVO(true, null, null, true, -2, 2, true, true, 0, 0, false, null, false), YearFilterWidgetOptionsVO.get_selected_fields);
 
         Vue.component('Yearfilterwidgetcomponent', () => import(/* webpackChunkName: "YearFilterWidgetComponent" */ './widgets/year_filter_widget/YearFilterWidgetComponent'));
         Vue.component('Yearfilterwidgetoptionscomponent', () => import(/* webpackChunkName: "YearFilterWidgetOptionsComponent" */ './widgets/year_filter_widget/options/YearFilterWidgetOptionsComponent'));
