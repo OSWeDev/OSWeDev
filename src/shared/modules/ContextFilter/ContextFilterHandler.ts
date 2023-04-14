@@ -812,6 +812,67 @@ export default class ContextFilterHandler {
          */
 
         // On se simplifie la vie en ne gérant que les certains types de filtres, et uniquement si ils sont uniques pour chaque segmentation
+        /**
+         *  - 2 types valides pour le moment :
+         *    - Soit on a un ou des filtres de type TYPE_DATE_INTERSECTS et rien d'autre
+         *    - Soit on a :
+         *      - au maximum 1 filtre par type de segmentation
+         *      - exactement 1 filtre de type année ou année glissante
+         *      - pas de OU
+         */
+        let has_only_TYPE_DATE_INTERSECTS: boolean = this.check_context_filter_root_has_only_TYPE_DATE_INTERSECTS(context_filter_root);
+
+        if (has_only_TYPE_DATE_INTERSECTS) {
+            return this.get_ts_ranges_from_context_filter_root_using_TYPE_DATE_INTERSECTS(
+                context_filter_root,
+                target_segment_type,
+                limit,
+                order_asc);
+        } else {
+            return this.get_ts_ranges_from_context_filter_root_using_ymwddhms_filters(
+                context_filter_root,
+                target_segment_type,
+                limit,
+                order_asc);
+        }
+    }
+
+    /**
+     * This function gets a set of timestamp ranges from the context filter root using TYPE_DATE_INTERSECTS.
+     * @param {ContextFilterVO} context_filter_root The context filter root.
+     * @param {number} target_segment_type The target segment type.
+     * @param {number} [limit=10] The limit of timestamp ranges to be returned.
+     * @param {boolean} [order_asc=true] Indicates whether the timestamp ranges should be ordered in ascending order.
+     * @returns {TSRange[]} An array of timestamp ranges.
+     */
+    public get_ts_ranges_from_context_filter_root_using_TYPE_DATE_INTERSECTS(
+        context_filter_root: ContextFilterVO,
+        target_segment_type: number,
+        limit: number = 10,
+        order_asc: boolean = true): TSRange[] {
+
+        let ts_ranges: TSRange[] = [];
+
+        RangeHandler.foreach_ranges_sync(context_filter_root.param_tsranges, (ts: number) => {
+
+            if (ts_ranges.length >= limit) {
+                return false;
+            }
+
+            ts_ranges.push(RangeHandler.create_single_elt_TSRange(ts, target_segment_type));
+        }, target_segment_type, null, null, !order_asc);
+        ts_ranges = RangeHandler.getRangesUnion(ts_ranges);
+
+        return ts_ranges;
+    }
+
+    public get_ts_ranges_from_context_filter_root_using_ymwddhms_filters(
+        context_filter_root: ContextFilterVO,
+        target_segment_type: number,
+        limit: number = 10,
+        order_asc: boolean = true): TSRange[] {
+
+
         const {
             year_filter,
             month_filter,
@@ -1092,9 +1153,10 @@ export default class ContextFilterHandler {
 
     /**
      * On fixe quelques règles pour rester sur un système pas trop complexe pour la génération des ts_ranges :
-     *  - on doit avoir au maximum 1 filtre par type de segmentation
-     *  - on doit avoir exactement 1 filtre de type année ou année glissante
-     *  - on refuse les OU
+     *    - On doit avoir :
+     *      - au maximum 1 filtre par type de segmentation
+     *      - exactement 1 filtre de type année ou année glissante
+     *      - pas de OU
      * @param context_filter_root
      */
     private assert_context_filter_root_is_valid_and_get_filters(
@@ -1284,5 +1346,26 @@ export default class ContextFilterHandler {
             minute_filter,
             second_filter
         };
+    }
+
+    /**
+     * Pour l'instant on répond ok que si on a un seul Date_intersect dans le context_filter directement, sans ET, sans OU et sans aucun autre type
+     * @param context_filter
+     */
+    private check_context_filter_root_has_only_TYPE_DATE_INTERSECTS(context_filter: ContextFilterVO) {
+
+        while (context_filter) {
+
+            switch (context_filter.filter_type) {
+                case ContextFilterVO.TYPE_DATE_INTERSECTS:
+                    return true;
+                // case ContextFilterVO.TYPE_FILTER_AND:
+                // case ContextFilterVO.TYPE_FILTER_OR:
+                //     return this.check_context_filter_root_has_only_TYPE_DATE_INTERSECTS(context_filter.left_hook) && this.check_context_filter_root_has_only_TYPE_DATE_INTERSECTS(context_filter.right_hook);
+                //     break;
+                default:
+                    return false;
+            }
+        }
     }
 }

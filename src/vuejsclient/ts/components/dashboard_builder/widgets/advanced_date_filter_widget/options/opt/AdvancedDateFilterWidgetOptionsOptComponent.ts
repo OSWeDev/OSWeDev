@@ -64,7 +64,9 @@ export default class AdvancedDateFilterWidgetOptionsOptComponent extends VueComp
             if (!!this.page_widget.json_options) {
                 options = JSON.parse(this.page_widget.json_options) as AdvancedDateFilterWidgetOptions;
                 options = options ? new AdvancedDateFilterWidgetOptions(
+                    options.is_vo_field_ref,
                     options.vo_field_ref,
+                    options.custom_filter_name,
                     options.opts,
                     options.is_checkbox,
                 ) : null;

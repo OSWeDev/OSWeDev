@@ -616,7 +616,9 @@ export default class VarBarLineChartWidgetOptionsComponent extends VueComponentB
             }
 
             if ((!!options) && (!!this.page_widget.json_options)) {
-                this.widget_options = options;
+                if (!ObjectHandler.getInstance().are_equal(this.widget_options, options)) {
+                    this.widget_options = options;
+                }
             } else if ((!!this.widget_options) && !this.page_widget.json_options) {
                 this.widget_options = null;
             }

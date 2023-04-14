@@ -1490,6 +1490,15 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Afficher un calendrier" },
             'adfd_desc.search_type.custom'
         ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Filtre de données ou de valeurs'
+        }, 'advanced_date_filter_widget_component.is_vo_field_ref.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Données'
+        }, 'advanced_date_filter_widget_component.is_vo_field_ref.data.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Valeurs'
+        }, 'advanced_date_filter_widget_component.is_vo_field_ref.value.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Case à cocher" },
             'advanced_date_filter_widget_component.is_checkbox.___LABEL___'

@@ -42,6 +42,9 @@ export default class TSRangeInputComponent extends VueComponentBase {
     private segmentation_type: number;
 
     @Prop({ default: null })
+    private format_localized_time: boolean;
+
+    @Prop({ default: null })
     private vo: IDistantVOBase;
 
     /**
@@ -122,7 +125,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
         if (min) {
             this.tsrange_start = new Date(min * 1000);
             if (this.tsrange_start) {
-                this.tsrange_start_time = (this.value && this.value.min) ? Dates.format(this.value.min, this.format_time, this.format_localized_time) : null;
+                this.tsrange_start_time = (this.value && this.value.min) ? Dates.format(this.value.min, this.format_time, this.format_localized_time_) : null;
             }
         } else {
             this.tsrange_start = null;
@@ -132,7 +135,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
         if (max) {
             this.tsrange_end = new Date(max * 1000);
             if (this.tsrange_end) {
-                this.tsrange_end_time = (this.value && this.value.max) ? Dates.format(this.value.max, this.format_time, this.format_localized_time) : null;
+                this.tsrange_end_time = (this.value && this.value.max) ? Dates.format(this.value.max, this.format_time, this.format_localized_time_) : null;
             }
         } else {
             this.tsrange_end = null;
@@ -263,7 +266,12 @@ export default class TSRangeInputComponent extends VueComponentBase {
         return option_arr[2];
     }
 
-    get format_localized_time(): boolean {
+    get format_localized_time_(): boolean {
+
+        if (this.format_localized_time !== null) {
+            return this.format_localized_time;
+        }
+
         if (this.field.type == 'Simple') {
             return (this.field as SimpleDatatableFieldVO<any, any>).moduleTableField.format_localized_time;
         }

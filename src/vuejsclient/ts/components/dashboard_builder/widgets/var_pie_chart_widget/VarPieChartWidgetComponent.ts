@@ -194,7 +194,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
                     let nb = parseInt(i);
                     let color = base_color;
                     if (is_rbga) {
-                        color += ',' + Math.floor(1 - (1 / this.ordered_dimension.length) * nb) + ')';
+                        color += ',' + (1 - (1 / this.ordered_dimension.length) * nb) + ')';
                     } else {
                         color += Math.floor(255 * (1 - (1 / this.ordered_dimension.length) * nb)).toString(16);
                     }
@@ -366,7 +366,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             ));
         }
 
-        let dimensions = await query_.field(this.widget_options.dimension_vo_field_ref.field_id).select_vos();
+        let dimensions = await query_.select_vos(); // on query tout l'objet pour pouvoir faire les labels des dimensions si besoin .field(this.widget_options.dimension_vo_field_ref.field_id)
 
         if ((!dimensions) || (!dimensions.length)) {
             this.var_params_by_dimension = null;
@@ -564,7 +564,7 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
         let dimension_values: number[] = [];
         RangeHandler.foreach_ranges_sync(ts_ranges, (d: number) => {
             dimension_values.push(d);
-        });
+        }, this.widget_options.dimension_custom_filter_segment_type, null, null, !this.widget_options.sort_dimension_by_asc);
         return dimension_values;
 
         // let year_filter = ContextFilterHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_YEAR);
