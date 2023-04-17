@@ -42,7 +42,7 @@ export default class FileLoggerHandler implements ILoggerHandler {
         }
 
         // Si le log est > à 10Mo, on va créé un autre pour éviter que ce soit trop lourd de l'ouvrir et d'écrire dedans
-        if (fs.statSync(this.log_file.path).size >= 10000000) {
+        if (fs.existsSync(this.log_file.path) && fs.statSync(this.log_file.path).size >= 10000000) {
             this.set_log_file();
         }
 

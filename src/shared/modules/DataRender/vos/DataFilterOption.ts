@@ -1,4 +1,6 @@
-
+/**
+ * DataFilterOption
+ */
 export default class DataFilterOption {
     public static STATE_SELECTED: number = 1;
     public static STATE_SELECTABLE: number = 2;
