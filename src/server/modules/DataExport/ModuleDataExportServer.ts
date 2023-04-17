@@ -1219,6 +1219,9 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     /**
      * Update To Columns Format
      *  - Update to column format defined from the column widget configuration (percent, decimal, toFixed etc...)
+     *
+     * TODO: do export in specific way for each type (date, number, string, etc...)
+     * e.g. https://github.com/SheetJS/sheetjs/issues/2192#issuecomment-745865277
      */
     private async update_to_xlsx_columns_format(
         datas: any[],
@@ -1248,7 +1251,12 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
                 row[column.datatable_field_uid + '__raw'] = row[column.datatable_field_uid];
 
+                if (!(filter_additional_params?.length > 0)) {
+                    continue;
+                }
+
                 let params = [row[column.datatable_field_uid]];
+
                 params = params.concat(filter_additional_params);
 
                 if (typeof filter_by_name[column.filter_type]?.read === 'function') {

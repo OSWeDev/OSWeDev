@@ -381,101 +381,23 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         await this.throttled_update_options();
     }
 
-    private async switch_can_select_multiple() {
+    private switch_can_select_multiple() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new FieldValueFilterWidgetOptions(
-                null,
-                null,
-                null,
-                this.can_select_multiple,
-                this.is_checkbox,
-                this.checkbox_columns,
-                50,
-                this.show_search_field,
-                this.hide_lvl2_if_lvl1_not_selected,
-                this.segmentation_type,
-                this.advanced_mode,
-                this.default_advanced_string_filter_type,
-                this.hide_btn_switch_advanced,
-                this.hide_advanced_string_filter_type,
-                this.vo_field_ref_multiple,
-                this.tmp_default_filter_opt_values,
-                this.tmp_default_ts_range_values,
-                this.tmp_default_boolean_values,
-                this.hide_filter,
-                this.no_inter_filter,
-                this.has_other_ref_api_type_id,
-                this.other_ref_api_type_id,
-                this.tmp_exclude_filter_opt_values,
-                this.tmp_exclude_ts_range_values,
-                this.placeholder_advanced_mode,
-                this.separation_active_filter,
-                null,
-                this.autovalidate_advanced_filter,
-                this.add_is_null_selectable,
-                this.is_button,
-                this.enum_bg_colors,
-                this.enum_fg_colors,
-                this.show_count_value,
-                this.active_field_on_autovalidate_advanced_filter,
-                this.force_filter_all_api_type_ids,
-                this.bg_color,
-                this.fg_color_value,
-                this.fg_color_text,
-            );
+            this.next_update_options = this.default_widget_props;
         }
 
         this.next_update_options.can_select_multiple = !this.next_update_options.can_select_multiple;
 
-        await this.throttled_update_options();
+        this.throttled_update_options();
     }
 
     private async switch_is_checkbox() {
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new FieldValueFilterWidgetOptions(
-                null,
-                null,
-                null,
-                this.can_select_multiple,
-                this.is_checkbox,
-                this.checkbox_columns,
-                50,
-                this.show_search_field,
-                this.hide_lvl2_if_lvl1_not_selected,
-                this.segmentation_type,
-                this.advanced_mode,
-                this.default_advanced_string_filter_type,
-                this.hide_btn_switch_advanced,
-                this.hide_advanced_string_filter_type,
-                this.vo_field_ref_multiple,
-                this.tmp_default_filter_opt_values,
-                this.tmp_default_ts_range_values,
-                this.tmp_default_boolean_values,
-                this.hide_filter,
-                this.no_inter_filter,
-                this.has_other_ref_api_type_id,
-                this.other_ref_api_type_id,
-                this.tmp_exclude_filter_opt_values,
-                this.tmp_exclude_ts_range_values,
-                this.placeholder_advanced_mode,
-                this.separation_active_filter,
-                null,
-                this.autovalidate_advanced_filter,
-                this.add_is_null_selectable,
-                this.is_button,
-                this.enum_bg_colors,
-                this.enum_fg_colors,
-                this.show_count_value,
-                this.active_field_on_autovalidate_advanced_filter,
-                this.force_filter_all_api_type_ids,
-                this.bg_color,
-                this.fg_color_value,
-                this.fg_color_text,
-            );
+            this.next_update_options = this.default_widget_props;
         }
 
         this.next_update_options.is_checkbox = !this.next_update_options.is_checkbox;
@@ -487,46 +409,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new FieldValueFilterWidgetOptions(
-                null,
-                null,
-                null,
-                this.can_select_multiple,
-                this.is_checkbox,
-                this.checkbox_columns,
-                50,
-                this.show_search_field,
-                this.hide_lvl2_if_lvl1_not_selected,
-                this.segmentation_type,
-                this.advanced_mode,
-                this.default_advanced_string_filter_type,
-                this.hide_btn_switch_advanced,
-                this.hide_advanced_string_filter_type,
-                this.vo_field_ref_multiple,
-                this.tmp_default_filter_opt_values,
-                this.tmp_default_ts_range_values,
-                this.tmp_default_boolean_values,
-                this.hide_filter,
-                this.no_inter_filter,
-                this.has_other_ref_api_type_id,
-                this.other_ref_api_type_id,
-                this.tmp_exclude_filter_opt_values,
-                this.tmp_exclude_ts_range_values,
-                this.placeholder_advanced_mode,
-                this.separation_active_filter,
-                null,
-                this.autovalidate_advanced_filter,
-                this.add_is_null_selectable,
-                this.is_button,
-                this.enum_bg_colors,
-                this.enum_fg_colors,
-                this.show_count_value,
-                this.active_field_on_autovalidate_advanced_filter,
-                this.force_filter_all_api_type_ids,
-                this.bg_color,
-                this.fg_color_value,
-                this.fg_color_text,
-            );
+            this.next_update_options = this.default_widget_props;
         }
 
         this.next_update_options.hide_filter = !this.next_update_options.hide_filter;
@@ -538,46 +421,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new FieldValueFilterWidgetOptions(
-                null,
-                null,
-                null,
-                this.can_select_multiple,
-                this.is_checkbox,
-                this.checkbox_columns,
-                50,
-                this.show_search_field,
-                this.hide_lvl2_if_lvl1_not_selected,
-                this.segmentation_type,
-                this.advanced_mode,
-                this.default_advanced_string_filter_type,
-                this.hide_btn_switch_advanced,
-                this.hide_advanced_string_filter_type,
-                this.vo_field_ref_multiple,
-                this.tmp_default_filter_opt_values,
-                this.tmp_default_ts_range_values,
-                this.tmp_default_boolean_values,
-                this.hide_filter,
-                this.no_inter_filter,
-                this.has_other_ref_api_type_id,
-                this.other_ref_api_type_id,
-                this.tmp_exclude_filter_opt_values,
-                this.tmp_exclude_ts_range_values,
-                this.placeholder_advanced_mode,
-                this.separation_active_filter,
-                null,
-                this.autovalidate_advanced_filter,
-                this.add_is_null_selectable,
-                this.is_button,
-                this.enum_bg_colors,
-                this.enum_fg_colors,
-                this.show_count_value,
-                this.active_field_on_autovalidate_advanced_filter,
-                this.force_filter_all_api_type_ids,
-                this.bg_color,
-                this.fg_color_value,
-                this.fg_color_text,
-            );
+            this.next_update_options = this.default_widget_props;
         }
 
         this.next_update_options.no_inter_filter = !this.next_update_options.no_inter_filter;
@@ -589,46 +433,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new FieldValueFilterWidgetOptions(
-                null,
-                null,
-                null,
-                this.can_select_multiple,
-                this.is_checkbox,
-                this.checkbox_columns,
-                50,
-                this.show_search_field,
-                this.hide_lvl2_if_lvl1_not_selected,
-                this.segmentation_type,
-                this.advanced_mode,
-                this.default_advanced_string_filter_type,
-                this.hide_btn_switch_advanced,
-                this.hide_advanced_string_filter_type,
-                this.vo_field_ref_multiple,
-                this.tmp_default_filter_opt_values,
-                this.tmp_default_ts_range_values,
-                this.tmp_default_boolean_values,
-                this.hide_filter,
-                this.no_inter_filter,
-                this.has_other_ref_api_type_id,
-                this.other_ref_api_type_id,
-                this.tmp_exclude_filter_opt_values,
-                this.tmp_exclude_ts_range_values,
-                this.placeholder_advanced_mode,
-                this.separation_active_filter,
-                null,
-                this.autovalidate_advanced_filter,
-                this.add_is_null_selectable,
-                this.is_button,
-                this.enum_bg_colors,
-                this.enum_fg_colors,
-                this.show_count_value,
-                this.active_field_on_autovalidate_advanced_filter,
-                this.force_filter_all_api_type_ids,
-                this.bg_color,
-                this.fg_color_value,
-                this.fg_color_text,
-            );
+            this.next_update_options = this.default_widget_props;
         }
 
         this.next_update_options.autovalidate_advanced_filter = !this.next_update_options.autovalidate_advanced_filter;
@@ -640,46 +445,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new FieldValueFilterWidgetOptions(
-                null,
-                null,
-                null,
-                this.can_select_multiple,
-                this.is_checkbox,
-                this.checkbox_columns,
-                50,
-                this.show_search_field,
-                this.hide_lvl2_if_lvl1_not_selected,
-                this.segmentation_type,
-                this.advanced_mode,
-                this.default_advanced_string_filter_type,
-                this.hide_btn_switch_advanced,
-                this.hide_advanced_string_filter_type,
-                this.vo_field_ref_multiple,
-                this.tmp_default_filter_opt_values,
-                this.tmp_default_ts_range_values,
-                this.tmp_default_boolean_values,
-                this.hide_filter,
-                this.no_inter_filter,
-                this.has_other_ref_api_type_id,
-                this.other_ref_api_type_id,
-                this.tmp_exclude_filter_opt_values,
-                this.tmp_exclude_ts_range_values,
-                this.placeholder_advanced_mode,
-                this.separation_active_filter,
-                null,
-                this.autovalidate_advanced_filter,
-                this.add_is_null_selectable,
-                this.is_button,
-                this.enum_bg_colors,
-                this.enum_fg_colors,
-                this.show_count_value,
-                this.active_field_on_autovalidate_advanced_filter,
-                this.force_filter_all_api_type_ids,
-                this.bg_color,
-                this.fg_color_value,
-                this.fg_color_text,
-            );
+            this.next_update_options = this.default_widget_props;
         }
 
         this.next_update_options.active_field_on_autovalidate_advanced_filter = !this.next_update_options.active_field_on_autovalidate_advanced_filter;
@@ -691,46 +457,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new FieldValueFilterWidgetOptions(
-                null,
-                null,
-                null,
-                this.can_select_multiple,
-                this.is_checkbox,
-                this.checkbox_columns,
-                50,
-                this.show_search_field,
-                this.hide_lvl2_if_lvl1_not_selected,
-                this.segmentation_type,
-                this.advanced_mode,
-                this.default_advanced_string_filter_type,
-                this.hide_btn_switch_advanced,
-                this.hide_advanced_string_filter_type,
-                this.vo_field_ref_multiple,
-                this.tmp_default_filter_opt_values,
-                this.tmp_default_ts_range_values,
-                this.tmp_default_boolean_values,
-                this.hide_filter,
-                this.no_inter_filter,
-                this.has_other_ref_api_type_id,
-                this.other_ref_api_type_id,
-                this.tmp_exclude_filter_opt_values,
-                this.tmp_exclude_ts_range_values,
-                this.placeholder_advanced_mode,
-                this.separation_active_filter,
-                null,
-                this.autovalidate_advanced_filter,
-                this.add_is_null_selectable,
-                this.is_button,
-                this.enum_bg_colors,
-                this.enum_fg_colors,
-                this.show_count_value,
-                this.active_field_on_autovalidate_advanced_filter,
-                this.force_filter_all_api_type_ids,
-                this.bg_color,
-                this.fg_color_value,
-                this.fg_color_text,
-            );
+            this.next_update_options = this.default_widget_props;
         }
 
         this.next_update_options.force_filter_all_api_type_ids = !this.next_update_options.force_filter_all_api_type_ids;
@@ -742,46 +469,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new FieldValueFilterWidgetOptions(
-                null,
-                null,
-                null,
-                this.can_select_multiple,
-                this.is_checkbox,
-                this.checkbox_columns,
-                50,
-                this.show_search_field,
-                this.hide_lvl2_if_lvl1_not_selected,
-                this.segmentation_type,
-                this.advanced_mode,
-                this.default_advanced_string_filter_type,
-                this.hide_btn_switch_advanced,
-                this.hide_advanced_string_filter_type,
-                this.vo_field_ref_multiple,
-                this.tmp_default_filter_opt_values,
-                this.tmp_default_ts_range_values,
-                this.tmp_default_boolean_values,
-                this.hide_filter,
-                this.no_inter_filter,
-                this.has_other_ref_api_type_id,
-                this.other_ref_api_type_id,
-                this.tmp_exclude_filter_opt_values,
-                this.tmp_exclude_ts_range_values,
-                this.placeholder_advanced_mode,
-                this.separation_active_filter,
-                null,
-                this.autovalidate_advanced_filter,
-                this.add_is_null_selectable,
-                this.is_button,
-                this.enum_bg_colors,
-                this.enum_fg_colors,
-                this.show_count_value,
-                this.active_field_on_autovalidate_advanced_filter,
-                this.force_filter_all_api_type_ids,
-                this.bg_color,
-                this.fg_color_value,
-                this.fg_color_text,
-            );
+            this.next_update_options = this.default_widget_props;
         }
 
         this.next_update_options.add_is_null_selectable = !this.next_update_options.add_is_null_selectable;
@@ -793,46 +481,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new FieldValueFilterWidgetOptions(
-                null,
-                null,
-                null,
-                this.can_select_multiple,
-                this.is_checkbox,
-                this.checkbox_columns,
-                50,
-                this.show_search_field,
-                this.hide_lvl2_if_lvl1_not_selected,
-                this.segmentation_type,
-                this.advanced_mode,
-                this.default_advanced_string_filter_type,
-                this.hide_btn_switch_advanced,
-                this.hide_advanced_string_filter_type,
-                this.vo_field_ref_multiple,
-                this.tmp_default_filter_opt_values,
-                this.tmp_default_ts_range_values,
-                this.tmp_default_boolean_values,
-                this.hide_filter,
-                this.no_inter_filter,
-                this.has_other_ref_api_type_id,
-                this.other_ref_api_type_id,
-                this.tmp_exclude_filter_opt_values,
-                this.tmp_exclude_ts_range_values,
-                this.placeholder_advanced_mode,
-                this.separation_active_filter,
-                null,
-                this.autovalidate_advanced_filter,
-                this.add_is_null_selectable,
-                this.is_button,
-                this.enum_bg_colors,
-                this.enum_fg_colors,
-                this.show_count_value,
-                this.active_field_on_autovalidate_advanced_filter,
-                this.force_filter_all_api_type_ids,
-                this.bg_color,
-                this.fg_color_value,
-                this.fg_color_text,
-            );
+            this.next_update_options = this.default_widget_props;
         }
 
         this.next_update_options.is_button = !this.next_update_options.is_button;
@@ -844,46 +493,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new FieldValueFilterWidgetOptions(
-                null,
-                null,
-                null,
-                this.can_select_multiple,
-                this.is_checkbox,
-                this.checkbox_columns,
-                50,
-                this.show_search_field,
-                this.hide_lvl2_if_lvl1_not_selected,
-                this.segmentation_type,
-                this.advanced_mode,
-                this.default_advanced_string_filter_type,
-                this.hide_btn_switch_advanced,
-                this.hide_advanced_string_filter_type,
-                this.vo_field_ref_multiple,
-                this.tmp_default_filter_opt_values,
-                this.tmp_default_ts_range_values,
-                this.tmp_default_boolean_values,
-                this.hide_filter,
-                this.no_inter_filter,
-                this.has_other_ref_api_type_id,
-                this.other_ref_api_type_id,
-                this.tmp_exclude_filter_opt_values,
-                this.tmp_exclude_ts_range_values,
-                this.placeholder_advanced_mode,
-                this.separation_active_filter,
-                null,
-                this.autovalidate_advanced_filter,
-                this.add_is_null_selectable,
-                this.is_button,
-                this.enum_bg_colors,
-                this.enum_fg_colors,
-                this.show_count_value,
-                this.active_field_on_autovalidate_advanced_filter,
-                this.force_filter_all_api_type_ids,
-                this.bg_color,
-                this.fg_color_value,
-                this.fg_color_text,
-            );
+            this.next_update_options = this.default_widget_props;
         }
 
         this.next_update_options.show_count_value = !this.next_update_options.show_count_value;
@@ -895,46 +505,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new FieldValueFilterWidgetOptions(
-                null,
-                null,
-                null,
-                this.can_select_multiple,
-                this.is_checkbox,
-                this.checkbox_columns,
-                50,
-                this.show_search_field,
-                this.hide_lvl2_if_lvl1_not_selected,
-                this.segmentation_type,
-                this.advanced_mode,
-                this.default_advanced_string_filter_type,
-                this.hide_btn_switch_advanced,
-                this.hide_advanced_string_filter_type,
-                this.vo_field_ref_multiple,
-                this.tmp_default_filter_opt_values,
-                this.tmp_default_ts_range_values,
-                this.tmp_default_boolean_values,
-                this.hide_filter,
-                this.no_inter_filter,
-                this.has_other_ref_api_type_id,
-                this.other_ref_api_type_id,
-                this.tmp_exclude_filter_opt_values,
-                this.tmp_exclude_ts_range_values,
-                this.placeholder_advanced_mode,
-                this.separation_active_filter,
-                null,
-                this.autovalidate_advanced_filter,
-                this.add_is_null_selectable,
-                this.is_button,
-                this.enum_bg_colors,
-                this.enum_fg_colors,
-                this.show_count_value,
-                this.active_field_on_autovalidate_advanced_filter,
-                this.force_filter_all_api_type_ids,
-                this.bg_color,
-                this.fg_color_value,
-                this.fg_color_text,
-            );
+            this.next_update_options = this.default_widget_props;
         }
 
         this.next_update_options.has_other_ref_api_type_id = !this.next_update_options.has_other_ref_api_type_id;
@@ -946,46 +517,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new FieldValueFilterWidgetOptions(
-                null,
-                null,
-                null,
-                this.can_select_multiple,
-                this.is_checkbox,
-                this.checkbox_columns,
-                50,
-                this.show_search_field,
-                this.hide_lvl2_if_lvl1_not_selected,
-                this.segmentation_type,
-                this.advanced_mode,
-                this.default_advanced_string_filter_type,
-                this.hide_btn_switch_advanced,
-                this.hide_advanced_string_filter_type,
-                this.vo_field_ref_multiple,
-                this.tmp_default_filter_opt_values,
-                this.tmp_default_ts_range_values,
-                this.tmp_default_boolean_values,
-                this.hide_filter,
-                this.no_inter_filter,
-                this.has_other_ref_api_type_id,
-                this.other_ref_api_type_id,
-                this.tmp_exclude_filter_opt_values,
-                this.tmp_exclude_ts_range_values,
-                this.placeholder_advanced_mode,
-                this.separation_active_filter,
-                null,
-                this.autovalidate_advanced_filter,
-                this.add_is_null_selectable,
-                this.is_button,
-                this.enum_bg_colors,
-                this.enum_fg_colors,
-                this.show_count_value,
-                this.active_field_on_autovalidate_advanced_filter,
-                this.force_filter_all_api_type_ids,
-                this.bg_color,
-                this.fg_color_value,
-                this.fg_color_text,
-            );
+            this.next_update_options = this.default_widget_props;
         }
 
         this.next_update_options.show_search_field = !this.next_update_options.show_search_field;
@@ -997,46 +529,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new FieldValueFilterWidgetOptions(
-                null,
-                null,
-                null,
-                this.can_select_multiple,
-                this.is_checkbox,
-                this.checkbox_columns,
-                50,
-                this.show_search_field,
-                this.hide_lvl2_if_lvl1_not_selected,
-                this.segmentation_type,
-                this.advanced_mode,
-                this.default_advanced_string_filter_type,
-                this.hide_btn_switch_advanced,
-                this.hide_advanced_string_filter_type,
-                this.vo_field_ref_multiple,
-                this.tmp_default_filter_opt_values,
-                this.tmp_default_ts_range_values,
-                this.tmp_default_boolean_values,
-                this.hide_filter,
-                this.no_inter_filter,
-                this.has_other_ref_api_type_id,
-                this.other_ref_api_type_id,
-                this.tmp_exclude_filter_opt_values,
-                this.tmp_exclude_ts_range_values,
-                this.placeholder_advanced_mode,
-                this.separation_active_filter,
-                null,
-                this.autovalidate_advanced_filter,
-                this.add_is_null_selectable,
-                this.is_button,
-                this.enum_bg_colors,
-                this.enum_fg_colors,
-                this.show_count_value,
-                this.active_field_on_autovalidate_advanced_filter,
-                this.force_filter_all_api_type_ids,
-                this.bg_color,
-                this.fg_color_value,
-                this.fg_color_text,
-            );
+            this.next_update_options = this.default_widget_props;
         }
 
         this.next_update_options.separation_active_filter = !this.next_update_options.separation_active_filter;
@@ -1048,46 +541,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new FieldValueFilterWidgetOptions(
-                null,
-                null,
-                null,
-                this.can_select_multiple,
-                this.is_checkbox,
-                this.checkbox_columns,
-                50,
-                this.show_search_field,
-                this.hide_lvl2_if_lvl1_not_selected,
-                this.segmentation_type,
-                this.advanced_mode,
-                this.default_advanced_string_filter_type,
-                this.hide_btn_switch_advanced,
-                this.hide_advanced_string_filter_type,
-                this.vo_field_ref_multiple,
-                this.tmp_default_filter_opt_values,
-                this.tmp_default_ts_range_values,
-                this.tmp_default_boolean_values,
-                this.hide_filter,
-                this.no_inter_filter,
-                this.has_other_ref_api_type_id,
-                this.other_ref_api_type_id,
-                this.tmp_exclude_filter_opt_values,
-                this.tmp_exclude_ts_range_values,
-                this.placeholder_advanced_mode,
-                this.separation_active_filter,
-                null,
-                this.autovalidate_advanced_filter,
-                this.add_is_null_selectable,
-                this.is_button,
-                this.enum_bg_colors,
-                this.enum_fg_colors,
-                this.show_count_value,
-                this.active_field_on_autovalidate_advanced_filter,
-                this.force_filter_all_api_type_ids,
-                this.bg_color,
-                this.fg_color_value,
-                this.fg_color_text,
-            );
+            this.next_update_options = this.default_widget_props;
         }
 
         this.next_update_options.hide_lvl2_if_lvl1_not_selected = !this.next_update_options.hide_lvl2_if_lvl1_not_selected;
@@ -1099,46 +553,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new FieldValueFilterWidgetOptions(
-                null,
-                null,
-                null,
-                this.can_select_multiple,
-                this.is_checkbox,
-                this.checkbox_columns,
-                50,
-                this.show_search_field,
-                this.hide_lvl2_if_lvl1_not_selected,
-                this.segmentation_type,
-                this.advanced_mode,
-                this.default_advanced_string_filter_type,
-                this.hide_btn_switch_advanced,
-                this.hide_advanced_string_filter_type,
-                this.vo_field_ref_multiple,
-                this.tmp_default_filter_opt_values,
-                this.tmp_default_ts_range_values,
-                this.tmp_default_boolean_values,
-                this.hide_filter,
-                this.no_inter_filter,
-                this.has_other_ref_api_type_id,
-                this.other_ref_api_type_id,
-                this.tmp_exclude_filter_opt_values,
-                this.tmp_exclude_ts_range_values,
-                this.placeholder_advanced_mode,
-                this.separation_active_filter,
-                null,
-                this.autovalidate_advanced_filter,
-                this.add_is_null_selectable,
-                this.is_button,
-                this.enum_bg_colors,
-                this.enum_fg_colors,
-                this.show_count_value,
-                this.active_field_on_autovalidate_advanced_filter,
-                this.force_filter_all_api_type_ids,
-                this.bg_color,
-                this.fg_color_value,
-                this.fg_color_text,
-            );
+            this.next_update_options = this.default_widget_props;
         }
 
         this.next_update_options.advanced_mode = !this.next_update_options.advanced_mode;
@@ -1186,46 +601,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new FieldValueFilterWidgetOptions(
-                null,
-                null,
-                null,
-                this.can_select_multiple,
-                this.is_checkbox,
-                this.checkbox_columns,
-                50,
-                this.show_search_field,
-                this.hide_lvl2_if_lvl1_not_selected,
-                this.segmentation_type,
-                this.advanced_mode,
-                this.default_advanced_string_filter_type,
-                this.hide_btn_switch_advanced,
-                this.hide_advanced_string_filter_type,
-                this.vo_field_ref_multiple,
-                this.tmp_default_filter_opt_values,
-                this.tmp_default_ts_range_values,
-                this.tmp_default_boolean_values,
-                this.hide_filter,
-                this.no_inter_filter,
-                this.has_other_ref_api_type_id,
-                this.other_ref_api_type_id,
-                this.tmp_exclude_filter_opt_values,
-                this.tmp_exclude_ts_range_values,
-                this.placeholder_advanced_mode,
-                this.separation_active_filter,
-                null,
-                this.autovalidate_advanced_filter,
-                this.add_is_null_selectable,
-                this.is_button,
-                this.enum_bg_colors,
-                this.enum_fg_colors,
-                this.show_count_value,
-                this.active_field_on_autovalidate_advanced_filter,
-                this.force_filter_all_api_type_ids,
-                this.bg_color,
-                this.fg_color_value,
-                this.fg_color_text,
-            );
+            this.next_update_options = this.default_widget_props;
         }
 
         this.next_update_options.hide_btn_switch_advanced = !this.next_update_options.hide_btn_switch_advanced;
@@ -1237,46 +613,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new FieldValueFilterWidgetOptions(
-                null,
-                null,
-                null,
-                this.can_select_multiple,
-                this.is_checkbox,
-                this.checkbox_columns,
-                50,
-                this.show_search_field,
-                this.hide_lvl2_if_lvl1_not_selected,
-                this.segmentation_type,
-                this.advanced_mode,
-                this.default_advanced_string_filter_type,
-                this.hide_btn_switch_advanced,
-                this.hide_advanced_string_filter_type,
-                this.vo_field_ref_multiple,
-                this.tmp_default_filter_opt_values,
-                this.tmp_default_ts_range_values,
-                this.tmp_default_boolean_values,
-                this.hide_filter,
-                this.no_inter_filter,
-                this.has_other_ref_api_type_id,
-                this.other_ref_api_type_id,
-                this.tmp_exclude_filter_opt_values,
-                this.tmp_exclude_ts_range_values,
-                this.placeholder_advanced_mode,
-                this.separation_active_filter,
-                null,
-                this.autovalidate_advanced_filter,
-                this.add_is_null_selectable,
-                this.is_button,
-                this.enum_bg_colors,
-                this.enum_fg_colors,
-                this.show_count_value,
-                this.active_field_on_autovalidate_advanced_filter,
-                this.force_filter_all_api_type_ids,
-                this.bg_color,
-                this.fg_color_value,
-                this.fg_color_text,
-            );
+            this.next_update_options = this.default_widget_props;
         }
 
         this.next_update_options.hide_advanced_string_filter_type = !this.next_update_options.hide_advanced_string_filter_type;
@@ -1402,46 +739,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new FieldValueFilterWidgetOptions(
-                null,
-                null,
-                null,
-                this.can_select_multiple,
-                this.is_checkbox,
-                this.checkbox_columns,
-                50,
-                this.show_search_field,
-                this.hide_lvl2_if_lvl1_not_selected,
-                this.segmentation_type,
-                this.advanced_mode,
-                this.default_advanced_string_filter_type,
-                this.hide_btn_switch_advanced,
-                this.hide_advanced_string_filter_type,
-                this.vo_field_ref_multiple,
-                this.tmp_default_filter_opt_values,
-                this.tmp_default_ts_range_values,
-                this.tmp_default_boolean_values,
-                this.hide_filter,
-                this.no_inter_filter,
-                this.has_other_ref_api_type_id,
-                this.other_ref_api_type_id,
-                this.tmp_exclude_filter_opt_values,
-                this.tmp_exclude_ts_range_values,
-                this.placeholder_advanced_mode,
-                this.separation_active_filter,
-                null,
-                this.autovalidate_advanced_filter,
-                this.add_is_null_selectable,
-                this.is_button,
-                this.enum_bg_colors,
-                this.enum_fg_colors,
-                this.show_count_value,
-                this.active_field_on_autovalidate_advanced_filter,
-                this.force_filter_all_api_type_ids,
-                this.bg_color,
-                this.fg_color_value,
-                this.fg_color_text,
-            );
+            this.next_update_options = this.default_widget_props;
         }
 
         let vo_field_ref = new VOFieldRefVO();
@@ -1458,46 +756,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new FieldValueFilterWidgetOptions(
-                null,
-                null,
-                null,
-                this.can_select_multiple,
-                this.is_checkbox,
-                this.checkbox_columns,
-                50,
-                this.show_search_field,
-                this.hide_lvl2_if_lvl1_not_selected,
-                this.segmentation_type,
-                this.advanced_mode,
-                this.default_advanced_string_filter_type,
-                this.hide_btn_switch_advanced,
-                this.hide_advanced_string_filter_type,
-                this.vo_field_ref_multiple,
-                this.tmp_default_filter_opt_values,
-                this.tmp_default_ts_range_values,
-                this.tmp_default_boolean_values,
-                this.hide_filter,
-                this.no_inter_filter,
-                this.has_other_ref_api_type_id,
-                this.other_ref_api_type_id,
-                this.tmp_exclude_filter_opt_values,
-                this.tmp_exclude_ts_range_values,
-                this.placeholder_advanced_mode,
-                this.separation_active_filter,
-                null,
-                this.autovalidate_advanced_filter,
-                this.add_is_null_selectable,
-                this.is_button,
-                this.enum_bg_colors,
-                this.enum_fg_colors,
-                this.show_count_value,
-                this.active_field_on_autovalidate_advanced_filter,
-                this.force_filter_all_api_type_ids,
-                this.bg_color,
-                this.fg_color_value,
-                this.fg_color_text,
-            );
+            this.next_update_options = this.default_widget_props;
         }
 
         let vo_field_ref_lvl2 = new VOFieldRefVO();
@@ -1514,46 +773,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new FieldValueFilterWidgetOptions(
-                null,
-                null,
-                null,
-                this.can_select_multiple,
-                this.is_checkbox,
-                this.checkbox_columns,
-                50,
-                this.show_search_field,
-                this.hide_lvl2_if_lvl1_not_selected,
-                this.segmentation_type,
-                this.advanced_mode,
-                this.default_advanced_string_filter_type,
-                this.hide_btn_switch_advanced,
-                this.hide_advanced_string_filter_type,
-                this.vo_field_ref_multiple,
-                this.tmp_default_filter_opt_values,
-                this.tmp_default_ts_range_values,
-                this.tmp_default_boolean_values,
-                this.hide_filter,
-                this.no_inter_filter,
-                this.has_other_ref_api_type_id,
-                this.other_ref_api_type_id,
-                this.tmp_exclude_filter_opt_values,
-                this.tmp_exclude_ts_range_values,
-                this.placeholder_advanced_mode,
-                this.separation_active_filter,
-                null,
-                this.autovalidate_advanced_filter,
-                this.add_is_null_selectable,
-                this.is_button,
-                this.enum_bg_colors,
-                this.enum_fg_colors,
-                this.show_count_value,
-                this.active_field_on_autovalidate_advanced_filter,
-                this.force_filter_all_api_type_ids,
-                this.bg_color,
-                this.fg_color_value,
-                this.fg_color_text,
-            );
+            this.next_update_options = this.default_widget_props;
         }
 
         let vo_field_sort = new VOFieldRefVO();
@@ -1570,46 +790,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new FieldValueFilterWidgetOptions(
-                null,
-                null,
-                null,
-                this.can_select_multiple,
-                this.is_checkbox,
-                this.checkbox_columns,
-                50,
-                this.show_search_field,
-                this.hide_lvl2_if_lvl1_not_selected,
-                this.segmentation_type,
-                this.advanced_mode,
-                this.default_advanced_string_filter_type,
-                this.hide_btn_switch_advanced,
-                this.hide_advanced_string_filter_type,
-                this.vo_field_ref_multiple,
-                this.tmp_default_filter_opt_values,
-                this.tmp_default_ts_range_values,
-                this.tmp_default_boolean_values,
-                this.hide_filter,
-                this.no_inter_filter,
-                this.has_other_ref_api_type_id,
-                this.other_ref_api_type_id,
-                this.tmp_exclude_filter_opt_values,
-                this.tmp_exclude_ts_range_values,
-                this.placeholder_advanced_mode,
-                this.separation_active_filter,
-                null,
-                this.autovalidate_advanced_filter,
-                this.add_is_null_selectable,
-                this.is_button,
-                this.enum_bg_colors,
-                this.enum_fg_colors,
-                this.show_count_value,
-                this.active_field_on_autovalidate_advanced_filter,
-                this.force_filter_all_api_type_ids,
-                this.bg_color,
-                this.fg_color_value,
-                this.fg_color_text,
-            );
+            this.next_update_options = this.default_widget_props;
         }
 
         let vo_field_sort_lvl2 = new VOFieldRefVO();
@@ -1626,46 +807,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         this.next_update_options = this.widget_options;
 
         if (!this.next_update_options) {
-            this.next_update_options = new FieldValueFilterWidgetOptions(
-                null,
-                null,
-                null,
-                this.can_select_multiple,
-                this.is_checkbox,
-                this.checkbox_columns,
-                50,
-                this.show_search_field,
-                this.hide_lvl2_if_lvl1_not_selected,
-                this.segmentation_type,
-                this.advanced_mode,
-                this.default_advanced_string_filter_type,
-                this.hide_btn_switch_advanced,
-                this.hide_advanced_string_filter_type,
-                this.vo_field_ref_multiple,
-                this.tmp_default_filter_opt_values,
-                this.tmp_default_ts_range_values,
-                this.tmp_default_boolean_values,
-                this.hide_filter,
-                this.no_inter_filter,
-                this.has_other_ref_api_type_id,
-                this.other_ref_api_type_id,
-                this.tmp_exclude_filter_opt_values,
-                this.tmp_exclude_ts_range_values,
-                this.placeholder_advanced_mode,
-                this.separation_active_filter,
-                null,
-                this.autovalidate_advanced_filter,
-                this.add_is_null_selectable,
-                this.is_button,
-                this.enum_bg_colors,
-                this.enum_fg_colors,
-                this.show_count_value,
-                this.active_field_on_autovalidate_advanced_filter,
-                this.force_filter_all_api_type_ids,
-                this.bg_color,
-                this.fg_color_value,
-                this.fg_color_text,
-            );
+            this.next_update_options = this.default_widget_props;
         }
 
         let vo_field_ref = new VOFieldRefVO();
@@ -1875,6 +1017,49 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
 
     get default_advanced_mode_placeholder_translation(): string {
         return this.label('FieldValueFilterWidget.advanced_mode_placeholder');
+    }
+
+    get default_widget_props(): FieldValueFilterWidgetOptions {
+        return new FieldValueFilterWidgetOptions(
+            null,
+            null,
+            null,
+            this.can_select_multiple,
+            this.is_checkbox,
+            this.checkbox_columns,
+            50,
+            this.show_search_field,
+            this.hide_lvl2_if_lvl1_not_selected,
+            this.segmentation_type,
+            this.advanced_mode,
+            this.default_advanced_string_filter_type,
+            this.hide_btn_switch_advanced,
+            this.hide_advanced_string_filter_type,
+            this.vo_field_ref_multiple,
+            this.tmp_default_filter_opt_values,
+            this.tmp_default_ts_range_values,
+            this.tmp_default_boolean_values,
+            this.hide_filter,
+            this.no_inter_filter,
+            this.has_other_ref_api_type_id,
+            this.other_ref_api_type_id,
+            this.tmp_exclude_filter_opt_values,
+            this.tmp_exclude_ts_range_values,
+            this.placeholder_advanced_mode,
+            this.separation_active_filter,
+            null,
+            this.autovalidate_advanced_filter,
+            this.add_is_null_selectable,
+            this.is_button,
+            this.enum_bg_colors,
+            this.enum_fg_colors,
+            this.show_count_value,
+            this.active_field_on_autovalidate_advanced_filter,
+            this.force_filter_all_api_type_ids,
+            this.bg_color,
+            this.fg_color_value,
+            this.fg_color_text
+        );
     }
 
     /**

@@ -16,7 +16,7 @@ import TSRange from "../DataRender/vos/TSRange";
 import IDistantVOBase from "../IDistantVOBase";
 import ModuleTableField from "../ModuleTableField";
 import VOsTypesManager from "../VOsTypesManager";
-import ContextFilterVOFactory from "./factory/ContextFilterVOFactory";
+import { ContextFilterVOManager } from "./manager/ContextFilterVOManager";
 import ContextFilterVO from "./vos/ContextFilterVO";
 import { query } from "./vos/ContextQueryVO";
 
@@ -439,10 +439,10 @@ export default class ContextFilterHandler {
     }
 
     /**
-     * @deprecated use static ContextFilterVOFactory.create_filters_from_active_field_filters instead
+     * @deprecated use static ContextFilterVOManager.create_filters_from_active_field_filters instead
      */
     public get_filters_from_active_field_filters(active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }): ContextFilterVO[] {
-        return ContextFilterVOFactory.create_filters_from_active_field_filters(active_field_filters);
+        return ContextFilterVOManager.create_filters_from_active_field_filters(active_field_filters);
     }
 
     /**
@@ -608,6 +608,9 @@ export default class ContextFilterHandler {
             delete res[ContextFilterVO.CUSTOM_FILTERS_TYPE];
         }
 
+        // On ajoute un filtrage des filtres incompatibles avec la requête classique
+        this.filter_context_by_type(res);
+
         return res;
     }
 
@@ -728,7 +731,7 @@ export default class ContextFilterHandler {
 
     /**
      * @deprecated We must use a Factory to create Objects depending on properties (the right way)
-     * @use ContextFilterVOFactory.create_context_filter_from_data_filter_option instead
+     * @use ContextFilterVOManager.create_context_filter_from_data_filter_option instead
      */
     public get_ContextFilterVO_from_DataFilterOption(active_option: DataFilterOption, ts_range: TSRange, field: ModuleTableField<any>, vo_field_ref: VOFieldRefVO): ContextFilterVO {
         let context_filter = new ContextFilterVO();
@@ -797,5 +800,59 @@ export default class ContextFilterHandler {
      */
     public merge_ContextFilterVOs(a: ContextFilterVO, b: ContextFilterVO, try_union: boolean = false): ContextFilterVO {
         return ContextFilterHandler.merge_context_filter_vos(a, b, try_union);
+    }
+
+    private filter_context_by_type(
+        context_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
+    ): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
+
+        for (let api_type_id in context_filters) {
+
+            // On supprime aussi de l'arbre tous les filtres qui ne sont pas du bon type de supervision
+            let api_type_context_filters = context_filters[api_type_id];
+            for (let field_id in api_type_context_filters) {
+
+                if (!api_type_context_filters[field_id]) {
+                    continue;
+                }
+
+                api_type_context_filters[field_id] = this.filter_arbo_by_type(api_type_context_filters[field_id], api_type_id);
+            }
+        }
+
+        return context_filters;
+    }
+
+    private filter_arbo_by_type(context_filter: ContextFilterVO, api_type_root: string): ContextFilterVO {
+
+        let left: ContextFilterVO = null;
+        let right: ContextFilterVO = null;
+
+        switch (context_filter.filter_type) {
+            case ContextFilterVO.TYPE_FILTER_AND:
+                left = this.filter_arbo_by_type(context_filter.left_hook, api_type_root);
+                right = this.filter_arbo_by_type(context_filter.right_hook, api_type_root);
+
+                if (left && right) {
+                    return context_filter;
+                }
+                return null;
+            case ContextFilterVO.TYPE_FILTER_OR:
+                left = this.filter_arbo_by_type(context_filter.left_hook, api_type_root);
+                right = this.filter_arbo_by_type(context_filter.right_hook, api_type_root);
+
+                if (left && right) {
+                    return context_filter;
+                }
+                return null;
+            default:
+                if (context_filter.vo_type == api_type_root) {
+                    return context_filter;
+                }
+
+                // une supervision et pas du bon type, on supprime
+                ConsoleHandler.log('Suppression d\'un filtre de type ' + context_filter.vo_type + ' pour un type attendu ' + api_type_root);
+                return null;
+        }
     }
 }

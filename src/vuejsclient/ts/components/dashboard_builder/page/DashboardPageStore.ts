@@ -238,7 +238,7 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             },
 
             set_active_field_filter(state: IDashboardPageState, param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) {
-                if (!param.active_field_filter || !param.vo_type || !param.field_id) {
+                if (!param.vo_type || !param.field_id) {
                     return;
                 }
 

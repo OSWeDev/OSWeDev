@@ -162,7 +162,12 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
     }
 
     private select_api_type_id(api_type_id: string) {
-        this.selected_api_type_id = api_type_id;
+
+        if (this.selected_api_type_id === api_type_id) {
+            this.selected_api_type_id = null;
+        } else {
+            this.selected_api_type_id = api_type_id;
+        }
     }
 
     get title_name_code_text() {

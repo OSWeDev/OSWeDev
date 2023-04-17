@@ -5,7 +5,7 @@ import DataFilterOption from "../../DataRender/vos/DataFilterOption";
 import ModuleTable from "../../ModuleTable";
 import VOsTypesManager from "../../VOsTypesManager";
 import ContextFilterHandler from "../../ContextFilter/ContextFilterHandler";
-import ContextFilterVOFactory from "../../ContextFilter/factory/ContextFilterVOFactory";
+import { ContextFilterVOManager } from "../../ContextFilter/manager/ContextFilterVOManager";
 import ModuleContextFilter from "../../ContextFilter/ModuleContextFilter";
 import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
 import { query } from "../../ContextFilter/vos/ContextQueryVO";
@@ -97,7 +97,7 @@ export class DashboardBuilderDataFilterManager {
 
             const custom_active_field_filters = custom_active_field_filters_by_api_type_id[query_api_type_id];
 
-            const filters: ContextFilterVO[] = ContextFilterVOFactory.create_filters_from_active_field_filters(
+            const filters: ContextFilterVO[] = ContextFilterVOManager.create_filters_from_active_field_filters(
                 custom_active_field_filters
             );
 

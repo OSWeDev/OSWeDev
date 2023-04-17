@@ -328,6 +328,11 @@ export default class ContextFilterVO implements IDistantVOBase {
      * En fait on stocke pas pour le moment en base, à voir après comment on pourra repeupler ces fields au chargement depuis la bdd si besoin
      */
     public left_hook: ContextFilterVO;
+
+    /**
+     * - Can be actual field_filter
+     * - Can be a tree of context_filters (in case when filter_type is one of AND/OR/XOR)
+     */
     public right_hook: ContextFilterVO;
 
     /**
