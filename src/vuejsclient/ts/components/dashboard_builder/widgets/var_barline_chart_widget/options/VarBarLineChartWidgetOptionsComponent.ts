@@ -408,7 +408,7 @@ export default class VarBarLineChartWidgetOptionsComponent extends VueComponentB
     get fields_that_could_get_custom_filter_1(): string[] {
         let res: string[] = [];
 
-        if (!this.widget_options || !this.widget_options.var_id_1) {
+        if (!this.widget_options || (!this.widget_options.var_id_1) || (!VarsController.getInstance().var_conf_by_id[this.widget_options.var_id_1])) {
             return null;
         }
 
