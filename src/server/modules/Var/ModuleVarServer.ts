@@ -1088,12 +1088,12 @@ export default class ModuleVarServer extends ModuleServerBase {
     private update_varcacheconf_from_cache_throttled(vccs: VarCacheConfVO[]) {
         for (let i in vccs) {
             let vcc = vccs[i];
-            VarsServerController.getInstance().update_registered_varcacheconf(vcc.id, vcc);
+            VarsServerController.getInstance().update_registered_varcacheconf(vcc.var_id, vcc);
         }
     }
 
     private delete_varcacheconf_from_cache(vcc: VarCacheConfVO) {
-        VarsServerController.getInstance().delete_registered_varcacheconf(vcc.id);
+        VarsServerController.getInstance().delete_registered_varcacheconf(vcc.var_id);
     }
 
     private update_varconf_from_cache_throttled(vcs: VarConfVO[]) {

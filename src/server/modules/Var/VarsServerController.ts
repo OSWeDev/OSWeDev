@@ -99,8 +99,8 @@ export default class VarsServerController {
         }
     }
 
-    public update_registered_varcacheconf(id: number, cacheconf: VarCacheConfVO) {
-        this._varcacheconf_by_var_ids[id] = cacheconf;
+    public update_registered_varcacheconf(var_id: number, cacheconf: VarCacheConfVO) {
+        this._varcacheconf_by_var_ids[var_id] = cacheconf;
 
         let conf = this.getVarConfById(cacheconf.var_id);
         if (!conf) {
@@ -117,9 +117,9 @@ export default class VarsServerController {
         }
     }
 
-    public delete_registered_varcacheconf(id: number) {
-        let cacheconf = this._varcacheconf_by_var_ids[id];
-        delete this._varcacheconf_by_var_ids[id];
+    public delete_registered_varcacheconf(var_id: number) {
+        let cacheconf = this._varcacheconf_by_var_ids[var_id];
+        delete this._varcacheconf_by_var_ids[var_id];
 
         let conf = this.getVarConfById(cacheconf.var_id);
         if (!conf) {
