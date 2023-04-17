@@ -10,6 +10,64 @@ import ContextFilterVO from "../vos/ContextFilterVO";
 export class FieldFilterManager {
 
     /**
+     * Merge Field Filters With Context Filters
+     *
+     * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} from_field_filters
+     * @param {{ field_id: string, api_type_id: string }} vo_field_ref
+     * @param {ContextFilterVO} context_filter
+     * @returns {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }}
+     */
+    public static merge_field_filters_with_context_filter(
+        from_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        vo_field_ref: { field_id: string, api_type_id: string },
+        context_filter: ContextFilterVO,
+    ): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
+
+        let field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = cloneDeep(from_field_filters);
+
+        if (field_filters[vo_field_ref.api_type_id]) {
+            if (field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id]) {
+                // We must combine context_filter with each other when needed
+                // e.g. For date Year and Month widget (this widgets have the same api_type_id and field_id)
+                const new_context_filter = ContextFilterHandler.add_context_filter_to_tree(
+                    field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id],
+                    context_filter
+                );
+                field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id] = new_context_filter;
+            } else {
+                field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id] = context_filter;
+            }
+        } else {
+            field_filters[vo_field_ref.api_type_id] = {};
+            field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id] = context_filter;
+        }
+
+        return field_filters;
+    }
+
+    /**
+     * Overwrite Filters With Context Filters
+     *
+     * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} from_field_filters
+     * @param {{ field_id: string, api_type_id: string }} vo_field_ref
+     * @param {ContextFilterVO} context_filter
+     * @returns {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }}
+     */
+    public static overwrite_field_filters_with_context_filter(
+        from_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        vo_field_ref: { field_id: string, api_type_id: string },
+        context_filter: ContextFilterVO
+    ): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
+
+        let field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = cloneDeep(from_field_filters);
+
+        field_filters[vo_field_ref.api_type_id] = field_filters[vo_field_ref.api_type_id] ?? {};
+        field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id] = context_filter;
+
+        return field_filters;
+    }
+
+    /**
      * Create custom active field filters from available api type ids
      *
      * @param {any} widget_options

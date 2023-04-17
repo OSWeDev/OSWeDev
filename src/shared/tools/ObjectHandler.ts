@@ -5,6 +5,128 @@ import RangeHandler from './RangeHandler';
 
 export default class ObjectHandler {
 
+    public static empty_target(val) {
+        return Array.isArray(val) ? [] : {};
+    }
+
+    public static clone_unless_otherwise_pecified(value, options) {
+        return (options.clone !== false && options.is_mergeable_object(value))
+            ? ObjectHandler.deepmerge(ObjectHandler.empty_target(value), value, options)
+            : value;
+    }
+
+    public static default_array_merge(target, source, options) {
+        return target.concat(source).map(function (element) {
+            return ObjectHandler.clone_unless_otherwise_pecified(element, options);
+        });
+    }
+
+    public static get_merge_function(key, options) {
+        if (!options.customMerge) {
+            return ObjectHandler.deepmerge;
+        }
+
+        let customMerge = options.customMerge(key);
+
+        return typeof customMerge === 'function' ? customMerge : ObjectHandler.deepmerge;
+    }
+
+    public static get_enumerable_own_property_symbols(target) {
+        return Object.getOwnPropertySymbols
+            ? Object.getOwnPropertySymbols(target).filter((symbol) => {
+                return Object.propertyIsEnumerable.call(target, symbol);
+            })
+            : [];
+    }
+
+    public static get_keys(target) {
+        return Object.keys(target).concat(ObjectHandler.get_enumerable_own_property_symbols(target).map((symbol) => symbol.toString()));
+    }
+
+    public static property_is_on_object(object, property) {
+        try {
+            return property in object;
+        } catch (_) {
+            return false;
+        }
+    }
+
+    // Protects from prototype poisoning and unexpected merging up the prototype chain.
+    public static property_is_unsafe(target, key) {
+        return ObjectHandler.property_is_on_object(target, key) // Properties are safe to merge if they don't exist in the target yet,
+            && !(Object.hasOwnProperty.call(target, key) // unsafe if they exist up the prototype chain,
+                && Object.propertyIsEnumerable.call(target, key)); // and also unsafe if they're nonenumerable.
+    }
+
+    public static merge_object<T>(target, source, options): T {
+        let destination = new target.constructor();
+
+        if (options.is_mergeable_object(target)) {
+            ObjectHandler.get_keys(target).forEach((key) => {
+                destination[key] = ObjectHandler.clone_unless_otherwise_pecified(target[key], options);
+            });
+        }
+
+        ObjectHandler.get_keys(source).forEach((key) => {
+            if (ObjectHandler.property_is_unsafe(target, key)) {
+                return;
+            }
+
+            if (ObjectHandler.property_is_on_object(target, key) && options.is_mergeable_object(source[key])) {
+                destination[key] = ObjectHandler.get_merge_function(key, options)(target[key], source[key], options);
+            } else {
+                destination[key] = ObjectHandler.clone_unless_otherwise_pecified(source[key], options);
+            }
+        });
+
+        return destination;
+    }
+
+    /**
+     * TODO: Keep the same reference of target if possible
+     *
+     * @param target
+     * @param source
+     * @param options
+     * @returns
+     */
+    public static deepmerge<T>(target, source, options = null): T {
+        options = options || {};
+        options.arrayMerge = options.arrayMerge || ObjectHandler.default_array_merge;
+        options.is_mergeable_object = options.is_mergeable_object || ObjectHandler.is_mergeable_object;
+        // clone_unless_otherwise_pecified is added to `options` so that custom arrayMerge()
+        // implementations can use it. The caller may not replace it.
+        options.clone_unless_otherwise_pecified = ObjectHandler.clone_unless_otherwise_pecified;
+
+        let sourceIsArray = Array.isArray(source);
+        let targetIsArray = Array.isArray(target);
+        let sourceAndTargetTypesMatch = sourceIsArray === targetIsArray;
+
+        if (!sourceAndTargetTypesMatch) {
+            return ObjectHandler.clone_unless_otherwise_pecified(source, options);
+        } else if (sourceIsArray) {
+            return options.arrayMerge(target, source, options);
+        } else {
+            return ObjectHandler.merge_object(target, source, options);
+        }
+    }
+
+    public static is_mergeable_object(value) {
+        return ObjectHandler.is_non_null_object(value)
+            && !ObjectHandler.is_special(value);
+    }
+
+    public static is_non_null_object(value) {
+        return !!value && typeof value === 'object';
+    }
+
+    public static is_special(value) {
+        let stringValue = Object.prototype.toString.call(value);
+
+        return stringValue === '[object RegExp]'
+            || stringValue === '[object Date]';
+    }
+
     /* istanbul ignore next: nothing to test here */
     public static getInstance(): ObjectHandler {
         if (!ObjectHandler.instance) {
@@ -23,8 +145,8 @@ export default class ObjectHandler {
     }
 
     public sortObjectByKey(obj: {}, sort_func = null): {} {
-        var keys = [];
-        var sorted_obj = {};
+        let keys = [];
+        let sorted_obj = {};
 
         for (let key in obj) {
             if (obj.hasOwnProperty(key)) {
@@ -148,7 +270,7 @@ export default class ObjectHandler {
         return res;
     }
     /**
-     * Returns first attribute value and destroys it. Might not work if object[i] is an object ? since we return a ref to a var we delete right next ...
+     * Returns first attribute value and destroys it. Might not work if object[i] is an object ? since we return a ref to a let we delete right next ...
      * @param object
      */
     public shiftAttribute(object): any {
@@ -162,7 +284,7 @@ export default class ObjectHandler {
     }
 
     /**
-     * Returns first attribute value and destroys it. Might not work if object[i] is an object ? since we return a ref to a var we delete right next ...
+     * Returns first attribute value and destroys it. Might not work if object[i] is an object ? since we return a ref to a let we delete right next ...
      * @param object
      */
     public getFirstAttributeName(object): any {
