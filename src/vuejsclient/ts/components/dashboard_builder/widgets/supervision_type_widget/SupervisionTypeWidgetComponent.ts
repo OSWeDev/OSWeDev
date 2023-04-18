@@ -190,6 +190,7 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
             return null;
         }
 
+        // TODO:
         return this.widget_options.supervision_api_type_ids;
     }
 

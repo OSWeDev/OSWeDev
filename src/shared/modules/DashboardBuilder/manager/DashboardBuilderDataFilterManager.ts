@@ -13,7 +13,6 @@ import { FieldValueFilterWidgetManager } from './FieldValueFilterWidgetManager';
 import { FieldValueFilterWidgetOptionsVO } from "../vos/FieldValueFilterWidgetOptionsVO";
 import { DashboardBuilderBoardManager } from "./DashboardBuilderBoardManager";
 import { FieldFilterManager } from "../../ContextFilter/manager/FieldFilterManager";
-import { Options } from "nodemailer/lib/dkim";
 
 /**
  * Dashboard Builder Data Filter Manager
@@ -100,7 +99,7 @@ export class DashboardBuilderDataFilterManager {
 
             const custom_active_field_filters = custom_active_field_filters_by_api_type_id[query_api_type_id];
 
-            const filters: ContextFilterVO[] = ContextFilterVOManager.create_filters_from_active_field_filters(
+            const filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_active_field_filters(
                 custom_active_field_filters
             );
 
@@ -161,13 +160,13 @@ export class DashboardBuilderDataFilterManager {
             }
 
             await promise_pipeline.push(async () => {
-                let visible_data_filters: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
+                const visible_data_filters: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
                     _query,
                     actual_query
                 );
 
-                for (let j in visible_data_filters) {
-                    let visible_data_filter = visible_data_filters[j];
+                for (const j in visible_data_filters) {
+                    const visible_data_filter = visible_data_filters[j];
 
                     if (!added_data_filter[visible_data_filter.numeric_value]) {
                         added_data_filter[visible_data_filter.numeric_value] = true;

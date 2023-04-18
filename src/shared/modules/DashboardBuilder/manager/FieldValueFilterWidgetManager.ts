@@ -8,7 +8,8 @@ import { VOsTypesManager } from "../../VO/manager/VOsTypesManager";
 import DashboardVO from "../vos/DashboardVO";
 
 /**
- * Field Value Filter Widget Manager
+ * @class FieldValueFilterWidgetManager
+ *  - This class is used to manage the field value filter widget
  */
 export class FieldValueFilterWidgetManager {
 

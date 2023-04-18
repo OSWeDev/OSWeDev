@@ -25,7 +25,6 @@ import SaveFavoritesFiltersModalComponent from '../widgets/save_favorites_filter
 import SupervisionItemModalComponent from '../widgets/supervision_widget/supervision_item_modal/SupervisionItemModalComponent';
 import CRUDCreateModalComponent from '../widgets/table_widget/crud_modals/create/CRUDCreateModalComponent';
 import CRUDUpdateModalComponent from '../widgets/table_widget/crud_modals/update/CRUDUpdateModalComponent';
-import DashboardGraphVORefVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import { DashboardBuilderBoardManager } from '../../../../../shared/modules/DashboardBuilder/manager/DashboardBuilderBoardManager';
 

@@ -462,10 +462,10 @@ export class ContextFilterVOHandler {
     }
 
     /**
-     * @deprecated use static ContextFilterVOManager.create_filters_from_active_field_filters instead
+     * @deprecated use static ContextFilterVOManager.get_context_filters_from_active_field_filters instead
      */
     public get_filters_from_active_field_filters(active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }): ContextFilterVO[] {
-        return ContextFilterVOManager.create_filters_from_active_field_filters(active_field_filters);
+        return ContextFilterVOManager.get_context_filters_from_active_field_filters(active_field_filters);
     }
 
     /**
