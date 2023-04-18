@@ -3,7 +3,6 @@ import CronWorkerPlanification from '../../../shared/modules/Cron/vos/CronWorker
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import DateHandler from '../../../shared/tools/DateHandler';
 import ModuleCronServer from '../Cron/ModuleCronServer';
 import DailyReportCronWorker from './workers/DailyReport/DailyReportCronWorker';
 
