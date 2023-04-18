@@ -1,9 +1,10 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import { isEqual } from 'lodash';
+import { SupervisionTypeWidgetManager } from '../../../../../../../shared/modules/DashboardBuilder/manager/SupervisionTypeWidgetManager';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
-import SupervisionController from '../../../../../../../shared/modules/Supervision/SupervisionController';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
-import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
+import { VOsTypesManager } from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
@@ -44,29 +45,17 @@ export default class SupervisionTypeWidgetOptionsComponent extends VueComponentB
     @Watch('page_widget', { immediate: true })
     private async onchange_page_widget() {
 
-        this.supervision_select_options = [];
-
-        if (SupervisionController.getInstance().registered_controllers) {
-            let supervision_select_options: string[] = [];
-
-            for (let api_type_id in SupervisionController.getInstance().registered_controllers) {
-                if (SupervisionController.getInstance().registered_controllers[api_type_id].is_actif()) {
-                    supervision_select_options.push(api_type_id);
-                }
-            }
-
-            this.supervision_select_options = supervision_select_options;
-        }
+        this.supervision_select_options = SupervisionTypeWidgetManager.load_supervision_api_type_ids_by_dashboard(this.dashboard);
 
         if ((!this.page_widget) || (!this.widget_options)) {
-            if (!!this.supervision_api_type_ids) {
+            if (this.supervision_api_type_ids?.length > 0) {
                 this.supervision_api_type_ids = [];
             }
             return;
         }
 
-        if (this.supervision_api_type_ids != this.widget_options.supervision_api_type_ids) {
-            this.supervision_api_type_ids = this.widget_options.supervision_api_type_ids;
+        if (!isEqual(this.supervision_api_type_ids, this.default_supervision_api_type_ids)) {
+            this.supervision_api_type_ids = this.default_supervision_api_type_ids;
         }
     }
 
@@ -126,5 +115,9 @@ export default class SupervisionTypeWidgetOptionsComponent extends VueComponentB
         }
 
         return options;
+    }
+
+    get default_supervision_api_type_ids(): string[] {
+        return this.widget_options?.supervision_api_type_ids ?? [];
     }
 }

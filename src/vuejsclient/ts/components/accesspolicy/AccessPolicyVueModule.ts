@@ -3,7 +3,7 @@ import { RouteConfig } from 'vue-router';
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
 import ComponentDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/ComponentDatatableFieldVO';
-import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
+import { VOsTypesManager } from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import CRUDComponentManager from '../crud/CRUDComponentManager';
 import TableWidgetController from '../dashboard_builder/widgets/table_widget/TableWidgetController';

@@ -5,7 +5,7 @@ import ContextQueryVO from "../../../../../../shared/modules/ContextFilter/vos/C
 import DashboardVO from "../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO";
 import ModuleTable from "../../../../../../shared/modules/ModuleTable";
 import ModuleTableField from "../../../../../../shared/modules/ModuleTableField";
-import VOsTypesManager from "../../../../../../shared/modules/VOsTypesManager";
+import { VOsTypesManager } from "../../../../../../shared/modules/VO/manager/VOsTypesManager";
 import ConsoleHandler from "../../../../../../shared/tools/ConsoleHandler";
 
 export default class FieldValueFilterWidgetController extends FieldValueFilterWidgetManager {

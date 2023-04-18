@@ -15,7 +15,7 @@ import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/v
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
-import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
+import { VOsTypesManager } from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import WeightHandler from '../../../../../../shared/tools/WeightHandler';
 import ModuleTable from '../../../../../../shared/modules/ModuleTable';

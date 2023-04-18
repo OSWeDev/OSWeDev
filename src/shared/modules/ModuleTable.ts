@@ -21,7 +21,7 @@ import ModuleTableField from './ModuleTableField';
 import DefaultTranslationManager from './Translation/DefaultTranslationManager';
 import DefaultTranslation from './Translation/vos/DefaultTranslation';
 import VarDataBaseVO from './Var/vos/VarDataBaseVO';
-import VOsTypesManager from './VOsTypesManager';
+import { VOsTypesManager } from './VO/manager/VOsTypesManager';
 import cloneDeep = require('lodash/cloneDeep');
 import ContextQueryInjectionCheckHandler from './ContextFilter/ContextQueryInjectionCheckHandler';
 

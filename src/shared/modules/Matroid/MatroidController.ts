@@ -3,7 +3,7 @@ import RangeHandler from '../../tools/RangeHandler';
 import IRange from '../DataRender/interfaces/IRange';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
-import VOsTypesManager from '../VOsTypesManager';
+import { VOsTypesManager } from '../VO/manager/VOsTypesManager';
 import IMatroid from './interfaces/IMatroid';
 import MatroidBaseController from './MatroidBaseController';
 import MatroidBase from './vos/MatroidBase';

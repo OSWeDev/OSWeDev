@@ -1,11 +1,12 @@
 import DefaultTranslation from "../../Translation/vos/DefaultTranslation";
+import { AbstractVO } from "../../VO/abstract/AbstractVO";
 import DashboardPageWidgetVO from "./DashboardPageWidgetVO";
 
 /**
  * SupervisionTypeWidgetOptionsVO
  *  - TODO: May be rename to SupervisionTypeFilterWidgetOptionsVO
  */
-export class SupervisionTypeWidgetOptionsVO {
+export class SupervisionTypeWidgetOptionsVO extends AbstractVO {
 
     public static TITLE_CODE_PREFIX: string = "SupervisionTypeWidgetOptionsVO.title.";
     public static FIELD_ID_INDICATOR: string = 'id';
@@ -16,19 +17,8 @@ export class SupervisionTypeWidgetOptionsVO {
 
     public constructor(
         public supervision_api_type_ids?: string[], // Used to filter the supervision items (sondes) from each datatable
-    ) { }
-
-    /**
-     * Hydrate from the given properties
-     *
-     * @param props {SupervisionTypeWidgetOptionsVO}
-     * @returns {SupervisionTypeWidgetOptionsVO}
-     */
-    public from(props: Partial<SupervisionTypeWidgetOptionsVO>): SupervisionTypeWidgetOptionsVO {
-
-        Object.assign(this, props);
-
-        return this;
+    ) {
+        super();
     }
 
     public get_title_name_code_text(page_widget_id: number): string {

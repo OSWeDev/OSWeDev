@@ -10,7 +10,7 @@ import NumSegment from "../../DataRender/vos/NumSegment";
 import TSRange from "../../DataRender/vos/TSRange";
 import Dates from "../../FormatDatesNombres/Dates/Dates";
 import ModuleTableField from "../../ModuleTableField";
-import VOsTypesManager from "../../VOsTypesManager";
+import { VOsTypesManager } from "../../VO/manager/VOsTypesManager";
 import ContextFilterVO from "../vos/ContextFilterVO";
 import { FieldValueFilterWidgetOptionsVO } from '../../DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
 import MonthFilterWidgetOptionsVO from '../../DashboardBuilder/vos/MonthFilterWidgetOptionsVO';
@@ -21,6 +21,8 @@ import { ContextFilterVOHandler } from "../handler/ContextFilterVOHandler";
 /**
  * ContextFilterVOManager
  *  - Create ContextFilterVO depending on all possible given properties
+ *
+ * TODO: Managers methods have to be for Creating|Finding|Updating fields of ContextFilterVO
  */
 export class ContextFilterVOManager {
 
@@ -660,29 +662,31 @@ export class ContextFilterVOManager {
     }
 
     /**
-     * Create Filters From Active Field Filters
+     * Get Filters From Active Field Filters
      *
      * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} active_field_filters
      * @returns {ContextFilterVO[]}
      */
-    public static create_filters_from_active_field_filters(active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }): ContextFilterVO[] {
-        let res: ContextFilterVO[] = [];
+    public static get_context_filters_from_active_field_filters(
+        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
+    ): ContextFilterVO[] {
+        let context_filters: ContextFilterVO[] = [];
 
-        for (let i in active_field_filters) {
-            let filters = active_field_filters[i];
+        for (const i in active_field_filters) {
+            const field_filters = active_field_filters[i];
 
-            for (let j in filters) {
-                let filter = filters[j];
+            for (const j in field_filters) {
+                const context_filter = field_filters[j];
 
-                if (!filter) {
+                if (!context_filter) {
                     continue;
                 }
 
-                res.push(filter);
+                context_filters.push(context_filter);
             }
         }
 
-        return res;
+        return context_filters;
     }
 
     /**

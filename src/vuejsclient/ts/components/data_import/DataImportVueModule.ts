@@ -2,7 +2,7 @@ import Vue from 'vue';
 import ComponentDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/ComponentDatatableFieldVO';
 import ModuleDataImport from '../../../../shared/modules/DataImport/ModuleDataImport';
 import DataImportHistoricVO from '../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
-import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
+import { VOsTypesManager } from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import TableWidgetController from '../dashboard_builder/widgets/table_widget/TableWidgetController';
 import ReimportComponent from './reimport_component/reimport_component';

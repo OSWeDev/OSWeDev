@@ -10,7 +10,7 @@ import APIDAOParamVO, { APIDAOParamVOStatic } from '../DAO/vos/APIDAOParamVO';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
-import VOsTypesManager from '../VOsTypesManager';
+import { VOsTypesManager } from '../VO/manager/VOsTypesManager';
 import NFCTagUserVO from './vos/NFCTagUserVO';
 import NFCTagVO from './vos/NFCTagVO';
 

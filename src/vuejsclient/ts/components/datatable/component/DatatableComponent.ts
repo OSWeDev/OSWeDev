@@ -21,7 +21,7 @@ import IArchivedVOBase from '../../../../../shared/modules/IArchivedVOBase';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
 import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
-import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
+import { VOsTypesManager } from '../../../../../shared/modules/VO/manager/VOsTypesManager';
 import DateHandler from '../../../../../shared/tools/DateHandler';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
 import TypesHandler from '../../../../../shared/tools/TypesHandler';

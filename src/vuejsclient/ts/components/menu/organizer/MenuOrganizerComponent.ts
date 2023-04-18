@@ -5,7 +5,7 @@ import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import Dates from '../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleMenu from '../../../../../shared/modules/Menu/ModuleMenu';
 import MenuElementVO from '../../../../../shared/modules/Menu/vos/MenuElementVO';
-import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
+import { VOsTypesManager } from '../../../../../shared/modules/VO/manager/VOsTypesManager';
 import WeightHandler from '../../../../../shared/tools/WeightHandler';
 import VueAppController from '../../../../VueAppController';
 import InlineTranslatableText from '../../InlineTranslatableText/InlineTranslatableText';

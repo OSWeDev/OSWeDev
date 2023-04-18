@@ -1,7 +1,7 @@
 import IWeightedItem from "../../../tools/interfaces/IWeightedItem";
 import IDistantVOBase from "../../IDistantVOBase";
 import ModuleTableField from "../../ModuleTableField";
-import VOsTypesManager from "../../VOsTypesManager";
+import { VOsTypesManager } from "../../VO/manager/VOsTypesManager";
 import DashboardBuilderController from "../DashboardBuilderController";
 
 export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem {

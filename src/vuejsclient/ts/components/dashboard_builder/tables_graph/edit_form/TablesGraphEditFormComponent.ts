@@ -1,6 +1,6 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
+import { VOsTypesManager } from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import VueAppBase from '../../../../../VueAppBase';
 import VueComponentBase from '../../../VueComponentBase';
 import './TablesGraphEditFormComponent.scss';

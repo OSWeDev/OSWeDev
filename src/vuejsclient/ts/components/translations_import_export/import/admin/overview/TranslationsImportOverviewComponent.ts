@@ -8,7 +8,7 @@ import ImportTranslation from '../../../../../../../shared/modules/Translation/i
 import LangVO from '../../../../../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../../../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../../../../../shared/modules/Translation/vos/TranslationVO';
-import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
+import { VOsTypesManager } from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import DateHandler from '../../../../../../../shared/tools/DateHandler';
 import VueComponentBase from '../../../../VueComponentBase';
 import './TranslationsImportOverviewComponent.scss';

@@ -3,7 +3,7 @@ import PromisePipeline from "../../../tools/PromisePipeline/PromisePipeline";
 import DashboardVO from "../vos/DashboardVO";
 import DataFilterOption from "../../DataRender/vos/DataFilterOption";
 import ModuleTable from "../../ModuleTable";
-import VOsTypesManager from "../../VOsTypesManager";
+import { VOsTypesManager } from "../../VO/manager/VOsTypesManager";
 import ContextFilterHandler from "../../ContextFilter/ContextFilterHandler";
 import { ContextFilterVOManager } from "../../ContextFilter/manager/ContextFilterVOManager";
 import ModuleContextFilter from "../../ContextFilter/ModuleContextFilter";
@@ -26,12 +26,14 @@ export class DashboardBuilderDataFilterManager {
 
     /**
      * Load enum data filters from widget options
-     *  - Load data filters from database by using the given dashboard and widget_options properties
+     *  - Load enum data filters from database by using the given dashboard and widget_options properties
      *
-     * @param {DashboardVO} dashboard
-     * @param {FieldValueFilterWidgetOptionsVO} widget_options
-     * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} active_field_filters
-     * @param options
+     * @param {DashboardVO} dashboard  the actual dashboard
+     * @param {FieldValueFilterWidgetOptionsVO} widget_options the actual widget options
+     * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} active_field_filters Active field filters (from the user selection) from the actual dashboard
+     * @param {options.force_filter_active_api_type_id} options.force_filter_active_api_type_id
+     * @param {options.active_api_type_ids} options.active_api_type_ids
+     * @param {options.query_api_type_ids} options.query_api_type_ids
      * @returns {Promise<DataFilterOption[]>}
      */
     public static async load_enum_data_filters_from_widget_options(
@@ -97,7 +99,7 @@ export class DashboardBuilderDataFilterManager {
 
             const custom_active_field_filters = custom_active_field_filters_by_api_type_id[query_api_type_id];
 
-            const filters: ContextFilterVO[] = ContextFilterVOManager.create_filters_from_active_field_filters(
+            const filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_active_field_filters(
                 custom_active_field_filters
             );
 
@@ -158,13 +160,13 @@ export class DashboardBuilderDataFilterManager {
             }
 
             await promise_pipeline.push(async () => {
-                let visible_data_filters: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
+                const visible_data_filters: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
                     _query,
                     actual_query
                 );
 
-                for (let j in visible_data_filters) {
-                    let visible_data_filter = visible_data_filters[j];
+                for (const j in visible_data_filters) {
+                    const visible_data_filter = visible_data_filters[j];
 
                     if (!added_data_filter[visible_data_filter.numeric_value]) {
                         added_data_filter[visible_data_filter.numeric_value] = true;

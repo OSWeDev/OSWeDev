@@ -1,10 +1,13 @@
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
-import VOsTypesManager from '../VOsTypesManager';
+import { VOsTypesManager } from '../VO/manager/VOsTypesManager';
 import ISupervisedItemController from './interfaces/ISupervisedItemController';
 import SupervisedCategoryVO from './vos/SupervisedCategoryVO';
 
+/**
+ * @class SupervisionController
+ */
 export default class SupervisionController {
 
     public static SUPERVISION_DASHBOARD_KEY: string = 'dashboard';

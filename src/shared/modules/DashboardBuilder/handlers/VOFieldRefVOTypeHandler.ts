@@ -1,5 +1,5 @@
-import VOsTypesHandler from "../../VOsTypesHandler";
-import VOsTypesManager from "../../VOsTypesManager";
+import { VOsTypesHandler } from "../../VO/handler/VOsTypesHandler";
+import { VOsTypesManager } from "../../VO/manager/VOsTypesManager";
 import VOFieldRefVO from "../vos/VOFieldRefVO";
 
 /**

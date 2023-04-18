@@ -19,7 +19,7 @@ import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos
 import NumRange from '../../../../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../../../../../shared/modules/DataRender/vos/NumSegment';
 import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
+import { VOsTypesManager } from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import VueAppController from '../../../../../../VueAppController';

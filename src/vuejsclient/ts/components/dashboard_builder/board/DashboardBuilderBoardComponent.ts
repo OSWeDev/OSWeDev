@@ -10,7 +10,7 @@ import DashboardPageVO from '../../../../../shared/modules/DashboardBuilder/vos/
 import DashboardPageWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DashboardWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
-import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
+import { VOsTypesManager } from '../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../InlineTranslatableText/InlineTranslatableText';
@@ -25,7 +25,6 @@ import SaveFavoritesFiltersModalComponent from '../widgets/save_favorites_filter
 import SupervisionItemModalComponent from '../widgets/supervision_widget/supervision_item_modal/SupervisionItemModalComponent';
 import CRUDCreateModalComponent from '../widgets/table_widget/crud_modals/create/CRUDCreateModalComponent';
 import CRUDUpdateModalComponent from '../widgets/table_widget/crud_modals/update/CRUDUpdateModalComponent';
-import DashboardGraphVORefVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import { DashboardBuilderBoardManager } from '../../../../../shared/modules/DashboardBuilder/manager/DashboardBuilderBoardManager';
 

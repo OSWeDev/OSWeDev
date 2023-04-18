@@ -5,7 +5,7 @@ import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
 import ModuleVarServer from '../../../server/modules/Var/ModuleVarServer';
 import VarsServerController from '../../../server/modules/Var/VarsServerController';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
-import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+import { VOsTypesManager } from '../../../shared/modules/VO/manager/VOsTypesManager';
 import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20210804Changebddvarsindexes implements IGeneratorWorker {
