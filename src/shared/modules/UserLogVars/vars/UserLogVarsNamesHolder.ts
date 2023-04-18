@@ -1,5 +1,5 @@
 
-export default class AccessPolicyVarsNamesHolder {
+export default class UserLogVarsNamesHolder {
 
     public static VarMinLoginCountController_VAR_NAME: string = 'VarMinLoginCountController';
     public static VarMinCSRFCountController_VAR_NAME: string = 'VarMinCSRFCountController';
@@ -7,14 +7,14 @@ export default class AccessPolicyVarsNamesHolder {
 
     public static VarLastCSRFTSController_VAR_NAME: string = 'VarLastCSRFTSController';
 
-    public static getInstance(): AccessPolicyVarsNamesHolder {
-        if (!AccessPolicyVarsNamesHolder.instance) {
-            AccessPolicyVarsNamesHolder.instance = new AccessPolicyVarsNamesHolder();
+    public static getInstance(): UserLogVarsNamesHolder {
+        if (!UserLogVarsNamesHolder.instance) {
+            UserLogVarsNamesHolder.instance = new UserLogVarsNamesHolder();
         }
-        return AccessPolicyVarsNamesHolder.instance;
+        return UserLogVarsNamesHolder.instance;
     }
 
-    private static instance: AccessPolicyVarsNamesHolder = null;
+    private static instance: UserLogVarsNamesHolder = null;
 
     private constructor() { }
 }

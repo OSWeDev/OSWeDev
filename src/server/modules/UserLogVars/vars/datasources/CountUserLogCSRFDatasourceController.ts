@@ -1,6 +1,6 @@
-import UserMinDataRangesVO from "../../../../../shared/modules/AccessPolicy/vars/vos/UserMinDataRangesVO";
 import UserLogVO from "../../../../../shared/modules/AccessPolicy/vos/UserLogVO";
 import { query } from "../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
+import UserMinDataRangesVO from "../../../../../shared/modules/UserLogVars/vars/vos/UserMinDataRangesVO";
 import DataSourceControllerMatroidIndexedBase from "../../../Var/datasource/DataSourceControllerMatroidIndexedBase";
 
 export default class CountUserLogCSRFDatasourceController extends DataSourceControllerMatroidIndexedBase {

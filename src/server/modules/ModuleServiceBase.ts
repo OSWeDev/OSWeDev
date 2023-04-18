@@ -118,6 +118,8 @@ import Dates from '../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleExpressDBSessionServer from './ExpressDBSessions/ModuleExpressDBSessionsServer';
 import ModuleExpressDBSessions from '../../shared/modules/ExpressDBSessions/ModuleExpressDBSessions';
 import StatsServerController from './Stats/StatsServerController';
+import ModuleUserLogVars from '../../shared/modules/UserLogVars/ModuleUserLogVars';
+import ModuleUserLogVarsServer from './UserLogVars/ModuleUserLogVarsServer';
 
 export default abstract class ModuleServiceBase {
 
@@ -546,7 +548,8 @@ export default abstract class ModuleServiceBase {
             ModuleDashboardBuilder.getInstance(),
             ModuleMenu.getInstance(),
             ModuleStats.getInstance(),
-            ModuleExpressDBSessions.getInstance()
+            ModuleExpressDBSessions.getInstance(),
+            ModuleUserLogVars.getInstance(),
         ];
     }
 
@@ -603,7 +606,8 @@ export default abstract class ModuleServiceBase {
             ModuleMenuServer.getInstance(),
             ModuleFormatDatesNombresServer.getInstance(),
             ModuleStatsServer.getInstance(),
-            ModuleExpressDBSessionServer.getInstance()
+            ModuleExpressDBSessionServer.getInstance(),
+            ModuleUserLogVarsServer.getInstance(),
         ];
     }
 

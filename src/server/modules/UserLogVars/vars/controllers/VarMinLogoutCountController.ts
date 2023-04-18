@@ -1,11 +1,11 @@
-import AccessPolicyVarsNamesHolder from '../../../../../shared/modules/AccessPolicy/vars/AccessPolicyVarsNamesHolder';
-import UserDataRangesVO from '../../../../../shared/modules/AccessPolicy/vars/vos/UserDataRangesVO';
 import UserLogVO from '../../../../../shared/modules/AccessPolicy/vos/UserLogVO';
 import UserVO from '../../../../../shared/modules/AccessPolicy/vos/UserVO';
 import NumRange from '../../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../../../shared/modules/DataRender/vos/NumSegment';
 import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
+import UserLogVarsNamesHolder from '../../../../../shared/modules/UserLogVars/vars/UserLogVarsNamesHolder';
+import UserMinDataRangesVO from '../../../../../shared/modules/UserLogVars/vars/vos/UserMinDataRangesVO';
 import VarDAGNode from '../../../../../shared/modules/Var/graph/VarDAGNode';
 import VarCacheConfVO from '../../../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVO from '../../../../../shared/modules/Var/vos/VarConfVO';
@@ -14,22 +14,22 @@ import RangeHandler from '../../../../../shared/tools/RangeHandler';
 import DAOUpdateVOHolder from '../../../DAO/vos/DAOUpdateVOHolder';
 import DataSourceControllerBase from '../../../Var/datasource/DataSourceControllerBase';
 import VarServerControllerBase from '../../../Var/VarServerControllerBase';
-import LastUserLogCSRFTSDatasourceController from '../datasources/LastUserLogCSRFTSDatasourceController';
+import CountUserLogLogoutDatasourceController from '../datasources/CountUserLogLogoutDatasourceController';
 
-export default class VarLastCSRFTSController extends VarServerControllerBase<UserDataRangesVO> {
+export default class VarMinLogoutCountController extends VarServerControllerBase<UserMinDataRangesVO> {
 
-    public static getInstance(): VarLastCSRFTSController {
-        if (!VarLastCSRFTSController.instance) {
-            VarLastCSRFTSController.instance = new VarLastCSRFTSController();
+    public static getInstance(): VarMinLogoutCountController {
+        if (!VarMinLogoutCountController.instance) {
+            VarMinLogoutCountController.instance = new VarMinLogoutCountController();
         }
-        return VarLastCSRFTSController.instance;
+        return VarMinLogoutCountController.instance;
     }
 
-    protected static instance: VarLastCSRFTSController = null;
+    protected static instance: VarMinLogoutCountController = null;
 
     protected constructor() {
         super(
-            new VarConfVO(AccessPolicyVarsNamesHolder.VarLastCSRFTSController_VAR_NAME, UserDataRangesVO.API_TYPE_ID, {
+            new VarConfVO(UserLogVarsNamesHolder.VarMinLogoutCountController_VAR_NAME, UserMinDataRangesVO.API_TYPE_ID, {
                 ts_ranges: TimeSegment.TYPE_MINUTE,
             }, null).set_pixel_activated(true).set_pixel_never_delete(true).set_pixel_fields([
                 (new VarPixelFieldConfVO())
@@ -38,10 +38,10 @@ export default class VarLastCSRFTSController extends VarServerControllerBase<Use
                     .set_param_field_id('user_id_ranges')
                     .set_range_type(NumRange.RANGE_TYPE)
                     .set_segmentation_type(NumSegment.TYPE_INT)
-            ]).set_aggregator(VarConfVO.MAX_AGGREGATOR),
-            { 'fr-fr': 'Dernier chargement application' },
+            ]),
+            { 'fr-fr': 'Nb Logout' },
             {
-                'fr-fr': 'Date du plus récent chargement de l\'application réalisé par les utilisateurs sélectionnés.'
+                'fr-fr': 'Nombre de logout réalisés par les utilisateurs sélectionnés sur la période sélectionnée.'
             },
             {},
             {});
@@ -58,7 +58,7 @@ export default class VarLastCSRFTSController extends VarServerControllerBase<Use
 
     public getDataSourcesDependencies(): DataSourceControllerBase[] {
         return [
-            LastUserLogCSRFTSDatasourceController.getInstance(),
+            CountUserLogLogoutDatasourceController.getInstance(),
         ];
     }
 
@@ -66,14 +66,18 @@ export default class VarLastCSRFTSController extends VarServerControllerBase<Use
      * On optimise en passant par le groupe de modifs, et on regroupe par groupe / minute pour générer ensuite les intersecteurs nécessaires
      * @param c_or_d_vos
      */
-    public async get_invalid_params_intersectors_on_POST_C_POST_D_group(c_or_d_vos: UserLogVO[]): Promise<UserDataRangesVO[]> {
-        let groupe_date_to_u_vo_holders: { [user_id: number]: boolean } = {};
+    public async get_invalid_params_intersectors_on_POST_C_POST_D_group(c_or_d_vos: UserLogVO[]): Promise<UserMinDataRangesVO[]> {
+        let groupe_date_to_u_vo_holders: { [user_id: number]: { [log_time: number]: boolean } } = {};
 
         for (let i in c_or_d_vos) {
             let c_or_d_vo = c_or_d_vos[i];
 
             if (!groupe_date_to_u_vo_holders[c_or_d_vo.user_id]) {
-                groupe_date_to_u_vo_holders[c_or_d_vo.user_id] = true;
+                groupe_date_to_u_vo_holders[c_or_d_vo.user_id] = {};
+            }
+
+            if (!groupe_date_to_u_vo_holders[c_or_d_vo.user_id][c_or_d_vo.log_time]) {
+                groupe_date_to_u_vo_holders[c_or_d_vo.user_id][c_or_d_vo.log_time] = true;
             }
         }
 
@@ -84,8 +88,8 @@ export default class VarLastCSRFTSController extends VarServerControllerBase<Use
      * On optimise en passant par le groupe de modifs, et on regroupe par groupe / minute pour générer ensuite les intersecteurs nécessaires
      * @param u_vo_holders
      */
-    public async get_invalid_params_intersectors_on_POST_U_group(u_vo_holders: Array<DAOUpdateVOHolder<IDistantVOBase>>): Promise<UserDataRangesVO[]> {
-        let groupe_date_to_u_vo_holders: { [user_id: number]: boolean } = {};
+    public async get_invalid_params_intersectors_on_POST_U_group(u_vo_holders: Array<DAOUpdateVOHolder<IDistantVOBase>>): Promise<UserMinDataRangesVO[]> {
+        let groupe_date_to_u_vo_holders: { [user_id: number]: { [log_time: number]: boolean } } = {};
         let u_vo_holders_typed: Array<DAOUpdateVOHolder<UserLogVO>> = u_vo_holders as Array<DAOUpdateVOHolder<UserLogVO>>;
 
         for (let i in u_vo_holders_typed) {
@@ -93,12 +97,20 @@ export default class VarLastCSRFTSController extends VarServerControllerBase<Use
 
             if (!!u_vo_holder.pre_update_vo) {
                 if (!groupe_date_to_u_vo_holders[u_vo_holder.pre_update_vo.user_id]) {
-                    groupe_date_to_u_vo_holders[u_vo_holder.pre_update_vo.user_id] = true;
+                    groupe_date_to_u_vo_holders[u_vo_holder.pre_update_vo.user_id] = {};
+                }
+
+                if (!groupe_date_to_u_vo_holders[u_vo_holder.pre_update_vo.user_id][u_vo_holder.pre_update_vo.log_time]) {
+                    groupe_date_to_u_vo_holders[u_vo_holder.pre_update_vo.user_id][u_vo_holder.pre_update_vo.log_time] = true;
                 }
             }
             if (!!u_vo_holder.post_update_vo) {
                 if (!groupe_date_to_u_vo_holders[u_vo_holder.post_update_vo.user_id]) {
-                    groupe_date_to_u_vo_holders[u_vo_holder.post_update_vo.user_id] = true;
+                    groupe_date_to_u_vo_holders[u_vo_holder.post_update_vo.user_id] = {};
+                }
+
+                if (!groupe_date_to_u_vo_holders[u_vo_holder.post_update_vo.user_id][u_vo_holder.post_update_vo.log_time]) {
+                    groupe_date_to_u_vo_holders[u_vo_holder.post_update_vo.user_id][u_vo_holder.post_update_vo.log_time] = true;
                 }
             }
         }
@@ -108,7 +120,7 @@ export default class VarLastCSRFTSController extends VarServerControllerBase<Use
 
     protected getValue(varDAGNode: VarDAGNode): number {
 
-        let res = varDAGNode.datasources[LastUserLogCSRFTSDatasourceController.getInstance().name];
+        let res = varDAGNode.datasources[CountUserLogLogoutDatasourceController.getInstance().name];
 
         if (res == null) {
             return null;
@@ -117,17 +129,22 @@ export default class VarLastCSRFTSController extends VarServerControllerBase<Use
         return res;
     }
 
-    private get_intersecteurs(groupe_date_to_u_vo_holders: { [user_id: number]: boolean }): UserDataRangesVO[] {
-        let res: UserDataRangesVO[] = [];
+    private get_intersecteurs(groupe_date_to_u_vo_holders: { [user_id: number]: { [log_time: number]: boolean } }): UserMinDataRangesVO[] {
+        let res: UserMinDataRangesVO[] = [];
 
         for (let user_id_s in groupe_date_to_u_vo_holders) {
             let user_id = parseInt(user_id_s);
+            let holders = groupe_date_to_u_vo_holders[user_id_s];
 
-            res.push(UserDataRangesVO.createNew<UserDataRangesVO>(
-                this.varConf.name,
-                false,
-                [RangeHandler.create_single_elt_NumRange(user_id, NumSegment.TYPE_INT)]
-            ));
+            for (let log_time_s in holders) {
+                let log_time = parseInt(log_time_s);
+                res.push(UserMinDataRangesVO.createNew<UserMinDataRangesVO>(
+                    this.varConf.name,
+                    false,
+                    [RangeHandler.create_single_elt_NumRange(user_id, NumSegment.TYPE_INT)],
+                    [RangeHandler.create_single_elt_TSRange(log_time, TimeSegment.TYPE_MINUTE)]
+                ));
+            }
         }
 
         return res;

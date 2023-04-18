@@ -1,7 +1,7 @@
-import UserDataRangesVO from "../../../../../shared/modules/AccessPolicy/vars/vos/UserDataRangesVO";
 import UserLogVO from "../../../../../shared/modules/AccessPolicy/vos/UserLogVO";
 import { query } from "../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import SortByVO from "../../../../../shared/modules/ContextFilter/vos/SortByVO";
+import UserDataRangesVO from "../../../../../shared/modules/UserLogVars/vars/vos/UserDataRangesVO";
 import DataSourceControllerMatroidIndexedBase from "../../../Var/datasource/DataSourceControllerMatroidIndexedBase";
 
 export default class LastUserLogCSRFTSDatasourceController extends DataSourceControllerMatroidIndexedBase {

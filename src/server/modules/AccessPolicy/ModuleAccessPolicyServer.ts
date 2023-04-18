@@ -32,7 +32,6 @@ import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import { all_promises } from '../../../shared/tools/PromiseTools';
 import TextHandler from '../../../shared/tools/TextHandler';
 import StackContext from '../../StackContext';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
@@ -56,10 +55,6 @@ import PasswordInitialisation from './PasswordInitialisation/PasswordInitialisat
 import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
 import UserRecapture from './UserRecapture/UserRecapture';
-import VarLastCSRFTSController from './vars/controllers/VarLastCSRFTSController';
-import VarMinCSRFCountController from './vars/controllers/VarMinCSRFCountController';
-import VarMinLoginCountController from './vars/controllers/VarMinLoginCountController';
-import VarMinLogoutCountController from './vars/controllers/VarMinLogoutCountController';
 
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
@@ -309,7 +304,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     public async configure() {
-        await this.configure_vars();
 
         ModuleBGThreadServer.getInstance().registerBGThread(AccessPolicyDeleteSessionBGThread.getInstance());
 
@@ -2316,15 +2310,5 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 ConsoleHandler.log(err);
             }
         });
-    }
-
-    private async configure_vars() {
-
-        await all_promises([
-            VarMinCSRFCountController.getInstance().initialize(),
-            VarMinLoginCountController.getInstance().initialize(),
-            VarMinLogoutCountController.getInstance().initialize(),
-            VarLastCSRFTSController.getInstance().initialize()
-        ]);
     }
 }

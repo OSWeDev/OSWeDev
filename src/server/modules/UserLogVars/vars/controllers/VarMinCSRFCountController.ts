@@ -1,11 +1,11 @@
-import AccessPolicyVarsNamesHolder from '../../../../../shared/modules/AccessPolicy/vars/AccessPolicyVarsNamesHolder';
-import UserMinDataRangesVO from '../../../../../shared/modules/AccessPolicy/vars/vos/UserMinDataRangesVO';
 import UserLogVO from '../../../../../shared/modules/AccessPolicy/vos/UserLogVO';
 import UserVO from '../../../../../shared/modules/AccessPolicy/vos/UserVO';
 import NumRange from '../../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../../../shared/modules/DataRender/vos/NumSegment';
 import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
+import UserLogVarsNamesHolder from '../../../../../shared/modules/UserLogVars/vars/UserLogVarsNamesHolder';
+import UserMinDataRangesVO from '../../../../../shared/modules/UserLogVars/vars/vos/UserMinDataRangesVO';
 import VarDAGNode from '../../../../../shared/modules/Var/graph/VarDAGNode';
 import VarCacheConfVO from '../../../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVO from '../../../../../shared/modules/Var/vos/VarConfVO';
@@ -14,22 +14,22 @@ import RangeHandler from '../../../../../shared/tools/RangeHandler';
 import DAOUpdateVOHolder from '../../../DAO/vos/DAOUpdateVOHolder';
 import DataSourceControllerBase from '../../../Var/datasource/DataSourceControllerBase';
 import VarServerControllerBase from '../../../Var/VarServerControllerBase';
-import CountUserLogLoginDatasourceController from '../datasources/CountUserLogLoginDatasourceController';
+import CountUserLogCSRFDatasourceController from '../datasources/CountUserLogCSRFDatasourceController';
 
-export default class VarMinLoginCountController extends VarServerControllerBase<UserMinDataRangesVO> {
+export default class VarMinCSRFCountController extends VarServerControllerBase<UserMinDataRangesVO> {
 
-    public static getInstance(): VarMinLoginCountController {
-        if (!VarMinLoginCountController.instance) {
-            VarMinLoginCountController.instance = new VarMinLoginCountController();
+    public static getInstance(): VarMinCSRFCountController {
+        if (!VarMinCSRFCountController.instance) {
+            VarMinCSRFCountController.instance = new VarMinCSRFCountController();
         }
-        return VarMinLoginCountController.instance;
+        return VarMinCSRFCountController.instance;
     }
 
-    protected static instance: VarMinLoginCountController = null;
+    protected static instance: VarMinCSRFCountController = null;
 
     protected constructor() {
         super(
-            new VarConfVO(AccessPolicyVarsNamesHolder.VarMinLoginCountController_VAR_NAME, UserMinDataRangesVO.API_TYPE_ID, {
+            new VarConfVO(UserLogVarsNamesHolder.VarMinCSRFCountController_VAR_NAME, UserMinDataRangesVO.API_TYPE_ID, {
                 ts_ranges: TimeSegment.TYPE_MINUTE,
             }, null).set_pixel_activated(true).set_pixel_never_delete(true).set_pixel_fields([
                 (new VarPixelFieldConfVO())
@@ -39,9 +39,9 @@ export default class VarMinLoginCountController extends VarServerControllerBase<
                     .set_range_type(NumRange.RANGE_TYPE)
                     .set_segmentation_type(NumSegment.TYPE_INT)
             ]),
-            { 'fr-fr': 'Nb Login' },
+            { 'fr-fr': 'Nb chargement application' },
             {
-                'fr-fr': 'Nombre de login réalisés par les utilisateurs sélectionnés sur la période sélectionnée.'
+                'fr-fr': 'Nombre de lancement de l\'application réalisés par les utilisateurs sélectionnés sur la période sélectionnée.'
             },
             {},
             {});
@@ -58,7 +58,7 @@ export default class VarMinLoginCountController extends VarServerControllerBase<
 
     public getDataSourcesDependencies(): DataSourceControllerBase[] {
         return [
-            CountUserLogLoginDatasourceController.getInstance(),
+            CountUserLogCSRFDatasourceController.getInstance(),
         ];
     }
 
@@ -120,7 +120,7 @@ export default class VarMinLoginCountController extends VarServerControllerBase<
 
     protected getValue(varDAGNode: VarDAGNode): number {
 
-        let res = varDAGNode.datasources[CountUserLogLoginDatasourceController.getInstance().name];
+        let res = varDAGNode.datasources[CountUserLogCSRFDatasourceController.getInstance().name];
 
         if (res == null) {
             return null;
