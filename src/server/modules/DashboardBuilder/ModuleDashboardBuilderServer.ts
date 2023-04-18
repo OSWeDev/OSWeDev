@@ -26,7 +26,7 @@ import ModuleDataExportServer from '../DataExport/ModuleDataExportServer';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { DashboardBuilderVOFactory } from '../../../shared/modules/DashboardBuilder/factory/DashboardBuilderVOFactory';
 import DashboardWidgetVO from '../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
-import ContextFilterVOFactory from '../../../shared/modules/ContextFilter/factory/ContextFilterVOFactory';
+import { ContextFilterVOManager } from '../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
 import { IExportParamsProps } from '../../../shared/modules/DashboardBuilder/interfaces/IExportParamsProps';
 
@@ -1498,7 +1498,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'dashboard_viewer.favorites_filters.plan_export.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': "Exproter tous les *:" },
+            { 'fr-fr': "Exporter tous les *:" },
             'dashboard_viewer.favorites_filters.export_frequency_every.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
@@ -1522,7 +1522,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'dashboard_viewer.favorites_filters.start.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': "Filtres favoris sauvé avec success" },
+            { 'fr-fr': "Filtres favoris sauvegardés avec succès" },
             'dashboard_viewer.favorites_filters.ok.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
@@ -1808,6 +1808,26 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Afficher Option Selectionner Aucun" },
             'field_value_filter_widget_component.can_select_none_option.___LABEL___'
         ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Utiliser cette table pour la comptage des valeurs dans les filtres (si activé)" },
+            'table_widget_options_component.use_for_count.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Sauvegarder les requêtes en favoris" },
+            'dashboards.widgets.icons_tooltips.savefavoritesfilters.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Voir les requêtes favoris" },
+            'dashboards.widgets.icons_tooltips.showfavoritesfilters.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Nom du filtre" },
+            'show_favorites_filters_widget_component.vo_field_ref.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Nombre maximum d'éléments à afficher" },
+            'show_favorites_filters_widget_component.max_visible_options.___LABEL___'
+        ));
 
         let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.onCDashboardPageWidgetVO);
@@ -1851,11 +1871,6 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             ) {
                 continue;
             }
-
-            // Get widgets of the given favorites filters page
-            const page_widgets: DashboardPageWidgetVO[] = await query(DashboardPageWidgetVO.API_TYPE_ID)
-                .filter_by_num_eq('page_id', favorites_filters.page_id)
-                .select_vos<DashboardPageWidgetVO>();
 
             // Default field_filters from each page widget_options
             const default_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = {};
@@ -1919,6 +1934,11 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
                 continue;
             }
 
+            // Get widgets of the given favorites filters page
+            const page_widgets: DashboardPageWidgetVO[] = await query(DashboardPageWidgetVO.API_TYPE_ID)
+                .filter_by_num_eq('page_id', favorites_filters.page_id)
+                .select_vos<DashboardPageWidgetVO>();
+
             // Process the export
             // - Create context field filters and then export
             for (const key in widgets) {
@@ -1955,7 +1975,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
                         };
                     }
 
-                    context_filter = ContextFilterVOFactory.create_context_filter_from_widget_options(widget.name, widget_options);
+                    context_filter = ContextFilterVOManager.create_context_filter_from_widget_options(widget.name, widget_options);
 
                     // We must transform this ContextFilterVO into { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
                     if (vo_field_ref && context_filter) {
@@ -1963,11 +1983,11 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
                             if (default_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id]) {
                                 // We must combine context_filter with each other when needed
                                 // e.g. For date Year and Month widget (this widgets have the same api_type_id and field_id)
-                                const new_constex_filter = ContextFilterHandler.add_context_filter_to_tree(
+                                const new_context_filter = ContextFilterHandler.add_context_filter_to_tree(
                                     default_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id],
                                     context_filter
                                 );
-                                default_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id] = new_constex_filter;
+                                default_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id] = new_context_filter;
                             } else {
                                 default_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id] = context_filter;
                             }

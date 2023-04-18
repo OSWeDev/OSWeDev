@@ -41,8 +41,8 @@ export interface IDashboardPageState {
     page_history: DashboardPageVO[];
 
     custom_filters: string[];
-    active_api_type_ids: string[];
-    query_api_type_ids: string[];
+    active_api_type_ids: string[]; // Setted on user selection (select option) to specify query on specified vos api ids
+    query_api_type_ids: string[]; // Setted from widget options to have custom|default query on specified vos api ids
 
     widgets_invisibility: { [w_id: number]: boolean };
 
@@ -238,7 +238,7 @@ export default class DashboardPageStore implements IStoreModule<IDashboardPageSt
             },
 
             set_active_field_filter(state: IDashboardPageState, param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) {
-                if (!param.active_field_filter || !param.vo_type || !param.field_id) {
+                if (!param.vo_type || !param.field_id) {
                     return;
                 }
 
