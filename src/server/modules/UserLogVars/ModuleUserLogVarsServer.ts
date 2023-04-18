@@ -5,6 +5,7 @@ import VarLastCSRFTSController from './vars/controllers/VarLastCSRFTSController'
 import VarMinCSRFCountController from './vars/controllers/VarMinCSRFCountController';
 import VarMinLoginCountController from './vars/controllers/VarMinLoginCountController';
 import VarMinLogoutCountController from './vars/controllers/VarMinLogoutCountController';
+import VarMonthCompareCSRFCountMAndMm2Controller from './vars/controllers/VarMonthCompareCSRFCountMAndMm2Controller';
 
 
 export default class ModuleUserLogVarsServer extends ModuleServerBase {
@@ -32,7 +33,8 @@ export default class ModuleUserLogVarsServer extends ModuleServerBase {
             VarMinCSRFCountController.getInstance().initialize(),
             VarMinLoginCountController.getInstance().initialize(),
             VarMinLogoutCountController.getInstance().initialize(),
-            VarLastCSRFTSController.getInstance().initialize()
+            VarLastCSRFTSController.getInstance().initialize(),
+            VarMonthCompareCSRFCountMAndMm2Controller.getInstance().initialize()
         ]);
     }
 }
