@@ -3,7 +3,7 @@ import * as moment from 'moment';
 import DAOUpdateVOHolder from '../../../../server/modules/DAO/vos/DAOUpdateVOHolder';
 import ModuleTable from '../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../shared/modules/ModuleTableField';
-import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
+import { VOsTypesManager } from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import FakeDistantVO from './vos/FakeDistantVO';
 
 export default class FakeDistantHandler {

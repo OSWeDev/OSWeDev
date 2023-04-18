@@ -2,7 +2,7 @@ import { Component } from 'vue-property-decorator';
 import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import NotificationVO from '../../../../../../shared/modules/PushData/vos/NotificationVO';
-import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
+import { VOsTypesManager } from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import VueAppController from '../../../../../VueAppController';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleNotificationAction, ModuleNotificationGetter } from '../../store/NotificationStore';

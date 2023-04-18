@@ -15,7 +15,7 @@ import NumSegment from "../DataRender/vos/NumSegment";
 import TSRange from "../DataRender/vos/TSRange";
 import IDistantVOBase from "../IDistantVOBase";
 import ModuleTableField from "../ModuleTableField";
-import VOsTypesManager from "../VOsTypesManager";
+import { VOsTypesManager } from "../VO/manager/VOsTypesManager";
 import { ContextFilterVOManager } from "./manager/ContextFilterVOManager";
 import ContextFilterVO from "./vos/ContextFilterVO";
 import { query } from "./vos/ContextQueryVO";

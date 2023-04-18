@@ -1,6 +1,6 @@
 import Component from 'vue-class-component';
 import { Prop } from 'vue-property-decorator';
-import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
+import { VOsTypesManager } from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import VueComponentBase from '../../../VueComponentBase';
 import './DroppableVoFieldComponent.scss';
 import { ModuleDroppableVoFieldsAction, ModuleDroppableVoFieldsGetter } from '../DroppableVoFieldsStore';

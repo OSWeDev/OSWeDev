@@ -10,7 +10,7 @@ import DashboardPageVO from '../../../../../shared/modules/DashboardBuilder/vos/
 import DashboardPageWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DashboardWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
-import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
+import { VOsTypesManager } from '../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../InlineTranslatableText/InlineTranslatableText';

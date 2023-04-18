@@ -10,7 +10,7 @@ import NumSegment from "../../DataRender/vos/NumSegment";
 import TSRange from "../../DataRender/vos/TSRange";
 import Dates from "../../FormatDatesNombres/Dates/Dates";
 import ModuleTableField from "../../ModuleTableField";
-import VOsTypesManager from "../../VOsTypesManager";
+import { VOsTypesManager } from "../../VO/manager/VOsTypesManager";
 import ContextFilterVO from "../vos/ContextFilterVO";
 import { FieldValueFilterWidgetOptionsVO } from '../../DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
 import MonthFilterWidgetOptionsVO from '../../DashboardBuilder/vos/MonthFilterWidgetOptionsVO';

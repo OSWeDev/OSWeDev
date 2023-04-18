@@ -6,7 +6,7 @@ import DataImportFormatVO from '../../../../shared/modules/DataImport/vos/DataIm
 import DataImportHistoricVO from '../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
 import DataImportLogVO from '../../../../shared/modules/DataImport/vos/DataImportLogVO';
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
-import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
+import { VOsTypesManager } from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import CRUDComponentManager from '../../../ts/components/crud/CRUDComponentManager';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import VueAppController from '../../../VueAppController';

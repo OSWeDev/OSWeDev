@@ -3,7 +3,7 @@ import PromisePipeline from "../../../tools/PromisePipeline/PromisePipeline";
 import DashboardVO from "../vos/DashboardVO";
 import DataFilterOption from "../../DataRender/vos/DataFilterOption";
 import ModuleTable from "../../ModuleTable";
-import VOsTypesManager from "../../VOsTypesManager";
+import { VOsTypesManager } from "../../VO/manager/VOsTypesManager";
 import ContextFilterHandler from "../../ContextFilter/ContextFilterHandler";
 import { ContextFilterVOManager } from "../../ContextFilter/manager/ContextFilterVOManager";
 import ModuleContextFilter from "../../ContextFilter/ModuleContextFilter";

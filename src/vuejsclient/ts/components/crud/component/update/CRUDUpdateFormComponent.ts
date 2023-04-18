@@ -9,7 +9,7 @@ import CRUDFieldRemoverConfVO from '../../../../../../shared/modules/DAO/vos/CRU
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
-import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
+import { VOsTypesManager } from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';

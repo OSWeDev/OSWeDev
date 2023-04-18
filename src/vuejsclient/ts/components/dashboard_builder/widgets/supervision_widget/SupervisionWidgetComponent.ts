@@ -16,7 +16,7 @@ import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ISupervisedItem from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import ISupervisedItemController from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItemController';
 import SupervisionController from '../../../../../../shared/modules/Supervision/SupervisionController';
-import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
+import { VOsTypesManager } from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import EnvHandler from '../../../../../../shared/tools/EnvHandler';
 import PromisePipeline from '../../../../../../shared/tools/PromisePipeline/PromisePipeline';

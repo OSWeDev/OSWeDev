@@ -9,7 +9,7 @@ import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VersionedVOController from '../Versioned/VersionedVOController';
-import VOsTypesManager from '../VOsTypesManager';
+import { VOsTypesManager } from '../VO/manager/VOsTypesManager';
 import FeedbackStateVO from './vos/FeedbackStateVO';
 import FeedbackVO from './vos/FeedbackVO';
 

@@ -4,7 +4,7 @@ import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
 import ContextQueryVO from "../../ContextFilter/vos/ContextQueryVO";
 import ModuleTable from "../../ModuleTable";
 import ModuleTableField from "../../ModuleTableField";
-import VOsTypesManager from "../../VOsTypesManager";
+import { VOsTypesManager } from "../../VO/manager/VOsTypesManager";
 import DashboardVO from "../vos/DashboardVO";
 
 /**

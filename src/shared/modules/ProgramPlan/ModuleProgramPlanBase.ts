@@ -11,7 +11,7 @@ import ModuleFormatDatesNombres from '../FormatDatesNombres/ModuleFormatDatesNom
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
-import VOsTypesManager from '../VOsTypesManager';
+import { VOsTypesManager } from '../VO/manager/VOsTypesManager';
 import IPlanContact from './interfaces/IPlanContact';
 import IPlanContactType from './interfaces/IPlanContactType';
 import IPlanEnseigne from './interfaces/IPlanEnseigne';

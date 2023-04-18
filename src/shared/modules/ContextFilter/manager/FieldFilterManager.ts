@@ -48,6 +48,8 @@ export class FieldFilterManager {
     /**
      * Overwrite Filters With Context Filters
      *
+     * @deprecated I would rather user ObjectHandler.deepmerge
+     *
      * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} from_field_filters
      * @param {{ field_id: string, api_type_id: string }} vo_field_ref
      * @param {ContextFilterVO} context_filter

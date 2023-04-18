@@ -17,7 +17,7 @@ import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import ModuleVO from '../ModuleVO';
 import DefaultTranslation from '../Translation/vos/DefaultTranslation';
-import VOsTypesManager from '../VOsTypesManager';
+import { VOsTypesManager } from '../VO/manager/VOsTypesManager';
 import DataImportColumnVO from './vos/DataImportColumnVO';
 import DataImportErrorLogVO from './vos/DataImportErrorLogVO';
 import DataImportFormatVO from './vos/DataImportFormatVO';

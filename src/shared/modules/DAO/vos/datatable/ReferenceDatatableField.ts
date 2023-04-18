@@ -2,7 +2,7 @@ import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/Data
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../shared/modules/ModuleTable';
 import WeightHandler from '../../../../tools/WeightHandler';
-import VOsTypesManager from '../../../VOsTypesManager';
+import { VOsTypesManager } from '../../../VO/manager/VOsTypesManager';
 
 export default abstract class ReferenceDatatableField<Target extends IDistantVOBase> extends DatatableField<number, number> {
 

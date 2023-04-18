@@ -8,7 +8,7 @@ import ModuleDAO from "../../../../../../shared/modules/DAO/ModuleDAO";
 import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import Dates from "../../../../../../shared/modules/FormatDatesNombres/Dates/Dates";
-import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
+import { VOsTypesManager } from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import VueComponentBase from '../../../VueComponentBase';
 
 @Component({

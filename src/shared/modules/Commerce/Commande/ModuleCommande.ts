@@ -8,7 +8,7 @@ import ModuleDAO from '../../DAO/ModuleDAO';
 import Module from '../../Module';
 import ModuleTable from '../../ModuleTable';
 import ModuleTableField from '../../ModuleTableField';
-import VOsTypesManager from '../../VOsTypesManager';
+import { VOsTypesManager } from '../../VO/manager/VOsTypesManager';
 import ModuleClient from '../Client/ModuleClient';
 import ClientVO from '../Client/vos/ClientVO';
 import InformationsVO from '../Client/vos/InformationsVO';
