@@ -2,7 +2,7 @@
  * AbstractVO
  *  - Abstract class for all VO's
  */
-export abstract class AbstractVO<T> {
+export abstract class AbstractVO {
 
     /**
      * Hydrate from the given properties
@@ -10,7 +10,7 @@ export abstract class AbstractVO<T> {
      * @param {Partial<T>} props
      * @returns {T}
      */
-    public from(props: Partial<T>): this {
+    public from<T>(props: Partial<T>): this {
 
         Object.assign(this, props);
 

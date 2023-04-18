@@ -21,6 +21,8 @@ import { ContextFilterVOHandler } from "../handler/ContextFilterVOHandler";
 /**
  * ContextFilterVOManager
  *  - Create ContextFilterVO depending on all possible given properties
+ *
+ * TODO: Managers methods have to be for Creating|Finding|Updating fields of ContextFilterVO
  */
 export class ContextFilterVOManager {
 

@@ -13,6 +13,7 @@ import { FieldValueFilterWidgetManager } from './FieldValueFilterWidgetManager';
 import { FieldValueFilterWidgetOptionsVO } from "../vos/FieldValueFilterWidgetOptionsVO";
 import { DashboardBuilderBoardManager } from "./DashboardBuilderBoardManager";
 import { FieldFilterManager } from "../../ContextFilter/manager/FieldFilterManager";
+import { Options } from "nodemailer/lib/dkim";
 
 /**
  * Dashboard Builder Data Filter Manager
@@ -26,12 +27,14 @@ export class DashboardBuilderDataFilterManager {
 
     /**
      * Load enum data filters from widget options
-     *  - Load data filters from database by using the given dashboard and widget_options properties
+     *  - Load enum data filters from database by using the given dashboard and widget_options properties
      *
-     * @param {DashboardVO} dashboard
-     * @param {FieldValueFilterWidgetOptionsVO} widget_options
-     * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} active_field_filters
-     * @param options
+     * @param {DashboardVO} dashboard  the actual dashboard
+     * @param {FieldValueFilterWidgetOptionsVO} widget_options the actual widget options
+     * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} active_field_filters Active field filters (from the user selection) from the actual dashboard
+     * @param {options.force_filter_active_api_type_id} options.force_filter_active_api_type_id
+     * @param {options.active_api_type_ids} options.active_api_type_ids
+     * @param {options.query_api_type_ids} options.query_api_type_ids
      * @returns {Promise<DataFilterOption[]>}
      */
     public static async load_enum_data_filters_from_widget_options(
