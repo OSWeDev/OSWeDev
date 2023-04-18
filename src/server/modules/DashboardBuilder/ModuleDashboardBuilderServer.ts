@@ -1019,6 +1019,33 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Utiliser ce filtre de date personnalisé pour la dimension'
         }, 'var_pie_chart_widget_options_component.dimension_custom_filter_name.___LABEL___'));
 
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Année'
+        }, 'TstzFilterOptionsComponent.segment_types.0.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Mois'
+        }, 'TstzFilterOptionsComponent.segment_types.1.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Jour'
+        }, 'TstzFilterOptionsComponent.segment_types.2.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Semaine'
+        }, 'TstzFilterOptionsComponent.segment_types.3.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Année glissante'
+        }, 'TstzFilterOptionsComponent.segment_types.4.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Heure'
+        }, 'TstzFilterOptionsComponent.segment_types.5.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Minute'
+        }, 'TstzFilterOptionsComponent.segment_types.6.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Seconde'
+        }, 'TstzFilterOptionsComponent.segment_types.7.___LABEL___'));
+
+
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Année'
         }, 'VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.0.___LABEL___'));

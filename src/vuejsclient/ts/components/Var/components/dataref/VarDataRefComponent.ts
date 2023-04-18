@@ -476,6 +476,9 @@ export default class VarDataRefComponent extends VueComponentBase {
             let filter_type: string = this.filter_obj.type;
 
             switch (filter_type) {
+                case FilterObj.FILTER_TYPE_tstz:
+                    throw new Error('Not implemented');
+
                 case FilterObj.FILTER_TYPE_hour:
                     res.moduleTableField.field_type = ModuleTableField.FIELD_TYPE_hour;
                     break;

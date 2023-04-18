@@ -6,8 +6,6 @@ import DashboardPageWidgetVO from '../../../../../../../shared/modules/Dashboard
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
-import DefaultTranslation from '../../../../../../../shared/modules/Translation/vos/DefaultTranslation';
-import TranslatableTextVO from '../../../../../../../shared/modules/Translation/vos/TranslatableTextVO';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
@@ -18,7 +16,6 @@ import VueComponentBase from '../../../../VueComponentBase';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import WidgetFilterOptionsComponent from '../../var_widget/options/filters/WidgetFilterOptionsComponent';
-import VarWidgetOptions from '../../var_widget/options/VarWidgetOptions';
 import VarPieChartWidgetOptions from './VarPieChartWidgetOptions';
 import './VarPieChartWidgetOptionsComponent.scss';
 
