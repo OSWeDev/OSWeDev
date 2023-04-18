@@ -60,6 +60,8 @@ import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextF
 import { ExportVarIndicator } from '../../../shared/modules/DataExport/vos/ExportVarIndicator';
 import LocaleManager from '../../../shared/tools/LocaleManager';
 import { filter_by_name } from '../../../shared/tools/Filters';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
+import DataExportServerController from './DataExportServerController';
 
 export default class ModuleDataExportServer extends ModuleServerBase {
 
@@ -1021,21 +1023,6 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     }
 
     /**
-     * Objectif : formatage d'un timestamp en object Date en utc pour l'export excel
-     * @param timestamp timestamp à convertir en date UTC
-     * @returns Objet Date
-     */
-    private format_date_utc(timestamp: number): Date {
-        if (timestamp) {
-            /**
-             * On soustrait le timezone local, et les 21 secondes pour Excel ... cf https://github.com/SheetJS/sheetjs/issues/2152 pour les 21 seconds en dur....
-             */
-            return new Date(Date.UTC(Dates.year(timestamp), Dates.month(timestamp), Dates.day(timestamp), 0, 0, 0) + ((new Date()).getTimezoneOffset() * 60 * 1000) - 21000);
-        }
-        return null;
-    }
-
-    /**
      * Traduire le champs field.field_id de src_vo dans dest_vo dans l'optique d'un export excel
      * @param field le descriptif du champs à traduire
      * @param src_vo le vo source
@@ -1107,14 +1094,14 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
             case ModuleTableField.FIELD_TYPE_tstz:
 
-                dest_vo[dest_field_id] = this.format_date_utc(src_vo[src_field_id]);
+                dest_vo[dest_field_id] = DataExportServerController.format_date_utc_excel(src_vo[src_field_id], (field.segmentation_type == null) ? TimeSegment.TYPE_DAY : field.segmentation_type);
                 break;
 
             case ModuleTableField.FIELD_TYPE_tstz_array:
                 if ((src_vo[src_field_id] === null) || (typeof src_vo[src_field_id] === 'undefined')) {
                     dest_vo[dest_field_id] = src_vo[src_field_id];
                 } else {
-                    dest_vo[dest_field_id] = (src_vo[src_field_id] as number[]).map((ts: number) => this.format_date_utc(ts));
+                    dest_vo[dest_field_id] = (src_vo[src_field_id] as number[]).map((ts: number) => DataExportServerController.format_date_utc_excel(ts, (field.segmentation_type == null) ? TimeSegment.TYPE_DAY : field.segmentation_type));
                 }
                 break;
 

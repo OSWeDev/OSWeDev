@@ -254,4 +254,24 @@ export default class VarConfVO implements INamedVO {
             this.id = id;
         }
     }
+
+    public set_pixel_activated(pixel_activated: boolean): VarConfVO {
+        this.pixel_activated = pixel_activated;
+        return this;
+    }
+
+    public set_pixel_fields(pixel_fields: VarPixelFieldConfVO[]): VarConfVO {
+        this.pixel_fields = pixel_fields;
+        return this;
+    }
+
+    public set_pixel_never_delete(pixel_never_delete: boolean): VarConfVO {
+        this.pixel_never_delete = pixel_never_delete;
+        return this;
+    }
+
+    public set_aggregator(aggregator: number): VarConfVO {
+        this.aggregator = aggregator;
+        return this;
+    }
 }

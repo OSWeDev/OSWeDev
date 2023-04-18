@@ -950,6 +950,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Options des dimensions'
         }, 'var_pie_chart_widget_options_component.separator.datas_dimension_options.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Enregistrer les filtres'
+        }, 'dashboard_viewer.save_favorites_filters.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Utiliser une dimension de donnée, issue d\'un champ ou d\'un filtre date segmenté'
         }, 'var_pie_chart_widget_options_component.has_dimension.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({

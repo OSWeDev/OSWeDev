@@ -16,7 +16,10 @@ import ModuleTableField from '../ModuleTableField';
 import ModuleVO from '../ModuleVO';
 import DefaultTranslation from '../Translation/vos/DefaultTranslation';
 import LangVO from '../Translation/vos/LangVO';
+import VarsInitController from '../Var/VarsInitController';
 import VOsTypesManager from '../VOsTypesManager';
+import UserDataRangesVO from './vars/vos/UserDataRangesVO';
+import UserMinDataRangesVO from './vars/vos/UserMinDataRangesVO';
 import AccessPolicyGroupVO from './vos/AccessPolicyGroupVO';
 import AccessPolicyVO from './vos/AccessPolicyVO';
 import LoginParamVO, { LoginParamVOStatic } from './vos/apis/LoginParamVO';
@@ -400,6 +403,31 @@ export default class ModuleAccessPolicy extends Module {
         this.initializeModulePolicyDependency();
         this.initializeRolesPolicies();
         this.initializeUserLogVO();
+
+        this.initializeUserMinDataRangesVO();
+        this.initializeUserDataRangesVO();
+    }
+    private initializeUserDataRangesVO() {
+        let user_id_ranges = new ModuleTableField('user_id_ranges', ModuleTableField.FIELD_TYPE_numrange_array, 'Utilisateurs', true).set_segmentation_type(NumSegment.TYPE_INT);
+
+        let datatable_fields = [
+            user_id_ranges,
+        ];
+
+        VarsInitController.getInstance().register_var_data(UserDataRangesVO.API_TYPE_ID, () => new UserDataRangesVO(), datatable_fields, this);
+        user_id_ranges.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
+    }
+
+    private initializeUserMinDataRangesVO() {
+        let user_id_ranges = new ModuleTableField('user_id_ranges', ModuleTableField.FIELD_TYPE_numrange_array, 'Utilisateurs', true).set_segmentation_type(NumSegment.TYPE_INT);
+
+        let datatable_fields = [
+            user_id_ranges,
+            new ModuleTableField('ts_ranges', ModuleTableField.FIELD_TYPE_tstzrange_array, 'Dates').set_segmentation_type(TimeSegment.TYPE_MINUTE).set_format_localized_time(false),
+        ];
+
+        VarsInitController.getInstance().register_var_data(UserMinDataRangesVO.API_TYPE_ID, () => new UserMinDataRangesVO(), datatable_fields, this);
+        user_id_ranges.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID]);
     }
 
     private initializeUser() {

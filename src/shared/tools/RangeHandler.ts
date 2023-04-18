@@ -1598,84 +1598,82 @@ export default class RangeHandler {
         return null;
     }
 
+
     /**
-     * @param range
-     * @param segment_type pas utilisé pour le moment, on pourra l'utiliser pour un incrément décimal par exemple
+     * Returns the minimum value of a given range, based on the segment type and optional offset.
+     *
+     * @param range - The range to get the minimum value from.
+     * @param segment_type - The segment type to use.
+     * @param offset - The offset to apply to the minimum value.
+     * @param return_min_value - Whether to return null if the range is left open.
+     *
+     * @returns The minimum value of the range, or null if the range is invalid or left open.
      */
     public static getSegmentedMin(range: IRange, segment_type: number = null, offset: number = 0, return_min_value: boolean = true): number {
-
         if (!range) {
             return null;
         }
-
+        // Set the segment type to the range's segment type if it's not provided
         segment_type = (segment_type == null) ? range.segment_type : segment_type;
-
         switch (range.range_type) {
-
             case NumRange.RANGE_TYPE:
                 let range_min_num: NumSegment = NumSegmentHandler.getCorrespondingNumSegment(range.min, segment_type);
-
+                // Return null if the min value is greater than the max value
                 if (RangeHandler.is_elt_sup_elt(range.range_type, range_min_num.index, range.max)) {
                     return null;
                 }
-
+                // Return null if the max value is exclusive and the min value is equal to or greater than it
                 if ((!range.max_inclusiv) && RangeHandler.is_elt_equals_or_sup_elt(range.range_type, range_min_num.index, range.max)) {
                     return null;
                 }
-
+                // Apply the offset if it's provided
                 if (!!offset) {
                     NumSegmentHandler.incNumSegment(range_min_num, segment_type, offset);
                 }
-
+                // Return null if the range is left open and return_min_value is false
                 if (!return_min_value && RangeHandler.is_left_open(range)) {
                     return null;
                 }
-
                 return range_min_num.index;
-
             case HourRange.RANGE_TYPE:
                 let range_min_h: ISegment = RangeHandler.get_segment(range.range_type, range.min, segment_type);
                 let range_max_h: ISegment = RangeHandler.get_segment(range.range_type, range.max, segment_type);
-
+                // Return null if range is invalid
                 if (Durations.as(range_min_h.index, HourSegment.TYPE_SECOND) > Durations.as(range_max_h.index, HourSegment.TYPE_SECOND)) {
                     return null;
                 }
-
+                // Return null if the max value is exclusive and the min value is greater than or equal to it
                 if ((!range.max_inclusiv) && (Durations.as(range_min_h.index, HourSegment.TYPE_SECOND) >= Durations.as(range.max, HourSegment.TYPE_SECOND))) {
                     return null;
                 }
-
+                // Apply the offset if it's provided
                 if (!!offset) {
                     range_min_h.index = Dates.add(range_min_h.index, offset, segment_type);
                 }
-
+                // Return null if the range is left open and return_min_value is false
                 if (!return_min_value && RangeHandler.is_left_open(range)) {
                     return null;
                 }
-
                 return range_min_h.index;
-
             case TSRange.RANGE_TYPE:
                 let range_min_ts: ISegment = RangeHandler.get_segment(range.range_type, range.min, segment_type);
                 let range_max_ts: ISegment = RangeHandler.get_segment(range.range_type, range.max, segment_type);
-
+                // Return null if range is invalid
                 if (range_min_ts.index > range_max_ts.index) {
                     return null;
                 }
-
+                // Return null if the max value is exclusive and the min value is greater than or equal to it
                 if ((!range.max_inclusiv) && (range_min_ts.index >= range.max)) {
                     return null;
                 }
-
+                // Apply the offset if it's provided
                 if (!!offset) {
                     (range_min_ts.index) = Dates.add(range_min_ts.index, offset, segment_type);
                 }
-
-                // Si on est sur un max range et qu'on veut pas retourner la valeur, on retourne null
+                // Return null if the range is left open and return_min_value is false
                 if (!return_min_value && RangeHandler.is_left_open(range)) {
                     return null;
                 }
-
                 return range_min_ts.index;
         }
     }
