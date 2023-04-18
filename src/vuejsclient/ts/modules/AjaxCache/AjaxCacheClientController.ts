@@ -1,5 +1,4 @@
 import debounce from 'lodash/debounce';
-import { decode, encode } from 'messagepack';
 import AjaxCacheController from '../../../../shared/modules/AjaxCache/AjaxCacheController';
 import IAjaxCacheClientController from '../../../../shared/modules/AjaxCache/interfaces/IAjaxCacheClientController';
 import CacheInvalidationRegexpRuleVO from '../../../../shared/modules/AjaxCache/vos/CacheInvalidationRegexpRuleVO';

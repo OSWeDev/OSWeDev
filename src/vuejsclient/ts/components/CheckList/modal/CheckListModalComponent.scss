@@ -193,7 +193,7 @@
             }
 
             &.text-danger {
-                background: #dc3545;
+                background: $danger_color !important;
 
                 &,
                 p {
@@ -201,12 +201,12 @@
                 }
 
                 &:after {
-                    border-left: 6px solid #dc3545;
+                    border-left: 6px solid $danger_color !important;
                 }
             }
 
             &.text-warning {
-                background: #ffc107;
+                background: $button_warning_color !important;
 
                 &,
                 p {
@@ -214,12 +214,12 @@
                 }
 
                 &:after {
-                    border-left: 6px solid #ffc107;
+                    border-left: 6px solid $button_warning_color !important;
                 }
             }
 
             &.text-success {
-                background: #198754;
+                background: $success_color !important;
 
                 &,
                 p {
@@ -227,7 +227,7 @@
                 }
 
                 &:after {
-                    border-left: 6px solid #198754;
+                    border-left: 6px solid $success_color !important;
                 }
             }
 
