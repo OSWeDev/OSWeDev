@@ -93,7 +93,7 @@
                     :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                 ) 
            
-    .auto_select_month_min
+    .auto_select_month_min(v-tooltip='(auto_select_month_relative_mode && is_relative_to_other_filter) ? label("month_filter_widget_component.auto_select_month.is_relative_to_other_filter.tooltip") : null')
         .input_label {{ label('month_filter_widget_component.auto_select_month_min') }}
         .input_wrapper
             input(
@@ -101,7 +101,7 @@
                 v-model="auto_select_month_min"
             )
 
-    .auto_select_month_max
+    .auto_select_month_max(v-tooltip='(auto_select_month_relative_mode && is_relative_to_other_filter) ? label("month_filter_widget_component.auto_select_month.is_relative_to_other_filter.tooltip") : null')
         .input_label {{ label('month_filter_widget_component.auto_select_month_max') }}
         .input_wrapper
             input(

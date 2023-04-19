@@ -815,4 +815,5 @@ export const filter_by_name = {
     hour: hourFilter,
     planningCheck: planningCheckFilter,
     alerteCheck: alerteCheckFilter,
+    tstz: tstzFilter
 };

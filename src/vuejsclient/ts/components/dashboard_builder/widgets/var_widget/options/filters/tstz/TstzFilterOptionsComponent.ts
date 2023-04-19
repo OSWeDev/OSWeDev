@@ -28,29 +28,25 @@ export default class TstzFilterOptionsComponent extends VueComponentBase {
 
     @Watch('actual_additional_options', { immediate: true })
     private onchange_actual_additional_options() {
-        if (!this.actual_additional_options) {
-            this.tmp_segment_type = this.segment_type_options[0];
-            this.onchange_inputs();
-            return;
-        }
 
         try {
-            let options = JSON.parse(this.actual_additional_options);
+            let options = this.actual_additional_options ? JSON.parse(this.actual_additional_options) : null;
 
-            this.tmp_segment_type = this.segment_type_options[options[0] ? parseInt(options[0]) : 0];
+            this.tmp_segment_type = this.segment_type_options[(options && options[0]) ? parseInt(options[0]) : 0];
+            this.onchange_inputs();
         } catch (error) {
             ConsoleHandler.error(error);
         }
     }
 
+    @Watch('tmp_segment_type')
     private onchange_inputs() {
 
         let options = JSON.parse(this.actual_additional_options);
-        this.tmp_segment_type = this.segment_type_options[options[0] ? parseInt(options[0]) : 0];
-        if ((!options) || (this.get_segment_type_from_selected_option(this.tmp_segment_type) != options[0])) {
-            this.tmp_segment_type = this.segment_type_options[options[0]];
+        let option_segment_type = this.segment_type_options[(options && options[0]) ? parseInt(options[0]) : 0];
+        if ((!options) || (options[0] == null) || (option_segment_type != this.tmp_segment_type)) {
             options = [
-                this.tmp_segment_type,
+                this.get_segment_type_from_selected_option(this.tmp_segment_type)
             ];
         }
 

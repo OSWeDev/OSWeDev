@@ -5,6 +5,7 @@ import { WorkBook } from 'xlsx';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
@@ -15,10 +16,13 @@ import DashboardBuilderController from '../../../shared/modules/DashboardBuilder
 import TableWidgetCustomFieldsController from '../../../shared/modules/DashboardBuilder/TableWidgetCustomFieldsController';
 import TableColumnDescVO from '../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import IExportableSheet from '../../../shared/modules/DataExport/interfaces/IExportableSheet';
+import { IExportOptions } from '../../../shared/modules/DataExport/interfaces/IExportOptions';
 import ModuleDataExport from '../../../shared/modules/DataExport/ModuleDataExport';
 import ExportLogVO from '../../../shared/modules/DataExport/vos/apis/ExportLogVO';
 import ExportHistoricVO from '../../../shared/modules/DataExport/vos/ExportHistoricVO';
 import ExportVarcolumnConf from '../../../shared/modules/DataExport/vos/ExportVarcolumnConf';
+import { ExportVarIndicator } from '../../../shared/modules/DataExport/vos/ExportVarIndicator';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import ModuleFile from '../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -38,6 +42,8 @@ import VarsController from '../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { filter_by_name } from '../../../shared/tools/Filters';
+import LocaleManager from '../../../shared/tools/LocaleManager';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
@@ -54,13 +60,6 @@ import VarsServerCallBackSubsController from '../Var/VarsServerCallBackSubsContr
 import DataExportBGThread from './bgthreads/DataExportBGThread';
 import ExportContextQueryToXLSXBGThread from './bgthreads/ExportContextQueryToXLSXBGThread';
 import ExportContextQueryToXLSXQueryVO from './bgthreads/vos/ExportContextQueryToXLSXQueryVO';
-import FilterObj, { percentFilter, toFixedFilter } from '../../../shared/tools/Filters';
-import { IExportOptions } from '../../../shared/modules/DataExport/interfaces/IExportOptions';
-import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
-import { ExportVarIndicator } from '../../../shared/modules/DataExport/vos/ExportVarIndicator';
-import LocaleManager from '../../../shared/tools/LocaleManager';
-import { filter_by_name } from '../../../shared/tools/Filters';
-import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import DataExportServerController from './DataExportServerController';
 
 export default class ModuleDataExportServer extends ModuleServerBase {
@@ -828,7 +827,10 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     params = params.concat(filter_additional_params);
 
                     if (typeof filter_by_name[varcolumn_conf.filter_type]?.read === 'function') {
-                        value = filter_by_name[varcolumn_conf.filter_type].read.apply(null, params).replace(/\s+/g, '');
+                        value = filter_by_name[varcolumn_conf.filter_type].read.apply(null, params);
+                        if (varcolumn_conf.filter_type != 'tstz') {
+                            value = (value as any).replace(/\s+/g, '');
+                        }
                     }
                 }
 
@@ -1239,7 +1241,10 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 params = params.concat(filter_additional_params);
 
                 if (typeof filter_by_name[column.filter_type]?.read === 'function') {
-                    row[column.datatable_field_uid] = filter_by_name[column.filter_type].read.apply(null, params).replace(/\s+/g, '');
+                    row[column.datatable_field_uid] = filter_by_name[column.filter_type].read.apply(null, params);
+                    if (column.filter_type != 'tstz') {
+                        row[column.datatable_field_uid] = (row[column.datatable_field_uid] as any).replace(/\s+/g, '');
+                    }
                 }
             }
         }

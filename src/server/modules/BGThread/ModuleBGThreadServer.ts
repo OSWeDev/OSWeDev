@@ -1,3 +1,4 @@
+import IBGThread from './interfaces/IBGThread';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
@@ -17,7 +18,6 @@ import KillForkMessage from '../Fork/messages/KillForkMessage';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import BGThreadServerController from './BGThreadServerController';
-import IBGThread from './interfaces/IBGThread';
 
 export default class ModuleBGThreadServer extends ModuleServerBase {
 
