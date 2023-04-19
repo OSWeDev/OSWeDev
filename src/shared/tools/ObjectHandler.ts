@@ -127,6 +127,24 @@ export default class ObjectHandler {
             || stringValue === '[object Date]';
     }
 
+    public static map_array_by_object_field_value<T>(target: T[], field: string): { [i: string]: T } {
+        let res: { [i: string]: T } = {};
+
+        for (const key in target) {
+            const obj = target[key];
+
+            if (!(typeof obj[field] == 'string')) {
+                throw new Error(`ObjectHandler.map_array_by_object_field_value: field ` +
+                    `${field} is not a string in ${JSON.stringify(obj)} ` +
+                    `(${typeof obj[field]} givren!)`);
+            }
+
+            res[obj[field]] = obj;
+        }
+
+        return res;
+    }
+
     /* istanbul ignore next: nothing to test here */
     public static getInstance(): ObjectHandler {
         if (!ObjectHandler.instance) {

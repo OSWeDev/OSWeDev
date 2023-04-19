@@ -1796,7 +1796,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Filtrer sur tous les types (pour la Supervision seulement)" },
-            'field_value_filter_widget_component.force_filter_all_api_type_ids.___LABEL___'
+            'field_value_filter_widget_component.force_filter_by_all_api_type_ids.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Afficher Bulk Edit" },

@@ -862,7 +862,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                     options.enum_fg_colors,
                     options.show_count_value,
                     options.active_field_on_autovalidate_advanced_filter,
-                    options.force_filter_all_api_type_ids,
+                    options.force_filter_by_all_api_type_ids,
                     options.bg_color,
                     options.fg_color_value,
                     options.fg_color_text,

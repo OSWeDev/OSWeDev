@@ -20,7 +20,6 @@ import PromisePipeline from '../../../../../../shared/tools/PromisePipeline/Prom
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
-import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 
 @Component({
     template: require('./SupervisionTypeWidgetComponent.pug'),
@@ -33,6 +32,9 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
 
     @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+
+    @ModuleDashboardPageAction
+    private set_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
 
     @ModuleDashboardPageAction
     private set_active_api_type_ids: (active_api_type_ids: string[]) => void;
@@ -83,6 +85,9 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
 
     @Watch("supervision_api_type_ids")
     private async onchange_supervision_api_type_ids() {
+
+        // TODO: Apply filed_filters by the selected supervision_api_type_id;
+
         let available_api_type_ids: string[] = [];
 
         let limit = EnvHandler.MAX_POOL / 2;
@@ -100,8 +105,8 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
 
         // Shall load all supervision_api_type_ids by default
         // Show supervision_api_type_ids that match the supervision_category_active_field_filters
-        for (let field_id in supervision_category_active_field_filters) {
-            let filter = supervision_category_active_field_filters[field_id];
+        for (const field_id in supervision_category_active_field_filters) {
+            const filter = supervision_category_active_field_filters[field_id];
 
             if (!filter) {
                 continue;
@@ -155,8 +160,19 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
     }
 
     private async mounted() {
-        this.categories_by_name = ObjectHandler.getInstance().mapByStringFieldFromArray(
-            await query(SupervisedCategoryVO.API_TYPE_ID).select_vos<SupervisedCategoryVO>(),
+        await this.load_all_supervised_categories();
+    }
+
+    /**
+     * Load all supervised categories
+     * @returns {Promise<void>}
+     */
+    private async load_all_supervised_categories(): Promise<void> {
+        const sup_categories: SupervisedCategoryVO[] = await query(SupervisedCategoryVO.API_TYPE_ID)
+            .select_vos<SupervisedCategoryVO>();
+
+        this.categories_by_name = ObjectHandler.map_array_by_object_field_value(
+            sup_categories,
             'name'
         );
     }

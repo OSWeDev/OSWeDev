@@ -114,7 +114,7 @@ export class FieldFilterManager {
 
                 let new_api_type_id: string = api_type_id_sup;
 
-                if (widget_options.force_filter_all_api_type_ids) {
+                if (widget_options.force_filter_by_all_api_type_ids) {
                     new_api_type_id = api_type_id;
                 }
 

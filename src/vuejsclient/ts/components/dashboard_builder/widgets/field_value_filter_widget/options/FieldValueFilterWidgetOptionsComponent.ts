@@ -460,7 +460,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
             this.next_update_options = this.default_widget_props;
         }
 
-        this.next_update_options.force_filter_all_api_type_ids = !this.next_update_options.force_filter_all_api_type_ids;
+        this.next_update_options.force_filter_by_all_api_type_ids = !this.next_update_options.force_filter_by_all_api_type_ids;
 
         await this.throttled_update_options();
     }
@@ -869,7 +869,6 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
                 this.widget_options,
                 this.get_active_field_filters,
                 {
-                    force_filter_active_api_type_id: false,
                     active_api_type_ids: this.get_active_api_type_ids,
                     query_api_type_ids: this.get_query_api_type_ids,
                 }
@@ -1055,7 +1054,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
             this.enum_fg_colors,
             this.show_count_value,
             this.active_field_on_autovalidate_advanced_filter,
-            this.force_filter_all_api_type_ids,
+            this.force_filter_by_all_api_type_ids,
             this.bg_color,
             this.fg_color_value,
             this.fg_color_text
@@ -1227,13 +1226,13 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
         return this.widget_options.active_field_on_autovalidate_advanced_filter;
     }
 
-    get force_filter_all_api_type_ids(): boolean {
+    get force_filter_by_all_api_type_ids(): boolean {
 
         if (!this.widget_options) {
             return null;
         }
 
-        return this.widget_options.force_filter_all_api_type_ids;
+        return this.widget_options.force_filter_by_all_api_type_ids;
     }
 
     get add_is_null_selectable(): boolean {

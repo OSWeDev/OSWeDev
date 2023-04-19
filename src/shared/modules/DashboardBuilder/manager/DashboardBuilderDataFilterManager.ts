@@ -31,7 +31,7 @@ export class DashboardBuilderDataFilterManager {
      * @param {DashboardVO} dashboard  the actual dashboard
      * @param {FieldValueFilterWidgetOptionsVO} widget_options the actual widget options
      * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} active_field_filters Active field filters (from the user selection) from the actual dashboard
-     * @param {options.force_filter_active_api_type_id} options.force_filter_active_api_type_id
+     * @param {options.force_filter_by_active_api_type_ids} options.force_filter_by_active_api_type_ids
      * @param {options.active_api_type_ids} options.active_api_type_ids
      * @param {options.query_api_type_ids} options.query_api_type_ids
      * @returns {Promise<DataFilterOption[]>}
@@ -41,7 +41,6 @@ export class DashboardBuilderDataFilterManager {
         widget_options: FieldValueFilterWidgetOptionsVO,
         active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }, // Active field filters from the actual dashboard
         options?: {
-            force_filter_active_api_type_id?: boolean,
             active_api_type_ids?: string[]; // Setted on user selection (select option) to specify query on specified vos api ids
             query_api_type_ids?: string[]; // Setted from widget options to have custom|default query on specified vos api ids
         }
@@ -58,7 +57,7 @@ export class DashboardBuilderDataFilterManager {
             widget_options = new FieldValueFilterWidgetOptionsVO().from(widget_options);
         }
 
-        let vo_field_ref = widget_options?.vo_field_ref;
+        const vo_field_ref = widget_options?.vo_field_ref;
 
         const discarded_field_paths = await DashboardBuilderBoardManager.load_discarded_field_paths({ id: dashboard.id } as DashboardVO);
 
@@ -68,14 +67,15 @@ export class DashboardBuilderDataFilterManager {
         if (widget_options.has_other_ref_api_type_id && widget_options.other_ref_api_type_id) {
             available_api_type_ids = [widget_options.other_ref_api_type_id];
         } else {
-            available_api_type_ids = [widget_options.vo_field_ref?.api_type_id];
+            available_api_type_ids = [vo_field_ref?.api_type_id];
         }
 
-        if (options.active_api_type_ids?.length > 0 && options.force_filter_active_api_type_id) {
+        if (options.active_api_type_ids?.length > 0) {
+            // Get selected api type ids (e.g. from supervision widget options)
             available_api_type_ids = options.active_api_type_ids;
 
-        } else if (options.query_api_type_ids.length > 0 && widget_options.force_filter_all_api_type_ids) {
-            // Get default api type ids may be from supervision widget options
+        } else if (options.query_api_type_ids.length > 0 && widget_options.force_filter_by_all_api_type_ids) {
+            // Get default api type ids (e.g. from supervision widget_options)
             available_api_type_ids = options.query_api_type_ids;
         }
 
@@ -103,7 +103,7 @@ export class DashboardBuilderDataFilterManager {
                 custom_active_field_filters
             );
 
-            if (widget_options.force_filter_all_api_type_ids) {
+            if (widget_options.force_filter_by_all_api_type_ids) {
                 vo_field_ref.api_type_id = query_api_type_id;
             }
 
