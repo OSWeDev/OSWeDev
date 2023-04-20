@@ -19,7 +19,7 @@ import Dates from '../../FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../IDistantVOBase';
 import ModuleTableField from '../../ModuleTableField';
 import { VOsTypesManager } from '../../VO/manager/VOsTypesManager';
-import { ContextFilterVOManager } from '../manager/ContextFilterVOManager';
+import ContextFilterVOManager from '../manager/ContextFilterVOManager';
 import ContextFilterVO from '../vos/ContextFilterVO';
 import { query } from '../vos/ContextQueryVO';
 
@@ -29,7 +29,7 @@ import { query } from '../vos/ContextQueryVO';
  * TODO: For some of the following methods, we would rather use the new ContextFilterVOManager methods
  * TODO: Handlers methods have to be for Handling|Checking rules on ContextFilterVO
  */
-export class ContextFilterVOHandler {
+export default class ContextFilterVOHandler {
 
     // MONTHS MIXIN
     public static readonly MONTHS_LABELS = [

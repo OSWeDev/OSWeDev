@@ -26,9 +26,9 @@ import ModuleDataExportServer from '../DataExport/ModuleDataExportServer';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { DashboardBuilderVOFactory } from '../../../shared/modules/DashboardBuilder/factory/DashboardBuilderVOFactory';
 import DashboardWidgetVO from '../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
-import { ContextFilterVOManager } from '../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
+import ContextFilterVOManager from '../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import { IExportParamsProps } from '../../../shared/modules/DashboardBuilder/interfaces/IExportParamsProps';
-import { FieldFilterManager } from '../../../shared/modules/ContextFilter/manager/FieldFilterManager';
+import FieldFilterManager from '../../../shared/modules/ContextFilter/manager/FieldFilterManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 

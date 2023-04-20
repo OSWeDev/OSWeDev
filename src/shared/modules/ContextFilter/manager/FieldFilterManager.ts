@@ -1,6 +1,6 @@
 import { cloneDeep } from "lodash";
-import { ContextFilterVOHandler } from "../handler/ContextFilterVOHandler";
-import { ContextFilterVOManager } from "./ContextFilterVOManager";
+import ContextFilterVOHandler from "../handler/ContextFilterVOHandler";
+import ContextFilterVOManager from "./ContextFilterVOManager";
 import ContextFilterVO from "../vos/ContextFilterVO";
 
 
@@ -8,7 +8,7 @@ import ContextFilterVO from "../vos/ContextFilterVO";
  * @class FieldFilterManager
  *  - Must likely alter and return field filters like { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
  */
-export class FieldFilterManager {
+export default class FieldFilterManager {
 
     /**
      * Merge Field Filters With Context Filters

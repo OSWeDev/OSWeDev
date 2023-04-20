@@ -10,7 +10,7 @@ import RangeHandler from '../../../shared/tools/RangeHandler';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
-import { ContextFilterVOHandler } from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
+import ContextFilterVOHandler from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 
 describe('TestContextFilterHandler: assert_context_filter_root_is_valid_and_get_filters', () => {
     it('should throw an error if context_filter_root is null', () => {

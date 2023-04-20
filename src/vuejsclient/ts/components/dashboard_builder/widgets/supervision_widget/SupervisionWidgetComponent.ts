@@ -32,7 +32,7 @@ import SupervisionWidgetOptions from './options/SupervisionWidgetOptions';
 import SupervisionWidgetController from './SupervisionWidgetController';
 import SupervisionItemModalComponent from './supervision_item_modal/SupervisionItemModalComponent';
 import { SupervisionTypeWidgetManager } from '../../../../../../shared/modules/DashboardBuilder/manager/SupervisionTypeWidgetManager';
-import { ContextFilterVOManager } from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
+import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import './SupervisionWidgetComponent.scss';
 
 @Component({

@@ -15,7 +15,7 @@ import TSRange from "../../DataRender/vos/TSRange";
 import Dates from "../../FormatDatesNombres/Dates/Dates";
 import ModuleTableField from "../../ModuleTableField";
 import { VOsTypesManager } from "../../VO/manager/VOsTypesManager";
-import { ContextFilterVOHandler } from "../handler/ContextFilterVOHandler";
+import ContextFilterVOHandler from "../handler/ContextFilterVOHandler";
 import ContextFilterVO from "../vos/ContextFilterVO";
 
 /**
@@ -24,7 +24,7 @@ import ContextFilterVO from "../vos/ContextFilterVO";
  *
  * TODO: Managers methods have to be for Creating|Finding|Updating fields of ContextFilterVO
  */
-export class ContextFilterVOManager {
+export default class ContextFilterVOManager {
 
     /**
      * Create Context Filter From Widget Options
