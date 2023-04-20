@@ -4,14 +4,14 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
-import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
+import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import IImportedData from '../../../shared/modules/DataImport/interfaces/IImportedData';
 import ModuleDataImport from '../../../shared/modules/DataImport/ModuleDataImport';
 import DataImportColumnVO from '../../../shared/modules/DataImport/vos/DataImportColumnVO';
+import DataImportErrorLogVO from '../../../shared/modules/DataImport/vos/DataImportErrorLogVO';
 import DataImportFormatVO from '../../../shared/modules/DataImport/vos/DataImportFormatVO';
 import DataImportHistoricVO from '../../../shared/modules/DataImport/vos/DataImportHistoricVO';
 import DataImportLogVO from '../../../shared/modules/DataImport/vos/DataImportLogVO';
@@ -29,7 +29,6 @@ import { VOsTypesManager } from '../../../shared/modules/VO/manager/VOsTypesMana
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import FileHandler from '../../../shared/tools/FileHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
-import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -37,6 +36,7 @@ import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import ModuleContextFilterServer from '../ContextFilter/ModuleContextFilterServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
+import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
@@ -49,11 +49,8 @@ import DataImportModuleBase from './DataImportModuleBase/DataImportModuleBase';
 import FormattedDatasStats from './FormattedDatasStats';
 import ImportTypeCSVHandler from './ImportTypeHandlers/ImportTypeCSVHandler';
 import ImportTypeXLSXHandler from './ImportTypeHandlers/ImportTypeXLSXHandler';
-import ImportLogger from './logger/ImportLogger';
-import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ImportTypeXMLHandler from './ImportTypeHandlers/ImportTypeXMLHandler';
-import DataImportErrorLogVO from '../../../shared/modules/DataImport/vos/DataImportErrorLogVO';
-import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
+import ImportLogger from './logger/ImportLogger';
 
 export default class ModuleDataImportServer extends ModuleServerBase {
 
