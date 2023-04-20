@@ -1,23 +1,18 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import ContextFilterHandler from '../../../../../shared/modules/ContextFilter/ContextFilterHandler';
-import ModuleContextFilter from '../../../../../shared/modules/ContextFilter/ModuleContextFilter';
-import ContextQueryVO, { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
+import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import SortByVO from '../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDashboardBuilder from '../../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
 import DashboardPageVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
-import TranslatableTextVO from '../../../../../shared/modules/Translation/vos/TranslatableTextVO';
 import WeightHandler from '../../../../../shared/tools/WeightHandler';
 import InlineTranslatableText from '../../InlineTranslatableText/InlineTranslatableText';
 import VueComponentBase from '../../VueComponentBase';
 import DashboardBuilderBoardComponent from '../board/DashboardBuilderBoardComponent';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../page/DashboardPageStore';
-import ContextFilterVO from '../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import './DashboardViewerComponent.scss';
-import SortByVO from '../../../../../shared/modules/ContextFilter/vos/SortByVO';
 
 @Component({
     template: require('./DashboardViewerComponent.pug'),
