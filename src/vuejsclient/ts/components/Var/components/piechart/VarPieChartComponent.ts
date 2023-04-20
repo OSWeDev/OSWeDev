@@ -45,15 +45,63 @@ export default class VarPieChartComponent extends VueComponentBase {
     @Prop({ default: false })
     public reload_on_mount: boolean;
 
+    private singleton_waiting_to_be_rendered: boolean = false;
     private rendered: boolean = false;
-    private debounced_render_chart_js = debounce(this.render_chart_js, 1000);
+
+    private throttled_update_chart_js = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_chart_js, 500, { leading: false, trailing: true });
+    private debounced_render_or_update_chart_js = debounce(this.render_or_update_chart_js, 100);
 
     private var_datas: { [index: string]: VarDataValueResVO } = {};
-    private throttled_var_datas_updater = ThrottleHelper.getInstance().declare_throttle_without_args(this.var_datas_updater.bind(this), 500, { leading: false, trailing: true });
+    private throttled_var_datas_updater = ThrottleHelper.getInstance().declare_throttle_without_args(this.var_datas_updater.bind(this), 100, { leading: false, trailing: true });
 
     private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
         [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_datas_updater.bind(this), VarUpdateCallback.VALUE_TYPE_VALID)
     };
+
+    /**
+     * Si on a pas encore rendered le chart, on checke les datas. Dès que les datas sont là, on render.
+     *  Pendant ce temps on bloque le sémaphore
+     * Si on a déjà rendered le chart, on checke les datas. Dès que les datas sont là, on update.
+     *  Pendant ce temps on bloque le sémaphore
+     */
+    private async render_or_update_chart_js() {
+
+        if (this.singleton_waiting_to_be_rendered) {
+            return;
+        }
+        this.singleton_waiting_to_be_rendered = true;
+
+        if (!this.rendered) {
+
+            await this.wait_for_datas();
+            await this.render_chart_js();
+        } else {
+
+            await this.wait_for_datas();
+            await this.throttled_update_chart_js();
+        }
+
+        this.singleton_waiting_to_be_rendered = false;
+    }
+
+    /**
+     * Waiting for all_data_loaded
+     */
+    private async wait_for_datas(): Promise<void> {
+
+        if (this.all_data_loaded) {
+            return;
+        }
+
+        return new Promise((resolve) => {
+            let interval = setInterval(() => {
+                if (this.all_data_loaded) {
+                    clearInterval(interval);
+                    resolve();
+                }
+            }, 100);
+        });
+    }
 
     private var_datas_updater() {
 
@@ -74,7 +122,7 @@ export default class VarPieChartComponent extends VueComponentBase {
     private mounted() {
 
         if (this.all_data_loaded) {
-            this.debounced_render_chart_js();
+            this.debounced_render_or_update_chart_js();
         }
     }
 
@@ -176,8 +224,6 @@ export default class VarPieChartComponent extends VueComponentBase {
             return null;
         }
 
-        this.debounced_render_chart_js();
-
         return {
             labels: this.labels,
             datasets: this.datasets
@@ -277,9 +323,14 @@ export default class VarPieChartComponent extends VueComponentBase {
         }
 
         if (!!this.rendered) {
-            // Issu de Bar
-            this.$data._chart.destroy();
+            ConsoleHandler.error('PB:render Pie Chart déjà rendu');
+            return;
         }
+
+        // if (!!this.rendered) {
+        //     // Issu de Bar
+        //     this.$data._chart.destroy();
+        // }
         this.rendered = true;
 
         try {
@@ -290,18 +341,28 @@ export default class VarPieChartComponent extends VueComponentBase {
                 this.chartOptions
             );
         } catch (error) {
-            ConsoleHandler.warn('PB:render Pie Chart probablement trop tôt:' + error);
+            // ConsoleHandler.warn('PB:render Pie Chart probablement trop tôt:' + error);
+            ConsoleHandler.error('PB:render Pie Chart probablement trop tôt:' + error + ':');
             this.rendered = false;
-            setTimeout(this.render_chart_js, 500);
+            // setTimeout(this.render_chart_js, 500);
         }
     }
 
-    @Watch('datasets')
-    private onchange_datasets() {
+    private update_chart_js() {
 
-        if (this.all_data_loaded) {
-            this.debounced_render_chart_js();
+        if (!this.chartData) {
+            return;
         }
+
+        if (!!this.rendered) {
+            // Issu de Bar
+            this.$data._chart.update();
+        }
+    }
+
+    @Watch('chartData')
+    private onchange_datasets() {
+        this.debounced_render_or_update_chart_js();
     }
 
     get labels(): string[] {

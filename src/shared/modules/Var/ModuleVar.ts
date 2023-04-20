@@ -11,6 +11,7 @@ import ManualTasksController from '../Cron/ManualTasksController';
 import APISimpleVOParamVO, { APISimpleVOParamVOStatic } from '../DAO/vos/APISimpleVOParamVO';
 import APISimpleVOsParamVO, { APISimpleVOsParamVOStatic } from '../DAO/vos/APISimpleVOsParamVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
+import MatroidController from '../Matroid/MatroidController';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
@@ -120,7 +121,51 @@ export default class ModuleVar extends Module {
         active_api_type_ids: string[],
         discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
         accept_max_ranges?: boolean,
-    ) => Promise<VarDataBaseVO> = APIControllerWrapper.sah(ModuleVar.APINAME_getVarParamFromContextFilters);
+    ) => Promise<VarDataBaseVO> = APIControllerWrapper.sah(ModuleVar.APINAME_getVarParamFromContextFilters, null, (
+        var_name: string,
+        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        custom_filters: { [var_param_field_name: string]: ContextFilterVO },
+        active_api_type_ids: string[],
+        discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } },
+        accept_max_ranges?: boolean,
+    ): boolean => {
+
+        if (!var_name) {
+            return false;
+        }
+
+        /**
+         * On refuse de lancer une requête si on a explicitement pas de filtre custom, alors qu'on en attend un
+         */
+        if (custom_filters && !Object.keys(custom_filters).length) {
+
+            // On définit qu'on attend un custom param si on a du ts_ranges ou du hour_ranges pour le moment
+            let fields = MatroidController.getInstance().getMatroidFields(VarsController.getInstance().var_conf_by_name[var_name].var_data_vo_type);
+            if (!fields) {
+                // très improbable...
+                return true;
+            }
+
+            let ts_ranges_fields = fields.filter((field) =>
+                (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)
+            );
+
+            if (!ts_ranges_fields || !ts_ranges_fields.length) {
+                return true;
+            }
+
+            for (let i in ts_ranges_fields) {
+                if (!custom_filters[ts_ranges_fields[i].field_id]) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return true;
+    }, null);
 
     public initializedasync_VarsController: boolean = false;
 

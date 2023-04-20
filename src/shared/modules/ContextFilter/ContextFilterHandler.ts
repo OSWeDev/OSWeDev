@@ -1,6 +1,7 @@
 import { cloneDeep, isArray } from "lodash";
 import ConsoleHandler from "../../tools/ConsoleHandler";
 import LocaleManager from "../../tools/LocaleManager";
+import ObjectHandler from "../../tools/ObjectHandler";
 import { all_promises } from "../../tools/PromiseTools";
 import RangeHandler from "../../tools/RangeHandler";
 import DatatableField from "../DAO/vos/datatable/DatatableField";
@@ -195,6 +196,13 @@ export default class ContextFilterHandler {
             return context_filter_tree_root;
         }
 
+        /**
+         * On checke qu'on est pas en train de modifier un filtre existant
+         */
+        if ((context_filter_tree_root == context_filter_to_add) || ContextFilterHandler.find_context_filter_in_tree(context_filter_tree_root, context_filter_to_add)) {
+            return context_filter_tree_root;
+        }
+
         // Le root est déjà rempli, on renvoie un nouvel operateur
         let new_root = new ContextFilterVO();
 
@@ -214,6 +222,37 @@ export default class ContextFilterHandler {
     }
 
     private static instance: ContextFilterHandler = null;
+
+    private static find_context_filter_in_tree(context_filter_tree_root: ContextFilterVO, context_filter_to_find: ContextFilterVO): boolean {
+
+        if (!context_filter_tree_root) {
+            return false;
+        }
+
+        if (!context_filter_to_find) {
+            return false;
+        }
+
+        if ((context_filter_tree_root == context_filter_to_find) || ObjectHandler.getInstance().are_equal(context_filter_tree_root, context_filter_to_find)) {
+            return true;
+        }
+
+        if (context_filter_tree_root.left_hook) {
+            let res = ContextFilterHandler.find_context_filter_in_tree(context_filter_tree_root.left_hook, context_filter_to_find);
+            if (res) {
+                return res;
+            }
+        }
+
+        if (context_filter_tree_root.right_hook) {
+            let res = ContextFilterHandler.find_context_filter_in_tree(context_filter_tree_root.right_hook, context_filter_to_find);
+            if (res) {
+                return res;
+            }
+        }
+
+        return false;
+    }
 
     private constructor() { }
 
@@ -602,15 +641,6 @@ export default class ContextFilterHandler {
         }
 
         return res;
-    }
-
-    /**
-     * Add context_filter to the root, using the and/or/xor .... type of operator if necessary
-     * Returns the new root
-     * @deprecated Have to be staic method (no need to use Instance)
-     */
-    public add_context_filter_to_tree(context_filter_tree_root: ContextFilterVO, context_filter_to_add: ContextFilterVO, operator_type: number = ContextFilterVO.TYPE_FILTER_AND): ContextFilterVO {
-        return ContextFilterHandler.add_context_filter_to_tree(context_filter_tree_root, context_filter_to_add, operator_type);
     }
 
     /**

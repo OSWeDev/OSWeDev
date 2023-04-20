@@ -27,9 +27,9 @@ export default class StatsInvalidatorBGThread implements IBGThread {
 
     private static instance: StatsInvalidatorBGThread = null;
 
-    public current_timeout: number = 120;
-    public MAX_timeout: number = 300;
-    public MIN_timeout: number = 10;
+    public current_timeout: number = 20000;
+    public MAX_timeout: number = 20000;
+    public MIN_timeout: number = 20000;
 
     private last_update_date_sec: number = null;
 
@@ -65,7 +65,7 @@ export default class StatsInvalidatorBGThread implements IBGThread {
 
             if (invalidation_interval_sec < this.current_timeout) {
                 this.stats_out('inactive', time_in);
-                return ModuleBGThreadServer.TIMEOUT_COEF_FASTER;
+                return ModuleBGThreadServer.TIMEOUT_COEF_NEUTRAL;
             }
 
             this.stats_out('ok', time_in);

@@ -498,6 +498,12 @@ export default class VarBarLineChartWidgetComponent extends VueComponentBase {
                     this.dashboard.api_type_ids,
                     this.get_discarded_field_paths);
 
+                if (!var_params_by_dimension[dimension_value]) {
+                    // Peut arriver si on attend un filtre custom par exemple et qu'il n'est pas encore renseigné
+                    ConsoleHandler.log('Pas de var_params pour la dimension ' + dimension_value);
+                    return;
+                }
+
                 let label = null;
 
                 if (dimension_table && dimension_table.default_label_field) {
@@ -612,6 +618,12 @@ export default class VarBarLineChartWidgetComponent extends VueComponentBase {
                     update_custom_filters_1,
                     this.dashboard.api_type_ids,
                     this.get_discarded_field_paths);
+
+                if (!var_params_by_dimension[dimension_value]) {
+                    // Peut arriver si on attend un filtre custom par exemple et qu'il n'est pas encore renseigné
+                    ConsoleHandler.log('Pas de var_params pour la dimension ' + dimension_value);
+                    return;
+                }
 
                 label_by_index[var_params_by_dimension[dimension_value].index] = Dates.format_segment(dimension_value, this.widget_options.dimension_custom_filter_segment_type);
             })());

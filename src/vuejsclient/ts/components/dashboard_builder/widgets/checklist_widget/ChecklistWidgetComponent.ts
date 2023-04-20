@@ -425,7 +425,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
             filter.param_numeric = self.checklist.id;
 
             filters[self.checklist_shared_module.checklistitem_type_id]['checklist_id'] =
-                ContextFilterHandler.getInstance().add_context_filter_to_tree(
+                ContextFilterHandler.add_context_filter_to_tree(
                     filters[self.checklist_shared_module.checklistitem_type_id]['checklist_id'],
                     filter);
 
@@ -435,7 +435,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
             filter.filter_type = ContextFilterVO.TYPE_BOOLEAN_FALSE_ALL;
 
             filters[self.checklist_shared_module.checklistitem_type_id]['archived'] =
-                ContextFilterHandler.getInstance().add_context_filter_to_tree(
+                ContextFilterHandler.add_context_filter_to_tree(
                     filters[self.checklist_shared_module.checklistitem_type_id]['archived'],
                     filter);
 

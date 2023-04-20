@@ -226,7 +226,7 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
             if (!RangeHandler.are_same(context_filter.param_tsranges, ts_ranges)) {
                 context_filter.param_tsranges = ts_ranges;
 
-                let new_root = ContextFilterHandler.getInstance().add_context_filter_to_tree(root_context_filter, context_filter);
+                let new_root = ContextFilterHandler.add_context_filter_to_tree(root_context_filter, context_filter);
 
                 this.set_active_field_filter({
                     field_id: this.vo_field_ref.field_id,
