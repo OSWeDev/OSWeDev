@@ -864,7 +864,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
 
         if (this.is_type_enum) {
             // Load data_filters for enum
-            data_filters = await DashboardBuilderDataFilterManager.load_enum_data_filters_from_widget_options(
+            data_filters = await DashboardBuilderDataFilterManager.find_enum_data_filters_from_widget_options(
                 this.dashboard,
                 this.widget_options,
                 this.get_active_field_filters,

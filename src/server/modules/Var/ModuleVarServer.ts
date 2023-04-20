@@ -5,6 +5,7 @@ import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolic
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
+import { ContextFilterVOManager } from '../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
@@ -1543,7 +1544,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         let matroid_fields = MatroidController.getInstance().getMatroidFields(var_conf.var_data_vo_type);
         let field_promises: Array<Promise<any>> = [];
 
-        let cleaned_active_field_filters = ContextFilterHandler.getInstance().clean_context_filters_for_request(get_active_field_filters);
+        let cleaned_active_field_filters = ContextFilterVOManager.clean_field_filters_for_request(get_active_field_filters);
         let refuse_param: boolean = false;
 
         for (let i in matroid_fields) {

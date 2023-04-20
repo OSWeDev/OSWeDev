@@ -14,7 +14,6 @@ import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/D
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ISupervisedItem from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
-import ISupervisedItemController from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItemController';
 import SupervisionController from '../../../../../../shared/modules/Supervision/SupervisionController';
 import { VOsTypesManager } from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
@@ -30,11 +29,11 @@ import VueComponentBase from '../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import TablePaginationComponent from '../table_widget/pagination/TablePaginationComponent';
 import SupervisionWidgetOptions from './options/SupervisionWidgetOptions';
-import './SupervisionWidgetComponent.scss';
 import SupervisionWidgetController from './SupervisionWidgetController';
 import SupervisionItemModalComponent from './supervision_item_modal/SupervisionItemModalComponent';
-import { ContextFilterVOManager } from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import { SupervisionTypeWidgetManager } from '../../../../../../shared/modules/DashboardBuilder/manager/SupervisionTypeWidgetManager';
+import { ContextFilterVOManager } from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
+import './SupervisionWidgetComponent.scss';
 
 @Component({
     template: require('./SupervisionWidgetComponent.pug'),
@@ -126,7 +125,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
             await this.start_auto_refresh();
         }
 
-        await this.update_visible_options();
+        this.throttled_update_visible_options();
     }
 
     private async start_auto_refresh() {
@@ -155,6 +154,13 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
         }
     }
 
+    /**
+     * Case refactor method ModuleSupervisionGRController.item_filter_is_stc_half_month (specific to Yve rocher)
+     * TODO: - Whe must filter item by api_type_id == SupervisedAdpPaieVO.API_TYPE_ID
+     * TODO: - Case when does not have employee_id (no employee) => no need to proceed
+     * TODO: - Whe must get contracts by employee_id
+     * TODO: - Create method that provide the list of contracts for an employee
+     */
     private async update_visible_options() {
 
         let rows: ISupervisedItem[] = [];
@@ -178,9 +184,9 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
         const promise_pipeline = new PromisePipeline(limit);
 
         const active_field_filters_by_api_type_id: { [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } } = {};
-        let context_filters_for_request: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = this.get_active_field_filters;
-        if (context_filters_for_request[ContextFilterVO.CUSTOM_FILTERS_TYPE]) {
-            delete context_filters_for_request[ContextFilterVO.CUSTOM_FILTERS_TYPE];
+        const field_filters_for_request: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = this.get_active_field_filters;
+        if (field_filters_for_request[ContextFilterVO.CUSTOM_FILTERS_TYPE]) {
+            delete field_filters_for_request[ContextFilterVO.CUSTOM_FILTERS_TYPE];
         }
 
         let available_api_type_ids: string[] = [];
@@ -193,17 +199,17 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
             available_api_type_ids = this.supervision_api_type_ids;
         }
 
-        // Check whether the given context_filters_for_request are compatible with the supervision_api_type_ids
-        // If not, we must reject the context_filters_for_request
-        // At least one of the supervision_api_type_ids must be present in the context_filters_for_request
-        const api_type_ids_for_request = Object.keys(context_filters_for_request).filter((api_type_id: string) => {
+        // Check whether the given field_filters_for_request are compatible with the supervision_api_type_ids
+        // If not, we must reject the field_filters_for_request
+        // At least one of the supervision_api_type_ids must be present in the field_filters_for_request
+        const api_type_ids_for_request = Object.keys(field_filters_for_request).filter((api_type_id: string) => {
             return this.supervision_api_type_ids.includes(api_type_id);
         });
 
         for (const key in api_type_ids_for_request) {
 
             // We must apply the context_filters of the actual filtering on this api_type_id
-            // to all the supervision_api_type_ids
+            // to all of the supervision_api_type_ids
             const api_type_id: string = api_type_ids_for_request[key];
 
             for (let i in available_api_type_ids) {
@@ -213,11 +219,10 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
                     active_field_filters_by_api_type_id[sup_api_type_id] = {};
                 }
 
-                const field_filters: { [field_id: string]: ContextFilterVO } = cloneDeep(context_filters_for_request[api_type_id]);
+                const field_filters: { [field_id: string]: ContextFilterVO } = cloneDeep(field_filters_for_request[api_type_id]);
 
                 active_field_filters_by_api_type_id[sup_api_type_id][sup_api_type_id] = field_filters;
 
-                // We must add the context filters for the current api_type_id
                 for (const field_id in active_field_filters_by_api_type_id[sup_api_type_id][sup_api_type_id]) {
                     if (!active_field_filters_by_api_type_id[sup_api_type_id][sup_api_type_id][field_id]) {
                         continue;
@@ -347,7 +352,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
     }
 
     private filter_context_filter_by_supervision_type(
-        context_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        api_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
         supervision_type: string
     ): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
 
@@ -365,12 +370,12 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
             let api_type_id = available_api_type_ids[i];
 
             if (api_type_id != supervision_type) {
-                delete context_filters[api_type_id];
+                delete api_field_filters[api_type_id];
             }
 
             // On supprime aussi de l'arbre tous les filtres qui ne sont pas du bon type de supervision
-            let field_filters = context_filters[api_type_id];
-            for (let field_id in field_filters) {
+            const field_filters = api_field_filters[api_type_id];
+            for (const field_id in field_filters) {
 
                 if (!field_filters[field_id]) {
                     continue;
@@ -380,7 +385,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
             }
         }
 
-        return context_filters;
+        return api_field_filters;
     }
 
     private async refresh() {

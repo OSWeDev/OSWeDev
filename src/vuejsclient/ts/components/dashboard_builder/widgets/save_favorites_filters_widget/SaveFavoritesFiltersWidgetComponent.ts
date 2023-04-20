@@ -42,6 +42,7 @@ import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
 import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import MonthFilterWidgetOptions from '../month_filter_widget/options/MonthFilterWidgetOptions';
 import YearFilterWidgetOptions from '../year_filter_widget/options/YearFilterWidgetOptions';
+import { ContextFilterVOManager } from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 
 @Component({
     template: require('./SaveFavoritesFiltersWidgetComponent.pug'),
@@ -326,7 +327,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
             .set_limit(limit, pagination_offset)
             .using(this.dashboard.api_type_ids)
             .add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
-                ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters)
+                ContextFilterVOManager.clean_field_filters_for_request(this.get_active_field_filters)
             ));
 
         //On évite les jointures supprimées.

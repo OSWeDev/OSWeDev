@@ -1,13 +1,14 @@
 import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import { ContextFilterVOManager } from '../../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
+import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import ContextFilterHandler from '../../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
-import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
@@ -373,7 +374,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
         let active_field_filters_query: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null;
 
         if (!this.no_inter_filter) {
-            active_field_filters_query = ContextFilterHandler.getInstance().clean_context_filters_for_request(
+            active_field_filters_query = ContextFilterVOManager.clean_field_filters_for_request(
                 this.get_active_field_filters
             );
         }

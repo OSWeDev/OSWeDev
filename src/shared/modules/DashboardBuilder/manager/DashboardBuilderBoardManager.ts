@@ -14,7 +14,7 @@ export class DashboardBuilderBoardManager {
      * @param {DashboardVO} dashboard
      * @returns {{ [vo_type: string]: { [field_id: string]: boolean } }}
      */
-    public static async load_discarded_field_paths(
+    public static async find_discarded_field_paths(
         dashboard: DashboardVO
     ): Promise<{ [vo_type: string]: { [field_id: string]: boolean } }> {
 

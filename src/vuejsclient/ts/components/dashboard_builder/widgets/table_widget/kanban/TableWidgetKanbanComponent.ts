@@ -1666,7 +1666,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             .set_limit(this.limit, this.pagination_offset)
             .using(this.dashboard.api_type_ids)
             .add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
-                ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters)
+                ContextFilterVOManager.clean_field_filters_for_request(this.get_active_field_filters)
             ));
 
         //On évite les jointures supprimées.
@@ -2658,7 +2658,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
             let query_: ContextQueryVO = query(column.api_type_id)
                 .field(column.field_id, alias_field, column.api_type_id, VarConfVO.SUM_AGGREGATOR)
                 .add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
-                    ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters)
+                    ContextFilterVOManager.clean_field_filters_for_request(this.get_active_field_filters)
                 ));
             // .set_limit(this.limit, this.pagination_offset) =;> à ajouter pour le sous - total(juste le contenu de la page)
             // .set_sort(new SortByVO(column.api_type_id, column.field_id, (this.order_asc_on_id != null)));

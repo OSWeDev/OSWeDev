@@ -833,7 +833,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         let active_field_filters_query: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null;
 
         if (!this.no_inter_filter) {
-            active_field_filters_query = ContextFilterHandler.getInstance().clean_context_filters_for_request(
+            active_field_filters_query = ContextFilterVOManager.clean_field_filters_for_request(
                 this.get_active_field_filters
             );
 

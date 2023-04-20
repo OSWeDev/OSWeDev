@@ -1,5 +1,6 @@
 import { cloneDeep } from "lodash";
-import ContextFilterHandler from "../ContextFilterHandler";
+import { ContextFilterVOHandler } from "../handler/ContextFilterVOHandler";
+import { ContextFilterVOManager } from "./ContextFilterVOManager";
 import ContextFilterVO from "../vos/ContextFilterVO";
 
 
@@ -29,7 +30,7 @@ export class FieldFilterManager {
             if (field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id]) {
                 // We must combine context_filter with each other when needed
                 // e.g. For date Year and Month widget (this widgets have the same api_type_id and field_id)
-                const new_context_filter = ContextFilterHandler.add_context_filter_to_tree(
+                const new_context_filter = ContextFilterVOHandler.add_context_filter_to_tree(
                     field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id],
                     context_filter
                 );
@@ -70,38 +71,39 @@ export class FieldFilterManager {
     }
 
     /**
-     * Create custom active field filters from available api type ids
+     * Create field filters from available api type ids
      *
      * @param {any} widget_options
      * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} active_field_filters
-     * @param {string[]} available_api_type_ids
+     * @param {string[]} required_api_type_ids
      * @param {boolean} [options.switch_current_field]
      * @param {string[]} [options.query_api_type_ids]
      * @returns {{ [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } }}
      */
-    public static create_custom_active_field_filters_from_available_api_type_ids(
+    public static get_field_filters_by_required_api_type_ids(
         widget_options: any,
         active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
-        available_api_type_ids: string[],
+        required_api_type_ids: string[],
         options?: {
             switch_current_field?: boolean,
             query_api_type_ids?: string[],
         }
     ): { [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } } {
+
         let field_filter: { [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } } = {};
 
         if (!widget_options.no_inter_filter) {
             active_field_filters = active_field_filters;
         }
 
-        let context_filters_for_request: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = ContextFilterHandler.getInstance().clean_context_filters_for_request(
+        let context_filters_for_request: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = ContextFilterVOManager.clean_field_filters_for_request(
             active_field_filters
         );
 
         for (let api_type_id in context_filters_for_request) {
 
-            for (let i in available_api_type_ids) {
-                let api_type_id_sup: string = available_api_type_ids[i];
+            for (let i in required_api_type_ids) {
+                let api_type_id_sup: string = required_api_type_ids[i];
 
                 if (!field_filter[api_type_id_sup]) {
                     field_filter[api_type_id_sup] = {};

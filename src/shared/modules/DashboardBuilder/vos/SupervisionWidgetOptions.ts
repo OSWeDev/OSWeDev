@@ -14,12 +14,12 @@ export default class SupervisionWidgetOptions extends AbstractVO {
     }
 
     public constructor(
-        public limit: number,
-        public supervision_api_type_ids: string[],
-        public refresh_button: boolean,
-        public auto_refresh: boolean,
-        public auto_refresh_seconds: number,
-        public show_bulk_edit: boolean,
+        public limit?: number,
+        public supervision_api_type_ids?: string[],
+        public refresh_button?: boolean,
+        public auto_refresh?: boolean,
+        public auto_refresh_seconds?: number,
+        public show_bulk_edit?: boolean,
     ) {
         super();
     }

@@ -623,18 +623,13 @@ export class ContextFilterVOHandler {
 
     /**
      * Clone and remove custom_filters
+     * @deprecated Have to be staic method (no need to use Instance)
+     * @deprecated Have to be In the ContextFilterVOManager
      */
-    public clean_context_filters_for_request(get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
-        let res: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = cloneDeep(get_active_field_filters);
-
-        if (res) {
-            delete res[ContextFilterVO.CUSTOM_FILTERS_TYPE];
-        }
-
-        // On ajoute un filtrage des filtres incompatibles avec la requête classique
-        this.filter_context_by_type(res);
-
-        return res;
+    public clean_context_filters_for_request(
+        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
+    ): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
+        return ContextFilterVOManager.clean_field_filters_for_request(get_active_field_filters);
     }
 
     /**
@@ -754,72 +749,15 @@ export class ContextFilterVOHandler {
 
     /**
      * @deprecated We must use a Factory to create Objects depending on properties (the right way)
-     * @use ContextFilterVOManager.create_context_filter_from_data_filter_option instead
+     * @use ContextFilterVOManager.get_context_filter_from_data_filter_option instead
      */
     public get_ContextFilterVO_from_DataFilterOption(active_option: DataFilterOption, ts_range: TSRange, field: ModuleTableField<any>, vo_field_ref: VOFieldRefVO): ContextFilterVO {
-        let context_filter = new ContextFilterVO();
-
-        context_filter.field_id = vo_field_ref.field_id;
-        context_filter.vo_type = vo_field_ref.api_type_id;
-
-        let field_type = null;
-
-        if ((!field) && (vo_field_ref.field_id == 'id')) {
-            field_type = ModuleTableField.FIELD_TYPE_int;
-        } else {
-            field_type = field.field_type;
-        }
-
-        switch (field_type) {
-            case ModuleTableField.FIELD_TYPE_int:
-            case ModuleTableField.FIELD_TYPE_geopoint:
-            case ModuleTableField.FIELD_TYPE_float:
-            case ModuleTableField.FIELD_TYPE_decimal_full_precision:
-            case ModuleTableField.FIELD_TYPE_amount:
-            case ModuleTableField.FIELD_TYPE_prct:
-                context_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_INTERSECTS;
-                context_filter.param_numranges = RangeHandler.get_ids_ranges_from_list([active_option.numeric_value]);
-                break;
-
-            case ModuleTableField.FIELD_TYPE_html:
-            case ModuleTableField.FIELD_TYPE_password:
-            case ModuleTableField.FIELD_TYPE_email:
-            case ModuleTableField.FIELD_TYPE_file_field:
-            case ModuleTableField.FIELD_TYPE_string:
-            case ModuleTableField.FIELD_TYPE_textarea:
-            case ModuleTableField.FIELD_TYPE_translatable_text:
-                context_filter.filter_type = ContextFilterVO.TYPE_TEXT_EQUALS_ANY;
-                context_filter.param_textarray = [active_option.string_value];
-                break;
-
-            case ModuleTableField.FIELD_TYPE_enum:
-                context_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_INTERSECTS;
-                context_filter.param_numranges = [RangeHandler.create_single_elt_NumRange(active_option.numeric_value, NumSegment.TYPE_INT)];
-                break;
-
-            case ModuleTableField.FIELD_TYPE_tstz:
-            case ModuleTableField.FIELD_TYPE_tsrange:
-            case ModuleTableField.FIELD_TYPE_tstzrange_array:
-            case ModuleTableField.FIELD_TYPE_tstz_array:
-                context_filter.filter_type = ContextFilterVO.TYPE_DATE_INTERSECTS;
-                context_filter.param_tsranges = [ts_range];
-                break;
-
-            case ModuleTableField.FIELD_TYPE_plain_vo_obj:
-            case ModuleTableField.FIELD_TYPE_html_array:
-                throw new Error('Not Implemented');
-
-
-            default:
-                throw new Error('Not Implemented');
-        }
-
-        return context_filter;
+        return ContextFilterVOManager.get_context_filter_from_data_filter_option(active_option, ts_range, field, vo_field_ref);
     }
 
     /**
      * @deprecated there is no need to use instance to proceed
-     * @use ContextFilterVOHandler.merge_context_filter_vos instead
+     * @use ContextFilterVOManager.merge_context_filter_vos instead
      */
     public merge_ContextFilterVOs(a: ContextFilterVO, b: ContextFilterVO, try_union: boolean = false): ContextFilterVO {
         return ContextFilterVOHandler.merge_context_filter_vos(a, b, try_union);
@@ -846,6 +784,9 @@ export class ContextFilterVOHandler {
         return context_filters;
     }
 
+    /**
+     * @deprecated does not perform the right action
+     */
     private filter_arbo_by_type(context_filter: ContextFilterVO, api_type_root: string): ContextFilterVO {
 
         let left: ContextFilterVO = null;

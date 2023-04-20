@@ -36,7 +36,7 @@ export class DashboardBuilderDataFilterManager {
      * @param {options.query_api_type_ids} options.query_api_type_ids
      * @returns {Promise<DataFilterOption[]>}
      */
-    public static async load_enum_data_filters_from_widget_options(
+    public static async find_enum_data_filters_from_widget_options(
         dashboard: DashboardVO,
         widget_options: FieldValueFilterWidgetOptionsVO,
         active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }, // Active field filters from the actual dashboard
@@ -47,7 +47,7 @@ export class DashboardBuilderDataFilterManager {
     ): Promise<DataFilterOption[]> {
 
         let added_data_filter: { [numeric_value: number]: boolean } = {};
-        let data_filter: DataFilterOption[] = [];
+        let data_filters: DataFilterOption[] = [];
 
         let actual_query: string = null;
 
@@ -59,29 +59,13 @@ export class DashboardBuilderDataFilterManager {
 
         const vo_field_ref = widget_options?.vo_field_ref;
 
-        const discarded_field_paths = await DashboardBuilderBoardManager.load_discarded_field_paths({ id: dashboard.id } as DashboardVO);
+        const discarded_field_paths = await DashboardBuilderBoardManager.find_discarded_field_paths({ id: dashboard.id } as DashboardVO);
 
-        let available_api_type_ids: string[] = [];
-
-        // TODO: Load available api type ids from the dashboard
-        if (widget_options.has_other_ref_api_type_id && widget_options.other_ref_api_type_id) {
-            available_api_type_ids = [widget_options.other_ref_api_type_id];
-        } else {
-            available_api_type_ids = [vo_field_ref?.api_type_id];
-        }
-
-        if (options.active_api_type_ids?.length > 0) {
-            // Get selected api type ids (e.g. from supervision widget options)
-            available_api_type_ids = options.active_api_type_ids;
-
-        } else if (options.query_api_type_ids.length > 0 && widget_options.force_filter_by_all_api_type_ids) {
-            // Get default api type ids (e.g. from supervision widget_options)
-            available_api_type_ids = options.query_api_type_ids;
-        }
+        const available_api_type_ids: string[] = DashboardBuilderDataFilterManager.get_required_api_type_id_from_widget_options(widget_options, options);
 
         const custom_active_field_filters_by_api_type_id: {
             [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
-        } = FieldFilterManager.create_custom_active_field_filters_from_available_api_type_ids(
+        } = FieldFilterManager.get_field_filters_by_required_api_type_ids(
             widget_options,
             active_field_filters,
             available_api_type_ids,
@@ -170,7 +154,7 @@ export class DashboardBuilderDataFilterManager {
 
                     if (!added_data_filter[visible_data_filter.numeric_value]) {
                         added_data_filter[visible_data_filter.numeric_value] = true;
-                        data_filter.push(visible_data_filter);
+                        data_filters.push(visible_data_filter);
                     }
                 }
             });
@@ -178,7 +162,47 @@ export class DashboardBuilderDataFilterManager {
 
         await promise_pipeline.end();
 
-        return data_filter;
+        return data_filters;
+    }
+
+    /**
+     * get_required_api_type_id_from_widget_options
+     *  - Get the required api_type_id from the given widget_options to perform the expected request
+     *
+     * @param widget_options
+     * @param {options.active_api_type_ids} options.active_api_type_ids
+     * @param {options.query_api_type_ids} options.query_api_type_ids
+     * @returns {string[]}
+     */
+    public static get_required_api_type_id_from_widget_options(
+        widget_options: FieldValueFilterWidgetOptionsVO,
+        options?: {
+            active_api_type_ids?: string[]; // Setted on user selection (select option) to specify query on specified vos api ids
+            query_api_type_ids?: string[]; // Setted from widget options to have custom|default query on specified vos api ids
+        }
+    ): string[] {
+        const vo_field_ref = widget_options?.vo_field_ref;
+
+        let api_type_ids: string[] = [];
+
+        // TODO: Load available api type ids from the dashboard
+        if (widget_options.has_other_ref_api_type_id && widget_options.other_ref_api_type_id) {
+            api_type_ids = [widget_options.other_ref_api_type_id];
+        } else {
+            // Default api_type_id whould be the vo_field_ref.api_type_id
+            api_type_ids = [vo_field_ref?.api_type_id];
+        }
+
+        if (options.active_api_type_ids?.length > 0) {
+            // Get selected api type ids (e.g. from supervision widget options)
+            api_type_ids = options.active_api_type_ids;
+
+        } else if (options.query_api_type_ids.length > 0 && widget_options.force_filter_by_all_api_type_ids) {
+            // Get default api type ids (e.g. from supervision widget_options)
+            api_type_ids = options.query_api_type_ids;
+        }
+
+        return api_type_ids;
     }
 
     constructor() { }

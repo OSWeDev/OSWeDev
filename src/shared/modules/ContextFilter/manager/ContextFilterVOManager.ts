@@ -17,6 +17,7 @@ import MonthFilterWidgetOptionsVO from '../../DashboardBuilder/vos/MonthFilterWi
 import YearFilterWidgetOptionsVO from '../../DashboardBuilder/vos/YearFilterWidgetOptionsVO';
 import ContextFilterHandler from "../ContextFilterHandler";
 import { ContextFilterVOHandler } from "../handler/ContextFilterVOHandler";
+import { cloneDeep } from "lodash";
 
 /**
  * ContextFilterVOManager
@@ -75,7 +76,7 @@ export class ContextFilterVOManager {
 
             const default_filters_options = widget_options?.default_ts_range_values;
 
-            context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(null, default_filters_options, field, vo_field_ref);
+            context_filter = ContextFilterVOManager.get_context_filter_from_data_filter_option(null, default_filters_options, field, vo_field_ref);
         }
 
         if (VOFieldRefVOTypeHandler.is_type_enum(vo_field_ref)) {
@@ -330,7 +331,7 @@ export class ContextFilterVOManager {
                         continue;
                     }
 
-                    let new_context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(active_option, null, field_multiple, options.vo_field_ref_multiple[i]);
+                    let new_context_filter = ContextFilterVOManager.get_context_filter_from_data_filter_option(active_option, null, field_multiple, options.vo_field_ref_multiple[i]);
 
                     if (!new_context_filter) {
                         continue;
@@ -373,7 +374,7 @@ export class ContextFilterVOManager {
                 continue;
             }
 
-            let new_context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(active_option, null, field, vo_field_ref);
+            let new_context_filter = ContextFilterVOManager.get_context_filter_from_data_filter_option(active_option, null, field, vo_field_ref);
 
             if (!new_context_filter) {
                 continue;
@@ -491,7 +492,7 @@ export class ContextFilterVOManager {
                 continue;
             }
 
-            let new_context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(active_option, null, field, vo_field_ref);
+            let new_context_filter = ContextFilterVOManager.get_context_filter_from_data_filter_option(active_option, null, field, vo_field_ref);
 
             if (!new_context_filter) {
                 continue;
@@ -556,7 +557,7 @@ export class ContextFilterVOManager {
                 continue;
             }
 
-            let new_context_filter = ContextFilterVOManager.create_context_filter_from_data_filter_option(active_option, null, field, vo_field_ref);
+            let new_context_filter = ContextFilterVOManager.get_context_filter_from_data_filter_option(active_option, null, field, vo_field_ref);
 
             if (!new_context_filter) {
                 continue;
@@ -589,13 +590,13 @@ export class ContextFilterVOManager {
     /**
      * Create Context Filter From Data Filter Option
      *
-     * @param active_option
-     * @param ts_range
-     * @param field
-     * @param vo_field_ref
+     * @param {DataFilterOption} active_option
+     * @param {TSRange} ts_range
+     * @param {ModuleTableField<any>} field
+     * @param {VOFieldRefVO} vo_field_ref
      * @returns {ContextFilterVO}
      */
-    public static create_context_filter_from_data_filter_option(
+    public static get_context_filter_from_data_filter_option(
         active_option: DataFilterOption,
         ts_range: TSRange,
         field: ModuleTableField<any>,
@@ -690,13 +691,34 @@ export class ContextFilterVOManager {
     }
 
     /**
+     * clean_field_filters_for_request
+     *  - Clone and remove custom_filters
+     *
+     * @returns {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }}
+     */
+    public static clean_field_filters_for_request(
+        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
+    ): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
+        let res: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = cloneDeep(get_active_field_filters);
+
+        if (res) {
+            delete res[ContextFilterVO.CUSTOM_FILTERS_TYPE];
+        }
+
+        // On ajoute un filtrage des filtres incompatibles avec la requête classique
+        // this.filter_context_by_type(res);
+
+        return res;
+    }
+
+    /**
      * Filter Context Filter Tree By Vo Type
      * - We must filter the context_filter e.g. (case when supervision type)
      * - Filter the context_filter tree to only keep the one we want to filter on
      * - We are only intererested by the the actual filter to apply on the given vo_type
      *
      * TODO: to be continued (not finished)
-     * TODO: case when we have mutltiple conditions on the same vo_type e.g.
+     * TODO: case when we have multiple conditions on the same vo_type e.g.
      * TODO: - we may search by the same field_id with different values
      * TODO: - we may search by different field_id with any values
      *
@@ -714,7 +736,7 @@ export class ContextFilterVOManager {
 
                 if (context_filter.left_hook?.vo_type === vo_type) {
                     // We must keep the left hook
-                    context_filter.right_hook = ContextFilterVOManager.find_deep_by_vo_type(context_filter.right_hook, vo_type);
+                    context_filter.right_hook = ContextFilterVOManager.find_deep_context_filter_by_vo_type(context_filter.right_hook, vo_type);
                 } else {
                     context_filter = null;
                 }
@@ -729,7 +751,7 @@ export class ContextFilterVOManager {
 
                 } else {
                     //
-                    right = ContextFilterVOManager.find_deep_by_vo_type(context_filter.right_hook, vo_type);
+                    right = ContextFilterVOManager.find_deep_context_filter_by_vo_type(context_filter.right_hook, vo_type);
 
                     if (right) {
                         // We only keep the filter we want to apply
@@ -767,7 +789,7 @@ export class ContextFilterVOManager {
      * @param {string} vo_type
      * @returns {ContextFilterVO}
      */
-    public static find_deep_by_vo_type(context_filter: ContextFilterVO, vo_type: string): ContextFilterVO {
+    public static find_deep_context_filter_by_vo_type(context_filter: ContextFilterVO, vo_type: string): ContextFilterVO {
 
         const is_conditionnal: boolean = ContextFilterVOHandler.is_conditional_context_filter(context_filter);
         let context_filter_found: ContextFilterVO = null;
@@ -788,8 +810,8 @@ export class ContextFilterVOManager {
 
         if (!context_filter_found && context_filter) {
             // If we didn't find the context_filter we must
-            // continue  to deep search in the right hook
-            return ContextFilterVOManager.find_deep_by_vo_type(context_filter?.right_hook, vo_type);
+            // continue to deep search in the right hook
+            return ContextFilterVOManager.find_deep_context_filter_by_vo_type(context_filter?.right_hook, vo_type);
         }
 
         return context_filter_found;

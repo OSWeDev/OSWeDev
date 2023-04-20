@@ -207,7 +207,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     }
 
     private async load_discarded_field_paths() {
-        const discarded_field_paths = await DashboardBuilderBoardManager.load_discarded_field_paths({ id: this.dashboard.id } as DashboardVO);
+        const discarded_field_paths = await DashboardBuilderBoardManager.find_discarded_field_paths({ id: this.dashboard.id } as DashboardVO);
         this.set_discarded_field_paths(discarded_field_paths);
     }
 

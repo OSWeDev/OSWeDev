@@ -26,7 +26,6 @@ import WeightHandler from '../../../../../../shared/tools/WeightHandler';
 import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
 import CheckListControllerBase from '../../../CheckList/CheckListControllerBase';
 import CheckListItemComponent from '../../../CheckList/Item/CheckListItemComponent';
-import CheckListModalComponent from '../../../CheckList/modal/CheckListModalComponent';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../../dao/store/DaoStore';
 import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
@@ -38,6 +37,7 @@ import ChecklistItemModalComponent from './checklist_item_modal/ChecklistItemMod
 import ChecklistWidgetOptions from './options/ChecklistWidgetOptions';
 import Vue from 'vue';
 import { all_promises } from '../../../../../../shared/tools/PromiseTools';
+import { ContextFilterVOManager } from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 
 @Component({
     template: require('./ChecklistWidgetComponent.pug'),
@@ -416,7 +416,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
         if (!filters[self.checklist_shared_module.checklistitem_type_id]) {
             filters[self.checklist_shared_module.checklistitem_type_id] = {};
         }
-        filters = ContextFilterHandler.getInstance().clean_context_filters_for_request(filters);
+        filters = ContextFilterVOManager.clean_field_filters_for_request(filters);
 
         promises.push((async () => {
 
