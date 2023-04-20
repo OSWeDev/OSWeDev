@@ -12,7 +12,7 @@ import DataImportLogVO from '../../../../shared/modules/DataImport/vos/DataImpor
 import FileVO from '../../../../shared/modules/File/vos/FileVO';
 import ModuleTable from '../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../shared/modules/ModuleTableField';
-import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
+import { VOsTypesManager } from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../shared/tools/DateHandler';
 import TypesHandler from '../../../../shared/tools/TypesHandler';

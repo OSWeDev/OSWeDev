@@ -10,7 +10,7 @@ import DefaultTranslation from "../../../../shared/modules/Translation/vos/Defau
 import LangVO from "../../../../shared/modules/Translation/vos/LangVO";
 import TranslatableTextVO from "../../../../shared/modules/Translation/vos/TranslatableTextVO";
 import TranslationVO from "../../../../shared/modules/Translation/vos/TranslationVO";
-import VOsTypesManager from "../../../../shared/modules/VOsTypesManager";
+import { VOsTypesManager } from "../../../../shared/modules/VO/manager/VOsTypesManager";
 
 export default class ContextFilterTestsTools {
     public static getInstance(): ContextFilterTestsTools {

@@ -3,7 +3,7 @@ import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import APIDAOParamVO, { APIDAOParamVOStatic } from '../DAO/vos/APIDAOParamVO';
 import Module from '../Module';
-import VOsTypesManager from '../VOsTypesManager';
+import { VOsTypesManager } from '../VO/manager/VOsTypesManager';
 import VocusInfoVO from './vos/VocusInfoVO';
 
 export default class ModuleVocus extends Module {

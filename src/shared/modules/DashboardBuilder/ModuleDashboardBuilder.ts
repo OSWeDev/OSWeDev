@@ -16,7 +16,7 @@ import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VarConfVO from '../Var/vos/VarConfVO';
-import VOsTypesManager from '../VOsTypesManager';
+import { VOsTypesManager } from '../VO/manager/VOsTypesManager';
 import AdvancedDateFilterOptDescVO from './vos/AdvancedDateFilterOptDescVO';
 import DashboardFavoritesFiltersVO from './vos/DashboardFavoritesFiltersVO';
 import DashboardGraphVORefVO from './vos/DashboardGraphVORefVO';

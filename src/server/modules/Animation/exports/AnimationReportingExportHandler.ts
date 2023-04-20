@@ -14,7 +14,7 @@ import NumRange from '../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../../shared/modules/DataRender/vos/NumSegment';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleTranslation from '../../../../shared/modules/Translation/ModuleTranslation';
-import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
+import { VOsTypesManager } from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import { hourFilter, percentFilter } from '../../../../shared/tools/Filters';
 import RangeHandler from '../../../../shared/tools/RangeHandler';

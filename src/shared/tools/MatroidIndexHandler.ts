@@ -7,7 +7,7 @@ import TSRange from "../modules/DataRender/vos/TSRange";
 import MatroidController from "../modules/Matroid/MatroidController";
 import VarsController from "../modules/Var/VarsController";
 import VarDataBaseVO from "../modules/Var/vos/VarDataBaseVO";
-import VOsTypesManager from "../modules/VOsTypesManager";
+import { VOsTypesManager } from "../modules/VO/manager/VOsTypesManager";
 import RangeHandler from "./RangeHandler";
 
 export default class MatroidIndexHandler {

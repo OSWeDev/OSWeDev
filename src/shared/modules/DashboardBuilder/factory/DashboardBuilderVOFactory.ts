@@ -1,4 +1,4 @@
-import FieldValueFilterWidgetOptionsVO from "../vos/FieldValueFilterWidgetOptionsVO";
+import { FieldValueFilterWidgetOptionsVO } from "../vos/FieldValueFilterWidgetOptionsVO";
 import MonthFilterWidgetOptionsVO from "../vos/MonthFilterWidgetOptionsVO";
 import YearFilterWidgetOptionsVO from "../vos/YearFilterWidgetOptionsVO";
 import DashboardWidgetVO from "../vos/DashboardWidgetVO";

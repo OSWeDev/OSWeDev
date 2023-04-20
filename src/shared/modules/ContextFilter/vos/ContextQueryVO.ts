@@ -10,7 +10,7 @@ import IMatroid from "../../Matroid/interfaces/IMatroid";
 import MatroidController from "../../Matroid/MatroidController";
 import ModuleTableField from "../../ModuleTableField";
 import VarConfVO from "../../Var/vos/VarConfVO";
-import VOsTypesManager from "../../VOsTypesManager";
+import { VOsTypesManager } from "../../VO/manager/VOsTypesManager";
 import ModuleContextFilter from "../ModuleContextFilter";
 import ContextFilterVO, { filter } from "./ContextFilterVO";
 import ContextQueryFieldVO from "./ContextQueryFieldVO";

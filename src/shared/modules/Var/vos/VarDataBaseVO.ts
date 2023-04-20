@@ -6,7 +6,7 @@ import IRange from '../../DataRender/interfaces/IRange';
 import IMatroid from '../../Matroid/interfaces/IMatroid';
 import MatroidController from '../../Matroid/MatroidController';
 import ModuleTableField from '../../ModuleTableField';
-import VOsTypesManager from '../../VOsTypesManager';
+import { VOsTypesManager } from '../../VO/manager/VOsTypesManager';
 import VarsController from '../VarsController';
 import VarConfVO from './VarConfVO';
 

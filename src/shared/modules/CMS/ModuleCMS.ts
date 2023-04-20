@@ -9,7 +9,7 @@ import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import TranslatableTextVO from '../Translation/vos/TranslatableTextVO';
-import VOsTypesManager from '../VOsTypesManager';
+import { VOsTypesManager } from '../VO/manager/VOsTypesManager';
 import IInstantiatedPageComponent from './interfaces/IInstantiatedPageComponent';
 import HtmlComponentVO from './page_components_types/HtmlComponentVO';
 import HtmlHtmlComponentVO from './page_components_types/HtmlHtmlComponentVO';

@@ -4,7 +4,7 @@ import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
-import VOsTypesManager from '../VOsTypesManager';
+import { VOsTypesManager } from '../VO/manager/VOsTypesManager';
 import NotificationVO from './vos/NotificationVO';
 import APISimpleVOParamVO from '../DAO/vos/APISimpleVOParamVO';
 import { APISimpleVOParamVOStatic } from '../DAO/vos/APISimpleVOParamVO';

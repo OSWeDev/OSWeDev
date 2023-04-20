@@ -7,6 +7,7 @@ import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilt
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
+import { DashboardBuilderDataFilterManager } from '../../../../../../../shared/modules/DashboardBuilder/manager/DashboardBuilderDataFilterManager';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
@@ -14,7 +15,7 @@ import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/v
 import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
 import ModuleTable from '../../../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
-import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
+import { VOsTypesManager } from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import EnvHandler from '../../../../../../../shared/tools/EnvHandler';
 import PromisePipeline from '../../../../../../../shared/tools/PromisePipeline/PromisePipeline';
@@ -30,6 +31,7 @@ import ValidationFiltersWidgetController from '../../validation_filters_widget/V
 import FieldValueFilterWidgetController from '../FieldValueFilterWidgetController';
 import FieldValueFilterWidgetOptions from '../options/FieldValueFilterWidgetOptions';
 import './FieldValueFilterEnumWidgetComponent.scss';
+import { ContextFilterVOManager } from '../../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 
 @Component({
     template: require('./FieldValueFilterEnumWidgetComponent.pug'),
@@ -98,13 +100,14 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     @Watch('get_active_api_type_ids')
     @Watch('get_query_api_type_ids')
     private async onchange_active_field_filters() {
-        await this.throttled_update_visible_options();
+        this.throttled_update_visible_options();
     }
 
     /**
      * Computed widget options
      *  - Happen on component|widget creation
-     * @returns FieldValueFilterWidgetOptions
+     *
+     * @returns {FieldValueFilterWidgetOptions}
      */
     get widget_options(): FieldValueFilterWidgetOptions {
         if (!this.page_widget) {
@@ -113,50 +116,9 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
         let options: FieldValueFilterWidgetOptions = null;
         try {
-            if (!!this.page_widget.json_options) {
+            if (this.page_widget.json_options?.length > 0) {
                 options = JSON.parse(this.page_widget.json_options) as FieldValueFilterWidgetOptions;
-                options = options ? new FieldValueFilterWidgetOptions(
-                    options.vo_field_ref,
-                    options.vo_field_ref_lvl2,
-                    options.vo_field_sort,
-                    options.can_select_multiple,
-                    options.is_checkbox,
-                    options.checkbox_columns,
-                    options.max_visible_options,
-                    options.show_search_field,
-                    options.hide_lvl2_if_lvl1_not_selected,
-                    options.segmentation_type,
-                    options.advanced_mode,
-                    options.default_advanced_string_filter_type,
-                    options.hide_btn_switch_advanced,
-                    options.hide_advanced_string_filter_type,
-                    options.vo_field_ref_multiple,
-                    options.default_filter_opt_values,
-                    options.default_ts_range_values,
-                    options.default_boolean_values,
-                    options.hide_filter,
-                    options.no_inter_filter,
-                    options.has_other_ref_api_type_id,
-                    options.other_ref_api_type_id,
-                    options.exclude_filter_opt_values,
-                    options.exclude_ts_range_values,
-                    options.placeholder_advanced_mode,
-                    options.separation_active_filter,
-                    options.vo_field_sort_lvl2,
-                    options.autovalidate_advanced_filter,
-                    options.add_is_null_selectable,
-                    options.is_button,
-                    options.enum_bg_colors,
-                    options.enum_fg_colors,
-                    options.show_count_value,
-                    options.active_field_on_autovalidate_advanced_filter,
-                    options.force_filter_all_api_type_ids,
-                    options.bg_color,
-                    options.fg_color_value,
-                    options.fg_color_text,
-                    options.can_select_all,
-                    options.can_select_none,
-                ) : null;
+                options = options ? new FieldValueFilterWidgetOptions().from(options) : null;
             }
         } catch (error) {
             ConsoleHandler.error(error);
@@ -168,7 +130,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     /**
      * Watch on widget_options
      *  - Shall happen first on component init or each time widget_options changes
-     *  - Initialize the tmp_filter_active_options with default widget options
+     *  - Initialize the tmp_filter_active_options with default widget_options
      * @returns void
      */
     @Watch('widget_options', { immediate: true })
@@ -187,7 +149,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
         this.is_init = false;
 
-        await this.throttled_update_visible_options();
+        this.throttled_update_visible_options();
     }
 
     /**
@@ -267,14 +229,14 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
     private async query_update_visible_options(queryStr: string) {
         this.actual_query = queryStr;
-        await this.throttled_update_visible_options();
+        this.throttled_update_visible_options();
     }
 
     private async reset_visible_options() {
         this.tmp_filter_active_options = [];
         this.filter_visible_options = [];
         // On update le visuel de tout le monde suite au reset
-        await this.throttled_update_visible_options();
+        this.throttled_update_visible_options();
     }
 
     /**
@@ -282,7 +244,8 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
      * This widget may depend on other widget active filters options
      *  - This happen | triggered with lodash throttle method (throttled_update_visible_options)
      *  - Each time visible option shall be updated
-     * @returns Promise<void>
+     *
+     * @returns {Promise<void>}
      */
     private async update_visible_options(): Promise<void> {
 
@@ -305,21 +268,21 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             null;
 
         // Say if has active field filter
-        let has_active_field_filter: boolean = !!(root_context_filter);
+        const has_active_field_filter: boolean = !!(root_context_filter);
 
         // Si on a des valeurs par défaut, on va faire l'init
-        let old_is_init: boolean = this.is_init;
+        const old_is_init: boolean = this.is_init;
 
         this.is_init = true;
 
         // case when not currently initializing
         if (!old_is_init) {
-            if (this.default_values && (this.default_values.length > 0)) {
+            if (this.default_values?.length > 0) {
                 // Si je n'ai pas de filtre actif OU que ma valeur de default values à changée, je prends les valeurs par défaut
                 // case when does not have active filter
                 if (!has_active_field_filter || this.default_values_changed) {
-                    this.default_values_changed = false;
                     this.tmp_filter_active_options = this.default_values;
+                    this.default_values_changed = false;
 
                     ValidationFiltersWidgetController.getInstance().throttle_call_updaters(
                         new ValidationFiltersCallUpdaters(
@@ -333,136 +296,52 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             }
         }
 
-        // case when has active context filter but active visible filter empty
-        // - try to apply context filter or display filter application fail alert
+        // case when has active context_filter but active visible_filter empty
+        // - try to apply context_filter or display filter application fail alert
         if (has_active_field_filter &&
             (!(this.tmp_filter_active_options?.length > 0))) {
 
             this.warn_existing_external_filters = !this.try_apply_actual_active_filters(root_context_filter);
         }
 
-        let tmp: DataFilterOption[] = [];
-        let add_tmp: { [numeric_value: number]: boolean } = {};
-
-        let available_api_type_ids: string[] = this.get_available_api_type_ids(false);
-
-        let custom_active_field_filters_by_api_type_id: { [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } } = this.get_custom_active_field_filters_by_api_type_id(
-            available_api_type_ids,
-            false,
+        let data_filter_options: DataFilterOption[] = await DashboardBuilderDataFilterManager.find_enum_data_filters_from_widget_options(
+            this.dashboard,
+            this.widget_options,
+            this.get_active_field_filters,
+            {
+                active_api_type_ids: this.get_active_api_type_ids,
+                query_api_type_ids: this.get_query_api_type_ids,
+            }
         );
-
-        let limit = EnvHandler.MAX_POOL / 2;
-        let promise_pipeline = new PromisePipeline(limit);
-
-        for (let i in available_api_type_ids) {
-            let query_api_type_id: string = available_api_type_ids[i];
-
-            let active_field_filters = custom_active_field_filters_by_api_type_id[query_api_type_id];
-
-            let filters: ContextFilterVO[] = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
-                active_field_filters
-            );
-
-            let vo_field_ref: VOFieldRefVO = Object.assign(new VOFieldRefVO(), this.vo_field_ref);
-
-            if (this.force_filter_all_api_type_ids) {
-                vo_field_ref.api_type_id = query_api_type_id;
-            }
-
-            let query_ = query(query_api_type_id)
-                .field(vo_field_ref.field_id, 'label', vo_field_ref.api_type_id)
-                .add_filters(filters)
-                .set_limit(this.widget_options.max_visible_options)
-                .using(this.dashboard.api_type_ids);
-
-            FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(query_, this.get_discarded_field_paths);
-
-            query_.filters = ContextFilterHandler.getInstance().add_context_filters_exclude_values(
-                this.exclude_values,
-                vo_field_ref,
-                query_.filters,
-                false,
-            );
-
-            // Si je suis sur une table segmentée, je vais voir si j'ai un filtre sur mon field qui segmente
-            // Si ce n'est pas le cas, je n'envoie pas la requête
-            let base_table: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[query_.base_api_type_id];
-
-            if (
-                base_table &&
-                base_table.is_segmented
-            ) {
-                if (
-                    !base_table.table_segmented_field ||
-                    !base_table.table_segmented_field.manyToOne_target_moduletable ||
-                    !active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type] ||
-                    !Object.keys(active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type]).length
-                ) {
-                    return;
-                }
-
-                let has_filter: boolean = false;
-
-                for (let field_id in active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type]) {
-                    if (active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type][field_id]) {
-                        has_filter = true;
-                        break;
-                    }
-                }
-
-                if (!has_filter) {
-                    return;
-                }
-            } else {
-                query_ = await FieldValueFilterWidgetController.getInstance().check_segmented_dependencies(this.dashboard, query_, this.get_discarded_field_paths, true);
-            }
-
-            await promise_pipeline.push(async () => {
-                let tmp_values: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
-                    query_,
-                    this.actual_query
-                );
-
-                for (let j in tmp_values) {
-                    let tmp_value = tmp_values[j];
-
-                    if (!add_tmp[tmp_value.numeric_value]) {
-                        add_tmp[tmp_value.numeric_value] = true;
-                        tmp.push(tmp_value);
-                    }
-                }
-            });
-        }
-
-        await promise_pipeline.end();
 
         // Si je ne suis pas sur la dernière demande, je me casse
         if (this.last_calculation_cpt != launch_cpt) {
             return;
         }
 
-        if (!tmp) {
-            tmp = [];
+        if (!(data_filter_options?.length > 0)) {
+            data_filter_options = [];
         }
 
-        for (let i in tmp) {
-            let tmpi = tmp[i];
+        for (const i in data_filter_options) {
+            const tmpi = data_filter_options[i];
+
             tmpi.label = this.t(tmpi.label);
         }
 
         if (this.add_is_null_selectable) {
-            tmp.unshift(new DataFilterOption(
+            data_filter_options.unshift(new DataFilterOption(
                 DataFilterOption.STATE_SELECTABLE,
                 this.label('dataFilteroption.is_null'),
                 RangeHandler.MIN_INT,
             ));
         }
 
-        tmp.sort((a, b) => {
+        data_filter_options.sort((a, b) => {
             return a.numeric_value - b.numeric_value;
         });
 
-        this.filter_visible_options = tmp;
+        this.filter_visible_options = data_filter_options;
 
         // Si on doit afficher le compteur, on fait les requêtes nécessaires
         await this.set_count_value();
@@ -475,7 +354,9 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     private handle_select_all(): void {
         let selection: DataFilterOption[] = [];
 
-        selection = this.filter_visible_options?.map((filter) => new DataFilterOption(DataFilterOption.STATE_SELECTED, filter.label, filter.id));
+        selection = this.filter_visible_options?.map((filter) =>
+            new DataFilterOption(DataFilterOption.STATE_SELECTED, filter.label, filter.id)
+        );
 
         this.tmp_filter_active_options = selection;
     }
@@ -489,6 +370,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
     }
 
     /**
+     * TODO: when filter actif and count result is 0, the filter shall stay visible
      *
      * @returns TODO vérifier car pas certains que ça fonctionnent dans tous les cas...
      */
@@ -498,39 +380,49 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             return;
         }
 
-        let limit = EnvHandler.MAX_POOL / 2;
-        let promise_pipeline = new PromisePipeline(limit);
+        const limit = EnvHandler.MAX_POOL / 2;
+        const promise_pipeline = new PromisePipeline(limit);
 
-        let available_api_type_ids: string[] = this.get_available_api_type_ids(true);
+        const available_api_type_ids: string[] = DashboardBuilderDataFilterManager.get_required_api_type_id_from_widget_options(
+            this.widget_options,
+            {
+                active_api_type_ids: this.get_active_api_type_ids,
+                query_api_type_ids: this.get_query_api_type_ids
+            }
+        );
 
-        let custom_active_field_filters_by_api_type_id: { [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } } = this.get_custom_active_field_filters_by_api_type_id(
+        const field_filters_by_api_type_id: { [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } } = this.get_field_filters_by_api_type_ids(
             available_api_type_ids,
             true,
         );
 
         let count_by_filter_visible_opt_id: { [id: number]: number } = {};
 
-        for (let j in this.filter_visible_options) {
-            let filter_opt: DataFilterOption = this.filter_visible_options[j];
+        for (const key in this.filter_visible_options) {
+            const filter_opt: DataFilterOption = this.filter_visible_options[key];
+
+            if (!filter_opt) {
+                continue;
+            }
 
             // On RAZ le champ
             count_by_filter_visible_opt_id[filter_opt.numeric_value] = 0;
 
-            for (let i in available_api_type_ids) {
-                let api_type_id: string = available_api_type_ids[i];
+            for (const i in available_api_type_ids) {
+                const api_type_id: string = available_api_type_ids[i];
 
-                let filters: ContextFilterVO[] = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
-                    custom_active_field_filters_by_api_type_id[api_type_id]
+                let filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_active_field_filters(
+                    field_filters_by_api_type_id[api_type_id]
                 );
 
-                let enum_filter = ContextFilterHandler.getInstance().get_ContextFilterVO_from_DataFilterOption(
+                const enum_filter = ContextFilterVOManager.get_context_filter_from_data_filter_option(
                     filter_opt,
                     null,
                     this.field,
                     this.vo_field_ref,
                 );
 
-                if (this.force_filter_all_api_type_ids) {
+                if (this.force_filter_by_all_api_type_ids) {
                     enum_filter.vo_type = api_type_id;
                 }
 
@@ -538,17 +430,19 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
                 await promise_pipeline.push(async () => {
 
-                    if (!await ModuleAccessPolicy.getInstance().testAccess(ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id))) {
+                    const has_access = await ModuleAccessPolicy.getInstance().testAccess(ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id));
+
+                    if (!has_access) {
                         return;
                     }
 
-                    // pour éviter de récuperer le cache
-                    let query_items_c = query(api_type_id)
+                    const qb = query(api_type_id)
                         .using(this.dashboard.api_type_ids)
                         .add_filters(filters);
-                    FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(query_items_c, this.get_discarded_field_paths);
-                    let items_c: number = await query_items_c
-                        .select_count();
+
+                    FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(qb, this.get_discarded_field_paths);
+
+                    let items_c: number = await qb.select_count();
 
                     if (items_c >= 0) {
                         count_by_filter_visible_opt_id[filter_opt.numeric_value] += items_c;
@@ -562,27 +456,19 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         this.count_by_filter_visible_opt_id = count_by_filter_visible_opt_id;
     }
 
-    private get_available_api_type_ids(for_count: boolean): string[] {
-        if (this.has_other_ref_api_type_id && this.other_ref_api_type_id) {
-            return [this.other_ref_api_type_id];
-        }
-
-        if (this.get_active_api_type_ids && (this.get_active_api_type_ids.length > 0)) {
-            return this.get_active_api_type_ids;
-        }
-
-        if (this.get_query_api_type_ids && (this.get_query_api_type_ids.length > 0) && for_count) {
-            return this.get_query_api_type_ids;
-        }
-
-        return [this.vo_field_ref.api_type_id];
-    }
-
-    private get_custom_active_field_filters_by_api_type_id(
+    /**
+     * get_field_filters_by_api_type_ids
+     *  - Get field filters by api type id
+     *
+     * @param {string[]} available_api_type_ids
+     * @param {boolean} switch_current_field
+     * @returns {{ [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } }}
+     */
+    private get_field_filters_by_api_type_ids(
         available_api_type_ids: string[],
         switch_current_field: boolean,
     ): { [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } } {
-        let res: { [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } } = {};
+        let field_filters_by_api_type_id: { [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } } = {};
 
         let active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null;
 
@@ -590,49 +476,49 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             active_field_filters = this.get_active_field_filters;
         }
 
-        let context_filters_for_request: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = ContextFilterHandler.getInstance().clean_context_filters_for_request(
+        const field_filters_for_request: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = ContextFilterVOManager.clean_field_filters_for_request(
             active_field_filters
         );
 
-        for (let api_type_id in context_filters_for_request) {
+        for (let api_type_id in field_filters_for_request) {
 
             for (let i in available_api_type_ids) {
                 let api_type_id_sup: string = available_api_type_ids[i];
 
-                if (!res[api_type_id_sup]) {
-                    res[api_type_id_sup] = {};
+                if (!field_filters_by_api_type_id[api_type_id_sup]) {
+                    field_filters_by_api_type_id[api_type_id_sup] = {};
                 }
 
                 if (!this.get_query_api_type_ids.includes(api_type_id)) {
-                    res[api_type_id_sup][api_type_id] = context_filters_for_request[api_type_id];
+                    field_filters_by_api_type_id[api_type_id_sup][api_type_id] = field_filters_for_request[api_type_id];
                     continue;
                 }
 
                 let new_api_type_id: string = api_type_id_sup;
 
-                if (this.force_filter_all_api_type_ids) {
+                if (this.force_filter_by_all_api_type_ids) {
                     new_api_type_id = api_type_id;
                 }
 
-                res[api_type_id_sup][new_api_type_id] = cloneDeep(context_filters_for_request[api_type_id]);
+                field_filters_by_api_type_id[api_type_id_sup][new_api_type_id] = cloneDeep(field_filters_for_request[api_type_id]);
 
-                for (let field_id in res[api_type_id_sup][new_api_type_id]) {
+                for (let field_id in field_filters_by_api_type_id[api_type_id_sup][new_api_type_id]) {
                     // Si je suis sur le field de la requête, je ne le prend pas en compte, il sera fait plus loin
                     if (switch_current_field && (field_id == this.vo_field_ref.field_id)) {
-                        res[api_type_id_sup][new_api_type_id][field_id] = null;
+                        field_filters_by_api_type_id[api_type_id_sup][new_api_type_id][field_id] = null;
                         continue;
                     }
 
-                    if (!res[api_type_id_sup][new_api_type_id][field_id]) {
+                    if (!field_filters_by_api_type_id[api_type_id_sup][new_api_type_id][field_id]) {
                         continue;
                     }
 
-                    res[api_type_id_sup][new_api_type_id][field_id].vo_type = api_type_id_sup;
+                    field_filters_by_api_type_id[api_type_id_sup][new_api_type_id][field_id].vo_type = api_type_id_sup;
                 }
             }
         }
 
-        return res;
+        return field_filters_by_api_type_id;
     }
 
     /**
@@ -722,10 +608,13 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
 
         let dfo_id: number = dfo.numeric_value;
 
-        let bg_color: string = this.widget_options.enum_bg_colors && this.widget_options.enum_bg_colors[dfo_id] ? this.widget_options.enum_bg_colors[dfo_id] : null;
-        let fg_color: string = this.widget_options.enum_fg_colors && this.widget_options.enum_fg_colors[dfo_id] ? this.widget_options.enum_fg_colors[dfo_id] : 'white';
+        let bg_color: string = this.widget_options.enum_bg_colors && this.widget_options.enum_bg_colors[dfo_id];
+        let fg_color: string = this.widget_options.enum_fg_colors && this.widget_options.enum_fg_colors[dfo_id];
 
-        if (!!bg_color) {
+        bg_color = bg_color ?? null;
+        fg_color = fg_color ?? 'white';
+
+        if (bg_color?.length > 0) {
             return {
                 backgroundColor: bg_color + ' !important',
                 borderColor: bg_color + ' !important',
@@ -778,13 +667,13 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         return !!this.widget_options.add_is_null_selectable;
     }
 
-    get force_filter_all_api_type_ids(): boolean {
+    get force_filter_by_all_api_type_ids(): boolean {
 
         if (!this.widget_options) {
             return false;
         }
 
-        return !!this.widget_options.force_filter_all_api_type_ids;
+        return !!this.widget_options.force_filter_by_all_api_type_ids;
     }
 
     get vo_field_ref(): VOFieldRefVO {
@@ -851,34 +740,34 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
         return this.widget_options.show_count_value;
     }
 
-    get default_values(): DataFilterOption[] {
+    /**
+     * Get Vo Field Ref Multiple
+     * @returns {VOFieldRefVO[]}
+     */
+    get vo_field_ref_multiple(): VOFieldRefVO[] {
         let options: FieldValueFilterWidgetOptions = this.widget_options;
 
-        if ((!options) || (!options.default_filter_opt_values) || (!options.default_filter_opt_values.length)) {
+        if ((!options) || (!options.vo_field_ref_multiple) || (!options.vo_field_ref_multiple.length)) {
             return null;
         }
 
-        let res: DataFilterOption[] = [];
+        let res: VOFieldRefVO[] = [];
 
-        for (let i in options.default_filter_opt_values) {
-            res.push(new DataFilterOption(
-                options.default_filter_opt_values[i].select_state,
-                options.default_filter_opt_values[i].label,
-                options.default_filter_opt_values[i].id,
-                options.default_filter_opt_values[i].disabled_state_selected,
-                options.default_filter_opt_values[i].disabled_state_selectable,
-                options.default_filter_opt_values[i].disabled_state_unselectable,
-                options.default_filter_opt_values[i].img,
-                options.default_filter_opt_values[i].desc,
-                options.default_filter_opt_values[i].boolean_value,
-                options.default_filter_opt_values[i].numeric_value,
-                options.default_filter_opt_values[i].string_value,
-                options.default_filter_opt_values[i].tstz_value,
-                true,
-            ));
+        for (let i in options.vo_field_ref_multiple) {
+            res.push(new VOFieldRefVO().from(options.vo_field_ref_multiple[i]));
         }
 
         return res;
+    }
+
+    get default_values(): DataFilterOption[] {
+        let options: FieldValueFilterWidgetOptions = this.widget_options;
+
+        if (!(options?.default_filter_opt_values?.length > 0)) {
+            return null;
+        }
+
+        return options.get_default_filter_options();
     }
 
     get exclude_values(): DataFilterOption[] {
@@ -888,26 +777,6 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             return null;
         }
 
-        let res: DataFilterOption[] = [];
-
-        for (let i in options.exclude_filter_opt_values) {
-            res.push(new DataFilterOption(
-                options.exclude_filter_opt_values[i].select_state,
-                options.exclude_filter_opt_values[i].label,
-                options.exclude_filter_opt_values[i].id,
-                options.exclude_filter_opt_values[i].disabled_state_selected,
-                options.exclude_filter_opt_values[i].disabled_state_selectable,
-                options.exclude_filter_opt_values[i].disabled_state_unselectable,
-                options.exclude_filter_opt_values[i].img,
-                options.exclude_filter_opt_values[i].desc,
-                options.exclude_filter_opt_values[i].boolean_value,
-                options.exclude_filter_opt_values[i].numeric_value,
-                options.exclude_filter_opt_values[i].string_value,
-                options.exclude_filter_opt_values[i].tstz_value,
-                true,
-            ));
-        }
-
-        return res;
+        return options.get_exclude_values();
     }
 }

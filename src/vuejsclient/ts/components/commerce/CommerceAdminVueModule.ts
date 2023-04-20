@@ -16,7 +16,7 @@
 // import Datatable from '../../../../shared/modules/DAO/vos/datatable/Datatable';
 // import ManyToOneReferenceDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableFieldVO';
 // import SimpleDatatableFieldVO from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
-// import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
+// import {VOsTypesManager} from '../../../../shared/modules/VOsTypesManager';
 // import CRUDComponentManager from '../../../ts/components/crud/CRUDComponentManager';
 // import MenuBranch from '../../../ts/components/menu/vos/MenuBranch';
 // // import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';

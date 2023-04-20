@@ -10,7 +10,7 @@ import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vo
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import TSRange from '../../../../../../../shared/modules/DataRender/vos/TSRange';
 import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
-import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
+import { VOsTypesManager } from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
 import TSRangeInputComponent from '../../../../tsrangeinput/TSRangeInputComponent';
@@ -110,7 +110,7 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
                     options.enum_fg_colors,
                     options.show_count_value,
                     options.active_field_on_autovalidate_advanced_filter,
-                    options.force_filter_all_api_type_ids,
+                    options.force_filter_by_all_api_type_ids,
                     options.bg_color,
                     options.fg_color_value,
                     options.fg_color_text,

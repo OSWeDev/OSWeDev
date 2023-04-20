@@ -10,7 +10,7 @@ import DashboardPageVO from '../../../../../shared/modules/DashboardBuilder/vos/
 import DashboardPageWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import DashboardWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
-import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
+import { VOsTypesManager } from '../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../InlineTranslatableText/InlineTranslatableText';
@@ -25,8 +25,8 @@ import SaveFavoritesFiltersModalComponent from '../widgets/save_favorites_filter
 import SupervisionItemModalComponent from '../widgets/supervision_widget/supervision_item_modal/SupervisionItemModalComponent';
 import CRUDCreateModalComponent from '../widgets/table_widget/crud_modals/create/CRUDCreateModalComponent';
 import CRUDUpdateModalComponent from '../widgets/table_widget/crud_modals/update/CRUDUpdateModalComponent';
-import DashboardGraphVORefVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
+import { DashboardBuilderBoardManager } from '../../../../../shared/modules/DashboardBuilder/manager/DashboardBuilderBoardManager';
 
 @Component({
     template: require('./DashboardBuilderBoardComponent.pug'),
@@ -207,32 +207,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     }
 
     private async load_discarded_field_paths() {
-
-        let db_cells_source = await query(DashboardGraphVORefVO.API_TYPE_ID)
-            .filter_by_num_eq('dashboard_id', this.dashboard.id)
-            .select_vos<DashboardGraphVORefVO>();
-
-        // let db_cell_source_by_vo_type: { [vo_type: string]: DashboardGraphVORefVO } = {};
-        let discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } } = {};
-
-        for (let i in db_cells_source) {
-            // db_cell_source_by_vo_type[db_cells_source[i].vo_type] = db_cells_source[i];
-            let vo_type = db_cells_source[i].vo_type;
-            let db_cell_source = db_cells_source[i];
-
-            if (!db_cell_source.values_to_exclude) {
-                continue;
-            }
-
-            for (let index_field_id in db_cell_source.values_to_exclude) {
-                let field_id: string = db_cell_source.values_to_exclude[index_field_id];
-
-                if (!discarded_field_paths[vo_type]) {
-                    discarded_field_paths[vo_type] = {};
-                }
-                discarded_field_paths[vo_type][field_id] = true;
-            }
-        }
+        const discarded_field_paths = await DashboardBuilderBoardManager.find_discarded_field_paths({ id: this.dashboard.id } as DashboardVO);
         this.set_discarded_field_paths(discarded_field_paths);
     }
 

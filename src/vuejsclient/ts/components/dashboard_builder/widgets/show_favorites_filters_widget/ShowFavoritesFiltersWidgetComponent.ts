@@ -13,7 +13,7 @@ import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/D
 import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
-import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
+import { VOsTypesManager } from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import { cloneDeep, isEmpty, isEqual } from 'lodash';

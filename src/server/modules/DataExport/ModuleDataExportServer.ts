@@ -40,7 +40,7 @@ import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
-import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+import { VOsTypesManager } from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { filter_by_name } from '../../../shared/tools/Filters';
 import LocaleManager from '../../../shared/tools/LocaleManager';
@@ -1208,6 +1208,9 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     /**
      * Update To Columns Format
      *  - Update to column format defined from the column widget configuration (percent, decimal, toFixed etc...)
+     *
+     * TODO: do export in specific way for each type (date, number, string, etc...)
+     * e.g. https://github.com/SheetJS/sheetjs/issues/2192#issuecomment-745865277
      */
     private async update_to_xlsx_columns_format(
         datas: any[],
@@ -1237,7 +1240,12 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
                 row[column.datatable_field_uid + '__raw'] = row[column.datatable_field_uid];
 
+                if (!(filter_additional_params?.length > 0)) {
+                    continue;
+                }
+
                 let params = [row[column.datatable_field_uid]];
+
                 params = params.concat(filter_additional_params);
 
                 if (typeof filter_by_name[column.filter_type]?.read === 'function') {

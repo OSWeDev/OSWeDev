@@ -5,6 +5,7 @@ import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolic
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
+import { ContextFilterVOManager } from '../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
@@ -36,7 +37,7 @@ import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataInvalidatorVO from '../../../shared/modules/Var/vos/VarDataInvalidatorVO';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
-import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+import { VOsTypesManager } from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
@@ -1568,7 +1569,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         let matroid_fields = MatroidController.getInstance().getMatroidFields(var_conf.var_data_vo_type);
         let field_promises: Array<Promise<any>> = [];
 
-        let cleaned_active_field_filters = ContextFilterHandler.getInstance().clean_context_filters_for_request(get_active_field_filters);
+        let cleaned_active_field_filters = ContextFilterVOManager.clean_field_filters_for_request(get_active_field_filters);
         let refuse_param: boolean = false;
 
         for (let i in matroid_fields) {

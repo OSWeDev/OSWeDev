@@ -12,7 +12,7 @@ import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/
 import TimeSegment from '../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import TSRange from '../../../../../../shared/modules/DataRender/vos/TSRange';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
+import { VOsTypesManager } from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';

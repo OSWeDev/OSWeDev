@@ -41,7 +41,7 @@ import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VocusInfoVO from '../../../shared/modules/Vocus/vos/VocusInfoVO';
-import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+import { VOsTypesManager } from '../../../shared/modules/VO/manager/VOsTypesManager';
 import BooleanHandler from '../../../shared/tools/BooleanHandler';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../shared/tools/DateHandler';

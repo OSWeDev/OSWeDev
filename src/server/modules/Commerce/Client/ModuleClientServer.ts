@@ -5,7 +5,7 @@ import ModuleClient from '../../../../shared/modules/Commerce/Client/ModuleClien
 import ClientVO from '../../../../shared/modules/Commerce/Client/vos/ClientVO';
 import InformationsVO from '../../../../shared/modules/Commerce/Client/vos/InformationsVO';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
+import { VOsTypesManager } from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ModuleServerBase from '../../ModuleServerBase';
 

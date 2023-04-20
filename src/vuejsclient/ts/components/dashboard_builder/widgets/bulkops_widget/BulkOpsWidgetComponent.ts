@@ -4,6 +4,7 @@ import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleAjaxCache from '../../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import ContextFilterHandler from '../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
+import { ContextFilterVOManager } from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
@@ -17,13 +18,12 @@ import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/D
 import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../../shared/modules/ModuleTable';
-import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
+import { VOsTypesManager } from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
-import DatatableRowController from '../../../datatable/component/DatatableRowController';
 import DatatableComponentField from '../../../datatable/component/fields/DatatableComponentField';
 import InlineTranslatableText from '../../../InlineTranslatableText/InlineTranslatableText';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
@@ -345,7 +345,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             .set_limit(this.widget_options.limit, this.pagination_offset)
             .using(this.dashboard.api_type_ids)
             .add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
-                ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters)
+                ContextFilterVOManager.clean_field_filters_for_request(this.get_active_field_filters)
             ));
 
         for (let i in this.fields) {

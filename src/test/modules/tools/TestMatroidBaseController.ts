@@ -4,7 +4,7 @@
 // import MatroidBase from '../../../shared/modules/Matroid/vos/MatroidBase';
 // import ModuleTable from '../../../shared/modules/ModuleTable';
 // import ModuleTableField from '../../../shared/modules/ModuleTableField';
-// import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+// import {VOsTypesManager} from '../../../shared/modules/VOsTypesManager';
 
 // describe('MatroidBaseController', () => {
 

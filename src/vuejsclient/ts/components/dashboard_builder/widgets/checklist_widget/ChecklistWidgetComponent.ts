@@ -18,7 +18,7 @@ import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/v
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
-import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
+import { VOsTypesManager } from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../shared/tools/PromiseTools';
@@ -36,6 +36,7 @@ import TablePaginationComponent from '../table_widget/pagination/TablePagination
 import './ChecklistWidgetComponent.scss';
 import ChecklistItemModalComponent from './checklist_item_modal/ChecklistItemModalComponent';
 import ChecklistWidgetOptions from './options/ChecklistWidgetOptions';
+import { ContextFilterVOManager } from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 
 @Component({
     template: require('./ChecklistWidgetComponent.pug'),
@@ -414,7 +415,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
         if (!filters[self.checklist_shared_module.checklistitem_type_id]) {
             filters[self.checklist_shared_module.checklistitem_type_id] = {};
         }
-        filters = ContextFilterHandler.getInstance().clean_context_filters_for_request(filters);
+        filters = ContextFilterVOManager.clean_field_filters_for_request(filters);
 
         promises.push((async () => {
 

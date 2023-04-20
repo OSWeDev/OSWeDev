@@ -15,7 +15,7 @@ import MatroidController from '../Matroid/MatroidController';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
-import VOsTypesManager from '../VOsTypesManager';
+import { VOsTypesManager } from '../VO/manager/VOsTypesManager';
 import APIGetVarDataByIndexParamVO from './params/APIGetVarDataByIndexParamVO';
 import VarsController from './VarsController';
 import VarsPerfMonController from './VarsPerfMonController';

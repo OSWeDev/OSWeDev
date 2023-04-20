@@ -1,13 +1,15 @@
 import DashboardPageWidgetVO from "./DashboardPageWidgetVO";
+import { AbstractVO } from "../../VO/abstract/AbstractVO";
 import VOFieldRefVO from "./VOFieldRefVO";
 
 import DataFilterOption from "../../DataRender/vos/DataFilterOption";
 import TSRange from "../../DataRender/vos/TSRange";
 
 /**
- * FieldValueFilterWidgetOptionsVO
+ * @class FieldValueFilterWidgetOptionsVO
+ *  - options for field value filter widget
  */
-export default class FieldValueFilterWidgetOptionsVO {
+export class FieldValueFilterWidgetOptionsVO extends AbstractVO {
 
     public static VO_FIELD_REF_PLACEHOLDER_CODE_PREFIX: string = "FieldValueFilterWidgetOptions.vo_field_ref.placeholder.";
     public static VO_FIELD_REF_ADVANCED_MODE_PLACEHOLDER_CODE_PREFIX: string = "FieldValueFilterWidgetOptions.vo_field_ref.advanced_mode_placeholder.";
@@ -121,25 +123,14 @@ export default class FieldValueFilterWidgetOptionsVO {
         public enum_fg_colors?: { [enum_value: number]: string },
         public show_count_value?: boolean, // Seulement pour enum pour l'instant
         public active_field_on_autovalidate_advanced_filter?: boolean,
-        public force_filter_all_api_type_ids?: boolean, // (Pour la supervision)
+        public force_filter_by_all_api_type_ids?: boolean, // (Pour la supervision)
         public bg_color?: string,
         public fg_color_value?: string,
         public fg_color_text?: string,
         public can_select_all?: boolean,
         public can_select_none?: boolean,
-    ) { }
-
-    /**
-     * Hydrate from the given properties
-     *
-     * @param props {FieldValueFilterWidgetOptionsVO}
-     * @returns {FieldValueFilterWidgetOptionsVO}
-     */
-    public from(props: Partial<FieldValueFilterWidgetOptionsVO>): FieldValueFilterWidgetOptionsVO {
-
-        Object.assign(this, props);
-
-        return this;
+    ) {
+        super();
     }
 
     public get_placeholder_name_code_text(page_widget_id: number): string {
@@ -182,4 +173,27 @@ export default class FieldValueFilterWidgetOptionsVO {
         return res;
     }
 
+    /**
+     * Get Exclude Values
+     *
+     * @returns {DataFilterOption[]}
+     */
+    public get_exclude_values(): DataFilterOption[] {
+
+        if (!(this.exclude_filter_opt_values?.length > 0)) {
+            return null;
+        }
+
+        return this.exclude_filter_opt_values?.map((val) => new DataFilterOption().from(val));
+    }
+
+    /**
+     * get_default_filter_options
+     *  - Get default filter options (setted in the widget options while configuring)
+     *
+     * @returns {DataFilterOption[]}
+     */
+    public get_default_filter_options(): DataFilterOption[] {
+        return this.default_filter_opt_values?.map((val) => new DataFilterOption().from(val));
+    }
 }

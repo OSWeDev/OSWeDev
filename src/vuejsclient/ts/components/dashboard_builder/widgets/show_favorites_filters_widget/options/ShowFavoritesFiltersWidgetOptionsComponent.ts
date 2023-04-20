@@ -13,7 +13,7 @@ import DashboardFavoritesFiltersVO from '../../../../../../../shared/modules/Das
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/SortByVO';
-import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager';
+import { VOsTypesManager } from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import SingleVoFieldRefHolderComponent from '../../../options_tools/single_vo_field_ref_holder/SingleVoFieldRefHolderComponent';

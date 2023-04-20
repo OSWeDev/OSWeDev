@@ -8,7 +8,7 @@ import DashboardVO from '../../../shared/modules/DashboardBuilder/vos/DashboardV
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
-import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+import { VOsTypesManager } from '../../../shared/modules/VO/manager/VOsTypesManager';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
@@ -26,9 +26,11 @@ import ModuleDataExportServer from '../DataExport/ModuleDataExportServer';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { DashboardBuilderVOFactory } from '../../../shared/modules/DashboardBuilder/factory/DashboardBuilderVOFactory';
 import DashboardWidgetVO from '../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
-import ContextFilterVOFactory from '../../../shared/modules/ContextFilter/factory/ContextFilterVOFactory';
-import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
+import { ContextFilterVOManager } from '../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import { IExportParamsProps } from '../../../shared/modules/DashboardBuilder/interfaces/IExportParamsProps';
+import { FieldFilterManager } from '../../../shared/modules/ContextFilter/manager/FieldFilterManager';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import ObjectHandler from '../../../shared/tools/ObjectHandler';
 
 export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
@@ -2023,7 +2025,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Filtrer sur tous les types (pour la Supervision seulement)" },
-            'field_value_filter_widget_component.force_filter_all_api_type_ids.___LABEL___'
+            'field_value_filter_widget_component.force_filter_by_all_api_type_ids.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Afficher Bulk Edit" },
@@ -2073,8 +2075,6 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
     /**
      * Start Export Datatable Using Favorites Filters
      *
-     * TODO: - Exportable data must have to be created from the backend
-     *
      * @return {Promise<void>}
      */
     public async start_export_datatable_using_favorites_filters(): Promise<void> {
@@ -2101,15 +2101,6 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
                 continue;
             }
 
-            // Get widgets of the given favorites filters page
-            const page_widgets: DashboardPageWidgetVO[] = await query(DashboardPageWidgetVO.API_TYPE_ID)
-                .filter_by_num_eq('page_id', favorites_filters.page_id)
-                .select_vos<DashboardPageWidgetVO>();
-
-            // Default field_filters from each page widget_options
-            const default_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = {};
-            // Actual context field filters to be used for the export
-            const context_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = {};
             const favorites_field_filters = favorites_filters.field_filters;
             const export_frequency = export_params.export_frequency;
             const exportable_data = export_params.exportable_data;
@@ -2168,6 +2159,16 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
                 continue;
             }
 
+            // Default field_filters from each page widget_options
+            let default_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = {};
+            // Actual context field filters to be used for the export
+            let context_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = {};
+
+            // Get widgets of the given favorites filters page
+            const page_widgets: DashboardPageWidgetVO[] = await query(DashboardPageWidgetVO.API_TYPE_ID)
+                .filter_by_num_eq('page_id', favorites_filters.page_id)
+                .select_vos<DashboardPageWidgetVO>();
+
             // Process the export
             // - Create context field filters and then export
             for (const key in widgets) {
@@ -2204,55 +2205,50 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
                         };
                     }
 
-                    context_filter = ContextFilterVOFactory.create_context_filter_from_widget_options(widget.name, widget_options);
+                    context_filter = ContextFilterVOManager.create_context_filter_from_widget_options(widget.name, widget_options);
 
                     // We must transform this ContextFilterVO into { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
                     if (vo_field_ref && context_filter) {
-                        if (default_field_filters[vo_field_ref.api_type_id]) {
-                            if (default_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id]) {
-                                // We must combine context_filter with each other when needed
-                                // e.g. For date Year and Month widget (this widgets have the same api_type_id and field_id)
-                                const new_constex_filter = ContextFilterHandler.add_context_filter_to_tree(
-                                    default_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id],
-                                    context_filter
-                                );
-                                default_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id] = new_constex_filter;
-                            } else {
-                                default_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id] = context_filter;
-                            }
-                        } else {
-                            default_field_filters[vo_field_ref.api_type_id] = {};
-                            default_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id] = context_filter;
-                        }
+                        default_field_filters = FieldFilterManager.merge_field_filters_with_context_filter(default_field_filters, vo_field_ref, context_filter);
                     }
                 });
             }
 
+            // TODO: test the following code
             // Merge/replace default_field_filters with favorites_field_filters
             // Create context_field_filters with the default one
+            try {
+                context_field_filters = ObjectHandler.deepmerge(context_field_filters, default_field_filters);
+                // Add/Overwrite default context_field_filters with the favorites_field_filters one
+                context_field_filters = ObjectHandler.deepmerge(context_field_filters, favorites_field_filters);
+            } catch (e) {
+                ConsoleHandler.error('Error while merging context_field_filters', e);
+            }
+
+            // TODO: remove this part once the previous one has been tested
             for (const api_type_id in default_field_filters) {
                 const filters = default_field_filters[api_type_id];
 
                 for (const field_id in filters) {
-                    // the actual filter
-                    const filter = filters[field_id];
-
                     // Add default context filters
-                    context_field_filters[api_type_id] = context_field_filters[api_type_id] ?? {};
-                    context_field_filters[api_type_id][field_id] = filter;
+                    context_field_filters = FieldFilterManager.overwrite_field_filters_with_context_filter(
+                        context_field_filters,
+                        { api_type_id, field_id },
+                        filters[field_id]
+                    );
                 }
             }
 
-            // Add/Overwrite default context_field_filters with the favorites_field_filters one
             for (const api_type_id in favorites_field_filters) {
                 const filters = favorites_field_filters[api_type_id];
 
                 for (const field_id in filters) {
-                    // the actual filter
-                    const filter = filters[field_id];
-
-                    context_field_filters[api_type_id] = context_field_filters[api_type_id] ?? {};
-                    context_field_filters[api_type_id][field_id] = filter;
+                    // Add default context filters
+                    context_field_filters = FieldFilterManager.overwrite_field_filters_with_context_filter(
+                        context_field_filters,
+                        { api_type_id, field_id },
+                        filters[field_id]
+                    );
                 }
             }
 

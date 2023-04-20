@@ -10,7 +10,7 @@ import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import LangVO from '../Translation/vos/LangVO';
 import VersionedVOController from '../Versioned/VersionedVOController';
-import VOsTypesManager from '../VOsTypesManager';
+import { VOsTypesManager } from '../VO/manager/VOsTypesManager';
 import DocumentDocumentTagVO from './vos/DocumentDocumentTagVO';
 import DocumentLangVO from './vos/DocumentLangVO';
 import DocumentRoleVO from './vos/DocumentRoleVO';

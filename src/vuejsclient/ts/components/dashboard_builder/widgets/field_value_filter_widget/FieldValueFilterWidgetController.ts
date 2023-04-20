@@ -1,13 +1,14 @@
+import { FieldValueFilterWidgetManager } from '../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 import ModuleContextFilter from "../../../../../../shared/modules/ContextFilter/ModuleContextFilter";
 import ContextFilterVO from "../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO";
 import ContextQueryVO from "../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import DashboardVO from "../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO";
 import ModuleTable from "../../../../../../shared/modules/ModuleTable";
 import ModuleTableField from "../../../../../../shared/modules/ModuleTableField";
-import VOsTypesManager from "../../../../../../shared/modules/VOsTypesManager";
+import { VOsTypesManager } from "../../../../../../shared/modules/VO/manager/VOsTypesManager";
 import ConsoleHandler from "../../../../../../shared/tools/ConsoleHandler";
 
-export default class FieldValueFilterWidgetController {
+export default class FieldValueFilterWidgetController extends FieldValueFilterWidgetManager {
 
     public static getInstance(): FieldValueFilterWidgetController {
         if (!this.instance) {
@@ -17,9 +18,11 @@ export default class FieldValueFilterWidgetController {
         return this.instance;
     }
 
-    private static instance = null;
+    protected static instance = null;
 
-    private constructor() { }
+    private constructor() {
+        super();
+    }
 
     public add_discarded_field_paths(q: ContextQueryVO, discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }): ContextQueryVO {
 

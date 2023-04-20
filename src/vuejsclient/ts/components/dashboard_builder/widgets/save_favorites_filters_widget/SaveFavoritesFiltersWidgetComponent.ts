@@ -15,7 +15,7 @@ import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/v
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
-import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
+import { VOsTypesManager } from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import WeightHandler from '../../../../../../shared/tools/WeightHandler';
 import ModuleTable from '../../../../../../shared/modules/ModuleTable';
@@ -42,6 +42,7 @@ import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
 import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import MonthFilterWidgetOptions from '../month_filter_widget/options/MonthFilterWidgetOptions';
 import YearFilterWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
+import { ContextFilterVOManager } from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 
 @Component({
     template: require('./SaveFavoritesFiltersWidgetComponent.pug'),
@@ -326,7 +327,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
             .set_limit(limit, pagination_offset)
             .using(this.dashboard.api_type_ids)
             .add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
-                ContextFilterHandler.getInstance().clean_context_filters_for_request(this.get_active_field_filters)
+                ContextFilterVOManager.clean_field_filters_for_request(this.get_active_field_filters)
             ));
 
         //On évite les jointures supprimées.
