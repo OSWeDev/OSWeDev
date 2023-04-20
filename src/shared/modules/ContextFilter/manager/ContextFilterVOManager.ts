@@ -1,9 +1,13 @@
+import { cloneDeep } from "lodash";
 import RangeHandler from "../../../tools/RangeHandler";
 import TypesHandler from "../../../tools/TypesHandler";
 import { VOFieldRefVOTypeHandler } from "../../DashboardBuilder/handlers/VOFieldRefVOTypeHandler";
 import { BooleanFilterModel } from "../../DashboardBuilder/models/BooleanFilterModel";
 import DashboardWidgetVO from "../../DashboardBuilder/vos/DashboardWidgetVO";
+import { FieldValueFilterWidgetOptionsVO } from '../../DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
+import MonthFilterWidgetOptionsVO from '../../DashboardBuilder/vos/MonthFilterWidgetOptionsVO';
 import VOFieldRefVO from "../../DashboardBuilder/vos/VOFieldRefVO";
+import YearFilterWidgetOptionsVO from '../../DashboardBuilder/vos/YearFilterWidgetOptionsVO';
 import DataFilterOption from "../../DataRender/vos/DataFilterOption";
 import NumRange from "../../DataRender/vos/NumRange";
 import NumSegment from "../../DataRender/vos/NumSegment";
@@ -11,13 +15,8 @@ import TSRange from "../../DataRender/vos/TSRange";
 import Dates from "../../FormatDatesNombres/Dates/Dates";
 import ModuleTableField from "../../ModuleTableField";
 import { VOsTypesManager } from "../../VO/manager/VOsTypesManager";
-import ContextFilterVO from "../vos/ContextFilterVO";
-import { FieldValueFilterWidgetOptionsVO } from '../../DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
-import MonthFilterWidgetOptionsVO from '../../DashboardBuilder/vos/MonthFilterWidgetOptionsVO';
-import YearFilterWidgetOptionsVO from '../../DashboardBuilder/vos/YearFilterWidgetOptionsVO';
-import ContextFilterHandler from "../ContextFilterHandler";
 import { ContextFilterVOHandler } from "../handler/ContextFilterVOHandler";
-import { cloneDeep } from "lodash";
+import ContextFilterVO from "../vos/ContextFilterVO";
 
 /**
  * ContextFilterVOManager
@@ -340,7 +339,7 @@ export class ContextFilterVOManager {
                     if (!context_filter_multiple) {
                         context_filter_multiple = new_context_filter;
                     } else {
-                        context_filter_multiple = ContextFilterHandler.merge_context_filter_vos(context_filter_multiple, new_context_filter);
+                        context_filter_multiple = ContextFilterVOHandler.merge_context_filter_vos(context_filter_multiple, new_context_filter);
                     }
                 }
 
@@ -383,7 +382,7 @@ export class ContextFilterVOManager {
             if (!context_filter) {
                 context_filter_simple = new_context_filter;
             } else {
-                context_filter_simple = ContextFilterHandler.merge_context_filter_vos(context_filter_simple, new_context_filter);
+                context_filter_simple = ContextFilterVOHandler.merge_context_filter_vos(context_filter_simple, new_context_filter);
             }
         }
 
@@ -501,7 +500,7 @@ export class ContextFilterVOManager {
             if (!context_filter) {
                 context_filter = new_context_filter;
             } else {
-                context_filter = ContextFilterHandler.merge_context_filter_vos(context_filter, new_context_filter);
+                context_filter = ContextFilterVOHandler.merge_context_filter_vos(context_filter, new_context_filter);
             }
         }
 
@@ -566,7 +565,7 @@ export class ContextFilterVOManager {
             if (!context_filter) {
                 context_filter = new_context_filter;
             } else {
-                context_filter = ContextFilterHandler.merge_context_filter_vos(context_filter, new_context_filter);
+                context_filter = ContextFilterVOHandler.merge_context_filter_vos(context_filter, new_context_filter);
             }
         }
 
@@ -827,5 +826,4 @@ export class ContextFilterVOManager {
     private static instance: ContextFilterVOManager = null;
 
     private constructor() { }
-
 }

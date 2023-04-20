@@ -156,7 +156,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                 continue;
             }
 
-            let new_translated_active_options = ContextFilterHandler.getInstance().get_ContextFilterVO_from_DataFilterOption(active_option, null, field, this.vo_field_ref);
+            let new_translated_active_options = ContextFilterVOManager.get_context_filter_from_data_filter_option(active_option, null, field, this.vo_field_ref);
 
             if (!new_translated_active_options) {
                 continue;
@@ -165,7 +165,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
             if (!translated_active_options) {
                 translated_active_options = new_translated_active_options;
             } else {
-                translated_active_options = ContextFilterHandler.getInstance().merge_ContextFilterVOs(translated_active_options, new_translated_active_options);
+                translated_active_options = ContextFilterVOHandler.getInstance().merge_context_filter_vos(translated_active_options, new_translated_active_options);
             }
         }
 
@@ -385,12 +385,12 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
 
         let query_ = query(query_api_type_id).set_limit(this.widget_options.max_visible_options, 0);
         query_.fields = [new ContextQueryFieldVO(this.vo_field_ref.api_type_id, this.vo_field_ref.field_id, 'label')];
-        query_.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(active_field_filters_query);
+        query_.filters = ContextFilterVOManager.get_context_filters_from_active_field_filters(active_field_filters_query);
         query_.active_api_type_ids = this.dashboard.api_type_ids;
 
         FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(query_, this.get_discarded_field_paths);
 
-        query_.filters = ContextFilterHandler.getInstance().add_context_filters_exclude_values(
+        query_.filters = ContextFilterVOHandler.getInstance().add_context_filters_exclude_values(
             this.exclude_values,
             this.vo_field_ref,
             query_.filters,

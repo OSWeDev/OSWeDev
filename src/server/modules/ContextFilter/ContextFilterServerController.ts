@@ -1,6 +1,6 @@
 import pgPromise = require('pg-promise');
-import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ContextQueryInjectionCheckHandler from '../../../shared/modules/ContextFilter/ContextQueryInjectionCheckHandler';
+import { ContextFilterVOHandler } from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import FieldPathWrapper from '../../../shared/modules/ContextFilter/vos/FieldPathWrapper';
@@ -3379,7 +3379,7 @@ export default class ContextFilterServerController {
 
             // Cas champ segmenté exacte - on filtre directement sur l'id du champs de segmentation, par exemple sur pdv_id
             //  de la facture (vo_type c'est la ligne de facturation et donc on veut le filtre exacte sur le champs pdv_id)
-            let simple_filter = ContextFilterHandler.getInstance().get_simple_filter_by_vo_type_and_field_id(
+            let simple_filter = ContextFilterVOHandler.getInstance().get_simple_filter_by_vo_type_and_field_id(
                 filters, moduletable.vo_type, moduletable.table_segmented_field.field_id);
             if (simple_filter) {
 
@@ -3407,7 +3407,7 @@ export default class ContextFilterServerController {
             if ((!is_implemented) && moduletable.table_segmented_field.manyToOne_target_moduletable) {
                 let linked_segment_table = moduletable.table_segmented_field.manyToOne_target_moduletable;
 
-                let simple_filters = ContextFilterHandler.getInstance().get_simple_filters_by_vo_type(
+                let simple_filters = ContextFilterVOHandler.getInstance().get_simple_filters_by_vo_type(
                     filters, linked_segment_table.vo_type);
 
                 if (simple_filters && simple_filters.length) {

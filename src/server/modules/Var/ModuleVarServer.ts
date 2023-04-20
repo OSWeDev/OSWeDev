@@ -4,7 +4,7 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
-import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
+import { ContextFilterVOHandler } from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import { ContextFilterVOManager } from '../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
@@ -1585,7 +1585,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                             let alias = matroid_field.manyToOne_target_moduletable.vo_type + '__id';
                             let context_query: ContextQueryVO = query(matroid_field.manyToOne_target_moduletable.vo_type)
                                 .using(active_api_type_ids)
-                                .add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(cleaned_active_field_filters))
+                                .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(cleaned_active_field_filters))
                                 .set_query_distinct()
                                 .add_fields([
                                     new ContextQueryFieldVO(matroid_field.manyToOne_target_moduletable.vo_type, matroid_field.target_field, alias)
@@ -1747,7 +1747,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         /**
          * Si on a pas de filtre année, on peut de toutes façons rien faire
          */
-        let year = ContextFilterHandler.getInstance().find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_YEAR);
+        let year = ContextFilterVOHandler.getInstance().find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_YEAR);
         if (!year) {
             return [RangeHandler.getMaxTSRange()];
         }
@@ -1757,24 +1757,24 @@ export default class ModuleVarServer extends ModuleServerBase {
             return null;
         }
 
-        let month = ContextFilterHandler.getInstance().find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_MONTH);
+        let month = ContextFilterVOHandler.getInstance().find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_MONTH);
         if (!!month) {
             tsranges = this.get_ts_ranges_from_custom_filter_month(tsranges, month, limit_nb_range);
         }
 
-        let week = ContextFilterHandler.getInstance().find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_WEEK);
+        let week = ContextFilterVOHandler.getInstance().find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_WEEK);
         if (!!week) {
             throw new Error('Not implemented');
             // tsranges = this.get_ts_ranges_from_custom_filter_week(tsranges, week, limit_nb_range);
         }
 
-        let dow = ContextFilterHandler.getInstance().find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_DOW);
+        let dow = ContextFilterVOHandler.getInstance().find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_DOW);
         if (!!dow) {
             tsranges = this.get_ts_ranges_from_custom_filter_dow(tsranges, dow, limit_nb_range);
         }
 
 
-        let dom = ContextFilterHandler.getInstance().find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_DOM);
+        let dom = ContextFilterVOHandler.getInstance().find_context_filter_by_type(custom_filter, ContextFilterVO.TYPE_DATE_DOM);
         if (!!dom) {
             tsranges = this.get_ts_ranges_from_custom_filter_dom(tsranges, dom, limit_nb_range);
         }

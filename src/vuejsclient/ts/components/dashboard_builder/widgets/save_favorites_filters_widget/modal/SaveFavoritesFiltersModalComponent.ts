@@ -389,7 +389,7 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
                 };
 
                 // Get HMI readable active field filters
-                const readable_active_field_filters = ContextFilterHandler.context_filter_to_readable_ihm(filter);
+                const readable_active_field_filters = ContextFilterVOHandler.context_filter_to_readable_ihm(filter);
 
                 res[label] = {
                     readable_active_field_filters,

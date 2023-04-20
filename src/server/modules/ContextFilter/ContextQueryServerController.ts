@@ -1,8 +1,9 @@
 import { cloneDeep } from 'lodash';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
-import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
 import ContextQueryInjectionCheckHandler from '../../../shared/modules/ContextFilter/ContextQueryInjectionCheckHandler';
+import { ContextFilterVOHandler } from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
+import { ContextFilterVOManager } from '../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
@@ -337,7 +338,7 @@ export default class ContextQueryServerController {
                         columns_by_field_id[field_id].readonly)
                 ) {
                     await promise_pipeline.push(async () => {
-                        await ContextFilterHandler.getInstance().get_datatable_row_field_data_async(row, row, fields[field_id]);
+                        await ContextFilterVOHandler.getInstance().get_datatable_row_field_data_async(row, row, fields[field_id]);
                     });
                 }
             }
@@ -384,7 +385,7 @@ export default class ContextQueryServerController {
             throw new Error('Invalid context_query param');
         }
         let field = context_query.fields[0];
-        let get_active_field_filters = ContextFilterHandler.getInstance().get_active_field_filters(context_query.filters);
+        let get_active_field_filters = ContextFilterVOHandler.getInstance().get_active_field_filters(context_query.filters);
 
         /**
          * on ignore le filtre sur ce champs par défaut, et par contre on considère le acutal_query comme un filtrage en text_contient
@@ -418,7 +419,7 @@ export default class ContextQueryServerController {
             get_active_field_filters[field.api_type_id][field.field_id] = actual_filter;
         }
 
-        context_query.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(get_active_field_filters);
+        context_query.filters = ContextFilterVOManager.get_context_filters_from_active_field_filters(get_active_field_filters);
 
         let query_res: any[] = await this.select_datatable_rows(context_query, null, null);
         if ((!query_res) || (!query_res.length)) {
@@ -516,7 +517,7 @@ export default class ContextQueryServerController {
         context_query.set_sort(new SortByVO(context_query.base_api_type_id, 'id', false));
         let moduletable = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
         let field = moduletable.get_field_by_id(update_field_id);
-        let get_active_field_filters = ContextFilterHandler.getInstance().get_active_field_filters(context_query.filters);
+        let get_active_field_filters = ContextFilterVOHandler.getInstance().get_active_field_filters(context_query.filters);
 
         // Si le champs modifié impact un filtrage, on doit pas faire évoluer l'offset
         let change_offset = true;
@@ -626,7 +627,7 @@ export default class ContextQueryServerController {
 
         if (ignore_self_filter) {
             let field = context_query.fields[0];
-            let get_active_field_filters = ContextFilterHandler.getInstance().get_active_field_filters(context_query.filters);
+            let get_active_field_filters = ContextFilterVOHandler.getInstance().get_active_field_filters(context_query.filters);
 
             /**
              * on ignore le filtre sur ce champs par défaut, et par contre on considère le acutal_query comme un filtrage en text_contient
@@ -643,7 +644,7 @@ export default class ContextQueryServerController {
 
                     default:
                         delete get_active_field_filters[field.api_type_id][field.field_id];
-                        context_query.filters = ContextFilterHandler.getInstance().get_filters_from_active_field_filters(get_active_field_filters);
+                        context_query.filters = ContextFilterVOManager.get_context_filters_from_active_field_filters(get_active_field_filters);
                         break;
                 }
             }

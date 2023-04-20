@@ -5,7 +5,7 @@ import { WorkBook } from 'xlsx';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
-import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
+import { ContextFilterVOHandler } from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
@@ -730,7 +730,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
                 sheet.datas.push({
                     filter_name: `${context_filter.vo_type} - ${context_filter.field_id}`,
-                    value: ContextFilterHandler.context_filter_to_readable_ihm(context_filter)
+                    value: ContextFilterVOHandler.context_filter_to_readable_ihm(context_filter)
                 });
             }
         }

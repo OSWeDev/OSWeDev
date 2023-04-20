@@ -99,7 +99,7 @@ export class DashboardBuilderDataFilterManager {
 
             FieldValueFilterWidgetManager.add_discarded_field_paths(_query, discarded_field_paths);
 
-            _query.filters = ContextFilterHandler.getInstance().add_context_filters_exclude_values(
+            _query.filters = ContextFilterVOHandler.getInstance().add_context_filters_exclude_values(
                 widget_options.get_exclude_values(),
                 vo_field_ref,
                 _query.filters,
