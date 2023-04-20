@@ -56,6 +56,7 @@ import TableWidgetController from './../TableWidgetController';
 import './TableWidgetKanbanComponent.scss';
 import IDistantVOBase from '../../../../../../../shared/modules/IDistantVOBase';
 import SortableListComponent from '../../../../sortable/SortableListComponent';
+import { ContextFilterVOManager } from '../../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 

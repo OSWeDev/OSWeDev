@@ -699,6 +699,7 @@ export class ContextFilterVOManager {
     public static clean_field_filters_for_request(
         get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
     ): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
+
         let res: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = cloneDeep(get_active_field_filters);
 
         if (res) {

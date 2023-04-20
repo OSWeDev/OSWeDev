@@ -34,6 +34,7 @@ import SupervisionItemModalComponent from './supervision_item_modal/SupervisionI
 import { SupervisionTypeWidgetManager } from '../../../../../../shared/modules/DashboardBuilder/manager/SupervisionTypeWidgetManager';
 import { ContextFilterVOManager } from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import './SupervisionWidgetComponent.scss';
+import { SupervisionWidgetManager } from '../../../../../../shared/modules/DashboardBuilder/manager/SupervisionWidgetManager';
 
 @Component({
     template: require('./SupervisionWidgetComponent.pug'),
@@ -163,13 +164,11 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
      */
     private async update_visible_options() {
 
-        let rows: ISupervisedItem[] = [];
-        let pagination_count: number = 0;
-
         let launch_cpt: number = (this.last_calculation_cpt + 1);
+        let pagination_count: number = 0;
+        let rows: ISupervisedItem[] = [];
 
         this.last_calculation_cpt = launch_cpt;
-
         this.is_busy = true;
 
         if (!(this.supervision_api_type_ids?.length > 0)) {
@@ -185,9 +184,18 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
 
         const active_field_filters_by_api_type_id: { [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } } = {};
         const field_filters_for_request: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = this.get_active_field_filters;
+
         if (field_filters_for_request[ContextFilterVO.CUSTOM_FILTERS_TYPE]) {
             delete field_filters_for_request[ContextFilterVO.CUSTOM_FILTERS_TYPE];
         }
+
+
+        let rows = await SupervisionWidgetManager.load_supervision_probs_by_api_type_ids(
+            this.widget_options,
+            this.get_active_field_filters,
+            this.get_active_api_type_ids
+        );
+
 
         let available_api_type_ids: string[] = [];
 

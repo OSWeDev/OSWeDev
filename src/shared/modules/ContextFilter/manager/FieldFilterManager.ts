@@ -72,6 +72,7 @@ export class FieldFilterManager {
 
     /**
      * Create field filters from available api type ids
+     * - The aim of this function is to create a field filter for each given api_type_id
      *
      * @param {any} widget_options
      * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} active_field_filters
@@ -96,44 +97,45 @@ export class FieldFilterManager {
             active_field_filters = active_field_filters;
         }
 
-        let context_filters_for_request: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = ContextFilterVOManager.clean_field_filters_for_request(
+        // Remove unwanted field_filters
+        let field_filters_for_request: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = ContextFilterVOManager.clean_field_filters_for_request(
             active_field_filters
         );
 
-        for (let api_type_id in context_filters_for_request) {
+        for (const api_type_id in field_filters_for_request) {
 
-            for (let i in required_api_type_ids) {
-                let api_type_id_sup: string = required_api_type_ids[i];
+            for (const key in required_api_type_ids) {
+                const required_api_type_id: string = required_api_type_ids[key];
 
-                if (!field_filter[api_type_id_sup]) {
-                    field_filter[api_type_id_sup] = {};
+                if (!field_filter[required_api_type_id]) {
+                    field_filter[required_api_type_id] = {};
                 }
 
                 if (!options?.query_api_type_ids?.includes(api_type_id)) {
-                    field_filter[api_type_id_sup][api_type_id] = context_filters_for_request[api_type_id];
+                    field_filter[required_api_type_id][api_type_id] = field_filters_for_request[api_type_id];
                     continue;
                 }
 
-                let new_api_type_id: string = api_type_id_sup;
+                let new_api_type_id: string = required_api_type_id;
 
                 if (widget_options.force_filter_by_all_api_type_ids) {
                     new_api_type_id = api_type_id;
                 }
 
-                field_filter[api_type_id_sup][new_api_type_id] = cloneDeep(context_filters_for_request[api_type_id]);
+                field_filter[required_api_type_id][new_api_type_id] = cloneDeep(field_filters_for_request[api_type_id]);
 
-                for (let field_id in field_filter[api_type_id_sup][new_api_type_id]) {
+                for (let field_id in field_filter[required_api_type_id][new_api_type_id]) {
                     // Si je suis sur le field de la requête, je ne le prend pas en compte, il sera fait plus loin
                     if (options?.switch_current_field && (field_id == widget_options.vo_field_ref?.field_id)) {
-                        field_filter[api_type_id_sup][new_api_type_id][field_id] = null;
+                        field_filter[required_api_type_id][new_api_type_id][field_id] = null;
                         continue;
                     }
 
-                    if (!field_filter[api_type_id_sup][new_api_type_id][field_id]) {
+                    if (!field_filter[required_api_type_id][new_api_type_id][field_id]) {
                         continue;
                     }
 
-                    field_filter[api_type_id_sup][new_api_type_id][field_id].vo_type = api_type_id_sup;
+                    field_filter[required_api_type_id][new_api_type_id][field_id].vo_type = required_api_type_id;
                 }
             }
         }
