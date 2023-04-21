@@ -30,8 +30,8 @@
                         :show_insert_or_update_target='false'
                     )
 
-                template(v-if="is_search_type_last")
-                    .search_type_last.mt-2
+                template(v-if="is_search_type_last || is_search_type_ytd")
+                    .search_type_last.mt-2(v-tooltip='is_search_type_ytd ? label("advanced_date_filter_widget_opt.search_type_ytd.tooltip")')
                         .row
                             .value.col-sm-6
                                 Crudcomponentfield(

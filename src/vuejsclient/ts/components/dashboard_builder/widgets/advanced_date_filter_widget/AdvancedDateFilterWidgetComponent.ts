@@ -9,6 +9,7 @@ import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/v
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
+import TimeSegment from '../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import TSRange from '../../../../../../shared/modules/DataRender/vos/TSRange';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import { VOsTypesManager } from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
@@ -119,6 +120,24 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
                         TSRange.RANGE_TYPE,
                         start_date,
                         end_date,
+                        true,
+                        true,
+                        this.tmp_filter_active_opt.segmentation_type
+                    );
+                    break;
+                case AdvancedDateFilterOptDescVO.SEARCH_TYPE_YTD:
+                    if ((this.tmp_filter_active_opt.value == null) || (this.tmp_filter_active_opt.segmentation_type == null)) {
+                        break;
+                    }
+
+                    let now_ytd: number = Dates.now();
+                    let end_ytd_date: number = Dates.add(now_ytd, this.tmp_filter_active_opt.value, this.tmp_filter_active_opt.segmentation_type);
+                    let start_ytd_date: number = Dates.startOf(end_ytd_date, TimeSegment.TYPE_YEAR);
+
+                    ts_range = RangeHandler.createNew(
+                        TSRange.RANGE_TYPE,
+                        start_ytd_date,
+                        end_ytd_date,
                         true,
                         true,
                         this.tmp_filter_active_opt.segmentation_type

@@ -1558,6 +1558,14 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'adfd_desc.search_type.last'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "CAD - fin relative à aujourd'hui" },
+            'adfd_desc.search_type.ytd'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Dans le cas d\'un cumul à date, on peut sélectionner le segment de fin de la période relativement à la date du jour (le segment défini est inclu dans la sélection).' +
+                ' La date de début est le début de l\'année de la date de fin.'
+        }, 'advanced_date_filter_widget_opt.search_type_ytd.tooltip.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Afficher un calendrier" },
             'adfd_desc.search_type.custom'
         ));

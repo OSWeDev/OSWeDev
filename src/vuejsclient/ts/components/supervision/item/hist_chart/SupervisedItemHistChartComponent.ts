@@ -1,6 +1,6 @@
 import { debounce } from 'lodash';
 import { Line } from 'vue-chartjs';
-import 'chartjs-plugin-labels';
+import 'chart.js-plugin-labels-dv';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import TSRange from '../../../../../../shared/modules/DataRender/vos/TSRange';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
