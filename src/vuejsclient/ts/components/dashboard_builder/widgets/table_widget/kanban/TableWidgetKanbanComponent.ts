@@ -2,7 +2,7 @@ import { cloneDeep, debounce, findLastIndex, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import ContextFilterHandler from '../../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
+import { ContextFilterVOHandler } from '../../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
@@ -17,7 +17,6 @@ import SelectBoxDatatableFieldVO from '../../../../../../../shared/modules/DAO/v
 import VarDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/datatable/VarDatatableFieldVO';
 import InsertOrDeleteQueryResult from '../../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import DashboardBuilderController from '../../../../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
-import DashboardGraphVORefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
@@ -56,7 +55,7 @@ import TableWidgetController from './../TableWidgetController';
 import './TableWidgetKanbanComponent.scss';
 import IDistantVOBase from '../../../../../../../shared/modules/IDistantVOBase';
 import SortableListComponent from '../../../../sortable/SortableListComponent';
-import { ContextFilterVOManager } from '../../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
+import { FieldFilterManager } from '../../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -1666,8 +1665,8 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         let query_: ContextQueryVO = query(crud_api_type_id)
             .set_limit(this.limit, this.pagination_offset)
             .using(this.dashboard.api_type_ids)
-            .add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
-                ContextFilterVOManager.clean_field_filters_for_request(this.get_active_field_filters)
+            .add_filters(ContextFilterVOHandler.getInstance().get_filters_from_active_field_filters(
+                FieldFilterManager.clean_field_filters_for_request(this.get_active_field_filters)
             ));
 
         //On évite les jointures supprimées.
@@ -1833,7 +1832,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                 continue;
             }
 
-            query_.filters = ContextFilterHandler.getInstance().add_context_filters_exclude_values(
+            query_.filters = ContextFilterVOHandler.getInstance().add_context_filters_exclude_values(
                 options.exclude_filter_opt_values,
                 options.vo_field_ref,
                 query_.filters,
@@ -2658,8 +2657,8 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
             let query_: ContextQueryVO = query(column.api_type_id)
                 .field(column.field_id, alias_field, column.api_type_id, VarConfVO.SUM_AGGREGATOR)
-                .add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
-                    ContextFilterVOManager.clean_field_filters_for_request(this.get_active_field_filters)
+                .add_filters(ContextFilterVOHandler.getInstance().get_filters_from_active_field_filters(
+                    FieldFilterManager.clean_field_filters_for_request(this.get_active_field_filters)
                 ));
             // .set_limit(this.limit, this.pagination_offset) =;> à ajouter pour le sous - total(juste le contenu de la page)
             // .set_sort(new SortByVO(column.api_type_id, column.field_id, (this.order_asc_on_id != null)));

@@ -1,7 +1,7 @@
 import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import ContextFilterHandler from '../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
+import { ContextFilterVOHandler } from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import SimpleDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import AdvancedDateFilterOptDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/AdvancedDateFilterOptDescVO';
@@ -90,7 +90,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
          */
         let context_filter: ContextFilterVO = null;
         if (!!root_context_filter) {
-            context_filter = ContextFilterHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_INTERSECTS);
+            context_filter = ContextFilterVOHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_INTERSECTS);
         }
 
         let ts_range: TSRange = null;
@@ -149,7 +149,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
             context_filter.vo_type = this.vo_field_ref.api_type_id;
             context_filter.field_id = this.vo_field_ref.field_id;
 
-            let new_root = ContextFilterHandler.getInstance().add_context_filter_to_tree(root_context_filter, context_filter);
+            let new_root = ContextFilterVOHandler.getInstance().add_context_filter_to_tree(root_context_filter, context_filter);
             if (new_root != root_context_filter) {
                 if (!new_root) {
                     this.remove_active_field_filter({
@@ -171,7 +171,7 @@ export default class AdvancedDateFilterWidgetComponent extends VueComponentBase 
          * Si on a un contextfilter et qu'on en a plus besoin on le supprime
          */
         if ((!!context_filter) && (!ts_range)) {
-            let new_root = ContextFilterHandler.getInstance().remove_context_filter_from_tree(root_context_filter, context_filter);
+            let new_root = ContextFilterVOHandler.getInstance().remove_context_filter_from_tree(root_context_filter, context_filter);
             if (new_root != root_context_filter) {
                 if (!new_root) {
                     this.remove_active_field_filter({

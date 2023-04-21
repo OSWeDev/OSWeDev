@@ -2,8 +2,7 @@ import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import ContextFilterHandler from '../../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
-import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
+import { ContextFilterVOHandler } from '../../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
@@ -13,7 +12,6 @@ import DashboardPageWidgetVO from '../../../../../../../shared/modules/Dashboard
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
-import ModuleTable from '../../../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
 import { VOsTypesManager } from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
@@ -32,6 +30,8 @@ import FieldValueFilterWidgetController from '../FieldValueFilterWidgetControlle
 import FieldValueFilterWidgetOptions from '../options/FieldValueFilterWidgetOptions';
 import './FieldValueFilterEnumWidgetComponent.scss';
 import { ContextFilterVOManager } from '../../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
+import { FieldFilterManager } from '../../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
+import { FieldValueFilterEnumWidgetManager } from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterEnumWidgetManager';
 
 @Component({
     template: require('./FieldValueFilterEnumWidgetComponent.pug'),
@@ -194,7 +194,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
                 continue;
             }
 
-            let new_translated_active_options = ContextFilterHandler.getInstance().get_ContextFilterVO_from_DataFilterOption(active_option, null, field, this.vo_field_ref);
+            let new_translated_active_options = ContextFilterVOHandler.getInstance().get_ContextFilterVO_from_DataFilterOption(active_option, null, field, this.vo_field_ref);
 
             if (!new_translated_active_options) {
                 continue;
@@ -203,7 +203,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             if (!translated_active_options) {
                 translated_active_options = new_translated_active_options;
             } else {
-                translated_active_options = ContextFilterHandler.getInstance().merge_ContextFilterVOs(translated_active_options, new_translated_active_options);
+                translated_active_options = ContextFilterVOHandler.getInstance().merge_ContextFilterVOs(translated_active_options, new_translated_active_options);
             }
         }
 
@@ -304,7 +304,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             this.warn_existing_external_filters = !this.try_apply_actual_active_filters(root_context_filter);
         }
 
-        let data_filter_options: DataFilterOption[] = await DashboardBuilderDataFilterManager.find_enum_data_filters_from_widget_options(
+        let data_filter_options: DataFilterOption[] = await FieldValueFilterEnumWidgetManager.find_enum_data_filters_from_widget_options(
             this.dashboard,
             this.widget_options,
             this.get_active_field_filters,
@@ -391,10 +391,17 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             }
         );
 
-        const field_filters_by_api_type_id: { [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } } = this.get_field_filters_by_api_type_ids(
+        // Update the context_filter.vo_type with the corresponding api_type_id
+        const field_filters_by_api_type_id: {
+            [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
+        } = FieldFilterManager.update_field_filters_for_required_api_type_ids(
+            this.widget_options,
+            this.get_active_field_filters,
             available_api_type_ids,
-            true,
+            available_api_type_ids,
         );
+
+        console.log('FieldValueFilterEnumWidgetComponent.set_count_value.field_filters_by_api_type_id', JSON.stringify(field_filters_by_api_type_id));
 
         let count_by_filter_visible_opt_id: { [id: number]: number } = {};
 
@@ -414,6 +421,8 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
                 let filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_active_field_filters(
                     field_filters_by_api_type_id[api_type_id]
                 );
+
+                console.log('FieldValueFilterEnumWidgetComponent.set_count_value.filters', JSON.stringify(filters));
 
                 const enum_filter = ContextFilterVOManager.get_context_filter_from_data_filter_option(
                     filter_opt,
@@ -476,7 +485,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             active_field_filters = this.get_active_field_filters;
         }
 
-        const field_filters_for_request: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = ContextFilterVOManager.clean_field_filters_for_request(
+        const field_filters_for_request: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = FieldFilterManager.clean_field_filters_for_request(
             active_field_filters
         );
 

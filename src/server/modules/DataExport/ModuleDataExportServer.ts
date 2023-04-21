@@ -56,7 +56,7 @@ import ExportContextQueryToXLSXBGThread from './bgthreads/ExportContextQueryToXL
 import ExportContextQueryToXLSXQueryVO from './bgthreads/vos/ExportContextQueryToXLSXQueryVO';
 import FilterObj, { percentFilter, toFixedFilter } from '../../../shared/tools/Filters';
 import { IExportOptions } from '../../../shared/modules/DataExport/interfaces/IExportOptions';
-import ContextFilterHandler from '../../../shared/modules/ContextFilter/ContextFilterHandler';
+import { ContextFilterVOHandler } from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import { ExportVarIndicator } from '../../../shared/modules/DataExport/vos/ExportVarIndicator';
 import LocaleManager from '../../../shared/tools/LocaleManager';
 import { filter_by_name } from '../../../shared/tools/Filters';
@@ -729,7 +729,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
                 sheet.datas.push({
                     filter_name: `${context_filter.vo_type} - ${context_filter.field_id}`,
-                    value: ContextFilterHandler.context_filter_to_readable_ihm(context_filter)
+                    value: ContextFilterVOHandler.context_filter_to_readable_ihm(context_filter)
                 });
             }
         }

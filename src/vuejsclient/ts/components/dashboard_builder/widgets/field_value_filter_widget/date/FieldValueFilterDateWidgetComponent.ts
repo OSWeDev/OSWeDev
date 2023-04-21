@@ -1,7 +1,7 @@
 import Component from 'vue-class-component';
 import { cloneDeep, isEqual } from 'lodash';
 import { Prop, Watch } from 'vue-property-decorator';
-import ContextFilterHandler from '../../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
+import { ContextFilterVOHandler } from '../../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import SimpleDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
@@ -162,7 +162,7 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
         // We must search for the actual context filter
         let context_filter: ContextFilterVO = null;
         if (!!root_context_filter) {
-            context_filter = ContextFilterHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_INTERSECTS);
+            context_filter = ContextFilterVOHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_INTERSECTS);
         }
 
         // If no context filter that mean there is no initialization
@@ -194,7 +194,7 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
         // We must search for the actual context filter
         let context_filter: ContextFilterVO = null;
         if (!!root_context_filter) {
-            context_filter = ContextFilterHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_INTERSECTS);
+            context_filter = ContextFilterVOHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_INTERSECTS);
         }
 
         // if there is no ts_range there is no need to continue
@@ -211,7 +211,7 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
         if (!context_filter) {
             let moduletable = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id];
             let field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
-            context_filter = ContextFilterHandler.getInstance().get_ContextFilterVO_from_DataFilterOption(null, this.ts_range, field, this.vo_field_ref);
+            context_filter = ContextFilterVOHandler.getInstance().get_ContextFilterVO_from_DataFilterOption(null, this.ts_range, field, this.vo_field_ref);
 
             this.set_active_field_filter({
                 field_id: this.vo_field_ref.field_id,
@@ -226,7 +226,7 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
             if (!RangeHandler.are_same(context_filter.param_tsranges, ts_ranges)) {
                 context_filter.param_tsranges = ts_ranges;
 
-                let new_root = ContextFilterHandler.getInstance().add_context_filter_to_tree(root_context_filter, context_filter);
+                let new_root = ContextFilterVOHandler.getInstance().add_context_filter_to_tree(root_context_filter, context_filter);
 
                 this.set_active_field_filter({
                     field_id: this.vo_field_ref.field_id,

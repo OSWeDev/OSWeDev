@@ -32,7 +32,7 @@ import TableWidgetOptions from '../table_widget/options/TableWidgetOptions';
 import TableWidgetController from '../table_widget/TableWidgetController';
 import CRUD from '../../../../../../shared/modules/DAO/vos/CRUD';
 import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ContextFilterHandler from '../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
+import { ContextFilterVOHandler } from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import FieldValueFilterWidgetOptions from '../field_value_filter_widget/options/FieldValueFilterWidgetOptions';
 import ContextQueryFieldVO from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import VarConfVO from '../../../../../../shared/modules/Var/vos/VarConfVO';
@@ -43,6 +43,7 @@ import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/
 import MonthFilterWidgetOptions from '../month_filter_widget/options/MonthFilterWidgetOptions';
 import YearFilterWidgetOptions from '../year_filter_widget/options/YearFilterWidgetOptions';
 import { ContextFilterVOManager } from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
+import { FieldFilterManager } from '../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
 
 @Component({
     template: require('./SaveFavoritesFiltersWidgetComponent.pug'),
@@ -326,8 +327,8 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
         let context_query: ContextQueryVO = query(crud_api_type_id)
             .set_limit(limit, pagination_offset)
             .using(this.dashboard.api_type_ids)
-            .add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
-                ContextFilterVOManager.clean_field_filters_for_request(this.get_active_field_filters)
+            .add_filters(ContextFilterVOHandler.getInstance().get_filters_from_active_field_filters(
+                FieldFilterManager.clean_field_filters_for_request(this.get_active_field_filters)
             ));
 
         //On évite les jointures supprimées.
@@ -413,7 +414,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
                 continue;
             }
 
-            context_query.filters = ContextFilterHandler.getInstance().add_context_filters_exclude_values(
+            context_query.filters = ContextFilterVOHandler.getInstance().add_context_filters_exclude_values(
                 options.exclude_filter_opt_values,
                 options.vo_field_ref,
                 context_query.filters,

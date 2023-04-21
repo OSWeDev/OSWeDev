@@ -11,6 +11,32 @@ import ContextFilterVO from "../vos/ContextFilterVO";
 export class FieldFilterManager {
 
     /**
+     * clean_field_filters_for_request
+     *  - Clone and remove custom_filters
+     *
+     * @returns {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }}
+     */
+    public static clean_field_filters_for_request(
+        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        options?: { should_restrict_to_api_type_id: boolean },
+    ): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
+
+        let field_filter: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = cloneDeep(active_field_filters);
+
+        if (field_filter) {
+            delete field_filter[ContextFilterVO.CUSTOM_FILTERS_TYPE];
+        }
+
+        if (options?.should_restrict_to_api_type_id) {
+            // On ajoute un filtrage des filtres incompatibles avec la requête classique
+            // Avoid to have context_filter query on other api_type_id
+            field_filter = FieldFilterManager.filter_field_filters_by_it_own_api_type_id(field_filter);
+        }
+
+        return field_filter;
+    }
+
+    /**
      * Merge Field Filters With Context Filters
      *
      * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} from_field_filters
@@ -71,75 +97,149 @@ export class FieldFilterManager {
     }
 
     /**
-     * Create field filters from available api type ids
+     * Update field_filters by required api type ids
      * - The aim of this function is to create a field filter for each given api_type_id
+     * /!\ Update is not filtering in this way, we are actually updating the context_filter.vo_type with the api_type_id
      *
      * @param {any} widget_options
      * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} active_field_filters
-     * @param {string[]} required_api_type_ids
-     * @param {boolean} [options.switch_current_field]
-     * @param {string[]} [options.query_api_type_ids]
+     * @param {string[]} available_api_type_ids - The api_type_ids that are available for the current widget
+     * @param {string[]} required_api_type_ids  - The api_type_ids that are required for the current widget
      * @returns {{ [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } }}
      */
-    public static get_field_filters_by_required_api_type_ids(
+    public static update_field_filters_for_required_api_type_ids(
         widget_options: any,
         active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        available_api_type_ids: string[],
         required_api_type_ids: string[],
-        options?: {
-            switch_current_field?: boolean,
-            query_api_type_ids?: string[],
-        }
     ): { [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } } {
 
-        let field_filter: { [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } } = {};
+        let field_filter_by_api_type_ids: { [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } } = {};
 
         if (!widget_options.no_inter_filter) {
-            active_field_filters = active_field_filters;
+            active_field_filters = FieldFilterManager.clean_field_filters_for_request(
+                active_field_filters,
+                { should_restrict_to_api_type_id: true }
+            );
         }
 
-        // Remove unwanted field_filters
-        let field_filters_for_request: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = ContextFilterVOManager.clean_field_filters_for_request(
+        // Remove unwanted field_filters (e.g. "__custom_filters__")
+        const field_filters_for_request: {
+            [api_type_id: string]: { [field_id: string]: ContextFilterVO }
+        } = FieldFilterManager.clean_field_filters_for_request(
             active_field_filters
         );
 
-        for (const api_type_id in field_filters_for_request) {
+        // Check whether the given field_filters_for_request are compatible with the required_api_type_ids
+        // If not, we must reject the field_filters_for_request
+        // At least one of the required_api_type_ids must be present in the field_filters_for_request
+        const api_type_ids_for_request = Object.keys(field_filters_for_request).filter((api_type_id: string) => {
+            return required_api_type_ids.includes(api_type_id);
+        });
 
-            for (const key in required_api_type_ids) {
-                const required_api_type_id: string = required_api_type_ids[key];
+        for (const key in api_type_ids_for_request) {
 
-                if (!field_filter[required_api_type_id]) {
-                    field_filter[required_api_type_id] = {};
+            // We must apply the context_filters of the actual filtering on this api_type_id
+            // to all of the required_api_type_ids
+            const api_type_id_for_request: string = api_type_ids_for_request[key];
+
+            for (let i in available_api_type_ids) {
+                const api_type_id: string = available_api_type_ids[i];
+
+                if (!field_filter_by_api_type_ids[api_type_id]) {
+                    field_filter_by_api_type_ids[api_type_id] = {};
                 }
 
-                if (!options?.query_api_type_ids?.includes(api_type_id)) {
-                    field_filter[required_api_type_id][api_type_id] = field_filters_for_request[api_type_id];
-                    continue;
-                }
+                const field_filter: { [field_id: string]: ContextFilterVO } = cloneDeep(field_filters_for_request[api_type_id_for_request]);
 
-                let new_api_type_id: string = required_api_type_id;
+                field_filter_by_api_type_ids[api_type_id][api_type_id] = field_filter;
 
-                if (widget_options.force_filter_by_all_api_type_ids) {
-                    new_api_type_id = api_type_id;
-                }
-
-                field_filter[required_api_type_id][new_api_type_id] = cloneDeep(field_filters_for_request[api_type_id]);
-
-                for (let field_id in field_filter[required_api_type_id][new_api_type_id]) {
-                    // Si je suis sur le field de la requête, je ne le prend pas en compte, il sera fait plus loin
-                    if (options?.switch_current_field && (field_id == widget_options.vo_field_ref?.field_id)) {
-                        field_filter[required_api_type_id][new_api_type_id][field_id] = null;
+                for (const field_id in field_filter_by_api_type_ids[api_type_id][api_type_id]) {
+                    if (!field_filter_by_api_type_ids[api_type_id][api_type_id][field_id]) {
                         continue;
                     }
 
-                    if (!field_filter[required_api_type_id][new_api_type_id][field_id]) {
-                        continue;
-                    }
-
-                    field_filter[required_api_type_id][new_api_type_id][field_id].vo_type = required_api_type_id;
+                    // We must update the vo_type of the context_filter
+                    // /!\ Update is not filtering
+                    // TODO: to be continued
+                    // TODO: - maybe we should update deeply the whole context_filter tree for the given api_type_id (or vo_type)
+                    field_filter_by_api_type_ids[api_type_id][api_type_id][field_id].vo_type = api_type_id;
                 }
             }
         }
 
-        return field_filter;
+        return field_filter_by_api_type_ids;
+    }
+
+    /**
+     * filter_field_filter_by_type$
+     *  - The aim of this function is to filter the given field_filters to only keep context_filters related to each api_type_id
+     *
+     * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} active_field_filters
+     * @returns { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
+     */
+    public static filter_field_filters_by_it_own_api_type_id(
+        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
+    ): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
+
+        for (let api_type_id in active_field_filters) {
+
+            // On supprime aussi de l'arbre tous les filtres qui ne sont pas du bon type de supervision
+            let field_filters = active_field_filters[api_type_id];
+            for (let field_id in field_filters) {
+                const context_filter = field_filters[field_id];
+
+                if (!context_filter) {
+                    continue;
+                }
+
+                field_filters[field_id] = ContextFilterVOManager.filter_context_filter_tree_by_vo_type(context_filter, api_type_id);
+            }
+        }
+
+        return active_field_filters;
+    }
+
+    /**
+     * Filter field_filters by api_type_id
+     * - The aim of this function is to filter field filters by api_type_id (or vo_type)
+     * - We should olso keep only context_filters that actually filter on the given api_type_id (or vo_type)
+     *
+     * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} active_field_filters
+     * @param {string[]} available_api_type_ids all available api type ids
+     * @param {string} api_type_id API type id (or vo_type)
+     * @returns { { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }}
+     */
+    public static filter_field_filters_by_api_type_id(
+        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        available_api_type_ids: string[],
+        api_type_id: string
+    ): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
+
+        for (const i in available_api_type_ids) {
+            const available_api_type_id = available_api_type_ids[i];
+
+            if (available_api_type_id != api_type_id) {
+                delete active_field_filters[available_api_type_id];
+            }
+
+            // On supprime aussi de l'arbre tous les filtres qui ne sont pas du bon type de supervision
+            const field_filters = active_field_filters[available_api_type_id];
+            for (const field_id in field_filters) {
+
+                if (!field_filters[field_id]) {
+                    continue;
+                }
+
+                // We should olso keep only context_filters that actually filter on the given api_type_id (or vo_type)
+                field_filters[field_id] = ContextFilterVOManager.filter_context_filter_tree_by_vo_type(
+                    field_filters[field_id],
+                    api_type_id,
+                    available_api_type_ids
+                );
+            }
+        }
+
+        return active_field_filters;
     }
 }

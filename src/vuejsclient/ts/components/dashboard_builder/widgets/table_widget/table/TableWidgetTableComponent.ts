@@ -2,7 +2,7 @@ import { cloneDeep, debounce, isEqual, isObject, transform } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import ContextFilterHandler from '../../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
+import { ContextFilterVOHandler } from '../../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
@@ -61,7 +61,7 @@ import TableWidgetOptions from './../options/TableWidgetOptions';
 import TablePaginationComponent from './../pagination/TablePaginationComponent';
 import TableWidgetController from './../TableWidgetController';
 import './TableWidgetTableComponent.scss';
-import { ContextFilterVOManager } from '../../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
+import { FieldFilterManager } from '../../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -491,7 +491,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             const context_filter: ContextFilterVO = active_field_filters[field_filters_key][rgx_result.groups.filter_name];
 
             // filter to HMI readable
-            const filter_readable = ContextFilterHandler.context_filter_to_readable_ihm(context_filter);
+            const filter_readable = ContextFilterVOHandler.context_filter_to_readable_ihm(context_filter);
 
             const params_key = `#active_filter:${rgx_result.groups.filter_name}`;
 
@@ -1432,8 +1432,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         let query_: ContextQueryVO = query(crud_api_type_id)
             .set_limit(this.limit, this.pagination_offset)
             .using(this.dashboard.api_type_ids)
-            .add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
-                ContextFilterVOManager.clean_field_filters_for_request(this.get_active_field_filters)
+            .add_filters(ContextFilterVOHandler.getInstance().get_filters_from_active_field_filters(
+                FieldFilterManager.clean_field_filters_for_request(this.get_active_field_filters)
             ));
 
         //On évite les jointures supprimées.
@@ -1586,7 +1586,7 @@ export default class TableWidgetTableComponent extends VueComponentBase {
                 continue;
             }
 
-            query_.filters = ContextFilterHandler.getInstance().add_context_filters_exclude_values(
+            query_.filters = ContextFilterVOHandler.getInstance().add_context_filters_exclude_values(
                 options.exclude_filter_opt_values,
                 options.vo_field_ref,
                 query_.filters,
@@ -2406,8 +2406,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
 
             let query_: ContextQueryVO = query(column.api_type_id)
                 .field(column.field_id, alias_field, column.api_type_id, VarConfVO.SUM_AGGREGATOR)
-                .add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
-                    ContextFilterVOManager.clean_field_filters_for_request(this.get_active_field_filters)
+                .add_filters(ContextFilterVOHandler.getInstance().get_filters_from_active_field_filters(
+                    FieldFilterManager.clean_field_filters_for_request(this.get_active_field_filters)
                 ));
             // .set_limit(this.limit, this.pagination_offset) =;> à ajouter pour le sous - total(juste le contenu de la page)
             // .set_sort(new SortByVO(column.api_type_id, column.field_id, (this.order_asc_on_id != null)));

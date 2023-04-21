@@ -7,7 +7,7 @@ import { query } from '../../../../../../../shared/modules/ContextFilter/vos/Con
 import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import { VOFieldRefVOTypeHandler } from '../../../../../../../shared/modules/DashboardBuilder/handlers/VOFieldRefVOTypeHandler';
-import { DashboardBuilderDataFilterManager } from '../../../../../../../shared/modules/DashboardBuilder/manager/DashboardBuilderDataFilterManager';
+import { FieldValueFilterEnumWidgetManager } from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterEnumWidgetManager';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
@@ -864,7 +864,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
 
         if (this.is_type_enum) {
             // Load data_filters for enum
-            data_filters = await DashboardBuilderDataFilterManager.find_enum_data_filters_from_widget_options(
+            data_filters = await FieldValueFilterEnumWidgetManager.find_enum_data_filters_from_widget_options(
                 this.dashboard,
                 this.widget_options,
                 this.get_active_field_filters,

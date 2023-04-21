@@ -3,7 +3,7 @@ import { Watch } from 'vue-property-decorator';
 import VueComponentBase from '../../../../VueComponentBase';
 import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
 import DashboardFavoritesFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardFavoritesFiltersVO';
-import ContextFilterHandler from '../../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
+import { ContextFilterVOHandler } from '../../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import './SaveFavoritesFiltersModalComponent.scss';
 import { cloneDeep } from 'lodash';
@@ -389,7 +389,7 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
                 };
 
                 // Get HMI readable active field filters
-                const readable_active_field_filters = ContextFilterHandler.context_filter_to_readable_ihm(filter);
+                const readable_active_field_filters = ContextFilterVOHandler.context_filter_to_readable_ihm(filter);
 
                 res[label] = {
                     readable_active_field_filters,

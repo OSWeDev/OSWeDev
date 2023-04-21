@@ -1,7 +1,7 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import ContextFilterHandler from '../../../../../shared/modules/ContextFilter/ContextFilterHandler';
+import { ContextFilterVOHandler } from '../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ModuleContextFilter from '../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextQueryVO, { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';

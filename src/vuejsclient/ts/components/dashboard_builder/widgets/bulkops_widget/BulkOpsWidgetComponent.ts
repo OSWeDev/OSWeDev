@@ -3,7 +3,7 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleAjaxCache from '../../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
-import ContextFilterHandler from '../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
+import { ContextFilterVOHandler } from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import { ContextFilterVOManager } from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
@@ -32,6 +32,7 @@ import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import TablePaginationComponent from '../table_widget/pagination/TablePaginationComponent';
 import './BulkOpsWidgetComponent.scss';
 import BulkOpsWidgetOptions from './options/BulkOpsWidgetOptions';
+import { FieldFilterManager } from '../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
 
 @Component({
     template: require('./BulkOpsWidgetComponent.pug'),
@@ -283,7 +284,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             let cloned_raw = cloneDeep(row);
             let cloned_res = cloneDeep(row);
             cloned_raw[this.field_id_selected] = this.new_value;
-            await ContextFilterHandler.getInstance().get_datatable_row_field_data_async(cloned_raw, cloned_res, this.get_datatable_row_editable_field);
+            await ContextFilterVOHandler.getInstance().get_datatable_row_field_data_async(cloned_raw, cloned_res, this.get_datatable_row_editable_field);
             res.push(cloned_res);
         }
 
@@ -344,8 +345,8 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
         let query_: ContextQueryVO = query(this.widget_options.api_type_id)
             .set_limit(this.widget_options.limit, this.pagination_offset)
             .using(this.dashboard.api_type_ids)
-            .add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(
-                ContextFilterVOManager.clean_field_filters_for_request(this.get_active_field_filters)
+            .add_filters(ContextFilterVOHandler.getInstance().get_filters_from_active_field_filters(
+                FieldFilterManager.clean_field_filters_for_request(this.get_active_field_filters)
             ));
 
         for (let i in this.fields) {
@@ -398,7 +399,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             for (let j in this.fields) {
                 let field = this.fields[j];
 
-                promises.push(ContextFilterHandler.getInstance().get_datatable_row_field_data_async(row, resData, field));
+                promises.push(ContextFilterVOHandler.getInstance().get_datatable_row_field_data_async(row, resData, field));
             }
             data_rows.push(resData);
         }
@@ -481,7 +482,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
                                     let new_value = self.moduletable.default_get_field_api_version(self.new_value, self.moduletable.get_field_by_id(self.field_id_selected));
 
-                                    let context_query: ContextQueryVO = query(self.api_type_id).using(self.dashboard.api_type_ids).add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(self.get_active_field_filters));
+                                    let context_query: ContextQueryVO = query(self.api_type_id).using(self.dashboard.api_type_ids).add_filters(ContextFilterVOHandler.getInstance().get_filters_from_active_field_filters(self.get_active_field_filters));
 
                                     await ModuleContextFilter.getInstance().update_vos(
                                         context_query,

@@ -108,7 +108,7 @@ export class FieldValueFilterWidgetOptionsVO extends AbstractVO {
         public default_ts_range_values?: TSRange,
         public default_boolean_values?: number[],
         public hide_filter?: boolean,
-        public no_inter_filter?: boolean,
+        public no_inter_filter?: boolean, // Do not use the active_field_filter
         public has_other_ref_api_type_id?: boolean,
         public other_ref_api_type_id?: string,
         public exclude_filter_opt_values?: DataFilterOption[],

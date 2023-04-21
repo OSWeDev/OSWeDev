@@ -15,7 +15,6 @@ import ContextFilterVO from "../vos/ContextFilterVO";
 import { FieldValueFilterWidgetOptionsVO } from '../../DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
 import MonthFilterWidgetOptionsVO from '../../DashboardBuilder/vos/MonthFilterWidgetOptionsVO';
 import YearFilterWidgetOptionsVO from '../../DashboardBuilder/vos/YearFilterWidgetOptionsVO';
-import ContextFilterHandler from "../ContextFilterHandler";
 import { ContextFilterVOHandler } from "../handler/ContextFilterVOHandler";
 import { cloneDeep } from "lodash";
 
@@ -340,7 +339,7 @@ export class ContextFilterVOManager {
                     if (!context_filter_multiple) {
                         context_filter_multiple = new_context_filter;
                     } else {
-                        context_filter_multiple = ContextFilterHandler.merge_context_filter_vos(context_filter_multiple, new_context_filter);
+                        context_filter_multiple = ContextFilterVOHandler.merge_context_filter_vos(context_filter_multiple, new_context_filter);
                     }
                 }
 
@@ -383,7 +382,7 @@ export class ContextFilterVOManager {
             if (!context_filter) {
                 context_filter_simple = new_context_filter;
             } else {
-                context_filter_simple = ContextFilterHandler.merge_context_filter_vos(context_filter_simple, new_context_filter);
+                context_filter_simple = ContextFilterVOHandler.merge_context_filter_vos(context_filter_simple, new_context_filter);
             }
         }
 
@@ -501,7 +500,7 @@ export class ContextFilterVOManager {
             if (!context_filter) {
                 context_filter = new_context_filter;
             } else {
-                context_filter = ContextFilterHandler.merge_context_filter_vos(context_filter, new_context_filter);
+                context_filter = ContextFilterVOHandler.merge_context_filter_vos(context_filter, new_context_filter);
             }
         }
 
@@ -566,7 +565,7 @@ export class ContextFilterVOManager {
             if (!context_filter) {
                 context_filter = new_context_filter;
             } else {
-                context_filter = ContextFilterHandler.merge_context_filter_vos(context_filter, new_context_filter);
+                context_filter = ContextFilterVOHandler.merge_context_filter_vos(context_filter, new_context_filter);
             }
         }
 
@@ -688,28 +687,6 @@ export class ContextFilterVOManager {
         }
 
         return context_filters;
-    }
-
-    /**
-     * clean_field_filters_for_request
-     *  - Clone and remove custom_filters
-     *
-     * @returns {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }}
-     */
-    public static clean_field_filters_for_request(
-        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
-    ): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
-
-        let res: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = cloneDeep(get_active_field_filters);
-
-        if (res) {
-            delete res[ContextFilterVO.CUSTOM_FILTERS_TYPE];
-        }
-
-        // On ajoute un filtrage des filtres incompatibles avec la requête classique
-        // this.filter_context_by_type(res);
-
-        return res;
     }
 
     /**

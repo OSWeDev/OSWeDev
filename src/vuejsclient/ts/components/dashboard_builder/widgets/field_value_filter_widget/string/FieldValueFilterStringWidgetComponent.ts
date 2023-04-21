@@ -2,7 +2,7 @@ import { cloneDeep, debounce, isEqual } from 'lodash';
 import Vue from 'vue';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import ContextFilterHandler from '../../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
+import { ContextFilterVOHandler } from '../../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO, { filter } from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
@@ -35,6 +35,7 @@ import AdvancedStringFilter from './AdvancedStringFilter';
 import './FieldValueFilterStringWidgetComponent.scss';
 import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFiltersWidgetController';
 import { ContextFilterVOManager } from '../../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
+import { FieldFilterManager } from '../../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
 
 @Component({
     template: require('./FieldValueFilterStringWidgetComponent.pug'),
@@ -833,8 +834,9 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         let active_field_filters_query: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null;
 
         if (!this.no_inter_filter) {
-            active_field_filters_query = ContextFilterVOManager.clean_field_filters_for_request(
-                this.get_active_field_filters
+            active_field_filters_query = FieldFilterManager.clean_field_filters_for_request(
+                this.get_active_field_filters,
+                { should_restrict_to_api_type_id: true }
             );
 
             if (this.vo_field_ref_lvl2) {
@@ -850,14 +852,14 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
         let query_ = query(query_api_type_id)
             .field(this.vo_field_ref.field_id, 'label', this.vo_field_ref.api_type_id)
-            .add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(active_field_filters_query))
+            .add_filters(ContextFilterVOHandler.getInstance().get_filters_from_active_field_filters(active_field_filters_query))
             .set_limit(this.widget_options.max_visible_options)
             .set_sort(new SortByVO(field_sort.api_type_id, field_sort.field_id, true))
             .using(this.dashboard.api_type_ids);
 
         FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(query_, this.get_discarded_field_paths);
 
-        query_.filters = ContextFilterHandler.getInstance().add_context_filters_exclude_values(
+        query_.filters = ContextFilterVOHandler.getInstance().add_context_filters_exclude_values(
             this.exclude_values,
             this.vo_field_ref,
             query_.filters,
@@ -897,6 +899,8 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             query_ = await FieldValueFilterWidgetController.getInstance().check_segmented_dependencies(this.dashboard, query_, this.get_discarded_field_paths, true);
         }
 
+        console.log('select_filter_visible_options', JSON.stringify(query_));
+
         tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(
             query_,
             this.actual_query,
@@ -915,7 +919,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
                 let query_field_ref = query(field_ref.api_type_id)
                     .field(field_ref.field_id, 'label')
-                    .add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(active_field_filters_query))
+                    .add_filters(ContextFilterVOHandler.getInstance().get_filters_from_active_field_filters(active_field_filters_query))
                     .set_limit(this.widget_options.max_visible_options)
                     .set_sort(new SortByVO(field_sort.api_type_id, field_sort.field_id, true))
                     .using(this.dashboard.api_type_ids);
@@ -983,7 +987,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
                     }
 
                     if (!active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id]) {
-                        active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id] = ContextFilterHandler.getInstance().get_ContextFilterVO_from_DataFilterOption(
+                        active_field_filters[this.vo_field_ref.api_type_id][this.vo_field_ref.field_id] = ContextFilterVOHandler.getInstance().get_ContextFilterVO_from_DataFilterOption(
                             opt,
                             null,
                             field,
@@ -995,7 +999,7 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
                     let query_opt_lvl2 = query(this.vo_field_ref_lvl2.api_type_id)
                         .field(this.vo_field_ref_lvl2.field_id, 'label')
-                        .add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(active_field_filters))
+                        .add_filters(ContextFilterVOHandler.getInstance().get_filters_from_active_field_filters(active_field_filters))
                         .set_limit(this.widget_options.max_visible_options)
                         .set_sort(new SortByVO(field_sort_lvl2.api_type_id, field_sort_lvl2.field_id, true))
                         .using(this.dashboard.api_type_ids);

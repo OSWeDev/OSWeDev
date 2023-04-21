@@ -7,7 +7,7 @@ import ICheckListItem from '../../../../../../shared/modules/CheckList/interface
 import ICheckPoint from '../../../../../../shared/modules/CheckList/interfaces/ICheckPoint';
 import ModuleCheckListBase from '../../../../../../shared/modules/CheckList/ModuleCheckListBase';
 import CheckListVO from '../../../../../../shared/modules/CheckList/vos/CheckListVO';
-import ContextFilterHandler from '../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
+import { ContextFilterVOHandler } from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
@@ -38,6 +38,7 @@ import ChecklistWidgetOptions from './options/ChecklistWidgetOptions';
 import Vue from 'vue';
 import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import { ContextFilterVOManager } from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
+import { FieldFilterManager } from '../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
 
 @Component({
     template: require('./ChecklistWidgetComponent.pug'),
@@ -416,7 +417,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
         if (!filters[self.checklist_shared_module.checklistitem_type_id]) {
             filters[self.checklist_shared_module.checklistitem_type_id] = {};
         }
-        filters = ContextFilterVOManager.clean_field_filters_for_request(filters);
+        filters = FieldFilterManager.clean_field_filters_for_request(filters);
 
         promises.push((async () => {
 
@@ -427,7 +428,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
             filter.param_numeric = self.checklist.id;
 
             filters[self.checklist_shared_module.checklistitem_type_id]['checklist_id'] =
-                ContextFilterHandler.getInstance().add_context_filter_to_tree(
+                ContextFilterVOHandler.getInstance().add_context_filter_to_tree(
                     filters[self.checklist_shared_module.checklistitem_type_id]['checklist_id'],
                     filter);
 
@@ -437,14 +438,14 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
             filter.filter_type = ContextFilterVO.TYPE_BOOLEAN_FALSE_ALL;
 
             filters[self.checklist_shared_module.checklistitem_type_id]['archived'] =
-                ContextFilterHandler.getInstance().add_context_filter_to_tree(
+                ContextFilterVOHandler.getInstance().add_context_filter_to_tree(
                     filters[self.checklist_shared_module.checklistitem_type_id]['archived'],
                     filter);
 
             let query_: ContextQueryVO = query(self.checklist_shared_module.checklistitem_type_id)
                 .set_limit(this.pagination_pagesize, this.pagination_offset)
                 .using(this.dashboard.api_type_ids)
-                .add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(filters))
+                .add_filters(ContextFilterVOHandler.getInstance().get_filters_from_active_field_filters(filters))
                 .set_sort(new SortByVO(self.checklist_shared_module.checklistitem_type_id, 'id', false));
 
             let items: ICheckListItem[] = await query_.select_vos<ICheckListItem>();
@@ -485,7 +486,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
 
         let query_count: ContextQueryVO = query(self.checklist_shared_module.checklistitem_type_id)
             .using(this.dashboard.api_type_ids)
-            .add_filters(ContextFilterHandler.getInstance().get_filters_from_active_field_filters(filters));
+            .add_filters(ContextFilterVOHandler.getInstance().get_filters_from_active_field_filters(filters));
         this.pagination_count = await ModuleContextFilter.getInstance().select_count(query_count);
 
         // Si je ne suis pas sur la dernière demande, je me casse

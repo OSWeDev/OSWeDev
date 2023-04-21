@@ -1,4 +1,4 @@
-import { cloneDeep, isArray } from 'lodash';
+import { isArray } from 'lodash';
 import ConsoleHandler from '../../../tools/ConsoleHandler';
 import LocaleManager from '../../../tools/LocaleManager';
 import { all_promises } from '../../../tools/PromiseTools';
@@ -11,19 +11,19 @@ import RefRangesReferenceDatatableFieldVO from '../../DAO/vos/datatable/RefRange
 import SimpleDatatableFieldVO from '../../DAO/vos/datatable/SimpleDatatableFieldVO';
 import VOFieldRefVO from '../../DashboardBuilder/vos/VOFieldRefVO';
 import DataFilterOption from '../../DataRender/vos/DataFilterOption';
-import NumSegment from '../../DataRender/vos/NumSegment';
 import TSRange from '../../DataRender/vos/TSRange';
 import IDistantVOBase from '../../IDistantVOBase';
 import ModuleTableField from '../../ModuleTableField';
 import { VOsTypesManager } from '../../VO/manager/VOsTypesManager';
 import { ContextFilterVOManager } from '../manager/ContextFilterVOManager';
+import { FieldFilterManager } from '../manager/FieldFilterManager';
 import ContextFilterVO from '../vos/ContextFilterVO';
 import { query } from '../vos/ContextQueryVO';
 
 /**
  * ContextFilterVOHandler
  *
- * TODO: For some of the following methods, we would rather use the new ContextFilterVOManager methods
+ * TODO: For some of the following methods, we should rather use the new ContextFilterVOManager methods
  * TODO: Handlers methods have to be for Handling|Checking rules on ContextFilterVO
  */
 export class ContextFilterVOHandler {
@@ -53,22 +53,6 @@ export class ContextFilterVOHandler {
         "label.day.vendredi",
         "label.day.samedi"
     ];
-
-    /**
-     * Is Conditional Context Filter
-     *
-     * @param {ContextFilterVO} context_filter
-     * @returns {boolean}
-     */
-    public static is_conditional_context_filter(context_filter: ContextFilterVO): boolean {
-        const conditional_types = [
-            ContextFilterVO.TYPE_FILTER_AND,
-            ContextFilterVO.TYPE_FILTER_OR,
-            ContextFilterVO.TYPE_FILTER_XOR,
-        ];
-
-        return conditional_types.find((t: number) => t == context_filter?.filter_type) != null;
-    }
 
     /**
      * Context Filter To Readable Ihm
@@ -133,6 +117,22 @@ export class ContextFilterVOHandler {
                 // param_textarray of any string is e.g. [..., one_text_1, ..., one_text_2, ...]
                 return context_filter.param_textarray?.join(', ');
         }
+    }
+
+    /**
+     * Is Conditional Context Filter
+     *
+     * @param {ContextFilterVO} context_filter
+     * @returns {boolean}
+     */
+    public static is_conditional_context_filter(context_filter: ContextFilterVO): boolean {
+        const conditional_types = [
+            ContextFilterVO.TYPE_FILTER_AND,
+            ContextFilterVO.TYPE_FILTER_OR,
+            ContextFilterVO.TYPE_FILTER_XOR,
+        ];
+
+        return conditional_types.find((t: number) => t == context_filter?.filter_type) != null;
     }
 
     /**
@@ -629,7 +629,7 @@ export class ContextFilterVOHandler {
     public clean_context_filters_for_request(
         get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
     ): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
-        return ContextFilterVOManager.clean_field_filters_for_request(get_active_field_filters);
+        return FieldFilterManager.clean_field_filters_for_request(get_active_field_filters);
     }
 
     /**
@@ -761,62 +761,5 @@ export class ContextFilterVOHandler {
      */
     public merge_ContextFilterVOs(a: ContextFilterVO, b: ContextFilterVO, try_union: boolean = false): ContextFilterVO {
         return ContextFilterVOHandler.merge_context_filter_vos(a, b, try_union);
-    }
-
-    private filter_context_by_type(
-        context_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
-    ): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
-
-        for (let api_type_id in context_filters) {
-
-            // On supprime aussi de l'arbre tous les filtres qui ne sont pas du bon type de supervision
-            let api_type_context_filters = context_filters[api_type_id];
-            for (let field_id in api_type_context_filters) {
-
-                if (!api_type_context_filters[field_id]) {
-                    continue;
-                }
-
-                api_type_context_filters[field_id] = this.filter_arbo_by_type(api_type_context_filters[field_id], api_type_id);
-            }
-        }
-
-        return context_filters;
-    }
-
-    /**
-     * @deprecated does not perform the right action
-     */
-    private filter_arbo_by_type(context_filter: ContextFilterVO, api_type_root: string): ContextFilterVO {
-
-        let left: ContextFilterVO = null;
-        let right: ContextFilterVO = null;
-
-        switch (context_filter.filter_type) {
-            case ContextFilterVO.TYPE_FILTER_AND:
-                left = this.filter_arbo_by_type(context_filter.left_hook, api_type_root);
-                right = this.filter_arbo_by_type(context_filter.right_hook, api_type_root);
-
-                if (left && right) {
-                    return context_filter;
-                }
-                return null;
-            case ContextFilterVO.TYPE_FILTER_OR:
-                left = this.filter_arbo_by_type(context_filter.left_hook, api_type_root);
-                right = this.filter_arbo_by_type(context_filter.right_hook, api_type_root);
-
-                if (left && right) {
-                    return context_filter;
-                }
-                return null;
-            default:
-                if (context_filter.vo_type == api_type_root) {
-                    return context_filter;
-                }
-
-                // une supervision et pas du bon type, on supprime
-                ConsoleHandler.log('Suppression d\'un filtre de type ' + context_filter.vo_type + ' pour un type attendu ' + api_type_root);
-                return null;
-        }
     }
 }

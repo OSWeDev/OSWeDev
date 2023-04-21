@@ -1,7 +1,7 @@
 import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Vue, Watch } from 'vue-property-decorator';
-import ContextFilterHandler from '../../../../../../shared/modules/ContextFilter/ContextFilterHandler';
+import { ContextFilterVOHandler } from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
@@ -246,7 +246,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
          */
         let context_filter: ContextFilterVO = null;
         if (!!root_context_filter) {
-            context_filter = ContextFilterHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_YEAR);
+            context_filter = ContextFilterVOHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_YEAR);
         }
 
         // If no context filter that mean there is no initialization
@@ -308,7 +308,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
          */
         let context_filter: ContextFilterVO = null;
         if (!!root_context_filter) {
-            context_filter = ContextFilterHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_YEAR);
+            context_filter = ContextFilterVOHandler.getInstance().find_context_filter_by_type(root_context_filter, ContextFilterVO.TYPE_DATE_YEAR);
         }
 
         /**
@@ -334,7 +334,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
                 context_filter.field_id = this.custom_filter_name;
             }
 
-            let new_root = ContextFilterHandler.getInstance().add_context_filter_to_tree(root_context_filter, context_filter);
+            let new_root = ContextFilterVOHandler.getInstance().add_context_filter_to_tree(root_context_filter, context_filter);
             if (new_root != root_context_filter) {
                 if (!new_root) {
                     this.remove_active_field_filter({
@@ -356,7 +356,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
          * Si on a un contextfilter et qu'on en a plus besoin on le supprime
          */
         if ((!!context_filter) && (!this.force_selected_years_reset) && (!(years_ranges?.length > 0))) {
-            let new_root = ContextFilterHandler.getInstance().remove_context_filter_from_tree(root_context_filter, context_filter);
+            let new_root = ContextFilterVOHandler.getInstance().remove_context_filter_from_tree(root_context_filter, context_filter);
             if (new_root != root_context_filter) {
                 if (!new_root) {
                     this.remove_active_field_filter({
@@ -381,7 +381,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
             if (!RangeHandler.are_same(context_filter.param_numranges, years_ranges)) {
                 context_filter.param_numranges = years_ranges;
 
-                let new_root = ContextFilterHandler.getInstance().add_context_filter_to_tree(root_context_filter, context_filter);
+                let new_root = ContextFilterVOHandler.getInstance().add_context_filter_to_tree(root_context_filter, context_filter);
 
                 this.set_active_field_filter({
                     field_id: this.is_vo_field_ref ? this.vo_field_ref.field_id : this.custom_filter_name,

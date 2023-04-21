@@ -146,7 +146,7 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
                     qb = qb.filter_by_num_eq('category_id', category_selections.map((cat) => cat.id));
                 }
 
-                let items_count: number = await qb.select_count();
+                const items_count: number = await qb.select_count();
 
                 if (items_count > 0) {
                     available_api_type_ids.push(api_type_id);
