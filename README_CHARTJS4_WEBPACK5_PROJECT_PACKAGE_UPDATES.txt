@@ -1,0 +1,20 @@
+S'assurer d'avoir au moins ces versions de package sur le projet
+
+        "compression-webpack-plugin": "10.0.0",
+        "css-loader": "6.7.3",
+        "html-loader": "4.2.0",
+        "html-webpack-plugin": "5.5.1",
+        "ifdef-loader": "2.3.2",
+        "pug-plain-loader": "1.1.0",
+        "raw-loader": "4.0.2",
+        "sass-loader": "13.2.2",
+        "speed-measure-webpack-plugin": "1.5.0",
+        "style-loader": "3.3.2",
+        "ts-loader": "9.4.2",
+        "url-loader": "4.1.1",
+        "webpack": "5.80.0",
+        "webpack-bundle-analyzer": "4.8.0",
+        "webpack-cli": "5.0.2",
+        "webpack-mild-compile": "3.4.0",
+        "webpack-pwa-manifest": "4.3.0",
+        "workbox-webpack-plugin": "6.5.4"
