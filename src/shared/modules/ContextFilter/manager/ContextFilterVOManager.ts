@@ -587,6 +587,39 @@ export class ContextFilterVOManager {
     }
 
     /**
+     * add_context_filter_to_tree
+     * - Add context_filter to the root, using the and/or/xor .... type of operator if necessary
+     *
+     * @param {ContextFilterVO} context_filter_tree_root
+     * @param {ContextFilterVO} context_filter_to_add
+     * @param {number} operator_type
+     * @returns {ContextFilterVO}
+     */
+    public static add_context_filter_to_tree(
+        context_filter_tree_root: ContextFilterVO,
+        context_filter_to_add: ContextFilterVO,
+        operator_type: number = ContextFilterVO.TYPE_FILTER_AND
+    ): ContextFilterVO {
+        if (!context_filter_tree_root) {
+            return context_filter_to_add;
+        }
+
+        if (!context_filter_to_add) {
+            return context_filter_tree_root;
+        }
+
+        // Le root est déjà rempli, on renvoie un nouvel operateur
+        let context_filter = new ContextFilterVO();
+
+        context_filter.vo_type = context_filter_to_add.vo_type;
+        context_filter.field_id = context_filter_to_add.field_id;
+        context_filter.filter_type = operator_type;
+        context_filter.left_hook = context_filter_tree_root;
+        context_filter.right_hook = context_filter_to_add;
+        return context_filter;
+    }
+
+    /**
      * Create Context Filter From Data Filter Option
      *
      * @param {DataFilterOption} active_option
