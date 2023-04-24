@@ -28,8 +28,9 @@ export default class SupervisionWidgetManager {
      * TODO: Case refactor method ModuleSupervisionGRController.item_filter_is_stc_half_month (specific to Yve rocher)
      * TODO: - Whe must filter item by api_type_id == SupervisedAdpPaieVO.API_TYPE_ID
      * TODO: - Case when does not have employee_id (no employee) => no need to proceed
-     * TODO: - Whe must get contracts by employee_id
+     * TODO: - We must get contracts by employee_id
      * TODO: - Create method that provide the list of contracts for an employee
+     * TODO: - ISupervisedItem must have "employee_id"
      *
      * @param {DashboardVO} dashboard
      * @param {SupervisionWidgetOptionsVO} widget_options
@@ -79,21 +80,6 @@ export default class SupervisionWidgetManager {
          * et on le fait pour éviter d'avoir des left join (parcours des api_type dans la génération des requetes) sur tous
          * les types de supervision, alors qu'on fait une requete par type et qu'on aggrège les résultats par la suite.
          */
-        for (const key_i in available_api_type_ids) {
-            const api_type_id: string = available_api_type_ids[key_i];
-
-            const field_filters = FieldFilterManager.filter_field_filters_by_api_type_id(
-                Object.assign({}, active_field_filter_by_api_type_id[api_type_id]),
-                available_api_type_ids,
-                api_type_id
-            );
-
-            const filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_active_field_filters(
-                field_filters,
-            );
-
-            console.log('find_supervision_probs_by_api_type_ids', api_type_id, JSON.stringify(field_filters), JSON.stringify(filters));
-        }
 
         for (const key_i in available_api_type_ids) {
             const api_type_id: string = available_api_type_ids[key_i];
