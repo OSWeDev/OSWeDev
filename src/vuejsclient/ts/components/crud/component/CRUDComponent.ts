@@ -20,7 +20,7 @@ import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
 import TableFieldTypesManager from '../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import ModuleVocus from '../../../../../shared/modules/Vocus/ModuleVocus';
-import { VOsTypesManager } from '../../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../../shared/tools/DateHandler';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
@@ -699,7 +699,7 @@ export default class CRUDComponent extends VueComponentBase {
                     let id = res.id ? res.id : null;
                     self.newVO.id = id;
 
-                    createdVO = await ModuleDAO.getInstance().getVoById<any>(self.crud.readDatatable.API_TYPE_ID, id);
+                    createdVO = await query(self.crud.readDatatable.API_TYPE_ID).filter_by_id(id).select_vo();
                     if ((!createdVO) || (createdVO.id !== id) || (createdVO._type !== self.crud.readDatatable.API_TYPE_ID)) {
                         self.creating_vo = false;
                         reject({

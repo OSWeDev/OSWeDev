@@ -7,7 +7,7 @@ import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VersionedVOController from '../Versioned/VersionedVOController';
-import { VOsTypesManager } from '../VO/manager/VOsTypesManager';
+import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import GetFormattedImageParamVO, { GetFormattedImageParamVOStatic } from './apis/GetFormattedImageParamVO';
 import FormattedImageVO from './vos/FormattedImageVO';
 import ImageFormatVO from './vos/ImageFormatVO';
@@ -47,7 +47,7 @@ export default class ModuleImageFormat extends Module {
 
     public registerApis() {
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<GetFormattedImageParamVO, FormattedImageVO>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<GetFormattedImageParamVO, FormattedImageVO>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, ImageFormatVO.API_TYPE_ID),
             ModuleImageFormat.APINAME_get_formatted_image,
             [ImageFormatVO.API_TYPE_ID],

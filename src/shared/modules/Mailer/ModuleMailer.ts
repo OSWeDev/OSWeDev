@@ -7,7 +7,7 @@ import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
-import { VOsTypesManager } from '../VO/manager/VOsTypesManager';
+import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import MailCategoryVO from './vos/MailCategoryVO';
 import MailEventVO from './vos/MailEventVO';
 import MailVO from './vos/MailVO';
@@ -74,13 +74,13 @@ export default class ModuleMailer extends Module {
 
     public registerApis() {
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<SendMailOptions, any>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<SendMailOptions, any>(
             null, // droit null ok ???,
             ModuleMailer.APINAME_sendMail,
             [],
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<PrepareHTMLParamVO, string>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<PrepareHTMLParamVO, string>(
             null, // droit null ok ???,
             ModuleMailer.APINAME_prepareHTML,
             [],

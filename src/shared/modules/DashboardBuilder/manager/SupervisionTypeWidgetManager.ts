@@ -1,11 +1,11 @@
-import { SupervisionManager } from "../../Supervision/manager/SupervisionManager";
+import SupervisionManager from "../../Supervision/manager/SupervisionManager";
 import DashboardVO from "../vos/DashboardVO";
 
 /**
  * @class SupervisionTypeWidgetManager
  *  - This class is responsible for managing the supervision type widgets
  */
-export class SupervisionTypeWidgetManager {
+export default class SupervisionTypeWidgetManager {
 
     /**
      * load_supervision_api_type_ids_by_dashboard

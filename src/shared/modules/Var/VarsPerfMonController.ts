@@ -1,7 +1,7 @@
 import Module from '../Module';
 import ModuleTableField from '../ModuleTableField';
 import ModulePerfMon from '../PerfMon/ModulePerfMon';
-import { VOsTypesManager } from '../VO/manager/VOsTypesManager';
+import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import DSControllerPMLInfoVO from './performances/vos/DSControllerPMLInfoVO';
 import MatroidBasePMLInfoVO from './performances/vos/MatroidBasePMLInfoVO';
 import VarControllerPMLInfoVO from './performances/vos/VarControllerPMLInfoVO';

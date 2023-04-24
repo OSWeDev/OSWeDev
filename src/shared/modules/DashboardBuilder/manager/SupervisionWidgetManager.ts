@@ -1,8 +1,8 @@
 import ISupervisedItem from "../../Supervision/interfaces/ISupervisedItem";
-import { SupervisionWidgetOptionsVO } from "../vos/SupervisionWidgetOptionsVO";
-import { FieldFilterManager } from '../../ContextFilter/manager/FieldFilterManager';
+import SupervisionWidgetOptionsVO from "../vos/SupervisionWidgetOptionsVO";
+import FieldFilterManager from '../../ContextFilter/manager/FieldFilterManager';
 import PromisePipeline from "../../../tools/PromisePipeline/PromisePipeline";
-import { ContextFilterVOManager } from "../../ContextFilter/manager/ContextFilterVOManager";
+import ContextFilterVOManager from "../../ContextFilter/manager/ContextFilterVOManager";
 import ContextFilterVO from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ModuleAccessPolicy from "../../AccessPolicy/ModuleAccessPolicy";
 import SortByVO from "../../ContextFilter/vos/SortByVO";
@@ -15,7 +15,7 @@ import DashboardVO from "../vos/DashboardVO";
  * @class SupervisionWidgetManager
  *  - Manager for the supervision widget
  */
-export class SupervisionWidgetManager {
+export default class SupervisionWidgetManager {
 
     /**
      * Find supervision probs by api type ids

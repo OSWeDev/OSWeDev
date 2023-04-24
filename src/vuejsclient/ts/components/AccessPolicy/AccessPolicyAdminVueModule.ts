@@ -16,7 +16,7 @@ import ExportLogVO from '../../../../shared/modules/DataExport/vos/apis/ExportLo
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
 import LangVO from '../../../../shared/modules/Translation/vos/LangVO';
-import { VOsTypesManager } from '../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import TextHandler from '../../../../shared/tools/TextHandler';
 import VueAppController from '../../../VueAppController';
 import VueModuleBase from '../../modules/VueModuleBase';

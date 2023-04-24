@@ -1,4 +1,4 @@
-import { VOsTypesManager as BaseVOsTypesManager } from "./VO/manager/VOsTypesManager";
+import BaseVOsTypesManager from "./VO/manager/VOsTypesManager";
 
 /**
  * VOsTypesManager

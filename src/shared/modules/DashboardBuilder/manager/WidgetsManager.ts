@@ -10,7 +10,7 @@ import DashboardWidgetVO from "../vos/DashboardWidgetVO";
  * @class WidgetsManager
  *  - Widgets manager for the dashboard builder
  */
-export class WidgetsManager {
+export default class WidgetsManager {
 
     public static getInstance(): WidgetsManager {
         if (!WidgetsManager.instance) {

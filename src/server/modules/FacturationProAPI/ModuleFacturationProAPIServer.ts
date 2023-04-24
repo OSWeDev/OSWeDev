@@ -63,7 +63,7 @@ export default class ModuleFacturationProAPIServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleFacturationProAPI.APINAME_download_invoice, this.download_invoice.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleFacturationProAPI.APINAME_download_invoice, this.download_invoice.bind(this));
     }
 
     private async download_invoice(firm_id: number, invoice_id: string, original: boolean): Promise<string> {

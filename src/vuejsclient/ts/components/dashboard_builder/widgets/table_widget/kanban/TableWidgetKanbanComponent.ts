@@ -1,8 +1,9 @@
-import { cloneDeep, debounce, findLastIndex, isEqual } from 'lodash';
+import { cloneDeep, debounce, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import { ContextFilterVOHandler } from '../../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
+import { ContextFilterVOVOHandler } from '../../../../../../../shared/modules/ContextFilter/handler/handler/ContextFilterVOVOHandler';
+import ContextFilterVOManager from '../../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
@@ -26,11 +27,12 @@ import ModuleDataExport from '../../../../../../../shared/modules/DataExport/Mod
 import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
 import ExportVarcolumnConf from '../../../../../../../shared/modules/DataExport/vos/ExportVarcolumnConf';
 import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import IDistantVOBase from '../../../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
 import VarConfVO from '../../../../../../../shared/modules/Var/vos/VarConfVO';
+import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleVocus from '../../../../../../../shared/modules/Vocus/ModuleVocus';
-import { VOsTypesManager } from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
@@ -42,6 +44,7 @@ import DatatableRowController from '../../../../datatable/component/DatatableRow
 import DatatableComponentField from '../../../../datatable/component/fields/DatatableComponentField';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';
 import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
+import SortableListComponent from '../../../../sortable/SortableListComponent';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../../DashboardBuilderWidgetsController';
@@ -52,10 +55,15 @@ import CRUDCreateModalComponent from './../crud_modals/create/CRUDCreateModalCom
 import CRUDUpdateModalComponent from './../crud_modals/update/CRUDUpdateModalComponent';
 import TableWidgetOptions from './../options/TableWidgetOptions';
 import TableWidgetController from './../TableWidgetController';
+import TableWidgetKanbanCardFooterLinksComponent from './kanban_card_footer_links/TableWidgetKanbanCardFooterLinksComponent';
+import TableWidgetKanbanCardHeaderCollageComponent from './kanban_card_header_collage/TableWidgetKanbanCardHeaderCollageComponent';
 import './TableWidgetKanbanComponent.scss';
+<<<<<<< HEAD
 import IDistantVOBase from '../../../../../../../shared/modules/IDistantVOBase';
 import SortableListComponent from '../../../../sortable/SortableListComponent';
-import { FieldFilterManager } from '../../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
+import FieldFilterManager from '../../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
+=======
+>>>>>>> origin/dev_jne
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
@@ -66,7 +74,9 @@ import { FieldFilterManager } from '../../../../../../../shared/modules/ContextF
         Datatablecomponentfield: DatatableComponentField,
         Crudupdatemodalcomponent: CRUDUpdateModalComponent,
         Crudcreatemodalcomponent: CRUDCreateModalComponent,
-        Sortablelistcomponent: SortableListComponent
+        Sortablelistcomponent: SortableListComponent,
+        Tablewidgetkanbancardheadercollagecomponent: TableWidgetKanbanCardHeaderCollageComponent,
+        Tablewidgetkanbancardfooterlinkscomponent: TableWidgetKanbanCardFooterLinksComponent
     }
 })
 export default class TableWidgetKanbanComponent extends VueComponentBase {
@@ -173,6 +183,121 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         await this.$snotify.success(this.label('copied_to_clipboard'));
     }
 
+    private get_links_titles(row: any): string[] {
+        if ((!this.sorted_link_datatable_field_uids) || !this.sorted_link_datatable_field_uids.length) {
+            return [];
+        }
+
+        let res: string[] = []; //number
+
+        for (let i in this.sorted_link_datatable_field_uids) {
+            let datatable_field_uid = this.sorted_link_datatable_field_uids[i];
+
+            if (row[datatable_field_uid]) {
+                res.push(this.t(this.columns_by_field_id[datatable_field_uid].get_translatable_name_code_text(this.page_widget.id)));
+            }
+        }
+        return res;
+    }
+
+    private get_links(row: any): string[] { //number
+
+        if ((!this.sorted_link_datatable_field_uids) || !this.sorted_link_datatable_field_uids.length) {
+            return [];
+        }
+
+        let res: string[] = []; //number
+
+        for (let i in this.sorted_link_datatable_field_uids) {
+            let datatable_field_uid = this.sorted_link_datatable_field_uids[i];
+
+            if (row[datatable_field_uid]) {
+                res.push(row[datatable_field_uid]);
+            }
+        }
+        return res;
+    }
+
+
+    private get_images_ids(row: any): string[] { //number
+
+        if ((!this.sorted_image_datatable_field_uids) || !this.sorted_image_datatable_field_uids.length) {
+            return [];
+        }
+
+        let res: string[] = []; //number
+
+        for (let i in this.sorted_image_datatable_field_uids) {
+            let datatable_field_uid = this.sorted_image_datatable_field_uids[i];
+
+            if (row[datatable_field_uid]) {
+                res.push(row[datatable_field_uid]);
+            }
+        }
+        return res;
+    }
+
+    get sorted_link_datatable_field_uids(): string[] {
+
+        if (!this.kanban_column_field) {
+            return [];
+        }
+
+        if (!this.columns) {
+            return [];
+        }
+
+        let res: string[] = [];
+
+        for (let i in this.columns) {
+
+            let field = this.columns[i];
+
+            if (field.type != TableColumnDescVO.TYPE_vo_field_ref) {
+                continue;
+            }
+
+            let module_table_field = VOsTypesManager.moduleTables_by_voType[field.api_type_id].get_field_by_id(field.field_id);
+
+            if (module_table_field.field_type == ModuleTableField.FIELD_TYPE_file_ref) {
+                res.push(field.datatable_field_uid);
+            }
+        }
+
+        return res;
+    }
+
+
+    get sorted_image_datatable_field_uids(): string[] {
+
+        if (!this.kanban_column_field) {
+            return [];
+        }
+
+        if (!this.columns) {
+            return [];
+        }
+
+        let res: string[] = [];
+
+        for (let i in this.columns) {
+
+            let field = this.columns[i];
+
+            if (field.type != TableColumnDescVO.TYPE_vo_field_ref) {
+                continue;
+            }
+
+            let module_table_field = VOsTypesManager.moduleTables_by_voType[field.api_type_id].get_field_by_id(field.field_id);
+
+            if (module_table_field.field_type == ModuleTableField.FIELD_TYPE_image_ref) {
+                res.push(field.datatable_field_uid);
+            }
+        }
+
+        return res;
+    }
+
     get kanban_column_field(): ModuleTableField<any> {
         if (!this.kanban_column) {
             return null;
@@ -233,6 +358,9 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
                     throw new Error('Erreur lors de la création de la colonne');
                 }
 
+                this.new_kanban_column_value = null;
+                await this.throttle_do_update_visible_options();
+
             } catch (error) {
 
                 reject({
@@ -290,7 +418,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         let fields = kanban_table.get_fields();
         for (let i in fields) {
             let field = fields[i];
-            if ((field.field_id != this.kanban_column.field_id) && (field.field_id != 'weight') && field.field_required) {
+            if ((field.field_id != this.kanban_column.field_id) && (field.field_id != 'weight') && (field.field_required && !field.has_default)) {
                 return false;
             }
         }
@@ -1665,7 +1793,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         let query_: ContextQueryVO = query(crud_api_type_id)
             .set_limit(this.limit, this.pagination_offset)
             .using(this.dashboard.api_type_ids)
-            .add_filters(ContextFilterVOHandler.getInstance().get_filters_from_active_field_filters(
+            .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
                 FieldFilterManager.clean_field_filters_for_request(this.get_active_field_filters)
             ));
 
@@ -2657,7 +2785,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
 
             let query_: ContextQueryVO = query(column.api_type_id)
                 .field(column.field_id, alias_field, column.api_type_id, VarConfVO.SUM_AGGREGATOR)
-                .add_filters(ContextFilterVOHandler.getInstance().get_filters_from_active_field_filters(
+                .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
                     FieldFilterManager.clean_field_filters_for_request(this.get_active_field_filters)
                 ));
             // .set_limit(this.limit, this.pagination_offset) =;> à ajouter pour le sous - total(juste le contenu de la page)

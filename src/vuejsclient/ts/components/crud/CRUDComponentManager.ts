@@ -2,7 +2,7 @@ import { RouteConfig } from 'vue-router';
 import CRUD from '../../../../shared/modules/DAO/vos/CRUD';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import MenuElementVO from '../../../../shared/modules/Menu/vos/MenuElementVO';
-import { VOsTypesManager } from '../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import CRUDHandler from '../../../../shared/tools/CRUDHandler';
 import MenuController from '../menu/MenuController';
 

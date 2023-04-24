@@ -1,6 +1,7 @@
 .advanced_date_filter_widget_component
-    template(v-if='vo_field_ref')
-        .vo_field_ref_label {{ vo_field_ref_label }}
+    template(v-if="((!!is_vo_field_ref) && !!vo_field_ref) || ((!is_vo_field_ref) && !!custom_filter_name)")
+        .vo_field_ref_label(v-if='(!!is_vo_field_ref) && !!vo_field_ref') {{ vo_field_ref_label }}
+        .vo_field_ref_label(v-if='(!is_vo_field_ref) && !!custom_filter_name') {{ custom_filter_name }}
         
         template(v-if="opts && (opts.length > 0)")
             .row

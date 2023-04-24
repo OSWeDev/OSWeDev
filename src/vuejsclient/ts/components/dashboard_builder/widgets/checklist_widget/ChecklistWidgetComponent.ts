@@ -1,13 +1,14 @@
 import { cloneDeep, isEqual } from 'lodash';
+import Vue from 'vue';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import ICheckList from '../../../../../../shared/modules/CheckList/interfaces/ICheckList';
 import ICheckListItem from '../../../../../../shared/modules/CheckList/interfaces/ICheckListItem';
 import ICheckPoint from '../../../../../../shared/modules/CheckList/interfaces/ICheckPoint';
 import ModuleCheckListBase from '../../../../../../shared/modules/CheckList/ModuleCheckListBase';
 import CheckListVO from '../../../../../../shared/modules/CheckList/vos/CheckListVO';
-import { ContextFilterVOHandler } from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
+import { ContextFilterVOVOHandler } from '../../../../../../shared/modules/ContextFilter/handler/handler/ContextFilterVOVOHandler';
+import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
@@ -18,9 +19,10 @@ import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/v
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
-import { VOsTypesManager } from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
+import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import WeightHandler from '../../../../../../shared/tools/WeightHandler';
 import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
@@ -35,10 +37,13 @@ import TablePaginationComponent from '../table_widget/pagination/TablePagination
 import './ChecklistWidgetComponent.scss';
 import ChecklistItemModalComponent from './checklist_item_modal/ChecklistItemModalComponent';
 import ChecklistWidgetOptions from './options/ChecklistWidgetOptions';
+<<<<<<< HEAD
 import Vue from 'vue';
 import { all_promises } from '../../../../../../shared/tools/PromiseTools';
-import { ContextFilterVOManager } from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
-import { FieldFilterManager } from '../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
+import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
+import FieldFilterManager from '../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
+=======
+>>>>>>> origin/dev_jne
 
 @Component({
     template: require('./ChecklistWidgetComponent.pug'),
@@ -190,7 +195,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
             return;
         }
 
-        Vue.set(this.checklistitems, vo.id, await ModuleDAO.getInstance().getVoById(this.checklist_shared_module.checklistitem_type_id, vo.id));
+        Vue.set(this.checklistitems, vo.id, await query(this.checklist_shared_module.checklistitem_type_id).filter_by_id(vo.id).select_vo());
 
         this.get_Checklistitemmodalcomponent.change_selected_checklist_item(this.checklistitems[vo.id]);
 
@@ -428,7 +433,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
             filter.param_numeric = self.checklist.id;
 
             filters[self.checklist_shared_module.checklistitem_type_id]['checklist_id'] =
-                ContextFilterVOHandler.getInstance().add_context_filter_to_tree(
+                ContextFilterVOHandler.add_context_filter_to_tree(
                     filters[self.checklist_shared_module.checklistitem_type_id]['checklist_id'],
                     filter);
 
@@ -438,14 +443,14 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
             filter.filter_type = ContextFilterVO.TYPE_BOOLEAN_FALSE_ALL;
 
             filters[self.checklist_shared_module.checklistitem_type_id]['archived'] =
-                ContextFilterVOHandler.getInstance().add_context_filter_to_tree(
+                ContextFilterVOHandler.add_context_filter_to_tree(
                     filters[self.checklist_shared_module.checklistitem_type_id]['archived'],
                     filter);
 
             let query_: ContextQueryVO = query(self.checklist_shared_module.checklistitem_type_id)
                 .set_limit(this.pagination_pagesize, this.pagination_offset)
                 .using(this.dashboard.api_type_ids)
-                .add_filters(ContextFilterVOHandler.getInstance().get_filters_from_active_field_filters(filters))
+                .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(filters))
                 .set_sort(new SortByVO(self.checklist_shared_module.checklistitem_type_id, 'id', false));
 
             let items: ICheckListItem[] = await query_.select_vos<ICheckListItem>();
@@ -486,7 +491,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
 
         let query_count: ContextQueryVO = query(self.checklist_shared_module.checklistitem_type_id)
             .using(this.dashboard.api_type_ids)
-            .add_filters(ContextFilterVOHandler.getInstance().get_filters_from_active_field_filters(filters));
+            .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(filters));
         this.pagination_count = await ModuleContextFilter.getInstance().select_count(query_count);
 
         // Si je ne suis pas sur la dernière demande, je me casse

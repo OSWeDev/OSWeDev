@@ -2,7 +2,7 @@ import DashboardPageWidgetVO from "../../../../../../../shared/modules/Dashboard
 import DefaultTranslation from "../../../../../../../shared/modules/Translation/vos/DefaultTranslation";
 import IExportableWidgetOptions from "../../IExportableWidgetOptions";
 
-export class SaveFavoritesFiltersWidgetOptions implements IExportableWidgetOptions {
+export default class SaveFavoritesFiltersWidgetOptions implements IExportableWidgetOptions {
 
     public static TITLE_CODE_PREFIX: string = "SaveFavoritesFiltersWidgetOptions.title.";
 

@@ -1,10 +1,11 @@
 import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Vue, Watch } from 'vue-property-decorator';
-import { ContextFilterVOHandler } from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
+import ContextFilterVOHandler from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
+import YearFilterWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
 import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../../../../shared/modules/DataRender/vos/NumSegment';
 import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -13,7 +14,6 @@ import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
-import YearFilterWidgetOptions from './options/YearFilterWidgetOptions';
 import './YearFilterWidgetComponent.scss';
 
 @Component({
@@ -54,7 +54,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
     private auto_select_year_min: number = null;
     private auto_select_year_max: number = null;
 
-    private old_widget_options: YearFilterWidgetOptions = null;
+    private old_widget_options: YearFilterWidgetOptionsVO = null;
     private is_relative_to_other_filter: boolean = false;
     private relative_to_other_filter_id: number = null;
 
@@ -107,16 +107,16 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
      * computed widget_options
      *  - Called on component|widget creation
      */
-    get widget_options(): YearFilterWidgetOptions {
+    get widget_options(): YearFilterWidgetOptionsVO {
         if (!this.page_widget) {
             return null;
         }
 
-        let options: YearFilterWidgetOptions = null;
+        let options: YearFilterWidgetOptionsVO = null;
         try {
             if (!!this.page_widget.json_options) {
-                options = JSON.parse(this.page_widget.json_options) as YearFilterWidgetOptions;
-                options = options ? new YearFilterWidgetOptions(
+                options = JSON.parse(this.page_widget.json_options) as YearFilterWidgetOptionsVO;
+                options = options ? new YearFilterWidgetOptionsVO(
                     options.is_vo_field_ref,
                     options.vo_field_ref,
                     options.custom_filter_name,
@@ -334,7 +334,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
                 context_filter.field_id = this.custom_filter_name;
             }
 
-            let new_root = ContextFilterVOHandler.getInstance().add_context_filter_to_tree(root_context_filter, context_filter);
+            let new_root = ContextFilterVOHandler.add_context_filter_to_tree(root_context_filter, context_filter);
             if (new_root != root_context_filter) {
                 if (!new_root) {
                     this.remove_active_field_filter({
@@ -381,7 +381,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
             if (!RangeHandler.are_same(context_filter.param_numranges, years_ranges)) {
                 context_filter.param_numranges = years_ranges;
 
-                let new_root = ContextFilterVOHandler.getInstance().add_context_filter_to_tree(root_context_filter, context_filter);
+                let new_root = ContextFilterVOHandler.add_context_filter_to_tree(root_context_filter, context_filter);
 
                 this.set_active_field_filter({
                     field_id: this.is_vo_field_ref ? this.vo_field_ref.field_id : this.custom_filter_name,
@@ -413,7 +413,7 @@ export default class YearFilterWidgetComponent extends VueComponentBase {
     }
 
     get vo_field_ref(): VOFieldRefVO {
-        let options: YearFilterWidgetOptions = this.widget_options;
+        let options: YearFilterWidgetOptionsVO = this.widget_options;
 
         if ((!options) || (!options.vo_field_ref)) {
             return null;

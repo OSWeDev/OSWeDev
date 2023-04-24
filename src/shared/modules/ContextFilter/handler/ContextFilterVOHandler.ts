@@ -11,12 +11,13 @@ import RefRangesReferenceDatatableFieldVO from '../../DAO/vos/datatable/RefRange
 import SimpleDatatableFieldVO from '../../DAO/vos/datatable/SimpleDatatableFieldVO';
 import VOFieldRefVO from '../../DashboardBuilder/vos/VOFieldRefVO';
 import DataFilterOption from '../../DataRender/vos/DataFilterOption';
+import TimeSegment from '../../DataRender/vos/TimeSegment';
 import TSRange from '../../DataRender/vos/TSRange';
+import Dates from '../../FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../IDistantVOBase';
 import ModuleTableField from '../../ModuleTableField';
-import { VOsTypesManager } from '../../VO/manager/VOsTypesManager';
-import { ContextFilterVOManager } from '../manager/ContextFilterVOManager';
-import { FieldFilterManager } from '../manager/FieldFilterManager';
+import VOsTypesManager from '../../VO/manager/VOsTypesManager';
+import ContextFilterVOManager from '../manager/ContextFilterVOManager';
 import ContextFilterVO from '../vos/ContextFilterVO';
 import { query } from '../vos/ContextQueryVO';
 
@@ -26,7 +27,7 @@ import { query } from '../vos/ContextQueryVO';
  * TODO: For some of the following methods, we should rather use the new ContextFilterVOManager methods
  * TODO: Handlers methods have to be for Handling|Checking rules on ContextFilterVO
  */
-export class ContextFilterVOHandler {
+export default class ContextFilterVOHandler {
 
     // MONTHS MIXIN
     public static readonly MONTHS_LABELS = [
@@ -210,6 +211,17 @@ export class ContextFilterVOHandler {
      */
     public static add_context_filter_to_tree(context_filter_tree_root: ContextFilterVO, context_filter_to_add: ContextFilterVO, operator_type: number = ContextFilterVO.TYPE_FILTER_AND): ContextFilterVO {
         return ContextFilterVOManager.add_context_filter_to_tree(context_filter_tree_root, context_filter_to_add, operator_type);
+    }
+
+    /**
+     *
+     * @deprecated use ContextFilterVOManager.find_context_filter_in_tree
+     * @param context_filter_tree_root
+     * @param context_filter_to_find
+     * @returns
+     */
+    public static find_context_filter_in_tree(context_filter_tree_root: ContextFilterVO, context_filter_to_find: ContextFilterVO): boolean {
+        return ContextFilterVOManager.find_context_filter_in_tree(context_filter_tree_root, context_filter_to_find);
     }
 
     public static getInstance(): ContextFilterVOHandler {
@@ -446,13 +458,6 @@ export class ContextFilterVOHandler {
     }
 
     /**
-     * @deprecated use static ContextFilterVOManager.get_context_filters_from_active_field_filters instead
-     */
-    public get_filters_from_active_field_filters(active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }): ContextFilterVO[] {
-        return ContextFilterVOManager.get_context_filters_from_active_field_filters(active_field_filters);
-    }
-
-    /**
      * @param context_filter_tree_root
      * @param type
      * @returns the context_filter that has the asked type from the tree_root
@@ -597,26 +602,6 @@ export class ContextFilterVOHandler {
     }
 
     /**
-     * Add context_filter to the root, using the and/or/xor .... type of operator if necessary
-     * Returns the new root
-     * @deprecated Have to be staic method (no need to use Instance)
-     */
-    public add_context_filter_to_tree(context_filter_tree_root: ContextFilterVO, context_filter_to_add: ContextFilterVO, operator_type: number = ContextFilterVO.TYPE_FILTER_AND): ContextFilterVO {
-        return ContextFilterVOHandler.add_context_filter_to_tree(context_filter_tree_root, context_filter_to_add, operator_type);
-    }
-
-    /**
-     * Clone and remove custom_filters
-     * @deprecated Have to be staic method (no need to use Instance)
-     * @deprecated Have to be In the ContextFilterVOManager
-     */
-    public clean_context_filters_for_request(
-        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
-    ): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
-        return FieldFilterManager.clean_field_filters_for_request(get_active_field_filters);
-    }
-
-    /**
      * Renvoie une context query qui renvoie systématiquement 0 éléments, pour bloquer l'accès à un vo par exemple dans un context access hook
      */
     public get_empty_res_context_hook_query(api_type_id: string) {
@@ -657,7 +642,7 @@ export class ContextFilterVOHandler {
             if (!exclude_values_context_filter) {
                 exclude_values_context_filter = new_exclude_values;
             } else {
-                exclude_values_context_filter = this.merge_ContextFilterVOs(exclude_values_context_filter, new_exclude_values);
+                exclude_values_context_filter = ContextFilterVOHandler.merge_context_filter_vos(exclude_values_context_filter, new_exclude_values, false);
             }
         }
 
@@ -740,10 +725,590 @@ export class ContextFilterVOHandler {
     }
 
     /**
-     * @deprecated there is no need to use instance to proceed
-     * @use ContextFilterVOManager.merge_context_filter_vos instead
+     * Objectif renvoyer la liste des ts_ranges qui correspondent au filtrage du contexte
+     * @param context_filter_root le filtre racine du contexte
+     * @param target_segment_type le type de segmentation à appliquer sur les ts_ranges
+     * @param limit la limite de ts_ranges à renvoyer
+     * @param order_asc ordre ascendant ou descendant sur les ts_ranges - pour appliquer la limite
+     * @returns
      */
-    public merge_ContextFilterVOs(a: ContextFilterVO, b: ContextFilterVO, try_union: boolean = false): ContextFilterVO {
-        return ContextFilterVOHandler.merge_context_filter_vos(a, b, try_union);
+    public get_ts_ranges_from_context_filter_root(
+        context_filter_root: ContextFilterVO,
+        target_segment_type: number,
+        limit: number = 10,
+        order_asc: boolean = true): TSRange[] {
+
+        /**
+         * On doit d'abord identifier les filtres par type de filtre date :
+         *  - à chaque étape, on recrée un nouveau ts_ranges, avec les ranges de la segmentation de l'étape, et on limite à la limite en param, et on ordonne par l'ordre en param
+         *  - en priorité on appliquera l'année (obligatoire pour générer les ts_ranges) ou année glissante. Si on a un filtre année et année glissante => erreur. Si on a aucun des deux => erreur.
+         *  - ensuite, en fonction de la segmentation cible en sortie :
+         *      - si on a une segmentation année (> mois) et un contexte de filtre qui s'applique au mois, on ignore le contexte de filtre et on renvoie les ts_ranges déjà identifiés
+         *      - si on a une segmentation mois ou < mois et un contexte de filtre qui s'applique au mois, on applique le contexte de filtre
+         *  - ainsi de suite en appliquant dans l'ordre :
+         *    - année / mois / dom / heure / minute / seconde
+         *
+         *  - à la fin on prend le ts_ranges généré et on le déploie en fonction de la segmentation cible en sortie, si elle est différente de la segmentation actuelle
+         */
+
+        // On se simplifie la vie en ne gérant que les certains types de filtres, et uniquement si ils sont uniques pour chaque segmentation
+        /**
+         *  - 2 types valides pour le moment :
+         *    - Soit on a un ou des filtres de type TYPE_DATE_INTERSECTS et rien d'autre
+         *    - Soit on a :
+         *      - au maximum 1 filtre par type de segmentation
+         *      - exactement 1 filtre de type année ou année glissante
+         *      - pas de OU
+         */
+        let has_only_TYPE_DATE_INTERSECTS: boolean = this.check_context_filter_root_has_only_TYPE_DATE_INTERSECTS(context_filter_root);
+
+        if (has_only_TYPE_DATE_INTERSECTS) {
+            return this.get_ts_ranges_from_context_filter_root_using_TYPE_DATE_INTERSECTS(
+                context_filter_root,
+                target_segment_type,
+                limit,
+                order_asc);
+        } else {
+            return this.get_ts_ranges_from_context_filter_root_using_ymwddhms_filters(
+                context_filter_root,
+                target_segment_type,
+                limit,
+                order_asc);
+        }
+    }
+
+    /**
+     * This function gets a set of timestamp ranges from the context filter root using TYPE_DATE_INTERSECTS.
+     * @param {ContextFilterVO} context_filter_root The context filter root.
+     * @param {number} target_segment_type The target segment type.
+     * @param {number} [limit=10] The limit of timestamp ranges to be returned.
+     * @param {boolean} [order_asc=true] Indicates whether the timestamp ranges should be ordered in ascending order.
+     * @returns {TSRange[]} An array of timestamp ranges.
+     */
+    public get_ts_ranges_from_context_filter_root_using_TYPE_DATE_INTERSECTS(
+        context_filter_root: ContextFilterVO,
+        target_segment_type: number,
+        limit: number = 10,
+        order_asc: boolean = true): TSRange[] {
+
+        let ts_ranges: TSRange[] = [];
+
+        RangeHandler.foreach_ranges_sync(context_filter_root.param_tsranges, (ts: number) => {
+
+            if (ts_ranges.length >= limit) {
+                return false;
+            }
+
+            ts_ranges.push(RangeHandler.create_single_elt_TSRange(ts, target_segment_type));
+        }, target_segment_type, null, null, !order_asc);
+        ts_ranges = RangeHandler.getRangesUnion(ts_ranges);
+
+        return ts_ranges;
+    }
+
+    public get_ts_ranges_from_context_filter_root_using_ymwddhms_filters(
+        context_filter_root: ContextFilterVO,
+        target_segment_type: number,
+        limit: number = 10,
+        order_asc: boolean = true): TSRange[] {
+
+
+        const {
+            year_filter,
+            month_filter,
+            // week_filter, On peut pas appliquer si facilement un filtre sur la semaine, en // d'un filtre sur le mois, par ce qu'on peut pas définir qu'on limite aux 3 premiers mois, puis qu'on trouvera les 3 premieres semaines dans ces mois...
+            // dow_filter,
+            // dom_filter, // Dans la même veine, on a un cas avec le filtre dom, si on choisit de filtrer sur le 31 du mois, en fait on aura peut-être limité aux 3 premiers mois, et on va trouver que 2 jours à la fin... donc techniquement ce cas marche pas
+            hour_filter,
+            minute_filter,
+            second_filter
+        } = this.assert_context_filter_root_is_valid_and_get_filters(context_filter_root, target_segment_type);
+
+        // On commence par l'année. On sait que le filtre existe et est unique
+
+        let ts_ranges: TSRange[] = this.get_ts_ranges_from_year_filter(year_filter, limit, order_asc);
+        if (target_segment_type == TimeSegment.TYPE_YEAR) {
+            return ts_ranges;
+        }
+
+        // Attention en order_asc false, on doit remettre l'array dans le bon sens avant de continuer
+        if (!order_asc) {
+            ts_ranges = ts_ranges.reverse();
+        }
+        ts_ranges = this.get_filter_ts_ranges_month_from_year(ts_ranges, month_filter, limit, order_asc);
+        if (target_segment_type == TimeSegment.TYPE_MONTH) {
+            return ts_ranges;
+        }
+
+        if (!order_asc) {
+            ts_ranges = ts_ranges.reverse();
+        }
+        ts_ranges = this.get_filter_ts_ranges_day_from_month(ts_ranges, null, limit, order_asc);
+        if (target_segment_type == TimeSegment.TYPE_DAY) {
+            return ts_ranges;
+        }
+
+        if (!order_asc) {
+            ts_ranges = ts_ranges.reverse();
+        }
+        ts_ranges = this.get_filter_ts_ranges_hour_from_day(ts_ranges, hour_filter, limit, order_asc);
+        if (target_segment_type == TimeSegment.TYPE_HOUR) {
+            return ts_ranges;
+        }
+
+        if (!order_asc) {
+            ts_ranges = ts_ranges.reverse();
+        }
+        ts_ranges = this.get_filter_ts_ranges_minute_from_hour(ts_ranges, minute_filter, limit, order_asc);
+        if (target_segment_type == TimeSegment.TYPE_MINUTE) {
+            return ts_ranges;
+        }
+
+        if (!order_asc) {
+            ts_ranges = ts_ranges.reverse();
+        }
+        ts_ranges = this.get_filter_ts_ranges_second_from_minute(ts_ranges, second_filter, limit, order_asc);
+        if (target_segment_type == TimeSegment.TYPE_SECOND) {
+            return ts_ranges;
+        }
+
+        throw new Error('Should not be here');
+    }
+
+    private get_filter_ts_ranges_minute_from_hour(
+        ordered_hour_ts_ranges: TSRange[],
+        minute_filter: ContextFilterVO,
+        limit: number = 10,
+        order_asc: boolean = true): TSRange[] {
+
+        let res: TSRange[] = [];
+
+        if (!minute_filter) {
+            RangeHandler.foreach_ranges_sync(ordered_hour_ts_ranges, (minute_ts: number) => {
+
+                if (res.length >= limit) {
+                    // en retournant false, on arrête le foreach
+                    return false;
+                }
+
+                res.push(RangeHandler.create_single_elt_TSRange(minute_ts, TimeSegment.TYPE_MINUTE));
+
+            }, TimeSegment.TYPE_MINUTE, null, null, !order_asc);
+
+            return res;
+        }
+
+        RangeHandler.foreach_ranges_sync(ordered_hour_ts_ranges, (hour_ts: number) => {
+            RangeHandler.foreach_ranges_sync(minute_filter.param_numranges, (minute: number) => {
+
+                if (res.length >= limit) {
+                    // en retournant false, on arrête le foreach
+                    return false;
+                }
+
+                res.push(RangeHandler.create_single_elt_TSRange(
+                    Dates.hour(hour_ts, minute), TimeSegment.TYPE_MINUTE));
+            }, TimeSegment.TYPE_MINUTE, null, null, !order_asc);
+        }, TimeSegment.TYPE_HOUR, null, null, !order_asc);
+
+        return res;
+    }
+
+    private get_filter_ts_ranges_second_from_minute(
+        ordered_minute_ts_ranges: TSRange[],
+        second_filter: ContextFilterVO,
+        limit: number = 10,
+        order_asc: boolean = true): TSRange[] {
+
+        let res: TSRange[] = [];
+
+        if (!second_filter) {
+            RangeHandler.foreach_ranges_sync(ordered_minute_ts_ranges, (second_ts: number) => {
+
+                if (res.length >= limit) {
+                    // en retournant false, on arrête le foreach
+                    return false;
+                }
+
+                res.push(RangeHandler.create_single_elt_TSRange(second_ts, TimeSegment.TYPE_SECOND));
+
+            }, TimeSegment.TYPE_SECOND, null, null, !order_asc);
+
+            return res;
+        }
+
+        RangeHandler.foreach_ranges_sync(ordered_minute_ts_ranges, (minute_ts: number) => {
+            RangeHandler.foreach_ranges_sync(second_filter.param_numranges, (second: number) => {
+
+                if (res.length >= limit) {
+                    // en retournant false, on arrête le foreach
+                    return false;
+                }
+
+                res.push(RangeHandler.create_single_elt_TSRange(
+                    Dates.hour(minute_ts, second), TimeSegment.TYPE_SECOND));
+            }, TimeSegment.TYPE_SECOND, null, null, !order_asc);
+        }, TimeSegment.TYPE_MINUTE, null, null, !order_asc);
+
+        return res;
+    }
+
+    private get_filter_ts_ranges_hour_from_day(
+        ordered_day_ts_ranges: TSRange[],
+        hour_filter: ContextFilterVO,
+        limit: number = 10,
+        order_asc: boolean = true): TSRange[] {
+
+        let res: TSRange[] = [];
+
+        if (!hour_filter) {
+            RangeHandler.foreach_ranges_sync(ordered_day_ts_ranges, (hour_ts: number) => {
+
+                if (res.length >= limit) {
+                    // en retournant false, on arrête le foreach
+                    return false;
+                }
+
+                res.push(RangeHandler.create_single_elt_TSRange(hour_ts, TimeSegment.TYPE_HOUR));
+
+            }, TimeSegment.TYPE_HOUR, null, null, !order_asc);
+
+            return res;
+        }
+
+        RangeHandler.foreach_ranges_sync(ordered_day_ts_ranges, (day_ts: number) => {
+            RangeHandler.foreach_ranges_sync(hour_filter.param_numranges, (hour: number) => {
+
+                if (res.length >= limit) {
+                    // en retournant false, on arrête le foreach
+                    return false;
+                }
+
+                res.push(RangeHandler.create_single_elt_TSRange(
+                    Dates.hour(day_ts, hour), TimeSegment.TYPE_HOUR));
+            }, TimeSegment.TYPE_HOUR, null, null, !order_asc);
+        }, TimeSegment.TYPE_DAY, null, null, !order_asc);
+
+        return res;
+    }
+
+    private get_filter_ts_ranges_day_from_month(
+        ordered_month_ts_ranges: TSRange[],
+        dom_filter: ContextFilterVO,
+        limit: number = 10,
+        order_asc: boolean = true): TSRange[] {
+
+        let res: TSRange[] = [];
+
+        if (!dom_filter) {
+            RangeHandler.foreach_ranges_sync(ordered_month_ts_ranges, (day_ts: number) => {
+
+                if (res.length >= limit) {
+                    // en retournant false, on arrête le foreach
+                    return false;
+                }
+
+                res.push(RangeHandler.create_single_elt_TSRange(day_ts, TimeSegment.TYPE_DAY));
+
+            }, TimeSegment.TYPE_DAY, null, null, !order_asc);
+
+            return res;
+        }
+
+        RangeHandler.foreach_ranges_sync(ordered_month_ts_ranges, (month_ts: number) => {
+            RangeHandler.foreach_ranges_sync(dom_filter.param_numranges, (dom: number) => {
+
+                if (res.length >= limit) {
+                    // en retournant false, on arrête le foreach
+                    return false;
+                }
+
+                res.push(RangeHandler.create_single_elt_TSRange(
+                    Dates.date(month_ts, dom), TimeSegment.TYPE_DAY));
+            }, TimeSegment.TYPE_DAY, null, null, !order_asc);
+        }, TimeSegment.TYPE_MONTH, null, null, !order_asc);
+
+        return res;
+    }
+
+    private get_ts_ranges_from_year_filter(
+        year_filter: ContextFilterVO,
+        limit: number = 10,
+        order_asc: boolean = true): TSRange[] {
+
+        let res: TSRange[] = [];
+
+        RangeHandler.foreach_ranges_sync(year_filter.param_numranges, (year: number) => {
+
+            if (res.length >= limit) {
+                // en retournant false, on arrête le foreach
+                return false;
+            }
+
+            res.push(RangeHandler.create_single_elt_TSRange(Dates.year(0, year), TimeSegment.TYPE_YEAR));
+        }, TimeSegment.TYPE_YEAR, null, null, !order_asc);
+
+        return res;
+    }
+
+    private get_filter_ts_ranges_month_from_year(
+        ordered_year_ts_ranges: TSRange[],
+        month_filter: ContextFilterVO,
+        limit: number = 10,
+        order_asc: boolean = true): TSRange[] {
+
+        let res: TSRange[] = [];
+
+        if (!month_filter) {
+            RangeHandler.foreach_ranges_sync(ordered_year_ts_ranges, (month_ts: number) => {
+
+                if (res.length >= limit) {
+                    // en retournant false, on arrête le foreach
+                    return false;
+                }
+
+                res.push(RangeHandler.create_single_elt_TSRange(month_ts, TimeSegment.TYPE_MONTH));
+
+            }, TimeSegment.TYPE_MONTH, null, null, !order_asc);
+
+            return res;
+        }
+
+        RangeHandler.foreach_ranges_sync(ordered_year_ts_ranges, (year_ts: number) => {
+            RangeHandler.foreach_ranges_sync(month_filter.param_numranges, (month: number) => {
+
+                if (res.length >= limit) {
+                    // en retournant false, on arrête le foreach
+                    return false;
+                }
+
+                res.push(RangeHandler.create_single_elt_TSRange(
+                    Dates.month(year_ts, month - 1), TimeSegment.TYPE_MONTH));
+            }, TimeSegment.TYPE_MONTH, null, null, !order_asc);
+        }, TimeSegment.TYPE_YEAR, null, null, !order_asc);
+
+        return res;
+    }
+
+    /**
+     * On fixe quelques règles pour rester sur un système pas trop complexe pour la génération des ts_ranges :
+     *    - On doit avoir :
+     *      - au maximum 1 filtre par type de segmentation
+     *      - exactement 1 filtre de type année ou année glissante
+     *      - pas de OU
+     * @param context_filter_root
+     */
+    private assert_context_filter_root_is_valid_and_get_filters(
+        context_filter_root: ContextFilterVO,
+        segment_type: number): {
+            year_filter: ContextFilterVO,
+            month_filter: ContextFilterVO,
+            // week_filter: ContextFilterVO,
+            // dow_filter: ContextFilterVO,
+            // dom_filter: ContextFilterVO,
+            hour_filter: ContextFilterVO,
+            minute_filter: ContextFilterVO,
+            second_filter: ContextFilterVO
+        } {
+        if (!context_filter_root) {
+            throw new Error('ContextFilterVO is null');
+        }
+
+        let year_filter: ContextFilterVO = null;
+        // let rolling_year_filter: ContextFilterVO = null;
+
+        let month_filter: ContextFilterVO = null;
+        // let week_filter: ContextFilterVO = null;
+        // let dow_filter: ContextFilterVO = null;
+        // let dom_filter: ContextFilterVO = null;
+        let hour_filter: ContextFilterVO = null;
+        let minute_filter: ContextFilterVO = null;
+        let second_filter: ContextFilterVO = null;
+
+        let current_filter: ContextFilterVO = context_filter_root;
+        let next_filters: ContextFilterVO[] = [];
+        while (current_filter) {
+
+            switch (current_filter.filter_type) {
+                case ContextFilterVO.TYPE_DATE_YEAR:
+                    if (year_filter) {
+                        throw new Error('Too many year filters');
+                    }
+                    //     if (rolling_year_filter) {
+                    //         throw new Error('Year and rolling year filters cannot be used together');
+                    //     }
+
+                    if ((!current_filter.param_numranges) || (!current_filter.param_numranges)) {
+                        throw new Error('Year filter without num_ranges is not supported');
+                    }
+
+                    year_filter = current_filter;
+                    break;
+                // case ContextFilterVO.TYPE_DATE_ROLLING_YEAR:
+                //     if (rolling_year_filter) {
+                //         throw new Error('Too many rolling year filters');
+                //     }
+                //     if (year_filter) {
+                //         throw new Error('Year and rolling year filters cannot be used together');
+                //     }
+                //     rolling_year_filter = current_filter;
+                //     break;
+                case ContextFilterVO.TYPE_DATE_MONTH:
+                    if (month_filter) {
+                        throw new Error('Too many month filters');
+                    }
+
+                    if ((!current_filter.param_numranges) || (!current_filter.param_numranges)) {
+                        throw new Error('Month filter without num_ranges is not supported');
+                    }
+
+                    if ((segment_type >= TimeSegment.TYPE_MONTH) &&
+                        (segment_type != TimeSegment.TYPE_ROLLING_YEAR_MONTH_START)) {
+                        month_filter = current_filter;
+                    }
+
+                    break;
+                // case ContextFilterVO.TYPE_DATE_WEEK:
+                //     if (week_filter) {
+                //         throw new Error('Too many week filters');
+                //     }
+
+                //     if ((!week_filter.param_numranges) || (!week_filter.param_numranges)) {
+                //         throw new Error('Week filter without num_ranges is not supported');
+                //     }
+
+                //     if ((segment_type >= TimeSegment.TYPE_WEEK) &&
+                //         (segment_type != TimeSegment.TYPE_ROLLING_YEAR_MONTH_START)) {
+                //         week_filter = current_filter;
+                //     }
+
+                //     break;
+                // case ContextFilterVO.TYPE_DATE_DOW:
+                //     if (dow_filter) {
+                //         throw new Error('Too many dow filters');
+                //     }
+
+                //     if ((!dow_filter.param_numranges) || (!dow_filter.param_numranges)) {
+                //         throw new Error('Dow filter without num_ranges is not supported');
+                //     }
+
+                //     if ((segment_type >= TimeSegment.TYPE_DAY) &&
+                //         (segment_type != TimeSegment.TYPE_ROLLING_YEAR_MONTH_START) &&
+                //         (segment_type != TimeSegment.TYPE_WEEK)) {
+                //         dow_filter = current_filter;
+                //     }
+
+                //     break;
+                // case ContextFilterVO.TYPE_DATE_DOM:
+                //     if (dom_filter) {
+                //         throw new Error('Too many dom filters');
+                //     }
+
+                //     if ((!dom_filter.param_numranges) || (!dom_filter.param_numranges)) {
+                //         throw new Error('Dom filter without num_ranges is not supported');
+                //     }
+
+                //     // On a un problème avec le filtre dom, si on choisit de filtrer sur le 31 du mois, en fait on aura peut-être limité aux 3 premiers mois, et on va trouver que 2 jours à la fin... donc techniquement ce cas marche pas
+
+                //     if ((segment_type >= TimeSegment.TYPE_DAY) &&
+                //         (segment_type != TimeSegment.TYPE_ROLLING_YEAR_MONTH_START) &&
+                //         (segment_type != TimeSegment.TYPE_WEEK)) {
+                //         dom_filter = current_filter;
+                //     }
+
+                //     break;
+                case ContextFilterVO.TYPE_HOUR_INTERSECTS:
+                    if (hour_filter) {
+                        throw new Error('Too many hour filters');
+                    }
+
+                    if ((!current_filter.param_numranges) || (!current_filter.param_numranges)) {
+                        throw new Error('Hour filter without num_ranges is not supported');
+                    }
+
+                    if (segment_type >= TimeSegment.TYPE_HOUR) {
+                        hour_filter = current_filter;
+                    }
+
+                    break;
+
+                case ContextFilterVO.TYPE_MINUTE_INTERSECTS:
+                    if (minute_filter) {
+                        throw new Error('Too many minute filters');
+                    }
+
+                    if ((!current_filter.param_numranges) || (!current_filter.param_numranges)) {
+                        throw new Error('Minute filter without num_ranges is not supported');
+                    }
+
+                    if (segment_type >= TimeSegment.TYPE_MINUTE) {
+                        minute_filter = current_filter;
+                    }
+
+                    break;
+
+                case ContextFilterVO.TYPE_SECOND_INTERSECTS:
+                    if (second_filter) {
+                        throw new Error('Too many second filters');
+                    }
+
+                    if ((!current_filter.param_numranges) || (!current_filter.param_numranges)) {
+                        throw new Error('Second filter without num_ranges is not supported');
+                    }
+
+                    if (segment_type >= TimeSegment.TYPE_SECOND) {
+                        second_filter = current_filter;
+                    }
+
+                    break;
+
+                case ContextFilterVO.TYPE_FILTER_AND:
+                    next_filters.push(current_filter.left_hook);
+                    next_filters.push(current_filter.right_hook);
+                    break;
+                case ContextFilterVO.TYPE_FILTER_OR:
+                    throw new Error('OR conditions not supported');
+                default:
+                    throw new Error('Filter type not supported');
+            }
+
+            current_filter = next_filters.shift();
+        }
+
+        return {
+            year_filter,
+            month_filter,
+            // week_filter,
+            // dow_filter,
+            // dom_filter,
+            hour_filter,
+            minute_filter,
+            second_filter
+        };
+    }
+
+    /**
+     * Objectif renvoyer la liste des ts_ranges qui correspondent au filtrage du contexte
+     * @param context_filter_root le filtre racine du contexte
+     * @param target_segment_type le type de segmentation à appliquer sur les ts_ranges
+     * @param limit la limite de ts_ranges à renvoyer
+     * @param order_asc ordre ascendant ou descendant sur les ts_ranges - pour appliquer la limite
+     * @returns
+     */
+    private check_context_filter_root_has_only_TYPE_DATE_INTERSECTS(context_filter: ContextFilterVO) {
+
+        while (context_filter) {
+
+            switch (context_filter.filter_type) {
+                case ContextFilterVO.TYPE_DATE_INTERSECTS:
+                    return true;
+                // case ContextFilterVO.TYPE_FILTER_AND:
+                // case ContextFilterVO.TYPE_FILTER_OR:
+                //     return this.check_context_filter_root_has_only_TYPE_DATE_INTERSECTS(context_filter.left_hook) && this.check_context_filter_root_has_only_TYPE_DATE_INTERSECTS(context_filter.right_hook);
+                //     break;
+                default:
+                    return false;
+            }
+        }
     }
 }

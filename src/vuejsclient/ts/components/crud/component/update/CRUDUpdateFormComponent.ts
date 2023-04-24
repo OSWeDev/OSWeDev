@@ -1,3 +1,4 @@
+import { cloneDeep } from 'lodash';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import Alert from '../../../../../../shared/modules/Alert/vos/Alert';
@@ -9,7 +10,7 @@ import CRUDFieldRemoverConfVO from '../../../../../../shared/modules/DAO/vos/CRU
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
-import { VOsTypesManager } from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
@@ -134,6 +135,10 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
             crud_field_remover_conf.is_update = true;
         }
 
+        if (!crud_field_remover_conf.module_table_field_ids) {
+            crud_field_remover_conf.module_table_field_ids = [];
+        }
+
         crud_field_remover_conf.module_table_field_ids.push(module_table_field_id);
         let self = this;
         self.crud_field_remover_conf = crud_field_remover_conf;
@@ -150,7 +155,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
                         self.crud_field_remover_conf.id = res.id;
                     }
 
-                    this.crud.updateDatatable.removeFields([module_table_field_id]);
+                    self.remove_fields([module_table_field_id]);
 
                     resolve({
                         body: self.label('crud_update_form_body_add_removed_crud_field_id.ok'),
@@ -223,9 +228,21 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
             }
 
             if (this.crud_field_remover_conf && this.crud_field_remover_conf.module_table_field_ids && this.crud_field_remover_conf.module_table_field_ids.length) {
-                this.crud.updateDatatable.removeFields(this.crud_field_remover_conf.module_table_field_ids);
+                this.remove_fields(this.crud_field_remover_conf.module_table_field_ids);
             }
         }
+    }
+
+    /**
+     * Si on a toujours un datatable par défaut, donc celui du read, on doit d'abord le cloner pour le modifier uniquement dans notre cas
+     * @param fields les champs à supprimer du CRUD
+     */
+    private remove_fields(fields) {
+
+        if (this.crud.updateDatatable == this.crud.readDatatable) {
+            this.crud.updateDatatable = CRUD.copy_datatable(this.crud.readDatatable);
+        }
+        this.crud.updateDatatable.removeFields(this.crud_field_remover_conf.module_table_field_ids);
     }
 
     private async loaddatas() {
@@ -365,7 +382,7 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
                         return;
                     }
 
-                    updatedVO = await ModuleDAO.getInstance().getVoById<any>(self.selected_vo._type, self.selected_vo.id);
+                    updatedVO = await query(self.selected_vo._type).filter_by_id(self.selected_vo.id).select_vo();
                     if ((!updatedVO) || (updatedVO.id !== self.selected_vo.id) || (updatedVO._type !== self.selected_vo._type)) {
                         self.updating_vo = false;
                         reject({
@@ -381,8 +398,8 @@ export default class CRUDUpdateFormComponent extends VueComponentBase {
                     }
 
                     // On doit mettre à jour les OneToMany, et ManyToMany dans les tables correspondantes
-                    await CRUDFormServices.getInstance().updateManyToMany(self.editableVO, self.crud.createDatatable, updatedVO, self.removeData, self.storeData, self);
-                    await CRUDFormServices.getInstance().updateOneToMany(self.editableVO, self.crud.createDatatable, updatedVO, self.getStoredDatas, self.updateData);
+                    await CRUDFormServices.getInstance().updateManyToMany(self.editableVO, self.crud.updateDatatable, updatedVO, self.removeData, self.storeData, self);
+                    await CRUDFormServices.getInstance().updateOneToMany(self.editableVO, self.crud.updateDatatable, updatedVO, self.getStoredDatas, self.updateData);
 
                     if (self.crud.postUpdate) {
                         await self.crud.postUpdate(self.editableVO);

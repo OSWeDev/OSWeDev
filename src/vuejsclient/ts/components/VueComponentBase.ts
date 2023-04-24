@@ -14,7 +14,7 @@ import DefaultTranslation from "../../../shared/modules/Translation/vos/DefaultT
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import CRUDHandler from '../../../shared/tools/CRUDHandler';
 import DateHandler from '../../../shared/tools/DateHandler';
-import { alerteCheckFilter, amountFilter, bignumFilter, booleanFilter, hideZeroFilter, hourFilter, padHourFilter, percentFilter, planningCheckFilter, toFixedCeilFilter, toFixedFilter, toFixedFloorFilter, truncateFilter } from '../../../shared/tools/Filters';
+import { alerteCheckFilter, amountFilter, bignumFilter, booleanFilter, hideZeroFilter, hourFilter, padHourFilter, percentFilter, planningCheckFilter, toFixedCeilFilter, toFixedFilter, toFixedFloorFilter, truncateFilter, tstzFilter } from '../../../shared/tools/Filters';
 import LocaleManager from "../../../shared/tools/LocaleManager";
 import VocusHandler from '../../../shared/tools/VocusHandler';
 import VueAppController from "../../VueAppController";
@@ -275,6 +275,7 @@ export default class VueComponentBase extends Vue
         hour: hourFilter,
         planningCheck: planningCheckFilter,
         alerteCheck: alerteCheckFilter,
+        tstz: tstzFilter
     };
 
     public $snotify: any;
@@ -302,6 +303,7 @@ export default class VueComponentBase extends Vue
         hour: hourFilter,
         planningCheck: planningCheckFilter,
         alerteCheck: alerteCheckFilter,
+        tstz: tstzFilter
     };
 
 

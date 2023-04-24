@@ -1,7 +1,7 @@
 /**
  * BooleanFilterModel
  */
-export class BooleanFilterModel {
+export default class BooleanFilterModel {
 
     public static FILTER_TYPE_LABELS: string[] = [
         'crud.field.boolean.true.___LABEL___',

@@ -2,6 +2,8 @@ import Vue from 'vue';
 import DashboardBuilderController from '../../../../shared/modules/DashboardBuilder/DashboardBuilderController';
 import ModuleDashboardBuilder from '../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
 import DashboardWidgetVO from '../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import YearFilterWidgetOptionsVO from '../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
+import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import AdvancedDateFilterWidgetOptions from './widgets/advanced_date_filter_widget/options/AdvancedDateFilterWidgetOptions';
 import BulkOpsWidgetOptions from './widgets/bulkops_widget/options/BulkOpsWidgetOptions';
@@ -15,8 +17,8 @@ import PageSwitchWidgetOptions from './widgets/page_switch_widget/options/PageSw
 import SupervisionTypeWidgetOptions from './widgets/supervision_type_widget/options/SupervisionTypeWidgetOptions';
 import SupervisionWidgetOptions from './widgets/supervision_widget/options/SupervisionWidgetOptions';
 import TableWidgetOptions from './widgets/table_widget/options/TableWidgetOptions';
+import VarPieChartWidgetOptions from './widgets/var_pie_chart_widget/options/VarPieChartWidgetOptions';
 import VarWidgetOptions from './widgets/var_widget/options/VarWidgetOptions';
-import YearFilterWidgetOptions from './widgets/year_filter_widget/options/YearFilterWidgetOptions';
 
 export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
@@ -92,6 +94,8 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         await this.initializeWidget_MonthFilter();
         await this.initializeWidget_YearFilter();
         await this.initializeWidget_AdvancedDateFilter();
+
+        await this.initializeWidget_VarPieChart();
 
         await this.initializeWidget_Checklist();
         await this.initializeWidget_Supervision();
@@ -299,11 +303,100 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         AdvancedDateFilter.default_background = '#f5f5f5';
         AdvancedDateFilter.icon_component = 'Advanceddatefilterwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(AdvancedDateFilter, () => new AdvancedDateFilterWidgetOptions(null, null, false), AdvancedDateFilterWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(AdvancedDateFilter, () => new AdvancedDateFilterWidgetOptions(true, null, null, null, false), AdvancedDateFilterWidgetOptions.get_selected_fields);
 
         Vue.component('Advanceddatefilterwidgetcomponent', () => import(/* webpackChunkName: "AdvancedDateFilterWidgetComponent" */ './widgets/advanced_date_filter_widget/AdvancedDateFilterWidgetComponent'));
         Vue.component('Advanceddatefilterwidgetoptionscomponent', () => import(/* webpackChunkName: "AdvancedDateFilterWidgetOptionsComponent" */ './widgets/advanced_date_filter_widget/options/AdvancedDateFilterWidgetOptionsComponent'));
         Vue.component('Advanceddatefilterwidgeticoncomponent', () => import(/* webpackChunkName: "AdvancedDateFilterWidgetIconComponent" */ './widgets/advanced_date_filter_widget/icon/AdvancedDateFilterWidgetIconComponent'));
+    }
+
+    private async initializeWidget_VarPieChart() {
+        let VarPieChart = new DashboardWidgetVO();
+
+        VarPieChart.default_height = 10;
+        VarPieChart.default_width = 2;
+        VarPieChart.name = DashboardWidgetVO.WIDGET_NAME_varpiechart;
+        VarPieChart.widget_component = 'Varpiechartwidgetcomponent';
+        VarPieChart.options_component = 'Varpiechartwidgetoptionscomponent';
+        VarPieChart.weight = 15;
+        VarPieChart.default_background = '#f5f5f5';
+        VarPieChart.icon_component = 'Varpiechartwidgeticoncomponent';
+
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(VarPieChart, () => new VarPieChartWidgetOptions(
+
+            /**
+             * Paramètres du widget
+             */
+            null,
+
+            /**
+             * Paramètres du graph
+             */
+            true,
+            'top',
+            '#666',
+            12,
+            40,
+            10,
+            false,
+
+            false,
+            '#666',
+            16,
+            10,
+
+            50, // 0-100 - exemples : donut 50, camembert 0
+            3.141592653589793238462643383279, // 0-2pi - exemples : donut 1 * Math.PI, camembert 0
+            3.141592653589793238462643383279, // 0-2pi - exemples : donut 1 * Math.PI, camembert 0
+
+            false,
+            10, // Permet de limiter le nombre de vars affichées (par défaut 10)
+            null,
+            true,
+
+            /**
+             * Si on a une dimension, on défini le champ ref ou le custom filter, et le segment_type
+             */
+            true,
+            null,
+            null,
+            TimeSegment.TYPE_YEAR,
+
+            /**
+             * On gère un filtre global identique en param sur les 2 vars (si pas de dimension)
+             *  par ce qu'on considère qu'on devrait pas avoir 2 formats différents à ce stade
+             */
+            null,
+            null,
+
+            /**
+             * Var 1
+             */
+            null,
+
+            {},
+
+            null,
+            null,
+            null,
+
+            /**
+             * Var 2 si pas de dimension
+             */
+            null,
+
+            {},
+
+            null,
+            null,
+            null,
+
+            false,
+        ), VarPieChartWidgetOptions.get_selected_fields);
+
+        Vue.component('Varpiechartwidgetcomponent', () => import(/* webpackChunkName: "VarPieChartWidgetComponent" */ './widgets/var_pie_chart_widget/VarPieChartWidgetComponent'));
+        Vue.component('Varpiechartwidgetoptionscomponent', () => import(/* webpackChunkName: "VarPieChartWidgetOptionsComponent" */ './widgets/var_pie_chart_widget/options/VarPieChartWidgetOptionsComponent'));
+        Vue.component('Varpiechartwidgeticoncomponent', () => import(/* webpackChunkName: "VarPieChartWidgetIconComponent" */ './widgets/var_pie_chart_widget/icon/VarPieChartWidgetIconComponent'));
     }
 
     private async initializeWidget_YearFilter() {
@@ -318,7 +411,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         YearFilter.default_background = '#f5f5f5';
         YearFilter.icon_component = 'Yearfilterwidgeticoncomponent';
 
-        await DashboardBuilderWidgetsController.getInstance().registerWidget(YearFilter, () => new YearFilterWidgetOptions(true, null, null, true, -2, 2, true, true, 0, 0, false, null, false), YearFilterWidgetOptions.get_selected_fields);
+        await DashboardBuilderWidgetsController.getInstance().registerWidget(YearFilter, () => new YearFilterWidgetOptionsVO(true, null, null, true, -2, 2, true, true, 0, 0, false, null, false), YearFilterWidgetOptionsVO.get_selected_fields);
 
         Vue.component('Yearfilterwidgetcomponent', () => import(/* webpackChunkName: "YearFilterWidgetComponent" */ './widgets/year_filter_widget/YearFilterWidgetComponent'));
         Vue.component('Yearfilterwidgetoptionscomponent', () => import(/* webpackChunkName: "YearFilterWidgetOptionsComponent" */ './widgets/year_filter_widget/options/YearFilterWidgetOptionsComponent'));

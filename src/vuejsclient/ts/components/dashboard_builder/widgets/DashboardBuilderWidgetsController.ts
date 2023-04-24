@@ -1,4 +1,4 @@
-import { WidgetsManager } from '../../../../../shared/modules/DashboardBuilder/manager/WidgetsManager';
+import WidgetsManager from '../../../../../shared/modules/DashboardBuilder/manager/WidgetsManager';
 
 /**
  * @class DashboardBuilderWidgetsController

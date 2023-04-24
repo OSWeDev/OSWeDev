@@ -1,9 +1,9 @@
-import { FieldValueFilterWidgetOptionsVO } from "../vos/FieldValueFilterWidgetOptionsVO";
+import FieldValueFilterWidgetOptionsVO from "../vos/FieldValueFilterWidgetOptionsVO";
 
 /**
  * Dashboard Builder Data Filter Manager
  */
-export class DashboardBuilderDataFilterManager {
+export default class DashboardBuilderDataFilterManager {
 
 
     public static async load_data_filtersfrom_widget_options() {

@@ -23,19 +23,25 @@ import FakeVarControllerDsDistant from './fakes/FakeVarControllerDsDistant';
 import FakeVarControllerDsEmpDistant from './fakes/FakeVarControllerDsEmpDistant';
 import FakeDataVO from './fakes/vos/FakeDataVO';
 import VarsDatasProxy from '../../../server/modules/Var/VarsDatasProxy';
+import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 
 describe('VarsDatasVoUpdateHandler', () => {
 
     it('test filter_var_datas_by_indexes', async () => {
         FakeDataHandler.initializeFakeDataVO();
         FakeDistantHandler.initializeFakeDistantVO();
+        await ModuleVar.getInstance().initializeasync({
+            [FakeVarControllerDsDistant.getInstance().varConf.id]: FakeVarControllerDsDistant.getInstance().varConf,
+            [FakeVarControllerDsEmpDistant.getInstance().varConf.id]: FakeVarControllerDsEmpDistant.getInstance().varConf,
+            [FakeVarControllerDeps.getInstance().varConf.id]: FakeVarControllerDeps.getInstance().varConf
+        });
         await FakeVarControllerDsDistant.getInstance().initialize();
         await FakeVarControllerDsEmpDistant.getInstance().initialize();
         await FakeVarControllerDeps.getInstance().initialize();
         await VarsController.getInstance().initializeasync({
-            [FakeVarControllerDsDistant.getInstance().varConf.name]: FakeVarControllerDsDistant.getInstance().varConf,
-            [FakeVarControllerDsEmpDistant.getInstance().varConf.name]: FakeVarControllerDsEmpDistant.getInstance().varConf,
-            [FakeVarControllerDeps.getInstance().varConf.name]: FakeVarControllerDeps.getInstance().varConf
+            [FakeVarControllerDsDistant.getInstance().varConf.id]: FakeVarControllerDsDistant.getInstance().varConf,
+            [FakeVarControllerDsEmpDistant.getInstance().varConf.id]: FakeVarControllerDsEmpDistant.getInstance().varConf,
+            [FakeVarControllerDeps.getInstance().varConf.id]: FakeVarControllerDeps.getInstance().varConf
         });
         VarsServerController.getInstance().init_varcontrollers_dag();
 

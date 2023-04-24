@@ -7,7 +7,7 @@ import { SaveFavoritesFiltersCallUpdaters } from "./SaveFavoritesFiltersCallUpda
 /**
  * SaveFavoritesFiltersWidgetController
  */
-export class SaveFavoritesFiltersWidgetController {
+export default class SaveFavoritesFiltersWidgetController {
 
     public static getInstance(): SaveFavoritesFiltersWidgetController {
         if (!this.instance) {

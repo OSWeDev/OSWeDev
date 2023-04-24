@@ -9,7 +9,7 @@ import DashboardWidgetVO from '../../../../../../shared/modules/DashboardBuilder
 import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
-import { VOsTypesManager } from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
@@ -205,7 +205,7 @@ export default class VarWidgetComponent extends VueComponentBase {
         // let query = new ContextQueryVO();
         // query.base_api_type_id = this.vo_field_ref.api_type_id;
         // query.fields = [new ContextQueryFieldVO(this.vo_field_ref.api_type_id, this.vo_field_ref.field_id, 'label')];
-        // query.filters = ContextFilterVOHandler.getInstance().get_filters_from_active_field_filters(
+        // query.filters = ContextFilterVOManager.get_context_filters_from_active_field_filters(
         //     ContextFilterVOManager.clean_field_filters_for_request(this.get_active_field_filters));
         // query.limit = this.widget_options.max_visible_options;
         // query.offset = 0;

@@ -1,6 +1,7 @@
+import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Vue, Watch } from 'vue-property-decorator';
-import { ContextFilterVOHandler } from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
+import { ContextFilterVOVOHandler } from '../../../../../../shared/modules/ContextFilter/handler/handler/ContextFilterVOVOHandler';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
@@ -8,15 +9,14 @@ import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/D
 import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../../../../shared/modules/DataRender/vos/NumSegment';
+import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
+import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import './MonthFilterWidgetComponent.scss';
 import MonthFilterWidgetOptions from './options/MonthFilterWidgetOptions';
-import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
-import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import { cloneDeep, isEqual } from 'lodash';
 
 @Component({
     template: require('./MonthFilterWidgetComponent.pug'),
@@ -397,7 +397,7 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
                 context_filter.field_id = this.custom_filter_name;
             }
 
-            let new_root = ContextFilterVOHandler.getInstance().add_context_filter_to_tree(root_context_filter, context_filter);
+            let new_root = ContextFilterVOHandler.add_context_filter_to_tree(root_context_filter, context_filter);
             if (new_root != root_context_filter) {
                 if (!new_root) {
                     this.remove_active_field_filter({
@@ -444,7 +444,7 @@ export default class MonthFilterWidgetComponent extends VueComponentBase {
             if (!RangeHandler.are_same(context_filter.param_numranges, months_ranges)) {
                 context_filter.param_numranges = months_ranges;
 
-                let new_root = ContextFilterVOHandler.getInstance().add_context_filter_to_tree(root_context_filter, context_filter);
+                let new_root = ContextFilterVOHandler.add_context_filter_to_tree(root_context_filter, context_filter);
 
                 this.set_active_field_filter({
                     field_id: this.is_vo_field_ref ? this.vo_field_ref.field_id : this.custom_filter_name,

@@ -4,7 +4,7 @@ import WeightHandler from '../../../../tools/WeightHandler';
 import Alert from '../../../Alert/vos/Alert';
 import ModuleTableField from '../../../ModuleTableField';
 import DefaultTranslation from '../../../Translation/vos/DefaultTranslation';
-import { VOsTypesManager } from '../../../VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../VO/manager/VOsTypesManager';
 import ICRUDComponentField from '../../interface/ICRUDComponentField';
 
 /**

@@ -1,4 +1,4 @@
-import { SupervisionWidgetOptionsVO } from "../../../../../../../shared/modules/DashboardBuilder/vos/SupervisionWidgetOptionsVO";
+import SupervisionWidgetOptionsVO from "../../../../../../../shared/modules/DashboardBuilder/vos/SupervisionWidgetOptionsVO";
 
 /**
  * @deprecated use SupervisionWidgetOptionsVO instead

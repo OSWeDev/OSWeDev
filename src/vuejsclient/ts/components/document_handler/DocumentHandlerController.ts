@@ -9,7 +9,7 @@ import DocumentTagVO from '../../../../shared/modules/Document/vos/DocumentTagVO
 import DocumentTagGroupVO from '../../../../shared/modules/Document/vos/DocumentTagGroupVO';
 import DocumentDocumentTagVO from '../../../../shared/modules/Document/vos/DocumentDocumentTagVO';
 import { Watch } from 'vue-property-decorator';
-import { VOsTypesManager } from '../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleDocument from '../../../../shared/modules/Document/ModuleDocument';
 import DocumentTagDocumentTagGroupVO from '../../../../shared/modules/Document/vos/DocumentTagDocumentTagGroupVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';

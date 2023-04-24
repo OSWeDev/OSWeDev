@@ -133,8 +133,8 @@ export default class ModuleMenuServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleMenu.APINAME_get_menu, this.get_menu.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleMenu.APINAME_add_menu, this.add_menu.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleMenu.APINAME_get_menu, this.get_menu.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleMenu.APINAME_add_menu, this.add_menu.bind(this));
     }
 
     private async add_menu(app_name: string): Promise<void> {

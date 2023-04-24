@@ -7,7 +7,7 @@ import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import SimpleDatatableFieldVO from '../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
-import { VOsTypesManager } from '../../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../../shared/modules/VO/manager/VOsTypesManager';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import VueComponentBase from '../../VueComponentBase';
 import CheckListControllerBase from '../CheckListControllerBase';

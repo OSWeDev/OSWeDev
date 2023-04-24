@@ -3,7 +3,7 @@ import { range } from "lodash";
 import { TypeOfTag } from "typescript";
 import { IGraphMatrix, IGraphNode, ISearchResult } from "./types";
 const math = require("mathjs");
-export class Graph {
+export default class Graph {
     public matrix: IGraphMatrix = {}; //Matrix as a dictionnary type.
     public adj_matrix; // FIXME Find the appropriate type.
     public red_linked_cells: Array<[string, string]>; //Cellules présentant plusieurs chemin de même degrés vers la cellule principale.

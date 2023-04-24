@@ -9,7 +9,7 @@ import ModuleTable from '../../ModuleTable';
  * VOsTypesManager
  *  - Manager for each VOs Fields
  */
-export class VOsTypesManager {
+export default class VOsTypesManager {
 
     /**
      * Local thread cache -----

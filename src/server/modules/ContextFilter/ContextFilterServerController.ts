@@ -1,5 +1,5 @@
 import pgPromise = require('pg-promise');
-import { ContextFilterVOHandler } from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
+import ContextFilterVOHandler from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextQueryInjectionCheckHandler from '../../../shared/modules/ContextFilter/ContextQueryInjectionCheckHandler';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
@@ -10,7 +10,7 @@ import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
-import { VOsTypesManager } from '../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import MatroidIndexHandler from '../../../shared/tools/MatroidIndexHandler';
 import RangeHandler from '../../../shared/tools/RangeHandler';
@@ -406,7 +406,7 @@ export default class ContextFilterServerController {
                              * Check injection ok : get_normalized_ranges ok
                              */
                             let ranges_clause = null;
-                            ranges_clause = "'" + MatroidIndexHandler.getInstance().get_normalized_ranges(active_field_filter.param_tsranges) + "'";
+                            ranges_clause = "'" + MatroidIndexHandler.get_normalized_ranges(active_field_filter.param_tsranges) + "'";
                             where_conditions.push(ranges_clause + " = " + field.field_id + '_ndx');
 
                             break;
@@ -2107,7 +2107,7 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numranges && active_field_filter.param_numranges.length) {
 
                             let ranges_clause = null;
-                            ranges_clause = "'" + MatroidIndexHandler.getInstance().get_normalized_ranges(active_field_filter.param_numranges) + "'";
+                            ranges_clause = "'" + MatroidIndexHandler.get_normalized_ranges(active_field_filter.param_numranges) + "'";
                             where_conditions.push(ranges_clause + " = " + field.field_id + '_ndx');
 
                             break;
@@ -2185,19 +2185,19 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numranges && active_field_filter.param_numranges.length) {
 
                             let ranges_clause = null;
-                            ranges_clause = "'" + MatroidIndexHandler.getInstance().get_normalized_ranges(active_field_filter.param_numranges) + "'";
+                            ranges_clause = "'" + MatroidIndexHandler.get_normalized_ranges(active_field_filter.param_numranges) + "'";
                             where_conditions.push(ranges_clause + " = " + field.field_id + '_ndx');
 
                             break;
                         } else if (active_field_filter.param_numeric != null) {
                             let ranges_clause = null;
-                            ranges_clause = "'" + MatroidIndexHandler.getInstance().get_normalized_ranges(RangeHandler.get_ids_ranges_from_list([active_field_filter.param_numeric])) + "'";
+                            ranges_clause = "'" + MatroidIndexHandler.get_normalized_ranges(RangeHandler.get_ids_ranges_from_list([active_field_filter.param_numeric])) + "'";
                             where_conditions.push(ranges_clause + " = " + field.field_id + '_ndx');
 
                             break;
                         } else if (active_field_filter.param_numeric_array && active_field_filter.param_numeric_array.length) {
                             let ranges_clause = null;
-                            ranges_clause = "'" + MatroidIndexHandler.getInstance().get_normalized_ranges(RangeHandler.get_ids_ranges_from_list(active_field_filter.param_numeric_array)) + "'";
+                            ranges_clause = "'" + MatroidIndexHandler.get_normalized_ranges(RangeHandler.get_ids_ranges_from_list(active_field_filter.param_numeric_array)) + "'";
                             where_conditions.push(ranges_clause + " = " + field.field_id + '_ndx');
 
                             break;
@@ -2391,7 +2391,9 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numranges && active_field_filter.param_numranges.length) {
                             let dows: number[] = [];
 
-                            RangeHandler.foreach_ranges_sync(active_field_filter.param_numranges, (dow) => dows.push(dow));
+                            RangeHandler.foreach_ranges_sync(active_field_filter.param_numranges, (dow) => {
+                                dows.push(dow);
+                            });
                             if ((!dows) || (!dows.length)) {
                                 break;
                             }
@@ -2415,7 +2417,10 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numranges && active_field_filter.param_numranges.length) {
                             let years: number[] = [];
 
-                            RangeHandler.foreach_ranges_sync(active_field_filter.param_numranges, (year) => years.push(year));
+                            RangeHandler.foreach_ranges_sync(active_field_filter.param_numranges, (year) => {
+                                years.push(year);
+                            });
+
                             if ((!years) || (!years.length)) {
                                 break;
                             }
@@ -2440,7 +2445,10 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numranges && active_field_filter.param_numranges.length) {
                             let years: number[] = [];
 
-                            RangeHandler.foreach_ranges_sync(active_field_filter.param_numranges, (year) => years.push(year));
+                            RangeHandler.foreach_ranges_sync(active_field_filter.param_numranges, (year) => {
+                                years.push(year);
+                            });
+
                             if ((!years) || (!years.length)) {
                                 break;
                             }
@@ -2465,7 +2473,10 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numranges && active_field_filter.param_numranges.length) {
                             let years: number[] = [];
 
-                            RangeHandler.foreach_ranges_sync(active_field_filter.param_numranges, (year) => years.push(year));
+                            RangeHandler.foreach_ranges_sync(active_field_filter.param_numranges, (year) => {
+                                years.push(year);
+                            });
+
                             if ((!years) || (!years.length)) {
                                 break;
                             }
@@ -2494,7 +2505,10 @@ export default class ContextFilterServerController {
                         if (active_field_filter.param_numranges && active_field_filter.param_numranges.length) {
                             let months: number[] = [];
 
-                            RangeHandler.foreach_ranges_sync(active_field_filter.param_numranges, (month) => months.push(month));
+                            RangeHandler.foreach_ranges_sync(active_field_filter.param_numranges, (month) => {
+                                months.push(month);
+                            });
+
                             if ((!months) || (!months.length)) {
                                 break;
                             }
@@ -3048,7 +3062,14 @@ export default class ContextFilterServerController {
             case ContextFilterVO.TYPE_TEXT_STARTSWITH_ALL:
             case ContextFilterVO.TYPE_TEXT_ENDSWITH_ALL:
 
-
+            case ContextFilterVO.TYPE_MINUTE_INTERSECTS:
+            case ContextFilterVO.TYPE_MINUTE_EQUALS:
+            case ContextFilterVO.TYPE_MINUTE_INCLUDES:
+            case ContextFilterVO.TYPE_MINUTE_IS_INCLUDED_IN:
+            case ContextFilterVO.TYPE_SECOND_INTERSECTS:
+            case ContextFilterVO.TYPE_SECOND_EQUALS:
+            case ContextFilterVO.TYPE_SECOND_INCLUDES:
+            case ContextFilterVO.TYPE_SECOND_IS_INCLUDED_IN:
 
             case ContextFilterVO.TYPE_DATE_DOM:
             case ContextFilterVO.TYPE_DATE_WEEK:

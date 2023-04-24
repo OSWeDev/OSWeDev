@@ -10,7 +10,7 @@ import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import DefaultTranslation from '../Translation/vos/DefaultTranslation';
-import { VOsTypesManager } from '../VO/manager/VOsTypesManager';
+import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import MaintenanceVO from './vos/MaintenanceVO';
 
 export default class ModuleMaintenance extends Module {
@@ -53,20 +53,18 @@ export default class ModuleMaintenance extends Module {
 
     public registerApis() {
 
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<StringParamVO, void>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<StringParamVO, void>(
             null,
             ModuleMaintenance.APINAME_START_MAINTENANCE,
             [MaintenanceVO.API_TYPE_ID],
             StringParamVOStatic
         ));
-
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<void, void>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<void, void>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, MaintenanceVO.API_TYPE_ID),
             ModuleMaintenance.APINAME_END_PLANNED_MAINTENANCE,
             [MaintenanceVO.API_TYPE_ID]
         ));
-
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<NumberParamVO, void>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<NumberParamVO, void>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, MaintenanceVO.API_TYPE_ID),
             ModuleMaintenance.APINAME_END_MAINTENANCE,
             [MaintenanceVO.API_TYPE_ID],

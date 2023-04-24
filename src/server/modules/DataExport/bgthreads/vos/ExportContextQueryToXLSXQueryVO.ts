@@ -2,9 +2,9 @@ import ContextFilterVO from "../../../../../shared/modules/ContextFilter/vos/Con
 import ContextQueryVO from "../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import DatatableField from "../../../../../shared/modules/DAO/vos/datatable/DatatableField";
 import TableColumnDescVO from "../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO";
-import { IExportOptions } from "../../../../../shared/modules/DataExport/interfaces/IExportOptions";
+import IExportOptions from "../../../../../shared/modules/DataExport/interfaces/IExportOptions";
 import ExportVarcolumnConf from "../../../../../shared/modules/DataExport/vos/ExportVarcolumnConf";
-import { ExportVarIndicator } from "../../../../../shared/modules/DataExport/vos/ExportVarIndicator";
+import ExportVarIndicator from "../../../../../shared/modules/DataExport/vos/ExportVarIndicator";
 
 export default class ExportContextQueryToXLSXQueryVO {
     public constructor(

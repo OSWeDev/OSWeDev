@@ -14,7 +14,7 @@ import IMatroid from '../Matroid/interfaces/IMatroid';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
-import { VOsTypesManager } from '../VO/manager/VOsTypesManager';
+import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import APIDAOApiTypeAndMatroidsParamsVO, { APIDAOApiTypeAndMatroidsParamsVOStatic } from './vos/APIDAOApiTypeAndMatroidsParamsVO';
 import APIDAOIdsRangesParamsVO, { APIDAOIdsRangesParamsVOStatic } from './vos/APIDAOIdsRangesParamsVO';
 import APIDAONamedParamVO, { APIDAONamedParamVOStatic } from './vos/APIDAONamedParamVO';
@@ -322,7 +322,7 @@ export default class ModuleDAO extends Module {
     }
 
     public registerApis() {
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<IDistantVOBase[], any[]>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<IDistantVOBase[], any[]>(
             null,
             ModuleDAO.APINAME_DELETE_VOS_MULTICONNECTIONS,
             (params: IDistantVOBase[]) => {
@@ -337,7 +337,7 @@ export default class ModuleDAO extends Module {
                 return Object.keys(res);
             }
         ));
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<IDistantVOBase[], any[]>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<IDistantVOBase[], any[]>(
             null,
             ModuleDAO.APINAME_DELETE_VOS,
             (params: IDistantVOBase[]) => {
@@ -352,13 +352,13 @@ export default class ModuleDAO extends Module {
                 return Object.keys(res);
             }
         ));
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<APIDAOParamsVO, any[]>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<APIDAOParamsVO, any[]>(
             null,
             ModuleDAO.APINAME_DELETE_VOS_BY_IDS,
             (param: APIDAOParamsVO) => [param.API_TYPE_ID],
             APIDAOParamsVOStatic
         ));
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<IDistantVOBase[], InsertOrDeleteQueryResult[]>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<IDistantVOBase[], InsertOrDeleteQueryResult[]>(
             null,
             ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS,
             (params: IDistantVOBase[]) => {
@@ -373,7 +373,7 @@ export default class ModuleDAO extends Module {
                 return Object.keys(res);
             }
         ));
-        // APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<IDistantVOBase[], InsertOrDeleteQueryResult[]>(
+        // APIControllerWrapper.registerApi(new PostAPIDefinition<IDistantVOBase[], InsertOrDeleteQueryResult[]>(
         //     null,
         //     ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS_MULTICONNECTIONS,
         //     (params: IDistantVOBase[]) => {
@@ -388,123 +388,123 @@ export default class ModuleDAO extends Module {
         //         return Object.keys(res);
         //     }
         // ));
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<IDistantVOBase, InsertOrDeleteQueryResult>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<IDistantVOBase, InsertOrDeleteQueryResult>(
             null,
             ModuleDAO.APINAME_INSERT_OR_UPDATE_VO,
             (param: IDistantVOBase) => [param._type]
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOParamsVO, IDistantVOBase[]>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIDAOParamsVO, IDistantVOBase[]>(
             null,
             ModuleDAO.APINAME_GET_VOS_BY_IDS,
             (param: APIDAOParamsVO) => [param.API_TYPE_ID],
             APIDAOParamsVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOIdsRangesParamsVO, IDistantVOBase[]>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIDAOIdsRangesParamsVO, IDistantVOBase[]>(
             null,
             ModuleDAO.APINAME_GET_VOS_BY_IDS_RANGES,
             (param: APIDAOIdsRangesParamsVO) => [param.API_TYPE_ID],
             APIDAOIdsRangesParamsVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, IDistantVOBase[]>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, IDistantVOBase[]>(
             null,
             ModuleDAO.APINAME_getVarImportsByMatroidParams,
             (param: APIDAOApiTypeAndMatroidsParamsVO) => (param ? [param.API_TYPE_ID] : null),
             APIDAOApiTypeAndMatroidsParamsVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, IDistantVOBase[]>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, IDistantVOBase[]>(
             null,
             ModuleDAO.APINAME_FILTER_VOS_BY_MATROIDS,
             (param: APIDAOApiTypeAndMatroidsParamsVO) => (param ? [param.API_TYPE_ID] : null),
             APIDAOApiTypeAndMatroidsParamsVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, number>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, number>(
             null,
             ModuleDAO.APINAME_getColSumFilterByMatroid,
             (param: APIDAOApiTypeAndMatroidsParamsVO) => (param ? [param.API_TYPE_ID] : null),
             APIDAOApiTypeAndMatroidsParamsVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, IDistantVOBase[]>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, IDistantVOBase[]>(
             null,
             ModuleDAO.APINAME_FILTER_VOS_BY_MATROIDS_INTERSECTIONS,
             (param: APIDAOApiTypeAndMatroidsParamsVO) => (param ? [param.API_TYPE_ID] : null),
             APIDAOApiTypeAndMatroidsParamsVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, IDistantVOBase[]>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, IDistantVOBase[]>(
             null,
             ModuleDAO.APINAME_GET_VOS_BY_EXACT_MATROIDS,
             (param: APIDAOApiTypeAndMatroidsParamsVO) => (param ? [param.API_TYPE_ID] : null),
             APIDAOApiTypeAndMatroidsParamsVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<APIDAORefFieldParamsVO, IDistantVOBase[]>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIDAORefFieldParamsVO, IDistantVOBase[]>(
             null,
             ModuleDAO.APINAME_GET_VOS_BY_REFFIELD_IDS,
             (param: APIDAORefFieldParamsVO) => [param.API_TYPE_ID],
             APIDAORefFieldParamsVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<APIDAORefFieldsParamsVO, IDistantVOBase[]>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIDAORefFieldsParamsVO, IDistantVOBase[]>(
             null,
             ModuleDAO.APINAME_GET_VOS_BY_REFFIELDS_IDS,
             (param: APIDAORefFieldsParamsVO) => [param.API_TYPE_ID],
             APIDAORefFieldsParamsVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<APIDAORefFieldsAndFieldsStringParamsVO, IDistantVOBase[]>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIDAORefFieldsAndFieldsStringParamsVO, IDistantVOBase[]>(
             null,
             ModuleDAO.APINAME_GET_VOS_BY_REFFIELDS_IDS_AND_FIELDS_STRING,
             (param: APIDAORefFieldsAndFieldsStringParamsVO) => [param.API_TYPE_ID],
             APIDAORefFieldsAndFieldsStringParamsVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<APIDAONamedParamVO, IDistantVOBase>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIDAONamedParamVO, IDistantVOBase>(
             null,
             ModuleDAO.APINAME_GET_NAMED_VO_BY_NAME,
             (param: APIDAONamedParamVO) => [param.API_TYPE_ID],
             APIDAONamedParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOParamVO, IDistantVOBase>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIDAOParamVO, IDistantVOBase>(
             null,
             ModuleDAO.APINAME_GET_VO_BY_ID,
             (param: APIDAOParamVO) => [param.API_TYPE_ID],
             APIDAOParamVOStatic
         ));
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<APIDAOTypeLimitOffsetVO, IDistantVOBase[]>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<APIDAOTypeLimitOffsetVO, IDistantVOBase[]>(
             null,
             ModuleDAO.APINAME_GET_VOS,
             (API_TYPE_ID: APIDAOTypeLimitOffsetVO) => [API_TYPE_ID.API_TYPE_ID],
             APIDAOTypeLimitOffsetVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<void, string>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<void, string>(
             null,
             ModuleDAO.APINAME_GET_BASE_URL,
             []
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOselectUsersForCheckUnicityVO, boolean>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<APIDAOselectUsersForCheckUnicityVO, boolean>(
             null,
             ModuleDAO.APINAME_selectUsersForCheckUnicity,
             [UserVO.API_TYPE_ID],
             APIDAOselectUsersForCheckUnicityVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<StringParamVO, void>(
             ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS,
             ModuleDAO.APINAME_truncate,
             (param: StringParamVO) => [param.text],
             StringParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<StringParamVO, void>(
             ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS,
             ModuleDAO.APINAME_delete_all_vos_triggers_ok,
             (param: StringParamVO) => [param.text],

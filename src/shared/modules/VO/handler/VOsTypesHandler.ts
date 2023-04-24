@@ -4,7 +4,7 @@ import ModuleTableField from '../../ModuleTableField';
  * VOsTypesHandler
  *  - Manager for each VOs Fields
  */
-export class VOsTypesHandler {
+export default class VOsTypesHandler {
 
     public static is_type_boolean<T>(field: ModuleTableField<T>): boolean {
 

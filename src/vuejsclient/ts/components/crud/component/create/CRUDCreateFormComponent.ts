@@ -1,3 +1,4 @@
+import { cloneDeep } from 'lodash';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import Alert from '../../../../../../shared/modules/Alert/vos/Alert';
@@ -10,7 +11,7 @@ import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/D
 import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
-import { VOsTypesManager } from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import { all_promises } from '../../../../../../shared/tools/PromiseTools';
 import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
@@ -151,6 +152,10 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
             crud_field_remover_conf.is_update = false;
         }
 
+        if (!crud_field_remover_conf.module_table_field_ids) {
+            crud_field_remover_conf.module_table_field_ids = [];
+        }
+
         crud_field_remover_conf.module_table_field_ids.push(module_table_field_id);
         this.crud_field_remover_conf = crud_field_remover_conf;
 
@@ -167,7 +172,7 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
                         self.crud_field_remover_conf.id = res.id;
                     }
 
-                    this.crud.updateDatatable.removeFields([module_table_field_id]);
+                    self.remove_fields([module_table_field_id]);
 
                     resolve({
                         body: self.label('crud_create_form_body_add_removed_crud_field_id.ok'),
@@ -192,6 +197,18 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
                 }
             })
         );
+    }
+
+    /**
+     * Si on a toujours un datatable par défaut, donc celui du read, on doit d'abord le cloner pour le modifier uniquement dans notre cas
+     * @param fields les champs à supprimer du CRUD
+     */
+    private remove_fields(fields) {
+
+        if (this.crud.createDatatable == this.crud.readDatatable) {
+            this.crud.createDatatable = CRUD.copy_datatable(this.crud.readDatatable);
+        }
+        this.crud.createDatatable.removeFields(this.crud_field_remover_conf.module_table_field_ids);
     }
 
     @Watch("api_type_id", { immediate: true })
@@ -235,7 +252,7 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
                 }
             }
             if (this.crud_field_remover_conf && this.crud_field_remover_conf.module_table_field_ids && this.crud_field_remover_conf.module_table_field_ids.length) {
-                this.crud.updateDatatable.removeFields(this.crud_field_remover_conf.module_table_field_ids);
+                this.remove_fields(this.crud_field_remover_conf.module_table_field_ids);
             }
         }
     }
@@ -363,7 +380,7 @@ export default class CRUDCreateFormComponent extends VueComponentBase {
                     self.newVO.id = id;
                     apiokVo.id = id;
 
-                    let n_createdVO = await ModuleDAO.getInstance().getVoById<any>(self.crud.readDatatable.API_TYPE_ID, id);
+                    let n_createdVO = await query(self.crud.readDatatable.API_TYPE_ID).filter_by_id(id).select_vo();
                     createdVO = n_createdVO ? n_createdVO : apiokVo;
                     /**
                      * A SUIVRE en prod suivant les projets

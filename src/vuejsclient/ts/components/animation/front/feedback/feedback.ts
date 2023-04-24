@@ -9,7 +9,7 @@ import { query } from "../../../../../../shared/modules/ContextFilter/vos/Contex
 import ModuleDAO from "../../../../../../shared/modules/DAO/ModuleDAO";
 import SimpleDatatableFieldVO from "../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO";
 import VarsController from "../../../../../../shared/modules/Var/VarsController";
-import { VOsTypesManager } from "../../../../../../shared/modules/VO/manager/VOsTypesManager";
+import VOsTypesManager from "../../../../../../shared/modules/VO/manager/VOsTypesManager";
 import { all_promises } from "../../../../../../shared/tools/PromiseTools";
 import VueComponentBase from '../../../VueComponentBase';
 import '../_base/animation.scss';

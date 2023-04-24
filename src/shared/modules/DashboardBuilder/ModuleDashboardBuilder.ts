@@ -16,7 +16,7 @@ import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VarConfVO from '../Var/vos/VarConfVO';
-import { VOsTypesManager } from '../VO/manager/VOsTypesManager';
+import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import AdvancedDateFilterOptDescVO from './vos/AdvancedDateFilterOptDescVO';
 import DashboardFavoritesFiltersVO from './vos/DashboardFavoritesFiltersVO';
 import DashboardGraphVORefVO from './vos/DashboardGraphVORefVO';
@@ -61,7 +61,7 @@ export default class ModuleDashboardBuilder extends Module {
 
     public registerApis() {
         // Load all users favorites filters and start exporting by using their filters
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<void, void>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<void, void>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, DashboardFavoritesFiltersVO.API_TYPE_ID),
             ModuleDashboardBuilder.APINAME_START_EXPORT_DATATABLE_USING_FAVORITES_FILTERS,
             [DashboardFavoritesFiltersVO.API_TYPE_ID]

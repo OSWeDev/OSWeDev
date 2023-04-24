@@ -4,7 +4,7 @@ import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
 import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
-import { VOsTypesManager } from '../../../VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../VO/manager/VOsTypesManager';
 
 export default class OneToManyReferenceDatatableFieldVO<Target extends IDistantVOBase> extends ReferenceDatatableField<Target> {
 

@@ -5,7 +5,7 @@ import { AbstractVO } from "../../VO/abstract/AbstractVO";
 /**
  * @class SupervisionWidgetOptionsVO
  */
-export class SupervisionWidgetOptionsVO extends AbstractVO {
+export default class SupervisionWidgetOptionsVO extends AbstractVO {
 
     public static TITLE_CODE_PREFIX: string = "SupervisionWidgetOptionsVO.title.";
 

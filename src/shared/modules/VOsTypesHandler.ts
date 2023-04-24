@@ -1,4 +1,4 @@
-import { VOsTypesHandler as BaseVOsTypesHandler } from './VO/handler/VOsTypesHandler';
+import BaseVOsTypesHandler from './VO/handler/VOsTypesHandler';
 
 /**
  * VOsTypesHandler

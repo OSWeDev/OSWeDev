@@ -1,4 +1,3 @@
-
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
@@ -47,13 +46,13 @@ export default class ModuleParamsServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        // APIControllerWrapper.getInstance().registerServerApiHandler(ModuleParams.APINAME_getParamValue, this.getParamValue.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleParams.APINAME_getParamValueAsString, this.getParamValueAsString.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleParams.APINAME_getParamValueAsInt, this.getParamValueAsInt.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleParams.APINAME_getParamValueAsBoolean, this.getParamValueAsBoolean.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleParams.APINAME_getParamValueAsFloat, this.getParamValueAsFloat.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleParams.APINAME_setParamValue, this.setParamValue.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleParams.APINAME_setParamValue_if_not_exists, this.setParamValue_if_not_exists.bind(this));
+        // APIControllerWrapper.registerServerApiHandler(ModuleParams.APINAME_getParamValue, this.getParamValue.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleParams.APINAME_getParamValueAsString, this.getParamValueAsString.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleParams.APINAME_getParamValueAsInt, this.getParamValueAsInt.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleParams.APINAME_getParamValueAsBoolean, this.getParamValueAsBoolean.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleParams.APINAME_getParamValueAsFloat, this.getParamValueAsFloat.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleParams.APINAME_setParamValue, this.setParamValue.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleParams.APINAME_setParamValue_if_not_exists, this.setParamValue_if_not_exists.bind(this));
     }
 
     /**

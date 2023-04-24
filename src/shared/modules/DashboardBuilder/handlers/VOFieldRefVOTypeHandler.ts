@@ -1,12 +1,12 @@
-import { VOsTypesHandler } from "../../VO/handler/VOsTypesHandler";
-import { VOsTypesManager } from "../../VO/manager/VOsTypesManager";
+import VOsTypesHandler from "../../VO/handler/VOsTypesHandler";
+import VOsTypesManager from "../../VO/manager/VOsTypesManager";
 import VOFieldRefVO from "../vos/VOFieldRefVO";
 
 /**
  * VO Field Ref VO Type Handler
  *  - vo field ref type manager
  */
-export class VOFieldRefVOTypeHandler {
+export default class VOFieldRefVOTypeHandler {
 
     public static is_type_boolean(vo_field_ref: VOFieldRefVO): boolean {
 

@@ -53,7 +53,7 @@
                                     }
 
                                     &.is_not_enum {
-                                        background: white;
+                                        background: none;
                                         border-radius: 4px;
                                         padding: 0.3em;
                                         font-weight: bold;
@@ -117,7 +117,7 @@
                                     .card.kanban_row {
 
                                         overflow: hidden;
-                                        margin-bottom: .5em;
+                                        margin-bottom: 1em;
                                         margin-right: .3em;
                                         border: none;
 

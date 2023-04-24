@@ -13,7 +13,6 @@ import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultT
 import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
-import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
@@ -144,10 +143,10 @@ export default class ModuleCronServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleCron.APINAME_executeWorkersManually, this.executeWorkersManually.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleCron.APINAME_executeWorkerManually, this.executeWorkerManually.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleCron.APINAME_run_manual_task, this.run_manual_task.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleCron.APINAME_get_manual_tasks, this.get_manual_tasks.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleCron.APINAME_executeWorkersManually, this.executeWorkersManually.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleCron.APINAME_executeWorkerManually, this.executeWorkerManually.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleCron.APINAME_run_manual_task, this.run_manual_task.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleCron.APINAME_get_manual_tasks, this.get_manual_tasks.bind(this));
     }
 
     public registerCronWorker(cronWorker: ICronWorker) {

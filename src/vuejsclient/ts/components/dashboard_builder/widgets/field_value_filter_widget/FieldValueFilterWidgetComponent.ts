@@ -1,6 +1,6 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import { VOFieldRefVOTypeHandler } from '../../../../../../shared/modules/DashboardBuilder/handlers/VOFieldRefVOTypeHandler';
+import VOFieldRefVOTypeHandler from '../../../../../../shared/modules/DashboardBuilder/handlers/VOFieldRefVOTypeHandler';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';

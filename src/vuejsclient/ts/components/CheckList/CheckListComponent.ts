@@ -13,7 +13,7 @@ import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import DatatableField from '../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
-import { VOsTypesManager } from '../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../shared/tools/PromiseTools';
@@ -141,7 +141,7 @@ export default class CheckListComponent extends VueComponentBase {
             filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
             filter.param_numeric = self.list_id;
 
-            checklist = await ModuleDAO.getInstance().getVoById<ICheckList>(self.checklist_shared_module.checklist_type_id, self.list_id);
+            checklist = await query(self.checklist_shared_module.checklist_type_id).filter_by_id(self.list_id).select_vo<ICheckList>();
             if (!checklist) {
                 return;
             }
@@ -292,7 +292,7 @@ export default class CheckListComponent extends VueComponentBase {
             return;
         }
 
-        Vue.set(this.checklistitems, vo.id, await ModuleDAO.getInstance().getVoById(this.checklist_shared_module.checklistitem_type_id, vo.id));
+        Vue.set(this.checklistitems, vo.id, await query(this.checklist_shared_module.checklistitem_type_id).filter_by_id(vo.id).select_vo());
 
         this.selected_checklist_item = this.checklistitems[vo.id];
 

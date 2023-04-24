@@ -1,8 +1,9 @@
 import { cloneDeep } from 'lodash';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
-import { ContextFilterVOHandler } from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextQueryInjectionCheckHandler from '../../../shared/modules/ContextFilter/ContextQueryInjectionCheckHandler';
+import ContextFilterVOHandler from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
+import ContextFilterVOManager from '../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
@@ -19,7 +20,7 @@ import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
-import { VOsTypesManager } from '../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
@@ -73,7 +74,15 @@ export default class ContextQueryServerController {
         //     context_query.query_distinct = false;
         // }
 
+        /**
+         * Le contexte client est utilisé pour builder la requête, pas pour la réaliser en base,
+         * donc on a pas de problème à throttle le select en base, en revanche le build doit se faire sans throttle ou il faut gérer
+         * une save du contexte client. Idem pour l'anonymisation post requete. D'ailleurs ça sous-entend qu'en l'état
+         * l'anonymisation ne peut pas fonctionner en bdd puisque le contexte client est perdu. Sauf à ce que la requête soit impactée pour
+         * indiquer d'utiliser l'anonymisation en bdd, et que la requête n'ai pas besoin de connaitre le contexte client.
+         */
         query_wrapper = query_wrapper ? query_wrapper : await this.build_select_query(context_query);
+
         //Requête
         if ((!query_wrapper) || ((!query_wrapper.query)) && (!query_wrapper.is_segmented_non_existing_table)) {
             ConsoleHandler.error('Invalid query:select_vos:INFOS context_query:' + (query_wrapper ? (query_wrapper.query ? query_wrapper.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
@@ -410,7 +419,7 @@ export default class ContextQueryServerController {
             get_active_field_filters[field.api_type_id][field.field_id] = actual_filter;
         }
 
-        context_query.filters = ContextFilterVOHandler.getInstance().get_filters_from_active_field_filters(get_active_field_filters);
+        context_query.filters = ContextFilterVOManager.get_context_filters_from_active_field_filters(get_active_field_filters);
 
         let query_res: any[] = await this.select_datatable_rows(context_query, null, null);
         if ((!query_res) || (!query_res.length)) {
@@ -635,7 +644,7 @@ export default class ContextQueryServerController {
 
                     default:
                         delete get_active_field_filters[field.api_type_id][field.field_id];
-                        context_query.filters = ContextFilterVOHandler.getInstance().get_filters_from_active_field_filters(get_active_field_filters);
+                        context_query.filters = ContextFilterVOManager.get_context_filters_from_active_field_filters(get_active_field_filters);
                         break;
                 }
             }
@@ -1364,6 +1373,7 @@ export default class ContextQueryServerController {
 
             if (!loaded) {
                 loaded = true;
+
                 uid = StackContext.get('UID');
                 user = await ModuleAccessPolicyServer.getInstance().getSelfUser();
                 user_roles_by_role_id = AccessPolicyServerController.getInstance().getUsersRoles(true, uid);

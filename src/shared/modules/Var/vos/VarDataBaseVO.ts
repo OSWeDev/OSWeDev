@@ -6,7 +6,7 @@ import IRange from '../../DataRender/interfaces/IRange';
 import IMatroid from '../../Matroid/interfaces/IMatroid';
 import MatroidController from '../../Matroid/MatroidController';
 import ModuleTableField from '../../ModuleTableField';
-import { VOsTypesManager } from '../../VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../VO/manager/VOsTypesManager';
 import VarsController from '../VarsController';
 import VarConfVO from './VarConfVO';
 
@@ -22,7 +22,7 @@ export default class VarDataBaseVO implements IMatroid {
 
     public static from_index(index: string): VarDataBaseVO {
 
-        return MatroidIndexHandler.getInstance().from_normalized_vardata(index);
+        return MatroidIndexHandler.from_normalized_vardata(index);
     }
 
     public static are_same(a: VarDataBaseVO, b: VarDataBaseVO): boolean {
@@ -287,8 +287,8 @@ export default class VarDataBaseVO implements IMatroid {
     get index(): string {
 
         if (!this._index) {
-            MatroidIndexHandler.getInstance().normalize_vardata_fields(this);
-            this._index = MatroidIndexHandler.getInstance().get_normalized_vardata(this);
+            MatroidIndexHandler.normalize_vardata_fields(this);
+            this._index = MatroidIndexHandler.get_normalized_vardata(this);
         }
 
         return this._index;

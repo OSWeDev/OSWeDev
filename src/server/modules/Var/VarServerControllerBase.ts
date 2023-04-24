@@ -1,6 +1,8 @@
 import cloneDeep = require('lodash/cloneDeep');
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
+import StatVO from '../../../shared/modules/Stats/vos/StatVO';
 import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import MainAggregateOperatorsHandlers from '../../../shared/modules/Var/MainAggregateOperatorsHandlers';
@@ -8,9 +10,9 @@ import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
-import { all_promises } from '../../../shared/tools/PromiseTools';
 import ConfigurationService from '../../env/ConfigurationService';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
+import StatsServerController from '../Stats/StatsServerController';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import VarsComputeController from './VarsComputeController';
 import VarsDatasProxy from './VarsDatasProxy';
@@ -102,6 +104,9 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      */
     public async computeValue(varDAGNode: VarDAGNode) {
 
+        StatsServerController.register_stat('VarServerControllerBase.' + varDAGNode.var_data.var_id + '.compute.nb',
+            1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+
         let value: number;
         if (varDAGNode.is_aggregator) {
 
@@ -165,7 +170,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
         /**
          * On peut pas les mettre en // ?
          */
-        let limit = ConfigurationService.node_configuration.MAX_POOL / 3;
+        let limit = ConfigurationService.node_configuration ? ConfigurationService.node_configuration.MAX_POOL / 3 : 10;
         let promise_pipeline = new PromisePipeline(limit);
 
         for (let k in c_or_d_vos) {
@@ -194,7 +199,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
         /**
          * On peut pas les mettre en // ?
          */
-        let limit = ConfigurationService.node_configuration.MAX_POOL / 3;
+        let limit = ConfigurationService.node_configuration ? ConfigurationService.node_configuration.MAX_POOL / 3 : 10;
         let promise_pipeline = new PromisePipeline(limit);
 
         for (let k in u_vo_holders) {

@@ -27,7 +27,9 @@ export default class FakeVarControllerDeps extends VarServerControllerBase<FakeE
 
     protected constructor() {
         super(
-            new VarConfVO('FakeVarControllerDeps', FakeEmpDayDataVO.API_TYPE_ID, null, 3),
+            new VarConfVO('FakeVarControllerDeps', FakeEmpDayDataVO.API_TYPE_ID, {
+                ts_ranges: TimeSegment.TYPE_DAY
+            }, 3),
             {}, {}, {}, {}
         );
 

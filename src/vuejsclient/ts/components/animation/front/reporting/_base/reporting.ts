@@ -19,7 +19,7 @@ import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos
 import NumRange from '../../../../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../../../../../shared/modules/DataRender/vos/NumSegment';
 import Dates from '../../../../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import { VOsTypesManager } from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import VueAppController from '../../../../../../VueAppController';
@@ -128,7 +128,7 @@ export default class VueAnimationReportingComponent extends VueComponentBase {
             this.get_filter_module_termine_active_option,
             this.get_filter_module_valide_active_option,
         );
-        exhi.export_params_stringified = JSON.stringify(APIControllerWrapper.getInstance().try_translate_vo_to_api(export_params));
+        exhi.export_params_stringified = JSON.stringify(APIControllerWrapper.try_translate_vo_to_api(export_params));
         exhi.export_to_uid = VueAppController.getInstance().data_user.id;
         exhi.export_type_id = ModuleAnimation.EXPORT_API_TYPE_ID;
 

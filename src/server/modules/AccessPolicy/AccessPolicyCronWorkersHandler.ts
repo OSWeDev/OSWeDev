@@ -1,11 +1,9 @@
 
-import ModuleCron from '../../../shared/modules/Cron/ModuleCron';
-import PasswordInvalidationCronWorker from './workers/PasswordInvalidation/PasswordInvalidationCronWorker';
 import CronWorkerPlanification from '../../../shared/modules/Cron/vos/CronWorkerPlanification';
-import DateHandler from '../../../shared/tools/DateHandler';
-import ModuleCronServer from '../Cron/ModuleCronServer';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import ModuleCronServer from '../Cron/ModuleCronServer';
+import PasswordInvalidationCronWorker from './workers/PasswordInvalidation/PasswordInvalidationCronWorker';
 
 export default class AccessPolicyCronWorkersHandler {
 

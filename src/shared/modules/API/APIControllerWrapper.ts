@@ -49,22 +49,18 @@ export default class APIControllerWrapper {
         return APIControllerWrapper.API_CONTROLLER.get_shared_api_handler(api_name, sanitize_params, precondition, precondition_default_value, APIControllerWrapper.registered_apis, sanitize_result);
     }
 
-    private static instance: APIControllerWrapper = null;
-
-    private constructor() { }
-
-    public registerApi<T, U>(apiDefinition: APIDefinition<T, U>) {
+    public static registerApi<T, U>(apiDefinition: APIDefinition<T, U>) {
         APIControllerWrapper.registered_apis[apiDefinition.api_name] = apiDefinition;
     }
 
-    public registerServerApiHandler<T, U>(api_name: string, SERVER_HANDLER: (translated_param: T) => Promise<U>) {
+    public static registerServerApiHandler<T, U>(api_name: string, SERVER_HANDLER: (translated_param: T) => Promise<U>) {
         if (!APIControllerWrapper.registered_apis[api_name]) {
             throw new Error("Registering server API Handler on unknown API:" + api_name);
         }
         APIControllerWrapper.registered_apis[api_name].SERVER_HANDLER = SERVER_HANDLER;
     }
 
-    public translate_param<T, U>(apiDefinition: APIDefinition<T, U>, ...api_params): IAPIParamTranslator<T> {
+    public static translate_param<T, U>(apiDefinition: APIDefinition<T, U>, ...api_params): IAPIParamTranslator<T> {
 
         let translated_param: IAPIParamTranslator<T> = null;
 
@@ -88,7 +84,7 @@ export default class APIControllerWrapper {
         return translated_param;
     }
 
-    public getAPI_URL<T, U>(apiDefinition: APIDefinition<T, U>): string {
+    public static getAPI_URL<T, U>(apiDefinition: APIDefinition<T, U>): string {
         if (apiDefinition.api_type == APIDefinition.API_TYPE_GET) {
 
             return APIControllerWrapper.BASE_API_URL + apiDefinition.api_name + "/" +
@@ -99,7 +95,7 @@ export default class APIControllerWrapper {
         }
     }
 
-    public requestUrlMatchesApiUrl(requestUrl: string, apiUrl: string): boolean {
+    public static requestUrlMatchesApiUrl(requestUrl: string, apiUrl: string): boolean {
         let pattern: string = apiUrl.replace(/(:[^:\/?]+)([/]|$)/ig, '[^/]*$2');
 
         // Gestion des paramètres optionnels
@@ -116,7 +112,7 @@ export default class APIControllerWrapper {
      * @param requestUrl
      * @param apiUrl
      */
-    public getFakeRequestParamsFromUrl(requestUrl: string, apiUrl: string): any {
+    public static getFakeRequestParamsFromUrl(requestUrl: string, apiUrl: string): any {
         var pattern = apiUrl.replace(/:[^:\/?]+([/]|$)/ig, '([^/]*)$1');
         // Gestion des paramètres optionnels
         pattern = pattern.replace(/[/]:[^:\/?]+[?]/ig, '/?([^/]*)?');
@@ -150,40 +146,40 @@ export default class APIControllerWrapper {
         return res;
     }
 
-    public try_translate_vo_from_api(e: any): any {
+    public static try_translate_vo_from_api(e: any): any {
 
         if (!e) {
             return e;
         }
 
         if (Array.isArray(e)) {
-            return this.try_translate_vos_from_api(e);
+            return APIControllerWrapper.try_translate_vos_from_api(e);
         }
 
         let elt = (e as IDistantVOBase);
         if (!elt._type) {
 
-            if (this.is_range(e as IRange)) {
-                return this.try_translate_range_from_api(e as IRange);
+            if (APIControllerWrapper.is_range(e as IRange)) {
+                return APIControllerWrapper.try_translate_range_from_api(e as IRange);
             }
 
-            if (this.is_moment_from_api(e)) {
-                return this.try_translate_moment_from_api(e);
+            if (APIControllerWrapper.is_moment_from_api(e)) {
+                return APIControllerWrapper.try_translate_moment_from_api(e);
             }
 
-            if (this.is_date_from_api(e)) {
-                return this.try_translate_date_from_api(e);
+            if (APIControllerWrapper.is_date_from_api(e)) {
+                return APIControllerWrapper.try_translate_date_from_api(e);
             }
 
-            if (this.is_duration_from_api(e)) {
-                return this.try_translate_duration_from_api(e);
+            if (APIControllerWrapper.is_duration_from_api(e)) {
+                return APIControllerWrapper.try_translate_duration_from_api(e);
             }
 
             if (typeof e === 'object') {
                 let res = Object.assign({}, e);
                 for (let i in res) {
 
-                    res[i] = this.try_translate_vo_from_api(res[i]);
+                    res[i] = APIControllerWrapper.try_translate_vo_from_api(res[i]);
                 }
                 return res;
             }
@@ -194,40 +190,40 @@ export default class APIControllerWrapper {
         return ModuleTable.default_from_api_version(elt);
     }
 
-    public try_translate_vo_to_api(e: any): any {
+    public static try_translate_vo_to_api(e: any): any {
 
         if (!e) {
             return e;
         }
 
         if (Array.isArray(e)) {
-            return this.try_translate_vos_to_api(e);
+            return APIControllerWrapper.try_translate_vos_to_api(e);
         }
 
         let elt = (e as IDistantVOBase);
         if (!elt._type) {
 
-            if (this.is_range(e as IRange)) {
-                return this.try_translate_range_to_api(e as IRange);
+            if (APIControllerWrapper.is_range(e as IRange)) {
+                return APIControllerWrapper.try_translate_range_to_api(e as IRange);
             }
 
             if (TypesHandler.getInstance().isDate(e)) {
-                return this.try_translate_date_to_api(e);
+                return APIControllerWrapper.try_translate_date_to_api(e);
             }
 
             if (TypesHandler.getInstance().isMoment(e)) {
-                return this.try_translate_moment_to_api(e);
+                return APIControllerWrapper.try_translate_moment_to_api(e);
             }
 
             if (TypesHandler.getInstance().isDuration(e)) {
-                return this.try_translate_duration_to_api(e);
+                return APIControllerWrapper.try_translate_duration_to_api(e);
             }
 
             if (typeof e === 'object') {
                 let res = Object.assign({}, e);
                 for (let i in res) {
 
-                    res[i] = this.try_translate_vo_to_api(e[i]);
+                    res[i] = APIControllerWrapper.try_translate_vo_to_api(e[i]);
                 }
                 return res;
             }
@@ -238,14 +234,14 @@ export default class APIControllerWrapper {
         return ModuleTable.default_get_api_version(elt);
     }
 
-    public try_translate_vos_from_api(e: any): any {
+    public static try_translate_vos_from_api(e: any): any {
 
         if (!e) {
             return e;
         }
 
         if (!Array.isArray(e)) {
-            return this.try_translate_vo_from_api(e);
+            return APIControllerWrapper.try_translate_vo_from_api(e);
         }
 
         let res = [];
@@ -253,20 +249,20 @@ export default class APIControllerWrapper {
         for (let i in e) {
             let elt = e[i];
 
-            res.push(this.try_translate_vo_from_api(elt));
+            res.push(APIControllerWrapper.try_translate_vo_from_api(elt));
         }
 
         return res;
     }
 
-    public try_translate_vos_to_api(e: any): any {
+    public static try_translate_vos_to_api(e: any): any {
 
         if (!e) {
             return e;
         }
 
         if (!Array.isArray(e)) {
-            return this.try_translate_vo_to_api(e);
+            return APIControllerWrapper.try_translate_vo_to_api(e);
         }
 
         let res = [];
@@ -274,11 +270,13 @@ export default class APIControllerWrapper {
         for (let i in e) {
             let elt = e[i];
 
-            res.push(this.try_translate_vo_to_api(elt));
+            res.push(APIControllerWrapper.try_translate_vo_to_api(elt));
         }
 
         return res;
     }
+
+    private static instance: APIControllerWrapper = null;
 
     /**
      * On part du principe (faux sur le papier mais peut-etre suffisant) que si on a les champs suivants, on a un range :
@@ -289,7 +287,7 @@ export default class APIControllerWrapper {
      *
      * @param e
      */
-    private is_range(e: IRange): boolean {
+    private static is_range(e: IRange): boolean {
 
         if (TypesHandler.getInstance().isNumber(e.range_type) && TypesHandler.getInstance().isNumber(e.segment_type) &&
             TypesHandler.getInstance().isBoolean(e.min_inclusiv) && TypesHandler.getInstance().isBoolean(e.max_inclusiv)) {
@@ -298,15 +296,15 @@ export default class APIControllerWrapper {
         return false;
     }
 
-    private is_moment_from_api(e: IMomentAPI): boolean {
+    private static is_moment_from_api(e: IMomentAPI): boolean {
         return e && (!!e.__ismom);
     }
 
-    private is_date_from_api(e: IDateAPI): boolean {
+    private static is_date_from_api(e: IDateAPI): boolean {
         return e && (!!e.__isdate);
     }
 
-    private is_duration_from_api(e: IDurationAPI): boolean {
+    private static is_duration_from_api(e: IDurationAPI): boolean {
         return e && (!!e.__isdur);
     }
 
@@ -314,7 +312,7 @@ export default class APIControllerWrapper {
      * Valide uniquement si TypesHandler.getInstance().isMoment
      * @param e
      */
-    private try_translate_moment_from_api(e: IMomentAPI): moment.Moment {
+    private static try_translate_moment_from_api(e: IMomentAPI): moment.Moment {
 
         return moment(e.__munix * 1000).utc();
     }
@@ -323,7 +321,7 @@ export default class APIControllerWrapper {
      * Valide uniquement si TypesHandler.getInstance().isDate
      * @param e
      */
-    private try_translate_date_from_api(e: IDateAPI): Date {
+    private static try_translate_date_from_api(e: IDateAPI): Date {
 
         return new Date(e.__munixms);
     }
@@ -332,7 +330,7 @@ export default class APIControllerWrapper {
      * Valide uniquement si TypesHandler.getInstance().isDate
      * @param e
      */
-    private try_translate_date_to_api(e: Date): IDateAPI {
+    private static try_translate_date_to_api(e: Date): IDateAPI {
 
         return e ? { __isdate: true, __munixms: e.getTime() } : null;
     }
@@ -341,7 +339,7 @@ export default class APIControllerWrapper {
      * Valide uniquement si TypesHandler.getInstance().isMoment
      * @param e
      */
-    private try_translate_moment_to_api(e: moment.Moment): IMomentAPI {
+    private static try_translate_moment_to_api(e: moment.Moment): IMomentAPI {
 
         return e ? { __ismom: true, __munix: e.unix() } : null;
     }
@@ -350,7 +348,7 @@ export default class APIControllerWrapper {
      * Valide uniquement si TypesHandler.getInstance().isduration
      * @param e
      */
-    private try_translate_duration_from_api(e: IDurationAPI): moment.Duration {
+    private static try_translate_duration_from_api(e: IDurationAPI): moment.Duration {
 
         return moment.duration(e.__durms);
     }
@@ -359,7 +357,7 @@ export default class APIControllerWrapper {
      * Valide uniquement si TypesHandler.getInstance().isduration
      * @param e
      */
-    private try_translate_duration_to_api(e: moment.Duration): IDurationAPI {
+    private static try_translate_duration_to_api(e: moment.Duration): IDurationAPI {
 
         return e ? { __isdur: true, __durms: e.asMilliseconds() } : null;
     }
@@ -368,13 +366,15 @@ export default class APIControllerWrapper {
      * Valide uniquement si is_range
      * @param e
      */
-    private try_translate_range_from_api(e: IRange) {
+    private static try_translate_range_from_api(e: IRange) {
 
         return e;
     }
 
-    private try_translate_range_to_api(e: IRange) {
+    private static try_translate_range_to_api(e: IRange) {
 
         return e;
     }
+
+    private constructor() { }
 }

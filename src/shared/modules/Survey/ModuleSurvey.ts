@@ -7,7 +7,7 @@ import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VersionedVOController from '../Versioned/VersionedVOController';
-import { VOsTypesManager } from '../VO/manager/VOsTypesManager';
+import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import SurveyParamVO from './vos/SurveyParamVO';
 import SurveyVO from './vos/SurveyVO';
 
@@ -41,7 +41,7 @@ export default class ModuleSurvey extends Module {
 
     public registerApis() {
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<APISimpleVOParamVO, boolean>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<APISimpleVOParamVO, boolean>(
             ModuleSurvey.POLICY_FO_ACCESS,
             ModuleSurvey.APINAME_survey,
             [SurveyVO.API_TYPE_ID],

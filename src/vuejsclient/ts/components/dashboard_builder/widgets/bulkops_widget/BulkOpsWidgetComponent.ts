@@ -3,8 +3,8 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleAjaxCache from '../../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
-import { ContextFilterVOHandler } from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
-import { ContextFilterVOManager } from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
+import ContextFilterVOHandler from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
+import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
@@ -18,7 +18,7 @@ import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/D
 import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../../shared/modules/ModuleTable';
-import { VOsTypesManager } from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../shared/tools/PromiseTools';
@@ -32,7 +32,7 @@ import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import TablePaginationComponent from '../table_widget/pagination/TablePaginationComponent';
 import './BulkOpsWidgetComponent.scss';
 import BulkOpsWidgetOptions from './options/BulkOpsWidgetOptions';
-import { FieldFilterManager } from '../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
+import FieldFilterManager from '../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
 
 @Component({
     template: require('./BulkOpsWidgetComponent.pug'),
@@ -345,7 +345,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
         let query_: ContextQueryVO = query(this.widget_options.api_type_id)
             .set_limit(this.widget_options.limit, this.pagination_offset)
             .using(this.dashboard.api_type_ids)
-            .add_filters(ContextFilterVOHandler.getInstance().get_filters_from_active_field_filters(
+            .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
                 FieldFilterManager.clean_field_filters_for_request(this.get_active_field_filters)
             ));
 
@@ -482,7 +482,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
 
                                     let new_value = self.moduletable.default_get_field_api_version(self.new_value, self.moduletable.get_field_by_id(self.field_id_selected));
 
-                                    let context_query: ContextQueryVO = query(self.api_type_id).using(self.dashboard.api_type_ids).add_filters(ContextFilterVOHandler.getInstance().get_filters_from_active_field_filters(self.get_active_field_filters));
+                                    let context_query: ContextQueryVO = query(self.api_type_id).using(self.dashboard.api_type_ids).add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(self.get_active_field_filters));
 
                                     await ModuleContextFilter.getInstance().update_vos(
                                         context_query,

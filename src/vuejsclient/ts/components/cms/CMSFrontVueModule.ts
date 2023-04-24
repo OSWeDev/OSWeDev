@@ -8,7 +8,7 @@ import PageAliasVO from '../../../../shared/modules/CMS/vos/PageAliasVO';
 import PageVO from '../../../../shared/modules/CMS/vos/PageVO';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
-import { VOsTypesManager } from '../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import CMSComponentManager from './CMSComponentManager';
 import HtmlComponentTemplate from './component_templates/Html/HtmlComponentTemplate';

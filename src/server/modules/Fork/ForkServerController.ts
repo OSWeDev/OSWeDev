@@ -125,7 +125,7 @@ export default class ForkServerController {
             }
 
             forked.child_process.on('message', async (msg: IForkMessage) => {
-                msg = APIControllerWrapper.getInstance().try_translate_vo_from_api(msg);
+                msg = APIControllerWrapper.try_translate_vo_from_api(msg);
                 await ForkMessageController.getInstance().message_handler(msg, forked.child_process);
             });
 

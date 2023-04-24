@@ -92,7 +92,7 @@ export default class ModuleSASSSkinConfigurator extends Module {
 
     public registerApis() {
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<StringParamVO, any>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<StringParamVO, any>(
             null,
             ModuleSASSSkinConfigurator.APINAME_get_sass_param_value,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,

@@ -1,38 +1,45 @@
+import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
-import ExportContextQueryToXLSXParamVO from '../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
-import DashboardFavoritesFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardFavoritesFiltersVO';
-import CRUDActionsDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/CRUDActionsDatatableFieldVO';
-import SelectBoxDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SelectBoxDatatableFieldVO';
-import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
-import VarDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/VarDatatableFieldVO';
-import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
-import { ExportVarIndicator } from '../../../../../../shared/modules/DataExport/vos/ExportVarIndicator';
-import DashboardWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
-import { IExportOptions } from '../../../../../../shared/modules/DataExport/interfaces/IExportOptions';
-import ExportVarcolumnConf from '../../../../../../shared/modules/DataExport/vos/ExportVarcolumnConf';
-import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
+import { Prop } from 'vue-property-decorator';
+import ContextFilterVOHandler from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
+import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import ContextQueryFieldVO from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
+import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import CRUD from '../../../../../../shared/modules/DAO/vos/CRUD';
+import CRUDActionsDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/CRUDActionsDatatableFieldVO';
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
+import SelectBoxDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/SelectBoxDatatableFieldVO';
+import VarDatatableFieldVO from '../../../../../../shared/modules/DAO/vos/datatable/VarDatatableFieldVO';
+import DashboardFavoritesFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardFavoritesFiltersVO';
+import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
+import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
-import { VOsTypesManager } from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
-import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
-import WeightHandler from '../../../../../../shared/tools/WeightHandler';
+import DashboardWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
+import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
+import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
+import YearFilterWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
+import IExportOptions from '../../../../../../shared/modules/DataExport/interfaces/IExportOptions';
+import ExportContextQueryToXLSXParamVO from '../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
+import ExportVarcolumnConf from '../../../../../../shared/modules/DataExport/vos/ExportVarcolumnConf';
+import ExportVarIndicator from '../../../../../../shared/modules/DataExport/vos/ExportVarIndicator';
 import ModuleTable from '../../../../../../shared/modules/ModuleTable';
+import VarConfVO from '../../../../../../shared/modules/Var/vos/VarConfVO';
+import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
+import WeightHandler from '../../../../../../shared/tools/WeightHandler';
 import VueComponentBase from '../../../VueComponentBase';
-import { SaveFavoritesFiltersWidgetOptions } from './options/SaveFavoritesFiltersWidgetOptions';
-import { SaveFavoritesFiltersWidgetController } from './SaveFavoritesFiltersWidgetController';
 import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
-import './SaveFavoritesFiltersWidgetComponent.scss';
-import ReloadFiltersWidgetController from '../reload_filters_widget/RealoadFiltersWidgetController';
-import SaveFavoritesFiltersModalComponent from './modal/SaveFavoritesFiltersModalComponent';
-import VarWidgetOptions from '../var_widget/options/VarWidgetOptions';
 import DashboardBuilderWidgetsController from '../DashboardBuilderWidgetsController';
+import FieldValueFilterWidgetOptions from '../field_value_filter_widget/options/FieldValueFilterWidgetOptions';
+import MonthFilterWidgetOptions from '../month_filter_widget/options/MonthFilterWidgetOptions';
+import ReloadFiltersWidgetController from '../reload_filters_widget/RealoadFiltersWidgetController';
 import TableWidgetOptions from '../table_widget/options/TableWidgetOptions';
 import TableWidgetController from '../table_widget/TableWidgetController';
 import CRUD from '../../../../../../shared/modules/DAO/vos/CRUD';
 import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import { ContextFilterVOHandler } from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
+import ContextFilterVOHandler from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import FieldValueFilterWidgetOptions from '../field_value_filter_widget/options/FieldValueFilterWidgetOptions';
 import ContextQueryFieldVO from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import VarConfVO from '../../../../../../shared/modules/Var/vos/VarConfVO';
@@ -42,8 +49,12 @@ import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
 import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import MonthFilterWidgetOptions from '../month_filter_widget/options/MonthFilterWidgetOptions';
 import YearFilterWidgetOptions from '../year_filter_widget/options/YearFilterWidgetOptions';
-import { ContextFilterVOManager } from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
-import { FieldFilterManager } from '../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
+import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
+import FieldFilterManager from '../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
+import SaveFavoritesFiltersModalComponent from './modal/SaveFavoritesFiltersModalComponent';
+import { SaveFavoritesFiltersWidgetOptions } from './options/SaveFavoritesFiltersWidgetOptions';
+import './SaveFavoritesFiltersWidgetComponent.scss';
+import { SaveFavoritesFiltersWidgetController } from './SaveFavoritesFiltersWidgetController';
 
 @Component({
     template: require('./SaveFavoritesFiltersWidgetComponent.pug'),
@@ -327,7 +338,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
         let context_query: ContextQueryVO = query(crud_api_type_id)
             .set_limit(limit, pagination_offset)
             .using(this.dashboard.api_type_ids)
-            .add_filters(ContextFilterVOHandler.getInstance().get_filters_from_active_field_filters(
+            .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
                 FieldFilterManager.clean_field_filters_for_request(this.get_active_field_filters)
             ));
 
@@ -763,7 +774,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
      * @returns {VOFieldRefVO}
      */
     private get_vo_field_ref_by_widget_options(
-        widget_options: FieldValueFilterWidgetOptions | MonthFilterWidgetOptions | YearFilterWidgetOptions
+        widget_options: FieldValueFilterWidgetOptions | MonthFilterWidgetOptions | YearFilterWidgetOptionsVO
     ): VOFieldRefVO {
 
         if (!widget_options?.vo_field_ref) {
@@ -975,18 +986,18 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
     /**
      * Get Year Filters Widgets Options
      *
-     * @return {{ [title_name_code: string]: { widget_options: YearFilterWidgetOptions, widget_name: string, page_widget_id: number } }}
+     * @return {{ [title_name_code: string]: { widget_options: YearFilterWidgetOptionsVO, widget_name: string, page_widget_id: number } }}
      */
-    get year_filters_widgets_options(): { [title_name_code: string]: { widget_options: YearFilterWidgetOptions, widget_name: string, page_widget_id: number } } {
+    get year_filters_widgets_options(): { [title_name_code: string]: { widget_options: YearFilterWidgetOptionsVO, widget_name: string, page_widget_id: number } } {
 
         const options: { [page_widget_id: string]: { widget_options: any, widget_name: string, page_widget_id: number } } =
             this.get_filter_widgets_options_by_widget_name('yearfilter');
 
-        const res: { [title_name_code: string]: { widget_options: YearFilterWidgetOptions, widget_name: string, page_widget_id: number } } = {};
+        const res: { [title_name_code: string]: { widget_options: YearFilterWidgetOptionsVO, widget_name: string, page_widget_id: number } } = {};
 
         for (const key in options) {
 
-            const widget_options = new YearFilterWidgetOptions().from(options[key].widget_options);
+            const widget_options = new YearFilterWidgetOptionsVO().from(options[key].widget_options);
             const name = widget_options.get_placeholder_name_code_text(options[key].page_widget_id);
 
             res[name] = {} as any;

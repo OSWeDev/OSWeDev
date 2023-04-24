@@ -162,12 +162,28 @@ export default class ContextFilterVO implements IDistantVOBase {
     public static TYPE_ID_IS_INCLUDED_IN: number = 18;
 
     /**
-     * On stocke la valeur dans param_hourranges
+     * On stocke la valeur dans param_numranges
      */
     public static TYPE_HOUR_INTERSECTS: number = 19;
     public static TYPE_HOUR_EQUALS: number = 20;
     public static TYPE_HOUR_INCLUDES: number = 21;
     public static TYPE_HOUR_IS_INCLUDED_IN: number = 22;
+
+    /**
+     * On stocke la valeur dans param_numranges
+     */
+    public static TYPE_MINUTE_INTERSECTS: number = 62;
+    public static TYPE_MINUTE_EQUALS: number = 63;
+    public static TYPE_MINUTE_INCLUDES: number = 64;
+    public static TYPE_MINUTE_IS_INCLUDED_IN: number = 65;
+
+    /**
+     * On stocke la valeur dans param_numranges
+     */
+    public static TYPE_SECOND_INTERSECTS: number = 66;
+    public static TYPE_SECOND_EQUALS: number = 67;
+    public static TYPE_SECOND_INCLUDES: number = 68;
+    public static TYPE_SECOND_IS_INCLUDED_IN: number = 69;
 
     /**
      * On stocke la valeur dans param_dateranges

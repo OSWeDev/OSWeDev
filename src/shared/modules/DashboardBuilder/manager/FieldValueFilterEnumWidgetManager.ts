@@ -3,22 +3,22 @@ import PromisePipeline from "../../../tools/PromisePipeline/PromisePipeline";
 import DashboardVO from "../vos/DashboardVO";
 import DataFilterOption from "../../DataRender/vos/DataFilterOption";
 import ModuleTable from "../../ModuleTable";
-import { VOsTypesManager } from "../../VO/manager/VOsTypesManager";
-import { ContextFilterVOHandler } from "../../ContextFilter/handler/ContextFilterVOHandler";
-import { ContextFilterVOManager } from "../../ContextFilter/manager/ContextFilterVOManager";
+import VOsTypesManager from "../../VO/manager/VOsTypesManager";
+import ContextFilterVOHandler from "../../ContextFilter/handler/ContextFilterVOHandler";
+import ContextFilterVOManager from "../../ContextFilter/manager/ContextFilterVOManager";
 import ModuleContextFilter from "../../ContextFilter/ModuleContextFilter";
 import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
 import { query } from "../../ContextFilter/vos/ContextQueryVO";
-import { FieldValueFilterWidgetManager } from './FieldValueFilterWidgetManager';
-import { FieldValueFilterWidgetOptionsVO } from "../vos/FieldValueFilterWidgetOptionsVO";
-import { DashboardBuilderBoardManager } from "./DashboardBuilderBoardManager";
-import { FieldFilterManager } from "../../ContextFilter/manager/FieldFilterManager";
-import { DashboardBuilderDataFilterManager } from "./DashboardBuilderDataFilterManager";
+import FieldValueFilterWidgetManager from './FieldValueFilterWidgetManager';
+import FieldValueFilterWidgetOptionsVO from "../vos/FieldValueFilterWidgetOptionsVO";
+import DashboardBuilderBoardManager from "./DashboardBuilderBoardManager";
+import FieldFilterManager from "../../ContextFilter/manager/FieldFilterManager";
+import DashboardBuilderDataFilterManager from "./DashboardBuilderDataFilterManager";
 
 /**
  * FieldValueFilterEnumWidgetManager
  */
-export class FieldValueFilterEnumWidgetManager {
+export default class FieldValueFilterEnumWidgetManager {
 
     /**
      * Load enum data filters from widget options
@@ -79,18 +79,6 @@ export class FieldValueFilterEnumWidgetManager {
 
         const limit = EnvHandler.MAX_POOL / 2;
         const promise_pipeline = new PromisePipeline(limit);
-
-        for (let i in available_api_type_ids) {
-            const query_api_type_id: string = available_api_type_ids[i];
-
-            const active_field_filters_for_request = active_field_filters_by_api_type_id[query_api_type_id];
-
-            const filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_active_field_filters(
-                active_field_filters_for_request
-            );
-
-            console.log('FieldValueFilterEnumWidgetManager.find_enum_data_filters_from_widget_options.filters', active_field_filters_for_request, filters);
-        }
 
         for (const i in available_api_type_ids) {
             const query_api_type_id: string = available_api_type_ids[i];

@@ -4,8 +4,8 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
-import { ContextFilterVOHandler } from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
-import { ContextFilterVOManager } from '../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
+import ContextFilterVOHandler from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
+import ContextFilterVOManager from '../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
@@ -22,6 +22,7 @@ import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
+import StatVO from '../../../shared/modules/Stats/vos/StatVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
@@ -36,7 +37,7 @@ import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataInvalidatorVO from '../../../shared/modules/Var/vos/VarDataInvalidatorVO';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
-import { VOsTypesManager } from '../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
@@ -62,6 +63,7 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
+import StatsServerController from '../Stats/StatsServerController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import DataSourcesController from './datasource/DataSourcesController';
@@ -76,7 +78,7 @@ import VarServerControllerBase from './VarServerControllerBase';
 import VarsServerCallBackSubsController from './VarsServerCallBackSubsController';
 import VarsServerController from './VarsServerController';
 import VarsTabsSubsController from './VarsTabsSubsController';
-import { FieldFilterManager } from '../../../shared/modules/ContextFilter/manager/FieldFilterManager';
+import FieldFilterManager from '../../../shared/modules/ContextFilter/manager/FieldFilterManager';
 
 export default class ModuleVarServer extends ModuleServerBase {
 
@@ -426,6 +428,17 @@ export default class ModuleVarServer extends ModuleServerBase {
              * api_type_id => les vos des datasources
              */
             for (let api_type_id in VarsServerController.getInstance().registered_vars_controller_by_api_type_id) {
+
+
+                /**
+                 * On isole un cas, celui des stats qui ne doivent pas invalider les caches pour des raisons de perfs, et
+                 *  on invalide directement dans le module stats via un bgthread qui invalide par intersection toutes les perfs
+                 *  de la minute précédente et de la minute en cours toutes les 30 secondes par exemple indépendemment des
+                 *  modifications de données
+                 */
+                if (api_type_id == StatVO.API_TYPE_ID) {
+                    continue;
+                }
 
                 postCTrigger.registerHandler(api_type_id, this, this.invalidate_var_cache_from_vo_cd);
                 postUTrigger.registerHandler(api_type_id, this, this.invalidate_var_cache_from_vo_u);
@@ -810,28 +823,28 @@ export default class ModuleVarServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        // APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_INVALIDATE_MATROID, this.invalidate_matroid.bind(this));
-        // APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_register_matroid_for_precalc, this.register_matroid_for_precalc.bind(this));
-        // APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getSimpleVarDataValueSumFilterByMatroids, this.getSimpleVarDataValueSumFilterByMatroids.bind(this));
-        // APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getSimpleVarDataCachedValueFromParam, this.getSimpleVarDataCachedValueFromParam.bind(this));
-        // APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_configureVarCache, this.configureVarCache.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_register_params, this.register_params.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_update_params_registration, this.update_params_registration.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_unregister_params, this.unregister_params.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_get_var_id_by_names, this.get_var_id_by_names.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_get_var_data_by_index, this.get_var_data_by_index.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getVarControllerVarsDeps, this.getVarControllerVarsDeps.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getVarControllerDSDeps, this.getVarControllerDSDeps.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getParamDependencies, this.getParamDependencies.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getVarParamDatas, this.getVarParamDatas.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getVarParamFromContextFilters, this.getVarParamFromContextFilters.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_getAggregatedVarDatas, this.getAggregatedVarDatas.bind(this));
-        // APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_intersection, this.invalidate_cache_intersection.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_delete_cache_intersection, this.delete_cache_intersection.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_delete_cache_and_imports_intersection, this.delete_cache_and_imports_intersection.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_intersection_and_parents, this.invalidate_cache_intersection_and_parents.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_exact, this.invalidate_cache_exact.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_exact_and_parents, this.invalidate_cache_exact_and_parents.bind(this));
+        // APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_INVALIDATE_MATROID, this.invalidate_matroid.bind(this));
+        // APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_register_matroid_for_precalc, this.register_matroid_for_precalc.bind(this));
+        // APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_getSimpleVarDataValueSumFilterByMatroids, this.getSimpleVarDataValueSumFilterByMatroids.bind(this));
+        // APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_getSimpleVarDataCachedValueFromParam, this.getSimpleVarDataCachedValueFromParam.bind(this));
+        // APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_configureVarCache, this.configureVarCache.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_register_params, this.register_params.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_update_params_registration, this.update_params_registration.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_unregister_params, this.unregister_params.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_get_var_id_by_names, this.get_var_id_by_names.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_get_var_data_by_index, this.get_var_data_by_index.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_getVarControllerVarsDeps, this.getVarControllerVarsDeps.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_getVarControllerDSDeps, this.getVarControllerDSDeps.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_getParamDependencies, this.getParamDependencies.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_getVarParamDatas, this.getVarParamDatas.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_getVarParamFromContextFilters, this.getVarParamFromContextFilters.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_getAggregatedVarDatas, this.getAggregatedVarDatas.bind(this));
+        // APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_intersection, this.invalidate_cache_intersection.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_delete_cache_intersection, this.delete_cache_intersection.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_delete_cache_and_imports_intersection, this.delete_cache_and_imports_intersection.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_intersection_and_parents, this.invalidate_cache_intersection_and_parents.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_exact, this.invalidate_cache_exact.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_exact_and_parents, this.invalidate_cache_exact_and_parents.bind(this));
     }
     public registerCrons(): void {
         VarCronWorkersHandler.getInstance();
@@ -1077,12 +1090,12 @@ export default class ModuleVarServer extends ModuleServerBase {
     private update_varcacheconf_from_cache_throttled(vccs: VarCacheConfVO[]) {
         for (let i in vccs) {
             let vcc = vccs[i];
-            VarsServerController.getInstance().update_registered_varcacheconf(vcc.id, vcc);
+            VarsServerController.getInstance().update_registered_varcacheconf(vcc.var_id, vcc);
         }
     }
 
     private delete_varcacheconf_from_cache(vcc: VarCacheConfVO) {
-        VarsServerController.getInstance().delete_registered_varcacheconf(vcc.id);
+        VarsServerController.getInstance().delete_registered_varcacheconf(vcc.var_id);
     }
 
     private update_varconf_from_cache_throttled(vcs: VarConfVO[]) {
@@ -1165,6 +1178,9 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
+        StatsServerController.register_stats('ModuleVarServer.register_params.nb_params',
+            params.length, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
+
         /**
          * On commence par refuser les params mal construits (champs null)
          */
@@ -1175,7 +1191,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         /**
-         * On check qu'on essaie pas d'ajoute une var avec un maxrange quelque part qui casserait tout
+         * On check qu'on essaie pas d'ajouter une var avec un maxrange quelque part qui casserait tout
          */
         params = params.filter((param) => {
             if (!MatroidController.getInstance().check_bases_not_max_ranges(param)) {
@@ -1188,6 +1204,9 @@ export default class ModuleVarServer extends ModuleServerBase {
         if ((!params) || (!params.length)) {
             return;
         }
+
+        StatsServerController.register_stats('ModuleVarServer.register_params.nb_valid_registered_varsdatas',
+            params.length, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
 
         let uid = StackContext.get('UID');
         let client_tab_id = StackContext.get('CLIENT_TAB_ID');
@@ -1215,6 +1234,9 @@ export default class ModuleVarServer extends ModuleServerBase {
             notifyable_vars.forEach((notifyable_var) => vars_to_notif.push(new VarDataValueResVO().set_from_vardata(notifyable_var)));
 
             await PushDataServerController.getInstance().notifyVarsDatas(uid, client_tab_id, vars_to_notif);
+
+            StatsServerController.register_stats('ModuleVarServer.register_params.nb_cache_notified_varsdatas',
+                notifyable_vars.length, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
 
             if (ConfigurationService.node_configuration.DEBUG_VARS) {
                 for (let i in notifyable_vars) {
@@ -1494,6 +1516,8 @@ export default class ModuleVarServer extends ModuleServerBase {
             return null;
         }
 
+        let uid = StackContext.get('UID');
+
         return new Promise(async (resolve, reject) => {
             let param = new GetVarParamFromContextFiltersParam(
                 var_name,
@@ -1502,7 +1526,8 @@ export default class ModuleVarServer extends ModuleServerBase {
                 active_api_type_ids,
                 discarded_field_paths,
                 accept_max_ranges,
-                resolve
+                resolve,
+                uid
             );
 
             await this.throttle_getVarParamFromContextFilters(param);
@@ -1561,7 +1586,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                             let alias = matroid_field.manyToOne_target_moduletable.vo_type + '__id';
                             let context_query: ContextQueryVO = query(matroid_field.manyToOne_target_moduletable.vo_type)
                                 .using(active_api_type_ids)
-                                .add_filters(ContextFilterVOHandler.getInstance().get_filters_from_active_field_filters(cleaned_active_field_filters))
+                                .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(cleaned_active_field_filters))
                                 .set_query_distinct()
                                 .add_fields([
                                     new ContextQueryFieldVO(matroid_field.manyToOne_target_moduletable.vo_type, matroid_field.target_field, alias)
@@ -1577,13 +1602,17 @@ export default class ModuleVarServer extends ModuleServerBase {
 
                                 /**
                                  * Utilisation du cache local
+                                 * On réinsère le contexte client pour les requêtes
                                  */
-                                let query_wrapper: ParameterizedQueryWrapper = await ModuleContextFilterServer.getInstance().build_select_query(context_query);
-                                if (!cache_local[query_wrapper.query]) {
-                                    cache_local[query_wrapper.query] = ContextQueryServerController.getInstance().select_vos(context_query, query_wrapper);
-                                }
+                                await StackContext.runPromise({ IS_CLIENT: true, UID: param.uid }, async () => {
 
-                                ids_db = await cache_local[query_wrapper.query];
+                                    let query_wrapper: ParameterizedQueryWrapper = await ModuleContextFilterServer.getInstance().build_select_query(context_query);
+                                    if (!cache_local[query_wrapper.query]) {
+                                        cache_local[query_wrapper.query] = ContextQueryServerController.getInstance().select_vos(context_query, query_wrapper);
+                                    }
+
+                                    ids_db = await cache_local[query_wrapper.query];
+                                });
                             }
                             if (ConfigurationService.node_configuration.DEBUG_VARS_DB_PARAM_BUILDER) {
                                 ConsoleHandler.log('getVarParamFromContextFilters: ' + var_name + ':select_vos:OUT');
@@ -1709,6 +1738,11 @@ export default class ModuleVarServer extends ModuleServerBase {
          */
         if (!custom_filter) {
             return [RangeHandler.getMaxTSRange()];
+        }
+
+        // si on a un filtre direct (x ranges par exemple) on gère directement
+        if ((custom_filter.filter_type == ContextFilterVO.TYPE_DATE_INTERSECTS) && !!custom_filter.param_tsranges) {
+            return custom_filter.param_tsranges;
         }
 
         /**

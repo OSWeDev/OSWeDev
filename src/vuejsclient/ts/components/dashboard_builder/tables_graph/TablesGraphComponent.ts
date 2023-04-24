@@ -6,7 +6,7 @@ import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import DashboardGraphVORefVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
 import DashboardVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
-import { VOsTypesManager } from '../../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import VueAppBase from '../../../../VueAppBase';
 import VueComponentBase from '../../VueComponentBase';

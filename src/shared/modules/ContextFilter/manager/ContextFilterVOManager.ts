@@ -1,22 +1,22 @@
 import RangeHandler from "../../../tools/RangeHandler";
 import TypesHandler from "../../../tools/TypesHandler";
-import { VOFieldRefVOTypeHandler } from "../../DashboardBuilder/handlers/VOFieldRefVOTypeHandler";
-import { BooleanFilterModel } from "../../DashboardBuilder/models/BooleanFilterModel";
+import VOFieldRefVOTypeHandler from "../../DashboardBuilder/handlers/VOFieldRefVOTypeHandler";
+import BooleanFilterModel from "../../DashboardBuilder/models/BooleanFilterModel";
 import DashboardWidgetVO from "../../DashboardBuilder/vos/DashboardWidgetVO";
+import FieldValueFilterWidgetOptionsVO from '../../DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
+import MonthFilterWidgetOptionsVO from '../../DashboardBuilder/vos/MonthFilterWidgetOptionsVO';
 import VOFieldRefVO from "../../DashboardBuilder/vos/VOFieldRefVO";
+import YearFilterWidgetOptionsVO from '../../DashboardBuilder/vos/YearFilterWidgetOptionsVO';
 import DataFilterOption from "../../DataRender/vos/DataFilterOption";
 import NumRange from "../../DataRender/vos/NumRange";
 import NumSegment from "../../DataRender/vos/NumSegment";
 import TSRange from "../../DataRender/vos/TSRange";
 import Dates from "../../FormatDatesNombres/Dates/Dates";
 import ModuleTableField from "../../ModuleTableField";
-import { VOsTypesManager } from "../../VO/manager/VOsTypesManager";
+import VOsTypesManager from "../../VO/manager/VOsTypesManager";
 import ContextFilterVO from "../vos/ContextFilterVO";
-import { FieldValueFilterWidgetOptionsVO } from '../../DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
-import MonthFilterWidgetOptionsVO from '../../DashboardBuilder/vos/MonthFilterWidgetOptionsVO';
-import YearFilterWidgetOptionsVO from '../../DashboardBuilder/vos/YearFilterWidgetOptionsVO';
-import { ContextFilterVOHandler } from "../handler/ContextFilterVOHandler";
-import { cloneDeep } from "lodash";
+import ContextFilterVOHandler from "../handler/ContextFilterVOHandler";
+import ObjectHandler from "../../../tools/ObjectHandler";
 
 /**
  * ContextFilterVOManager
@@ -24,7 +24,7 @@ import { cloneDeep } from "lodash";
  *
  * TODO: Managers methods have to be for Creating|Finding|Updating fields of ContextFilterVO
  */
-export class ContextFilterVOManager {
+export default class ContextFilterVOManager {
 
     /**
      * Create Context Filter From Widget Options
@@ -608,6 +608,13 @@ export class ContextFilterVOManager {
             return context_filter_tree_root;
         }
 
+        /**
+         * On checke qu'on est pas en train de modifier un filtre existant
+         */
+        if ((context_filter_tree_root == context_filter_to_add) || ContextFilterVOHandler.find_context_filter_in_tree(context_filter_tree_root, context_filter_to_add)) {
+            return context_filter_tree_root;
+        }
+
         // Le root est déjà rempli, on renvoie un nouvel operateur
         let context_filter = new ContextFilterVO();
 
@@ -634,6 +641,7 @@ export class ContextFilterVOManager {
         field: ModuleTableField<any>,
         vo_field_ref: VOFieldRefVO
     ): ContextFilterVO {
+
         let context_filter = new ContextFilterVO();
 
         context_filter.field_id = vo_field_ref.field_id;
@@ -828,6 +836,38 @@ export class ContextFilterVOManager {
         return context_filter_found;
     }
 
+
+    public static find_context_filter_in_tree(context_filter_tree_root: ContextFilterVO, context_filter_to_find: ContextFilterVO): boolean {
+
+        if (!context_filter_tree_root) {
+            return false;
+        }
+
+        if (!context_filter_to_find) {
+            return false;
+        }
+
+        if ((context_filter_tree_root == context_filter_to_find) || ObjectHandler.getInstance().are_equal(context_filter_tree_root, context_filter_to_find)) {
+            return true;
+        }
+
+        if (context_filter_tree_root.left_hook) {
+            let res = ContextFilterVOManager.find_context_filter_in_tree(context_filter_tree_root.left_hook, context_filter_to_find);
+            if (res) {
+                return res;
+            }
+        }
+
+        if (context_filter_tree_root.right_hook) {
+            let res = ContextFilterVOManager.find_context_filter_in_tree(context_filter_tree_root.right_hook, context_filter_to_find);
+            if (res) {
+                return res;
+            }
+        }
+
+        return false;
+    }
+
     public static getInstance(): ContextFilterVOManager {
         if (!ContextFilterVOManager.instance) {
             ContextFilterVOManager.instance = new ContextFilterVOManager();
@@ -838,5 +878,4 @@ export class ContextFilterVOManager {
     private static instance: ContextFilterVOManager = null;
 
     private constructor() { }
-
 }

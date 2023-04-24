@@ -1,20 +1,20 @@
 import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import { ContextFilterVOManager } from '../../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
-import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
-import { ContextFilterVOHandler } from '../../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
+import { ContextFilterVOVOManager } from '../../../../../../../shared/modules/ContextFilter/handler/manager/ContextFilterVOVOManager';
+import ContextFilterVOHandler from '../../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
+import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
 import ModuleTable from '../../../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
-import { VOsTypesManager } from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
@@ -22,14 +22,14 @@ import TypesHandler from '../../../../../../../shared/tools/TypesHandler';
 import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
-import ValidationFiltersCallUpdaters from '../../validation_filters_widget/ValidationFiltersCallUpdaters';
 import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFiltersWidgetController';
+import ValidationFiltersCallUpdaters from '../../validation_filters_widget/ValidationFiltersCallUpdaters';
 import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
 import FieldValueFilterWidgetController from '../FieldValueFilterWidgetController';
 import FieldValueFilterWidgetOptions from '../options/FieldValueFilterWidgetOptions';
 import AdvancedNumberFilter from './AdvancedNumberFilter';
 import './FieldValueFilterNumberWidgetComponent.scss';
-import { FieldFilterManager } from '../../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
+import FieldFilterManager from '../../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
 
 @Component({
     template: require('./FieldValueFilterNumberWidgetComponent.pug'),
@@ -157,7 +157,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                 continue;
             }
 
-            let new_translated_active_options = ContextFilterVOHandler.getInstance().get_ContextFilterVO_from_DataFilterOption(active_option, null, field, this.vo_field_ref);
+            let new_translated_active_options = ContextFilterVOManager.get_context_filter_from_data_filter_option(active_option, null, field, this.vo_field_ref);
 
             if (!new_translated_active_options) {
                 continue;
@@ -166,7 +166,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
             if (!translated_active_options) {
                 translated_active_options = new_translated_active_options;
             } else {
-                translated_active_options = ContextFilterVOHandler.getInstance().merge_ContextFilterVOs(translated_active_options, new_translated_active_options);
+                translated_active_options = ContextFilterVOHandler.merge_context_filter_vos(translated_active_options, new_translated_active_options);
             }
         }
 
@@ -386,7 +386,7 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
 
         let query_ = query(query_api_type_id).set_limit(this.widget_options.max_visible_options, 0);
         query_.fields = [new ContextQueryFieldVO(this.vo_field_ref.api_type_id, this.vo_field_ref.field_id, 'label')];
-        query_.filters = ContextFilterVOHandler.getInstance().get_filters_from_active_field_filters(active_field_filters_query);
+        query_.filters = ContextFilterVOManager.get_context_filters_from_active_field_filters(active_field_filters_query);
         query_.active_api_type_ids = this.dashboard.api_type_ids;
 
         FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(query_, this.get_discarded_field_paths);

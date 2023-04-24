@@ -28,7 +28,7 @@ import IPlanTargetZone from '../../../../shared/modules/ProgramPlan/interfaces/I
 import IPlanTask from '../../../../shared/modules/ProgramPlan/interfaces/IPlanTask';
 import IPlanTaskType from '../../../../shared/modules/ProgramPlan/interfaces/IPlanTaskType';
 import ModuleProgramPlanBase from '../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
-import { VOsTypesManager } from '../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../shared/tools/DateHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
@@ -1050,7 +1050,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                         throw new Error('Erreur côté serveur');
                     }
 
-                    rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.program_plan_shared_module.rdv_type_id, rdv.id);
+                    rdv = await query(this.program_plan_shared_module.rdv_type_id).filter_by_id(rdv.id).select_vo<IPlanRDV>();
 
                 } catch (error) {
                     ConsoleHandler.error(error);
@@ -1415,7 +1415,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                     }
 
                     rdv.id = insertOrDeleteQueryResult.id;
-                    rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(self.program_plan_shared_module.rdv_type_id, rdv.id);
+                    rdv = await query(self.program_plan_shared_module.rdv_type_id).filter_by_id(rdv.id).select_vo<IPlanRDV>();
 
                 } catch (error) {
                     ConsoleHandler.error(error);

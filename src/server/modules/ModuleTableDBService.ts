@@ -1,13 +1,16 @@
 import IRange from '../../shared/modules/DataRender/interfaces/IRange';
+import TimeSegment from '../../shared/modules/DataRender/vos/TimeSegment';
 import IDistantVOBase from '../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../shared/modules/ModuleTable';
 import ModuleTableField from '../../shared/modules/ModuleTableField';
+import StatVO from '../../shared/modules/Stats/vos/StatVO';
 import ConsoleHandler from '../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../shared/tools/ObjectHandler';
 import RangeHandler from '../../shared/tools/RangeHandler';
 import ConfigurationService from '../env/ConfigurationService';
 import ModuleDAOServer from './DAO/ModuleDAOServer';
 import ForkedTasksController from './Fork/ForkedTasksController';
+import StatsServerController from './Stats/StatsServerController';
 import TableColumnDescriptor from './TableColumnDescriptor';
 import TableDescriptor from './TableDescriptor';
 
@@ -41,6 +44,9 @@ export default class ModuleTableDBService {
      * Returns the tablename, without schema
      */
     public async get_existing_segmentations_tables_of_moduletable(moduleTable: ModuleTable<any>): Promise<{ [segmented_value: number]: string }> {
+
+        StatsServerController.register_stat('ModuleTableDBService.get_existing_segmentations_tables_of_moduletable', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+
         let database_name = moduleTable.database;
         let tables: TableDescriptor[] = await this.db.query("SELECT * FROM pg_catalog.pg_tables WHERE schemaname = '" + database_name + "';");
 
@@ -61,6 +67,8 @@ export default class ModuleTableDBService {
     }
 
     public async create_or_update_datatable(moduleTable: ModuleTable<any>, segments: IRange[] = null) {
+
+        StatsServerController.register_stat('ModuleTableDBService.create_or_update_datatable', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
         let self = this;
 
@@ -218,6 +226,9 @@ export default class ModuleTableDBService {
     }
 
     private async handle_check_segment(moduleTable: ModuleTable<any>, segmented_value: number, common_id_seq_name: string, migration_todo: boolean): Promise<boolean> {
+
+        StatsServerController.register_stat('ModuleTableDBService.handle_check_segment', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+
         let res: boolean = false;
 
         let table_name = moduleTable.get_segmented_name(segmented_value);
@@ -246,6 +257,9 @@ export default class ModuleTableDBService {
      * @returns true if causes a change in the db structure
      */
     private async do_check_or_update_moduletable(moduleTable: ModuleTable<any>, database_name: string, table_name: string, segmented_value: number): Promise<boolean> {
+
+        StatsServerController.register_stat('ModuleTableDBService.do_check_or_update_moduletable', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+
         // Changement radical, si on a une table déjà en place on vérifie la structure, principalement pour ajouter des champs supplémentaires
         //  et alerter si il y a des champs en base que l'on ne connait pas dans la structure métier
 
@@ -276,6 +290,8 @@ export default class ModuleTableDBService {
      * @returns true if causes a change in the db structure
      */
     private async check_datatable_structure(moduleTable: ModuleTable<any>, database_name: string, table_name: string, table_cols: TableColumnDescriptor[]): Promise<boolean> {
+
+        StatsServerController.register_stat('ModuleTableDBService.check_datatable_structure', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
         let fields_by_field_id: { [field_id: string]: ModuleTableField<any> } = {};
         for (let i in moduleTable.get_fields()) {
@@ -317,6 +333,8 @@ export default class ModuleTableDBService {
         table_cols_by_name: { [col_name: string]: TableColumnDescriptor },
         database_name: string,
         table_name: string): Promise<boolean> {
+
+        StatsServerController.register_stat('ModuleTableDBService.checkConstraintsOnForeignKey', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
         let full_name = database_name + '.' + table_name;
         let res: boolean = false;
@@ -406,6 +424,8 @@ export default class ModuleTableDBService {
         database_name: string,
         table_name: string): Promise<boolean> {
 
+        StatsServerController.register_stat('ModuleTableDBService.checkMissingInTS', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+
         let full_name = database_name + '.' + table_name;
         let res: boolean = false;
 
@@ -458,6 +478,8 @@ export default class ModuleTableDBService {
         table_cols_by_name: { [col_name: string]: TableColumnDescriptor },
         database_name: string,
         table_name: string): Promise<boolean> {
+
+        StatsServerController.register_stat('ModuleTableDBService.checkMissingInDB', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
         let full_name = database_name + '.' + table_name;
         let res: boolean = false;
@@ -527,6 +549,8 @@ export default class ModuleTableDBService {
         table_cols_by_name: { [col_name: string]: TableColumnDescriptor },
         database_name: string,
         table_name: string): Promise<boolean> {
+
+        StatsServerController.register_stat('ModuleTableDBService.checkColumnsStrutInDB', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
         let full_name = database_name + '.' + table_name;
         let res: boolean = false;
@@ -605,6 +629,8 @@ export default class ModuleTableDBService {
      */
     private async chec_indexes(moduleTable: ModuleTable<any>, database_name: string, table_name: string): Promise<boolean> {
 
+        StatsServerController.register_stat('ModuleTableDBService.chec_indexes', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+
         let res_: boolean = false;
         for (let i = 0; i < moduleTable.get_fields().length; i++) {
             let field = moduleTable.get_fields()[i];
@@ -628,6 +654,8 @@ export default class ModuleTableDBService {
     }
 
     private async create_new_datatable(moduleTable: ModuleTable<any>, database_name: string, table_name: string) {
+
+        StatsServerController.register_stat('ModuleTableDBService.create_new_datatable', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
         let full_name = database_name + '.' + table_name;
 

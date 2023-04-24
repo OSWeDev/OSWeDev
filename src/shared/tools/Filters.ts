@@ -4,6 +4,8 @@ import TypesHandler from './TypesHandler';
 import Humanizer from './Humanizer';
 import Durations from '../modules/FormatDatesNombres/Dates/Durations';
 import HourSegment from '../modules/DataRender/vos/HourSegment';
+import TimeSegment from '../modules/DataRender/vos/TimeSegment';
+import Dates from '../modules/FormatDatesNombres/Dates/Dates';
 
 export default class FilterObj<T, U, K> {
 
@@ -15,6 +17,8 @@ export default class FilterObj<T, U, K> {
     //     formatted: boolean = false,
     //     arrondiMinutes: boolean | number = null)
     public static FILTER_TYPE_hour = 'hour';
+
+    public static FILTER_TYPE_tstz = 'tstz';
 
     // readToAmountFilter = (value: number | string, fractional_digits: number = 0, k: boolean = false, only_positive: boolean = false)
     public static FILTER_TYPE_amount = 'amount';
@@ -82,6 +86,35 @@ export default class FilterObj<T, U, K> {
 //     this.read = read;
 //     this.write = write;
 // }
+
+
+let readToTstzFilter = (
+    value: number | string,
+    segment_type: number = TimeSegment.TYPE_DAY
+): string => {
+    if (value == null || typeof value == "undefined") {
+        return null;
+    }
+
+    value = parseInt(value.toString());
+
+    if (value <= 0) {
+        return null;
+    }
+
+    return Dates.format_segment(value, segment_type);
+};
+
+let writeToTstzFilter = (value: string | number): number => {
+
+    if ((value == null) || (typeof value === "undefined")) {
+        return null;
+    }
+
+    value = value.toString();
+
+    throw new Error("Not implemented");
+};
 
 let readToHourFilter = (
     value: number | string,
@@ -180,6 +213,13 @@ export let hourFilter = FilterObj.createNew(
     writeToHourFilter,
     null,
     FilterObj.FILTER_TYPE_hour,
+);
+
+export let tstzFilter = FilterObj.createNew(
+    readToTstzFilter,
+    writeToTstzFilter,
+    null,
+    FilterObj.FILTER_TYPE_tstz,
 );
 
 let readToPlanningCheckFilter = (value: number): string => {
@@ -775,4 +815,5 @@ export const filter_by_name = {
     hour: hourFilter,
     planningCheck: planningCheckFilter,
     alerteCheck: alerteCheckFilter,
+    tstz: tstzFilter
 };

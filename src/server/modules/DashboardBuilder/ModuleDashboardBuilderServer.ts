@@ -8,7 +8,7 @@ import DashboardVO from '../../../shared/modules/DashboardBuilder/vos/DashboardV
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
-import { VOsTypesManager } from '../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
@@ -24,11 +24,11 @@ import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleDataExportServer from '../DataExport/ModuleDataExportServer';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import { DashboardBuilderVOFactory } from '../../../shared/modules/DashboardBuilder/factory/DashboardBuilderVOFactory';
+import DashboardBuilderVOFactory from '../../../shared/modules/DashboardBuilder/factory/DashboardBuilderVOFactory';
 import DashboardWidgetVO from '../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
-import { ContextFilterVOManager } from '../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
+import ContextFilterVOManager from '../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import { IExportParamsProps } from '../../../shared/modules/DashboardBuilder/interfaces/IExportParamsProps';
-import { FieldFilterManager } from '../../../shared/modules/ContextFilter/manager/FieldFilterManager';
+import FieldFilterManager from '../../../shared/modules/ContextFilter/manager/FieldFilterManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 
@@ -52,6 +52,11 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
     }
 
     public async configure() {
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Graphique de var - Donut, Jauge ou Camembert'
+        }, 'dashboards.widgets.icons_tooltips.varpiechart.___LABEL___'));
+
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Cliquer pour éditer'
@@ -867,6 +872,221 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': '<b>ID: </b>{id}'
         }, 'table_widget_component.id.___LABEL___'));
 
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Options du widget'
+        }, 'var_pie_chart_widget_options_component.separator.widget_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Titre du widget'
+        }, 'var_pie_chart_widget_options_component.widget_title.title_name_code_text.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Couleur du fond'
+        }, 'var_pie_chart_widget_options_component.bg_color.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Options du graphique'
+        }, 'var_pie_chart_widget_options_component.separator.chart_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Titre du graphique'
+        }, 'var_pie_chart_widget_options_component.separator.chart_title_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Afficher le titre'
+        }, 'var_pie_chart_widget_options_component.title_display.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Couleur du titre'
+        }, 'var_pie_chart_widget_options_component.title_font_color.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Taille du titre'
+        }, 'var_pie_chart_widget_options_component.title_font_size.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Padding du titre'
+        }, 'var_pie_chart_widget_options_component.title_padding.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Options de la légende'
+        }, 'var_pie_chart_widget_options_component.separator.chart_legend_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Afficher la légende'
+        }, 'var_pie_chart_widget_options_component.legend_display.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Position de la légende'
+        }, 'var_pie_chart_widget_options_component.legend_position.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Couleur de la légende'
+        }, 'var_pie_chart_widget_options_component.legend_font_color.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Taille du texte de la légende'
+        }, 'var_pie_chart_widget_options_component.legend_font_size.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Largeur des blocs de la légende'
+        }, 'var_pie_chart_widget_options_component.legend_box_width.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Padding de la légende'
+        }, 'var_pie_chart_widget_options_component.legend_padding.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Utiliser le style des points pour la légende à la place des blocs'
+        }, 'var_pie_chart_widget_options_component.legend_use_point_style.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Options de rendu du graphique'
+        }, 'var_pie_chart_widget_options_component.separator.chart_render_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': '% de découpe'
+        }, 'var_pie_chart_widget_options_component.cutout_percentage.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Indique la zone qui sera découpée dans le graphique en partant du centre vers les extrémités. 0 pour ne pas découper, 100 pour découper tout le graphique. Exemple : 50 pour un donut'
+        }, 'var_pie_chart_widget_options_component.cutout_percentage.tooltip.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Rotation'
+        }, 'var_pie_chart_widget_options_component.rotation.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Point de départ du graphique en degrés. Entre 0 et 2*PI. Exemple pour une jauge : PI'
+        }, 'var_pie_chart_widget_options_component.rotation.tooltip.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Circumference'
+        }, 'var_pie_chart_widget_options_component.circumference.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Circumference du graphique. Entre 0 et 2*PI. Exemple pour une jauge : PI'
+        }, 'var_pie_chart_widget_options_component.circumference.tooltip.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Options des données'
+        }, 'var_pie_chart_widget_options_component.separator.datas_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Options des dimensions'
+        }, 'var_pie_chart_widget_options_component.separator.datas_dimension_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Enregistrer les filtres'
+        }, 'dashboard_viewer.save_favorites_filters.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Utiliser une dimension de donnée, issue d\'un champ ou d\'un filtre date segmenté'
+        }, 'var_pie_chart_widget_options_component.has_dimension.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'La dimension est un champ ?'
+        }, 'var_pie_chart_widget_options_component.dimension_is_vo_field_ref.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Champ de la dimension'
+        }, 'var_pie_chart_widget_options_component.dimension_vo_field_ref.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Segmentation de la dimension date'
+        }, 'var_pie_chart_widget_options_component.dimension_custom_filter_segment_type.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Max. de valeurs pour la dimension choisie'
+        }, 'var_pie_chart_widget_options_component.max_dimension_values.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Permet de définir un nombre max de résultats pris en compte pour le graphique sur la dimension proposée. Par exemple si on a sélectionné une année et qu\'on segmente au jour, on peut limiter aux 10 premiers jours en indiquant 10 ici.'
+        }, 'var_pie_chart_widget_options_component.max_dimension_values.tooltip.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Trier la dimension par un champ'
+        }, 'var_pie_chart_widget_options_component.sort_dimension_by_vo_field_ref.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Trier la dimension par ordre croissant ?'
+        }, 'var_pie_chart_widget_options_component.sort_dimension_by_asc.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Options de filtrage des valeurs'
+        }, 'var_pie_chart_widget_options_component.separator.datas_filter_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Filtre des valeurs'
+        }, 'var_pie_chart_widget_options_component.widget_filter_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Options de la variable principale'
+        }, 'var_pie_chart_widget_options_component.separator.var_1_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Nom de la variable principale'
+        }, 'var_pie_chart_widget_options_component.var_name_1.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Couleur de fond'
+        }, 'var_pie_chart_widget_options_component.bg_color_1.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Couleur de bordure'
+        }, 'var_pie_chart_widget_options_component.border_color_1.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Epaisseur de la bordure'
+        }, 'var_pie_chart_widget_options_component.border_width_1.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Options de la variable secondaire'
+        }, 'var_pie_chart_widget_options_component.separator.var_2_options.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Nom de la variable secondaire'
+        }, 'var_pie_chart_widget_options_component.var_name_2.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Couleur de fond'
+        }, 'var_pie_chart_widget_options_component.bg_color_2.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Couleur de bordure'
+        }, 'var_pie_chart_widget_options_component.border_color_2.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Epaisseur de la bordure'
+        }, 'var_pie_chart_widget_options_component.border_width_2.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Utiliser la somme des deux variables comme valeur max ?'
+        }, 'var_pie_chart_widget_options_component.max_is_sum_of_var_1_and_2.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Utiliser ce filtre de date personnalisé pour la dimension'
+        }, 'var_pie_chart_widget_options_component.dimension_custom_filter_name.___LABEL___'));
+
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Segmentation'
+        }, 'tstz_filter_options.segment_type.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Deux exemples:<ul><li>Si on veut un filtre A-1 (appelée Date_Am1 par exemple) relatif à un autre filtre A (appelé Date_A), on indique -1 en min et max sur le filtre Année et 0 sur les autres filtres relatifs (par exemple si la segmentation est sur le mois, on aura aussi un filtre Mois A-1 (nommé Date_Am1 aussi) relatif à un filtre Mois A (nommé Date_A) avec un champ relatif min et max à 0.</li>' +
+                '<li>Si on veut un filtre M-1 (appelée Date_Mm1) relatif à un autre filtre (Date_M), sur le filtre Année Date_Mm1 on indique 0 en min/max relatif au filtre Année Date_M. Mais on indique dans le filtre Mois lié (donc nommé Date_Mm1 aussi) en min et max -1, relativement au filtre mois appelé Date_M. Si on est en janvier, le mois relatif sera alors négatif et l\'année du filtrage sera impactée automatiquement - pas graphiquement mais dans les requêtes.</li></ul>'
+        }, 'year_filter_widget_component.auto_select_year.is_relative_to_other_filter.tooltip.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Deux exemples:<ul><li>Si on veut un filtre A-1 (appelée Date_Am1 par exemple) relatif à un autre filtre A (appelé Date_A), on indique -1 en min et max sur le filtre Année et 0 sur les autres filtres relatifs (par exemple si la segmentation est sur le mois, on aura aussi un filtre Mois A-1 (nommé Date_Am1 aussi) relatif à un filtre Mois A (nommé Date_A) avec un champ relatif min et max à 0.</li>' +
+                '<li>Si on veut un filtre M-1 (appelée Date_Mm1) relatif à un autre filtre (Date_M), sur le filtre Année Date_Mm1 on indique 0 en min/max relatif au filtre Année Date_M. Mais on indique dans le filtre Mois lié (donc nommé Date_Mm1 aussi) en min et max -1, relativement au filtre mois appelé Date_M. Si on est en janvier, le mois relatif sera alors négatif et l\'année du filtrage sera impactée automatiquement - pas graphiquement mais dans les requêtes.</li></ul>'
+        }, 'month_filter_widget_component.auto_select_month.is_relative_to_other_filter.tooltip.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Année'
+        }, 'TstzFilterOptionsComponent.segment_types.0.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Mois'
+        }, 'TstzFilterOptionsComponent.segment_types.1.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Jour'
+        }, 'TstzFilterOptionsComponent.segment_types.2.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Semaine'
+        }, 'TstzFilterOptionsComponent.segment_types.3.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Année glissante'
+        }, 'TstzFilterOptionsComponent.segment_types.4.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Heure'
+        }, 'TstzFilterOptionsComponent.segment_types.5.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Minute'
+        }, 'TstzFilterOptionsComponent.segment_types.6.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Seconde'
+        }, 'TstzFilterOptionsComponent.segment_types.7.___LABEL___'));
+
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Année'
+        }, 'VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.0.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Mois'
+        }, 'VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.1.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Jour'
+        }, 'VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.2.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Semaine'
+        }, 'VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.3.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Année glissante'
+        }, 'VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.4.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Heure'
+        }, 'VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.5.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Minute'
+        }, 'VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.6.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Seconde'
+        }, 'VarPieChartWidgetOptionsComponent.dimension_custom_filter_segment_types.7.___LABEL___'));
+
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Enregistrement en cours...'
         }, 'TableWidgetComponent.onchange_column.start.___LABEL___'));
@@ -1341,6 +1561,15 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             { 'fr-fr': "Afficher un calendrier" },
             'adfd_desc.search_type.custom'
         ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Filtre de données ou de valeurs'
+        }, 'advanced_date_filter_widget_component.is_vo_field_ref.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Données'
+        }, 'advanced_date_filter_widget_component.is_vo_field_ref.data.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Valeurs'
+        }, 'advanced_date_filter_widget_component.is_vo_field_ref.value.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Case à cocher" },
             'advanced_date_filter_widget_component.is_checkbox.___LABEL___'
@@ -1837,7 +2066,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        APIControllerWrapper.getInstance().registerServerApiHandler(
+        APIControllerWrapper.registerServerApiHandler(
             ModuleDashboardBuilder.APINAME_START_EXPORT_DATATABLE_USING_FAVORITES_FILTERS,
             this.start_export_datatable_using_favorites_filters.bind(this)
         );

@@ -8,7 +8,7 @@ import ModuleDAO from '../../DAO/ModuleDAO';
 import Module from '../../Module';
 import ModuleTable from '../../ModuleTable';
 import ModuleTableField from '../../ModuleTableField';
-import { VOsTypesManager } from '../../VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../VO/manager/VOsTypesManager';
 import ParamLigneCommandeVO from '../Commande/vos/ParamLigneCommandeVO';
 import ProduitParamLigneParamVO, { ProduitParamLigneParamVOStatic } from './vos/apis/ProduitParamLigneParamVO';
 import CategorieProduitVO from './vos/CategorieProduitVO';
@@ -41,19 +41,19 @@ export default class ModuleProduit extends Module {
     }
 
     public registerApis() {
-        // APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<StringParamVO, ProduitVO>(
+        // APIControllerWrapper.registerApi(new PostAPIDefinition<StringParamVO, ProduitVO>(
         //     null,
         //     ModuleProduit.APINAME_getProduitAjoutPanier,
         //     [ProduitVO.API_TYPE_ID],
         //     StringParamVO.translateCheckAccessParams,
         // ));
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, FacturationProduitVO[]>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<NumberParamVO, FacturationProduitVO[]>(
             null,
             ModuleProduit.APINAME_getFacturationProduitByIdProduit,
             [FacturationProduitVO.API_TYPE_ID],
             NumberParamVOStatic
         ));
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<ProduitParamLigneParamVO, number>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<ProduitParamLigneParamVO, number>(
             null,
             ModuleProduit.APINAME_getPrixProduit,
             [],

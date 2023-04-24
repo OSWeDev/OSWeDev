@@ -3,7 +3,7 @@ import UserVO from '../AccessPolicy/vos/UserVO';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
-import { VOsTypesManager } from '../VO/manager/VOsTypesManager';
+import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import IPerfMonLineInfo from './interfaces/IPerfMonLineInfo';
 import PerfMonLineTypeVO from './vos/PerfMonLineTypeVO';
 import PerfMonLineVO from './vos/PerfMonLineVO';

@@ -1,7 +1,8 @@
-import Component from 'vue-class-component';
 import { cloneDeep, isEqual } from 'lodash';
+import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import { ContextFilterVOHandler } from '../../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
+import { ContextFilterVOVOHandler } from '../../../../../../../shared/modules/ContextFilter/handler/handler/ContextFilterVOVOHandler';
+import ContextFilterVOManager from '../../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import SimpleDatatableFieldVO from '../../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableFieldVO';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
@@ -9,12 +10,11 @@ import DashboardPageWidgetVO from '../../../../../../../shared/modules/Dashboard
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import TSRange from '../../../../../../../shared/modules/DataRender/vos/TSRange';
-import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
-import { VOsTypesManager } from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
+import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import { ModuleTranslatableTextGetter } from '../../../../InlineTranslatableText/TranslatableTextStore';
 import TSRangeInputComponent from '../../../../tsrangeinput/TSRangeInputComponent';
-import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import FieldValueFilterWidgetOptions from '../options/FieldValueFilterWidgetOptions';
@@ -211,7 +211,7 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
         if (!context_filter) {
             let moduletable = VOsTypesManager.moduleTables_by_voType[this.vo_field_ref.api_type_id];
             let field = moduletable.get_field_by_id(this.vo_field_ref.field_id);
-            context_filter = ContextFilterVOHandler.getInstance().get_ContextFilterVO_from_DataFilterOption(null, this.ts_range, field, this.vo_field_ref);
+            context_filter = ContextFilterVOManager.get_context_filter_from_data_filter_option(null, this.ts_range, field, this.vo_field_ref);
 
             this.set_active_field_filter({
                 field_id: this.vo_field_ref.field_id,
@@ -226,7 +226,7 @@ export default class FieldValueFilterDateWidgetComponent extends VueComponentBas
             if (!RangeHandler.are_same(context_filter.param_tsranges, ts_ranges)) {
                 context_filter.param_tsranges = ts_ranges;
 
-                let new_root = ContextFilterVOHandler.getInstance().add_context_filter_to_tree(root_context_filter, context_filter);
+                let new_root = ContextFilterVOHandler.add_context_filter_to_tree(root_context_filter, context_filter);
 
                 this.set_active_field_filter({
                     field_id: this.vo_field_ref.field_id,

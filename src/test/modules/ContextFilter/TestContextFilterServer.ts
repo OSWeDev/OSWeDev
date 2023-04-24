@@ -5,7 +5,7 @@ APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
 import { expect, assert } from 'chai';
 import 'mocha';
 import ContextFilterTestsTools from './tools/ContextFilterTestsTools';
-import { VOsTypesManager } from '../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ContextFilterServerController from '../../../server/modules/ContextFilter/ContextFilterServerController';
 import ModuleTable from '../../../shared/modules/ModuleTable';

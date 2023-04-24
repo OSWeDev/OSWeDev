@@ -7,7 +7,7 @@ import ModuleDAO from '../../DAO/ModuleDAO';
 import Module from '../../Module';
 import ModuleTable from '../../ModuleTable';
 import ModuleTableField from '../../ModuleTableField';
-import { VOsTypesManager } from '../../VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../VO/manager/VOsTypesManager';
 import ClientVO from './vos/ClientVO';
 import InformationsVO from './vos/InformationsVO';
 
@@ -31,14 +31,14 @@ export default class ModuleClient extends Module {
         super(ClientVO.API_TYPE_ID, 'Client', 'Commerce/Client');
     }
     public registerApis() {
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, InformationsVO>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<NumberParamVO, InformationsVO>(
             null,
             ModuleClient.APINAME_getInformationsClientUser,
             [InformationsVO.API_TYPE_ID],
             NumberParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, ClientVO[]>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<NumberParamVO, ClientVO[]>(
             null,
             ModuleClient.APINAME_getClientsByUserId,
             [ClientVO.API_TYPE_ID],

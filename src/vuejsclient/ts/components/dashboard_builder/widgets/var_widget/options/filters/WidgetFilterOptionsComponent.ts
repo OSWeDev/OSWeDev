@@ -7,6 +7,7 @@ import PercentFilterOptionsComponent from './percent/PercentFilterOptionsCompone
 import ToFixedFilterOptionsComponent from './toFixed/ToFixedFilterOptionsComponent';
 import ToFixedCeilFilterOptionsComponent from './toFixedCeil/ToFixedCeilFilterOptionsComponent';
 import ToFixedFloorFilterOptionsComponent from './toFixedFloor/ToFixedFloorFilterOptionsComponent';
+import TstzFilterOptionsComponent from './tstz/TstzFilterOptionsComponent';
 import './WidgetFilterOptionsComponent.scss';
 
 @Component({
@@ -16,7 +17,8 @@ import './WidgetFilterOptionsComponent.scss';
         Tofixedfloorfilteroptionscomponent: ToFixedFloorFilterOptionsComponent,
         Tofixedceilfilteroptionscomponent: ToFixedCeilFilterOptionsComponent,
         Tofixedfilteroptionscomponent: ToFixedFilterOptionsComponent,
-        Percentfilteroptionscomponent: PercentFilterOptionsComponent
+        Percentfilteroptionscomponent: PercentFilterOptionsComponent,
+        Tstzfilteroptionscomponent: TstzFilterOptionsComponent
     }
 })
 export default class WidgetFilterOptionsComponent extends VueComponentBase {
@@ -33,7 +35,8 @@ export default class WidgetFilterOptionsComponent extends VueComponentBase {
         Filters.FILTER_TYPE_percent,
         Filters.FILTER_TYPE_toFixed,
         Filters.FILTER_TYPE_toFixedCeil,
-        Filters.FILTER_TYPE_toFixedFloor
+        Filters.FILTER_TYPE_toFixedFloor,
+        Filters.FILTER_TYPE_tstz
     ];
 
     get filter_names(): { [filter_uid: string]: string } {

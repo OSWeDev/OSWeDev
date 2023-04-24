@@ -5,7 +5,7 @@ import ModuleClient from '../../../../shared/modules/Commerce/Client/ModuleClien
 import ClientVO from '../../../../shared/modules/Commerce/Client/vos/ClientVO';
 import InformationsVO from '../../../../shared/modules/Commerce/Client/vos/InformationsVO';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import { VOsTypesManager } from '../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ModuleServerBase from '../../ModuleServerBase';
 
@@ -25,8 +25,8 @@ export default class ModuleClientServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleClient.APINAME_getInformationsClientUser, this.getInformationsClientUser.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleClient.APINAME_getClientsByUserId, this.getClientsByUserId.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleClient.APINAME_getInformationsClientUser, this.getInformationsClientUser.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleClient.APINAME_getClientsByUserId, this.getClientsByUserId.bind(this));
     }
 
     public async getInformationsClientUser(num: number): Promise<InformationsVO> {

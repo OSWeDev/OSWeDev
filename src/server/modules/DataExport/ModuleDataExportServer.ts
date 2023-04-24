@@ -5,6 +5,7 @@ import { WorkBook } from 'xlsx';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import ContextFilterVOHandler from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
@@ -15,10 +16,13 @@ import DashboardBuilderController from '../../../shared/modules/DashboardBuilder
 import TableWidgetCustomFieldsController from '../../../shared/modules/DashboardBuilder/TableWidgetCustomFieldsController';
 import TableColumnDescVO from '../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import IExportableSheet from '../../../shared/modules/DataExport/interfaces/IExportableSheet';
+import IExportOptions from '../../../shared/modules/DataExport/interfaces/IExportOptions';
 import ModuleDataExport from '../../../shared/modules/DataExport/ModuleDataExport';
 import ExportLogVO from '../../../shared/modules/DataExport/vos/apis/ExportLogVO';
 import ExportHistoricVO from '../../../shared/modules/DataExport/vos/ExportHistoricVO';
 import ExportVarcolumnConf from '../../../shared/modules/DataExport/vos/ExportVarcolumnConf';
+import ExportVarIndicator from '../../../shared/modules/DataExport/vos/ExportVarIndicator';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import ModuleFile from '../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
@@ -36,8 +40,10 @@ import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
-import { VOsTypesManager } from '../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { filter_by_name } from '../../../shared/tools/Filters';
+import LocaleManager from '../../../shared/tools/LocaleManager';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
@@ -54,12 +60,7 @@ import VarsServerCallBackSubsController from '../Var/VarsServerCallBackSubsContr
 import DataExportBGThread from './bgthreads/DataExportBGThread';
 import ExportContextQueryToXLSXBGThread from './bgthreads/ExportContextQueryToXLSXBGThread';
 import ExportContextQueryToXLSXQueryVO from './bgthreads/vos/ExportContextQueryToXLSXQueryVO';
-import FilterObj, { percentFilter, toFixedFilter } from '../../../shared/tools/Filters';
-import { IExportOptions } from '../../../shared/modules/DataExport/interfaces/IExportOptions';
-import { ContextFilterVOHandler } from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
-import { ExportVarIndicator } from '../../../shared/modules/DataExport/vos/ExportVarIndicator';
-import LocaleManager from '../../../shared/tools/LocaleManager';
-import { filter_by_name } from '../../../shared/tools/Filters';
+import DataExportServerController from './DataExportServerController';
 
 export default class ModuleDataExportServer extends ModuleServerBase {
 
@@ -129,12 +130,12 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     public registerServerApiHandlers() {
 
 
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVO, this.prepare_exportContextQueryToXLSX.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleDataExport.APINAME_ExportContextQueryToXLSXParamVO, this.prepare_exportContextQueryToXLSX.bind(this));
 
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToXLSXParamVO, this.exportDataToXLSX.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToXLSXParamVOFile, this.exportDataToXLSXFile.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVO, this.exportDataToMultiSheetsXLSX.bind(this));
-        APIControllerWrapper.getInstance().registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVOFile, this.exportDataToMultiSheetsXLSXFile.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToXLSXParamVO, this.exportDataToXLSX.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToXLSXParamVOFile, this.exportDataToXLSXFile.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVO, this.exportDataToMultiSheetsXLSX.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVOFile, this.exportDataToMultiSheetsXLSXFile.bind(this));
     }
 
     public async exportDataToXLSX(
@@ -826,7 +827,10 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     params = params.concat(filter_additional_params);
 
                     if (typeof filter_by_name[varcolumn_conf.filter_type]?.read === 'function') {
-                        value = filter_by_name[varcolumn_conf.filter_type].read.apply(null, params).replace(/\s+/g, '');
+                        value = filter_by_name[varcolumn_conf.filter_type].read.apply(null, params);
+                        if (varcolumn_conf.filter_type != 'tstz') {
+                            value = (value as any).replace(/\s+/g, '');
+                        }
                     }
                 }
 
@@ -1021,21 +1025,6 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     }
 
     /**
-     * Objectif : formatage d'un timestamp en object Date en utc pour l'export excel
-     * @param timestamp timestamp à convertir en date UTC
-     * @returns Objet Date
-     */
-    private format_date_utc(timestamp: number): Date {
-        if (timestamp) {
-            /**
-             * On soustrait le timezone local, et les 21 secondes pour Excel ... cf https://github.com/SheetJS/sheetjs/issues/2152 pour les 21 seconds en dur....
-             */
-            return new Date(Date.UTC(Dates.year(timestamp), Dates.month(timestamp), Dates.day(timestamp), 0, 0, 0) + ((new Date()).getTimezoneOffset() * 60 * 1000) - 21000);
-        }
-        return null;
-    }
-
-    /**
      * Traduire le champs field.field_id de src_vo dans dest_vo dans l'optique d'un export excel
      * @param field le descriptif du champs à traduire
      * @param src_vo le vo source
@@ -1107,14 +1096,14 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
             case ModuleTableField.FIELD_TYPE_tstz:
 
-                dest_vo[dest_field_id] = this.format_date_utc(src_vo[src_field_id]);
+                dest_vo[dest_field_id] = DataExportServerController.format_date_utc_excel(src_vo[src_field_id], (field.segmentation_type == null) ? TimeSegment.TYPE_DAY : field.segmentation_type);
                 break;
 
             case ModuleTableField.FIELD_TYPE_tstz_array:
                 if ((src_vo[src_field_id] === null) || (typeof src_vo[src_field_id] === 'undefined')) {
                     dest_vo[dest_field_id] = src_vo[src_field_id];
                 } else {
-                    dest_vo[dest_field_id] = (src_vo[src_field_id] as number[]).map((ts: number) => this.format_date_utc(ts));
+                    dest_vo[dest_field_id] = (src_vo[src_field_id] as number[]).map((ts: number) => DataExportServerController.format_date_utc_excel(ts, (field.segmentation_type == null) ? TimeSegment.TYPE_DAY : field.segmentation_type));
                 }
                 break;
 
@@ -1260,7 +1249,10 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 params = params.concat(filter_additional_params);
 
                 if (typeof filter_by_name[column.filter_type]?.read === 'function') {
-                    row[column.datatable_field_uid] = filter_by_name[column.filter_type].read.apply(null, params).replace(/\s+/g, '');
+                    row[column.datatable_field_uid] = filter_by_name[column.filter_type].read.apply(null, params);
+                    if (column.filter_type != 'tstz') {
+                        row[column.datatable_field_uid] = (row[column.datatable_field_uid] as any).replace(/\s+/g, '');
+                    }
                 }
             }
         }

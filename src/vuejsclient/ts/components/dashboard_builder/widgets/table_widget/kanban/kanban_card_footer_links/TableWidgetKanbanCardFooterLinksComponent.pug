@@ -1,0 +1,4 @@
+.table_kanban_card_footer_links
+    template(v-if='links && links.length')
+        template(v-for='(link, i) in links')
+            button.btn.btn-primary(@click='link_click(i, $event)') {{ (titles && titles[i]) ? titles[i] : link }}

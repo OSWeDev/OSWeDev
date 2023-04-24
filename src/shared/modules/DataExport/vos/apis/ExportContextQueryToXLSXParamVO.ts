@@ -4,8 +4,8 @@ import ContextFilterVO from '../../../ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO from '../../../ContextFilter/vos/ContextQueryVO';
 import DatatableField from '../../../DAO/vos/datatable/DatatableField';
 import TableColumnDescVO from '../../../DashboardBuilder/vos/TableColumnDescVO';
-import { IExportOptions } from '../../interfaces/IExportOptions';
-import { ExportVarIndicator } from '../ExportVarIndicator';
+import IExportOptions from '../../interfaces/IExportOptions';
+import ExportVarIndicator from '../ExportVarIndicator';
 import ExportVarcolumnConf from '../ExportVarcolumnConf';
 
 export default class ExportContextQueryToXLSXParamVO implements IAPIParamTranslator<ExportContextQueryToXLSXParamVO> {

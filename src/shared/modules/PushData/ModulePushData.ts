@@ -4,7 +4,7 @@ import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
-import { VOsTypesManager } from '../VO/manager/VOsTypesManager';
+import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import NotificationVO from './vos/NotificationVO';
 import APISimpleVOParamVO from '../DAO/vos/APISimpleVOParamVO';
 import { APISimpleVOParamVOStatic } from '../DAO/vos/APISimpleVOParamVO';
@@ -38,14 +38,14 @@ export default class ModulePushData extends Module {
 
     public registerApis() {
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<APISimpleVOParamVO, any>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<APISimpleVOParamVO, any>(
             null,
             ModulePushData.APINAME_set_prompt_result,
             [NotificationVO.API_TYPE_ID],
             APISimpleVOParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<void, string>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<void, string>(
             null,
             ModulePushData.APINAME_get_app_version,
             []

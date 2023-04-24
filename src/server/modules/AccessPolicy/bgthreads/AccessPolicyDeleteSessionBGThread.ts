@@ -3,6 +3,7 @@ import IServerUserSession from '../../../../shared/modules/AccessPolicy/vos/ISer
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
+import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
 import TeamsWebhookContentSectionVO from '../../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentSectionVO';
 import TeamsWebhookContentVO from '../../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
@@ -11,6 +12,7 @@ import ConfigurationService from '../../../env/ConfigurationService';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ForkedTasksController from '../../Fork/ForkedTasksController';
+import StatsServerController from '../../Stats/StatsServerController';
 import ModuleTeamsAPIServer from '../../TeamsAPI/ModuleTeamsAPIServer';
 import ModuleAccessPolicyServer from '../ModuleAccessPolicyServer';
 
@@ -48,11 +50,16 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
 
     public async work(): Promise<number> {
 
+        let time_in = Dates.now_ms();
+
         try {
+
+            StatsServerController.register_stat('AccessPolicyDeleteSessionBGThread.work.IN', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
             let invalidate_sessions: IServerUserSession[] = ObjectHandler.getInstance().arrayFromMap(this.session_to_delete_by_sids);
 
             if (!invalidate_sessions || !invalidate_sessions.length) {
+                this.stats_out('inactive', time_in);
                 return ModuleBGThreadServer.TIMEOUT_COEF_SLEEP;
             }
 
@@ -118,11 +125,13 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
                 await ForkedTasksController.getInstance().exec_self_on_main_process(ModuleAccessPolicyServer.TASK_NAME_delete_sessions_from_other_thread, to_invalidate);
             }
 
+            this.stats_out('ok', time_in);
             return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
         } catch (error) {
             ConsoleHandler.error(error);
         }
 
+        this.stats_out('throws', time_in);
         return ModuleBGThreadServer.TIMEOUT_COEF_SLEEP;
     }
 
@@ -145,5 +154,13 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
         this.api_reqs = this.api_reqs.splice(0, 20);
 
         return true;
+    }
+
+    private stats_out(activity: string, time_in: number) {
+
+        let time_out = Dates.now_ms();
+        StatsServerController.register_stat('AccessPolicyDeleteSessionBGThread.work.' + activity + '.OUT.nb', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsServerController.register_stats('AccessPolicyDeleteSessionBGThread.work.' + activity + '.OUT.time', time_out - time_in,
+            [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
     }
 }

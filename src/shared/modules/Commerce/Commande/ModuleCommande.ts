@@ -8,7 +8,7 @@ import ModuleDAO from '../../DAO/ModuleDAO';
 import Module from '../../Module';
 import ModuleTable from '../../ModuleTable';
 import ModuleTableField from '../../ModuleTableField';
-import { VOsTypesManager } from '../../VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../VO/manager/VOsTypesManager';
 import ModuleClient from '../Client/ModuleClient';
 import ClientVO from '../Client/vos/ClientVO';
 import InformationsVO from '../Client/vos/InformationsVO';
@@ -48,35 +48,35 @@ export default class ModuleCommande extends Module {
     }
 
     public registerApis() {
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, CommandeVO[]>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<NumberParamVO, CommandeVO[]>(
             null,
             ModuleCommande.APINAME_getCommandesUser,
             [CommandeVO.API_TYPE_ID],
             NumberParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, LigneCommandeVO[]>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<NumberParamVO, LigneCommandeVO[]>(
             null,
             ModuleCommande.APINAME_getLignesCommandeByCommandeId,
             [LigneCommandeVO.API_TYPE_ID],
             NumberParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<ProduitsParamLignesParamVO, CommandeVO>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<ProduitsParamLignesParamVO, CommandeVO>(
             null,
             ModuleCommande.APINAME_ajouterAuPanier,
             [CommandeVO.API_TYPE_ID],
             ProduitsParamLignesParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new GetAPIDefinition<NumberAndStringParamVO, ParamLigneCommandeVO>(
+        APIControllerWrapper.registerApi(new GetAPIDefinition<NumberAndStringParamVO, ParamLigneCommandeVO>(
             null,
             ModuleCommande.APINAME_getParamLigneCommandeById,
             [],
             NumberAndStringParamVOStatic
         ));
 
-        APIControllerWrapper.getInstance().registerApi(new PostAPIDefinition<null, CommandeVO>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<null, CommandeVO>(
             null,
             ModuleCommande.APINAME_creationPanier,
             [CommandeVO.API_TYPE_ID],

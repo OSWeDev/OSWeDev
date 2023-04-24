@@ -48,13 +48,9 @@ describe('ContextQueryServer', () => {
         let request: ParameterizedQueryWrapper = await ContextQueryServerController.getInstance().build_select_query(context_query);
 
         expect(request.query).to.equal(
-            "SELECT DISTINCT t0.firstname as firstname , t0.lastname as lastname  " +
-            "FROM ref.user t0 " +
-            "LEFT JOIN ref.lang t1 on t1.id = t0.lang_id " +
-            "WHERE (t1.code_lang = $1) " +
-            "ORDER BY t0.name ASC "
+            "SELECT t0.firstname as firstname , t0.lastname as lastname  FROM ref.user t0 LEFT JOIN ref.lang t1 on t1.id = t0.lang_id WHERE (LOWER(t1.code_lang) = 'fr-fr')  ORDER BY t0.name ASC "
         );
-        expect(request.params).to.deep.equal(['fr-fr']);
+        expect(request.params).to.deep.equal([]);
     });
 
     /**
@@ -76,11 +72,7 @@ describe('ContextQueryServer', () => {
         let request: ParameterizedQueryWrapper = await ContextQueryServerController.getInstance().build_select_query(context_query);
 
         expect(request.query).to.equal(
-            'SELECT DISTINCT t0.code_lang as code_lang  ' +
-            'FROM ref.lang t0 ' +
-            'LEFT JOIN ref.user t1 on t1.lang_id = t0.id ' +
-            'WHERE (t1.firstname is NOT NULL) ' +
-            'ORDER BY t1.phone ASC '
+            "SELECT t0.code_lang as code_lang  FROM ref.lang t0 LEFT JOIN ref.user t1 on t1.lang_id = t0.id WHERE (t1.firstname is NOT NULL)  ORDER BY t1.phone ASC "
         );
     });
 
@@ -103,11 +95,7 @@ describe('ContextQueryServer', () => {
         let request: ParameterizedQueryWrapper = await ContextQueryServerController.getInstance().build_select_query(context_query);
 
         expect(request.query).to.equal(
-            'SELECT DISTINCT t0.role_id as role_id  ' +
-            'FROM ref.userroles t0 ' +
-            'LEFT JOIN ref.user t1 on t1.id = t0.user_id ' +
-            'WHERE (t1.firstname is NOT NULL) ' +
-            'ORDER BY t1.phone ASC '
+            "SELECT t0.role_id as role_id  FROM ref.userroles t0 LEFT JOIN ref.user t1 on t1.id = t0.user_id WHERE (t1.firstname is NOT NULL)  ORDER BY t1.phone ASC "
         );
 
         filter_ = new ContextFilterVO();
@@ -125,11 +113,7 @@ describe('ContextQueryServer', () => {
         request = await ContextQueryServerController.getInstance().build_select_query(context_query);
 
         expect(request.query).to.equal(
-            'SELECT DISTINCT t0.role_id as role_id  ' +
-            'FROM ref.userroles t0 ' +
-            'LEFT JOIN ref.role t1 on t1.id = t0.role_id ' +
-            'WHERE (t1.translatable_name is NOT NULL) ' +
-            'ORDER BY t1.translatable_name ASC '
+            "SELECT t0.role_id as role_id  FROM ref.userroles t0 LEFT JOIN ref.role t1 on t1.id = t0.role_id WHERE (t1.translatable_name is NOT NULL)  ORDER BY t1.translatable_name ASC "
         );
     });
 
@@ -152,12 +136,7 @@ describe('ContextQueryServer', () => {
         let request: ParameterizedQueryWrapper = await ContextQueryServerController.getInstance().build_select_query(context_query);
 
         expect(request.query).to.equal(
-            'SELECT DISTINCT t0.role_id as role_id  ' +
-            'FROM ref.userroles t0 ' +
-            'LEFT JOIN ref.user t1 on t1.id = t0.user_id ' +
-            'LEFT JOIN ref.anonym_user_conf t2 on t2.user_id = t1.id ' +
-            'WHERE (t2.anon_field_id is NOT NULL) ' +
-            'ORDER BY t2.anon_field_id ASC '
+            "SELECT t0.role_id as role_id  FROM ref.userroles t0 LEFT JOIN ref.user t1 on t1.id = t0.user_id LEFT JOIN ref.anonym_user_conf t2 on t2.user_id = t1.id WHERE (t2.anon_field_id is NOT NULL)  ORDER BY t2.anon_field_id ASC "
         );
     });
 
@@ -182,13 +161,7 @@ describe('ContextQueryServer', () => {
         let request: ParameterizedQueryWrapper = await ContextQueryServerController.getInstance().build_select_query(context_query);
 
         expect(request.query).to.equal(
-            'SELECT DISTINCT t0.role_id as role_id  ' +
-            'FROM ref.userroles t0 ' +
-            'LEFT JOIN ref.user t1 on t1.id = t0.user_id ' +
-            'LEFT JOIN ref.anonym_user_conf t2 on t2.user_id = t1.id ' +
-            'LEFT JOIN ref.anonym_field_conf t3 on t3.id = t2.anon_field_id ' +
-            'WHERE (t3.field_id is NOT NULL) ' +
-            'ORDER BY t3.vo_type ASC '
+            "SELECT t0.role_id as role_id  FROM ref.userroles t0 LEFT JOIN ref.user t1 on t1.id = t0.user_id LEFT JOIN ref.anonym_user_conf t2 on t2.user_id = t1.id LEFT JOIN ref.anonym_field_conf t3 on t3.id = t2.anon_field_id WHERE (t3.field_id is NOT NULL)  ORDER BY t3.vo_type ASC "
         );
     });
 
@@ -213,14 +186,7 @@ describe('ContextQueryServer', () => {
         let request: ParameterizedQueryWrapper = await ContextQueryServerController.getInstance().build_select_query(context_query);
 
         expect(request.query).to.equal(
-            'SELECT DISTINCT t1.translatable_name as translatable_name  ' +
-            'FROM ref.userroles t0 ' +
-            'LEFT JOIN ref.role t1 on t1.id = t0.role_id ' +
-            'LEFT JOIN ref.user t2 on t2.id = t0.user_id ' +
-            'LEFT JOIN ref.anonym_user_conf t3 on t3.user_id = t2.id ' +
-            'LEFT JOIN ref.anonym_field_conf t4 on t4.id = t3.anon_field_id ' +
-            'WHERE (t4.field_id is NOT NULL) ' +
-            'ORDER BY t4.vo_type ASC '
+            "SELECT t1.translatable_name as translatable_name  FROM ref.userroles t0 LEFT JOIN ref.role t1 on t1.id = t0.role_id LEFT JOIN ref.user t2 on t2.id = t0.user_id LEFT JOIN ref.anonym_user_conf t3 on t3.user_id = t2.id LEFT JOIN ref.anonym_field_conf t4 on t4.id = t3.anon_field_id WHERE (t4.field_id is NOT NULL)  ORDER BY t4.vo_type ASC "
         );
     });
 
@@ -240,12 +206,9 @@ describe('ContextQueryServer', () => {
         let request: ParameterizedQueryWrapper = await ContextQueryServerController.getInstance().build_select_query(context_query);
 
         expect(request.query).to.equal(
-            "SELECT DISTINCT t0.firstname as firstname , t0.lastname as lastname  " +
-            "FROM ref.user t0 " +
-            "WHERE ( (( ((t0.firstname = $1) AND (t0.lastname = $2)) ) OR ( ((t0.firstname = $3) AND (t0.lastname = $4)) )) ) " +
-            "ORDER BY t0.name ASC "
+            "SELECT t0.firstname , t0.lastname  FROM ref.user t0 WHERE ( (( ((t0.firstname = 'a') AND (t0.lastname = 'b')) ) OR ( ((t0.firstname = 'b') AND (t0.lastname = 'a')) )) )  ORDER BY t0.name ASC "
         );
-        expect(request.params).deep.eq(['a', 'b', 'b', 'a']);
+        expect(request.params).deep.eq([]);
     });
 
     /**
@@ -277,12 +240,9 @@ describe('ContextQueryServer', () => {
         let request: ParameterizedQueryWrapper = await ContextQueryServerController.getInstance().build_select_query(context_query);
 
         expect(request.query).to.equal(
-            "SELECT DISTINCT t0.firstname as firstname , t0.lastname as lastname  " +
-            "FROM ref.user t0 " +
-            "WHERE ( (( (( (( ((t0.firstname = $1) AND (t0.lastname = $2)) ) AND (t0.name = $3)) ) AND (t0.password = $4)) ) OR ( (( (( (( ((t0.firstname = $5) AND (t0.lastname = $6)) ) AND (t0.name = $7)) ) AND (t0.password = $8)) ) OR ( (( (( ((t0.firstname = $9) AND (t0.lastname = $10)) ) AND (t0.name = $11)) ) AND (t0.password = $12)) )) )) ) " +
-            "ORDER BY t0.name ASC "
+            "SELECT t0.firstname , t0.lastname  FROM ref.user t0 WHERE ( (( (( (( ((t0.firstname = 'a1') AND (t0.lastname = 'b1')) ) AND (t0.name = 'c1')) ) AND (t0.password = 'd1')) ) OR ( (( (( (( ((t0.firstname = 'a') AND (t0.lastname = 'b')) ) AND (t0.name = 'c')) ) AND (t0.password = 'd')) ) OR ( (( (( ((t0.firstname = 'a2') AND (t0.lastname = 'b2')) ) AND (t0.name = 'c2')) ) AND (t0.password = 'd2')) )) )) )  ORDER BY t0.name ASC "
         );
-        expect(request.params).deep.eq(['a1', 'b1', 'c1', 'd1', 'a', 'b', 'c', 'd', 'a2', 'b2', 'c2', 'd2']);
+        expect(request.params).deep.eq([]);
     });
 
     /**
@@ -314,12 +274,9 @@ describe('ContextQueryServer', () => {
         let request: ParameterizedQueryWrapper = await ContextQueryServerController.getInstance().build_select_query(context_query);
 
         expect(request.query).to.equal(
-            "SELECT DISTINCT t0.firstname as firstname , t0.lastname as lastname  " +
-            "FROM ref.user t0 " +
-            "WHERE ( (( (( (( ((t0.firstname = $1) OR (t0.lastname = $2)) ) OR (t0.name = $3)) ) OR (t0.password = $4)) ) AND ( (( (( (( ((t0.firstname = $5) OR (t0.lastname = $6)) ) OR (t0.name = $7)) ) OR (t0.password = $8)) ) AND ( (( (( ((t0.firstname = $9) OR (t0.lastname = $10)) ) OR (t0.name = $11)) ) OR (t0.password = $12)) )) )) ) " +
-            "ORDER BY t0.name ASC "
+            "SELECT t0.firstname , t0.lastname  FROM ref.user t0 WHERE ( (( (( (( ((t0.firstname = 'a1') OR (t0.lastname = 'b1')) ) OR (t0.name = 'c1')) ) OR (t0.password = 'd1')) ) AND ( (( (( (( ((t0.firstname = 'a') OR (t0.lastname = 'b')) ) OR (t0.name = 'c')) ) OR (t0.password = 'd')) ) AND ( (( (( ((t0.firstname = 'a2') OR (t0.lastname = 'b2')) ) OR (t0.name = 'c2')) ) OR (t0.password = 'd2')) )) )) )  ORDER BY t0.name ASC "
         );
-        expect(request.params).deep.eq(['a1', 'b1', 'c1', 'd1', 'a', 'b', 'c', 'd', 'a2', 'b2', 'c2', 'd2']);
+        expect(request.params).deep.eq([]);
     });
 
     /**
@@ -338,7 +295,7 @@ describe('ContextQueryServer', () => {
         let request: ParameterizedQueryWrapper = await ContextQueryServerController.getInstance().build_select_query(context_query);
 
         expect(request.query).to.equal(
-            "SELECT DISTINCT t0.id as id  FROM ref.user t0 LEFT JOIN ref.userroles t1 on t1.user_id = t0.id LEFT JOIN ref.role t2 on t2.id = t1.role_id WHERE ( ((t2.id IN (SELECT DISTINCT t0.id as id  FROM ref.role t0)) OR (t0.id NOT IN (SELECT DISTINCT t0.user_id as user_id  FROM ref.userroles t0))) )"
+            "SELECT t0.id  FROM ref.user t0 LEFT JOIN ref.userroles t1 on t1.user_id = t0.id LEFT JOIN ref.role t2 on t2.id = t1.role_id WHERE ( ((t2.id IN (SELECT __t0.id  FROM ref.role __t0 )) OR (t0.id NOT IN (SELECT __t0.user_id  FROM ref.userroles __t0 ))) ) "
         );
     });
 
@@ -353,7 +310,7 @@ describe('ContextQueryServer', () => {
         let request: ParameterizedQueryWrapper = await ContextQueryServerController.getInstance().build_select_query(context_query);
 
         expect(request.query).to.equal(
-            "SELECT t0.*  FROM ref.role t0 LEFT JOIN ref.userroles t1 on t1.role_id = t0.id LEFT JOIN ref.user t2 on t2.id = t1.user_id WHERE (t2.id = 15)"
+            "SELECT t0.id , t0.translatable_name , t0.parent_role_id , t0.weight  FROM ref.role t0 LEFT JOIN ref.userroles t1 on t1.role_id = t0.id LEFT JOIN ref.user t2 on t2.id = t1.user_id WHERE (t2.id = 15) "
         );
     });
 
@@ -385,7 +342,7 @@ describe('ContextQueryServer', () => {
         let request: ParameterizedQueryWrapper = await ContextQueryServerController.getInstance().build_select_query(context_query);
 
         expect(request.query).to.equal(
-            "SELECT t0.*  FROM ref.user t0 LEFT JOIN ref.userroles t1 on t1.user_id = t0.id LEFT JOIN ref.role t2 on t2.id = t1.role_id WHERE ( ((t0.id NOT IN (SELECT DISTINCT t0.user_id as user_id  FROM ref.userroles t0)) OR ( ((t2.id IN (SELECT DISTINCT t0.id as id  FROM ref.role t0)) OR (t0.id = 15)) )) ) AND ( ((t0.id = 15) OR ( ((t0.id IN (SELECT DISTINCT t0.id as id  FROM ref.user t0)) OR (t0.id IN (SELECT DISTINCT t0.id as id  FROM ref.user t0))) )) )"
+            "SELECT t0.id , t0.name , t0.firstname , t0.lastname , t0.email , t0.phone , t0.blocked , t0.password , t0.password_change_date , t0.reminded_pwd_1 , t0.reminded_pwd_2 , t0.invalidated , t0.lang_id , t0.recovery_challenge , t0.recovery_expiration , t0.logged_once , t0.creation_date  FROM ref.user t0 LEFT JOIN ref.userroles t1 on t1.user_id = t0.id LEFT JOIN ref.role t2 on t2.id = t1.role_id WHERE ( ((t0.id NOT IN (SELECT __t0.user_id  FROM ref.userroles __t0 )) OR ( ((t2.id IN (SELECT __t0.id  FROM ref.role __t0 )) OR (t0.id = 15)) )) ) AND ( ((t0.id = 15) OR ( ((t0.id IN (SELECT __t0.id  FROM ref.user __t0 )) OR (t0.id IN (SELECT __t0.id  FROM ref.user __t0 ))) )) ) "
         );
     });
     //#endregion test_.build_select_query
