@@ -20,7 +20,7 @@ export default class WidgetsManager {
         return WidgetsManager.instance;
     }
 
-    private static instance: WidgetsManager;
+    protected static instance: WidgetsManager;
 
     public add_widget_to_page_handler: (widget: DashboardWidgetVO) => Promise<DashboardPageWidgetVO> = null;
     public sorted_widgets: DashboardWidgetVO[] = [];

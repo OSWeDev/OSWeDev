@@ -7,8 +7,9 @@ import ICheckListItem from '../../../../../../shared/modules/CheckList/interface
 import ICheckPoint from '../../../../../../shared/modules/CheckList/interfaces/ICheckPoint';
 import ModuleCheckListBase from '../../../../../../shared/modules/CheckList/ModuleCheckListBase';
 import CheckListVO from '../../../../../../shared/modules/CheckList/vos/CheckListVO';
-import { ContextFilterVOVOHandler } from '../../../../../../shared/modules/ContextFilter/handler/handler/ContextFilterVOVOHandler';
+import ContextFilterVOHandler from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
+import FieldFilterManager from '../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
@@ -37,13 +38,6 @@ import TablePaginationComponent from '../table_widget/pagination/TablePagination
 import './ChecklistWidgetComponent.scss';
 import ChecklistItemModalComponent from './checklist_item_modal/ChecklistItemModalComponent';
 import ChecklistWidgetOptions from './options/ChecklistWidgetOptions';
-<<<<<<< HEAD
-import Vue from 'vue';
-import { all_promises } from '../../../../../../shared/tools/PromiseTools';
-import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
-import FieldFilterManager from '../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
-=======
->>>>>>> origin/dev_jne
 
 @Component({
     template: require('./ChecklistWidgetComponent.pug'),

@@ -37,24 +37,13 @@ import MonthFilterWidgetOptions from '../month_filter_widget/options/MonthFilter
 import ReloadFiltersWidgetController from '../reload_filters_widget/RealoadFiltersWidgetController';
 import TableWidgetOptions from '../table_widget/options/TableWidgetOptions';
 import TableWidgetController from '../table_widget/TableWidgetController';
-import CRUD from '../../../../../../shared/modules/DAO/vos/CRUD';
-import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ContextFilterVOHandler from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
-import FieldValueFilterWidgetOptions from '../field_value_filter_widget/options/FieldValueFilterWidgetOptions';
-import ContextQueryFieldVO from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
-import VarConfVO from '../../../../../../shared/modules/Var/vos/VarConfVO';
-import { cloneDeep } from 'lodash';
 import VarWidgetComponent from '../var_widget/VarWidgetComponent';
-import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
-import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
-import MonthFilterWidgetOptions from '../month_filter_widget/options/MonthFilterWidgetOptions';
-import YearFilterWidgetOptions from '../year_filter_widget/options/YearFilterWidgetOptions';
-import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import FieldFilterManager from '../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
 import SaveFavoritesFiltersModalComponent from './modal/SaveFavoritesFiltersModalComponent';
-import { SaveFavoritesFiltersWidgetOptions } from './options/SaveFavoritesFiltersWidgetOptions';
+import SaveFavoritesFiltersWidgetOptions from './options/SaveFavoritesFiltersWidgetOptions';
 import './SaveFavoritesFiltersWidgetComponent.scss';
-import { SaveFavoritesFiltersWidgetController } from './SaveFavoritesFiltersWidgetController';
+import SaveFavoritesFiltersWidgetController from './SaveFavoritesFiltersWidgetController';
+import VarWidgetOptions from '../var_widget/options/VarWidgetOptions';
 
 @Component({
     template: require('./SaveFavoritesFiltersWidgetComponent.pug'),

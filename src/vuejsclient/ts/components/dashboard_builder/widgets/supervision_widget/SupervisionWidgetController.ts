@@ -1,3 +1,3 @@
-import { SupervisionWidgetManager } from '../../../../../../shared/modules/DashboardBuilder/manager/SupervisionWidgetManager';
+import SupervisionWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/SupervisionWidgetManager';
 
 export default class SupervisionWidgetController extends SupervisionWidgetManager { }

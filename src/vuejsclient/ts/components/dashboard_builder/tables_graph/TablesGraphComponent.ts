@@ -1,5 +1,5 @@
 import mxgraph from 'mxgraph';
-import { Graph } from './graph_tools/Graph';
+import Graph from './graph_tools/Graph';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
