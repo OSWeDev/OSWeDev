@@ -130,7 +130,7 @@ export default abstract class GeneratorBase {
             Patch20220725DashboardWidgetUpdate.getInstance(),
             Patch20220809ChangeDbbTrad.getInstance(),
             Patch20221216ChangeDbbTradsToIncludeLabels.getInstance(),
-            Patch20221217ParamBlockVos.getInstance(),
+            Patch20221217ParamBlockVos.getInstance()
         ];
     }
 

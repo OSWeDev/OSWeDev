@@ -20,6 +20,35 @@ Remove
 from Compression plugin in common webpack conf
 
 
+in common webpack conf add :
+/**
+ * This is a hack to make fullcalendar work with webpack 5
+ *  cf https://github.com/fullcalendar/fullcalendar/issues/5822
+ *  cf https://github.com/webpack/webpack/issues/11467
+ */
+export let hack_until_fullcalendar_5_4_0 = {
+    test: /\.m?js/,
+    resolve: {
+        fullySpecified: false
+    }
+};
+
+and then add the new module in each webpack conf (login/admin/client)
+    module: {
+        rules: [
+            module_scss,
+            module_vue,
+            module_pug,
+            module_ts,
+            module_css,
+            module_img,
+            hack_until_fullcalendar_5_4_0
+        ]
+    },
+
+
+
+
 Not sure this part is mandatory, try without but then if it fails try with it :
 
 Add 

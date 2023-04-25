@@ -16,7 +16,7 @@ import ToggleButton from 'vue-js-toggle-button';
 import Multiselect from 'vue-multiselect';
 import 'vue-multiselect/dist/vue-multiselect.min.css';
 import { ColorPicker, ColorPanel } from 'one-colorpicker';
-import * as VueResource from 'vue-resource';
+import VueResource from 'vue-resource';
 import VueRouter, { RouterOptions } from 'vue-router';
 import { RouteConfig } from 'vue-router/types/router';
 import vSelect from 'vue-select';

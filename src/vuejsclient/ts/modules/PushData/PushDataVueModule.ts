@@ -1,15 +1,16 @@
-import * as io from 'socket.io-client/dist/socket.io.slim.js';
+import { io } from "socket.io-client";
 import { SnotifyToast } from 'vue-snotify';
 import APIControllerWrapper from '../../../../shared/modules/API/APIControllerWrapper';
-import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import ModulePushData from '../../../../shared/modules/PushData/ModulePushData';
-import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import NotificationVO from '../../../../shared/modules/PushData/vos/NotificationVO';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../shared/modules/Var/vos/VarDataValueResVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
+import EnvHandler from '../../../../shared/tools/EnvHandler';
 import LocaleManager from '../../../../shared/tools/LocaleManager';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import ThrottleHelper from '../../../../shared/tools/ThrottleHelper';
@@ -17,9 +18,6 @@ import VueAppBase from '../../../VueAppBase';
 import VarsClientController from '../../components/Var/VarsClientController';
 import AjaxCacheClientController from '../AjaxCache/AjaxCacheClientController';
 import VueModuleBase from '../VueModuleBase';
-import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import EnvHandler from '../../../../shared/tools/EnvHandler';
 
 export default class PushDataVueModule extends VueModuleBase {
 

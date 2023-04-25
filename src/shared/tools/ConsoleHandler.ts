@@ -64,7 +64,7 @@ export default class ConsoleHandler {
     private static old_console_error: (message?: any, ...optionalParams: any[]) => void = null;
 
     private static get_text_msg(error: string | Error): string {
-        return ((process && process.pid) ? process.pid + ':' : '') + ConsoleHandler.get_timestamp() + ConsoleHandler.SEPARATOR + (error ? ((error as Error).message ? ((error as Error).message + ':' + (error as Error).stack) : error) : error);
+        return (((typeof process !== "undefined") && process.pid) ? process.pid + ':' : '') + ConsoleHandler.get_timestamp() + ConsoleHandler.SEPARATOR + (error ? ((error as Error).message ? ((error as Error).message + ':' + (error as Error).stack) : error) : error);
     }
 
     private static get_timestamp(): string {

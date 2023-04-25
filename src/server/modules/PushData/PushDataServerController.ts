@@ -163,7 +163,7 @@ export default class PushDataServerController {
         this.registeredSockets_by_id[socket.id] = wrapper;
 
         // No user or session, don't save this socket in registeredSockets
-        let client_tab_id = socket.handshake.headers['client_tab_id'] ? socket.handshake.headers['client_tab_id'] : null;
+        let client_tab_id: string = socket.handshake.headers['client_tab_id'] ? socket.handshake.headers['client_tab_id'] as string : null;
         if ((!session) || (!session.id) || (!client_tab_id)) {
             return;
         }
