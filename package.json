@@ -189,7 +189,7 @@
         "source-map-support": "0.5.16",
         "ts-node": "8.8.2",
         "tsc-watch": "1.0.27",
-        "typescript": "4.3.5",
+        "typescript": "4.7.3",
         "vue-i18n": "7.4.0",
         "vue-resource": "1.5.3",
         "vue-photo-collage": "1.0.5",
