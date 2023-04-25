@@ -897,8 +897,6 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             query_ = await FieldValueFilterWidgetController.getInstance().check_segmented_dependencies(this.dashboard, query_, this.get_discarded_field_paths, true);
         }
 
-        console.log('select_filter_visible_options', JSON.stringify(query_));
-
         tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(
             query_,
             this.actual_query,

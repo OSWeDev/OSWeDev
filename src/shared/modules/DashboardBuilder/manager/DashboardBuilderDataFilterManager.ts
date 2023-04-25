@@ -11,7 +11,7 @@ export default class DashboardBuilderDataFilterManager {
     }
 
     /**
-     * get_required_api_type_id_from_widget_options
+     * get_required_api_type_ids_from_widget_options
      *  - Get the required api_type_id from the given widget_options to perform the expected request
      *
      * @param {FieldValueFilterWidgetOptionsVO} widget_options
@@ -19,7 +19,7 @@ export default class DashboardBuilderDataFilterManager {
      * @param {options.query_api_type_ids} options.query_api_type_ids
      * @returns {string[]}
      */
-    public static get_required_api_type_id_from_widget_options(
+    public static get_required_api_type_ids_from_widget_options(
         widget_options: FieldValueFilterWidgetOptionsVO,
         options?: {
             active_api_type_ids?: string[]; // Setted on user selection (select option) to specify query on specified vos api ids

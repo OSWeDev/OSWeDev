@@ -114,22 +114,18 @@ export default class FieldFilterManager {
         required_api_type_ids: string[],
     ): { [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } } {
 
+        active_field_filters = cloneDeep(active_field_filters);
+
         let field_filters_by_api_type_ids: {
             [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
         } = {};
-
-        if (!widget_options.no_inter_filter) {
-            active_field_filters = FieldFilterManager.clean_field_filters_for_request(
-                active_field_filters,
-                { should_restrict_to_api_type_id: true }
-            );
-        }
 
         // Remove unwanted field_filters (e.g. "__custom_filters__")
         const field_filters_for_request: {
             [api_type_id: string]: { [field_id: string]: ContextFilterVO }
         } = FieldFilterManager.clean_field_filters_for_request(
-            active_field_filters
+            active_field_filters,
+            { should_restrict_to_api_type_id: !widget_options.no_inter_filter }
         );
 
         // Check whether the given field_filters_for_request are compatible with the required_api_type_ids
@@ -194,6 +190,48 @@ export default class FieldFilterManager {
     }
 
     /**
+     * Filter field_filters by api_type_id to exclude
+     * - The aim of this function is to filter_field_filters by excluding the given api_type_ids_to_exclude (or vo_type)
+     *
+     * @param {any} widget_options
+     * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} active_field_filters
+     * @param {string[]} api_type_ids_to_exclude  - The api_type_ids to exclude from the active_field_filters
+     * @returns { { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }}
+     */
+    public static filter_field_filters_by_api_type_ids_to_exlude(
+        widget_options: any,
+        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        api_type_ids_to_exclude: string[],
+    ): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
+
+        active_field_filters = cloneDeep(active_field_filters);
+
+        let excluded_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = {};
+
+        // Remove unwanted field_filters (e.g. "__custom_filters__")
+        const field_filters_for_request: {
+            [api_type_id: string]: { [field_id: string]: ContextFilterVO }
+        } = FieldFilterManager.clean_field_filters_for_request(
+            active_field_filters,
+            { should_restrict_to_api_type_id: !widget_options.no_inter_filter }
+        );
+
+        // Get api_type_ids from field_filters_for_request that are not in api_type_ids_to_exclude
+        const api_type_ids_to_keep_for_request = Object.keys(field_filters_for_request).filter((api_type_id: string) => {
+            return !api_type_ids_to_exclude.includes(api_type_id);
+        });
+
+
+        for (const key in api_type_ids_to_keep_for_request) {
+            const api_type_id_to_keep: string = api_type_ids_to_keep_for_request[key];
+
+            excluded_field_filters[api_type_id_to_keep] = cloneDeep(field_filters_for_request[api_type_id_to_keep]);
+        }
+
+        return excluded_field_filters;
+    }
+
+    /**
      * filter_field_filter_by_type$
      *  - The aim of this function is to filter the given field_filters to only keep context_filters related to each api_type_id
      *
@@ -224,7 +262,7 @@ export default class FieldFilterManager {
 
     /**
      * Filter field_filters by api_type_id
-     * - The aim of this function is to filter field filters by api_type_id (or vo_type)
+     * - The aim of this function is to filter_field_filters by api_type_id (or vo_type)
      * - We should olso only keep all context_filters that actually filter on the given api_type_id (or vo_type)
      *
      * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} active_field_filters
@@ -238,15 +276,30 @@ export default class FieldFilterManager {
         api_type_id: string
     ): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
 
-        for (const i in available_api_type_ids) {
-            const available_api_type_id = available_api_type_ids[i];
+        if (!active_field_filters) {
+            return;
+        }
 
-            if (available_api_type_id != api_type_id) {
-                delete active_field_filters[available_api_type_id];
-            }
+        active_field_filters = cloneDeep(active_field_filters);
+
+        // Get api_type_ids from active_field_filters that are in available_api_type_ids
+        const achievable_api_type_ids = Object.keys(active_field_filters).filter((active_api_type_id: string) => {
+            return available_api_type_ids.includes(active_api_type_id);
+        });
+
+        for (const i in achievable_api_type_ids) {
+            const achievable_api_type_id = achievable_api_type_ids[i];
 
             // On supprime aussi de l'arbre tous les filtres qui ne sont pas du bon type de supervision
-            const field_filters = active_field_filters[available_api_type_id];
+            if (achievable_api_type_id != api_type_id) {
+                delete active_field_filters[achievable_api_type_id];
+            }
+
+            if (!active_field_filters[achievable_api_type_id]) {
+                continue;
+            }
+
+            const field_filters = active_field_filters[achievable_api_type_id];
             for (const field_id in field_filters) {
 
                 if (!field_filters[field_id]) {

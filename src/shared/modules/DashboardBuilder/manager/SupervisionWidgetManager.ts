@@ -72,6 +72,13 @@ export default class SupervisionWidgetManager {
             widget_options?.supervision_api_type_ids ?? [],
         );
 
+        // We may need to filter on other api_type_ids (or vo_type) than the supervision_api_type_ids
+        const other_field_filter = FieldFilterManager.filter_field_filters_by_api_type_ids_to_exlude(
+            widget_options,
+            active_field_filters,
+            widget_options.supervision_api_type_ids ?? []
+        );
+
         /**
          * On est dans un contexte très spécifique : les supervisions
          * Chaque type de supervision est forcément lié à la table des types de supervision
@@ -85,19 +92,31 @@ export default class SupervisionWidgetManager {
             const api_type_id: string = available_api_type_ids[key_i];
 
             const field_filters = FieldFilterManager.filter_field_filters_by_api_type_id(
-                Object.assign({}, active_field_filter_by_api_type_id[api_type_id]),
+                active_field_filter_by_api_type_id[api_type_id],
                 available_api_type_ids,
                 api_type_id
             );
 
-            const filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_active_field_filters(
+            const supervision_context_filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_active_field_filters(
                 field_filters,
             );
+
+            // TODO: May be add widget_options boolean to enable/disable keep_other_context_filters (or specify api_type_ids to keep)
+            const other_context_filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_active_field_filters(
+                other_field_filter,
+            );
+
+            const context_filters: ContextFilterVO[] = [
+                ...supervision_context_filters,
+                ...other_context_filters
+            ];
 
             // Récupération des sondes
             await promise_pipeline.push(async () => {
 
-                if (!await ModuleAccessPolicy.getInstance().testAccess(ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id))) {
+                const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id);
+
+                if (!await ModuleAccessPolicy.getInstance().testAccess(access_policy_name)) {
                     return;
                 }
 
@@ -110,7 +129,7 @@ export default class SupervisionWidgetManager {
                 let rows_s: ISupervisedItem[] = await query(api_type_id)
                     .set_limit(pagination?.limit ?? widget_options.limit, pagination?.offset ?? 0)
                     .using(dashboard.api_type_ids)
-                    .add_filters(filters)
+                    .add_filters(context_filters)
                     .set_sort(sort_by)
                     .select_vos<ISupervisedItem>();
 
@@ -158,7 +177,7 @@ export default class SupervisionWidgetManager {
                 // pour éviter de récuperer le cache
                 let items_c: number = await query(api_type_id)
                     .using(dashboard.api_type_ids)
-                    .add_filters(filters)
+                    .add_filters(context_filters)
                     .select_count();
 
                 if (items_c) {

@@ -375,94 +375,22 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
      * @returns TODO vérifier car pas certains que ça fonctionnent dans tous les cas...
      */
     private async set_count_value() {
+
         if (!this.show_count_value) {
             this.count_by_filter_visible_opt_id = {};
             return;
         }
 
-        const limit = EnvHandler.MAX_POOL / 2;
-        const promise_pipeline = new PromisePipeline(limit);
-
-        const available_api_type_ids: string[] = DashboardBuilderDataFilterManager.get_required_api_type_id_from_widget_options(
-            this.widget_options,
-            {
-                active_api_type_ids: this.get_active_api_type_ids,
-                query_api_type_ids: this.get_query_api_type_ids
-            }
-        );
-
-        // Update the context_filter.vo_type with the corresponding api_type_id
-        const field_filters_by_api_type_id: {
-            [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
-        } = FieldFilterManager.update_field_filters_for_required_api_type_ids(
+        this.count_by_filter_visible_opt_id = await FieldValueFilterEnumWidgetManager.find_enum_data_filters_count_from_widget_options(
+            this.dashboard,
             this.widget_options,
             this.get_active_field_filters,
-            available_api_type_ids,
-            available_api_type_ids,
+            this.filter_visible_options,
+            {
+                active_api_type_ids: this.get_active_api_type_ids,
+                query_api_type_ids: this.get_query_api_type_ids,
+            }
         );
-
-        console.log('FieldValueFilterEnumWidgetComponent.set_count_value.field_filters_by_api_type_id', JSON.stringify(field_filters_by_api_type_id));
-
-        let count_by_filter_visible_opt_id: { [id: number]: number } = {};
-
-        for (const key in this.filter_visible_options) {
-            const filter_opt: DataFilterOption = this.filter_visible_options[key];
-
-            if (!filter_opt) {
-                continue;
-            }
-
-            // On RAZ le champ
-            count_by_filter_visible_opt_id[filter_opt.numeric_value] = 0;
-
-            for (const i in available_api_type_ids) {
-                const api_type_id: string = available_api_type_ids[i];
-
-                let filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_active_field_filters(
-                    field_filters_by_api_type_id[api_type_id]
-                );
-
-                console.log('FieldValueFilterEnumWidgetComponent.set_count_value.filters', JSON.stringify(filters));
-
-                const enum_filter = ContextFilterVOManager.get_context_filter_from_data_filter_option(
-                    filter_opt,
-                    null,
-                    this.field,
-                    this.vo_field_ref,
-                );
-
-                if (this.force_filter_by_all_api_type_ids) {
-                    enum_filter.vo_type = api_type_id;
-                }
-
-                filters = filters.concat(enum_filter);
-
-                await promise_pipeline.push(async () => {
-
-                    const has_access = await ModuleAccessPolicy.getInstance().testAccess(ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id));
-
-                    if (!has_access) {
-                        return;
-                    }
-
-                    const qb = query(api_type_id)
-                        .using(this.dashboard.api_type_ids)
-                        .add_filters(filters);
-
-                    FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(qb, this.get_discarded_field_paths);
-
-                    let items_c: number = await qb.select_count();
-
-                    if (items_c >= 0) {
-                        count_by_filter_visible_opt_id[filter_opt.numeric_value] += items_c;
-                    }
-                });
-            }
-        }
-
-        await promise_pipeline.end();
-
-        this.count_by_filter_visible_opt_id = count_by_filter_visible_opt_id;
     }
 
     /**
