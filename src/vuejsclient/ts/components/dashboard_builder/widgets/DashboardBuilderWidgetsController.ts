@@ -1,18 +1,14 @@
-import WidgetsManager from '../../../../../shared/modules/DashboardBuilder/manager/WidgetsManager';
+import DashboardWidgetVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardWidgetVOManager';
 
 /**
  * @class DashboardBuilderWidgetsController
- * @deprecated use WidgetsManager
+ * @deprecated use DashboardWidgetVOManager
  */
-export default class DashboardBuilderWidgetsController extends WidgetsManager {
+export default class DashboardBuilderWidgetsController extends DashboardWidgetVOManager {
 
-    public static getInstance(): DashboardBuilderWidgetsController {
-        if (!DashboardBuilderWidgetsController.instance) {
-            DashboardBuilderWidgetsController.instance = new DashboardBuilderWidgetsController();
-        }
-
-        return DashboardBuilderWidgetsController.instance;
+    public static getInstance(): DashboardWidgetVOManager {
+        return DashboardWidgetVOManager.getInstance();
     }
 
-    protected static instance: DashboardBuilderWidgetsController;
+    protected static instance: DashboardWidgetVOManager;
 }

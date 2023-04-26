@@ -217,7 +217,9 @@ export default class FieldValueFilterEnumWidgetManager {
 
         const vo_field_ref = widget_options?.vo_field_ref;
 
-        const discarded_field_paths = await DashboardBuilderBoardManager.find_discarded_field_paths({ id: dashboard.id } as DashboardVO);
+        const discarded_field_paths = await DashboardBuilderBoardManager.find_discarded_field_paths(
+            { id: dashboard.id } as DashboardVO
+        );
 
         const available_api_type_ids: string[] = DashboardBuilderDataFilterManager.get_required_api_type_ids_from_widget_options(
             widget_options,

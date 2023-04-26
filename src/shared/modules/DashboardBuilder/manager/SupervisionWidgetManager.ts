@@ -24,14 +24,6 @@ export default class SupervisionWidgetManager {
      *
      * TODO: Do it in single request
      *
-     *
-     * TODO: Case refactor method ModuleSupervisionGRController.item_filter_is_stc_half_month (specific to Yve rocher)
-     * TODO: - Whe must filter item by api_type_id == SupervisedAdpPaieVO.API_TYPE_ID
-     * TODO: - Case when does not have employee_id (no employee) => no need to proceed
-     * TODO: - We must get contracts by employee_id
-     * TODO: - Create method that provide the list of contracts for an employee
-     * TODO: - ISupervisedItem must have "employee_id"
-     *
      * @param {DashboardVO} dashboard
      * @param {SupervisionWidgetOptionsVO} widget_options
      * @param {{ [api_type_id: string]: { [field_name: string]: ContextFilterVO } }} active_field_filters

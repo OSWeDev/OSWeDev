@@ -6,6 +6,8 @@ import ModuleTable from "../../ModuleTable";
 import ModuleTableField from "../../ModuleTableField";
 import VOsTypesManager from "../../VO/manager/VOsTypesManager";
 import DashboardVO from "../vos/DashboardVO";
+import FieldValueFilterWidgetOptionsVO from "../vos/FieldValueFilterWidgetOptionsVO";
+import DashboardPageWidgetVOManager from "./DashboardPageWidgetVOManager";
 
 /**
  * @class FieldValueFilterWidgetManager
@@ -13,18 +15,60 @@ import DashboardVO from "../vos/DashboardVO";
  */
 export default class FieldValueFilterWidgetManager {
 
-    public static add_discarded_field_paths(q: ContextQueryVO, discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }): ContextQueryVO {
+    /**
+     * Get Field Value Filters Widgets Options
+     *
+     * @return {{ [title_name_code: string]: { widget_options: FieldValueFilterWidgetOptionsVO, widget_name: string, page_widget_id: number } }}
+     */
+    public static get_field_value_filters_widgets_options(): {
+        [title_name_code: string]: { widget_options: FieldValueFilterWidgetOptionsVO, widget_name: string, page_widget_id: number }
+    } {
+
+        const valuetable_page_widgets: {
+            [page_widget_id: string]: { widget_options: any, widget_name: string, page_widget_id: number }
+        } = DashboardPageWidgetVOManager.filter_all_page_widgets_options_by_widget_name('fieldvaluefilter');
+
+        const res: {
+            [title_name_code: string]: { widget_options: FieldValueFilterWidgetOptionsVO, widget_name: string, page_widget_id: number }
+        } = {};
+
+        for (const key in valuetable_page_widgets) {
+            const options = valuetable_page_widgets[key];
+
+            const widget_options = new FieldValueFilterWidgetOptionsVO().from(options.widget_options);
+            const name = widget_options.get_placeholder_name_code_text(options.page_widget_id);
+
+            res[name] = {} as any;
+            res[name].page_widget_id = options.page_widget_id;
+            res[name].widget_name = options.widget_name;
+            res[name].widget_options = widget_options;
+        }
+
+        return res;
+    }
+
+    /**
+     * Add the discarded field paths to the context query
+     *
+     * @param {ContextQueryVO} context_query
+     * @param {{ [vo_type: string]: { [field_id: string]: boolean } }} discarded_field_paths
+     * @returns {ContextQueryVO}
+     */
+    public static add_discarded_field_paths(
+        context_query: ContextQueryVO,
+        discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }
+    ): ContextQueryVO {
 
         //On évite les jointures supprimées.
-        for (let vo_type in discarded_field_paths) {
-            let discarded_field_paths_vo_type = discarded_field_paths[vo_type];
+        for (const vo_type in discarded_field_paths) {
+            const discarded_field_paths_vo_type = discarded_field_paths[vo_type];
 
-            for (let field_id in discarded_field_paths_vo_type) {
-                q.discard_field_path(vo_type, field_id); //On annhile le chemin possible depuis la cellule source de champs field_id
+            for (const field_id in discarded_field_paths_vo_type) {
+                context_query.set_discard_field_path(vo_type, field_id); //On annhile le chemin possible depuis la cellule source de champs field_id
             }
         }
 
-        return q;
+        return context_query;
     }
 
     public static async get_overflowing_segmented_options_api_type_id_from_dashboard(

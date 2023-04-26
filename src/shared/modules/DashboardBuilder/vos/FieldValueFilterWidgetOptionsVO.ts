@@ -1,5 +1,5 @@
 import DashboardPageWidgetVO from "./DashboardPageWidgetVO";
-import { AbstractVO } from "../../VO/abstract/AbstractVO";
+import AbstractVO from "../../VO/abstract/AbstractVO";
 import VOFieldRefVO from "./VOFieldRefVO";
 import DataFilterOption from "../../DataRender/vos/DataFilterOption";
 import TSRange from "../../DataRender/vos/TSRange";

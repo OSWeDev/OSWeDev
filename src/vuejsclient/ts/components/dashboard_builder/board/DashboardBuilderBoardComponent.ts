@@ -27,6 +27,7 @@ import CRUDCreateModalComponent from '../widgets/table_widget/crud_modals/create
 import CRUDUpdateModalComponent from '../widgets/table_widget/crud_modals/update/CRUDUpdateModalComponent';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import DashboardBuilderBoardManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardBuilderBoardManager';
+import DashboardPageWidgetVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardPageWidgetVOManager';
 
 @Component({
     template: require('./DashboardBuilderBoardComponent.pug'),
@@ -126,7 +127,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     }
 
     public async update_layout_widget(widget: DashboardPageWidgetVO) {
-        if ((!this.editable_dashboard_page) || (!this.editable_dashboard_page.layout)) {
+        if ((!this.editable_dashboard_page?.layout)) {
             await this.rebuild_page_layout();
             return;
         }
@@ -212,9 +213,12 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     }
 
     private async load_widgets() {
-        let widgets = await query(DashboardPageWidgetVO.API_TYPE_ID).filter_by_num_eq('page_id', this.dashboard_page.id).select_vos<DashboardPageWidgetVO>();
+        let widgets = await DashboardPageWidgetVOManager.find_page_widget_items_by_page_id(
+            this.dashboard_page.id
+        );
 
         widgets = widgets ? widgets.filter((w) => !this.get_widgets_invisibility[w.id]) : null;
+
         this.widgets = widgets;
     }
 

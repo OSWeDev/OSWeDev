@@ -283,23 +283,23 @@ export default class FieldFilterManager {
         active_field_filters = cloneDeep(active_field_filters);
 
         // Get api_type_ids from active_field_filters that are in available_api_type_ids
-        const achievable_api_type_ids = Object.keys(active_field_filters).filter((active_api_type_id: string) => {
+        const reachable_api_type_ids = Object.keys(active_field_filters).filter((active_api_type_id: string) => {
             return available_api_type_ids.includes(active_api_type_id);
         });
 
-        for (const i in achievable_api_type_ids) {
-            const achievable_api_type_id = achievable_api_type_ids[i];
+        for (const i in reachable_api_type_ids) {
+            const reachable_api_type_id = reachable_api_type_ids[i];
 
             // On supprime aussi de l'arbre tous les filtres qui ne sont pas du bon type de supervision
-            if (achievable_api_type_id != api_type_id) {
-                delete active_field_filters[achievable_api_type_id];
+            if (reachable_api_type_id != api_type_id) {
+                delete active_field_filters[reachable_api_type_id];
             }
 
-            if (!active_field_filters[achievable_api_type_id]) {
+            if (!active_field_filters[reachable_api_type_id]) {
                 continue;
             }
 
-            const field_filters = active_field_filters[achievable_api_type_id];
+            const field_filters = active_field_filters[reachable_api_type_id];
             for (const field_id in field_filters) {
 
                 if (!field_filters[field_id]) {
@@ -312,6 +312,38 @@ export default class FieldFilterManager {
                     api_type_id,
                     available_api_type_ids
                 );
+            }
+        }
+
+        return active_field_filters;
+    }
+
+    /**
+     * Filter visible field_filters
+     *  - The aim of this function is to filter the given field_filters to only keep visible context_filters
+     * @param {any} widgets_options
+     * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} active_field_filters
+     * @returns {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }}
+     */
+    public static filter_visible_field_filters(
+        widgets_options: any[],
+        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+    ): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
+
+        active_field_filters = cloneDeep(active_field_filters);
+
+        for (const key in widgets_options) {
+            const options = widgets_options[key];
+
+            const vo_field_ref = options.vo_field_ref;
+
+            if (options.hide_filter) {
+                if (
+                    active_field_filters[vo_field_ref.api_type_id] &&
+                    active_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id]
+                ) {
+                    delete active_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id];
+                }
             }
         }
 

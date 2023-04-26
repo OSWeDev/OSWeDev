@@ -4,7 +4,7 @@ import VueComponentBase from '../../../VueComponentBase';
 import ShowFavoritesFiltersWidgetOptions from './options/ShowFavoritesFiltersWidgetOptions';
 import './ShowFavoritesFiltersWidgetComponent.scss';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
-import DashboardFavoritesFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardFavoritesFiltersVO';
+import FavoritesFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
@@ -48,12 +48,12 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
     @Prop({ default: null })
     private dashboard_page: DashboardPageVO;
 
-    private tmp_active_favorites_filters_option: DashboardFavoritesFiltersVO = null;
-    private old_tmp_active_favorites_filters_option: DashboardFavoritesFiltersVO = null;
+    private tmp_active_favorites_filters_option: FavoritesFiltersVO = null;
+    private old_tmp_active_favorites_filters_option: FavoritesFiltersVO = null;
 
     private old_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null;
 
-    private favorites_filters_visible_options: DashboardFavoritesFiltersVO[] = [];
+    private favorites_filters_visible_options: FavoritesFiltersVO[] = [];
 
     private warn_existing_external_filters: boolean = false;
 
@@ -182,7 +182,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
 
         let field_sort: VOFieldRefVO = this.vo_field_ref;
 
-        let tmp: DashboardFavoritesFiltersVO[] = [];
+        let tmp: FavoritesFiltersVO[] = [];
 
         let query_api_type_id: string = this.vo_field_ref.api_type_id;
 
@@ -191,7 +191,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
             .filter_by_text_eq('owner_id', this.data_user.id.toString())
             .set_limit(this.widget_options?.max_visible_options)
             .set_sort(new SortByVO(field_sort.api_type_id, field_sort.field_id, true))
-            .select_vos<DashboardFavoritesFiltersVO>();
+            .select_vos<FavoritesFiltersVO>();
 
         // We must keep and apply the last request response
         // - This widget may already have perform a request
@@ -386,7 +386,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
      * @return {VOFieldRefVO}
      */
     get vo_field_ref(): VOFieldRefVO {
-        const vo = new DashboardFavoritesFiltersVO();
+        const vo = new FavoritesFiltersVO();
 
         return new VOFieldRefVO().from({
             api_type_id: vo._type,

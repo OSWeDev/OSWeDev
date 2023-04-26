@@ -3,7 +3,7 @@ import Component from 'vue-class-component';
 import { Watch } from 'vue-property-decorator';
 import ContextFilterVOHandler from '../../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import DashboardFavoritesFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardFavoritesFiltersVO';
+import FavoritesFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO';
 import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
 import VueComponentBase from '../../../../VueComponentBase';
 import './SaveFavoritesFiltersModalComponent.scss';
@@ -46,7 +46,7 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
 
     private selectionnable_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null;
 
-    private on_validation_callback: (props: Partial<DashboardFavoritesFiltersVO>) => Promise<void> = null;
+    private on_validation_callback: (props: Partial<FavoritesFiltersVO>) => Promise<void> = null;
 
     /**
      * Handle Open Modal
@@ -60,7 +60,7 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
             selectionnable_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
             exportable_data: { [title_name_code: string]: ExportContextQueryToXLSXParamVO },
         } = null,
-        validation_callback?: (props?: Partial<DashboardFavoritesFiltersVO>) => Promise<void>
+        validation_callback?: (props?: Partial<FavoritesFiltersVO>) => Promise<void>
     ): void {
         this.is_modal_open = true;
 

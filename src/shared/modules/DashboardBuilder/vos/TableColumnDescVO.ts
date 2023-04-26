@@ -1,10 +1,11 @@
 import IWeightedItem from "../../../tools/interfaces/IWeightedItem";
 import IDistantVOBase from "../../IDistantVOBase";
 import ModuleTableField from "../../ModuleTableField";
+import AbstractVO from "../../VO/abstract/AbstractVO";
 import VOsTypesManager from "../../VO/manager/VOsTypesManager";
 import DashboardBuilderController from "../DashboardBuilderController";
 
-export default class TableColumnDescVO implements IDistantVOBase, IWeightedItem {
+export default class TableColumnDescVO extends AbstractVO implements IDistantVOBase, IWeightedItem {
 
     public static API_TYPE_ID: string = "table_column_desc";
 

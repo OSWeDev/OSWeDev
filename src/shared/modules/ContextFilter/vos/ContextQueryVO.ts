@@ -125,7 +125,21 @@ export default class ContextQueryVO implements IDistantVOBase {
         return this;
     }
 
+    /**
+     * @deprecated use set_discard_field_path instead
+     */
     public discard_field_path(vo_type: string, field_id: string): ContextQueryVO {
+        return this.set_discard_field_path(vo_type, field_id);
+    }
+
+    /**
+     * set_discard_field_path
+     *
+     * @param {string} vo_type
+     * @param {string} field_id
+     * @returns {ContextQueryVO}
+     */
+    public set_discard_field_path(vo_type: string, field_id: string): ContextQueryVO {
         if (!this.discarded_field_paths) {
             this.discarded_field_paths = {};
         }
