@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import fs from 'fs';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import FileVO from '../../../../shared/modules/File/vos/FileVO';

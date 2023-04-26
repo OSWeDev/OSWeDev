@@ -1,6 +1,6 @@
 
-import * as moment from "moment";
-import * as screenfull from "screenfull";
+import moment from "moment";
+import screenfull from "screenfull";
 import { Vue } from "vue-property-decorator";
 import ModuleDataExport from "../../../shared/modules/DataExport/ModuleDataExport";
 import ExportDataToXLSXParamVO from "../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO";

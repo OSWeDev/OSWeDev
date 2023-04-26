@@ -1,6 +1,6 @@
 
 import { cloneDeep } from 'lodash';
-import * as XLSX from 'xlsx';
+import XLSX from 'xlsx';
 import { WorkBook } from 'xlsx';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';

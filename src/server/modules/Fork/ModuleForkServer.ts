@@ -1,7 +1,7 @@
 
 import { ChildProcess } from 'child_process';
 import { Server, Socket } from 'net';
-import JSONTransport = require('nodemailer/lib/json-transport');
+import JSONTransport from 'nodemailer/lib/json-transport';
 import CRUD from '../../../shared/modules/DAO/vos/CRUD';
 import ModuleFork from '../../../shared/modules/Fork/ModuleFork';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';

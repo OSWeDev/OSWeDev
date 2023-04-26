@@ -69,7 +69,7 @@ import DAOPreDeleteTriggerHook from './triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
 import ThrottledSelectQueryParam from './vos/ThrottledSelectQueryParam';
-import pgPromise = require('pg-promise');
+import pgPromise from 'pg-promise';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import ContextQueryInjectionCheckHandler from '../../../shared/modules/ContextFilter/ContextQueryInjectionCheckHandler';

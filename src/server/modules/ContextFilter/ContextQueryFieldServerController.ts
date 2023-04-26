@@ -3,7 +3,7 @@ import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterO
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import { VOsTypesManager } from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConversionHandler from '../../../shared/tools/ConversionHandler';
-import moment = require('moment');
+import moment from 'moment';
 
 export default class ContextQueryFieldServerController {
 

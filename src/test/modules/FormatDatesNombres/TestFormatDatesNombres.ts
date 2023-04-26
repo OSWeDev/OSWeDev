@@ -8,7 +8,7 @@ import ModuleFormatDatesNombres from '../../../shared/modules/FormatDatesNombres
 
 
 import { ARRONDI_TYPE_FLOOR, ARRONDI_TYPE_CEIL, ARRONDI_TYPE_ROUND } from '../../../shared/tools/Filters';
-import * as moment from 'moment';
+import moment from 'moment';
 
 
 describe('ModuleFormatDatesNombres', () => {

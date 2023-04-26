@@ -1,7 +1,7 @@
-import * as fs from 'fs';
-import * as jimp from 'jimp';
+import fs from 'fs';
+import jimp from 'jimp';
 import { isEqual } from 'lodash';
-import * as path from 'path';
+import path from 'path';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';

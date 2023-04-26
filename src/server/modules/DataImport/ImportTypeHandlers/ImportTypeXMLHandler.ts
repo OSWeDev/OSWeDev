@@ -20,7 +20,7 @@ import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../shared/tools/DateHandler';
 import FileHandler from '../../../../shared/tools/FileHandler';
 import ImportLogger from '../logger/ImportLogger';
-import moment = require('moment');
+import moment from 'moment';
 const XmlReader = require('xml-reader');
 const he = require('he');
 

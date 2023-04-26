@@ -1,4 +1,4 @@
-import * as pg_promise from 'pg-promise';
+import pg_promise from 'pg-promise';
 import { IDatabase } from 'pg-promise';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModulesManager from '../../../shared/modules/ModulesManager';

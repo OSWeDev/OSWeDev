@@ -18,7 +18,7 @@ import DateHandler from '../../../../shared/tools/DateHandler';
 import TextHandler from '../../../../shared/tools/TextHandler';
 import TypesHandler from '../../../../shared/tools/TypesHandler';
 import ImportLogger from '../logger/ImportLogger';
-import moment = require('moment');
+import moment from 'moment';
 import { createReadStream, ReadStream } from 'fs';
 import FileHandler from '../../../../shared/tools/FileHandler';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';

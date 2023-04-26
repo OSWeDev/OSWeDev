@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import 'mocha';
 
-import * as moment from 'moment';
+import moment from 'moment';
 import ServerAPIController from '../../../server/modules/API/ServerAPIController';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';

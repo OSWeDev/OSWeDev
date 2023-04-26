@@ -1,5 +1,5 @@
-import mxgraph from 'mxgraph';
-import { Graph } from './graph_tools/Graph';
+import { Cell, Client, CodecRegistry, domUtils, Editor, eventUtils, Geometry, gestureUtils, Graph, ObjectCodec, Rectangle } from '@maxgraph/core';
+import { GraphObj } from './graph_tools/Graph';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
@@ -14,48 +14,29 @@ import DroppableVosComponent from '../droppable_vos/DroppableVosComponent';
 import TablesGraphEditFormComponent from './edit_form/TablesGraphEditFormComponent';
 import TablesGraphItemComponent from './item/TablesGraphItemComponent';
 import './TablesGraphComponent.scss';
-import { watch } from 'fs';
-import { isUndefined, keys } from 'lodash';
 import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-const graphConfig = {
-    mxBasePath: '/mx/', //Specifies the path in mxClient.basePath.
-    mxImageBasePath: '/mx/images', // Specifies the path in mxClient.imageBasePath.
-    mxLanguage: 'en', // Specifies the language for resources in mxClient.language.
-    mxDefaultLanguage: 'en', // Specifies the default language in mxClient.defaultLanguage.
-    mxLoadResources: false, // Specifies if any resources should be loaded.  Default is true.
-    mxLoadStylesheets: false, // Specifies if any stylesheets should be loaded.  Default is true
-};
+// const graphConfig = {
+//     mxBasePath: '/mx/', //Specifies the path in Client.basePath.
+//     ImageBasePath: '/mx/images', // Specifies the path in Client.imageBasePath.
+//     mxLanguage: 'en', // Specifies the language for resources in Client.language.
+//     mxDefaultLanguage: 'en', // Specifies the default language in Client.defaultLanguage.
+//     mxLoadResources: false, // Specifies if any resources should be loaded.  Default is true.
+//     mxLoadStylesheets: false, // Specifies if any stylesheets should be loaded.  Default is true
+// };
 
-const {
-    mxClient, mxUtils, mxEvent, mxEditor, mxRectangle, mxGraph, mxGeometry, mxCell,
-    mxImage, mxDivResizer, mxObjectCodec, mxCodecRegistry, mxConnectionHandler
-} = mxgraph(graphConfig);
+// console.log(JSON.stringify(mxgraph));
 
-window['mxClient'] = mxClient;
-window['mxUtils'] = mxUtils;
-window['mxRectangle'] = mxRectangle;
-window['mxGraph'] = mxGraph;
-window['mxEvent'] = mxEvent;
-window['mxGeometry'] = mxGeometry;
-window['mxCell'] = mxCell;
-window['mxImage'] = mxImage;
-window['mxEditor'] = mxEditor;
-window['mxDivResizer'] = mxDivResizer;
-window['mxObjectCodec'] = mxObjectCodec;
-window['mxCodecRegistry'] = mxCodecRegistry;
-window['mxConnectionHandler'] = mxConnectionHandler;
-
-let editor;
+// let editor;
 
 
-// CustomUserObject
-window['CustomUserObject'] = function (name, type) {
-    this.name = name || 'New Name';
-    this.type = type || 'New Type';
-    this.clone = function () {
-        return mxUtils.clone(this);
-    };
-};
+// // CustomUserObject
+// window['CustomUserObject'] = function (name, type) {
+//     this.name = name || 'New Name';
+//     this.type = type || 'New Type';
+//     this.clone = function () {
+//         return Utils.clone(this);
+//     };
+// };
 @Component({
     template: require('./TablesGraphComponent.pug'),
     components: {
@@ -72,16 +53,19 @@ export default class TablesGraphComponent extends VueComponentBase {
     private toggles: { [vo_type: number]: string[] } = null; //Valeur des interrupteurs.
     private toggle: boolean = null; //Valeur de l'interrupteur de la cellule selectionnée.
     private current_cell = null;
-    private graphic_cells: { [cellule: string]: typeof mxCell } = {}; //Dictionnaire dans lequel on enregistre les cellules à afficher afin d'éviter d'afficher des doublons.
-    private end_graphic_cells: { [cellule: string]: typeof mxCell } = {};
+    private graphic_cells: { [cellule: string]: Cell } = {}; //Dictionnaire dans lequel on enregistre les cellules à afficher afin d'éviter d'afficher des doublons.
+    private end_graphic_cells: { [cellule: string]: Cell } = {};
     private cells: { [api_type_id: string]: any } = {};
     private end_toggles: { [vo_type: number]: string[] } = {};
+
+    private maxgraph: Graph = null;
+    private graph_layout: GraphObj = null;
 
     private async selectionChanged() { //TODO Faire en sorte que lorsqu'on selectionne une autre flèche directement, l'interrupteur se met a jour.
         /* S'active lors qu'on selectionne une flèche ou une cellule.
         Point interessant, si des flèches se superposent, cliquer sur le nom de la flèche en question fonctionne.
         */
-        let cell = editor.graph.getSelectionCell();
+        let cell = this.maxgraph.getSelectionCell();
 
         try {
             if (cell.edge == true) { //Si la cellule selectionnée est une flèche.
@@ -104,7 +88,7 @@ export default class TablesGraphComponent extends VueComponentBase {
                             .select_vos<DashboardGraphVORefVO>();
 
                         if ((!db_cells_source) || (!db_cells_source.length)) {
-                            ConsoleHandler.error('mxEvent.MOVE_END:no db cell');
+                            ConsoleHandler.error('Event.MOVE_END:no db cell');
                             return;
                         }
 
@@ -126,15 +110,15 @@ export default class TablesGraphComponent extends VueComponentBase {
         this.$set(this, 'current_cell', cell);
     }
 
-    private async toggle_check(checked: boolean, edge?: typeof mxCell) {
+    private async toggle_check(checked: boolean, edge?: Cell) {
         /* Toggle function
             Permet de réactiver une flèche supprimée.
             After delete_arrow.
         */
         // const input = document.getElementById("myCheckbox") as HTMLInputElement; //Assertion obligatoire
-        let arrowValue: typeof mxCell;
+        let arrowValue: Cell;
         if (!edge) {
-            arrowValue = editor.graph.getSelectionCell();
+            arrowValue = this.maxgraph.getSelectionCell();
 
         } else {
             arrowValue = edge;
@@ -146,7 +130,7 @@ export default class TablesGraphComponent extends VueComponentBase {
         if (arrowValue.edge != true) {
             return console.log("Ce n'est pas une flèche !");
         }
-        let source_cell: typeof mxCell = arrowValue.source; //Cellule source de la flèche selectionnée.
+        let source_cell: Cell = arrowValue.source; //Cellule source de la flèche selectionnée.
 
         //La flèche est-elle n/n ou non ?
         let vo_type: string;
@@ -158,9 +142,8 @@ export default class TablesGraphComponent extends VueComponentBase {
         } else {
             vo_type = arrowValue['field_id']['intermediaire']; //On crée la cellule intermédiare.
             is_n_n = true;
-            let graph = editor.graph;
 
-            graph.stopEditing(false);
+            this.maxgraph.stopEditing(false);
 
             let cell = new DashboardGraphVORefVO();
             cell.x = 800;
@@ -178,7 +161,7 @@ export default class TablesGraphComponent extends VueComponentBase {
             .select_vos<DashboardGraphVORefVO>();
 
         if ((!db_cells_source) || (!db_cells_source.length)) {
-            ConsoleHandler.error('mxEvent.MOVE_END:no db cell');
+            ConsoleHandler.error('Event.MOVE_END:no db cell');
             return;
         }
 
@@ -254,7 +237,7 @@ export default class TablesGraphComponent extends VueComponentBase {
         }
     }
 
-    private async delete_cell(cellValue: typeof mxCell) {
+    private async delete_cell(cellValue: Cell) {
         /*Pour supprimer des cellules (et non des flèches)*/
 
         if (!cellValue.edge) {
@@ -264,15 +247,15 @@ export default class TablesGraphComponent extends VueComponentBase {
                 .select_vos<DashboardGraphVORefVO>();
 
             if ((!db_cells) || (!db_cells.length)) {
-                ConsoleHandler.error('mxEvent.MOVE_END:no db cell');
+                ConsoleHandler.error('Event.MOVE_END:no db cell');
                 return;
             }
             let db_cell = db_cells[0];
             await ModuleDAO.getInstance().deleteVOs([db_cell]); //Suppression de la cellule en base, ainsi les flèches désactivées auparavant ne le seront plus.
-            // editor.graph.removeSelectionCell
+            // this.maxgraph.removeSelectionCell
 
             delete this.cells[cellValue.value.tables_graph_vo_type];
-            editor.graph.removeCells([cellValue]);
+            this.maxgraph.removeCells([cellValue]);
 
             await this.initgraph(); //On relance le graphe afin de réafficher les relations n/n si des cellules intermédiaires ont été supprimée.
 
@@ -288,7 +271,7 @@ export default class TablesGraphComponent extends VueComponentBase {
             if (number_arrows > 0) {
                 for (let cell of this.cells[source].edges) {
                     if (cell.target.value.tables_graph_vo_type == target && cell.value == values) {
-                        editor.graph.removeCells([cell]); //On retire cette flèche.
+                        this.maxgraph.removeCells([cell]); //On retire cette flèche.
                     }
                 }
             }
@@ -329,8 +312,8 @@ export default class TablesGraphComponent extends VueComponentBase {
         droppables.forEach((droppable) => {
             // Creates the image which is used as the drag icon (preview)
             let api_type_id = droppable.getAttribute('api_type_id');
-            let dragImage = droppable.cloneNode(true);
-            mxUtils.makeDraggable(droppable, graph_, funct(api_type_id), dragImage);
+            let dragImage = droppable.cloneNode(true) as Element;
+            gestureUtils.makeDraggable(droppable, graph_, funct(api_type_id), dragImage);
         });
 
         // // Creates the image which is used as the sidebar icon (drag source)
@@ -351,16 +334,16 @@ export default class TablesGraphComponent extends VueComponentBase {
 
         // // Creates the image which is used as the drag icon (preview)
         // let dragImage = wrapper.cloneNode(true);
-        // mxUtils.makeDraggable(wrapper, graph_, funct, dragImage);
+        // Utils.makeDraggable(wrapper, graph_, funct, dragImage);
     }
 
     private createGraph() {
         // Checks if the browser is supported
-        if (!mxClient.isBrowserSupported()) {
+        if (!Client.isBrowserSupported()) {
             // Displays an error message if the browser is not supported.
-            mxUtils.error('Browser is not supported!', 200, false);
+            // FIXME TODO je retrouve pas l'équivalent de maxGraph vs mxgraph Utils.error('Browser is not supported!', 200, false);
         } else {
-            // mxConnectionHandler.prototype.connectImage = new mxImage(require('./handle-connect.png'), 16, 16);
+            // ConnectionHandler.prototype.connectImage = new Image(require('./handle-connect.png'), 16, 16);
 
             let container = (this.$refs['container'] as any);
             // container.style.position = 'absolute';
@@ -373,39 +356,35 @@ export default class TablesGraphComponent extends VueComponentBase {
 
             let sidebar = (this.$refs['sidebar'] as any);
 
-            if (mxClient.IS_QUIRKS) {
-                document.body.style.overflow = 'hidden';
-                let a = new mxDivResizer(container);
-                let b = new mxDivResizer(sidebar);
-            }
+            // FIXME TODO je retrouve pas l'équivalent de maxGraph vs mxgraph if (Client.IS_QUIRKS) {
+            //     document.body.style.overflow = 'hidden';
+            //     let a = new DivResizer(container);
+            //     let b = new DivResizer(sidebar);
+            // }
 
-            editor = new mxEditor();
-            editor.setGraphContainer(container);
+            this.maxgraph = new Graph(container);
 
             //Creating relative graph
-            const graph_layout: InstanceType<typeof Graph> = new Graph();
-            editor.graph_layout = graph_layout;
-            // editor.graph.setConnectable(true);
-            // editor.graph.setCellsDisconnectable(true);
-            // editor.graph.setPanning(true);
-            editor.graph.setConnectable(false);
-            editor.graph.setCellsDisconnectable(false);
-            editor.graph.setPanning(true);
-            editor.graph.setAllowDanglingEdges(false);
+            this.graph_layout = new GraphObj();
 
-            editor.graph.getSelectionModel().addListener(mxEvent.CHANGE, () => {
+            this.maxgraph.setConnectable(false);
+            this.maxgraph.setCellsDisconnectable(false);
+            this.maxgraph.setPanning(true);
+            this.maxgraph.setAllowDanglingEdges(false);
+
+            this.maxgraph.getSelectionModel().addListener('change', () => {
                 this.selectionChanged().then().catch((error) => { ConsoleHandler.error(error); });
             });
             this.selectionChanged().then().catch((error) => { ConsoleHandler.error(error); });
-            editor.graph.addListener('moveCells', async () => {
-                let cell = editor.graph.getSelectionCell();
+            this.maxgraph.addListener('moveCells', async () => {
+                let cell = this.maxgraph.getSelectionCell();
                 let db_cells = await query(DashboardGraphVORefVO.API_TYPE_ID)
                     .filter_by_num_eq('dashboard_id', this.dashboard.id)
                     .filter_by_text_eq('vo_type', cell.value.tables_graph_vo_type)
                     .select_vos<DashboardGraphVORefVO>();
 
                 if ((!db_cells) || (!db_cells.length)) {
-                    ConsoleHandler.error('mxEvent.MOVE_END:no db cell');
+                    ConsoleHandler.error('Event.MOVE_END:no db cell');
                     return;
                 }
                 let db_cell = db_cells[0];
@@ -416,31 +395,31 @@ export default class TablesGraphComponent extends VueComponentBase {
                 await ModuleDAO.getInstance().insertOrUpdateVO(db_cell);
             });
 
-            editor.graph.centerZoom = false;
-            editor.graph.swimlaneNesting = false;
-            editor.graph.dropEnabled = true;
+            this.maxgraph.centerZoom = false;
+            this.maxgraph.swimlaneNesting = false;
+            this.maxgraph.dropEnabled = true;
 
             // Fields are dynamically created HTML labels
-            editor.graph.isHtmlLabel = function (cell) {
+            this.maxgraph.isHtmlLabel = function (cell) {
                 return !this.isSwimlane(cell) &&
                     !this.model.isEdge(cell);
             };
 
             // not editable
-            editor.graph.isCellEditable = function () {
+            this.maxgraph.isCellEditable = function () {
                 return false;
             };
 
             // Returns the name propertie of the user object for the label
-            editor.graph.convertValueToString = function (cell) {
+            this.maxgraph.convertValueToString = function (cell) {
                 if (cell.value != null && cell.value.name != null) {
                     return cell.value.name;
                 }
-                return mxGraph.prototype.convertValueToString.apply(this, arguments); // "supercall"
+                return cell.getValue().toString();
             };
 
             // Creates a dynamic HTML label for properties
-            editor.graph.getLabel = function (cell) {
+            this.maxgraph.getLabel = function (cell) {
 
                 // console.log('getLabel ', cell);
                 if (cell && this.isHtmlLabel(cell) && cell.value) {
@@ -465,36 +444,37 @@ export default class TablesGraphComponent extends VueComponentBase {
                     return label;
                 }
 
-                return mxGraph.prototype.getLabel.apply(this, arguments); // "supercall"
+
+                return cell.getValue().toString();
             };
 
-            this.addSidebarIcon(editor.graph, sidebar, this.cell_prototype);
+            this.addSidebarIcon(this.maxgraph, sidebar, this.cell_prototype);
         }
     }
 
     get cell_prototype() {
         let customObject = new window['CustomUserObject']();
-        let object = new mxCell(customObject, new mxGeometry(0, 0, 200, 50), '');
+        let object = new Cell(customObject, new Geometry(0, 0, 200, 50));
         object.setVertex(true);
         object.setConnectable(false);
         return object;
     }
 
     private init() {
-        let codecCustomUserObject = new mxObjectCodec(new window['CustomUserObject']());
+        let codecCustomUserObject = new ObjectCodec(new window['CustomUserObject']());
         codecCustomUserObject.encode = function (enc, obj) {
             let node = enc.document.createElement('CustomUserObject');
-            mxUtils.setTextContent(node, JSON.stringify(obj));
+            node.textContent = JSON.stringify(obj);
 
             return node;
         };
         codecCustomUserObject.decode = function (dec, node) {
-            let obj = JSON.parse(mxUtils.getTextContent(node));
+            let obj = JSON.parse(node.textContent);
             let beatyObj = new window['CustomUserObject']();
             obj = Object.assign(beatyObj, obj);
             return obj;
         };
-        mxCodecRegistry.register(codecCustomUserObject);
+        CodecRegistry.register(codecCustomUserObject);
 
         this.createGraph();
     }
@@ -515,8 +495,8 @@ export default class TablesGraphComponent extends VueComponentBase {
     private async initgraph(red_by_default: boolean = false) {
 
         this.graphic_cells = {}; //Réinitialisation des cellules à afficher.
-        if (editor && editor.graph && Object.values(this.cells) && Object.values(this.cells).length) {
-            editor.graph.removeCells(Object.values(this.cells));
+        if (this.maxgraph && Object.values(this.cells) && Object.values(this.cells).length) {
+            this.maxgraph.removeCells(Object.values(this.cells));
         } //Parfois , le compilateur repasse  sans raison ici et crée alors les cellules en double
 
         //Pour éviter, on vérifie que graphic_cells est bien nul .
@@ -552,10 +532,10 @@ export default class TablesGraphComponent extends VueComponentBase {
 
             let cell = cells[i];
 
-            editor.graph.stopEditing(false);
+            this.maxgraph.stopEditing(false);
 
-            let parent = editor.graph.getDefaultParent();
-            let model = editor.graph.getModel();
+            let parent = this.maxgraph.getDefaultParent();
+            let model = this.maxgraph.getDataModel();
 
             let v1 = model.cloneCell(this.cell_prototype);
             //  let v1 = this.cells[cell.vo_type];
@@ -565,14 +545,14 @@ export default class TablesGraphComponent extends VueComponentBase {
                 // v1.style.strokeColor = '#F5F5F5';
                 // v1.style.fillColor = '#FFF';
 
-                editor.graph.setCellStyles('strokeColor', '#555', [v1]);
-                editor.graph.setCellStyles('fillColor', '#444', [v1]);
+                this.maxgraph.setCellStyles('strokeColor', '#555', [v1]);
+                this.maxgraph.setCellStyles('fillColor', '#444', [v1]);
                 v1.geometry.x = cell.x;
                 v1.geometry.y = cell.y;
-                // v1.style = editor.graph.stylesheet.getDefaultEdgeStyle();
-                v1.geometry.alternateBounds = new mxRectangle(0, 0, cell.width, cell.height, '');
+                // v1.style = this.maxgraph.stylesheet.getDefaultEdgeStyle();
+                v1.geometry.alternateBounds = new Rectangle(0, 0, cell.width, cell.height);
                 v1.value.tables_graph_vo_type = cell.vo_type;
-                editor.graph.addCell(v1, parent); //Adding the cell
+                this.maxgraph.addCell(v1, parent); //Adding the cell
             } finally {
                 model.endUpdate();
                 this.graphic_cells[cell.vo_type] = v1; // On enregistre la cellule dans un dictionnaire pour la réutiliser. C'est la cellule graphique.
@@ -585,7 +565,7 @@ export default class TablesGraphComponent extends VueComponentBase {
 
         let compteur: number = 0;
         for (let cellule in this.graphic_cells) {
-            let v1: typeof mxCell = this.graphic_cells[cellule];
+            let v1: Cell = this.graphic_cells[cellule];
             //Table associée, on souhaite désactiver par défauts certains chemins.
             switch (red_by_default) {
                 case true:
@@ -625,7 +605,7 @@ export default class TablesGraphComponent extends VueComponentBase {
             .select_vos<DashboardGraphVORefVO>();
 
         if ((!db_cells_sources) || (!db_cells_sources.length)) {
-            ConsoleHandler.error('mxEvent.MOVE_END:no db cell');
+            ConsoleHandler.error('Event.MOVE_END:no db cell');
             return;
         }
 
@@ -639,7 +619,7 @@ export default class TablesGraphComponent extends VueComponentBase {
         this.end_graphic_cells = this.graphic_cells;
         this.end_toggles = this.toggles;
     }
-    private initcell(cell: DashboardGraphVORefVO, v1: typeof mxCell, is_versioned?) { //TODO Inclure les champs techniques dans targets_to_exclude
+    private initcell(cell: DashboardGraphVORefVO, v1: Cell, is_versioned?) { //TODO Inclure les champs techniques dans targets_to_exclude
         /*
          Incorpore la cellule cell dans le graphique et dessine les flèches qui partent de celle-ci ainsi que celle qui viennent.
          On évite de redessiner les flèches déjà construite.
@@ -653,15 +633,13 @@ export default class TablesGraphComponent extends VueComponentBase {
             values_to_exclude = cell.values_to_exclude;
         } else { values_to_exclude = []; }
 
-        let graph = editor.graph;
-        let graph_layout: InstanceType<typeof Graph> = editor.graph_layout;
         let field_values: { [target: string]: { [values: string]: string | { [keys: string]: string } } } = {}; //Afin d'enregistrer le field_id associé pour chaque value. Le string[] convient pour les n/n.
-        graph_layout.reset();
+        this.graph_layout.reset();
 
-        graph.stopEditing(false);
+        this.maxgraph.stopEditing(false);
 
-        let parent = graph.getDefaultParent();
-        let model = graph.getModel();
+        let parent = this.maxgraph.getDefaultParent();
+        let model = this.maxgraph.getDataModel(); // FIXME TODO  check getModel => getDataModel ???
         //Constantes nécessaires:
         let node_v1: string = cell.vo_type; //Nom de la cellule source
 
@@ -674,8 +652,8 @@ export default class TablesGraphComponent extends VueComponentBase {
             // v1.style.strokeColor = '#F5F5F5';
             // v1.style.fillColor = '#FFF';
 
-            graph.setCellStyles('strokeColor', '#555', [v1]);
-            graph.setCellStyles('fillColor', '#444', [v1]);
+            this.maxgraph.setCellStyles('strokeColor', '#555', [v1]);
+            this.maxgraph.setCellStyles('fillColor', '#444', [v1]);
             // On rajoute les liaisons depuis les autres vos
             let references: Array<ModuleTableField<any>> = VOsTypesManager.get_type_references(cell.vo_type);
             for (let i in references) {
@@ -701,8 +679,8 @@ export default class TablesGraphComponent extends VueComponentBase {
                         does_exist = false; //La flèche n'existe pas.
                     }
                     if (!does_exist) {
-                        graph.insertEdge(parent, null, this.t(reference.field_label.code_text), reference_cell, v1);
-                        graph_layout.addEdge(reference.module_table.vo_type, node_v1); //Nom des deux cellules sous chaîne de caratère.
+                        this.maxgraph.insertEdge(parent, null, this.t(reference.field_label.code_text), reference_cell, v1);
+                        this.graph_layout.addEdge(reference.module_table.vo_type, node_v1); //Nom des deux cellules sous chaîne de caratère.
                     }
                     //chemin n/n , intervient si la cellule reliée n'est pas sur le dashboard. Ce chemin indique qu'il existe une cellule intermédiaire reliant v1 et une autre cellule.
                 } else if (!reference_cell) { //Si la cellule intermédiaire n'est pas là ,le chemin n/n  sera affiché.
@@ -739,7 +717,7 @@ export default class TablesGraphComponent extends VueComponentBase {
                                     //On affiche la relation n/n.
                                     field_values[nn_field.manyToOne_target_moduletable.vo_type][this.t(nn_field.field_label.code_text) + ' / ' + this.t(reference.field_label.code_text)] = { intermediaire: reference.module_table.vo_type, field_id_1: reference.field_id, field_id_2: nn_field.field_id };  //on enregistre dans le dictionnaire [source_inter,field_1,field_2]
 
-                                    graph.insertEdge(parent, null, this.t(nn_field.field_label.code_text) + ' / ' + this.t(reference.field_label.code_text), v1, nn_reference_cell);
+                                    this.maxgraph.insertEdge(parent, null, this.t(nn_field.field_label.code_text) + ' / ' + this.t(reference.field_label.code_text), v1, nn_reference_cell);
                                     //    graph.insertEdge(parent, nn_field.field_id, '', nn_reference_cell, v1);
 
                                 }
@@ -792,10 +770,10 @@ export default class TablesGraphComponent extends VueComponentBase {
 
                         field_values[field.manyToOne_target_moduletable.vo_type][this.t(field.field_label.code_text)] = field.field_id; //on enregistre dans le dictionnaire.
                         if (is_link_unccepted == true) {
-                            graph.insertEdge(parent, null, this.t(field.field_label.code_text), v1, reference_cell, 'strokeColor=red;strokeOpacity=30'); //Note that the source and target vertices should already have been inserted into the model.
+                            this.maxgraph.insertEdge(parent, null, this.t(field.field_label.code_text), v1, reference_cell, 'strokeColor=red;strokeOpacity=30'); //Note that the source and target vertices should already have been inserted into the model.
                         } else {
-                            graph.insertEdge(parent, null, this.t(field.field_label.code_text), v1, reference_cell);
-                            graph_layout.addEdge(field.manyToOne_target_moduletable.vo_type, node_v1); //Nom des deux cellules sous chaîne de caratère.
+                            this.maxgraph.insertEdge(parent, null, this.t(field.field_label.code_text), v1, reference_cell);
+                            this.graph_layout.addEdge(field.manyToOne_target_moduletable.vo_type, node_v1); //Nom des deux cellules sous chaîne de caratère.
                         }
 
                     }
@@ -804,8 +782,8 @@ export default class TablesGraphComponent extends VueComponentBase {
             // graph.setCellStyles('strokeColor', '#F5F5F5', [parent]);
             // graph.setCellStyles('fillColor', '#FFF', [parent]);
             // var style = graph.getModel().getStyle(v1);
-            // var newStyle = mxUtils.setStyle(style, 'strokeColor', 'red');
-            // newStyle = mxUtils.setStyle(newStyle, 'fillColor', 'white');
+            // var newStyle = Utils.setStyle(style, 'strokeColor', 'red');
+            // newStyle = Utils.setStyle(newStyle, 'fillColor', 'white');
             // var cs = new Array();
             // cs[0] = cell;
             // graph.setCellStyle(newStyle, cs);

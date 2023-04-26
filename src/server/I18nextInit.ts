@@ -1,7 +1,8 @@
 /* istanbul ignore file: no usefull tests to build => more interested in understanding why this is still needed ? */
 
-import * as i18next from 'i18next';
-import * as i18nextMiddleware from 'i18next-express-middleware';
+import i18next from 'i18next';
+import i18nextMiddleware from 'i18next-express-middleware';
+import { LanguageDetector } from 'i18next-express-middleware';
 import EnvParam from './env/EnvParam';
 import ConfigurationService from './env/ConfigurationService';
 import ForkedTasksController from './modules/Fork/ForkedTasksController';
@@ -37,7 +38,7 @@ export default class I18nextInit {
             };
         }
         i18next
-            .use(i18nextMiddleware.LanguageDetector)
+            .use(LanguageDetector)
             .init({
                 fallbackLng: envParam.DEFAULT_LOCALE,
                 preload: 'all',

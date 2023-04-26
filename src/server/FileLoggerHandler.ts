@@ -1,6 +1,6 @@
 /* istanbul ignore file: not a usefull test to write */
 
-import * as fs from 'fs';
+import fs from 'fs';
 import Dates from '../shared/modules/FormatDatesNombres/Dates/Dates';
 import ILoggerHandler from '../shared/tools/interfaces/ILoggerHandler';
 import ConfigurationService from './env/ConfigurationService';

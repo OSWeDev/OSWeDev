@@ -7,7 +7,7 @@ import 'mocha';
 
 import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
 import PeriodHandler from '../../../shared/tools/PeriodHandler';
-import moment = require('moment');
+import moment from 'moment';
 
 
 describe('PeriodHandler', () => {

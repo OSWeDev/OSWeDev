@@ -1,5 +1,5 @@
 
-import * as socketIO from 'socket.io';
+import socketIO from 'socket.io';
 import IServerUserSession from '../../../shared/modules/AccessPolicy/vos/IServerUserSession';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';

@@ -7,7 +7,7 @@ import 'mocha';
 import PasswordInvalidationController from '../../../server/modules/AccessPolicy/workers/PasswordInvalidation/PasswordInvalidationController';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 
-import moment = require('moment');
+import moment from 'moment';
 import DateHandler from '../../../shared/tools/DateHandler';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';

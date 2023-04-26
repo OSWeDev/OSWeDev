@@ -1,7 +1,7 @@
-import * as nodemailer from 'nodemailer';
+import nodemailer from 'nodemailer';
 import { SendMailOptions } from 'nodemailer';
 import { Address } from 'nodemailer/lib/mailer';
-import * as SMTPTransport from 'nodemailer/lib/smtp-transport';
+import SMTPTransport from 'nodemailer/lib/smtp-transport';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleMailer from '../../../shared/modules/Mailer/ModuleMailer';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';

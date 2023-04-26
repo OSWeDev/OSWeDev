@@ -1,5 +1,5 @@
-import * as fs from 'fs';
-import * as wkhtmltopdf from 'wkhtmltopdf';
+import fs from 'fs';
+import wkhtmltopdf from 'wkhtmltopdf';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';

@@ -1,5 +1,5 @@
 
-import * as moment from 'moment';
+import moment from 'moment';
 import ConsoleHandler from '../../../tools/ConsoleHandler';
 import LocaleManager from '../../../tools/LocaleManager';
 import TimeSegment from "../../DataRender/vos/TimeSegment";

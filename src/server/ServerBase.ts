@@ -1,20 +1,20 @@
-import * as child_process from 'child_process';
-import * as compression from 'compression';
-import * as cookieParser from 'cookie-parser';
-import * as csrf from 'csurf';
-import * as express from 'express';
+import child_process from 'child_process';
+import compression from 'compression';
+import cookieParser from 'cookie-parser';
+import csrf from 'csurf';
+import express from 'express';
 import { NextFunction, Request, Response } from 'express';
-import * as createLocaleMiddleware from 'express-locale';
-import * as expressSession from 'express-session';
-import * as sharedsession from 'express-socket.io-session';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as pg from 'pg';
-import * as pg_promise from 'pg-promise';
+import createLocaleMiddleware from 'express-locale';
+import expressSession from 'express-session';
+import sharedsession from 'express-socket.io-session';
+import fs from 'fs';
+import path from 'path';
+import pg from 'pg';
+import pg_promise from 'pg-promise';
 import { IDatabase } from 'pg-promise';
-import * as socketIO from 'socket.io';
-import * as winston from 'winston';
-import * as winston_daily_rotate_file from 'winston-daily-rotate-file';
+import socketIO from 'socket.io';
+import winston from 'winston';
+import winston_daily_rotate_file from 'winston-daily-rotate-file';
 import ModuleAccessPolicy from '../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import IServerUserSession from '../shared/modules/AccessPolicy/vos/IServerUserSession';
 import UserLogVO from '../shared/modules/AccessPolicy/vos/UserLogVO';
@@ -449,14 +449,19 @@ export default abstract class ServerBase {
 
         this.app.use(ModuleFile.FILES_ROOT.replace(/^[.][/]/, '/'), express.static(ModuleFile.FILES_ROOT.replace(/^[.][/]/, '')));
 
-        this.app.use('/client/public', express.static('dist/client/public'));
-        this.app.use('/admin/public', express.static('dist/admin/public'));
-        this.app.use('/login/public', express.static('dist/login/public'));
-        this.app.use('/vuejsclient/public', express.static('dist/vuejsclient/public'));
+        /**
+         * @depracated : DELETE When ok
+         */
+        this.app.use('/client/public', express.static('dist/public/client'));
+        this.app.use('/admin/public', express.static('dist/public/admin'));
+        this.app.use('/login/public', express.static('dist/public/login'));
+        this.app.use('/vuejsclient/public', express.static('dist/public/vuejsclient'));
+        // Use this instead
+        this.app.use('/public', express.static('dist/public'));
 
         // Le service de push
         this.app.get('/sw_push.js', (req, res, next) => {
-            res.sendFile(path.resolve('./dist/vuejsclient/public/sw_push.js'));
+            res.sendFile(path.resolve('./dist/public/vuejsclient/sw_push.js'));
         });
 
         // this.app.use(
@@ -885,7 +890,7 @@ export default abstract class ServerBase {
                 return;
             }
 
-            res.sendFile(path.resolve('./dist/client/public/generated/index.html'));
+            res.sendFile(path.resolve('./dist/public/index.html'));
         });
 
         this.app.get('/admin', async (req: Request, res) => {
@@ -909,7 +914,7 @@ export default abstract class ServerBase {
                 ServerBase.getInstance().redirect_login_or_home(req, res, '/');
                 return;
             }
-            res.sendFile(path.resolve('./dist/admin/public/generated/admin.html'));
+            res.sendFile(path.resolve('./dist/public/admin.html'));
         });
 
         // Accès aux logs iisnode
@@ -1003,7 +1008,7 @@ export default abstract class ServerBase {
         });
 
         this.app.get('/login', (req, res) => {
-            res.sendFile(path.resolve('./dist/login/public/generated/login.html'));
+            res.sendFile(path.resolve('./dist/public/login.html'));
         });
 
         this.app.get('/logout', async (req, res) => {
@@ -1225,10 +1230,10 @@ export default abstract class ServerBase {
     protected async hook_pwa_init() {
         let version = this.getVersion();
 
-        this.app.get('/vuejsclient/public/pwa/client-sw.' + version + '.js', (req, res, next) => {
+        this.app.get('/public/vuejsclient/pwa/client-sw.' + version + '.js', (req, res, next) => {
             res.header('Service-Worker-Allowed', '/');
 
-            res.sendFile(path.resolve('./dist/vuejsclient/public/pwa/client-sw.' + version + '.js'));
+            res.sendFile(path.resolve('./dist/public/vuejsclient/pwa/client-sw.' + version + '.js'));
         });
     }
 

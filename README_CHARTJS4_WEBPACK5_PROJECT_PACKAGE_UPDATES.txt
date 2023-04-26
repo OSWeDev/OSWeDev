@@ -20,6 +20,20 @@ Remove
 from Compression plugin in common webpack conf
 
 
+REPLACE all using regexp from line 1 to line 2 :
+@import 'base/
+@import '
+
+AND
+import ([^ =]+) = require\(['"]([^'"]+)['"]\);
+import $1 from '$2';
+
+REPLACE all without regexp :
+import * as 
+import 
+
+
+
 in common webpack conf add :
 /**
  * This is a hack to make fullcalendar work with webpack 5

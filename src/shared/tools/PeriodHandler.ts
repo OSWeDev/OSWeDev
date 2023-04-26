@@ -1,10 +1,9 @@
 
 import { Moment, unitOfTime } from "moment";
-import * as  moment from "moment";
+import moment from 'moment';
 import TSRange from '../modules/DataRender/vos/TSRange';
 import DateHandler from './DateHandler';
 import TimeSegmentHandler from './TimeSegmentHandler';
-import RangeHandler from "./RangeHandler";
 
 export default class PeriodHandler {
 

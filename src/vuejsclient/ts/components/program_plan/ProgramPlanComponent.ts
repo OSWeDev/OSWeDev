@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import { EventObjectInput, View } from 'fullcalendar';
 import debounce from 'lodash/debounce';
-import * as  moment from 'moment';
+import moment from 'moment';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';

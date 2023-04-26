@@ -4,7 +4,7 @@ import { ARRONDI_TYPE_CEIL, ARRONDI_TYPE_FLOOR, ARRONDI_TYPE_ROUND } from '../..
 import TypesHandler from '../../tools/TypesHandler';
 import Module from '../Module';
 import ModuleTableField from '../ModuleTableField';
-import moment = require('moment');
+import moment from 'moment';
 import Dates from './Dates/Dates';
 
 export default class ModuleFormatDatesNombres extends Module {

@@ -3,7 +3,6 @@
 import { IDatabase } from 'pg-promise';
 import IGeneratorWorker from '../../IGeneratorWorker';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import moment = require('moment');
 
 export default class Patch20220111LocalizeCRONDate implements IGeneratorWorker {
 

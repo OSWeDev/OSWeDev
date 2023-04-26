@@ -129,7 +129,7 @@ describe('VarsImportsHandler', () => {
         FakeDistantHandler.initializeFakeDistantVO();
 
         let var_data_C: FakeDataVO = FakeDataHandler.get_var_data_A_A3(); // 3 jours
-        let var_data_B: FakeDataVO = FakeDataHandler.get_var_data_A_A2(); // 2 jours 
+        let var_data_B: FakeDataVO = FakeDataHandler.get_var_data_A_A2(); // 2 jours
         let var_data_A: FakeDataVO = FakeDataHandler.get_var_data_C(); // 1 mois => pas de var déclarée donc on corrige pas auto le segment_type
 
         expect(VarsImportsHandler.getInstance()['sort_matroids_per_cardinal_desc'](var_data_A, var_data_B)).to.be.gte(1);

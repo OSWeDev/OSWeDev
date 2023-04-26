@@ -1,5 +1,5 @@
-import * as http from 'http';
-import * as https from 'https';
+import http from 'http';
+import https from 'https';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModuleRequest from '../../../shared/modules/Request/ModuleRequest';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';

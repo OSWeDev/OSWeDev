@@ -414,7 +414,7 @@ let readToPercentFilter = (
         return null;
     }
 
-    let returns_infinity: boolean = (treat_999_as_infinite && value >= 999) || (treat_999_as_infinite && value <= -999);
+    let returns_infinity: boolean = (treat_999_as_infinite && (number_value >= 999)) || (treat_999_as_infinite && (number_value <= -999));
 
     if ((!!evol_from_prct) && (!returns_infinity)) {
         number_value -= 1;
@@ -428,7 +428,7 @@ let readToPercentFilter = (
     }
 
     let res: string = returns_infinity ?
-        ((value < 0) ? '-&infin;' : '&infin;') :
+        ((number_value < 0) ? '-&infin;' : '&infin;') :
         ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(number_value, fractional_digits) + " " + pourcentage;
 
     if (explicit_sign) {
@@ -522,11 +522,12 @@ let readToFixed = (
         return TypesHandler.getInstance().isNumber(value) ? value.toString().replace(".", ",") : null;
     }
 
-    if (only_positive && value < 0) {
-        value = 0;
+    let number_value: number = parseFloat(value.toString());
+    if (only_positive && (number_value < 0)) {
+        number_value = 0;
     }
 
-    result = value.toString();
+    result = number_value.toString();
 
     if ((!rounded) && (rounded_type != ARRONDI_TYPE_ROUND) && (fractional_digits !== null)) {
         // si pas de parametre d'arrondui, mais rounded_type n'est pas round,

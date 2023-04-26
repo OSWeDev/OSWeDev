@@ -1,7 +1,7 @@
 import VueFlags from "@growthbunker/vueflags";
 import 'jquery';
 import 'bootstrap';
-import * as  moment from "moment";
+import moment from 'moment';
 
 import 'select2';
 import VCalendar from 'v-calendar';
@@ -55,7 +55,7 @@ import VarDataBaseVO from "../shared/modules/Var/vos/VarDataBaseVO";
 import ConsoleHandler from "../shared/tools/ConsoleHandler";
 import { all_promises } from "../shared/tools/PromiseTools";
 import AlertsListContainerComponent from "./ts/components/alert/AlertsListContainerComponent";
-import * as i18next from 'i18next';
+import i18next from 'i18next';
 require('moment-json-parser').overrideDefault();
 
 
@@ -437,7 +437,7 @@ export default abstract class VueAppBase {
             await PWAController.getInstance().initialize_pwa(
                 $,
                 app_name,
-                '/vuejsclient/public/pwa/client-sw.' + EnvHandler.VERSION + '.js'
+                '/public/vuejsclient/pwa/client-sw.' + EnvHandler.VERSION + '.js'
             );
         }
         // this.registerPushWorker();

@@ -8,7 +8,7 @@ import DataImportHandler from '../../../shared/tools/DataImportHandler';
 import TimeSegmentHandler from '../../../shared/tools/TimeSegmentHandler';
 
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
-import * as  moment from 'moment';
+import moment from 'moment';
 
 describe('TestDataImportHandler', () => {
 

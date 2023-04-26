@@ -1,6 +1,6 @@
 
 
-import moment = require('moment');
+import moment from 'moment';
 import HourRange from '../../../../../shared/modules/DataRender/vos/HourRange';
 import NumRange from '../../../../../shared/modules/DataRender/vos/NumRange';
 import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';

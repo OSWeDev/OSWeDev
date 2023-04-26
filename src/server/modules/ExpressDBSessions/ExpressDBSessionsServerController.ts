@@ -1,4 +1,4 @@
-import * as expressSession from 'express-session';
+import expressSession from 'express-session';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ExpressSessionController from '../../../shared/modules/ExpressDBSessions/ExpressSessionController';

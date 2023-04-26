@@ -1,4 +1,4 @@
-import moment = require('moment');
+import moment from 'moment';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
@@ -148,7 +148,7 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
                     return;
                 }
 
-                let bdd_events = await query(MailEventVO.API_TYPE_ID).filter_by_num_eq('mail_id', mail.id).select_vos<MailEventVO>()
+                let bdd_events = await query(MailEventVO.API_TYPE_ID).filter_by_num_eq('mail_id', mail.id).select_vos<MailEventVO>();
 
                 await this.update_mail_event(mail, event, bdd_events);
             });

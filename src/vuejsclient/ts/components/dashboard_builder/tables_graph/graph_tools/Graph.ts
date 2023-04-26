@@ -1,9 +1,8 @@
 //https://github.com/CraigHarley/SimpleGraphJS
-import { range } from "lodash";
-import { TypeOfTag } from "typescript";
 import { IGraphMatrix, IGraphNode, ISearchResult } from "./types";
 const math = require("mathjs");
-export class Graph {
+
+export class GraphObj {
     public matrix: IGraphMatrix = {}; //Matrix as a dictionnary type.
     public adj_matrix; // FIXME Find the appropriate type.
     public red_linked_cells: Array<[string, string]>; //Cellules présentant plusieurs chemin de même degrés vers la cellule principale.
@@ -133,7 +132,7 @@ export class Graph {
     }
 
     public test() {
-        const graph: Graph = new Graph();
+        const graph: GraphObj = new GraphObj();
         graph.addEdge('1', '2');
         graph.addEdge('2', '3');
         graph.addEdge('2', '4');

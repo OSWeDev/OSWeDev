@@ -3,7 +3,7 @@ import 'mocha';
 
 import ServerAPIController from '../../../server/modules/API/ServerAPIController';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
-import moment = require("moment");
+import moment from 'moment';
 import HourSegment from "../../../shared/modules/DataRender/vos/HourSegment";
 import Durations from '../../../shared/modules/FormatDatesNombres/Dates/Durations';
 APIControllerWrapper.API_CONTROLLER = ServerAPIController.getInstance();
