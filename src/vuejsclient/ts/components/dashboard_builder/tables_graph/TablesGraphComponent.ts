@@ -15,6 +15,7 @@ import TablesGraphEditFormComponent from './edit_form/TablesGraphEditFormCompone
 import TablesGraphItemComponent from './item/TablesGraphItemComponent';
 import './TablesGraphComponent.scss';
 import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import { clone } from '@maxgraph/core/dist/esm/util/cloneUtils';
 // const graphConfig = {
 //     mxBasePath: '/mx/', //Specifies the path in Client.basePath.
 //     ImageBasePath: '/mx/images', // Specifies the path in Client.imageBasePath.
@@ -29,14 +30,15 @@ import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQu
 // let editor;
 
 
-// // CustomUserObject
-// window['CustomUserObject'] = function (name, type) {
-//     this.name = name || 'New Name';
-//     this.type = type || 'New Type';
-//     this.clone = function () {
-//         return Utils.clone(this);
-//     };
-// };
+// CustomUserObject
+window['CustomUserObject'] = function (name, type) {
+    this.name = name || 'New Name';
+    this.type = type || 'New Type';
+    this.clone = function () {
+        return clone(this);
+    };
+};
+
 @Component({
     template: require('./TablesGraphComponent.pug'),
     components: {
@@ -402,7 +404,7 @@ export default class TablesGraphComponent extends VueComponentBase {
             // Fields are dynamically created HTML labels
             this.maxgraph.isHtmlLabel = function (cell) {
                 return !this.isSwimlane(cell) &&
-                    !this.model.isEdge(cell);
+                    !cell.isEdge();
             };
 
             // not editable

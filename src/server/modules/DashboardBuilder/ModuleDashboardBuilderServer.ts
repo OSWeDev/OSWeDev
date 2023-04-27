@@ -931,19 +931,19 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': '% de découpe'
         }, 'var_pie_chart_widget_options_component.cutout_percentage.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Indique la zone qui sera découpée dans le graphique en partant du centre vers les extrémités. 0 pour ne pas découper, 100 pour découper tout le graphique. Exemple : 50 pour un donut'
+            'fr-fr': 'Indique la zone qui sera découpée dans le graphique en partant du centre vers les extrémités en pourcentage. 0 pour ne pas découper, 100 pour découper tout le graphique. Exemple : 50 pour un donut'
         }, 'var_pie_chart_widget_options_component.cutout_percentage.tooltip.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Rotation'
         }, 'var_pie_chart_widget_options_component.rotation.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Point de départ du graphique en degrés. Entre 0 et 2*PI. Exemple pour une jauge : PI'
+            'fr-fr': 'Point de départ du graphique en degrés. Entre 0 et 360. Exemple pour une jauge : 270'
         }, 'var_pie_chart_widget_options_component.rotation.tooltip.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Circumference'
         }, 'var_pie_chart_widget_options_component.circumference.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Circumference du graphique. Entre 0 et 2*PI. Exemple pour une jauge : PI'
+            'fr-fr': 'Circumference du graphique. Entre 0 et 360. Exemple pour une jauge : 180'
         }, 'var_pie_chart_widget_options_component.circumference.tooltip.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Options des données'

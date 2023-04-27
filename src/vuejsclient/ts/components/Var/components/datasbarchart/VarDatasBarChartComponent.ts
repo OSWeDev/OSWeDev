@@ -1,4 +1,5 @@
 import debounce from 'lodash/debounce';
+import 'chart.js/auto'; // TODO FIXME https://vue-chartjs.org/migration-guides/#tree-shaking
 import { Bar } from 'vue-chartjs';
 import 'chart.js-plugin-labels-dv';
 import { Component, Prop, Watch } from 'vue-property-decorator';
@@ -16,7 +17,10 @@ import VarsClientController from '../../VarsClientController';
 import VarDatasRefsParamSelectComponent from '../datasrefs/paramselect/VarDatasRefsParamSelectComponent';
 
 @Component({
-    extends: Bar
+    template: require('./VarDatasBarChartComponent.pug'),
+    components: {
+        barchart: Bar
+    },
 })
 export default class VarDatasBarChartComponent extends VueComponentBase {
 
@@ -36,11 +40,14 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
     private options: any;
 
     private rendered = false;
-    private debounced_render_chart_js = debounce(this.render_chart_js, 1000);
+    // private debounced_render_chart_js = debounce(this.render_chart_js, 1000);
 
     private var_datas: { [index: string]: VarDataValueResVO } = {};
     private throttled_var_datas_updater = ThrottleHelper.getInstance().declare_throttle_without_args(this.var_datas_updater.bind(this), 500, { leading: false, trailing: true });
     private debounced_var_datas_updater = debounce(this.var_datas_updater.bind(this), 500);
+
+    private current_chart_data: any = null;
+    private current_chart_options: any = null;
 
     private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
         [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery((() => {
@@ -76,17 +83,17 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
         this.var_datas = res;
     }
 
-    private mounted() {
-        if (this.all_data_loaded) {
-            this.debounced_render_chart_js();
-        }
-    }
+    // private mounted() {
+    //     if (this.all_data_loaded) {
+    //         this.debounced_render_chart_js();
+    //     }
+    // }
 
     private async beforeDestroy() {
         await VarsClientController.getInstance().unRegisterParams(this.get_all_datas(this.var_dataset_descriptors), this.varUpdateCallbacks);
         if (!!this.rendered) {
-            // Issu de Bar
-            this.$data._chart.destroy();
+            // // Issu de Bar
+            // this.$data._chart.destroy();
         }
     }
 
@@ -183,26 +190,26 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
             await VarsClientController.getInstance().registerParams(new_var_params, this.varUpdateCallbacks);
         }
 
-        this.onchange_all_data_loaded();
+        // this.onchange_all_data_loaded();
     }
 
-    @Watch("all_data_loaded")
-    @Watch('get_all_values', { deep: true })
-    private onchange_all_data_loaded() {
-        if (this.all_data_loaded) {
-            this.debounced_render_chart_js();
-        }
-    }
+    // @Watch("all_data_loaded")
+    // @Watch('get_all_values', { deep: true })
+    // private onchange_all_data_loaded() {
+    //     if (this.all_data_loaded) {
+    //         this.debounced_render_chart_js();
+    //     }
+    // }
 
     @Watch('var_datas', { deep: true })
     private onchange_var_datas() {
         if (this.all_data_loaded) {
             this.$emit('all_data_loaded', this.var_datas);
-            this.debounced_render_chart_js();
+            // this.debounced_render_chart_js();
         }
     }
 
-    get chartData() {
+    get chart_data() {
         if (!this.all_data_loaded) {
             return null;
         }
@@ -213,7 +220,7 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
         };
     }
 
-    get chartOptions() {
+    get chart_options() {
         let self = this;
         return Object.assign(
             {
@@ -317,27 +324,14 @@ export default class VarDatasBarChartComponent extends VueComponentBase {
         return res;
     }
 
-    private render_chart_js() {
-
-        if (!!this.rendered) {
-            // Issu de Bar
-            this.$data._chart.destroy();
+    @Watch('chart_data')
+    @Watch('chart_options')
+    private prepare_current_data_and_options() {
+        if (!this.chart_data || !this.chart_options) {
+            return;
         }
 
-        try {
-
-            // Issu de Bar
-            (this as any).renderChart(
-                this.chartData,
-                this.chartOptions
-            );
-            this.rendered = true;
-        } catch (error) {
-            ConsoleHandler.warn('PB:render Bar Chart probablement trop tôt:' + error);
-            this.rendered = false;
-            if (!this['_isDestroyed']) {
-                this.debounced_render_chart_js();
-            }
-        }
+        this.current_chart_data = this.chart_data;
+        this.current_chart_options = this.chart_options;
     }
 }

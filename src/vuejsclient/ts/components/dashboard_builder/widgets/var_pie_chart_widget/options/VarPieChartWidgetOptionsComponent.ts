@@ -212,8 +212,8 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
             10,
 
             50, // 0-100 - exemples : donut 50, camembert 0
-            Math.PI, // 0-2pi - exemples : donut 1 * Math.PI, camembert 0
-            Math.PI, // 0-2pi - exemples : donut 1 * Math.PI, camembert 0
+            270, // 0-360 - exemples : donut 270, camembert 0
+            180, // 0-180 - exemples : donut 180, camembert 0
 
             false,
             10, // Permet de limiter le nombre de vars affichées (par défaut 10)
@@ -641,8 +641,8 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
             this.title_font_size = '16';
             this.title_padding = '10';
             this.cutout_percentage = '50';
-            this.rotation = Math.PI.toString();
-            this.circumference = Math.PI.toString();
+            this.rotation = '270';
+            this.circumference = '180';
 
             this.has_dimension = false;
             this.max_dimension_values = '10';
@@ -1092,7 +1092,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         if (!this.rotation) {
 
             if (this.widget_options.rotation) {
-                this.widget_options.rotation = Math.PI;
+                this.widget_options.rotation = 270;
                 await this.throttled_update_options();
             }
             return;
@@ -1120,7 +1120,7 @@ export default class VarPieChartWidgetOptionsComponent extends VueComponentBase 
         if (!this.circumference) {
 
             if (this.widget_options.circumference) {
-                this.widget_options.circumference = Math.PI;
+                this.widget_options.circumference = 180;
                 await this.throttled_update_options();
             }
             return;

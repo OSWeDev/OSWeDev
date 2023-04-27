@@ -55,8 +55,8 @@ export default class VarPieChartWidgetOptions implements IExportableWidgetOption
         public title_padding: number,
 
         public cutout_percentage: number, // 0-100 - exemples : donut 50, camembert 0
-        public rotation: number, // 0-2pi - exemples : gauge 1 * Math.PI, camembert 0
-        public circumference: number, // 0-2pi - exemples : gauge 1 * Math.PI, camembert 0
+        public rotation: number, // 0-360 - exemples : gauge 270, camembert 0
+        public circumference: number, // 0-360 - exemples : gauge 180, camembert 0
 
         public has_dimension: boolean,
         public max_dimension_values: number, // Permet de limiter le nombre de vars affichées (par défaut 10)

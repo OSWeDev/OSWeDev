@@ -1,4 +1,5 @@
 import { debounce } from 'lodash';
+import 'chart.js/auto'; // TODO FIXME https://vue-chartjs.org/migration-guides/#tree-shaking
 import { Pie } from 'vue-chartjs';
 import 'chart.js-plugin-labels-dv';
 import { Component, Prop, Watch } from 'vue-property-decorator';
@@ -15,7 +16,10 @@ import VarsClientController from '../../VarsClientController';
 import VarDatasRefsParamSelectComponent from '../datasrefs/paramselect/VarDatasRefsParamSelectComponent';
 
 @Component({
-    extends: Pie
+    template: require('./VarPieChartComponent.pug'),
+    components: {
+        piechart: Pie,
+    }
 })
 export default class VarPieChartComponent extends VueComponentBase {
     @ModuleVarGetter
@@ -219,7 +223,7 @@ export default class VarPieChartComponent extends VueComponentBase {
         // this.onchange_all_data_loaded();
     }
 
-    get chartData() {
+    get chart_data() {
         if (!this.all_data_loaded) {
             return null;
         }
@@ -230,7 +234,7 @@ export default class VarPieChartComponent extends VueComponentBase {
         };
     }
 
-    get chartOptions() {
+    get chart_options() {
         let self = this;
         return Object.assign(
             {
@@ -318,7 +322,7 @@ export default class VarPieChartComponent extends VueComponentBase {
 
     private render_chart_js() {
 
-        if (!this.chartData) {
+        if (!this.chart_data) {
             return;
         }
 
@@ -337,8 +341,8 @@ export default class VarPieChartComponent extends VueComponentBase {
 
             // Issu de Pie
             (this as any).renderChart(
-                this.chartData,
-                this.chartOptions
+                this.chart_data,
+                this.chart_options
             );
         } catch (error) {
             // ConsoleHandler.warn('PB:render Pie Chart probablement trop tôt:' + error);
@@ -350,7 +354,7 @@ export default class VarPieChartComponent extends VueComponentBase {
 
     private update_chart_js() {
 
-        if (!this.chartData) {
+        if (!this.chart_data) {
             return;
         }
 
@@ -360,7 +364,7 @@ export default class VarPieChartComponent extends VueComponentBase {
         }
     }
 
-    @Watch('chartData')
+    @Watch('data')
     private onchange_datasets() {
         this.debounced_render_or_update_chart_js();
     }

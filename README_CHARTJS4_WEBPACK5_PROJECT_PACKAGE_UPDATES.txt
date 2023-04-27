@@ -63,6 +63,10 @@ and then add the new module in each webpack conf (login/admin/client)
 
 
 
+
+
+
+
 Not sure this part is mandatory, try without but then if it fails try with it :
 
 Add 

@@ -1,4 +1,5 @@
 import { debounce } from 'lodash';
+import 'chart.js/auto'; // TODO FIXME https://vue-chartjs.org/migration-guides/#tree-shaking
 import { Pie } from 'vue-chartjs';
 import 'chart.js-plugin-labels-dv';
 import { Component, Prop, Watch } from 'vue-property-decorator';
@@ -6,7 +7,10 @@ import VueComponentBase from '../VueComponentBase';
 import ChartJsDataSetDescriptor from './descriptor/ChartJsDataSetDescriptor';
 
 @Component({
-    extends: Pie
+    template: require('./pie.pug'),
+    components: {
+        piechart: Pie
+    },
 })
 export default class ChartJsPieComponent extends VueComponentBase {
 
@@ -26,14 +30,18 @@ export default class ChartJsPieComponent extends VueComponentBase {
     }
 
     @Watch('datasets')
-    @Watch('options')
+    @Watch('chart_options_')
     @Watch('labels')
     private onchanges() {
         this.debounced_rerender();
     }
 
     private rerender() {
-        let options = Object.assign(
+        this['renderChart'](this.chart_data, this.chart_options);
+    }
+
+    get chart_options() {
+        return Object.assign(
             {
                 plugins: {
                     labels: false,
@@ -41,10 +49,9 @@ export default class ChartJsPieComponent extends VueComponentBase {
             },
             this.options
         );
-        this['renderChart'](this.chartData, options);
     }
 
-    get chartData() {
+    get chart_data() {
         return {
             labels: this.labels,
             datasets: this.datasets

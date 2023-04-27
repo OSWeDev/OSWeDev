@@ -1,4 +1,5 @@
 import { debounce } from 'lodash';
+import 'chart.js/auto'; // TODO FIXME https://vue-chartjs.org/migration-guides/#tree-shaking
 import { Line } from 'vue-chartjs';
 import 'chart.js-plugin-labels-dv';
 import { Component, Prop, Watch } from 'vue-property-decorator';
@@ -10,7 +11,10 @@ import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import VueComponentBase from '../../../VueComponentBase';
 
 @Component({
-    extends: Line
+    template: require('./SupervisedItemHistChartComponent.pug'),
+    components: {
+        linechart: Line
+    },
 })
 export default class SupervisedItemHistChartComponent extends VueComponentBase {
 
@@ -48,10 +52,10 @@ export default class SupervisedItemHistChartComponent extends VueComponentBase {
     }
 
     private rerender() {
-        this['renderChart'](this.chartData, this.chartOptions);
+        this['renderChart'](this.chart_data, this.chart_options);
     }
 
-    get chartData() {
+    get chart_data() {
         return {
             labels: this.labels,
             datasets: [{
@@ -65,7 +69,7 @@ export default class SupervisedItemHistChartComponent extends VueComponentBase {
         return Math.floor(Math.random() * (50 - 5 + 1)) + 5;
     }
 
-    get chartOptions() {
+    get chart_options() {
         return Object.assign(
             {
                 plugins: {
