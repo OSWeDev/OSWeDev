@@ -68,6 +68,23 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
 
     private last_calculation_cpt: number = 0;
 
+    private current_var_params = null;
+    private current_var_dataset_descriptor = null;
+    private current_options = null;
+
+    @Watch('options')
+    @Watch('var_dataset_descriptor')
+    @Watch('var_params')
+    private async onOptionsChange() {
+        if (!this.options || !this.var_dataset_descriptor || !this.var_params) {
+            return;
+        }
+
+        this.current_options = this.options;
+        this.current_var_dataset_descriptor = this.var_dataset_descriptor;
+        this.current_var_params = this.var_params;
+    }
+
     get var_filter(): () => string {
         if (!this.widget_options) {
             return null;
@@ -102,54 +119,57 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
             responsive: true,
             maintainAspectRatio: false,
 
-            title: {
-                display: this.get_bool_option('title_display', true),
-                text: this.translated_title ? this.translated_title : '',
-                fontColor: this.widget_options.title_font_color ? this.widget_options.title_font_color : '#666',
-                fontSize: this.widget_options.title_font_size ? this.widget_options.title_font_size : 16,
-                padding: this.widget_options.title_padding ? this.widget_options.title_padding : 10,
-            },
+            plugins: {
 
-            tooltips: {
-                callbacks: {
-                    label: function (tooltipItem, data) {
-                        let label = data.labels[tooltipItem.index] || '';
+                title: {
+                    display: this.get_bool_option('title_display', true),
+                    text: this.translated_title ? this.translated_title : '',
+                    fontColor: this.widget_options.title_font_color ? this.widget_options.title_font_color : '#666',
+                    fontSize: this.widget_options.title_font_size ? this.widget_options.title_font_size : 16,
+                    padding: this.widget_options.title_padding ? this.widget_options.title_padding : 10,
+                },
 
-                        if (label) {
-                            label += ': ';
+                tooltips: {
+                    callbacks: {
+                        label: function (tooltipItem, data) {
+                            let label = data.labels[tooltipItem.index] || '';
+
+                            if (label) {
+                                label += ': ';
+                            }
+
+                            if (!self.var_filter) {
+                                return label + data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
+                            }
+
+                            let params = [data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index]];
+
+                            if (!!self.var_filter_additional_params) {
+                                params = params.concat(self.var_filter_additional_params);
+                            }
+
+                            return label + self.var_filter.apply(null, params);
                         }
-
-                        if (!self.var_filter) {
-                            return label + data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
-                        }
-
-                        let params = [data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index]];
-
-                        if (!!self.var_filter_additional_params) {
-                            params = params.concat(self.var_filter_additional_params);
-                        }
-
-                        return label + self.var_filter.apply(null, params);
                     }
-                }
-            },
+                },
 
-            legend: {
-                display: this.get_bool_option('legend_display', true),
-                position: self.widget_options.legend_position ? self.widget_options.legend_position : 'bottom',
+                legend: {
+                    display: this.get_bool_option('legend_display', true),
+                    position: self.widget_options.legend_position ? self.widget_options.legend_position : 'bottom',
 
-                labels: {
-                    fontColor: self.widget_options.legend_font_color ? self.widget_options.legend_font_color : '#666',
-                    fontSize: self.widget_options.legend_font_size ? self.widget_options.legend_font_size : 12,
-                    boxWidth: self.widget_options.legend_box_width ? self.widget_options.legend_box_width : 40,
-                    padding: self.widget_options.legend_padding ? self.widget_options.legend_padding : 10,
-                    usePointStyle: this.get_bool_option('legend_use_point_style', false)
+                    labels: {
+                        fontColor: self.widget_options.legend_font_color ? self.widget_options.legend_font_color : '#666',
+                        fontSize: self.widget_options.legend_font_size ? self.widget_options.legend_font_size : 12,
+                        boxWidth: self.widget_options.legend_box_width ? self.widget_options.legend_box_width : 40,
+                        padding: self.widget_options.legend_padding ? self.widget_options.legend_padding : 10,
+                        usePointStyle: this.get_bool_option('legend_use_point_style', false)
+                    },
                 },
             },
 
-            cutout: self.widget_options.cutout_percentage ? self.widget_options.cutout_percentage.toString() + '%' : "50%",
-            rotation: self.widget_options.rotation ? self.widget_options.rotation : 270,
-            circumference: self.widget_options.circumference ? self.widget_options.circumference : 180,
+            cutout: (self.widget_options.cutout_percentage == null) ? "50%" : self.widget_options.cutout_percentage.toString() + '%',
+            rotation: (self.widget_options.rotation == null) ? 270 : self.widget_options.rotation,
+            circumference: (self.widget_options.circumference == null) ? 180 : self.widget_options.circumference,
         };
     }
 

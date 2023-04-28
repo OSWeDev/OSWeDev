@@ -52,6 +52,9 @@ export default class VarPieChartComponent extends VueComponentBase {
     private singleton_waiting_to_be_rendered: boolean = false;
     private rendered: boolean = false;
 
+    private current_chart_data: any = null;
+    private current_chart_options: any = null;
+
     private throttled_update_chart_js = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_chart_js, 500, { leading: false, trailing: true });
     private debounced_render_or_update_chart_js = debounce(this.render_or_update_chart_js, 100);
 
@@ -61,6 +64,17 @@ export default class VarPieChartComponent extends VueComponentBase {
     private varUpdateCallbacks: { [cb_uid: number]: VarUpdateCallback } = {
         [VarsClientController.get_CB_UID()]: VarUpdateCallback.newCallbackEvery(this.throttled_var_datas_updater.bind(this), VarUpdateCallback.VALUE_TYPE_VALID)
     };
+
+    @Watch('chart_data')
+    @Watch('chart_options')
+    private async onChartDataChanged() {
+        if (!this.chart_data || !this.chart_options) {
+            return;
+        }
+
+        this.current_chart_data = this.chart_data;
+        this.current_chart_options = this.chart_options;
+    }
 
     /**
      * Si on a pas encore rendered le chart, on checke les datas. Dès que les datas sont là, on render.

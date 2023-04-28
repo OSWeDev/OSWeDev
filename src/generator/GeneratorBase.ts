@@ -46,6 +46,7 @@ import Patch20220725DashboardWidgetUpdate from './patchs/postmodules/Patch202207
 import Patch20220809ChangeDbbTrad from './patchs/postmodules/Patch20220809ChangeDbbTrad';
 import Patch20221216ChangeDbbTradsToIncludeLabels from './patchs/postmodules/Patch20221216ChangeDbbTradsToIncludeLabels';
 import Patch20221217ParamBlockVos from './patchs/postmodules/Patch20221217ParamBlockVos';
+import Patch20230428FavoriteWidgetsAreNotFilters from './patchs/postmodules/Patch20230428FavoriteWidgetsAreNotFilters';
 import Patch20210803ChangeDIHDateType from './patchs/premodules/Patch20210803ChangeDIHDateType';
 import Patch20210914ClearDashboardWidgets from './patchs/premodules/Patch20210914ClearDashboardWidgets';
 import Patch20211004ChangeLang from './patchs/premodules/Patch20211004ChangeLang';
@@ -130,7 +131,8 @@ export default abstract class GeneratorBase {
             Patch20220725DashboardWidgetUpdate.getInstance(),
             Patch20220809ChangeDbbTrad.getInstance(),
             Patch20221216ChangeDbbTradsToIncludeLabels.getInstance(),
-            Patch20221217ParamBlockVos.getInstance()
+            Patch20221217ParamBlockVos.getInstance(),
+            Patch20230428FavoriteWidgetsAreNotFilters.getInstance(),
         ];
     }
 
@@ -222,9 +224,9 @@ export default abstract class GeneratorBase {
         console.log("saveDefaultTranslations...");
         await DefaultTranslationsServerManager.getInstance().saveDefaultTranslations(true);
 
-        console.log("Generate Vendor: ...");
-        await VendorBuilder.getInstance().generate_vendor();
-        console.log("Generate Vendor: OK!");
+        // console.log("Generate Vendor: ...");
+        // await VendorBuilder.getInstance().generate_vendor();
+        // console.log("Generate Vendor: OK!");
 
         console.log("Code Generation DONE. Exiting ...");
         process.exit(0);

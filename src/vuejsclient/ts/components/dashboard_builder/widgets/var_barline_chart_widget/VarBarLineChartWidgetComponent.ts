@@ -201,9 +201,9 @@ export default class VarBarLineChartWidgetComponent extends VueComponentBase {
                 },
             },
 
-            cutoutPercentage: self.widget_options.cutout_percentage ? self.widget_options.cutout_percentage : 50,
-            rotation: self.widget_options.rotation ? self.widget_options.rotation : 270,
-            circumference: self.widget_options.circumference ? self.widget_options.circumference : 180
+            cutoutPercentage: (self.widget_options.cutout_percentage == null) ? "50%" : self.widget_options.cutout_percentage,
+            rotation: (self.widget_options.rotation == null) ? 270 : self.widget_options.rotation,
+            circumference: (self.widget_options.circumference == null) ? 180 : self.widget_options.circumference
         };
     }
 
