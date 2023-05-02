@@ -78,7 +78,7 @@ import VarServerControllerBase from './VarServerControllerBase';
 import VarsServerCallBackSubsController from './VarsServerCallBackSubsController';
 import VarsServerController from './VarsServerController';
 import VarsTabsSubsController from './VarsTabsSubsController';
-import FieldFilterManager from '../../../shared/modules/ContextFilter/manager/FieldFilterManager';
+import FieldFilterManager from '../../../shared/modules/DashboardBuilder/manager/FieldFilterManager';
 
 export default class ModuleVarServer extends ModuleServerBase {
 

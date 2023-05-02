@@ -33,7 +33,7 @@ import FieldValueFilterWidgetController from '../FieldValueFilterWidgetControlle
 import FieldValueFilterWidgetOptions from '../options/FieldValueFilterWidgetOptions';
 import AdvancedStringFilter from './AdvancedStringFilter';
 import './FieldValueFilterStringWidgetComponent.scss';
-import FieldFilterManager from '../../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
+import FieldFilterManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFilterManager';
 
 @Component({
     template: require('./FieldValueFilterStringWidgetComponent.pug'),

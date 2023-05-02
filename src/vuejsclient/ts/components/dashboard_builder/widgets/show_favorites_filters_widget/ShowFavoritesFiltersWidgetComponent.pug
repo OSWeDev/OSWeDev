@@ -39,6 +39,8 @@ include ../../../../../views/mixins/loading.pug
                         span.option__title {{ label(props.option.name) }}
                     template(v-else)
                         span.option__title {{ props.option.name }}
+                        a.btn.btn-sm.btn-success.pull-right.option__edit(@click='handle_edit_favorites_filters(props.option)')
+                            i.fa-duotone.fa-pencil-alt
 
                 template(slot="tag", slot-scope="props")
                     .pill_wrapper.bg-success

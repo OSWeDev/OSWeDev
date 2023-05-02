@@ -450,8 +450,6 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         SaveFavoritesFilters.weight = 3;
         SaveFavoritesFilters.default_background = '#f5f5f5';
         SaveFavoritesFilters.icon_component = 'Savefavoritesfilterswidgeticoncomponent';
-        SaveFavoritesFilters.is_validation_filters = true;
-        SaveFavoritesFilters.is_filter = true;
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(SaveFavoritesFilters, null, null);
 
@@ -471,8 +469,6 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         ShowFavoritesFilters.weight = 3;
         ShowFavoritesFilters.default_background = '#f5f5f5';
         ShowFavoritesFilters.icon_component = 'Showfavoritesfilterswidgeticoncomponent';
-        ShowFavoritesFilters.is_validation_filters = true;
-        ShowFavoritesFilters.is_filter = true;
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(ShowFavoritesFilters, null, null);
 

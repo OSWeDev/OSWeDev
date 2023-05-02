@@ -27,8 +27,8 @@ import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFi
 import DashboardBuilderVOFactory from '../../../shared/modules/DashboardBuilder/factory/DashboardBuilderVOFactory';
 import DashboardWidgetVO from '../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import ContextFilterVOManager from '../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
-import { IExportParamsProps } from '../../../shared/modules/DashboardBuilder/interfaces/IExportParamsProps';
-import FieldFilterManager from '../../../shared/modules/ContextFilter/manager/FieldFilterManager';
+import IExportParamsProps from '../../../shared/modules/DashboardBuilder/interfaces/IExportParamsProps';
+import FieldFilterManager from '../../../shared/modules/DashboardBuilder/manager/FieldFilterManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import FavoritesFiltersVOService from './service/FavoritesFiltersVOService';
@@ -1710,6 +1710,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'dashboard_viewer.favorites_filters.name_required.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Planification des exports" },
+            'dashboard_viewer.favorites_filters.export_planification.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Fréquence d'export de données requise" },
             'dashboard_viewer.favorites_filters.export_frequency_every_required.___LABEL___'
         ));
@@ -1726,8 +1730,20 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'dashboard_viewer.favorites_filters.selected_exportable_data_required.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': "Planifier les export" },
-            'dashboard_viewer.favorites_filters.plan_export.___LABEL___'
+            { 'fr-fr': "Saisissez les données à exporter" },
+            'dashboard_viewer.favorites_filters.exportable_data.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Comportements des filtres favoris" },
+            'dashboard_viewer.favorites_filters.behaviors_options.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Remplacer les filtres actifs" },
+            'dashboard_viewer.favorites_filters.overwrite_active_field_filters.___LABEL___'
+        ));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
+            { 'fr-fr': "Souhaitez-vous planifier les export ?" },
+            'dashboard_viewer.favorites_filters.should_plan_export.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
             { 'fr-fr': "Exporter tous les *:" },
@@ -1738,11 +1754,11 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'dashboard_viewer.favorites_filters.export_frequency_granularity.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': "Fréquence d'export (jour du mois) *:" },
+            { 'fr-fr': "Jour dans le mois *:" },
             'dashboard_viewer.favorites_filters.export_frequency_day_in_month.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(
-            { 'fr-fr': "Sélectionner le tableau de valeurs à exporter *:" },
+            { 'fr-fr': "Sélectionnez les tableaux de valeurs à exporter *:" },
             'dashboard_viewer.favorites_filters.select_exportable_data.___LABEL___'
         ));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation(

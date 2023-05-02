@@ -1,11 +1,12 @@
 import ContextFilterVOManager from "../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager";
-import FieldFilterManager from "../../../../shared/modules/ContextFilter/manager/FieldFilterManager";
+import VOFieldRefVOManager from '../../../../shared/modules/DashboardBuilder/manager/VOFieldRefVOManager';
+import FieldFilterManager from "../../../../shared/modules/DashboardBuilder/manager/FieldFilterManager";
 import ContextFilterVO from "../../../../shared/modules/ContextFilter/vos/ContextFilterVO";
 import { query } from "../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import ModuleDAO from "../../../../shared/modules/DAO/ModuleDAO";
 import ExportContextQueryToXLSXParamVO from "../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO";
 import DashboardBuilderVOFactory from "../../../../shared/modules/DashboardBuilder/factory/DashboardBuilderVOFactory";
-import { IExportParamsProps } from "../../../../shared/modules/DashboardBuilder/interfaces/IExportParamsProps";
+import IExportParamsProps from "../../../../shared/modules/DashboardBuilder/interfaces/IExportParamsProps";
 import DashboardPageWidgetVO from "../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO";
 import FavoritesFiltersVO from "../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO";
 import DashboardWidgetVO from "../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO";
@@ -154,14 +155,7 @@ export default class FavoritesFiltersVOService {
                         return;
                     }
 
-                    let vo_field_ref = widget_options?.vo_field_ref ?? null;
-
-                    if (widget_options?.is_vo_field_ref != null) {
-                        vo_field_ref = widget_options?.is_vo_field_ref ? vo_field_ref : {
-                            api_type_id: ContextFilterVO.CUSTOM_FILTERS_TYPE,
-                            field_id: widget_options.custom_filter_name,
-                        };
-                    }
+                    let vo_field_ref = VOFieldRefVOManager.create_vo_field_ref_vo_from_widget_options(widget_options);
 
                     context_filter = ContextFilterVOManager.create_context_filter_from_widget_options(widget.name, widget_options);
 
@@ -175,13 +169,13 @@ export default class FavoritesFiltersVOService {
             // TODO: test the following code
             // Merge/replace default_field_filters with favorites_field_filters
             // Create context_field_filters with the default one
-            try {
-                context_field_filters = ObjectHandler.deepmerge(context_field_filters, default_field_filters);
-                // Add/Overwrite default context_field_filters with the favorites_field_filters one
-                context_field_filters = ObjectHandler.deepmerge(context_field_filters, favorites_field_filters);
-            } catch (e) {
-                ConsoleHandler.error('Error while merging context_field_filters', e);
-            }
+            // try {
+            //     context_field_filters = ObjectHandler.deepmerge(context_field_filters, default_field_filters);
+            //     // Add/Overwrite default context_field_filters with the favorites_field_filters one
+            //     context_field_filters = ObjectHandler.deepmerge(context_field_filters, favorites_field_filters);
+            // } catch (e) {
+            //     ConsoleHandler.error('Error while merging context_field_filters', e);
+            // }
 
             // TODO: remove this part once the previous one has been tested
             for (const api_type_id in default_field_filters) {

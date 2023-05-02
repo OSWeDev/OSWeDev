@@ -9,7 +9,7 @@ import ModuleCheckListBase from '../../../../../../shared/modules/CheckList/Modu
 import CheckListVO from '../../../../../../shared/modules/CheckList/vos/CheckListVO';
 import ContextFilterVOHandler from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
-import FieldFilterManager from '../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
+import FieldFilterManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFilterManager';
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';

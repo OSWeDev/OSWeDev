@@ -1,7 +1,11 @@
-import { cloneDeep } from "lodash";
-import ContextFilterVOHandler from "../handler/ContextFilterVOHandler";
-import ContextFilterVOManager from "./ContextFilterVOManager";
-import ContextFilterVO from "../vos/ContextFilterVO";
+import { cloneDeep, isEqual } from "lodash";
+import ContextFilterVOHandler from "../../ContextFilter/handler/ContextFilterVOHandler";
+import ContextFilterVOManager from "../../ContextFilter/manager/ContextFilterVOManager";
+import VOFieldRefVO from '../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
+import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
+import IReadableActiveFieldFilters from "../interfaces/IReadableActiveFieldFilters";
+import VOFieldRefVOManager from "./VOFieldRefVOManager";
+import DashboardPageWidgetVOManager from "./DashboardPageWidgetVOManager";
 
 
 /**
@@ -9,6 +13,67 @@ import ContextFilterVO from "../vos/ContextFilterVO";
  *  - Must likely alter and return field filters like { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
  */
 export default class FieldFilterManager {
+
+    /**
+     * Create Readable Filters Text From Field Filters
+     *  - For each field filters get as Human readable filters
+     *
+     * @return {{ [translatable_field_filters_code: string]: IReadableActiveFieldFilters }}
+     */
+    public static create_readable_filters_text_from_field_filters(
+        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+    ): { [translatable_field_filters_code: string]: IReadableActiveFieldFilters } {
+
+        // Get sorted_page_widgets_options from dashboard
+        const sorted_page_widgets_options = DashboardPageWidgetVOManager.find_all_sorted_page_wigdets_options();
+
+        let human_readable_field_filters: { [translatable_field_filters_code: string]: IReadableActiveFieldFilters } = {};
+
+        active_field_filters = cloneDeep(active_field_filters);
+
+        for (const api_type_id in active_field_filters) {
+            const filters = active_field_filters[api_type_id];
+
+            for (const field_id in filters) {
+                // The actual context_filter
+                const context_filter = filters[field_id];
+
+                // Path to find the actual filter
+                const vo_field_ref: VOFieldRefVO = VOFieldRefVOManager.create_vo_field_ref_vo_from_widget_options(
+                    { vo_field_ref: { api_type_id, field_id } },
+                );
+
+                const page_wigdet_options = Object.values(sorted_page_widgets_options)?.filter((sorted_page_widget_option) => {
+
+                    const _vo_field_ref = sorted_page_widget_option?.widget_options?.vo_field_ref;
+
+                    if (!_vo_field_ref?.api_type_id || !_vo_field_ref?.field_id) {
+                        return false;
+                    }
+
+                    return _vo_field_ref?.api_type_id == vo_field_ref.api_type_id &&
+                        _vo_field_ref?.field_id == vo_field_ref.field_id;
+                })?.shift();
+
+                // Label of filter to be displayed
+                let label = `${api_type_id}.${field_id}`;
+                if (page_wigdet_options?.page_widget_id) {
+                    label = vo_field_ref.get_translatable_name_code_text(page_wigdet_options.page_widget_id);
+                }
+
+                // Get HMI readable active field filters
+                const readable_field_filters = ContextFilterVOHandler.context_filter_to_readable_ihm(context_filter);
+
+                human_readable_field_filters[label] = {
+                    readable_field_filters,
+                    context_filter,
+                    vo_field_ref,
+                };
+            }
+        }
+
+        return human_readable_field_filters;
+    }
 
     /**
      * clean_field_filters_for_request
@@ -73,9 +138,45 @@ export default class FieldFilterManager {
     }
 
     /**
-     * Overwrite Filters With Context Filters
+     * Merge Field Filters
+     * - Merge field filters with each other
      *
-     * @deprecated I would rather user ObjectHandler.deepmerge
+     * @param { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } from_field_filters
+     * @param { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } with_field_filters
+     * @returns {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }}
+     */
+    public static merge_field_filters(
+        from_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+        with_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+    ): { [api_type_id: string]: { [field_id: string]: ContextFilterVO; }; } {
+
+        let field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = cloneDeep(from_field_filters);
+
+        for (const api_type_id in with_field_filters) {
+            const filters = with_field_filters[api_type_id];
+
+            for (const field_id in filters) {
+                const context_filter = filters[field_id];
+
+                if (!context_filter) {
+                    continue;
+                }
+
+                // Add default context filters
+                field_filters = FieldFilterManager.overwrite_field_filters_with_context_filter(
+                    field_filters,
+                    { api_type_id, field_id },
+                    context_filter,
+                );
+            }
+        }
+
+        return field_filters;
+    }
+
+    /**
+     * Overwrite Filters With Context Filters
+     * - Overwrite or add context_filter of the given field_filters with the given context_filter
      *
      * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} from_field_filters
      * @param {{ field_id: string, api_type_id: string }} vo_field_ref
@@ -321,6 +422,7 @@ export default class FieldFilterManager {
     /**
      * Filter visible field_filters
      *  - The aim of this function is to filter the given field_filters to only keep visible context_filters
+     *
      * @param {any} widgets_options
      * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} active_field_filters
      * @returns {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }}
@@ -335,18 +437,49 @@ export default class FieldFilterManager {
         for (const key in widgets_options) {
             const options = widgets_options[key];
 
-            const vo_field_ref = options.vo_field_ref;
+            const vo_field_ref = VOFieldRefVOManager.create_vo_field_ref_vo_from_widget_options(options);
+
+            if (!vo_field_ref?.api_type_id || !vo_field_ref?.field_id) {
+                continue;
+            }
 
             if (options.hide_filter) {
-                if (
-                    active_field_filters[vo_field_ref.api_type_id] &&
-                    active_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id]
-                ) {
+                if (!FieldFilterManager.is_field_filters_empty(options, active_field_filters)) {
                     delete active_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id];
                 }
             }
         }
 
         return active_field_filters;
+    }
+
+    /**
+     * Is field_filters empty
+     *  - The aim of this function is to check if the given field_filters is empty
+     *
+     * @param {any} widget_options
+     * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} active_field_filters
+     * @returns boolean
+     */
+    public static is_field_filters_empty(
+        widget_options: any,
+        active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
+    ): boolean {
+
+        const vo_field_ref = VOFieldRefVOManager.create_vo_field_ref_vo_from_widget_options(widget_options);
+
+        if (!vo_field_ref) {
+            return true;
+        }
+
+        const api_type_id_filters = active_field_filters[vo_field_ref.api_type_id];
+
+        if (!api_type_id_filters) {
+            return true;
+        }
+
+        const has_field_filters = !!(api_type_id_filters[vo_field_ref.field_id]);
+
+        return !(has_field_filters);
     }
 }

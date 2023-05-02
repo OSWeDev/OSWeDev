@@ -39,102 +39,135 @@
                                 template
 
                                     div.favorites_filters_name
-                                        .input_label {{ label('dashboard_viewer.favorites_filters.enter_name') }}
+                                        h5.input_label {{ label('dashboard_viewer.favorites_filters.enter_name') }}
                                         .input_wrapper
                                             input(
                                                 type="text"
                                                 v-model="favorites_filters_name"
                                             )
+                                    
+                                    hr.my-12
+
+                                    div.favorites_filters_options
+                                        h5.input_label {{ label('dashboard_viewer.favorites_filters.behaviors_options') }}
+
+                                        div.favorites_filters_overwrite_active_field_filters
+                                            .input_wrapper
+                                                toggle-button(
+                                                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                                                    name="favorites_filters_overwrite_active_field_filters"
+                                                    @change="handle_toggle_overwrite_active_field_filters" 
+                                                    :value="overwrite_active_field_filters" 
+                                                    :sync="true"
+                                                    :width="60"
+                                                )
+                                            .input_label {{ label('dashboard_viewer.favorites_filters.overwrite_active_field_filters') }}
+                                    
+                                    hr.my-12
 
                                     div.select_favorites_filters
-                                        .input_label {{ label('dashboard_viewer.favorites_filters.select_favorites') }}
+                                        h5.input_label {{ label('dashboard_viewer.favorites_filters.select_favorites') }}
                                         .row.select_favorites_filters_options
                                             template(v-for="(option, translatable_field_filters_code) in readable_active_field_filters")
                                                 div.option.col-md-12
-                                                    input(
-                                                        :name="base_filter + '_' + translatable_field_filters_code" 
-                                                        :id="base_filter + '_' + translatable_field_filters_code" 
-                                                        :checked="is_active_field_filter_selected(option)" 
-                                                        :key="translatable_field_filters_code" 
-                                                        :type="'checkbox'" 
-                                                        @change="handle_toggle_select_favorite_filter(option)"    
-                                                    )                            
-                                                    template
-                                                        label.option__title.ml-2(:for="base_filter + '_' + translatable_field_filters_code") {{ label(translatable_field_filters_code) }}: {{ option.readable_active_field_filters }}
+                                                    .input_wrapper  
+                                                        toggle-button(
+                                                            :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                                                            @change="handle_toggle_select_favorite_filter(option)"  
+                                                            :name="base_filter + '_' + translatable_field_filters_code" 
+                                                            :id="base_filter + '_' + translatable_field_filters_code" 
+                                                            :value="is_field_filter_selected(option)" 
+                                                            :sync="true"
+                                                            :width="60"  
+                                                        )                            
+                                                    .input_label {{ get_translation_by_vo_field_ref_name_code_text(translatable_field_filters_code) }}: {{ option.readable_field_filters }}
 
                             #export_tab(v-show="active_tab_view == 'export_tab'")
                                 template 
 
-                                    .plan_export
-                                        .input_label {{ label('dashboard_viewer.favorites_filters.plan_export') }}
-                                        .input_wrapper
-                                            input(
-                                                type="checkbox"
-                                                v-model="is_export_planned"
-                                                @click="handle_toggle_is_export_planned"
-                                            )
+                                    div.favorites_filters_options
+                                        h5.input_label {{ label('dashboard_viewer.favorites_filters.export_planification') }}
 
-                                    template(v-if="is_export_planned")
+                                        .plan_export
+                                            .input_wrapper  
+                                                toggle-button(
+                                                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                                                    @change="handle_toggle_is_export_planned"  
+                                                    :value="is_export_planned" 
+                                                    :sync="true"
+                                                    :width="60"  
+                                                )                            
+                                            .input_label {{ label('dashboard_viewer.favorites_filters.should_plan_export') }}
 
-                                        .export_frequency_every
-                                            .input_label {{ label('dashboard_viewer.favorites_filters.export_frequency_every') }}
-                                            .input_wrapper
-                                                input(
-                                                    type="number"
-                                                    v-model="export_frequency_every"
-                                                )
+                                        template(v-if="is_export_planned")
 
-                                        .export_frequency_granularity
-                                            .export_frequency_granularity_label {{ label('dashboard_viewer.favorites_filters.export_frequency_granularity') }}
-                                            .export_frequency_granularity_select
-                                                multiselect(
-                                                    :options="export_frequency_granularity_options"                                                    
-                                                    v-model="tmp_export_frequency_granularity"
-
-                                                    :close-on-select="true"
-                                                    :show-labels="false"
-                                                    :searchable="false"
-                                                    :allow-empty="true"
-                                                    track-by="value"
-                                                    :custom-label='(e) => label(e.label)'
-                                                    
-                                                    :deselect-group-label='label("multiselect.deselectGroupLabel")'
-                                                    :select-group-label='label("multiselect.selectGroupLabel")'
-                                                    :selected-label='label("multiselect.selectedLabel")'
-                                                    :deselect-label='label("multiselect.deselectLabel")'
-                                                    :select-label='label("multiselect.selectLabel")'
-                                                )
-                                                    
-                                                    span(slot="noOptions") -
-
-                                                    template(slot="option", slot-scope="props")
-                                                        span.option__title {{ label(props.option.label) }}
-
-                                        .export_frequency_day_in_month(v-if="can_add_export_frequency_day_in_month()")
-                                            .input_label {{ label('dashboard_viewer.favorites_filters.export_frequency_day_in_month') }}
-                                            .input_wrapper
-                                                input(
-                                                    v-model="export_frequency_day_in_month"
-                                                    type="number"
-                                                    max='31'
-                                                    min='1'
-                                                )
-
-                                        .select_exportable_data
-                                            .input_label {{ label('dashboard_viewer.favorites_filters.select_exportable_data') }}
-                                            .row.select_exportable_data_options
-                                                template(v-for="(option, title_name_code) in exportable_data")
-                                                    .option.col-md-12
+                                            .row.export_frequency_wrapper 
+                                            
+                                                .export_frequency_every.col-md-6
+                                                    .input_label {{ label('dashboard_viewer.favorites_filters.export_frequency_every') }}
+                                                    .input_wrapper
                                                         input(
-                                                            :name="base_filter + '_' + title_name_code" 
-                                                            :id="base_filter + '_' + title_name_code" 
-                                                            :checked="is_exportable_data_selected(title_name_code)" 
-                                                            :key="title_name_code" 
-                                                            :type="'checkbox'" 
-                                                            @change="handle_toggle_select_exportable_data(title_name_code)"    
-                                                        )                            
-                                                        template
-                                                            label.option__title.ml-2(:for="base_filter + '_' + title_name_code") {{ t(title_name_code) }}
+                                                            type="number"
+                                                            v-model="export_frequency.every"
+                                                        )
+
+                                                .export_frequency_granularity.col-md-6
+                                                    .export_frequency_granularity_label 
+                                                    //-  {{ label('dashboard_viewer.favorites_filters.export_frequency_granularity') }}
+                                                    .export_frequency_granularity_select
+                                                        multiselect(
+                                                            :options="export_frequency_granularity_options"                                                    
+                                                            v-model="selected_export_frequency_granularity"
+
+                                                            :close-on-select="true"
+                                                            :show-labels="false"
+                                                            :searchable="false"
+                                                            :allow-empty="true"
+                                                            track-by="value"
+                                                            :custom-label='(e) => label(e.label)'
+                                                            
+                                                            :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                                                            :select-group-label='label("multiselect.selectGroupLabel")'
+                                                            :selected-label='label("multiselect.selectedLabel")'
+                                                            :deselect-label='label("multiselect.deselectLabel")'
+                                                            :select-label='label("multiselect.selectLabel")'
+                                                        )
+                                                            
+                                                            span(slot="noOptions") -
+
+                                                            template(slot="option", slot-scope="props")
+                                                                span.option__title {{ label(props.option.label) }}
+
+                                                .export_frequency_day_in_month.col-md-12(v-if="can_add_export_frequency_day_in_month()")
+                                                    .input_label {{ label('dashboard_viewer.favorites_filters.export_frequency_day_in_month') }}
+                                                    .input_wrapper
+                                                        input(
+                                                            v-model="export_frequency.day_in_month"
+                                                            type="number"
+                                                            max='31'
+                                                            min='1'
+                                                        )
+                                    
+                                            hr.my-12
+
+                                            h5.input_label {{ label('dashboard_viewer.favorites_filters.exportable_data') }}
+
+                                            .select_exportable_data
+                                                .input_label {{ label('dashboard_viewer.favorites_filters.select_exportable_data') }}
+                                                .row.select_exportable_data_options
+                                                    template(v-for="(option, title_name_code) in exportable_data")
+                                                        div.option.col-md-12
+                                                            .input_wrapper  
+                                                                toggle-button(
+                                                                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                                                                    @change="handle_toggle_select_exportable_data(title_name_code)"   
+                                                                    :value="is_exportable_data_selected(title_name_code)" 
+                                                                    :name="base_filter + '_' + title_name_code" 
+                                                                    :id="base_filter + '_' + title_name_code" 
+                                                                    :sync="true"
+                                                                    :width="60"  
+                                                                )                            
+                                                            .input_label {{ t(title_name_code) }}
 
                 .modal-footer
                     a.btn.btn-success(@click='handle_save') {{ label('crud.update.modal.save') }}

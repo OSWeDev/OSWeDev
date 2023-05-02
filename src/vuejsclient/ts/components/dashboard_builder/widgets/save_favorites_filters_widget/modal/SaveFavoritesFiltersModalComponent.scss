@@ -22,11 +22,99 @@
         }
     }
 
+    .favorites_filters_overwrite_active_field_filters {
+        .input_wrapper {
+            display: inline;
+            margin-right: 10px;
+        }
+        .input_label {
+            display: inline;
+            position: relative;
+            bottom: 4px;
+        }
+    }
+
+    .select_favorites_filters_options {
+        .option {
+            .input_wrapper {
+                display: inline;
+                margin-right: 10px;
+            }
+            .input_label {
+                display: inline;
+                position: relative;
+                bottom: 4px;
+            }
+        }
+    }
+
+    .favorites_filters_options {
+        .plan_export {
+            .input_wrapper {
+                display: inline;
+                margin-right: 10px;
+            }
+            .input_label {
+                display: inline;
+                position: relative;
+                bottom: 4px;
+            }
+        }
+    }
+
+    .select_exportable_data_options {
+        .option {
+            .input_wrapper {
+                display: inline;
+                margin-right: 10px;
+            }
+            .input_label {
+                display: inline;
+                position: relative;
+                bottom: 4px;
+            }
+        }
+    }
+
+    .favorites_filters_name {
+        .input_wrapper {
+            input {
+                width: 100%;
+                min-height: 40px;
+                display: block;
+                padding: 0px 40px 0 8px;
+                border-radius: 5px;
+                border: 1px solid #e8e8e8;
+                background: #fff;
+                font-size: 14px;
+                padding-left: 10px;
+                margin-bottom: 8px;
+            }
+        }
+    }
+
     .export_frequency_every {
         .input_wrapper {
             input {
                 width: 100%;
+                min-height: 40px;
+                display: block;
+                padding: 0px 40px 0 8px;
+                border-radius: 5px;
+                border: 1px solid #e8e8e8;
+                background: #fff;
+                font-size: 14px;
+                padding-left: 10px;
+                margin-bottom: 8px;
             }
+        }
+    }
+
+    .export_frequency_granularity {
+        .export_frequency_granularity_select {
+            // Case when there is no label
+            position: relative;
+            top: 20px;
         }
     }
 
@@ -34,6 +122,15 @@
         .input_wrapper {
             input {
                 width: 100%;
+                min-height: 40px;
+                display: block;
+                padding: 0px 40px 0 8px;
+                border-radius: 5px;
+                border: 1px solid #e8e8e8;
+                background: #fff;
+                font-size: 14px;
+                padding-left: 10px;
+                margin-bottom: 8px;
             }
         }
     }

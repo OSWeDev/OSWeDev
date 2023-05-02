@@ -12,7 +12,7 @@ import { query } from "../../ContextFilter/vos/ContextQueryVO";
 import FieldValueFilterWidgetManager from './FieldValueFilterWidgetManager';
 import FieldValueFilterWidgetOptionsVO from "../vos/FieldValueFilterWidgetOptionsVO";
 import DashboardBuilderBoardManager from "./DashboardBuilderBoardManager";
-import FieldFilterManager from "../../ContextFilter/manager/FieldFilterManager";
+import FieldFilterManager from "./FieldFilterManager";
 import DashboardBuilderDataFilterManager from "./DashboardBuilderDataFilterManager";
 import ModuleAccessPolicy from "../../AccessPolicy/ModuleAccessPolicy";
 import ModuleDAO from "../../DAO/ModuleDAO";

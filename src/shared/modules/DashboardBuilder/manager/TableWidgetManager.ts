@@ -10,7 +10,7 @@ import ContextQueryVO, { query } from '../../ContextFilter/vos/ContextQueryVO';
 import ConsoleHandler from '../../../tools/ConsoleHandler';
 import DashboardVO from '../vos/DashboardVO';
 import ContextFilterVOManager from '../../ContextFilter/manager/ContextFilterVOManager';
-import FieldFilterManager from '../../ContextFilter/manager/FieldFilterManager';
+import FieldFilterManager from './FieldFilterManager';
 import DatatableField from '../../DAO/vos/datatable/DatatableField';
 import VarConfVO from '../../Var/vos/VarConfVO';
 import ContextQueryFieldVO from '../../ContextFilter/vos/ContextQueryFieldVO';

@@ -54,6 +54,7 @@ import Patch20220222RemoveVorfieldreffrombdd from './patchs/premodules/Patch2022
 import Patch20220223Adduniqtranslationconstraint from './patchs/premodules/Patch20220223Adduniqtranslationconstraint';
 import Patch20220822ChangeTypeRecurrCron from './patchs/premodules/Patch20220822ChangeTypeRecurrCron';
 import Patch20230209AddColumnFormatDatesNombres from './patchs/premodules/Patch20230209AddColumnFormatDatesNombres';
+import Patch20230428UpdateUserArchivedField from './patchs/premodules/Patch20230428UpdateUserArchivedField';
 import VendorBuilder from './vendor_builder/VendorBuilder';
 import VersionUpdater from './version_updater/VersionUpdater';
 
@@ -116,6 +117,7 @@ export default abstract class GeneratorBase {
             Patch20220223Adduniqtranslationconstraint.getInstance(),
             Patch20220822ChangeTypeRecurrCron.getInstance(),
             Patch20230209AddColumnFormatDatesNombres.getInstance(),
+            Patch20230428UpdateUserArchivedField.getInstance(),
         ];
 
         this.post_modules_workers = [
