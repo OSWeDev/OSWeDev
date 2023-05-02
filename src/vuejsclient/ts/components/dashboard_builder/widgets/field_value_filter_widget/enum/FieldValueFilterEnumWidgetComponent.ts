@@ -30,7 +30,7 @@ import ValidationFiltersWidgetController from '../../validation_filters_widget/V
 import FieldValueFilterWidgetController from '../FieldValueFilterWidgetController';
 import FieldValueFilterWidgetOptions from '../options/FieldValueFilterWidgetOptions';
 import './FieldValueFilterEnumWidgetComponent.scss';
-import FieldFilterManager from '../../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
+import FieldFilterManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFilterManager';
 import FieldValueFilterEnumWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterEnumWidgetManager';
 
 @Component({

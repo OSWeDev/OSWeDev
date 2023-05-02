@@ -228,6 +228,7 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('field_filters', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Field Filters', false),
             // export_params: Specify frequence (month day number e.g. 1st, 10th or 20)
             new ModuleTableField('export_params', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Export Params', false),
+            new ModuleTableField('options', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Behaviours Options', false),
         ];
 
         this.datatables.push(

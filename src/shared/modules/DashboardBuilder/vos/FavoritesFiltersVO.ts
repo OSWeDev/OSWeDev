@@ -1,5 +1,7 @@
 
-import { IExportParamsProps } from '../interfaces/IExportParamsProps';
+
+import IFavoritesFiltersOptions from '../interfaces/IFavoritesFiltersOptions';
+import IExportParamsProps from '../interfaces/IExportParamsProps';
 import DashboardBuilderController from "../DashboardBuilderController";
 import ContextFilterVO from '../../ContextFilter/vos/ContextFilterVO';
 import IDistantVOBase from "../../IDistantVOBase";
@@ -29,6 +31,9 @@ export default class FavoritesFiltersVO implements IDistantVOBase {
 
     // JSON object of export configurations
     public export_params: IExportParamsProps;
+
+    // JSON object of favorites filters behaviors options (ex: overwrite active_field_filters, etc...)
+    public options: IFavoritesFiltersOptions;
 
     /**
      * Hydrate from the given properties

@@ -25,7 +25,7 @@ import FavoritesFiltersVOManager from '../../../../../../shared/modules/Dashboar
 import MonthFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/MonthFilterWidgetManager';
 import YearFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/YearFilterWidgetManagerts';
 import TableWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/TableWidgetManager';
-import FieldFilterManager from '../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
+import FieldFilterManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFilterManager';
 import './SaveFavoritesFiltersWidgetComponent.scss';
 
 @Component({
@@ -35,12 +35,10 @@ import './SaveFavoritesFiltersWidgetComponent.scss';
 export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBase {
 
     @ModuleDashboardPageGetter
-    private get_discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
+    private get_Savefavoritesfiltersmodalcomponent: SaveFavoritesFiltersModalComponent;
 
     @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
-    @ModuleDashboardPageGetter
-    private get_Savefavoritesfiltersmodalcomponent: SaveFavoritesFiltersModalComponent;
 
     @Prop({ default: null })
     private page_widget: DashboardPageWidgetVO;
@@ -57,21 +55,19 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
     private start_update: boolean = false;
 
     /**
-     * On mounted
-     *  - Happen on component mount
-     */
-    private mounted() { }
-
-    /**
      * Handle Open Modal
      *
      * @return {Promise<void>}
      */
     private async handle_open_modal(): Promise<void> {
-        this.get_Savefavoritesfiltersmodalcomponent.open_modal(
+
+        const selectionnable_active_field_filters = this.get_selectionnable_active_field_filters();
+        const exportable_data = await this.get_exportable_xlsx_params();
+
+        this.get_Savefavoritesfiltersmodalcomponent.open_modal_for_creation(
             {
-                selectionnable_active_field_filters: this.get_selectionnable_active_field_filters(),
-                exportable_data: await this.get_exportable_xlsx_params(),
+                selectionnable_active_field_filters,
+                exportable_data,
             },
             this.handle_save.bind(this)
         );
@@ -149,6 +145,9 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
 
     /**
      * Reload All Visible Active Filters
+     *  - Reload all active filters for all visible widgets
+     *  - Once the favorites_filters have been saved for the current user,
+     *    we need to load it from the DB (to be displayed in the list of favorites_filters)
      *
      * @return {void}
      */
@@ -175,15 +174,13 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
      */
     private async get_exportable_xlsx_params(limit_to_page: boolean = true): Promise<{ [title_name_code: string]: ExportContextQueryToXLSXParamVO }> {
 
-        let res: { [title_name_code: string]: ExportContextQueryToXLSXParamVO } = {};
-
-        res = await TableWidgetManager.create_exportable_valuetables_xlsx_params(
+        const exportable_xlsx_params = await TableWidgetManager.create_exportable_valuetables_xlsx_params(
             this.dashboard,
             this.dashboard_page,
             this.get_active_field_filters,
         );
 
-        return res;
+        return exportable_xlsx_params;
     }
 
     /**

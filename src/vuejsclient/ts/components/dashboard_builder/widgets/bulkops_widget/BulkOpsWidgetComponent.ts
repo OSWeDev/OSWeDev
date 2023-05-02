@@ -32,7 +32,7 @@ import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import TablePaginationComponent from '../table_widget/pagination/TablePaginationComponent';
 import './BulkOpsWidgetComponent.scss';
 import BulkOpsWidgetOptions from './options/BulkOpsWidgetOptions';
-import FieldFilterManager from '../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
+import FieldFilterManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFilterManager';
 
 @Component({
     template: require('./BulkOpsWidgetComponent.pug'),

@@ -16,10 +16,18 @@ import ModuleTableField from '../../../../../../shared/modules/ModuleTableField'
 import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
-import { cloneDeep, isEmpty, isEqual } from 'lodash';
+import { cloneDeep, delay, isEmpty, isEqual } from 'lodash';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import ReloadFiltersWidgetController from '../reload_filters_widget/RealoadFiltersWidgetController';
 import ResetFiltersWidgetController from '../reset_filters_widget/ResetFiltersWidgetController';
+import FieldFilterManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFilterManager';
+import SaveFavoritesFiltersModalComponent from '../save_favorites_filters_widget/modal/SaveFavoritesFiltersModalComponent';
+import FieldValueFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
+import MonthFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/MonthFilterWidgetManager';
+import YearFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/YearFilterWidgetManagerts';
+import TableWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/TableWidgetManager';
+import ExportContextQueryToXLSXParamVO from '../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
+import FavoritesFiltersVOManager from '../../../../../../shared/modules/DashboardBuilder/manager/FavoritesFiltersVOManager';
 
 @Component({
     template: require('./ShowFavoritesFiltersWidgetComponent.pug'),
@@ -28,11 +36,17 @@ import ResetFiltersWidgetController from '../reset_filters_widget/ResetFiltersWi
 export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBase {
 
     @ModuleDashboardPageGetter
+    private get_Savefavoritesfiltersmodalcomponent: SaveFavoritesFiltersModalComponent;
+
+    @ModuleDashboardPageGetter
     private get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } };
+
     @ModuleDashboardPageAction
     private set_active_field_filter: (param: { vo_type: string, field_id: string, active_field_filter: ContextFilterVO }) => void;
+
     @ModuleDashboardPageAction
     private set_active_field_filters: (active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }) => void;
+
     @ModuleDashboardPageAction
     private remove_active_field_filter: (params: { vo_type: string, field_id: string }) => void;
 
@@ -62,12 +76,27 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
     private actual_query: string = null;
 
     private is_initialized: boolean = false;
+    private is_updating = false;
+
     private old_widget_options: ShowFavoritesFiltersWidgetOptions = null;
 
     private last_calculation_cpt: number = 0;
 
-    private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 300, { leading: false, trailing: true });
-    private throttled_update_active_field_filters = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_active_field_filters.bind(this), 300, { leading: false, trailing: true });
+    private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(
+        this.update_visible_options.bind(this),
+        50,
+        { leading: false, trailing: true }
+    );
+    private throttled_update_active_field_filters = ThrottleHelper.getInstance().declare_throttle_without_args(
+        this.update_active_field_filters.bind(this),
+        50,
+        { leading: false, trailing: true }
+    );
+    private throttled_open_favorites_filters_modal = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(
+        this.open_favorites_filters_modal.bind(this),
+        1000,
+        { leading: false, trailing: true }
+    );
 
     /**
      * On mounted
@@ -126,23 +155,27 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
     @Watch('tmp_active_favorites_filters_option')
     private onchange_tmp_filter_active_options(): void {
 
-        const page_filters = this.tmp_active_favorites_filters_option?.field_filters;
-
-        if (this.is_initialized) {
-            if (
-                isEmpty(page_filters) ||
-                !isEqual(this.tmp_active_favorites_filters_option, this.old_tmp_active_favorites_filters_option)
-            ) {
-                this.old_active_field_filters = cloneDeep(this.get_active_field_filters);
-                this.reset_all_visible_active_field_filters();
+        if (!this.tmp_active_favorites_filters_option) {
+            if (this.is_updating) {
+                this.tmp_active_favorites_filters_option = this.old_tmp_active_favorites_filters_option;
             }
 
-            this.throttled_update_active_field_filters();
+            return;
         }
 
-        this.old_tmp_active_favorites_filters_option = cloneDeep(this.tmp_active_favorites_filters_option);
+        const field_filters = this.tmp_active_favorites_filters_option?.field_filters;
 
-        this.is_initialized = true;
+        if (
+            isEmpty(field_filters) ||
+            !isEqual(this.tmp_active_favorites_filters_option, this.old_tmp_active_favorites_filters_option)
+        ) {
+            this.old_active_field_filters = cloneDeep(this.get_active_field_filters);
+            this.reset_all_visible_active_field_filters();
+        }
+
+        this.throttled_update_active_field_filters();
+
+        this.old_tmp_active_favorites_filters_option = cloneDeep(this.tmp_active_favorites_filters_option);
     }
 
     /**
@@ -221,11 +254,17 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
      * @param { { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} [favorites_filters]
      * @returns {boolean}
      */
-    private try_apply_actual_active_favorites_filters(favorites_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }): boolean {
+    private try_apply_actual_active_favorites_filters(
+        favorites_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
+    ): boolean {
 
-        this.tmp_active_favorites_filters_option = this.favorites_filters_visible_options.find(
+        const favorites_filters_option = this.favorites_filters_visible_options.find(
             (f) => isEqual(f?.field_filters, favorites_filters)
         );
+
+        if (favorites_filters_option) {
+            this.tmp_active_favorites_filters_option = favorites_filters_option;
+        }
 
         return true;
     }
@@ -260,41 +299,27 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
      * @returns {void}
      */
     private update_active_field_filters(): void {
-        const favorites_field_filters = this.tmp_active_favorites_filters_option?.field_filters;
+        const favorites_filters = this.tmp_active_favorites_filters_option;
         const old_active_field_filters = this.old_active_field_filters;
 
-        let active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = {};
+        let field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = {};
 
-        // Add default active filters with the old one
-        for (const api_type_id in old_active_field_filters) {
-            const filters = old_active_field_filters[api_type_id];
-
-            for (const field_id in filters) {
-                // the actual filter
-                const filter = filters[field_id];
-
-                // Add default active filters
-                active_field_filters[api_type_id] = {};
-                active_field_filters[api_type_id][field_id] = filter;
-            }
+        if (!favorites_filters?.options?.overwrite_active_field_filters) {
+            field_filters = FieldFilterManager.merge_field_filters(field_filters, old_active_field_filters);
         }
 
-        // Add/Overwrite active filters with the favorites one
-        for (const api_type_id in favorites_field_filters) {
-            const filters = favorites_field_filters[api_type_id];
-
-            for (const field_id in filters) {
-                // the actual filter
-                const filter = filters[field_id];
-
-                active_field_filters[api_type_id] = (active_field_filters[api_type_id] != undefined) ?
-                    active_field_filters[api_type_id] :
-                    {};
-                active_field_filters[api_type_id][field_id] = filter;
-            }
+        if (favorites_filters?.field_filters) {
+            field_filters = FieldFilterManager.merge_field_filters(field_filters, favorites_filters?.field_filters);
         }
 
-        this.set_active_field_filters(active_field_filters);
+        // Case when is_updating is true,
+        // We may want to overwrite favorites_filters with selected one
+        // We must do it to have the possible non-selected options in the modal
+        if (this.is_updating) {
+            field_filters = FieldFilterManager.merge_field_filters(field_filters, this.get_active_field_filters);
+        }
+
+        this.set_active_field_filters(field_filters);
     }
 
     /**
@@ -316,6 +341,179 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
                 }
             }
         }
+    }
+
+    /**
+     * Reload All Visible Active Filters
+     *  - Reload all active filters for all visible widgets
+     *  - Once the favorites_filters have been saved for the current user,
+     *    we need to load it from the DB (to be displayed in the list of favorites_filters)
+     *
+     * @return {void}
+     */
+    private reload_all_visible_active_filters(): void {
+        for (const db_id in ReloadFiltersWidgetController.getInstance().reloaders) {
+            const db_reloaders = ReloadFiltersWidgetController.getInstance().reloaders[db_id];
+
+            for (const p_id in db_reloaders) {
+                const p_reloaders = db_reloaders[p_id];
+
+                for (const w_id in p_reloaders) {
+                    const reload = p_reloaders[w_id];
+
+                    reload();
+                }
+            }
+        }
+    }
+
+    /**
+     * handle_edit_favorites_filters
+     *  - Open the modal to edit the favorites_filters
+     *
+     * @param {FavoritesFiltersVO} favorites_filters
+     */
+    private async handle_edit_favorites_filters(favorites_filters: FavoritesFiltersVO): Promise<void> {
+        // We must set is_updating to true in order to keep the favorites_filters
+        this.is_updating = true;
+
+        // TODO: if favorites_filters is active, keep it active if not set to active
+        this.tmp_active_favorites_filters_option = favorites_filters;
+
+        // We must have a delay before open the modal
+        // which is the time to update the active_field_filters
+        this.throttled_open_favorites_filters_modal(favorites_filters);
+    }
+
+    /**
+     * Open Favorites Filters Modal
+     * - Open the modal to edit the favorites_filters
+     * - We must have a delay before open the modal
+     *
+     * @param {FavoritesFiltersVO[]} props
+     * @returns {Promise<void>}
+     */
+    private async open_favorites_filters_modal(props: FavoritesFiltersVO[]): Promise<void> {
+        const favorites_filters = props.shift();
+
+        const selectionnable_active_field_filters = this.get_selectionnable_active_field_filters();
+        const exportable_data = await this.get_exportable_xlsx_params();
+
+        this.get_Savefavoritesfiltersmodalcomponent.open_modal_for_update(
+            {
+                selectionnable_active_field_filters,
+                exportable_data,
+                favorites_filters
+            },
+            this.handle_update_favorites_filters.bind(this),
+            this.handle_update_favorites_filters_close.bind(this),
+        );
+    }
+
+    /**
+     * Get Selectionnable Active Field Filters
+     *
+     * @return {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO }}
+     */
+    private get_selectionnable_active_field_filters(): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
+
+        const field_value_filters_widgets_options = FieldValueFilterWidgetManager.get_field_value_filters_widgets_options();
+        const month_filters_widgets_options = MonthFilterWidgetManager.get_month_filters_widgets_options();
+        const year_filters_widgets_options = YearFilterWidgetManager.get_year_filters_widgets_options();
+
+        const widgets_options: any[] = [];
+
+        for (const name in field_value_filters_widgets_options) {
+            const widget_options = field_value_filters_widgets_options[name].widget_options;
+            widgets_options.push(widget_options);
+        }
+
+        for (const name in month_filters_widgets_options) {
+            const widget_options = month_filters_widgets_options[name].widget_options;
+            widgets_options.push(widget_options);
+        }
+
+        for (const name in year_filters_widgets_options) {
+            const widget_options = year_filters_widgets_options[name].widget_options;
+            widgets_options.push(widget_options);
+        }
+
+        const field_filters = FieldFilterManager.filter_visible_field_filters(
+            widgets_options,
+            this.get_active_field_filters,
+        );
+
+        return field_filters;
+    }
+
+    /**
+     * Get Exportable XLSX Params
+     *
+     * @param {boolean} [limit_to_page]
+     */
+    private async get_exportable_xlsx_params(limit_to_page: boolean = true): Promise<{ [title_name_code: string]: ExportContextQueryToXLSXParamVO }> {
+
+        const exportable_xlsx_params = await TableWidgetManager.create_exportable_valuetables_xlsx_params(
+            this.dashboard,
+            this.dashboard_page,
+            this.get_active_field_filters,
+        );
+
+        return exportable_xlsx_params;
+    }
+
+    private handle_update_favorites_filters_close(): void {
+        this.is_updating = false;
+    }
+
+    /**
+     * Handle Update Favorites Filters
+     *  - Save active dashboard filters for the current user
+     *
+     * @param {FavoritesFiltersVO} [favorites_filters]
+     * @returns {Promise<void>}
+     */
+    private async handle_update_favorites_filters(favorites_filters: FavoritesFiltersVO): Promise<void> {
+        // We can set the is_updating to false
+        // As the modal is closed (we are in the callback of the modal)
+        this.is_updating = false;
+
+        if (!favorites_filters) {
+            return;
+        }
+
+        let self = this;
+
+        self.snotify.async(self.label('dashboard_viewer.save_favorites_filters.start'), () =>
+            new Promise(async (resolve, reject) => {
+                const success = await FavoritesFiltersVOManager.save_favorites_filters(
+                    favorites_filters
+                );
+
+                if (success) {
+                    self.reload_all_visible_active_filters();
+                    resolve({
+                        body: self.label('dashboard_viewer.save_favorites_filters.ok'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                } else {
+                    reject({
+                        body: self.label('dashboard_viewer.save_favorites_filters.failed'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                }
+            })
+        );
     }
 
     /**

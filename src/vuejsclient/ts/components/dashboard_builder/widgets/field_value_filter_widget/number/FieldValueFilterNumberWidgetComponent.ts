@@ -28,7 +28,7 @@ import FieldValueFilterWidgetController from '../FieldValueFilterWidgetControlle
 import FieldValueFilterWidgetOptions from '../options/FieldValueFilterWidgetOptions';
 import AdvancedNumberFilter from './AdvancedNumberFilter';
 import './FieldValueFilterNumberWidgetComponent.scss';
-import FieldFilterManager from '../../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
+import FieldFilterManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFilterManager';
 import ContextFilterVOManager from '../../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 
 @Component({

@@ -1,6 +1,6 @@
 import ISupervisedItem from "../../Supervision/interfaces/ISupervisedItem";
 import SupervisionWidgetOptionsVO from "../vos/SupervisionWidgetOptionsVO";
-import FieldFilterManager from '../../ContextFilter/manager/FieldFilterManager';
+import FieldFilterManager from './FieldFilterManager';
 import PromisePipeline from "../../../tools/PromisePipeline/PromisePipeline";
 import ContextFilterVOManager from "../../ContextFilter/manager/ContextFilterVOManager";
 import ContextFilterVO from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
