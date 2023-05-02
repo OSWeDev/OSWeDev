@@ -158,10 +158,26 @@ export default class PushDataVueModule extends VueModuleBase {
         let server_app_version: string = await ModulePushData.getInstance().get_app_version();
 
         if (server_app_version && (EnvHandler.VERSION != server_app_version)) {
-            VueAppBase.instance_.vueInstance.snotify.warning(
-                VueAppBase.instance_.vueInstance.label("app_version_changed"),
-                { timeout: 3000 }
-            );
+
+            /**
+             * Cas du dev local, on checke le timestamp server vs local, si le local est plus récent inutile de recharger
+             */
+            const server_app_version_timestamp_str: string = server_app_version.split('-')[1];
+            const server_app_version_timestamp: number = server_app_version_timestamp_str?.length ? parseInt(server_app_version_timestamp_str) : null;
+
+            const local_app_version_timestamp_str: string = EnvHandler.VERSION.split('-')[1];
+            const local_app_version_timestamp: number = local_app_version_timestamp_str?.length ? parseInt(local_app_version_timestamp_str) : null;
+
+            if (server_app_version_timestamp && local_app_version_timestamp && (local_app_version_timestamp > server_app_version_timestamp)) {
+                return;
+            }
+
+            if (VueAppBase.instance_.vueInstance && VueAppBase.instance_.vueInstance.snotify) {
+                VueAppBase.instance_.vueInstance.snotify.warning(
+                    VueAppBase.instance_.vueInstance.label("app_version_changed"),
+                    { timeout: 3000 }
+                );
+            }
 
             setTimeout(() => {
                 window.location.reload();

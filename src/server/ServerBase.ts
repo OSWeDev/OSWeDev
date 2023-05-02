@@ -39,6 +39,7 @@ import StatVO from '../shared/modules/Stats/vos/StatVO';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
 import ConsoleHandler from '../shared/tools/ConsoleHandler';
 import EnvHandler from '../shared/tools/EnvHandler';
+import FileHandler from '../shared/tools/FileHandler';
 import LocaleManager from '../shared/tools/LocaleManager';
 import ThreadHandler from '../shared/tools/ThreadHandler';
 import ConfigurationService from './env/ConfigurationService';
@@ -456,8 +457,32 @@ export default abstract class ServerBase {
         this.app.use('/admin/public', express.static('dist/public/admin'));
         this.app.use('/login/public', express.static('dist/public/login'));
         this.app.use('/vuejsclient/public', express.static('dist/public/vuejsclient'));
+
         // Use this instead
-        this.app.use('/public', express.static('dist/public'));
+        // this.app.use('/public', express.static('dist/public'));
+        this.app.get('/public/*', async (req, res, next) => {
+
+            // Le cas du service worker est déjà traité, ici on a tout sauf le service_worker. Si on ne trouve pas le fichier c'est une erreur et on demande un reload
+            if (!fs.existsSync(path.resolve('./dist' + req.url))) {
+                StatsServerController.register_stats('express.public.notfound', 1, [StatVO.AGGREGATOR_SUM], TimeSegment.TYPE_MINUTE);
+
+                const uid = req.session ? req.session.uid : null;
+                const client_tab_id = req.headers ? req.headers.client_tab_id : null;
+
+                if (uid && client_tab_id) {
+                    StatsServerController.register_stats('express.public.reload', 1, [StatVO.AGGREGATOR_SUM], TimeSegment.TYPE_MINUTE);
+                    ConsoleHandler.warn("ServerExpressController:public:NOT_FOUND:" + req.url + ": asking for reload");
+                    await PushDataServerController.getInstance().notifyTabReload(uid, client_tab_id);
+                } else {
+                    ConsoleHandler.error("ServerExpressController:public:NOT_FOUND:" + req.url + ": no uid or no tab_id - doing nothing...");
+                }
+
+                res.status(404).send("Not found");
+                return;
+            }
+
+            res.sendFile(path.resolve('./dist' + req.url));
+        });
 
         // Le service de push
         this.app.get('/sw_push.js', (req, res, next) => {
@@ -1230,10 +1255,17 @@ export default abstract class ServerBase {
     protected async hook_pwa_init() {
         let version = this.getVersion();
 
-        this.app.get('/public/vuejsclient/pwa/client-sw.' + version + '.js', (req, res, next) => {
+        // this.app.get('/public/client-sw.' + version + '.js', (req, res, next) => {
+        //     res.header('Service-Worker-Allowed', '/public/');
+
+        // });
+
+        this.app.get('/public/client-sw.*.js', (req, res, next) => {
             res.header('Service-Worker-Allowed', '/');
 
-            res.sendFile(path.resolve('./dist/public/vuejsclient/pwa/client-sw.' + version + '.js'));
+            // si on tente de récupérer un service worker qui n'existe pas, on laisse passer l'erreur et on ne recharge pas.
+            // par contre si on est ailleurs dans le /public/, il faudra demander un reload de la page
+            res.sendFile(path.resolve('./dist' + req.url));
         });
     }
 
