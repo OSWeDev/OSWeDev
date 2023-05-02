@@ -43,6 +43,8 @@ export default class FieldFilterManager {
                     { vo_field_ref: { api_type_id, field_id } },
                 );
 
+                // Get the page_wigdet_options from sorted_page_widgets_options
+                // - The page_wigdet_options is used to get the label of the filter
                 const page_wigdet_options = Object.values(sorted_page_widgets_options)?.filter((sorted_page_widget_option) => {
 
                     const _vo_field_ref = sorted_page_widget_option?.widget_options?.vo_field_ref;

@@ -12,8 +12,6 @@ import FavoritesFiltersVO from "../../../../shared/modules/DashboardBuilder/vos/
 import DashboardWidgetVO from "../../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO";
 import Dates from "../../../../shared/modules/FormatDatesNombres/Dates/Dates";
 import ModuleDataExportServer from "../../DataExport/ModuleDataExportServer";
-import ConsoleHandler from "../../../../shared/tools/ConsoleHandler";
-import ObjectHandler from "../../../../shared/tools/ObjectHandler";
 
 /**
  * @class FavoritesFiltersVOService
@@ -166,18 +164,7 @@ export default class FavoritesFiltersVOService {
                 });
             }
 
-            // TODO: test the following code
-            // Merge/replace default_field_filters with favorites_field_filters
             // Create context_field_filters with the default one
-            // try {
-            //     context_field_filters = ObjectHandler.deepmerge(context_field_filters, default_field_filters);
-            //     // Add/Overwrite default context_field_filters with the favorites_field_filters one
-            //     context_field_filters = ObjectHandler.deepmerge(context_field_filters, favorites_field_filters);
-            // } catch (e) {
-            //     ConsoleHandler.error('Error while merging context_field_filters', e);
-            // }
-
-            // TODO: remove this part once the previous one has been tested
             for (const api_type_id in default_field_filters) {
                 const filters = default_field_filters[api_type_id];
 
@@ -191,6 +178,7 @@ export default class FavoritesFiltersVOService {
                 }
             }
 
+            // Merge/replace default_field_filters with favorites_field_filters
             for (const api_type_id in favorites_field_filters) {
                 const filters = favorites_field_filters[api_type_id];
 

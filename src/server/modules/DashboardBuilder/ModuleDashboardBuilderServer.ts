@@ -17,20 +17,6 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import DashboardBuilderCronWorkersHandler from './DashboardBuilderCronWorkersHandler';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
-import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ExportContextQueryToXLSXParamVO from '../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
-import FavoritesFiltersVO from '../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import ModuleDataExportServer from '../DataExport/ModuleDataExportServer';
-import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import DashboardBuilderVOFactory from '../../../shared/modules/DashboardBuilder/factory/DashboardBuilderVOFactory';
-import DashboardWidgetVO from '../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
-import ContextFilterVOManager from '../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
-import IExportParamsProps from '../../../shared/modules/DashboardBuilder/interfaces/IExportParamsProps';
-import FieldFilterManager from '../../../shared/modules/DashboardBuilder/manager/FieldFilterManager';
-import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import FavoritesFiltersVOService from './service/FavoritesFiltersVOService';
 
 export default class ModuleDashboardBuilderServer extends ModuleServerBase {
