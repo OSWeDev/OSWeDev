@@ -386,6 +386,109 @@ export default abstract class ServerBase {
 
         // !JNE : Ajout du header no cache sur les requetes gérées par express
 
+        /**
+         * On tente de récupérer un ID unique de session en request, et si on en trouve, on essaie de charger la session correspondante
+         * cf : https://stackoverflow.com/questions/29425070/is-it-possible-to-get-an-express-session-by-sessionid
+         */
+        this.app.use(function getSessionViaQuerystring(req, res: Response, next) {
+            var sessionid = req.query.sessionid;
+            if (!sessionid) {
+                next();
+                return;
+            }
+
+            // Trick the session middleware that you have the cookie;
+            // Make sure you configure the cookie name, and set 'secure' to false
+            // in https://github.com/expressjs/session#cookie-options
+            if (req.cookies) {
+                req.cookies['sid'] = req.query.sessionid;
+            }
+
+            if (req.rawHeaders) {
+                for (let i in req.rawHeaders) {
+                    let rawHeader = req.rawHeaders[i];
+                    if (/^(.*; ?)?sid=[^;]+(; ?(.*))?$/.test(rawHeader)) {
+
+                        let groups = /^(.*; ?)?sid=[^;]+(; ?(.*))?$/.exec(rawHeader);
+                        req.rawHeaders[i] = (groups[1] ? groups[1] : '') + 'sid=' + req.query.sessionid + (groups[2] ? groups[2] : '');
+                    }
+                }
+            }
+
+            if (req.headers && req.headers['cookie'] && (req.headers['cookie'].indexOf('sid') >= 0)) {
+
+                let groups = /^(.*; ?)?sid=[^;]+(; ?(.*))?$/.exec(req.headers['cookie']);
+                req.headers['cookie'] = (groups[1] ? groups[1] : '') + 'sid=' + req.query.sessionid + (groups[2] ? groups[2] : '');
+            } else {
+                if (!req.headers) {
+                    req.headers = {};
+                }
+                req.headers['cookie'] = 'sid=' + req.query.sessionid;
+            }
+            // res.setHeader('cookie', req.headers['cookie']);
+            res.cookie('sid', req.query.sessionid);
+
+            next();
+        });
+
+        this.session = expressSession({
+            secret: 'vk4s8dq2j4',
+            name: 'sid',
+            proxy: true,
+            resave: false,
+            saveUninitialized: false,
+            store: ExpressDBSessionsServerController.getInstance({
+                conString: this.connectionString,
+                schemaName: 'ref',
+                tableName: UserSessionVO.API_TYPE_ID,
+            }),
+            cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 }, // 30 days
+        });
+        this.app.use(this.session);
+
+
+        /**
+         * On ajoute un contrôle de la version du client et si il se co avec une version trop ancienne on lui demande de reload
+         */
+        this.app.use(
+            async (req, res, next) => {
+
+                if (!!req.headers.version) {
+                    let client_version = req.headers.version;
+                    let server_version = this.getVersion();
+
+                    if (client_version != server_version) {
+
+                        const server_app_version_timestamp_str: string = server_version.split('-')[1];
+                        const server_app_version_timestamp: number = server_app_version_timestamp_str?.length ? parseInt(server_app_version_timestamp_str) : null;
+
+                        const local_app_version_timestamp_str: string = client_version.split('-')[1];
+                        const local_app_version_timestamp: number = local_app_version_timestamp_str?.length ? parseInt(local_app_version_timestamp_str) : null;
+
+                        if (server_app_version_timestamp && local_app_version_timestamp && (local_app_version_timestamp > server_app_version_timestamp)) {
+                            return next();
+                        }
+
+                        ConsoleHandler.log("[CLIENT]:" + client_version + " != " + server_version);
+
+                        const uid = req.session ? req.session.uid : null;
+                        const client_tab_id = req.headers ? req.headers.client_tab_id : null;
+
+                        if (uid && client_tab_id) {
+                            StatsServerController.register_stats('express.version.reload', 1, [StatVO.AGGREGATOR_SUM], TimeSegment.TYPE_MINUTE);
+                            ConsoleHandler.log("ServerExpressController:version:uid:" + uid + ":client_tab_id:" + client_tab_id + ": asking for reload");
+                            await PushDataServerController.getInstance().notifyTabReload(uid, client_tab_id);
+                        }
+
+                        res.setHeader("cache-control", "no-cache");
+                        res.status(426).send("Version mismatch, please reload your browser");
+                        return;
+                    }
+                }
+
+                return next();
+            });
+
 
         // Pour renvoyer les js en gzip directement quand ils sont appelés en .js.gz dans le html
         // Accept-Encoding: gzip, deflate
@@ -469,13 +572,13 @@ export default abstract class ServerBase {
                 const uid = req.session ? req.session.uid : null;
                 const client_tab_id = req.headers ? req.headers.client_tab_id : null;
 
-                if (uid && client_tab_id) {
-                    StatsServerController.register_stats('express.public.reload', 1, [StatVO.AGGREGATOR_SUM], TimeSegment.TYPE_MINUTE);
-                    ConsoleHandler.warn("ServerExpressController:public:NOT_FOUND:" + req.url + ": asking for reload");
-                    await PushDataServerController.getInstance().notifyTabReload(uid, client_tab_id);
-                } else {
-                    ConsoleHandler.error("ServerExpressController:public:NOT_FOUND:" + req.url + ": no uid or no tab_id - doing nothing...");
-                }
+                // if (uid && client_tab_id) {
+                //     StatsServerController.register_stats('express.public.reload', 1, [StatVO.AGGREGATOR_SUM], TimeSegment.TYPE_MINUTE);
+                //     ConsoleHandler.warn("ServerExpressController:public:NOT_FOUND:" + req.url + ": asking for reload");
+                //     await PushDataServerController.getInstance().notifyTabReload(uid, client_tab_id);
+                // } else {
+                ConsoleHandler.error("ServerExpressController:public:NOT_FOUND:" + req.url + ": no uid or no tab_id - doing nothing...:uid:" + uid + ":client_tab_id:" + client_tab_id);
+                // }
 
                 res.status(404).send("Not found");
                 return;
@@ -508,65 +611,6 @@ export default abstract class ServerBase {
             next();
         });
 
-        /**
-         * On tente de récupérer un ID unique de session en request, et si on en trouve, on essaie de charger la session correspondante
-         * cf : https://stackoverflow.com/questions/29425070/is-it-possible-to-get-an-express-session-by-sessionid
-         */
-        this.app.use(function getSessionViaQuerystring(req, res: Response, next) {
-            var sessionid = req.query.sessionid;
-            if (!sessionid) {
-                next();
-                return;
-            }
-
-            // Trick the session middleware that you have the cookie;
-            // Make sure you configure the cookie name, and set 'secure' to false
-            // in https://github.com/expressjs/session#cookie-options
-            if (req.cookies) {
-                req.cookies['sid'] = req.query.sessionid;
-            }
-
-            if (req.rawHeaders) {
-                for (let i in req.rawHeaders) {
-                    let rawHeader = req.rawHeaders[i];
-                    if (/^(.*; ?)?sid=[^;]+(; ?(.*))?$/.test(rawHeader)) {
-
-                        let groups = /^(.*; ?)?sid=[^;]+(; ?(.*))?$/.exec(rawHeader);
-                        req.rawHeaders[i] = (groups[1] ? groups[1] : '') + 'sid=' + req.query.sessionid + (groups[2] ? groups[2] : '');
-                    }
-                }
-            }
-
-            if (req.headers && req.headers['cookie'] && (req.headers['cookie'].indexOf('sid') >= 0)) {
-
-                let groups = /^(.*; ?)?sid=[^;]+(; ?(.*))?$/.exec(req.headers['cookie']);
-                req.headers['cookie'] = (groups[1] ? groups[1] : '') + 'sid=' + req.query.sessionid + (groups[2] ? groups[2] : '');
-            } else {
-                if (!req.headers) {
-                    req.headers = {};
-                }
-                req.headers['cookie'] = 'sid=' + req.query.sessionid;
-            }
-            // res.setHeader('cookie', req.headers['cookie']);
-            res.cookie('sid', req.query.sessionid);
-
-            next();
-        });
-
-        this.session = expressSession({
-            secret: 'vk4s8dq2j4',
-            name: 'sid',
-            proxy: true,
-            resave: false,
-            saveUninitialized: false,
-            store: ExpressDBSessionsServerController.getInstance({
-                conString: this.connectionString,
-                schemaName: 'ref',
-                tableName: UserSessionVO.API_TYPE_ID,
-            }),
-            cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 }, // 30 days
-        });
-        this.app.use(this.session);
 
         this.app.use(function (req, res, next) {
             // TODO JNE - A DISCUTER

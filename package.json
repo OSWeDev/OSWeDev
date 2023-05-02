@@ -64,9 +64,6 @@
     },
     "author": "Wedev",
     "license": "Apache-2.0",
-    "browser": {
-        "zlib": false
-    },
     "dependencies": {
         "@godaddy/terminus": "4.4.1",
         "@growthbunker/vueflags": "0.0.6",

@@ -12,7 +12,7 @@ import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import EnvHandler from '../../../../shared/tools/EnvHandler';
 import { all_promises } from '../../../../shared/tools/PromiseTools';
-const zlib = require('zlib');
+import zlib from 'zlib';
 
 export default class AjaxCacheClientController implements IAjaxCacheClientController {
 
@@ -224,6 +224,9 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             if (!!self.csrf_token) {
                 options.headers['X-CSRF-Token'] = self.csrf_token;
                 options.headers['client_tab_id'] = AjaxCacheClientController.getInstance().client_tab_id;
+            }
+            if (!!EnvHandler.VERSION) {
+                options.headers['version'] = EnvHandler.VERSION;
             }
             self.addCallback(cache, resolve, reject);
 
@@ -583,7 +586,10 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
 
                     if ($.ajaxSetup) {
                         $.ajaxSetup({
-                            timeout: 30000
+                            timeout: 30000,
+                            headers: {
+                                version: EnvHandler.VERSION
+                            }
                         }); // in milliseconds
                     }
 
