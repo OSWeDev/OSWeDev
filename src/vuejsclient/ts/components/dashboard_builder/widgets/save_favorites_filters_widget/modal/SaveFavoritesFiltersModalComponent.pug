@@ -169,5 +169,10 @@
                                                             .input_label {{ t(title_name_code) }}
 
                 .modal-footer
-                    a.btn.btn-success(@click='handle_save') {{ label('crud.update.modal.save') }}
+                    template(v-if="!favorites_filters?.id")
+                        a.btn.btn-success(@click='handle_save') {{ label('crud.update.modal.save') }}
+                    template(v-if="favorites_filters?.id")
+                        a.btn.btn-success(@click='handle_save') {{ label('crud.update.modal.update') }}
+                    template(v-if="favorites_filters?.id")
+                        a.btn.btn-danger(@click='handle_delete') {{ label('crud.update.modal.delete') }}
                     a.btn.btn-default(data-dismiss="modal" @click='handle_close_modal') {{ label('crud.update.modal.cancel') }}

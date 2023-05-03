@@ -1,16 +1,16 @@
 import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import { Watch } from 'vue-property-decorator';
-import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import { IExportFrequency } from '../../../../../../../shared/modules/DashboardBuilder/interfaces/IExportFrequency';
-import IFavoritesFiltersOptions from '../../../../../../../shared/modules/DashboardBuilder/interfaces/IFavoritesFiltersOptions';
 import IReadableActiveFieldFilters from '../../../../../../../shared/modules/DashboardBuilder/interfaces/IReadableActiveFieldFilters';
 import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
+import IFavoritesFiltersOptions from '../../../../../../../shared/modules/DashboardBuilder/interfaces/IFavoritesFiltersOptions';
 import FieldFilterManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFilterManager';
+import IExportFrequency from '../../../../../../../shared/modules/DashboardBuilder/interfaces/IExportFrequency';
 import FavoritesFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO';
+import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import VueAppController from '../../../../../../VueAppController';
 import VueComponentBase from '../../../../VueComponentBase';
 import './SaveFavoritesFiltersModalComponent.scss';
-import VueAppController from '../../../../../../VueAppController';
 
 export enum ExportFrequencyGranularity {
     DAY = "day",
@@ -62,6 +62,7 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
 
     private on_validation_callback: (props: Partial<FavoritesFiltersVO>) => Promise<void> = null;
     private on_close_callback: (props?: Partial<FavoritesFiltersVO>) => Promise<void> = null;
+    private on_delete_callback: (props?: Partial<FavoritesFiltersVO>) => Promise<void> = null;
 
     /**
      * Open Modal For Creation
@@ -114,7 +115,8 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
             favorites_filters: FavoritesFiltersVO,
         } = null,
         validation_callback?: (props?: Partial<FavoritesFiltersVO>) => Promise<void>,
-        close_callback?: (props?: Partial<FavoritesFiltersVO>) => Promise<void>
+        close_callback?: (props?: Partial<FavoritesFiltersVO>) => Promise<void>,
+        delete_callback?: (props?: Partial<FavoritesFiltersVO>) => Promise<void>,
     ): void {
 
         this.favorites_filters = props?.favorites_filters ?? null;
@@ -159,6 +161,10 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
 
         if (typeof close_callback == 'function') {
             this.on_close_callback = close_callback;
+        }
+
+        if (typeof delete_callback == 'function') {
+            this.on_delete_callback = delete_callback;
         }
     }
 
@@ -256,7 +262,22 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
 
         await this.on_validation_callback(favorites_filters);
 
-        this.favorites_filters = null;
+        this.is_modal_open = false;
+    }
+
+    /**
+     * Handle Delete
+     * - Delete the current favorites_filters
+     *
+     * @return {Promise<void>}
+     */
+    private handle_delete(): Promise<void> {
+        if (!(typeof this.on_delete_callback === 'function')) {
+            return;
+        }
+
+        this.on_delete_callback(this.favorites_filters);
+
         this.is_modal_open = false;
     }
 
@@ -313,12 +334,13 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
         if (this.is_modal_open) {
             $('#save_favorites_filters_modal_component').modal('show');
         } else {
-            this.reset_modal();
             $('#save_favorites_filters_modal_component').modal('hide');
 
             if (typeof this.on_close_callback === 'function') {
                 this.on_close_callback();
             }
+
+            this.reset_modal();
         }
     }
 
@@ -330,8 +352,12 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
     private reset_modal(): void {
         this.form_errors = [];
         this.active_tab_view = 'selection_tab';
-        this.favorites_filters_name = null;
+        this.export_frequency = { every: null, granularity: null, day_in_month: null };
+        this.selected_export_frequency_granularity = { label: null, value: null };
         this.selected_favorite_field_filters = null;
+        this.selected_exportable_data = null;
+        this.favorites_filters_name = null;
+        this.favorites_filters = null;
         this.reset_export_plan();
     }
 

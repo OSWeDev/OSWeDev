@@ -73,7 +73,8 @@ export default class TableWidgetManager {
 
             const widget_options_fields = TableWidgetManager.get_table_fields_by_widget_options(
                 dashboard,
-                widget_options
+                widget_options,
+                { default: true },
             );
 
             // The actual fields to be exported
@@ -158,7 +159,8 @@ export default class TableWidgetManager {
 
         const fields = TableWidgetManager.get_table_fields_by_widget_options(
             dashboard,
-            widget_options
+            widget_options,
+            { default: true }
         );
 
         const limit = (widget_options?.limit == null) ? TableWidgetOptionsVO.DEFAULT_LIMIT : widget_options.limit;
@@ -296,6 +298,7 @@ export default class TableWidgetManager {
     public static get_table_columns_by_widget_options(
         widget_options: TableWidgetOptionsVO,
         options?: {
+            default?: boolean,
             active_field_filters?: { [api_type_id: number]: { [field_id: number]: ContextFilterVO } },
             all_page_widget?: DashboardPageWidgetVO[],
         },
@@ -327,6 +330,16 @@ export default class TableWidgetManager {
                 column.column_width = 0;
             }
 
+            // TODO: Check by access rights
+            // if (column.filter_by_access && !this.filter_by_access_cache[column.filter_by_access]) {
+            //     continue;
+            // }
+
+            if (options?.default) {
+                table_columns.push(new TableColumnDescVO().from(column));
+                continue;
+            }
+
             if (column.show_if_any_filter_active?.length > 0) {
 
                 let activated = false;
@@ -341,13 +354,7 @@ export default class TableWidgetManager {
                         continue;
                     }
 
-                    const page_widget_options = new FieldValueFilterWidgetOptionsVO().from(
-                        JSON.parse(page_widget.json_options)
-                    );
-
-                    if ((!options.active_field_filters) ||
-                        (!options.active_field_filters[page_widget_options.vo_field_ref.api_type_id]) ||
-                        (!options.active_field_filters[page_widget_options.vo_field_ref.api_type_id][page_widget_options.vo_field_ref.field_id])) {
+                    if (!FieldFilterManager.is_field_filters_empty(widget_options, options.active_field_filters)) {
                         continue;
                     }
 
@@ -569,10 +576,14 @@ export default class TableWidgetManager {
     public static get_table_fields_by_widget_options(
         dashboard: DashboardVO,
         widget_options: TableWidgetOptionsVO,
+        options?: { default?: boolean }
     ): { [column_id: number]: DatatableField<any, any> } {
         let field_by_column_id: { [column_id: number]: DatatableField<any, any> } = {};
 
-        const columns = TableWidgetManager.get_table_columns_by_widget_options(widget_options);
+        const columns = TableWidgetManager.get_table_columns_by_widget_options(
+            widget_options,
+            { default: options?.default }
+        );
 
         for (let i in columns) {
             let column: TableColumnDescVO = columns[i];

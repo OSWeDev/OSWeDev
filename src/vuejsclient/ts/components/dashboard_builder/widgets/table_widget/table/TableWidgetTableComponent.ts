@@ -1481,10 +1481,11 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         for (let column_id in this.fields) {
             let field = this.fields[column_id];
 
-            if ((field.type == DatatableField.VAR_FIELD_TYPE) ||
+            if (
+                (field.type == DatatableField.VAR_FIELD_TYPE) ||
                 (field.type == DatatableField.COMPONENT_FIELD_TYPE) ||
-                (field.type == DatatableField.SELECT_BOX_FIELD_TYPE)) {
-
+                (field.type == DatatableField.SELECT_BOX_FIELD_TYPE)
+            ) {
                 continue;
             }
 
@@ -2265,6 +2266,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
      */
     private async do_export_to_xlsx(limit_to_page: boolean = true) {
         let param: ExportContextQueryToXLSXParamVO = this.get_export_params_for_context_query_xlsx(limit_to_page);
+
+        console.log('TableWidgetTableComponentdo_export_to_xlsx', JSON.stringify(param));
 
         if (!!param) {
 

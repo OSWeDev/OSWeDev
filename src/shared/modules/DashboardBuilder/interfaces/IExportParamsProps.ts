@@ -1,6 +1,6 @@
 
 import ExportContextQueryToXLSXParamVO from '../../DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
-import { IExportFrequency } from './IExportFrequency';
+import IExportFrequency from './IExportFrequency';
 
 /**
  * IExportParamsProps

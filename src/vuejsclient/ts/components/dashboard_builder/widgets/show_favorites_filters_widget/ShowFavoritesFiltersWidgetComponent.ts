@@ -407,6 +407,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
             },
             this.handle_update_favorites_filters.bind(this),
             this.handle_update_favorites_filters_close.bind(this),
+            this.handle_delete_favorites_filters.bind(this),
         );
     }
 
@@ -464,6 +465,52 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
 
     private handle_update_favorites_filters_close(): void {
         this.is_updating = false;
+    }
+
+    /**
+     * Handle Delete Favorites Filters
+     * - Delete the favorites_filters for the current user
+     *
+     * @returns {Promise<void>}
+     */
+    private async handle_delete_favorites_filters(favorites_filters: FavoritesFiltersVO): Promise<void> {
+
+        if (!favorites_filters) {
+            return;
+        }
+
+        let self = this;
+
+        self.snotify.async(self.label('dashboard_viewer.delete_favorites_filters.start'), () =>
+            new Promise(async (resolve, reject) => {
+                const success = await FavoritesFiltersVOManager.delete_favorites_filters(
+                    favorites_filters
+                );
+
+                if (success) {
+                    self.reload_all_visible_active_filters();
+                    resolve({
+                        body: self.label('dashboard_viewer.delete_favorites_filters.ok'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                } else {
+                    reject({
+                        body: self.label('dashboard_viewer.delete_favorites_filters.failed'),
+                        config: {
+                            timeout: 10000,
+                            showProgressBar: true,
+                            closeOnClick: false,
+                            pauseOnHover: true,
+                        },
+                    });
+                }
+            })
+        );
     }
 
     /**
