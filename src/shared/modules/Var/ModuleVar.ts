@@ -58,6 +58,7 @@ export default class ModuleVar extends Module {
     public static APINAME_update_params_registration: string = 'update_params_registration';
     public static APINAME_unregister_params: string = 'unregister_params';
 
+    public static APINAME_get_var_data: string = 'get_var_data';
     public static APINAME_get_var_data_by_index: string = 'get_var_data_by_index';
 
     public static APINAME_getVarControllerVarsDeps: string = 'getVarControllerVarsDeps';
@@ -112,6 +113,7 @@ export default class ModuleVar extends Module {
     public unregister_params: (params: VarDataBaseVO[]) => Promise<void> = APIControllerWrapper.sah(ModuleVar.APINAME_unregister_params);
     public get_var_id_by_names: () => Promise<VarConfIds> = APIControllerWrapper.sah(ModuleVar.APINAME_get_var_id_by_names);
 
+    public get_var_data: <T extends VarDataBaseVO>(var_data_index: string) => Promise<T> = APIControllerWrapper.sah(ModuleVar.APINAME_get_var_data);
     public get_var_data_by_index: <T extends VarDataBaseVO>(var_data_api_type_id: string, var_data_index: string) => Promise<T> = APIControllerWrapper.sah(ModuleVar.APINAME_get_var_data_by_index);
 
     public getVarParamFromContextFilters: (
@@ -276,6 +278,13 @@ export default class ModuleVar extends Module {
             ModuleVar.POLICY_FO_ACCESS,
             ModuleVar.APINAME_get_var_data_by_index,
             ((param: APIGetVarDataByIndexParamVO) => [param.api_type_id])
+        ));
+
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<StringParamVO, VarDataBaseVO>(
+            ModuleVar.POLICY_FO_ACCESS,
+            ModuleVar.APINAME_get_var_data,
+            CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
+            StringParamVOStatic
         ));
 
         // APIControllerWrapper.registerApi(new PostAPIDefinition<VarDataBaseVO[], void>(

@@ -188,16 +188,16 @@ export default class VarDAGNode extends DAGNodeBase {
         if (var_dag.has_perfs) {
             this.perfs = new VarBatchNodePerfVO();
 
-            this.perfs.ctree_deploy_deps = new VarNodePerfElementVO(var_data.index, 'ctree_deploy_deps', VarNodeParentPerfVO.create_new(null, 'create_tree'));
-            this.perfs.ctree_ddeps_try_load_cache_complet = new VarNodePerfElementVO(var_data.index, 'ctree_ddeps_try_load_cache_complet', VarNodeParentPerfVO.create_new(var_data.index, 'ctree_deploy_deps'));
-            this.perfs.ctree_ddeps_load_imports_and_split_nodes = new VarNodePerfElementVO(var_data.index, 'ctree_ddeps_load_imports_and_split_nodes', VarNodeParentPerfVO.create_new(var_data.index, 'ctree_deploy_deps'));
-            this.perfs.ctree_ddeps_try_load_cache_partiel = new VarNodePerfElementVO(var_data.index, 'ctree_ddeps_try_load_cache_partiel', VarNodeParentPerfVO.create_new(var_data.index, 'ctree_deploy_deps'));
-            this.perfs.ctree_ddeps_get_node_deps = new VarNodePerfElementVO(var_data.index, 'ctree_ddeps_get_node_deps', VarNodeParentPerfVO.create_new(var_data.index, 'ctree_deploy_deps'));
-            this.perfs.ctree_ddeps_handle_pixellisation = new VarNodePerfElementVO(var_data.index, 'ctree_ddeps_handle_pixellisation', VarNodeParentPerfVO.create_new(var_data.index, 'ctree_deploy_deps'));
+            this.perfs.ctree_deploy_deps = new VarNodePerfElementVO(this, 'ctree_deploy_deps', VarNodeParentPerfVO.create_new(null, 'create_tree'));
+            this.perfs.ctree_ddeps_try_load_cache_complet = new VarNodePerfElementVO(this, 'ctree_ddeps_try_load_cache_complet', VarNodeParentPerfVO.create_new(this, 'ctree_deploy_deps'));
+            this.perfs.ctree_ddeps_load_imports_and_split_nodes = new VarNodePerfElementVO(this, 'ctree_ddeps_load_imports_and_split_nodes', VarNodeParentPerfVO.create_new(this, 'ctree_deploy_deps'));
+            this.perfs.ctree_ddeps_try_load_cache_partiel = new VarNodePerfElementVO(this, 'ctree_ddeps_try_load_cache_partiel', VarNodeParentPerfVO.create_new(this, 'ctree_deploy_deps'));
+            this.perfs.ctree_ddeps_get_node_deps = new VarNodePerfElementVO(this, 'ctree_ddeps_get_node_deps', VarNodeParentPerfVO.create_new(this, 'ctree_deploy_deps'));
+            this.perfs.ctree_ddeps_handle_pixellisation = new VarNodePerfElementVO(this, 'ctree_ddeps_handle_pixellisation', VarNodeParentPerfVO.create_new(this, 'ctree_deploy_deps'));
 
-            this.perfs.load_node_datas = new VarNodePerfElementVO(var_data.index, 'load_node_datas', VarNodeParentPerfVO.create_new(null, 'load_nodes_datas'));
+            this.perfs.load_node_datas = new VarNodePerfElementVO(this, 'load_node_datas', VarNodeParentPerfVO.create_new(null, 'load_nodes_datas'));
 
-            this.perfs.compute_node = new VarNodePerfElementVO(var_data.index, 'compute_node', VarNodeParentPerfVO.create_new(null, 'compute_node_wrapper'));
+            this.perfs.compute_node = new VarNodePerfElementVO(this, 'compute_node', VarNodeParentPerfVO.create_new(null, 'compute_node_wrapper'));
         }
     }
 

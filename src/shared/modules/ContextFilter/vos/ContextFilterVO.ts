@@ -72,8 +72,9 @@ export default class ContextFilterVO implements IDistantVOBase {
 
         'context_filter.type.TYPE_NUMERIC_NOT_EQUALS',
         'context_filter.type.TYPE_NUMERIC_EQUALS_ANY',
-        'context_filter.type.TYPE_EXISTS'
+        'context_filter.type.TYPE_EXISTS',
 
+        'context_filter.type.TYPE_UNION_ALL',
     ];
 
     /**

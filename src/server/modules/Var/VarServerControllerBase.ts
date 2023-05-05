@@ -60,6 +60,15 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
         this.varConf = await VarsServerController.getInstance().registerVar(this.varConf, this);
         let var_cache_conf = this.getVarCacheConf();
         this.var_cache_conf = (var_cache_conf && !var_cache_conf.id) ? await VarsServerController.getInstance().configureVarCache(this.varConf, var_cache_conf) : var_cache_conf;
+
+        if (var_cache_conf && var_cache_conf.id && this.varConf.id) {
+            // Cas des tests unitaires par exemple, on doit quand même init le varcacheconf_by_var_ids du VarsServerController
+            VarsServerController.getInstance().varcacheconf_by_var_ids[this.varConf.id] = this.var_cache_conf;
+            if (!VarsServerController.getInstance().varcacheconf_by_api_type_ids[this.varConf.var_data_vo_type]) {
+                VarsServerController.getInstance().varcacheconf_by_api_type_ids[this.varConf.var_data_vo_type] = {};
+            }
+            VarsServerController.getInstance().varcacheconf_by_api_type_ids[this.varConf.var_data_vo_type][this.varConf.id] = this.var_cache_conf;
+        }
     }
 
     public getVarCacheConf(): VarCacheConfVO {

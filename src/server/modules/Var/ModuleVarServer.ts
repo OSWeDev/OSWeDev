@@ -832,6 +832,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_unregister_params, this.unregister_params.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_get_var_id_by_names, this.get_var_id_by_names.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_get_var_data_by_index, this.get_var_data_by_index.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_get_var_data, this.get_var_data.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_getVarControllerVarsDeps, this.getVarControllerVarsDeps.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_getVarControllerDSDeps, this.getVarControllerDSDeps.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleVar.APINAME_getParamDependencies, this.getParamDependencies.bind(this));
@@ -1996,6 +1997,10 @@ export default class ModuleVarServer extends ModuleServerBase {
                 }
             }
         }
+    }
+
+    private async get_var_data(var_data_index: string): Promise<VarDataBaseVO> {
+        return await VarsServerCallBackSubsController.getInstance().get_var_data(VarDataBaseVO.from_index(var_data_index), "client:get-var-data");
     }
 
     /**

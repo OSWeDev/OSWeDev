@@ -105,6 +105,10 @@ export default class DAGController {
         visit_condition: (node: DAGNodeBase) => boolean = null,
         visited: DAGNodeBase[] = []): Promise<void> {
 
+        if (!source_node) {
+            return;
+        }
+
         if (visited.indexOf(source_node) >= 0) {
             return;
         }
@@ -141,6 +145,10 @@ export default class DAGController {
         visit_condition: (node: DAGNodeBase) => boolean = null,
         visited: DAGNodeBase[] = []): Promise<void> {
 
+        if (!target_node) {
+            return;
+        }
+
         if (visited.indexOf(target_node) >= 0) {
             return;
         }
@@ -176,6 +184,10 @@ export default class DAGController {
         callback: (node: DAGNodeBase) => Promise<any>,
         visit_condition: (node: DAGNodeBase) => boolean = null,
         visited: DAGNodeBase[] = []): Promise<void> {
+
+        if (!through_node) {
+            return;
+        }
 
         if (visited.indexOf(through_node) >= 0) {
             return;
@@ -220,6 +232,10 @@ export default class DAGController {
         callback: (node: DAGNodeBase) => Promise<any>,
         visit_condition: (node: DAGNodeBase) => boolean = null,
         visited: DAGNodeBase[] = []): Promise<void> {
+
+        if (!through_node) {
+            return;
+        }
 
         if (visited.indexOf(through_node) >= 0) {
             return;

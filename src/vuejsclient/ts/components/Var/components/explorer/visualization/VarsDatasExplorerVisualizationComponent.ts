@@ -1,5 +1,6 @@
 import { Component, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
+import ModuleVar from '../../../../../../../shared/modules/Var/ModuleVar';
 import VarDataBaseVO from '../../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
@@ -25,6 +26,8 @@ export default class VarsDatasExplorerVisualizationComponent extends VueComponen
     private set_filtered_datas: (filtered_datas: { [index: string]: VarDataBaseVO }) => void;
 
     private param_index: string = null;
+    private get_var_data_param_index: string = null;
+    private multi_get_var_data_param_index: string = null;
     private multi_param_index: string = null;
     private display_data: boolean = false;
     private errors_data: string[] = null; //Ligne correspondant à l'index erroné.
@@ -81,5 +84,53 @@ export default class VarsDatasExplorerVisualizationComponent extends VueComponen
         this.errors_data = errors;
         this.display_data = true;
         this.set_filtered_datas(var_param_by_index);
+    }
+
+    private async get_var_data() {
+        if (!this.get_var_data_param_index) {
+            return;
+        }
+
+        try {
+
+            let res = await ModuleVar.getInstance().get_var_data(this.get_var_data_param_index);
+            this.snotify.info('get_var_data:' + this.param_from_index + ':' + res.value);
+            ConsoleHandler.log('get_var_data:' + this.param_from_index + ':' + res.value);
+        } catch (error) {
+            this.snotify.error('get_var_data:' + this.param_from_index + ':' + error);
+            ConsoleHandler.error('get_var_data:' + this.param_from_index + ':' + error);
+        }
+    }
+
+    private async multi_get_var_data() {
+        if (!this.multi_get_var_data_param_index) {
+            return;
+        }
+
+        let each_line_of_textarea: string[] = this.multi_get_var_data_param_index.split('\n');
+        let promises = [];
+
+        for (let i in each_line_of_textarea) {
+
+            if (!each_line_of_textarea[i] || !each_line_of_textarea[i].length) {
+                continue;
+            }
+
+            let index = each_line_of_textarea[i];
+
+            promises.push((async () => {
+                try {
+
+                    let res = await ModuleVar.getInstance().get_var_data(index);
+                    this.snotify.info('get_var_data:' + index + ':' + res.value);
+                    ConsoleHandler.log('get_var_data:' + index + ':' + res.value);
+                } catch (error) {
+                    this.snotify.error('get_var_data:' + index + ':' + error);
+                    ConsoleHandler.error('get_var_data:' + index + ':' + error);
+                }
+            })());
+        }
+
+        await all_promises(promises);
     }
 }

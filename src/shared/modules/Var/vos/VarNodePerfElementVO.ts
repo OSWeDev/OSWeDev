@@ -1,5 +1,6 @@
 import IDistantVOBase from '../../IDistantVOBase';
 import VarDAG from '../graph/VarDAG';
+import VarDAGNode from '../graph/VarDAGNode';
 import VarNodeParentPerfVO from './VarNodeParentPerfVO';
 
 
@@ -12,18 +13,17 @@ export default class VarNodePerfElementVO implements IDistantVOBase {
             return null;
         }
 
-        if (!perf_ref.node_name) {
+        if (!perf_ref.node) {
             return VarNodePerfElementVO.current_var_dag.perfs[perf_ref.perf_name] as VarNodePerfElementVO;
         } else {
-            let node = VarNodePerfElementVO.current_var_dag.nodes[perf_ref.node_name];
-            return node ? node.perfs[perf_ref.perf_name] as VarNodePerfElementVO : null;
+            return perf_ref.node.perfs[perf_ref.perf_name] as VarNodePerfElementVO;
         }
     }
 
     public _type: string = VarNodePerfElementVO.API_TYPE_ID;
     public id: number;
 
-    public node_name: string;
+    public node: VarDAGNode;
     public perf_name: string;
 
     public total_elapsed_time: number;
@@ -72,11 +72,11 @@ export default class VarNodePerfElementVO implements IDistantVOBase {
      * @param parent_perf_ref la perf parente si il y en a une
      */
     public constructor(
-        node_name: string,
+        node: VarDAGNode,
         perf_name: string,
         parent_perf_ref: VarNodeParentPerfVO = null
     ) {
-        this.node_name = node_name;
+        this.node = node;
         this.perf_name = perf_name;
         this.parent_perf_ref = parent_perf_ref;
 
@@ -89,7 +89,7 @@ export default class VarNodePerfElementVO implements IDistantVOBase {
             return;
         }
 
-        parent_perf.child_perfs_ref.push(VarNodeParentPerfVO.create_new(this.node_name, this.perf_name));
+        parent_perf.child_perfs_ref.push(VarNodeParentPerfVO.create_new(this.node, this.perf_name));
         parent_perf.nb_noeuds_global++;
     }
 
@@ -296,7 +296,7 @@ export default class VarNodePerfElementVO implements IDistantVOBase {
         for (let i in this.child_perfs_ref) {
             let child_perf = this.child_perfs_ref[i];
 
-            if ((child_perf.node_name == perf.node_name) && (child_perf.perf_name == perf.perf_name)) {
+            if ((child_perf.node == perf.node) && (child_perf.perf_name == perf.perf_name)) {
                 found_index = i;
                 break;
             }

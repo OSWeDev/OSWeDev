@@ -994,6 +994,9 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Couleur de fond'
         }, 'var_pie_chart_widget_options_component.bg_color_1.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Nom de la variable principale'
+        }, 'var_pie_chart_widget_options_component.var_title_1.title_name_code_text.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Couleur de bordure'
         }, 'var_pie_chart_widget_options_component.border_color_1.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({

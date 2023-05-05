@@ -90,12 +90,16 @@ export default class ForkedTasksController {
             let result_task_uid = this.get_result_task_uid();
             this.registered_task_result_wrappers[result_task_uid] = new ForkMessageCallbackWrapper(
                 resolver,
-                thrower
+                thrower,
+                task_uid,
+                task_params
             );
 
             // On doit envoyer la demande d'éxécution ET un ID de callback pour récupérer le résultat
             if (!await ForkMessageController.getInstance().send(new MainProcessTaskForkMessage(task_uid, task_params, result_task_uid))) {
-                ConsoleHandler.error('exec_self_on_main_process_and_return_value:Un message n\'a pas pu être envoyé. Est-ce qu\'on ne devrait pas appeler le callback (thrower) du result_task_id ? est-ce que cela bloque l\'appli ? :' + task_uid + ':');
+                delete this.registered_task_result_wrappers[result_task_uid];
+                ConsoleHandler.error('exec_self_on_bgthread_and_return_value:Un message n\'a pas pu être envoyé:' + task_uid + ':');
+                thrower("Failed to send message to exec_self_on_main_process_and_return_value :" + task_uid + ':' + JSON.stringify(task_params));
             }
             return false;
         }
@@ -142,7 +146,9 @@ export default class ForkedTasksController {
             let result_task_uid = this.get_result_task_uid();
             this.registered_task_result_wrappers[result_task_uid] = new ForkMessageCallbackWrapper(
                 resolver,
-                thrower
+                thrower,
+                task_uid,
+                task_params
             );
 
             // Si on est sur le thread principal, on doit checker qu'on peut envoyer le message au bgthread (donc qu'il a démarré) et le faire,
@@ -152,16 +158,17 @@ export default class ForkedTasksController {
                 if ((!ForkServerController.getInstance().fork_by_type_and_name[BGThreadServerController.ForkedProcessType]) ||
                     (!ForkServerController.getInstance().fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread])) {
                     delete this.registered_task_result_wrappers[result_task_uid];
-                    ConsoleHandler.error("Unable to find target for this message :" + bgthread + ':' + JSON.stringify(task_params));
-                    thrower("Unable to find target for this message :" + bgthread + ':' + JSON.stringify(task_params));
+                    ConsoleHandler.error("Unable to find target for this message :" + bgthread + ':' + task_uid + ':' + JSON.stringify(task_params));
+                    thrower("Unable to find target for this message :" + bgthread + ':' + task_uid + ':' + JSON.stringify(task_params));
                     return false;
                 }
 
                 let fork = ForkServerController.getInstance().fork_by_type_and_name[BGThreadServerController.ForkedProcessType][bgthread];
 
                 if (!ForkServerController.getInstance().forks_alive[fork.uid]) {
-                    ConsoleHandler.warn("Target not ALIVE for this message :" + bgthread + ':' + JSON.stringify(task_params));
-                    thrower("Target not ALIVE for this message :" + bgthread + ':' + JSON.stringify(task_params));
+                    delete this.registered_task_result_wrappers[result_task_uid];
+                    ConsoleHandler.warn("Target not ALIVE for this message :" + bgthread + ':' + task_uid + ':' + JSON.stringify(task_params));
+                    thrower("Target not ALIVE for this message :" + bgthread + ':' + task_uid + ':' + JSON.stringify(task_params));
                     return false;
                 }
 
@@ -169,7 +176,9 @@ export default class ForkedTasksController {
                     new BGThreadProcessTaskForkMessage(bgthread, task_uid, task_params, result_task_uid),
                     fork.child_process,
                     fork)) {
-                    ConsoleHandler.error('exec_self_on_bgthread_and_return_value:1:Un message n\'a pas pu être envoyé. Est-ce qu\'on ne devrait pas appeler le callback (thrower) du result_task_id ? est-ce que cela bloque l\'appli ? :' + task_uid + ':');
+                    delete this.registered_task_result_wrappers[result_task_uid];
+                    ConsoleHandler.error('exec_self_on_bgthread_and_return_value:Un message n\'a pas pu être envoyé :' + task_uid + ':');
+                    thrower("Failed to send message to bgthread :" + bgthread + ':' + task_uid + ':' + JSON.stringify(task_params));
                 }
 
                 return false;
@@ -178,7 +187,9 @@ export default class ForkedTasksController {
             // Si on est sur un bgthread (et donc pas le bon à ce stade) on envoie une demande au thread principal d'envoie de message au bgthread
             // On doit envoyer la demande d'éxécution ET un ID de callback pour récupérer le résultat
             if (!await ForkMessageController.getInstance().send(new MainProcessForwardToBGThreadForkMessage(bgthread, task_uid, task_params, result_task_uid))) {
-                ConsoleHandler.error('exec_self_on_bgthread_and_return_value:2:Un message n\'a pas pu être envoyé. Est-ce qu\'on ne devrait pas appeler le callback (thrower) du result_task_id ? est-ce que cela bloque l\'appli ? :' + task_uid + ':');
+                delete this.registered_task_result_wrappers[result_task_uid];
+                ConsoleHandler.error('exec_self_on_bgthread_and_return_value:2:Un message n\'a pas pu être envoyé :' + task_uid + ':');
+                thrower("Failed to send message to main thread :" + bgthread + ':' + task_uid + ':' + JSON.stringify(task_params));
             }
             return false;
         }

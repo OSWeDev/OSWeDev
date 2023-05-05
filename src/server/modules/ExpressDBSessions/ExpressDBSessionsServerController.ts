@@ -6,6 +6,7 @@ import ExpressSessionVO from '../../../shared/modules/ExpressDBSessions/vos/Expr
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import StackContext from '../../StackContext';
 
 const session = expressSession as any;
@@ -126,10 +127,17 @@ export default class ExpressDBSessionsServerController extends Store {
                         ConsoleHandler.warn('ExpressDBSessionsServerController.set: found a session in db for this sid. deleting and replacing with new session:' + sid);
 
                         return await this.set(sid, sess, fn);
+                    } else {
+
+                        // on attend un peu et on retente, le serveur est peut-etre pas démarré correctement encore
+                        ConsoleHandler.warn('ExpressDBSessionsServerController.set: no session in db for this sid but insertion failed. Waiting for retry... :' + sid);
+                        await ThreadHandler.sleep(5000);
+                        return await this.touch(sid, sess, fn);
                     }
                 } catch (error) {
                     ConsoleHandler.warn('ExpressDBSessionsServerController.set: error on delete sid when insert or update previously failed:' + sid + ': ' + error);
                 }
+                return null;
             }
 
             ExpressDBSessionsServerController.session_cache[sid].id = ExpressDBSessionsServerController.session_cache[sid].id ? ExpressDBSessionsServerController.session_cache[sid].id : res.id;
@@ -216,10 +224,17 @@ export default class ExpressDBSessionsServerController extends Store {
                         ConsoleHandler.warn('ExpressDBSessionsServerController.touch: found a session in db for this sid. deleting and replacing with new session:' + sid);
 
                         return await this.touch(sid, sess, fn);
+                    } else {
+
+                        // on attend un peu et on retente
+                        ConsoleHandler.warn('ExpressDBSessionsServerController.set: no session in db for this sid but insertion failed. Waiting for retry... :' + sid);
+                        await ThreadHandler.sleep(5000);
+                        return await this.touch(sid, sess, fn);
                     }
                 } catch (error) {
                     ConsoleHandler.warn('ExpressDBSessionsServerController.touch: error on delete sid when insert or update previously failed:' + sid + ': ' + error);
                 }
+                return null;
             }
 
             ExpressDBSessionsServerController.session_cache[sid].id = ExpressDBSessionsServerController.session_cache[sid].id ? ExpressDBSessionsServerController.session_cache[sid].id : res.id;

@@ -108,6 +108,9 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             'fr-fr': 'Télécharger'
         }, 'export.default_mail.download'));
 
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Echec de l\'exportation des données : si l\'erreur persiste merci de nous contacter.'
+        }, 'exportation_failed.error_vars_loading.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Export de données en cours...'
@@ -402,6 +405,12 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             do_not_user_filter_by_datatable_field_uid,
         );
 
+        if (!datas_with_vars) {
+            ConsoleHandler.error('Erreur lors de l\'export:la récupération des vars a échoué');
+            await PushDataServerController.getInstance().notifySimpleINFO(target_user_id, null, 'exportation_failed.error_vars_loading.___LABEL___', false, null);
+            return;
+        }
+
         let translated_datas = await this.translate_context_query_fields_from_bdd(datas_with_vars, context_query, context_query.fields?.length > 0);
 
         await this.update_custom_fields(translated_datas, exportable_datatable_custom_field_columns);
@@ -429,13 +438,21 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         // Sheet for Vars Indicator
         if (export_options?.export_vars_indicator) {
-            const vars_indicator_sheet = await this.make_vars_indicator_xlsx_sheet(
-                vars_indicator,
-                active_field_filters,
-                active_api_type_ids,
-                discarded_field_paths,
-            );
-            sheets.push(vars_indicator_sheet);
+
+            try {
+
+                const vars_indicator_sheet = await this.make_vars_indicator_xlsx_sheet(
+                    vars_indicator,
+                    active_field_filters,
+                    active_api_type_ids,
+                    discarded_field_paths,
+                );
+                sheets.push(vars_indicator_sheet);
+            } catch (error) {
+                ConsoleHandler.error('Erreur lors de l\'export:la récupération des vars a échoué');
+                await PushDataServerController.getInstance().notifySimpleINFO(target_user_id, null, 'exportation_failed.error_vars_loading.___LABEL___', false, null);
+                return;
+            }
         }
 
         // Final Excel file
@@ -770,12 +787,17 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         const limit = 500; //Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
         const promise_pipeline = new PromisePipeline(limit);
         let debug_uid: number = 0;
+        let has_errors: boolean = false;
 
         for (let var_name in vars_indicator.varcolumn_conf) {
 
             const varcolumn_conf = vars_indicator.varcolumn_conf[var_name];
             let this_custom_filters: { [var_param_field_name: string]: ContextFilterVO } = {};
             let filter_additional_params = null;
+
+            if (has_errors) {
+                break;
+            }
 
             try {
                 // JSON parse may throw exeception (case when empty or Non-JSON)
@@ -817,27 +839,34 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     discarded_field_paths
                 );
 
-                ConsoleHandler.log('make_vars_indicator_xlsx_sheet:INSIDE PIPELINE CB 2:nb :' + var_name + ':' + debug_uid + ':' + JSON.stringify(var_param));
+                ConsoleHandler.log('make_vars_indicator_xlsx_sheet:INSIDE PIPELINE CB 2:nb :' + var_name + ':' + debug_uid + ':' + var_param.index);
 
-                let var_data = await VarsServerCallBackSubsController.getInstance().get_var_data(var_param, 'make_vars_indicator_xlsx_sheet: exporting data');
-                let value = var_data ? var_data.value : null;
+                try {
 
-                if (value != null) {
-                    let params = [value];
-                    params = params.concat(filter_additional_params);
+                    let var_data = await VarsServerCallBackSubsController.getInstance().get_var_data(var_param, 'make_vars_indicator_xlsx_sheet: exporting data');
+                    let value = var_data ? var_data.value : null;
 
-                    if (typeof filter_by_name[varcolumn_conf.filter_type]?.read === 'function') {
-                        value = filter_by_name[varcolumn_conf.filter_type].read.apply(null, params);
-                        if (varcolumn_conf.filter_type != 'tstz') {
-                            value = (value as any).replace(/\s+/g, '');
+                    if (value != null) {
+                        let params = [value];
+                        params = params.concat(filter_additional_params);
+
+                        if (typeof filter_by_name[varcolumn_conf.filter_type]?.read === 'function') {
+                            value = filter_by_name[varcolumn_conf.filter_type].read.apply(null, params);
+                            if (varcolumn_conf.filter_type != 'tstz') {
+                                value = (value as any).replace(/\s+/g, '');
+                            }
                         }
                     }
-                }
 
-                sheet.datas.push({
-                    name: LocaleManager.getInstance().t(var_name),
-                    value,
-                });
+                    sheet.datas.push({
+                        name: LocaleManager.getInstance().t(var_name),
+                        value,
+                    });
+                } catch (error) {
+
+                    ConsoleHandler.error('make_vars_indicator_xlsx_sheet:FAILED get_var_data:nb :' + var_name + ':' + debug_uid + ':' + var_param._bdd_only_index + ':' + error);
+                    has_errors = true;
+                }
 
                 ConsoleHandler.log('make_vars_indicator_xlsx_sheet:INSIDE PIPELINE CB 3:nb :' + var_name + ':' + debug_uid);
             });
@@ -845,6 +874,10 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         }
 
         await promise_pipeline.end();
+
+        if (has_errors) {
+            throw new Error('Erreur lors de la récupération des données');
+        }
 
         return sheet;
     }
@@ -1284,16 +1317,25 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         let limit = 500; //Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
         let promise_pipeline = new PromisePipeline(limit);
         let debug_uid: number = 0;
+        let has_errors: boolean = false;
 
         ConsoleHandler.log('add_var_columns_values_for_xlsx_datas:nb rows:' + rows.length);
         for (let j in rows) {
             let row = rows[j];
             let data_n: number = parseInt(j) + 1;
 
-            ConsoleHandler.log('add_var_columns_values_for_xlsx_datas:nb rows:' + rows.length);
+            if (has_errors) {
+                break;;
+            }
+
+            ConsoleHandler.log('add_var_columns_values_for_xlsx_datas:row:' + data_n + '/' + rows.length);
 
             for (let i in ordered_column_list) {
                 let row_field_name: string = ordered_column_list[i];
+
+                if (has_errors) {
+                    break;;
+                }
 
                 // Check if it's actually a var param field
                 if (!varcolumn_conf[row_field_name]) {
@@ -1339,10 +1381,16 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                         discarded_field_paths
                     );
 
-                    ConsoleHandler.log('add_var_columns_values_for_xlsx_datas:INSIDE PIPELINE CB 2:nb :' + i + ':' + debug_uid + ':' + JSON.stringify(var_param));
+                    ConsoleHandler.log('add_var_columns_values_for_xlsx_datas:INSIDE PIPELINE CB 2:nb :' + i + ':' + debug_uid + ':' + var_param.index);
 
-                    let var_data = await VarsServerCallBackSubsController.getInstance().get_var_data(var_param, 'add_var_columns_values_for_xlsx_datas: exporting data');
-                    row[row_field_name] = var_data?.value ?? null;
+                    try {
+
+                        let var_data = await VarsServerCallBackSubsController.getInstance().get_var_data(var_param, 'add_var_columns_values_for_xlsx_datas: exporting data');
+                        row[row_field_name] = var_data?.value ?? null;
+                    } catch (error) {
+                        ConsoleHandler.error('add_var_columns_values_for_xlsx_datas:FAILED get_var_data:nb :' + i + ':' + debug_uid + ':' + var_param._bdd_only_index + ':' + error);
+                        has_errors = true;
+                    }
 
                     ConsoleHandler.log('add_var_columns_values_for_xlsx_datas:INSIDE PIPELINE CB 3:nb :' + i + ':' + debug_uid);
                 });
@@ -1351,6 +1399,10 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         }
 
         await promise_pipeline.end();
+
+        if (has_errors) {
+            return null;
+        }
 
         return rows;
     }

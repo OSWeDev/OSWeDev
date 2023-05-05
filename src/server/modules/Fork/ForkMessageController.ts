@@ -52,7 +52,13 @@ export default class ForkMessageController {
         StatsServerController.register_stat('ForkMessageController.receive.' + msg.message_type + '.nb',
             1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
-        return await this.registered_messages_handlers[msg.message_type](msg, sendHandle);
+        try {
+
+            return await this.registered_messages_handlers[msg.message_type](msg, sendHandle);
+        } catch (error) {
+            ConsoleHandler.error('ForkMessageController.message_handler error: ' + error);
+            return false;
+        }
     }
 
     /**
@@ -74,7 +80,7 @@ export default class ForkMessageController {
                 }
                 await this.send(msg, forked.child_process, forked);
             }
-            await this.message_handler(msg);
+            return await this.message_handler(msg);
         }
     }
 
