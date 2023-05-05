@@ -17,7 +17,7 @@ export default class ForkMessageCallbackWrapper {
         public task_uid: string, // principalement pour du debug quand il y a un timeout
         public task_params: any,
 
-        public timeout: number = 30) { // TODO FIXME plutôt un gros nombre type 1H = 3600
+        public timeout: number = 3600) {
 
         this.creation_time = Dates.now();
     }
