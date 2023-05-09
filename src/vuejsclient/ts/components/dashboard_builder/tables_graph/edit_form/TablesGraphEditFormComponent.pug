@@ -1,50 +1,82 @@
 .tables_graph_edit_form
     .tables_graph_edit_form_title {{ label('tables_graph_edit_form.title') }}
-    .tables_graph_edit_form_cell(v-if="cellData && cellData.value && cellData.edge")
+    .tables_graph_edit_form_cell(v-if="current_cell_mapper && (current_cell_mapper._type == 'edge')")
         .arrow
             .icons 
                 i.fa-duotone.fa-arrow-right.fa-fw 
-            .title Off/On {{cellData.value}}
+            .title Off/On {{ current_cell_mapper.label }}
         .toggle
             toggle-button(
                     type="checkbox" 
                     id="myCheckbox"
-                    @change="confirm_delete_arrow_selected" 
-                    :value= "!toggle" 
+                    @change="switch_edge_acceptance(current_cell_mapper)" 
+                    :value= "!current_cell_mapper.is_accepted" 
                     :sync="true"
                     :width="100"
                     )
-    .tables_graph_edit_form_cell(v-else-if="cellData && cellData.value && !cellData.edge")           
-        .name {{ cell_name }}
+    .tables_graph_edit_form_cell(v-else-if="current_cell_mapper && (current_cell_mapper._type == 'cell') && current_cell_mapper.is_hidden_nn")           
+        .row 
+            .col-sm-12 
+                .arrow
+                    .icons 
+                        i.fa-duotone.fa-arrow-right.fa-fw 
+                    .title Off/On {{ current_cell_mapper.outgoing_edges_array[0].label }}
+                .toggle
+                    toggle-button(
+                            type="checkbox" 
+                            id="myCheckbox"
+                            @change="switch_edge_acceptance(current_cell_mapper.outgoing_edges_array[0])" 
+                            :value= "!current_cell_mapper.outgoing_edges_array[0].is_accepted" 
+                            :sync="true"
+                            :width="100"
+                            )
+        .row 
+            .col-sm-12 
+                .arrow
+                    .icons 
+                        i.fa-duotone.fa-arrow-right.fa-fw 
+                    .title Off/On {{ current_cell_mapper.outgoing_edges_array[1].label }}
+                .toggle
+                    toggle-button(
+                            type="checkbox" 
+                            id="myCheckbox"
+                            @change="switch_edge_acceptance(current_cell_mapper.outgoing_edges_array[1])" 
+                            :value= "!current_cell_mapper.outgoing_edges_array[1].is_accepted" 
+                            :sync="true"
+                            :width="100"
+                            )
+
+    .tables_graph_edit_form_cell(v-else-if="current_cell_mapper && (current_cell_mapper._type == 'cell') && !current_cell_mapper.is_hidden_nn")           
+        .name {{ current_cell_mapper.label }}
         .delete(@click='confirm_delete_cell')
             i.fa-solid.fa-trash.fa-fw(aria-hidden="true")
             | {{ label('tables_graph_edit_form.delete') }}
     .tables_graph_edit_form_cell(v-else) {{ label('tables_graph_edit_form.no_object_selected') }}
-    .tables_graph_arrows_table
+    .tables_graph_arrows_table(v-if='graph_mapper')
         .header
                 //- .hide_show_switch 
                 .title_arrows_table {{ label('tables_graph_edit_form.bonds') }}
 
     
-        template(v-for="cell in all_cells_names")
+        template(v-for="cell in graph_mapper.cells")
             .cell
                 .cell_header
                     b      
                         .icons
                             i.fa-solid.fa-table.fa-fw
-                        .title {{cell}}
+                        .title {{ cell.label }}
                 .edges
-                    template(v-for="edge in all_edges[cell]")
-                        .edge(:edge='edge.value')
+                    template(v-for="edge in cell.outgoing_edges[cell]")
+                        .edge
                             .arrow
                                 .icons 
                                     i.fa-duotone.fa-arrow-right.fa-fw 
-                                .title  {{edge.value}}
+                                .title  {{ edge.label }}
                             .toggle
                                 toggle-button(
                                         type="checkbox"
-                                        @change="confirm_delete_arrow(edge)" 
-                                        :value= "!toggles[all_cells[cell].value.tables_graph_vo_type].includes(edge.field_id)" 
+                                        @change="switch_edge_acceptance(edge)" 
+                                        :value= "!edge.is_accepted" 
                                         :sync="true"
                                         :width="100"
                                         )
