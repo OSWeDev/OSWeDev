@@ -1,8 +1,8 @@
 import { Cell, Graph } from "@maxgraph/core";
 import ModuleTableField from "../../../../../../shared/modules/ModuleTableField";
-import GraphCellMapper from "./GraphCellMapper";
+import MaxGraphCellMapper from "./MaxGraphCellMapper";
 
-export default class GraphEdgeMapper {
+export default class MaxGraphEdgeMapper {
 
     public _type: string = 'edge';
 
@@ -12,10 +12,20 @@ export default class GraphEdgeMapper {
     public field: ModuleTableField<any> = null;
     public label: string = null;
 
-    public source_cell: GraphCellMapper = null;
-    public target_cell: GraphCellMapper = null;
+    public source_cell: MaxGraphCellMapper = null;
+    public target_cell: MaxGraphCellMapper = null;
 
-    public is_accepted: boolean = true;
+    get is_accepted(): boolean {
+        if ((!this.source_cell) || (!this.source_cell.graphvoref)) {
+            return false;
+        }
+
+        if (!this.source_cell.graphvoref.values_to_exclude) {
+            return true;
+        }
+
+        return this.source_cell.graphvoref.values_to_exclude.indexOf(this.field.field_id) == -1;
+    }
 
     public add_to_maxgraph(maxgraph: Graph): Cell {
         if (this.maxgraph_cell) {

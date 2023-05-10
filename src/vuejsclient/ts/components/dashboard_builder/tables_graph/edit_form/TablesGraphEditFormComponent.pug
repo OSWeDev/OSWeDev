@@ -10,7 +10,7 @@
                     type="checkbox" 
                     id="myCheckbox"
                     @change="switch_edge_acceptance(current_cell_mapper)" 
-                    :value= "!current_cell_mapper.is_accepted" 
+                    :value= "current_cell_mapper.is_accepted" 
                     :sync="true"
                     :width="100"
                     )
@@ -26,7 +26,7 @@
                             type="checkbox" 
                             id="myCheckbox"
                             @change="switch_edge_acceptance(current_cell_mapper.outgoing_edges_array[0])" 
-                            :value= "!current_cell_mapper.outgoing_edges_array[0].is_accepted" 
+                            :value= "current_cell_mapper.outgoing_edges_array[0].is_accepted" 
                             :sync="true"
                             :width="100"
                             )

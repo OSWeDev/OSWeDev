@@ -57,6 +57,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Graphique de var - Donut, Jauge ou Camembert'
         }, 'dashboards.widgets.icons_tooltips.varpiechart.___LABEL___'));
 
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Erreur lors de la modification de la liaison'
+        }, 'TablesGraphEditFormComponent.switch_edge_acceptance.error.___LABEL___'));
+
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Cliquer pour éditer'

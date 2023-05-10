@@ -1,11 +1,13 @@
 import Component from 'vue-class-component';
-import { Prop } from 'vue-property-decorator';
+import { Prop, Vue } from 'vue-property-decorator';
+import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import DashboardGraphVORefVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO';
+import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../../VueComponentBase';
-import GraphCellMapper from '../graph_mapper/GraphCellMapper';
-import GraphEdgeMapper from '../graph_mapper/GraphEdgeMapper';
-import GraphMapper from '../graph_mapper/GraphMapper';
+import MaxGraphCellMapper from '../graph_mapper/MaxGraphCellMapper';
+import MaxGraphEdgeMapper from '../graph_mapper/MaxGraphEdgeMapper';
+import MaxGraphMapper from '../graph_mapper/MaxGraphMapper';
 import './TablesGraphEditFormComponent.scss';
 
 @Component({
@@ -15,16 +17,16 @@ import './TablesGraphEditFormComponent.scss';
 export default class TablesGraphEditFormComponent extends VueComponentBase {
 
     @Prop()
-    private current_cell_mapper: GraphEdgeMapper | GraphCellMapper;
+    private current_cell_mapper: MaxGraphEdgeMapper | MaxGraphCellMapper;
     @Prop()
     private maxgraph: any;
     @Prop()
     private dashboard: any;
     @Prop()
-    private graph_mapper: GraphMapper;
+    private graph_mapper: MaxGraphMapper;
 
 
-    private async switch_edge_acceptance(edge: GraphEdgeMapper) {
+    private async switch_edge_acceptance(edge: MaxGraphEdgeMapper) {
 
         if ((!edge) || (edge._type != 'edge')) {
             return;
@@ -51,8 +53,8 @@ export default class TablesGraphEditFormComponent extends VueComponentBase {
 
             graphVoRef.x = 800;
             graphVoRef.y = 80;
-            graphVoRef.width = GraphMapper.default_width;
-            graphVoRef.height = GraphMapper.default_height;
+            graphVoRef.width = MaxGraphMapper.default_width;
+            graphVoRef.height = MaxGraphMapper.default_height;
             graphVoRef.vo_type = edge.source_cell.api_type_id;
             graphVoRef.dashboard_id = this.dashboard.id;
             await ModuleDAO.getInstance().insertOrUpdateVO(graphVoRef);
@@ -66,7 +68,12 @@ export default class TablesGraphEditFormComponent extends VueComponentBase {
         } else {
             edge.source_cell.graphvoref.values_to_exclude = edge.source_cell.graphvoref.values_to_exclude.filter((e) => e != edge.field.field_id);
         }
-        await ModuleDAO.getInstance().insertOrUpdateVO(edge.source_cell.graphvoref);
+        let update_res = await ModuleDAO.getInstance().insertOrUpdateVO(edge.source_cell.graphvoref);
+        if (!update_res || !update_res.id) {
+            ConsoleHandler.error('Impossible de mettre à jour le graphvoref');
+            Vue.prototype.$snotify.error(this.label('TablesGraphEditFormComponent.switch_edge_acceptance.error'));
+            edge.source_cell.graphvoref = await query(DashboardGraphVORefVO.API_TYPE_ID).filter_by_id(edge.source_cell.graphvoref.id).select_vo<DashboardGraphVORefVO>();
+        }
         this.$emit('remap');
     }
 
@@ -74,9 +81,9 @@ export default class TablesGraphEditFormComponent extends VueComponentBase {
 
         let self = this;
 
-        let edge = this.current_cell_mapper as GraphEdgeMapper;
+        let cell_to_delete = this.current_cell_mapper as MaxGraphCellMapper;
 
-        if ((!edge) || (edge._type != 'edge')) {
+        if ((!cell_to_delete) || (cell_to_delete._type != 'cell')) {
             return;
         }
 
@@ -88,11 +95,7 @@ export default class TablesGraphEditFormComponent extends VueComponentBase {
             throw new Error('TablesGraphEditFormComponent: dashboard not set');
         }
 
-        if (!edge.source_cell) {
-            throw new Error('TablesGraphEditFormComponent: current_cell_mapper.source_cell not set');
-        }
-
-        if (!edge.source_cell.graphvoref) {
+        if (!cell_to_delete.graphvoref) {
             throw new Error('TablesGraphEditFormComponent: current_cell_mapper.source_cell.graphvoref not set');
         }
 
@@ -110,9 +113,9 @@ export default class TablesGraphEditFormComponent extends VueComponentBase {
                         self.$snotify.remove(toast.id);
                         self.snotify.info(self.label('TablesGraphEditFormComponent.confirm_delete_cell.start'));
 
-                        await ModuleDAO.getInstance().deleteVOs([edge.source_cell.graphvoref]);
+                        await ModuleDAO.getInstance().deleteVOs([cell_to_delete.graphvoref]);
+                        this.$emit('delete_cell', cell_to_delete.api_type_id);
                         this.$emit('remap');
-                        this.$emit('delete_cell', edge.source_cell.api_type_id);
 
                         self.snotify.success(self.label('TablesGraphEditFormComponent.confirm_delete_cell.ok'));
                     },
