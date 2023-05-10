@@ -7,42 +7,24 @@ import ConsoleHandler from "../../../../../../shared/tools/ConsoleHandler";
 import VueAppBase from "../../../../../VueAppBase";
 import MaxGraphEdgeMapper from "./MaxGraphEdgeMapper";
 import MaxGraphMapper from "./MaxGraphMapper";
-import { clone } from '@maxgraph/core/dist/esm/util/cloneUtils';
-
-// CustomUserObject
-window['CustomUserObject'] = function (name, type) {
-    this.name = name || 'New Name';
-    this.type = type || 'New Type';
-    this.clone = function () {
-        return clone(this);
-    };
-};
 
 export default class MaxGraphCellMapper {
 
     public static get_new_maxgraph_cell(maxgraph: Graph, parent: Cell, label: string, x: number, y: number, width: number, height: number): Cell {
 
-        let new_maxgraph_cell = maxgraph.model.cloneCell(MaxGraphCellMapper.get_cell_prototype());
+        let new_maxgraph_cell = new Cell(label, new Geometry(x, y, width, height));
+        new_maxgraph_cell.setVertex(true);
+        new_maxgraph_cell.setConnectable(false);
+
         maxgraph.setCellStyles('strokeColor', '#555', [new_maxgraph_cell]);
         maxgraph.setCellStyles('fillColor', '#444', [new_maxgraph_cell]);
         maxgraph.setCellStyles('fontColor', '#fff', [new_maxgraph_cell]);
         maxgraph.setCellStyles('align', 'center', [new_maxgraph_cell]);
         maxgraph.setCellStyles('verticalAlign', 'middle', [new_maxgraph_cell]);
         maxgraph.setCellStyles('labelBackgroundColor', '#444', [new_maxgraph_cell]);
-        new_maxgraph_cell.geometry.x = x;
-        new_maxgraph_cell.geometry.y = y;
-        new_maxgraph_cell.geometry.alternateBounds = new Rectangle(0, 0, width, height);
         maxgraph.addCell(new_maxgraph_cell, parent); //Adding the cell
 
         return new_maxgraph_cell;
-    }
-
-    private static get_cell_prototype() {
-        let customObject = new window['CustomUserObject']();
-        let object = new Cell(customObject, new Geometry(0, 0, 200, 50));
-        object.setVertex(true);
-        object.setConnectable(false);
-        return object;
     }
 
     public _type: string = 'cell';
