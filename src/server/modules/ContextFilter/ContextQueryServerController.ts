@@ -471,7 +471,8 @@ export default class ContextQueryServerController {
 
 
         let query_wrapper = await this.build_select_query_not_count(context_query);
-        if ((!query_wrapper) || ((!query_wrapper.query)) && (!query_wrapper.is_segmented_non_existing_table)) {
+
+        if (((!query_wrapper?.query)) && (!query_wrapper.is_segmented_non_existing_table)) {
             ConsoleHandler.error('Invalid query:build_query_count:INFOS context_query:' + (query_wrapper ? (query_wrapper.query ? query_wrapper.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
             context_query.log(true);
             throw new Error('Invalid query:build_query_count');
@@ -853,7 +854,11 @@ export default class ContextQueryServerController {
                     );
 
                     // Limit
-                    let LIMIT = this.get_limit(union_context_query);
+                    let LIMIT = "";
+
+                    if (!union_context_query.do_count_results) {
+                        LIMIT = this.get_limit(union_context_query);
+                    }
 
                     union_query = QUERY + SORT_BY + LIMIT;
                 }
@@ -1557,145 +1562,6 @@ export default class ContextQueryServerController {
 
         return { SORT_BY, QUERY, aliases_n, query_wrapper };
     }
-
-    // /**
-    //  * Apply the sort by on the query
-    //  *
-    //  * @param {ContextQueryVO} context_query
-    //  * @param {string} query_string
-    //  */
-    // private async apply_sort_by_on_query(context_query: ContextQueryVO, query_string: string, aliases_n: number = 0) {
-
-    //     /**
-    //      * Check injection OK : context_query.base_api_type_id & context_query.query_tables_prefix checked
-    //      */
-    //     let tables_aliases_by_type: { [vo_type: string]: string } = {
-    //         [context_query.base_api_type_id]: (context_query.query_tables_prefix ?
-    //             (context_query.query_tables_prefix + '_t' + (aliases_n++)) :
-    //             ('t' + (aliases_n++))
-    //         )
-    //     };
-
-    //     let SORT_BY = '';
-    //     if (context_query?.sort_by?.length > 0) {
-
-    //         let previous_sort_by = SORT_BY;
-    //         let first_sort_by = true;
-
-    //         SORT_BY += ' ORDER BY ';
-
-    //         for (let sort_byi in context_query.sort_by) {
-    //             let sort_by = context_query.sort_by[sort_byi];
-
-    //             if (!first_sort_by) {
-    //                 previous_sort_by = SORT_BY;
-    //             }
-
-    //             /**
-    //              * Check injection : context_query.sort_by ok puisqu'on ne l'insère jamais tel quel, mais
-    //              *  context_query.sort_by.field_id && context_query.sort_by.vo_type doivent être testés
-    //              */
-    //             ContextQueryInjectionCheckHandler.assert_postgresql_name_format(sort_by.vo_type);
-    //             ContextQueryInjectionCheckHandler.assert_postgresql_name_format(sort_by.field_id);
-
-    //             /**
-    //              * Si on utilise un alias, on considère que le field existe forcément
-    //              *  et si on a un vo_type / field_id, on doit vérifier que le field est sélect et si oui, on copie l'alias si il y en a un de def
-    //              */
-    //             let is_selected_field = !!sort_by.alias;
-    //             if (!is_selected_field) {
-
-    //                 for (let i in context_query.fields) {
-    //                     let context_field = context_query.fields[i];
-
-    //                     if (context_field.api_type_id != sort_by.vo_type) {
-    //                         continue;
-    //                     }
-    //                     if (context_field.field_id != sort_by.field_id) {
-    //                         continue;
-    //                     }
-
-    //                     if (!!context_field.alias) {
-    //                         sort_by.alias = context_field.alias;
-    //                     }
-    //                     is_selected_field = true;
-    //                 }
-    //             }
-
-    //             if (!first_sort_by) {
-    //                 SORT_BY += ', ';
-    //             }
-
-    //             first_sort_by = false;
-
-    //             let modifier_start = '';
-    //             let modifier_end = '';
-
-    //             switch (sort_by.modifier) {
-    //                 case SortByVO.MODIFIER_LOWER:
-    //                     modifier_start = 'LOWER(';
-    //                     modifier_end = ')';
-    //                     break;
-
-    //                 case SortByVO.MODIFIER_UPPER:
-    //                     modifier_start = 'UPPER(';
-    //                     modifier_end = ')';
-    //                     break;
-    //             }
-
-    //             if (is_selected_field || !context_query.query_distinct) {
-
-    //                 if (!!sort_by.alias) {
-    //                     SORT_BY += modifier_start + sort_by.alias + modifier_end +
-    //                         (sort_by.sort_asc ? ' ASC ' : ' DESC ');
-    //                 } else {
-    //                     SORT_BY += modifier_start + tables_aliases_by_type[sort_by.vo_type] + '.' + sort_by.field_id + modifier_end +
-    //                         (sort_by.sort_asc ? ' ASC ' : ' DESC ');
-    //                 }
-
-    //             } else {
-
-    //                 let sort_alias = 'sort_alias_' + (ContextQueryServerController.SORT_ALIAS_UID++);
-    //                 SORT_BY += modifier_start + sort_alias + modifier_end + (sort_by.sort_asc ? ' ASC ' : ' DESC ');
-
-    //                 if (!tables_aliases_by_type[sort_by.vo_type]) {
-    //                     aliases_n = await this.join_api_type_id(
-    //                         context_query,
-    //                         aliases_n,
-    //                         sort_by.vo_type,
-    //                         jointures,
-    //                         cross_joins,
-    //                         joined_tables_by_vo_type,
-    //                         tables_aliases_by_type,
-    //                         access_type
-    //                     );
-    //                 }
-
-    //                 /**
-    //                  * Si on a aucun lien avec la requête, on ne peut pas faire de sort
-    //                  */
-    //                 if (!!tables_aliases_by_type[sort_by.vo_type]) {
-    //                     query_string += `, ${sort_by.sort_asc ? 'MIN' : 'MAX'}(` +
-    //                         `${tables_aliases_by_type[sort_by.vo_type]}.${sort_by.field_id}` +
-    //                         `) as ${sort_alias}`;
-
-    //                     let parameterizedQueryWrapperField: ParameterizedQueryWrapperField = new ParameterizedQueryWrapperField(
-    //                         sort_by.vo_type,
-    //                         sort_by.field_id,
-    //                         (sort_by.sort_asc ? VarConfVO.MIN_AGGREGATOR : VarConfVO.MAX_AGGREGATOR),
-    //                         sort_alias
-    //                     );
-
-    //                     parameterizedQueryWrapperFields.push(parameterizedQueryWrapperField);
-    //                 } else {
-    //                     SORT_BY = previous_sort_by;
-    //                     continue;
-    //                 }
-    //             }
-    //         }
-    //     }
-
-    // }
 
     /**
      * Check injection OK : Seul risque identifié updates_jointures > get_table_full_name, dont le check est OK
