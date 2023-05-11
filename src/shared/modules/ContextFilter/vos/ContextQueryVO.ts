@@ -10,6 +10,7 @@ import IMatroid from "../../Matroid/interfaces/IMatroid";
 import MatroidController from "../../Matroid/MatroidController";
 import ModuleTableField from "../../ModuleTableField";
 import VarConfVO from "../../Var/vos/VarConfVO";
+import AbstractVO from "../../VO/abstract/AbstractVO";
 import VOsTypesManager from "../../VO/manager/VOsTypesManager";
 import ModuleContextFilter from "../ModuleContextFilter";
 import ContextFilterVO, { filter } from "./ContextFilterVO";
@@ -20,7 +21,7 @@ import SortByVO from "./SortByVO";
 /**
  * Encapsuler la définition d'une requête ou d'une sous-requête (qu'on liera à la requête principale par un filtre)
  */
-export default class ContextQueryVO implements IDistantVOBase {
+export default class ContextQueryVO extends AbstractVO implements IDistantVOBase {
     public static API_TYPE_ID: string = "context_query";
 
     public id: number;
@@ -105,6 +106,11 @@ export default class ContextQueryVO implements IDistantVOBase {
      * distinct est un nom réservé, renommage en query_distinct
      */
     public query_distinct: boolean;
+
+    /**
+     * Union queries collection
+     */
+    public union_queries: ContextQueryVO[];
 
     /**
      * Propose de throttle la requête de type select pour faire des packs (dans la même logique que le requestwrapper)
@@ -197,6 +203,32 @@ export default class ContextQueryVO implements IDistantVOBase {
         return this;
     }
 
+    /**
+     * Create an union of queries
+     *
+     * @param context_query
+     * @returns {ContextQueryVO}
+     */
+    public union(context_query: ContextQueryVO | ContextQueryVO[]): ContextQueryVO {
+
+        if (!context_query) {
+            return this;
+        }
+
+        if (!Array.isArray(context_query)) {
+            context_query = [context_query];
+        }
+
+        // Set union_queries if not exists
+        if (!(this.union_queries?.length > 0)) {
+            this.union_queries = [];
+        }
+
+        this.union_queries = this.union_queries.concat(context_query);
+
+        return this;
+    }
+
     public set_request_id(request_id: number): ContextQueryVO {
         this.request_id = request_id;
         return this;
@@ -206,18 +238,33 @@ export default class ContextQueryVO implements IDistantVOBase {
      * Ajouter un field attendu en résultat de la requête par le field_id, et optionnellement un alias spécifique
      *  on utilise base_api_type_id de la requete si on en fournit pas un explicitement ici
      *  Si on veut un vo complet il ne faut pas demander les fields
+     *
      * @param field_id l'id du field à ajouter.
      */
     public field(
-        field_id: string, alias: string = null, api_type_id: string = null,
-        aggregator: number = VarConfVO.NO_AGGREGATOR, modifier: number = ContextQueryFieldVO.FIELD_MODIFIER_NONE): ContextQueryVO {
+        field_id: string,
+        alias: string = null,
+        api_type_id: string = null,
+        aggregator: number = VarConfVO.NO_AGGREGATOR,
+        modifier: number = ContextQueryFieldVO.FIELD_MODIFIER_NONE,
+        cast_with: string = null,
+    ): ContextQueryVO {
 
-        let field = new ContextQueryFieldVO(api_type_id ? api_type_id : this.base_api_type_id, field_id, alias, aggregator, modifier);
+        const field = new ContextQueryFieldVO(
+            api_type_id ? api_type_id : this.base_api_type_id,
+            field_id,
+            alias,
+            aggregator,
+            modifier,
+            cast_with,
+        );
 
         if (!this.fields) {
             this.fields = [];
         }
+
         this.fields.push(field);
+
         this.update_active_api_type_ids_from_fields([field]);
 
         return this;
@@ -833,6 +880,7 @@ export default class ContextQueryVO implements IDistantVOBase {
         }
 
         this.sort_by = [sort];
+
         this.update_active_api_type_ids_from_sorts([sort]);
 
         return this;
@@ -1019,10 +1067,10 @@ export default class ContextQueryVO implements IDistantVOBase {
         for (let i in filters) {
             let filter_ = filters[i];
 
-            if (!!filter_.left_hook) {
+            if (!!filter_?.left_hook) {
                 this.update_active_api_type_ids_from_filters([filter_.left_hook]);
             }
-            if (!!filter_.right_hook) {
+            if (!!filter_?.right_hook) {
                 this.update_active_api_type_ids_from_filters([filter_.right_hook]);
             }
         }
@@ -1057,6 +1105,7 @@ export default class ContextQueryVO implements IDistantVOBase {
  */
 export const query = (API_TYPE_ID: string) => {
     let res = new ContextQueryVO();
+
     res.base_api_type_id = API_TYPE_ID;
     res.active_api_type_ids = [API_TYPE_ID];
     res.query_limit = 0;
@@ -1069,5 +1118,6 @@ export const query = (API_TYPE_ID: string) => {
     res.use_technical_field_versioning = false;
     res.query_distinct = false;
     res.do_count_results = false;
+
     return res;
 };

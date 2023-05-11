@@ -1,5 +1,4 @@
 import INamedVO from '../../../interfaces/INamedVO';
-import VOFieldRefVO from '../../DashboardBuilder/vos/VOFieldRefVO';
 import VarConfAutoDepVO from './VarConfAutoDepVO';
 import VarConfAutoParamFieldVO from './VarConfAutoParamFieldVO';
 import VarPixelFieldConfVO from './VarPixelFieldConfVO';

@@ -2028,8 +2028,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         let table_field_type = 'N/A';
 
                         try {
-                            table_field_type = ((field.field_id == 'id') ? ModuleTableField.FIELD_TYPE_int :
-                                moduleTables_by_voType[field.api_type_id].getFieldFromId(field.field_id).field_type);
+                            table_field_type = (field.field_id == 'id') ? ModuleTableField.FIELD_TYPE_int :
+                                moduleTables_by_voType[field.api_type_id].getFieldFromId(field.field_id)?.field_type ?? 'N/A';
                         } catch (error) {
                             ConsoleHandler.error('throttled_select_query : error while getting field type for field ' + field.field_id + ' of type ' + field.api_type_id);
                         }

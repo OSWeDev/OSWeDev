@@ -8,7 +8,6 @@ import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
-import './SupervisionTypeWidgetComponent.scss';
 import SupervisionTypeWidgetOptions from './options/SupervisionTypeWidgetOptions';
 import SupervisedCategoryVO from '../../../../../../shared/modules/Supervision/vos/SupervisedCategoryVO';
 import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
@@ -20,6 +19,7 @@ import PromisePipeline from '../../../../../../shared/tools/PromisePipeline/Prom
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
+import './SupervisionTypeWidgetComponent.scss';
 
 @Component({
     template: require('./SupervisionTypeWidgetComponent.pug'),
@@ -93,8 +93,6 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
         let limit = EnvHandler.MAX_POOL / 2;
         let promise_pipeline = new PromisePipeline(limit);
 
-        let has_promise: boolean = false;
-
         const supervision_category_active_field_filters = this.get_active_field_filters && this.get_active_field_filters[SupervisedCategoryVO.API_TYPE_ID];
 
         let category_selections: SupervisedCategoryVO[] = null;
@@ -131,12 +129,12 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
                 continue;
             }
 
-            has_promise = true;
-
             // Load each supervision_api_type_ids count by selected category
             await promise_pipeline.push(async () => {
 
-                if (!await ModuleAccessPolicy.getInstance().testAccess(ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id))) {
+                const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id);
+
+                if (!await ModuleAccessPolicy.getInstance().testAccess(access_policy_name)) {
                     return;
                 }
 
@@ -147,7 +145,9 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
                     .using(this.dashboard.api_type_ids);
 
                 if (category_selections?.length > 0) {
-                    qb = qb.filter_by_num_eq('category_id', category_selections?.map((cat) => cat?.id));
+                    qb = qb.filter_by_num_eq('category_id',
+                        category_selections?.map((cat) => cat?.id)
+                    );
                 }
 
                 const items_count: number = await qb.select_count();
@@ -158,9 +158,7 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
             });
         }
 
-        if (has_promise) {
-            await promise_pipeline.end();
-        }
+        await promise_pipeline.end();
 
         this.available_api_type_ids = available_api_type_ids;
     }
@@ -183,7 +181,7 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
         );
     }
 
-    private select_api_type_id(api_type_id: string) {
+    private handle_select_api_type_id(api_type_id: string) {
 
         if (this.selected_api_type_id === api_type_id) {
             this.selected_api_type_id = null;

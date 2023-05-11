@@ -18,6 +18,7 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
         if (!ModuleContextFilterServer.instance) {
             ModuleContextFilterServer.instance = new ModuleContextFilterServer();
         }
+
         return ModuleContextFilterServer.instance;
     }
 

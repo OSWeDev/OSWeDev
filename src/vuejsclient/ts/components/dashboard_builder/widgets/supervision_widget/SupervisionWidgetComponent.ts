@@ -24,11 +24,10 @@ import VueComponentBase from '../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import TablePaginationComponent from '../table_widget/pagination/TablePaginationComponent';
 import SupervisionWidgetOptions from './options/SupervisionWidgetOptions';
-import './SupervisionWidgetComponent.scss';
-import SupervisionItemModalComponent from './supervision_item_modal/SupervisionItemModalComponent';
-import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
-import './SupervisionWidgetComponent.scss';
 import SupervisionWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/SupervisionWidgetManager';
+import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
+import SupervisionItemModalComponent from './supervision_item_modal/SupervisionItemModalComponent';
+import './SupervisionWidgetComponent.scss';
 
 @Component({
     template: require('./SupervisionWidgetComponent.pug'),
@@ -66,7 +65,9 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
     @Prop({ default: null })
     private dashboard_page: DashboardPageVO;
 
-    private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_without_args(this.update_visible_options.bind(this), 100, { leading: false, trailing: true });
+    private throttled_update_visible_options = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(
+        this.handle_throttled_update_visible_options.bind(this), 100, { leading: false, trailing: true }
+    );
 
     private pagination_count: number = 0;
     private pagination_offset: number = 0;
@@ -135,7 +136,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
 
             await ThreadHandler.sleep((this.widget_options.auto_refresh_seconds * 1000));
 
-            this.throttled_update_visible_options();
+            this.throttled_update_visible_options({ refresh: true });
         }
     }
 
@@ -150,18 +151,31 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
     }
 
     /**
-     * Case refactor method ModuleSupervisionGRController.item_filter_is_stc_half_month (specific to Yve rocher)
-     * TODO: - Whe must filter item by api_type_id == SupervisedAdpPaieVO.API_TYPE_ID
-     * TODO: - Case when does not have employee_id (no employee) => no need to proceed
-     * TODO: - Whe must get contracts by employee_id
-     * TODO: - Create method that provide the list of contracts for an employee
+     * Handle the throttled update visible options
+     *
+     * @param args
+     * @returns {Promise<void>}
      */
-    private async update_visible_options() {
+    private async handle_throttled_update_visible_options(args: any[]): Promise<void> {
+        const options = Array.isArray(args) && args.length > 0 ? args.shift() : null;
+
+        return await this.update_visible_options(options);
+    }
+
+    /**
+     * Update visible options
+     * - Get the supervision items
+     * - Update the pagination count
+     * - Update the items
+     *
+     * @param options
+     * @returns {Promise<void>}
+     */
+    private async update_visible_options(options?: { refresh: boolean }) {
 
         let launch_cpt: number = (this.last_calculation_cpt + 1);
         let rows: ISupervisedItem[] = [];
 
-        this.last_calculation_cpt = launch_cpt;
         this.is_busy = true;
 
         if (!(this.supervision_api_type_ids?.length > 0)) {
@@ -172,33 +186,32 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
             return;
         }
 
+        console.log('SupervisionWidgetComponent.update_visible_options', this.pagination_offset, this.limit);
+
         const data: { items: ISupervisedItem[], total_count: number } = await SupervisionWidgetManager.find_supervision_probs_by_api_type_ids(
             this.dashboard,
             this.widget_options,
             this.get_active_field_filters,
             this.get_active_api_type_ids,
             {
-                offset: this.pagination_offset ?? this.limit,
+                offset: this.pagination_offset,
                 limit: this.limit,
                 sort_by_field_id: 'name'
-            }
+            },
+            { refresh: options?.refresh }
         );
 
         rows = data.items;
 
-        // Si je ne suis pas sur la dernière demande, je me casse
-        if (this.last_calculation_cpt != launch_cpt) {
-            return;
-        }
-
-        rows.sort((a, b) => {
-            return a.name.localeCompare(b.name);
-        });
+        // rows.sort((a, b) => {
+        //     return a.name.localeCompare(b.name);
+        // });
 
         this.loaded_once = true;
         this.is_busy = false;
-        this.items = rows.splice(this.pagination_offset, this.limit);
+
         this.pagination_count = data.total_count;
+        this.items = rows;
 
         let items_by_identifier: { [identifier: string]: ISupervisedItem } = {};
 
@@ -241,7 +254,11 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
                     continue;
                 }
 
-                field_filters[field_id] = ContextFilterVOManager.filter_context_filter_tree_by_vo_type(field_filters[field_id], supervision_type, available_api_type_ids);
+                field_filters[field_id] = ContextFilterVOManager.filter_context_filter_tree_by_vo_type(
+                    field_filters[field_id],
+                    supervision_type,
+                    available_api_type_ids
+                );
             }
         }
 

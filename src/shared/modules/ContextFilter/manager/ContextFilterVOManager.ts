@@ -717,7 +717,11 @@ export default class ContextFilterVOManager {
             const field_filters = active_field_filters[i];
 
             for (const j in field_filters) {
-                const context_filter = field_filters[j];
+                let context_filter = field_filters[j];
+
+                if (!(context_filter instanceof ContextFilterVO)) {
+                    context_filter = new ContextFilterVO().from(context_filter);
+                }
 
                 if (!context_filter) {
                     continue;

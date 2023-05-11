@@ -740,6 +740,18 @@ export default class ModuleTable<T extends IDistantVOBase> {
         return this.fields_by_ids[field_id];
     }
 
+    public has_field_id(field_id: string): boolean {
+        if (!field_id) {
+            return false;
+        }
+
+        if (!this.fields_by_ids) {
+            return false;
+        }
+
+        return !!this.fields_by_ids[field_id];
+    }
+
     /**
      * On part du principe que les refs on en trouve une par type sur une table, en tout cas on renvoie la premiere
      * @param vo_type

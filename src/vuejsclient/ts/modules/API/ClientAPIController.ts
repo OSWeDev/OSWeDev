@@ -13,6 +13,7 @@ export default class ClientAPIController implements IAPIController {
         if (!ClientAPIController.instance) {
             ClientAPIController.instance = new ClientAPIController();
         }
+
         return ClientAPIController.instance;
     }
 
@@ -24,7 +25,8 @@ export default class ClientAPIController implements IAPIController {
         precondition: (...params) => boolean = null,
         precondition_default_value: any = null,
         registered_apis: { [api_name: string]: APIDefinition<any, any> } = {},
-        sanitize_result: (res: any, ...params) => any = null): (...params) => Promise<U> {
+        sanitize_result: (res: any, ...params) => any = null
+    ): (...params) => Promise<U> {
 
         return async (...params) => {
 

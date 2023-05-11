@@ -70,7 +70,7 @@ export default class ThrottleHelper {
 
         }, wait_ms, options);
 
-        return (stackable_args: any | any[]) => {
+        return (stackable_args?: any | any[]) => {
             let stack = stackable_args ? (isArray(stackable_args) ? stackable_args : [stackable_args]) : [];
             return ThrottleHelper.getInstance().throttle_with_stackable_args(UID, stack);
         };

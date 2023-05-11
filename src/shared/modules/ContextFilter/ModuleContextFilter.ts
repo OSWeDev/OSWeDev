@@ -46,6 +46,7 @@ export default class ModuleContextFilter extends Module {
         if (!ModuleContextFilter.instance) {
             ModuleContextFilter.instance = new ModuleContextFilter();
         }
+
         return ModuleContextFilter.instance;
     }
 
@@ -290,6 +291,7 @@ export default class ModuleContextFilter extends Module {
             new ModuleTableField('use_technical_field_versioning', ModuleTableField.FIELD_TYPE_boolean, 'use_technical_field_versioning', true, true, false),
             new ModuleTableField('query_distinct', ModuleTableField.FIELD_TYPE_boolean, 'query_distinct', true, true, false),
             new ModuleTableField('discarded_field_paths', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'discarded_field_paths', false),
+            new ModuleTableField('union_queries', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'discarded_field_paths', false),
         ];
 
         let datatable = new ModuleTable(this, ContextQueryVO.API_TYPE_ID, () => new ContextQueryVO(), datatable_fields, null, "Requête");
