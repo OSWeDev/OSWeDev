@@ -1334,7 +1334,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             let data_n: number = parseInt(j) + 1;
 
             if (has_errors) {
-                break;;
+                break;
             }
 
             ConsoleHandler.log('add_var_columns_values_for_xlsx_datas:row:' + data_n + '/' + rows.length);
@@ -1343,7 +1343,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                 let row_field_name: string = ordered_column_list[i];
 
                 if (has_errors) {
-                    break;;
+                    break;
                 }
 
                 // Check if it's actually a var param field

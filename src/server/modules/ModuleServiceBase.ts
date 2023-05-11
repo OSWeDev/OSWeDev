@@ -645,10 +645,10 @@ export default abstract class ModuleServiceBase {
 
                 return new Promise((resolve, reject) => {
 
-                    setTimeout(() => {
+                    setTimeout(async () => {
 
                         try {
-                            self.db_none(query, values);
+                            await self.db_none(query, values);
                             resolve(null);
                         } catch (error2) {
                             ConsoleHandler.error(error2 + ' - retry failed - ' + error2);

@@ -1622,7 +1622,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                             if ((!ids_db) || !ids_db.length) {
 
                                 /**
-                                 * Alors si on a pas d'éléments pour un champs lié à la var on est pas vraiment sur un maxrange a priori mais plutôt sur un 
+                                 * Alors si on a pas d'éléments pour un champs lié à la var on est pas vraiment sur un maxrange a priori mais plutôt sur un
                                  *  'minrange', donc on refuse mais sans logger d'erreur
                                  */
                                 // // Max range étant interdit sur les registers de var, on force un retour null
