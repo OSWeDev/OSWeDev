@@ -91,12 +91,12 @@ export default class ModulesClientInitializationDatasGenerator {
         fileContent += this.generateModulesCode(this.generateModuleData, target);
 
         if (target != 'Test') {
-            fileContent += "    await AjaxCacheClientController.getInstance().getCSRFToken();";
+            fileContent += "    await AjaxCacheClientController.getInstance().getCSRFToken();\n";
         }
-        fileContent += "    let promises = [];";
+        fileContent += "    let promises = [];\n";
 
         fileContent += this.generateModulesCode(this.generateModuleAsyncInitialisation, target);
-        fileContent += '    await Promise.all(promises);';
+        fileContent += '    await Promise.all(promises);\n';
         fileContent += "}";
 
         return fileContent;
@@ -166,13 +166,13 @@ export default class ModulesClientInitializationDatasGenerator {
 
     private generateModuleAsyncInitialisation(module: Module, target: string) {
 
-        let res = "    await Module" + module.reflexiveClassName + ".getInstance().hook_module_async_" + target.toLowerCase() + "_initialization();\n";
+        let res = "        await Module" + module.reflexiveClassName + ".getInstance().hook_module_async_" + target.toLowerCase() + "_initialization();\n";
 
         if ((target == 'Client') || (target == 'Admin') || (target == 'Test')) {
-            res = "    await Module" + module.reflexiveClassName + ".getInstance().hook_module_async_client_admin_initialization();\n" + res;
+            res = "        await Module" + module.reflexiveClassName + ".getInstance().hook_module_async_client_admin_initialization();\n" + res;
         }
 
-        res = "promises.push((async () => {" + res + "})());";
+        res = "    promises.push((async () => {\n" + res + "    })());\n";
         return res;
     }
 }
