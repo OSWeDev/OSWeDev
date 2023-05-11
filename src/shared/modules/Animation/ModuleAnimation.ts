@@ -14,7 +14,7 @@ import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import TableFieldTypesManager from '../TableFieldTypes/TableFieldTypesManager';
 import VarsInitController from '../Var/VarsInitController';
-import { VOsTypesManager } from '../VO/manager/VOsTypesManager';
+import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import MessageModuleTableFieldTypeController from './fields/message_module/MessageModuleTableFieldTypeController';
 import AnimationMessageModuleVO from './fields/message_module/vos/AnimationMessageModuleVO';
 import ReponseTableFieldTypeController from './fields/reponse/ReponseTableFieldTypeController';

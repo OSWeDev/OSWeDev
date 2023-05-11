@@ -16,7 +16,7 @@ import ModuleTableField from '../ModuleTableField';
 import ModuleVO from '../ModuleVO';
 import DefaultTranslation from '../Translation/vos/DefaultTranslation';
 import LangVO from '../Translation/vos/LangVO';
-import { VOsTypesManager } from '../VO/manager/VOsTypesManager';
+import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import AccessPolicyGroupVO from './vos/AccessPolicyGroupVO';
 import AccessPolicyVO from './vos/AccessPolicyVO';
 import LoginParamVO, { LoginParamVOStatic } from './vos/apis/LoginParamVO';

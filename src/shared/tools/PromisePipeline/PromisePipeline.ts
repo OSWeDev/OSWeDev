@@ -109,8 +109,14 @@ export default class PromisePipeline {
     private async do_cb(cb: () => Promise<any>, cb_uid: number): Promise<void> {
         this.nb_running_promises++;
 
+
         if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
             ConsoleHandler.log('PromisePipeline.do_cb():BEFORECB:' + this.uid + ':cb_name:' + cb.name + ':' + cb_uid + ':' + ' [' + this.nb_running_promises + ']');
+        }
+
+        if (!(typeof cb === 'function')) {
+            ConsoleHandler.error('PromisePipeline.do_cb():ERROR: typeof cb !== function :' + cb_uid + ':' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
+            return;
         }
 
         try {

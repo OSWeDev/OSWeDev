@@ -2,7 +2,7 @@ import Module from '../../Module';
 import ModuleTable from '../../ModuleTable';
 import ModuleTableField from '../../ModuleTableField';
 import DefaultTranslation from '../../Translation/vos/DefaultTranslation';
-import { VOsTypesManager } from '../../VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../VO/manager/VOsTypesManager';
 import CommandeVO from '../Commande/vos/CommandeVO';
 import AbonnementVO from './vos/AbonnementVO';
 import PackAbonnementVO from './vos/PackAbonnementVO';

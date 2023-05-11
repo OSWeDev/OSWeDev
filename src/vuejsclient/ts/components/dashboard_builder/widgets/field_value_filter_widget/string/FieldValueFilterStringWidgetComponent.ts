@@ -2,11 +2,10 @@ import { cloneDeep, debounce, isEqual } from 'lodash';
 import Vue from 'vue';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import ContextFilterVOHandler from '../../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO, { filter } from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-
-import ContextFilterVOHandler from '../../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVOManager from '../../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
@@ -17,7 +16,7 @@ import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/v
 import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
 import ModuleTable from '../../../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
-import { VOsTypesManager } from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import { all_promises } from '../../../../../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
@@ -34,6 +33,7 @@ import FieldValueFilterWidgetController from '../FieldValueFilterWidgetControlle
 import FieldValueFilterWidgetOptions from '../options/FieldValueFilterWidgetOptions';
 import AdvancedStringFilter from './AdvancedStringFilter';
 import './FieldValueFilterStringWidgetComponent.scss';
+import FieldFilterManager from '../../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
 
 @Component({
     template: require('./FieldValueFilterStringWidgetComponent.pug'),
@@ -832,8 +832,9 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
         let active_field_filters_query: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null;
 
         if (!this.no_inter_filter) {
-            active_field_filters_query = ContextFilterVOManager.clean_field_filters_for_request(
-                this.get_active_field_filters
+            active_field_filters_query = FieldFilterManager.clean_field_filters_for_request(
+                this.get_active_field_filters,
+                { should_restrict_to_api_type_id: true }
             );
 
             if (this.vo_field_ref_lvl2) {

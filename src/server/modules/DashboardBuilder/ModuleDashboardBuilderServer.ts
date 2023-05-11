@@ -8,7 +8,7 @@ import DashboardVO from '../../../shared/modules/DashboardBuilder/vos/DashboardV
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
-import { VOsTypesManager } from '../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
@@ -24,7 +24,7 @@ import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleDataExportServer from '../DataExport/ModuleDataExportServer';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import { DashboardBuilderVOFactory } from '../../../shared/modules/DashboardBuilder/factory/DashboardBuilderVOFactory';
+import DashboardBuilderVOFactory from '../../../shared/modules/DashboardBuilder/factory/DashboardBuilderVOFactory';
 import DashboardWidgetVO from '../../../shared/modules/DashboardBuilder/vos/DashboardWidgetVO';
 import ContextFilterVOManager from '../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import { IExportParamsProps } from '../../../shared/modules/DashboardBuilder/interfaces/IExportParamsProps';

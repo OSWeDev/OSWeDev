@@ -10,7 +10,7 @@ import ContextQueryVO, { query } from '../../../../../shared/modules/ContextFilt
 import SortByVO from '../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import { VOsTypesManager } from '../../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../../shared/modules/VO/manager/VOsTypesManager';
 import { all_promises } from '../../../../../shared/tools/PromiseTools';
 import CRUDFormServices from '../../crud/component/CRUDFormServices';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../dao/store/DaoStore';

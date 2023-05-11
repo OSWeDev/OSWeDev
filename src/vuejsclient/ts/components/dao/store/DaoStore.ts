@@ -3,7 +3,7 @@ import { ActionContext, ActionTree, GetterTree, MutationTree } from "vuex";
 import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
 import { getStoreAccessors, GetterHandler } from "vuex-typescript";
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import { VOsTypesManager } from '../../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../../shared/modules/VO/manager/VOsTypesManager';
 import IStoreModule from '../../../store/IStoreModule';
 import DaoStoreTypeWatcherDefinition from '../vos/DaoStoreTypeWatcherDefinition';
 

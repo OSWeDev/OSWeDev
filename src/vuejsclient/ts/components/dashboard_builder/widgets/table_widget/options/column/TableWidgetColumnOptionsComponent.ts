@@ -3,7 +3,7 @@ import { Prop, Watch } from 'vue-property-decorator';
 import DashboardPageWidgetVO from '../../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import TableColumnDescVO from '../../../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import VarsController from '../../../../../../../../shared/modules/Var/VarsController';
-import { VOsTypesManager } from '../../../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../../shared/tools/ConsoleHandler';
 import ModuleTableField from '../../../../../../../../shared/modules/ModuleTableField';
 import InlineTranslatableText from '../../../../../InlineTranslatableText/InlineTranslatableText';

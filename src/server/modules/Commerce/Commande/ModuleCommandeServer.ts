@@ -10,7 +10,7 @@ import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQuery
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
-import { VOsTypesManager } from '../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleAccessPolicyServer from '../../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ModuleServerBase from '../../ModuleServerBase';

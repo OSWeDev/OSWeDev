@@ -13,7 +13,7 @@ import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import DatatableField from '../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
-import { VOsTypesManager } from '../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../shared/tools/PromiseTools';

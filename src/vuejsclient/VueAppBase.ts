@@ -31,7 +31,7 @@ import Module from '../shared/modules/Module';
 import ModulesManager from '../shared/modules/ModulesManager';
 import ModuleWrapper from '../shared/modules/ModuleWrapper';
 import LangVO from "../shared/modules/Translation/vos/LangVO";
-import { VOsTypesManager } from "../shared/modules/VO/manager/VOsTypesManager";
+import VOsTypesManager from "../shared/modules/VO/manager/VOsTypesManager";
 import EnvHandler from '../shared/tools/EnvHandler';
 import LocaleManager from '../shared/tools/LocaleManager';
 import PWAController from "./public/pwa/PWAController";

@@ -1,7 +1,6 @@
 import DashboardPageWidgetVO from "./DashboardPageWidgetVO";
 import { AbstractVO } from "../../VO/abstract/AbstractVO";
 import VOFieldRefVO from "./VOFieldRefVO";
-
 import DataFilterOption from "../../DataRender/vos/DataFilterOption";
 import TSRange from "../../DataRender/vos/TSRange";
 
@@ -9,7 +8,7 @@ import TSRange from "../../DataRender/vos/TSRange";
  * @class FieldValueFilterWidgetOptionsVO
  *  - options for field value filter widget
  */
-export class FieldValueFilterWidgetOptionsVO extends AbstractVO {
+export default class FieldValueFilterWidgetOptionsVO extends AbstractVO {
 
     public static VO_FIELD_REF_PLACEHOLDER_CODE_PREFIX: string = "FieldValueFilterWidgetOptions.vo_field_ref.placeholder.";
     public static VO_FIELD_REF_ADVANCED_MODE_PLACEHOLDER_CODE_PREFIX: string = "FieldValueFilterWidgetOptions.vo_field_ref.advanced_mode_placeholder.";
@@ -108,7 +107,7 @@ export class FieldValueFilterWidgetOptionsVO extends AbstractVO {
         public default_ts_range_values?: TSRange,
         public default_boolean_values?: number[],
         public hide_filter?: boolean,
-        public no_inter_filter?: boolean,
+        public no_inter_filter?: boolean, // Do not use the active_field_filter
         public has_other_ref_api_type_id?: boolean,
         public other_ref_api_type_id?: string,
         public exclude_filter_opt_values?: DataFilterOption[],

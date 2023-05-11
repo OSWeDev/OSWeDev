@@ -5,7 +5,7 @@ import DashboardVO from "../vos/DashboardVO";
 /**
  * Dashboard Builder Board Manager
  */
-export class DashboardBuilderBoardManager {
+export default class DashboardBuilderBoardManager {
 
     /**
      * Load discarded field paths

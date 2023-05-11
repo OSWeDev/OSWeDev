@@ -20,7 +20,7 @@ import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
-import { VOsTypesManager } from '../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
@@ -81,10 +81,10 @@ export default class ContextQueryServerController {
          * l'anonymisation ne peut pas fonctionner en bdd puisque le contexte client est perdu. Sauf à ce que la requête soit impactée pour
          * indiquer d'utiliser l'anonymisation en bdd, et que la requête n'ai pas besoin de connaitre le contexte client.
          */
-        query_wrapper = query_wrapper ? query_wrapper : await this.build_select_query(context_query);
+        query_wrapper = query_wrapper ?? await this.build_select_query(context_query);
 
         //Requête
-        if ((!query_wrapper) || ((!query_wrapper.query)) && (!query_wrapper.is_segmented_non_existing_table)) {
+        if (!(query_wrapper?.query) && (!query_wrapper.is_segmented_non_existing_table)) {
             ConsoleHandler.error('Invalid query:select_vos:INFOS context_query:' + (query_wrapper ? (query_wrapper.query ? query_wrapper.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
             context_query.log(true);
             throw new Error('Invalid query:select_vos');

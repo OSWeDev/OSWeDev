@@ -8,7 +8,7 @@ import TableColumnDescVO from '../../../shared/modules/DashboardBuilder/vos/Tabl
 import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
-import { VOsTypesManager } from '../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ModuleServerBase from '../ModuleServerBase';
 import ContextQueryServerController from './ContextQueryServerController';
 

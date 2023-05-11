@@ -5,7 +5,7 @@ import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VersionedVOController from '../Versioned/VersionedVOController';
-import { VOsTypesManager } from '../VO/manager/VOsTypesManager';
+import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import PopupVO from './vos/PopupVO';
 
 export default class ModulePopup extends Module {

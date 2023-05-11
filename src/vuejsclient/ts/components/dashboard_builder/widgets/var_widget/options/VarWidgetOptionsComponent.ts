@@ -6,7 +6,7 @@ import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
-import { VOsTypesManager } from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import InlineTranslatableText from '../../../../InlineTranslatableText/InlineTranslatableText';

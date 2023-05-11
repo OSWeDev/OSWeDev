@@ -1,7 +1,7 @@
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import DataFilterOption from '../../../shared/modules/DataRender/vos/DataFilterOption';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
-import { VOsTypesManager } from '../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConversionHandler from '../../../shared/tools/ConversionHandler';
 import moment from 'moment';
 

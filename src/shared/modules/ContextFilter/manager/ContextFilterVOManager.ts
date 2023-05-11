@@ -1,10 +1,9 @@
-import { cloneDeep } from "lodash";
 import RangeHandler from "../../../tools/RangeHandler";
 import TypesHandler from "../../../tools/TypesHandler";
-import { VOFieldRefVOTypeHandler } from "../../DashboardBuilder/handlers/VOFieldRefVOTypeHandler";
-import { BooleanFilterModel } from "../../DashboardBuilder/models/BooleanFilterModel";
+import VOFieldRefVOTypeHandler from "../../DashboardBuilder/handlers/VOFieldRefVOTypeHandler";
+import BooleanFilterModel from "../../DashboardBuilder/models/BooleanFilterModel";
 import DashboardWidgetVO from "../../DashboardBuilder/vos/DashboardWidgetVO";
-import { FieldValueFilterWidgetOptionsVO } from '../../DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
+import FieldValueFilterWidgetOptionsVO from '../../DashboardBuilder/vos/FieldValueFilterWidgetOptionsVO';
 import MonthFilterWidgetOptionsVO from '../../DashboardBuilder/vos/MonthFilterWidgetOptionsVO';
 import VOFieldRefVO from "../../DashboardBuilder/vos/VOFieldRefVO";
 import YearFilterWidgetOptionsVO from '../../DashboardBuilder/vos/YearFilterWidgetOptionsVO';
@@ -14,9 +13,10 @@ import NumSegment from "../../DataRender/vos/NumSegment";
 import TSRange from "../../DataRender/vos/TSRange";
 import Dates from "../../FormatDatesNombres/Dates/Dates";
 import ModuleTableField from "../../ModuleTableField";
-import { VOsTypesManager } from "../../VO/manager/VOsTypesManager";
-import ContextFilterVOHandler from "../handler/ContextFilterVOHandler";
+import VOsTypesManager from "../../VO/manager/VOsTypesManager";
 import ContextFilterVO from "../vos/ContextFilterVO";
+import ContextFilterVOHandler from "../handler/ContextFilterVOHandler";
+import ObjectHandler from "../../../tools/ObjectHandler";
 
 /**
  * ContextFilterVOManager
@@ -587,6 +587,46 @@ export default class ContextFilterVOManager {
     }
 
     /**
+     * add_context_filter_to_tree
+     * - Add context_filter to the root, using the and/or/xor .... type of operator if necessary
+     *
+     * @param {ContextFilterVO} context_filter_tree_root
+     * @param {ContextFilterVO} context_filter_to_add
+     * @param {number} operator_type
+     * @returns {ContextFilterVO}
+     */
+    public static add_context_filter_to_tree(
+        context_filter_tree_root: ContextFilterVO,
+        context_filter_to_add: ContextFilterVO,
+        operator_type: number = ContextFilterVO.TYPE_FILTER_AND
+    ): ContextFilterVO {
+        if (!context_filter_tree_root) {
+            return context_filter_to_add;
+        }
+
+        if (!context_filter_to_add) {
+            return context_filter_tree_root;
+        }
+
+        /**
+         * On checke qu'on est pas en train de modifier un filtre existant
+         */
+        if ((context_filter_tree_root == context_filter_to_add) || ContextFilterVOHandler.find_context_filter_in_tree(context_filter_tree_root, context_filter_to_add)) {
+            return context_filter_tree_root;
+        }
+
+        // Le root est déjà rempli, on renvoie un nouvel operateur
+        let context_filter = new ContextFilterVO();
+
+        context_filter.vo_type = context_filter_to_add.vo_type;
+        context_filter.field_id = context_filter_to_add.field_id;
+        context_filter.filter_type = operator_type;
+        context_filter.left_hook = context_filter_tree_root;
+        context_filter.right_hook = context_filter_to_add;
+        return context_filter;
+    }
+
+    /**
      * Create Context Filter From Data Filter Option
      *
      * @param {DataFilterOption} active_option
@@ -601,6 +641,7 @@ export default class ContextFilterVOManager {
         field: ModuleTableField<any>,
         vo_field_ref: VOFieldRefVO
     ): ContextFilterVO {
+
         let context_filter = new ContextFilterVO();
 
         context_filter.field_id = vo_field_ref.field_id;
@@ -687,27 +728,6 @@ export default class ContextFilterVOManager {
         }
 
         return context_filters;
-    }
-
-    /**
-     * clean_field_filters_for_request
-     *  - Clone and remove custom_filters
-     *
-     * @returns {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }}
-     */
-    public static clean_field_filters_for_request(
-        get_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
-    ): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {
-        let res: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = cloneDeep(get_active_field_filters);
-
-        if (res) {
-            delete res[ContextFilterVO.CUSTOM_FILTERS_TYPE];
-        }
-
-        // On ajoute un filtrage des filtres incompatibles avec la requête classique
-        // this.filter_context_by_type(res);
-
-        return res;
     }
 
     /**
@@ -814,6 +834,38 @@ export default class ContextFilterVOManager {
         }
 
         return context_filter_found;
+    }
+
+
+    public static find_context_filter_in_tree(context_filter_tree_root: ContextFilterVO, context_filter_to_find: ContextFilterVO): boolean {
+
+        if (!context_filter_tree_root) {
+            return false;
+        }
+
+        if (!context_filter_to_find) {
+            return false;
+        }
+
+        if ((context_filter_tree_root == context_filter_to_find) || ObjectHandler.getInstance().are_equal(context_filter_tree_root, context_filter_to_find)) {
+            return true;
+        }
+
+        if (context_filter_tree_root.left_hook) {
+            let res = ContextFilterVOManager.find_context_filter_in_tree(context_filter_tree_root.left_hook, context_filter_to_find);
+            if (res) {
+                return res;
+            }
+        }
+
+        if (context_filter_tree_root.right_hook) {
+            let res = ContextFilterVOManager.find_context_filter_in_tree(context_filter_tree_root.right_hook, context_filter_to_find);
+            if (res) {
+                return res;
+            }
+        }
+
+        return false;
     }
 
     public static getInstance(): ContextFilterVOManager {

@@ -18,7 +18,7 @@ import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/D
 import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../../shared/modules/ModuleTable';
-import { VOsTypesManager } from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../shared/tools/PromiseTools';
@@ -32,6 +32,7 @@ import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import TablePaginationComponent from '../table_widget/pagination/TablePaginationComponent';
 import './BulkOpsWidgetComponent.scss';
 import BulkOpsWidgetOptions from './options/BulkOpsWidgetOptions';
+import FieldFilterManager from '../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
 
 @Component({
     template: require('./BulkOpsWidgetComponent.pug'),
@@ -345,7 +346,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
             .set_limit(this.widget_options.limit, this.pagination_offset)
             .using(this.dashboard.api_type_ids)
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
-                ContextFilterVOManager.clean_field_filters_for_request(this.get_active_field_filters)
+                FieldFilterManager.clean_field_filters_for_request(this.get_active_field_filters)
             ));
 
         for (let i in this.fields) {

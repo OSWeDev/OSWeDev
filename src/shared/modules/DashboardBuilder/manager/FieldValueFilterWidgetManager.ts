@@ -4,14 +4,14 @@ import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
 import ContextQueryVO from "../../ContextFilter/vos/ContextQueryVO";
 import ModuleTable from "../../ModuleTable";
 import ModuleTableField from "../../ModuleTableField";
-import { VOsTypesManager } from "../../VO/manager/VOsTypesManager";
+import VOsTypesManager from "../../VO/manager/VOsTypesManager";
 import DashboardVO from "../vos/DashboardVO";
 
 /**
  * @class FieldValueFilterWidgetManager
  *  - This class is used to manage the field value filter widget
  */
-export class FieldValueFilterWidgetManager {
+export default class FieldValueFilterWidgetManager {
 
     public static add_discarded_field_paths(q: ContextQueryVO, discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } }): ContextQueryVO {
 

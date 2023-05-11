@@ -13,16 +13,16 @@ import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import DefaultTranslation from '../Translation/vos/DefaultTranslation';
-import { VOsTypesManager } from '../VO/manager/VOsTypesManager';
+import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import IExportableSheet from './interfaces/IExportableSheet';
-import { IExportOptions } from './interfaces/IExportOptions';
+import IExportOptions from './interfaces/IExportOptions';
 import ExportContextQueryToXLSXParamVO, { ExportContextQueryToXLSXParamVOStatic } from './vos/apis/ExportContextQueryToXLSXParamVO';
 import ExportDataToMultiSheetsXLSXParamVO from './vos/apis/ExportDataToMultiSheetsXLSXParamVO';
 import ExportDataToXLSXParamVO, { ExportDataToXLSXParamVOStatic } from './vos/apis/ExportDataToXLSXParamVO';
 import ExportLogVO from './vos/apis/ExportLogVO';
 import ExportHistoricVO from './vos/ExportHistoricVO';
 import ExportVarcolumnConf from './vos/ExportVarcolumnConf';
-import { ExportVarIndicator } from './vos/ExportVarIndicator';
+import ExportVarIndicator from './vos/ExportVarIndicator';
 
 export default class ModuleDataExport extends Module {
 

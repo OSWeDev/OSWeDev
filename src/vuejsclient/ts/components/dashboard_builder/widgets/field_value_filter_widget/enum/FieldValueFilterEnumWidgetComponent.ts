@@ -7,14 +7,14 @@ import ContextFilterVOManager from '../../../../../../../shared/modules/ContextF
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
-import { DashboardBuilderDataFilterManager } from '../../../../../../../shared/modules/DashboardBuilder/manager/DashboardBuilderDataFilterManager';
+import DashboardBuilderDataFilterManager from '../../../../../../../shared/modules/DashboardBuilder/manager/DashboardBuilderDataFilterManager';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos/DataFilterOption';
 import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
-import { VOsTypesManager } from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import EnvHandler from '../../../../../../../shared/tools/EnvHandler';
 import PromisePipeline from '../../../../../../../shared/tools/PromisePipeline/PromisePipeline';
@@ -30,6 +30,8 @@ import ValidationFiltersWidgetController from '../../validation_filters_widget/V
 import FieldValueFilterWidgetController from '../FieldValueFilterWidgetController';
 import FieldValueFilterWidgetOptions from '../options/FieldValueFilterWidgetOptions';
 import './FieldValueFilterEnumWidgetComponent.scss';
+import FieldFilterManager from '../../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
+import FieldValueFilterEnumWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterEnumWidgetManager';
 
 @Component({
     template: require('./FieldValueFilterEnumWidgetComponent.pug'),
@@ -302,7 +304,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             this.warn_existing_external_filters = !this.try_apply_actual_active_filters(root_context_filter);
         }
 
-        let data_filter_options: DataFilterOption[] = await DashboardBuilderDataFilterManager.find_enum_data_filters_from_widget_options(
+        let data_filter_options: DataFilterOption[] = await FieldValueFilterEnumWidgetManager.find_enum_data_filters_from_widget_options(
             this.dashboard,
             this.widget_options,
             this.get_active_field_filters,
@@ -373,85 +375,22 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
      * @returns TODO vérifier car pas certains que ça fonctionnent dans tous les cas...
      */
     private async set_count_value() {
+
         if (!this.show_count_value) {
             this.count_by_filter_visible_opt_id = {};
             return;
         }
 
-        const limit = EnvHandler.MAX_POOL / 2;
-        const promise_pipeline = new PromisePipeline(limit);
-
-        const available_api_type_ids: string[] = DashboardBuilderDataFilterManager.get_required_api_type_id_from_widget_options(
+        this.count_by_filter_visible_opt_id = await FieldValueFilterEnumWidgetManager.find_enum_data_filters_count_from_widget_options(
+            this.dashboard,
             this.widget_options,
+            this.get_active_field_filters,
+            this.filter_visible_options,
             {
                 active_api_type_ids: this.get_active_api_type_ids,
-                query_api_type_ids: this.get_query_api_type_ids
+                query_api_type_ids: this.get_query_api_type_ids,
             }
         );
-
-        const field_filters_by_api_type_id: { [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } } = this.get_field_filters_by_api_type_ids(
-            available_api_type_ids,
-            true,
-        );
-
-        let count_by_filter_visible_opt_id: { [id: number]: number } = {};
-
-        for (const key in this.filter_visible_options) {
-            const filter_opt: DataFilterOption = this.filter_visible_options[key];
-
-            if (!filter_opt) {
-                continue;
-            }
-
-            // On RAZ le champ
-            count_by_filter_visible_opt_id[filter_opt.numeric_value] = 0;
-
-            for (const i in available_api_type_ids) {
-                const api_type_id: string = available_api_type_ids[i];
-
-                let filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_active_field_filters(
-                    field_filters_by_api_type_id[api_type_id]
-                );
-
-                const enum_filter = ContextFilterVOManager.get_context_filter_from_data_filter_option(
-                    filter_opt,
-                    null,
-                    this.field,
-                    this.vo_field_ref,
-                );
-
-                if (this.force_filter_by_all_api_type_ids) {
-                    enum_filter.vo_type = api_type_id;
-                }
-
-                filters = filters.concat(enum_filter);
-
-                await promise_pipeline.push(async () => {
-
-                    const has_access = await ModuleAccessPolicy.getInstance().testAccess(ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id));
-
-                    if (!has_access) {
-                        return;
-                    }
-
-                    const qb = query(api_type_id)
-                        .using(this.dashboard.api_type_ids)
-                        .add_filters(filters);
-
-                    FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(qb, this.get_discarded_field_paths);
-
-                    let items_c: number = await qb.select_count();
-
-                    if (items_c >= 0) {
-                        count_by_filter_visible_opt_id[filter_opt.numeric_value] += items_c;
-                    }
-                });
-            }
-        }
-
-        await promise_pipeline.end();
-
-        this.count_by_filter_visible_opt_id = count_by_filter_visible_opt_id;
     }
 
     /**
@@ -474,7 +413,7 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             active_field_filters = this.get_active_field_filters;
         }
 
-        const field_filters_for_request: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = ContextFilterVOManager.clean_field_filters_for_request(
+        const field_filters_for_request: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = FieldFilterManager.clean_field_filters_for_request(
             active_field_filters
         );
 

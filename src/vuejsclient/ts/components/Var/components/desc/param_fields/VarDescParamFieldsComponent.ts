@@ -6,7 +6,7 @@ import MatroidController from '../../../../../../../shared/modules/Matroid/Matro
 import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../../shared/modules/Var/vos/VarDataBaseVO';
-import { VOsTypesManager } from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import VueComponentBase from '../../../../VueComponentBase';
 import './VarDescParamFieldsComponent.scss';
 

@@ -10,7 +10,7 @@ import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
-import { VOsTypesManager } from '../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import MatroidIndexHandler from '../../../shared/tools/MatroidIndexHandler';
 import RangeHandler from '../../../shared/tools/RangeHandler';
@@ -2530,6 +2530,12 @@ export default class ContextFilterServerController {
 
                 let where_clause_date_intersects = null;
                 active_field_filter.param_tsranges.forEach((tsrange) => {
+                    if (!tsrange) {
+                        ConsoleHandler.error('ERROR : tsrange null on field_id ' + field_id
+                            + ' :: param_tsranges : ' + JSON.stringify(active_field_filter.param_tsranges)
+                            + ' : contextQuery : ' + JSON.stringify(context_query));
+                    }
+
                     where_clause_date_intersects = (where_clause_date_intersects ? where_clause_date_intersects + ' OR ' : '');
 
                     ContextQueryInjectionCheckHandler.assert_integer(tsrange.min);

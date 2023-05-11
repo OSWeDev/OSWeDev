@@ -12,7 +12,7 @@ import FileVO from '../../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleTable from '../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../shared/modules/ModuleTableField';
-import { VOsTypesManager } from '../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../shared/tools/DateHandler';
 import TextHandler from '../../../../shared/tools/TextHandler';

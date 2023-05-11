@@ -11,7 +11,7 @@ import VarsController from '../../../../../../shared/modules/Var/VarsController'
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import VarUpdateCallback from '../../../../../../shared/modules/Var/vos/VarUpdateCallback';
-import { VOsTypesManager } from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import FilterObj from '../../../../../../shared/tools/Filters';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';

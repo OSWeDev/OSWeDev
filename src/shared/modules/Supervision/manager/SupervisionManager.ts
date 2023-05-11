@@ -4,7 +4,7 @@ import SupervisionController from "../SupervisionController";
  * @class SupervisionManager
  *  - This class is responsible for managing the supervision vo
  */
-export class SupervisionManager {
+export default class SupervisionManager {
 
     /**
      * load_all_supervision_api_type_ids

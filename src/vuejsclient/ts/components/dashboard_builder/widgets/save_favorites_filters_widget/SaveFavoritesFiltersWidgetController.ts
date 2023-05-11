@@ -1,14 +1,13 @@
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import DashboardFavoriteFiltersVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardFavoritesFiltersVO';
-import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import { all_promises } from "../../../../../../shared/tools/PromiseTools";
 import ThrottleHelper from "../../../../../../shared/tools/ThrottleHelper";
-import { SaveFavoritesFiltersCallUpdaters } from "./SaveFavoritesFiltersCallUpdaters";
+import SaveFavoritesFiltersCallUpdaters from "./SaveFavoritesFiltersCallUpdaters";
 
 /**
  * SaveFavoritesFiltersWidgetController
  */
-export class SaveFavoritesFiltersWidgetController {
+export default class SaveFavoritesFiltersWidgetController {
 
     public static getInstance(): SaveFavoritesFiltersWidgetController {
         if (!this.instance) {

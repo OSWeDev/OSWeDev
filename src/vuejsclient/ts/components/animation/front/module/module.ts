@@ -20,7 +20,7 @@ import FileVO from "../../../../../../shared/modules/File/vos/FileVO";
 import IDistantVOBase from "../../../../../../shared/modules/IDistantVOBase";
 import VarsController from "../../../../../../shared/modules/Var/VarsController";
 import VarDataBaseVO from "../../../../../../shared/modules/Var/vos/VarDataBaseVO";
-import { VOsTypesManager } from "../../../../../../shared/modules/VO/manager/VOsTypesManager";
+import VOsTypesManager from "../../../../../../shared/modules/VO/manager/VOsTypesManager";
 import { all_promises } from "../../../../../../shared/tools/PromiseTools";
 import RangeHandler from "../../../../../../shared/tools/RangeHandler";
 import AjaxCacheClientController from "../../../../modules/AjaxCache/AjaxCacheClientController";

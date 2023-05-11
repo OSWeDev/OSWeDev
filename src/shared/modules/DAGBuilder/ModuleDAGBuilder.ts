@@ -2,7 +2,7 @@ import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
-import { VOsTypesManager } from '../VO/manager/VOsTypesManager';
+import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import DAGBuilderEdgeVO from './vos/DAGBuilderEdgeVO';
 import DAGBuilderNodeVO from './vos/DAGBuilderNodeVO';
 

@@ -1,7 +1,7 @@
 import FieldPathWrapper from '../../../shared/modules/ContextFilter/vos/FieldPathWrapper';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
-import { VOsTypesManager } from '../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 
 export default class ContextFieldPathServerController {
 

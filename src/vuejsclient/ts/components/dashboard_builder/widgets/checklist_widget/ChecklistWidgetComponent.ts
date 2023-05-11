@@ -9,6 +9,7 @@ import ModuleCheckListBase from '../../../../../../shared/modules/CheckList/Modu
 import CheckListVO from '../../../../../../shared/modules/CheckList/vos/CheckListVO';
 import ContextFilterVOHandler from '../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
+import FieldFilterManager from '../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
@@ -19,7 +20,7 @@ import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/v
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
-import { VOsTypesManager } from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
 import { all_promises } from '../../../../../../shared/tools/PromiseTools';
@@ -415,7 +416,7 @@ export default class ChecklistWidgetComponent extends VueComponentBase {
         if (!filters[self.checklist_shared_module.checklistitem_type_id]) {
             filters[self.checklist_shared_module.checklistitem_type_id] = {};
         }
-        filters = ContextFilterVOManager.clean_field_filters_for_request(filters);
+        filters = FieldFilterManager.clean_field_filters_for_request(filters);
 
         promises.push((async () => {
 

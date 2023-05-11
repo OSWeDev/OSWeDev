@@ -6,8 +6,8 @@ import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/v
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
-import { VOFieldRefVOTypeHandler } from '../../../../../../../shared/modules/DashboardBuilder/handlers/VOFieldRefVOTypeHandler';
-import { DashboardBuilderDataFilterManager } from '../../../../../../../shared/modules/DashboardBuilder/manager/DashboardBuilderDataFilterManager';
+import VOFieldRefVOTypeHandler from '../../../../../../../shared/modules/DashboardBuilder/handlers/VOFieldRefVOTypeHandler';
+import FieldValueFilterEnumWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterEnumWidgetManager';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
@@ -16,7 +16,7 @@ import TimeSegment from '../../../../../../../shared/modules/DataRender/vos/Time
 import TSRange from '../../../../../../../shared/modules/DataRender/vos/TSRange';
 import ModuleTable from '../../../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
-import { VOsTypesManager } from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
@@ -864,7 +864,7 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
 
         if (this.is_type_enum) {
             // Load data_filters for enum
-            data_filters = await DashboardBuilderDataFilterManager.find_enum_data_filters_from_widget_options(
+            data_filters = await FieldValueFilterEnumWidgetManager.find_enum_data_filters_from_widget_options(
                 this.dashboard,
                 this.widget_options,
                 this.get_active_field_filters,

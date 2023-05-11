@@ -3,7 +3,7 @@ import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VersionedVOController from '../Versioned/VersionedVOController';
-import { VOsTypesManager } from '../VO/manager/VOsTypesManager';
+import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import ICheckList from './interfaces/ICheckList';
 import ICheckListItem from './interfaces/ICheckListItem';
 import ICheckListItemCheckPoints from './interfaces/ICheckListItemCheckPoints';

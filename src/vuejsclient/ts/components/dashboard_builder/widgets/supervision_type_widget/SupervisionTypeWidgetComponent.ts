@@ -93,6 +93,8 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
         let limit = EnvHandler.MAX_POOL / 2;
         let promise_pipeline = new PromisePipeline(limit);
 
+        let has_promise: boolean = false;
+
         const supervision_category_active_field_filters = this.get_active_field_filters && this.get_active_field_filters[SupervisedCategoryVO.API_TYPE_ID];
 
         let category_selections: SupervisedCategoryVO[] = null;
@@ -129,6 +131,8 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
                 continue;
             }
 
+            has_promise = true;
+
             // Load each supervision_api_type_ids count by selected category
             await promise_pipeline.push(async () => {
 
@@ -143,10 +147,10 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
                     .using(this.dashboard.api_type_ids);
 
                 if (category_selections?.length > 0) {
-                    qb = qb.filter_by_num_eq('category_id', category_selections.map((cat) => cat.id));
+                    qb = qb.filter_by_num_eq('category_id', category_selections?.map((cat) => cat?.id));
                 }
 
-                let items_count: number = await qb.select_count();
+                const items_count: number = await qb.select_count();
 
                 if (items_count > 0) {
                     available_api_type_ids.push(api_type_id);
@@ -154,7 +158,9 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
             });
         }
 
-        await promise_pipeline.end();
+        if (has_promise) {
+            await promise_pipeline.end();
+        }
 
         this.available_api_type_ids = available_api_type_ids;
     }

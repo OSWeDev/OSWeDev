@@ -19,13 +19,13 @@ import DashboardWidgetVO from '../../../../../../shared/modules/DashboardBuilder
 import TableColumnDescVO from '../../../../../../shared/modules/DashboardBuilder/vos/TableColumnDescVO';
 import VOFieldRefVO from '../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import YearFilterWidgetOptionsVO from '../../../../../../shared/modules/DashboardBuilder/vos/YearFilterWidgetOptionsVO';
-import { IExportOptions } from '../../../../../../shared/modules/DataExport/interfaces/IExportOptions';
+import IExportOptions from '../../../../../../shared/modules/DataExport/interfaces/IExportOptions';
 import ExportContextQueryToXLSXParamVO from '../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
 import ExportVarcolumnConf from '../../../../../../shared/modules/DataExport/vos/ExportVarcolumnConf';
-import { ExportVarIndicator } from '../../../../../../shared/modules/DataExport/vos/ExportVarIndicator';
+import ExportVarIndicator from '../../../../../../shared/modules/DataExport/vos/ExportVarIndicator';
 import ModuleTable from '../../../../../../shared/modules/ModuleTable';
 import VarConfVO from '../../../../../../shared/modules/Var/vos/VarConfVO';
-import { VOsTypesManager } from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
 import WeightHandler from '../../../../../../shared/tools/WeightHandler';
@@ -37,12 +37,13 @@ import MonthFilterWidgetOptions from '../month_filter_widget/options/MonthFilter
 import ReloadFiltersWidgetController from '../reload_filters_widget/RealoadFiltersWidgetController';
 import TableWidgetOptions from '../table_widget/options/TableWidgetOptions';
 import TableWidgetController from '../table_widget/TableWidgetController';
-import VarWidgetOptions from '../var_widget/options/VarWidgetOptions';
 import VarWidgetComponent from '../var_widget/VarWidgetComponent';
+import FieldFilterManager from '../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
 import SaveFavoritesFiltersModalComponent from './modal/SaveFavoritesFiltersModalComponent';
-import { SaveFavoritesFiltersWidgetOptions } from './options/SaveFavoritesFiltersWidgetOptions';
+import SaveFavoritesFiltersWidgetOptions from './options/SaveFavoritesFiltersWidgetOptions';
 import './SaveFavoritesFiltersWidgetComponent.scss';
-import { SaveFavoritesFiltersWidgetController } from './SaveFavoritesFiltersWidgetController';
+import SaveFavoritesFiltersWidgetController from './SaveFavoritesFiltersWidgetController';
+import VarWidgetOptions from '../var_widget/options/VarWidgetOptions';
 
 @Component({
     template: require('./SaveFavoritesFiltersWidgetComponent.pug'),
@@ -327,7 +328,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
             .set_limit(limit, pagination_offset)
             .using(this.dashboard.api_type_ids)
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(
-                ContextFilterVOManager.clean_field_filters_for_request(this.get_active_field_filters)
+                FieldFilterManager.clean_field_filters_for_request(this.get_active_field_filters)
             ));
 
         //On évite les jointures supprimées.

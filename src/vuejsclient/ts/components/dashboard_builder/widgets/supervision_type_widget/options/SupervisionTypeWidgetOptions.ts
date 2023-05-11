@@ -1,4 +1,4 @@
-import { SupervisionTypeWidgetOptionsVO } from '../../../../../../../shared/modules/DashboardBuilder/vos/SupervisionTypeWidgetOptionsVO';
+import SupervisionTypeWidgetOptionsVO from '../../../../../../../shared/modules/DashboardBuilder/vos/SupervisionTypeWidgetOptionsVO';
 
 /**
  * SupervisionTypeWidgetOptions

@@ -1,7 +1,7 @@
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
-import { VOsTypesManager } from '../VO/manager/VOsTypesManager';
+import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import ISupervisedItemController from './interfaces/ISupervisedItemController';
 import SupervisedCategoryVO from './vos/SupervisedCategoryVO';
 

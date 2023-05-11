@@ -1,4 +1,4 @@
-import { FieldValueFilterWidgetOptionsVO } from "../vos/FieldValueFilterWidgetOptionsVO";
+import FieldValueFilterWidgetOptionsVO from "../vos/FieldValueFilterWidgetOptionsVO";
 import MonthFilterWidgetOptionsVO from "../vos/MonthFilterWidgetOptionsVO";
 import YearFilterWidgetOptionsVO from "../vos/YearFilterWidgetOptionsVO";
 import DashboardWidgetVO from "../vos/DashboardWidgetVO";
@@ -6,7 +6,7 @@ import DashboardWidgetVO from "../vos/DashboardWidgetVO";
 /**
  * DashboardBuilderVOFactory
  */
-export class DashboardBuilderVOFactory {
+export default class DashboardBuilderVOFactory {
 
     public static create_widget_vo() {
 

@@ -37,7 +37,7 @@ import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataInvalidatorVO from '../../../shared/modules/Var/vos/VarDataInvalidatorVO';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
-import { VOsTypesManager } from '../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
@@ -79,6 +79,7 @@ import VarServerControllerBase from './VarServerControllerBase';
 import VarsServerCallBackSubsController from './VarsServerCallBackSubsController';
 import VarsServerController from './VarsServerController';
 import VarsTabsSubsController from './VarsTabsSubsController';
+import FieldFilterManager from '../../../shared/modules/ContextFilter/manager/FieldFilterManager';
 
 export default class ModuleVarServer extends ModuleServerBase {
 
@@ -1571,7 +1572,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         let matroid_fields = MatroidController.getInstance().getMatroidFields(var_conf.var_data_vo_type);
         let field_promises: Array<Promise<any>> = [];
 
-        let cleaned_active_field_filters = ContextFilterVOManager.clean_field_filters_for_request(get_active_field_filters);
+        let cleaned_active_field_filters = FieldFilterManager.clean_field_filters_for_request(get_active_field_filters);
         let refuse_param: boolean = false;
 
         for (let i in matroid_fields) {

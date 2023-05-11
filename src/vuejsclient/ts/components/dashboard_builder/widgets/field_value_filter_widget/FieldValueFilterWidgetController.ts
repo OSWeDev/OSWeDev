@@ -1,11 +1,11 @@
-import { FieldValueFilterWidgetManager } from '../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
+import FieldValueFilterWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterWidgetManager';
 import ModuleContextFilter from "../../../../../../shared/modules/ContextFilter/ModuleContextFilter";
 import ContextFilterVO from "../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO";
 import ContextQueryVO from "../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import DashboardVO from "../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO";
 import ModuleTable from "../../../../../../shared/modules/ModuleTable";
 import ModuleTableField from "../../../../../../shared/modules/ModuleTableField";
-import { VOsTypesManager } from "../../../../../../shared/modules/VO/manager/VOsTypesManager";
+import VOsTypesManager from "../../../../../../shared/modules/VO/manager/VOsTypesManager";
 import ConsoleHandler from "../../../../../../shared/tools/ConsoleHandler";
 
 export default class FieldValueFilterWidgetController extends FieldValueFilterWidgetManager {

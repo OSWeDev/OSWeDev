@@ -1,14 +1,10 @@
 import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Vue, Watch } from 'vue-property-decorator';
-import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ModuleContextFilter from '../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import SortByVO from '../../../../../../shared/modules/ContextFilter/vos/SortByVO';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
-import { SupervisionTypeWidgetManager } from '../../../../../../shared/modules/DashboardBuilder/manager/SupervisionTypeWidgetManager';
+import SupervisionTypeWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/SupervisionTypeWidgetManager';
 import DashboardPageVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
@@ -16,10 +12,8 @@ import Dates from '../../../../../../shared/modules/FormatDatesNombres/Dates/Dat
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ISupervisedItem from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import SupervisionController from '../../../../../../shared/modules/Supervision/SupervisionController';
-import { VOsTypesManager } from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
-import EnvHandler from '../../../../../../shared/tools/EnvHandler';
-import PromisePipeline from '../../../../../../shared/tools/PromisePipeline/PromisePipeline';
 import ThreadHandler from '../../../../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import AjaxCacheClientController from '../../../../modules/AjaxCache/AjaxCacheClientController';
@@ -31,8 +25,10 @@ import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page
 import TablePaginationComponent from '../table_widget/pagination/TablePaginationComponent';
 import SupervisionWidgetOptions from './options/SupervisionWidgetOptions';
 import './SupervisionWidgetComponent.scss';
-import SupervisionWidgetController from './SupervisionWidgetController';
 import SupervisionItemModalComponent from './supervision_item_modal/SupervisionItemModalComponent';
+import ContextFilterVOManager from '../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
+import './SupervisionWidgetComponent.scss';
+import SupervisionWidgetManager from '../../../../../../shared/modules/DashboardBuilder/manager/SupervisionWidgetManager';
 
 @Component({
     template: require('./SupervisionWidgetComponent.pug'),
@@ -162,168 +158,33 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
      */
     private async update_visible_options() {
 
-        let rows: ISupervisedItem[] = [];
-        let pagination_count: number = 0;
-
         let launch_cpt: number = (this.last_calculation_cpt + 1);
+        let rows: ISupervisedItem[] = [];
 
         this.last_calculation_cpt = launch_cpt;
-
         this.is_busy = true;
 
         if (!(this.supervision_api_type_ids?.length > 0)) {
-            this.pagination_count = pagination_count;
+            this.pagination_count = 0;
             this.loaded_once = true;
             this.is_busy = false;
             this.items = rows;
             return;
         }
 
-        const limit = EnvHandler.MAX_POOL / 2;
-        const promise_pipeline = new PromisePipeline(limit);
-
-        const active_field_filters_by_api_type_id: { [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } } = {};
-        const field_filters_for_request: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = this.get_active_field_filters;
-        if (field_filters_for_request[ContextFilterVO.CUSTOM_FILTERS_TYPE]) {
-            delete field_filters_for_request[ContextFilterVO.CUSTOM_FILTERS_TYPE];
-        }
-
-        let available_api_type_ids: string[] = [];
-
-        if (this.get_active_api_type_ids?.length > 0) {
-            // Setted Api type ids (default or setted from filters)
-            available_api_type_ids = this.get_active_api_type_ids;
-        } else {
-            // Default (from widget) Api type ids
-            available_api_type_ids = this.supervision_api_type_ids;
-        }
-
-        // Check whether the given field_filters_for_request are compatible with the supervision_api_type_ids
-        // If not, we must reject the field_filters_for_request
-        // At least one of the supervision_api_type_ids must be present in the field_filters_for_request
-        const api_type_ids_for_request = Object.keys(field_filters_for_request).filter((api_type_id: string) => {
-            return this.supervision_api_type_ids.includes(api_type_id);
-        });
-
-        for (const key in api_type_ids_for_request) {
-
-            // We must apply the context_filters of the actual filtering on this api_type_id
-            // to all of the supervision_api_type_ids
-            const api_type_id: string = api_type_ids_for_request[key];
-
-            for (let i in available_api_type_ids) {
-                const sup_api_type_id: string = available_api_type_ids[i];
-
-                if (!active_field_filters_by_api_type_id[sup_api_type_id]) {
-                    active_field_filters_by_api_type_id[sup_api_type_id] = {};
-                }
-
-                const field_filters: { [field_id: string]: ContextFilterVO } = cloneDeep(field_filters_for_request[api_type_id]);
-
-                active_field_filters_by_api_type_id[sup_api_type_id][sup_api_type_id] = field_filters;
-
-                for (const field_id in active_field_filters_by_api_type_id[sup_api_type_id][sup_api_type_id]) {
-                    if (!active_field_filters_by_api_type_id[sup_api_type_id][sup_api_type_id][field_id]) {
-                        continue;
-                    }
-
-                    active_field_filters_by_api_type_id[sup_api_type_id][sup_api_type_id][field_id].vo_type = sup_api_type_id;
-                }
+        const data: { items: ISupervisedItem[], total_count: number } = await SupervisionWidgetManager.find_supervision_probs_by_api_type_ids(
+            this.dashboard,
+            this.widget_options,
+            this.get_active_field_filters,
+            this.get_active_api_type_ids,
+            {
+                offset: this.pagination_offset ?? this.limit,
+                limit: this.limit,
+                sort_by_field_id: 'name'
             }
-        }
+        );
 
-        /**
-         * On est dans un contexte très spécifique : les supervisions
-         * Chaque type de supervision est forcément lié à la table des types de supervision
-         * donc on ne peut avoir aucune dépendance entre les types de supervision puisque cela signifierait un cycle
-         * du coup on peut ignorer totalement les filtres des autres types de supervision lors de la requete pour un type donné
-         * et on le fait pour éviter d'avoir des left join (parcours des api_type dans la génération des requetes) sur tous
-         * les types de supervision, alors qu'on fait une requete par type et qu'on aggrège les résultats par la suite.
-         */
-
-        for (const key_i in available_api_type_ids) {
-            const sup_api_type_id: string = available_api_type_ids[key_i];
-
-            const field_filters = this.filter_context_filter_by_supervision_type(
-                Object.assign({}, active_field_filters_by_api_type_id[sup_api_type_id]),
-                sup_api_type_id
-            );
-
-            const filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_active_field_filters(
-                field_filters,
-            );
-
-            // Récupération des sondes
-            await promise_pipeline.push(async () => {
-
-                if (!await ModuleAccessPolicy.getInstance().testAccess(ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, sup_api_type_id))) {
-                    return;
-                }
-
-                // Avoid load from cache
-                AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([sup_api_type_id]);
-
-                let rows_s: ISupervisedItem[] = await query(sup_api_type_id)
-                    .set_limit((this.pagination_offset ? this.pagination_offset : this.limit))
-                    .using(this.dashboard.api_type_ids)
-                    .add_filters(filters)
-                    .set_sort(new SortByVO(sup_api_type_id, 'name', true))
-                    .select_vos<ISupervisedItem>();
-
-                for (const key_j in rows_s) {
-
-                    let row = rows_s[key_j];
-
-                    // Si j'ai une fonction de filtre, je l'utilise
-                    if (
-                        SupervisionWidgetController.getInstance().is_item_accepted &&
-                        SupervisionWidgetController.getInstance().is_item_accepted[this.dashboard.id] &&
-                        !SupervisionWidgetController.getInstance().is_item_accepted[this.dashboard.id](row)
-                    ) {
-                        continue;
-                    }
-
-                    rows.push(row);
-                    // new_supervised_items_by_names[item.name] = item;
-                    // new_supervised_items_by_cat_id[item.category_id] = item;
-
-                    // if (first_build) {
-                    //     if (!api_type_ids_by_category_ids[item.category_id]) {
-                    //         api_type_ids_by_category_ids[item.category_id] = [];
-                    //     }
-
-                    //     if (!already_add_api_type_ids_by_category_ids[item.category_id]) {
-                    //         already_add_api_type_ids_by_category_ids[item.category_id] = {};
-                    //     }
-
-                    //     if (!already_add_api_type_ids_by_category_ids[item.category_id][item._type]) {
-                    //         already_add_api_type_ids_by_category_ids[item.category_id][item._type] = true;
-                    //         api_type_ids_by_category_ids[item.category_id].push(item._type);
-                    //         api_type_ids.push(sup_api_type_id);
-                    //     }
-                    // }
-                }
-            });
-
-            await promise_pipeline.push(async () => {
-
-                if (!await ModuleAccessPolicy.getInstance().testAccess(ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, sup_api_type_id))) {
-                    return;
-                }
-
-                // pour éviter de récuperer le cache
-                let items_c: number = await query(sup_api_type_id)
-                    .using(this.dashboard.api_type_ids)
-                    .add_filters(filters)
-                    .select_count();
-
-                if (items_c) {
-                    pagination_count += items_c;
-                }
-            });
-        }
-
-        await promise_pipeline.end();
+        rows = data.items;
 
         // Si je ne suis pas sur la dernière demande, je me casse
         if (this.last_calculation_cpt != launch_cpt) {
@@ -337,7 +198,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
         this.loaded_once = true;
         this.is_busy = false;
         this.items = rows.splice(this.pagination_offset, this.limit);
-        this.pagination_count = pagination_count;
+        this.pagination_count = data.total_count;
 
         let items_by_identifier: { [identifier: string]: ISupervisedItem } = {};
 
@@ -350,7 +211,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
         this.items_by_identifier = items_by_identifier;
     }
 
-    private filter_context_filter_by_supervision_type(
+    private filter_field_filter_by_supervision_type(
         api_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
         supervision_type: string
     ): { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } {

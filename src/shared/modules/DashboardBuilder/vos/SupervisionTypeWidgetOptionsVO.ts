@@ -6,7 +6,7 @@ import DashboardPageWidgetVO from "./DashboardPageWidgetVO";
  * SupervisionTypeWidgetOptionsVO
  *  - TODO: May be rename to SupervisionTypeFilterWidgetOptionsVO
  */
-export class SupervisionTypeWidgetOptionsVO extends AbstractVO {
+export default class SupervisionTypeWidgetOptionsVO extends AbstractVO {
 
     public static TITLE_CODE_PREFIX: string = "SupervisionTypeWidgetOptionsVO.title.";
     public static FIELD_ID_INDICATOR: string = 'id';

@@ -5,7 +5,7 @@ import MatroidBaseController from '../../../../../../../shared/modules/Matroid/M
 import MatroidController from '../../../../../../../shared/modules/Matroid/MatroidController';
 import ModuleVar from '../../../../../../../shared/modules/Var/ModuleVar';
 import VarDataBaseVO from '../../../../../../../shared/modules/Var/vos/VarDataBaseVO';
-import { VOsTypesManager } from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleVarsDatasExplorerVuexAction, ModuleVarsDatasExplorerVuexGetter } from '../VarsDatasExplorerVuexStore';

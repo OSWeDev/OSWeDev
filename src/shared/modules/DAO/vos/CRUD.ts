@@ -4,7 +4,7 @@ import IDistantVOBase from '../../IDistantVOBase';
 import ModuleTable from '../../ModuleTable';
 import ModuleTableField from '../../ModuleTableField';
 import IVersionedVO from '../../Versioned/interfaces/IVersionedVO';
-import { VOsTypesManager } from '../../VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../VO/manager/VOsTypesManager';
 import ModuleDAO from '../ModuleDAO';
 import ComputedDatatableFieldVO from './datatable/ComputedDatatableFieldVO';
 import Datatable from './datatable/Datatable';

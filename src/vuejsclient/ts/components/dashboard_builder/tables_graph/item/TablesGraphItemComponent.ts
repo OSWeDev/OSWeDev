@@ -1,7 +1,7 @@
 import Component from 'vue-class-component';
 import { Prop } from 'vue-property-decorator';
 import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
-import { VOsTypesManager } from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import VueComponentBase from '../../../VueComponentBase';
 import TablesGraphItemFieldComponent from './field/TablesGraphItemFieldComponent';
 import './TablesGraphItemComponent.scss';

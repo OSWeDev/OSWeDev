@@ -9,7 +9,7 @@ import ModuleTable from '../../ModuleTable';
  * VOsTypesManager
  *  - Manager for each VOs Fields
  */
-export class VOsTypesManager {
+export default class VOsTypesManager {
 
     /**
      * Local thread cache -----
@@ -260,6 +260,20 @@ export class VOsTypesManager {
                 new_fields.push(dest_field);
             }
         }
+    }
+
+    /**
+     * Get the field from a vo_field_ref
+     *
+     * @param {{ api_type_id: string, field_id: string }} vo_field_ref
+     * @returns {ModuleTableField<any>}
+     */
+    public static get_field_from_vo_field_ref(vo_field_ref: { api_type_id: string, field_id: string }): ModuleTableField<any> {
+        if (!vo_field_ref?.api_type_id || !vo_field_ref?.field_id) {
+            return null;
+        }
+
+        return VOsTypesManager.moduleTables_by_voType[vo_field_ref.api_type_id].get_field_by_id(vo_field_ref.field_id);
     }
 
     /**

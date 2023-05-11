@@ -1,6 +1,6 @@
 import Component from 'vue-class-component';
 import { Watch } from 'vue-property-decorator';
-import { VOsTypesManager } from '../../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../../shared/modules/VO/manager/VOsTypesManager';
 import VueComponentBase from '../../VueComponentBase';
 import DroppableVoFieldsController from '../droppable_vo_fields/DroppableVoFieldsController';
 import './DroppableVosComponent.scss';

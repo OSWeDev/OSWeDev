@@ -4,7 +4,7 @@ import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import NotificationVO from '../../../../shared/modules/PushData/vos/NotificationVO';
-import { VOsTypesManager } from '../../../../shared/modules/VO/manager/VOsTypesManager';
+import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import StackContext from '../../../StackContext';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
