@@ -139,31 +139,27 @@ export default class ModuleVar extends Module {
         /**
          * On refuse de lancer une requête si on a explicitement pas de filtre custom, alors qu'on en attend un
          */
-        if (custom_filters && !Object.keys(custom_filters).length) {
 
-            // On définit qu'on attend un custom param si on a du ts_ranges ou du hour_ranges pour le moment
-            let fields = MatroidController.getInstance().getMatroidFields(VarsController.getInstance().var_conf_by_name[var_name].var_data_vo_type);
-            if (!fields) {
-                // très improbable...
-                return true;
-            }
-
-            let ts_ranges_fields = fields.filter((field) =>
-                (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)
-            );
-
-            if (!ts_ranges_fields || !ts_ranges_fields.length) {
-                return true;
-            }
-
-            for (let i in ts_ranges_fields) {
-                if (!custom_filters[ts_ranges_fields[i].field_id]) {
-                    return false;
-                }
-            }
-
+        // On définit qu'on attend un custom param si on a du ts_ranges ou du hour_ranges pour le moment
+        let fields = MatroidController.getInstance().getMatroidFields(VarsController.getInstance().var_conf_by_name[var_name].var_data_vo_type);
+        if (!fields) {
+            // très improbable...
             return true;
+        }
+
+        let ts_ranges_fields = fields.filter((field) =>
+            (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
+            (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)
+        );
+
+        if (!ts_ranges_fields || !ts_ranges_fields.length) {
+            return true;
+        }
+
+        for (let i in ts_ranges_fields) {
+            if (!custom_filters[ts_ranges_fields[i].field_id]) {
+                return false;
+            }
         }
 
         return true;

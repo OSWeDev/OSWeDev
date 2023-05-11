@@ -658,7 +658,7 @@ export default class AutoVarServerController extends VarServerControllerBase<Var
             this.varConf.auto_param_context_api_type_ids,
             this.varConf.auto_param_context_discarded_field_paths,
             true);
-
+        //TODO FIXME handle return null case
         return var_param;
     }
 }

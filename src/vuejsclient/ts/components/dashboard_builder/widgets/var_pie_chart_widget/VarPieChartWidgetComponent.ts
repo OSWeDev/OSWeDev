@@ -736,6 +736,11 @@ export default class VarPieChartWidgetComponent extends VueComponentBase {
         if (this.last_calculation_cpt != launch_cpt) {
             return;
         }
+        if (!var_1 || !var_2) {
+            this.var_params_by_dimension = null;
+            this.var_params_1_et_2 = null;
+            return null;
+        }
 
         this.ordered_dimension = [0, 1];
         this.label_by_index = {

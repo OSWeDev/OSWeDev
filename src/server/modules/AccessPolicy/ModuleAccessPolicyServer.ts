@@ -48,6 +48,7 @@ import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
 import SendInBlueMailServerController from '../SendInBlue/SendInBlueMailServerController';
 import SendInBlueSmsServerController from '../SendInBlue/sms/SendInBlueSmsServerController';
+import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import AccessPolicyCronWorkersHandler from './AccessPolicyCronWorkersHandler';
 import AccessPolicyServerController from './AccessPolicyServerController';
 import AccessPolicyDeleteSessionBGThread from './bgthreads/AccessPolicyDeleteSessionBGThread';
@@ -308,22 +309,22 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         ModuleBGThreadServer.getInstance().registerBGThread(AccessPolicyDeleteSessionBGThread.getInstance());
 
         // On ajoute un trigger pour la création du compte
-        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCreateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.handleTriggerUserVOCreate);
         preCreateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.checkBlockingOrInvalidatingUser);
         preCreateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.trimAndCheckUnicityUser);
 
         // On ajoute un trigger pour la modification du mot de passe
-        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         preUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.handleTriggerUserVOUpdate);
         preUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.checkBlockingOrInvalidatingUserUpdate);
         preUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this, this.trimAndCheckUnicityUserUpdate);
 
         // On veut aussi des triggers pour tenir à jour les datas pre loadés des droits, comme ça si une mise à jour,
         //  ajout ou suppression on en prend compte immédiatement
-        let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
-        let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
-        let preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
+        let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        let preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
 
         postCreateTrigger.registerHandler(AccessPolicyVO.API_TYPE_ID, this, this.onCreateAccessPolicyVO);
         postCreateTrigger.registerHandler(PolicyDependencyVO.API_TYPE_ID, this, this.onCreatePolicyDependencyVO);

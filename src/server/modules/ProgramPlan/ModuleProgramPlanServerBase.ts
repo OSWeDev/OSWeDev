@@ -33,6 +33,7 @@ import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 
 export default abstract class ModuleProgramPlanServerBase extends ModuleServerBase {
 
@@ -52,14 +53,14 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         //  Création de RDV on a un statut created ou confirmed si il est créé confirmed
         //  Mise à jour du RDV : On demande à recalculer le statut du RDV
         //  Ajout / Suppression de CR ou Prep : On demande à recalculer le statut du RDV
-        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCreateTrigger.registerHandler(this.programplan_shared_module.rdv_type_id, this, this.handleTriggerSetStateRDV);
 
-        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         preUpdateTrigger.registerHandler(this.programplan_shared_module.rdv_type_id, this, this.handleTriggerSetStateRDVUpdate);
 
         preCreateTrigger.registerHandler(this.programplan_shared_module.rdv_cr_type_id, this, this.handleTriggerPreCreateCr);
-        let preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
+        let preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
         preDeleteTrigger.registerHandler(this.programplan_shared_module.rdv_cr_type_id, this, this.handleTriggerPreDeleteCr);
 
         if (!!this.programplan_shared_module.rdv_prep_type_id) {

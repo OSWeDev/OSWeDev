@@ -31,6 +31,7 @@ import { IExportParamsProps } from '../../../shared/modules/DashboardBuilder/int
 import FieldFilterManager from '../../../shared/modules/ContextFilter/manager/FieldFilterManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 
 export default class ModuleDashboardBuilderServer extends ModuleServerBase {
 
@@ -61,6 +62,15 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Erreur lors de la modification de la liaison'
         }, 'TablesGraphEditFormComponent.switch_edge_acceptance.error.___LABEL___'));
 
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': ''
+        }, 'dashboard_builder.tables_graph.message.error.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Il y a actuellement un bug sur le déplacement des cellules, qui ne peuvent être déplacées que au sein d\'elles mêmes, ou des autres cellules.\nPar ailleurs, lors de la suppression d\'une cellule, le graphique ne se met pas totalement à jour et la cellule reste visible, mais le type est bien supprimé. Recharger le graphique pour voir la modification.'
+        }, 'dashboard_builder.tables_graph.message.warning.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': ''
+        }, 'dashboard_builder.tables_graph.message.info.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Cliquer pour éditer'
@@ -2075,7 +2085,7 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'show_favorites_filters_widget_component.max_visible_options.___LABEL___'
         ));
 
-        let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        let preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCTrigger.registerHandler(DashboardPageWidgetVO.API_TYPE_ID, this, this.onCDashboardPageWidgetVO);
         preCTrigger.registerHandler(DashboardVO.API_TYPE_ID, this, this.onCDashboardVO);
     }

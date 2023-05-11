@@ -30,6 +30,7 @@ import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 
 export default class ModuleDocumentServer extends ModuleServerBase {
 
@@ -151,9 +152,9 @@ export default class ModuleDocumentServer extends ModuleServerBase {
             { 'fr-fr': "Besoin d'infos" },
             'document_handler.need_info.___LABEL___'));
 
-        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
-        let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
         preCreateTrigger.registerHandler(DocumentVO.API_TYPE_ID, this, this.force_document_path_from_file);
         preUpdateTrigger.registerHandler(DocumentVO.API_TYPE_ID, this, this.force_document_path_from_file_update);
 

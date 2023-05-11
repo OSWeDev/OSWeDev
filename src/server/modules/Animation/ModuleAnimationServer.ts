@@ -45,6 +45,7 @@ import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import DataExportServerController from '../DataExport/DataExportServerController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import VarsServerCallBackSubsController from '../Var/VarsServerCallBackSubsController';
 import AnimationReportingExportHandler from './exports/AnimationReportingExportHandler';
 import VarDayPrctAtteinteSeuilAnimationController from './vars/VarDayPrctAtteinteSeuilAnimationController';
@@ -159,10 +160,10 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         await this.configure_vars();
         DataExportServerController.getInstance().register_export_handler(ModuleAnimation.EXPORT_API_TYPE_ID, AnimationReportingExportHandler.getInstance());
 
-        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         preUpdateTrigger.registerHandler(AnimationModuleVO.API_TYPE_ID, this, this.handleTriggerPreUpdateAnimationModuleVO);
 
-        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCreateTrigger.registerHandler(AnimationModuleVO.API_TYPE_ID, this, this.handleTriggerPreAnimationModuleVO);
         await this.initializeTranslations();
     }

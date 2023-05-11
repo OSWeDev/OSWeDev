@@ -24,6 +24,7 @@ import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 
 export default class ModuleImageFormatServer extends ModuleServerBase {
 
@@ -62,7 +63,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
     }
 
     public async configure() {
-        let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
 
         // Quand on change un fichier on check si on doit changer l'url d'une image formattee au passage.
         postUpdateTrigger.registerHandler(FileVO.API_TYPE_ID, this, this.force_formatted_image_path_from_file_changed);

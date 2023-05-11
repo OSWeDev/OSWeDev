@@ -1,7 +1,7 @@
-import StatsServerController from "../../../server/modules/Stats/StatsServerController";
-import TimeSegment from "../DataRender/vos/TimeSegment";
-import Dates from "../FormatDatesNombres/Dates/Dates";
-import StatVO from "../Stats/vos/StatVO";
+import TimeSegment from "../../../shared/modules/DataRender/vos/TimeSegment";
+import Dates from "../../../shared/modules/FormatDatesNombres/Dates/Dates";
+import StatVO from "../../../shared/modules/Stats/vos/StatVO";
+import StatsServerController from "../Stats/StatsServerController";
 
 export default abstract class TriggerHook<Conditions, Params, Out> {
 

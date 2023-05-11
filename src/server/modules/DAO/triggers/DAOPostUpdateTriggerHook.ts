@@ -1,5 +1,5 @@
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
-import TriggerHook from '../../../../shared/modules/Trigger/TriggerHook';
+import TriggerHook from '../../Trigger/TriggerHook';
 import DAOUpdateVOHolder from '../vos/DAOUpdateVOHolder';
 
 export default class DAOPostUpdateTriggerHook extends TriggerHook<string, DAOUpdateVOHolder<IDistantVOBase>, void> {

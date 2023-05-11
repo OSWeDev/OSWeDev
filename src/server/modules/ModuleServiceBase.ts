@@ -116,6 +116,7 @@ import ModuleSurveyServer from './Survey/ModuleSurveyServer';
 import ModuleTeamsAPIServer from './TeamsAPI/ModuleTeamsAPIServer';
 import ModuleTranslationsImportServer from './Translation/import/ModuleTranslationsImportServer';
 import ModuleTranslationServer from './Translation/ModuleTranslationServer';
+import ModuleTriggerServer from './Trigger/ModuleTriggerServer';
 import ModuleUserLogVarsServer from './UserLogVars/ModuleUserLogVarsServer';
 import ModuleVarServer from './Var/ModuleVarServer';
 import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
@@ -563,6 +564,7 @@ export default abstract class ModuleServiceBase {
             ModuleAjaxCacheServer.getInstance(),
             ModuleFileServer.getInstance(),
             ModuleImageServer.getInstance(),
+            ModuleTriggerServer.getInstance(),
             ModuleCronServer.getInstance(),
             ModuleContextFilterServer.getInstance(),
             ModuleVarServer.getInstance(),

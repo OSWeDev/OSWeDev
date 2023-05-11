@@ -64,6 +64,7 @@ import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
 import StatsServerController from '../Stats/StatsServerController';
+import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import DataSourcesController from './datasource/DataSourcesController';
@@ -176,11 +177,11 @@ export default class ModuleVarServer extends ModuleServerBase {
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Paramètres' }, 'var.desc_mode.var_params.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({ 'fr-fr': 'Dépendances' }, 'var.desc_mode.var_deps.___LABEL___'));
 
-        let postCTrigger: DAOPostCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
-        let postUTrigger: DAOPostUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
-        let postDTrigger: DAOPostDeleteTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
-        let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        let preUTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        let postCTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        let postUTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        let postDTrigger: DAOPostDeleteTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
+        let preCTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        let preUTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
 
         // Trigger sur les varcacheconfs pour mettre à jour les confs en cache en même temps qu'on les modifie dans l'outil
         postCTrigger.registerHandler(VarCacheConfVO.API_TYPE_ID, this, this.onCVarCacheConf);
@@ -1620,16 +1621,21 @@ export default class ModuleVarServer extends ModuleServerBase {
 
                             if ((!ids_db) || !ids_db.length) {
 
-                                // Max range étant interdit sur les registers de var, on force un retour null
-                                if (!accept_max_ranges) {
+                                /**
+                                 * Alors si on a pas d'éléments pour un champs lié à la var on est pas vraiment sur un maxrange a priori mais plutôt sur un 
+                                 *  'minrange', donc on refuse mais sans logger d'erreur
+                                 */
+                                // // Max range étant interdit sur les registers de var, on force un retour null
+                                // if (!accept_max_ranges) {
 
-                                    if (!refuse_param) {
-                                        ConsoleHandler.error('getVarParamFromContextFilters: max range not allowed on registers of var');
-                                        refuse_param = true;
-                                    }
-                                } else {
-                                    var_param[matroid_field.field_id] = [RangeHandler.getMaxNumRange()];
-                                }
+                                //     if (!refuse_param) {
+                                //         ConsoleHandler.error('getVarParamFromContextFilters: max range not allowed on registers of var');
+                                //         refuse_param = true;
+                                //     }
+                                // } else {
+                                //     var_param[matroid_field.field_id] = [RangeHandler.getMaxNumRange()];
+                                // }
+                                refuse_param = true;
                                 break;
                             }
 

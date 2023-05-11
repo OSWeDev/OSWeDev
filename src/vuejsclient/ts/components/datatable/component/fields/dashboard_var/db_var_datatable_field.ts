@@ -11,7 +11,7 @@ import TableColumnDescVO from '../../../../../../../shared/modules/DashboardBuil
 import ModuleVar from '../../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../../shared/modules/Var/vos/VarDataBaseVO';
-import {VOsTypesManager} from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
+import { VOsTypesManager } from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
 import { ModuleDashboardPageGetter } from '../../../../dashboard_builder/page/DashboardPageStore';
 import DashboardBuilderWidgetsController from '../../../../dashboard_builder/widgets/DashboardBuilderWidgetsController';
@@ -75,6 +75,8 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
     private var_param: VarDataBaseVO = null;
     private dashboard: DashboardVO = null;
     private is_loading: boolean = true;
+
+    private var_param_no_value_or_param_is_invalid: boolean = false;
 
     get var_custom_filters(): { [var_param_field_name: string]: string } {
 
@@ -149,6 +151,7 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
             this.dashboard = null;
             this.var_param = null;
             this.is_loading = false;
+            this.var_param_no_value_or_param_is_invalid = false;
             return;
         }
 
@@ -197,6 +200,12 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
             custom_filters,
             this.dashboard.api_type_ids,
             this.get_discarded_field_paths);
+
+        if (!this.var_param) {
+            this.var_param_no_value_or_param_is_invalid = true;
+        } else {
+            this.var_param_no_value_or_param_is_invalid = false;
+        }
 
         this.is_loading = false;
     }

@@ -31,6 +31,7 @@ import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTeamsAPIServer from '../TeamsAPI/ModuleTeamsAPIServer';
+import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import SupervisionBGThread from './bgthreads/SupervisionBGThread';
 import SupervisionCronWorkersHandler from './SupervisionCronWorkersHandler';
 import SupervisionServerController from './SupervisionServerController';
@@ -148,8 +149,8 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         /**
          * On gère l'historique des valeurs
          */
-        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
 
         for (let vo_type in SupervisionController.getInstance().registered_controllers) {
             preUpdateTrigger.registerHandler(vo_type, this, this.onPreU_SUP_ITEM_HISTORIZE);

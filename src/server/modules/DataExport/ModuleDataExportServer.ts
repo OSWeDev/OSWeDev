@@ -56,6 +56,7 @@ import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
 import PushDataServerController from '../PushData/PushDataServerController';
 import SendInBlueMailServerController from '../SendInBlue/SendInBlueMailServerController';
+import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import VarsServerCallBackSubsController from '../Var/VarsServerCallBackSubsController';
 import DataExportBGThread from './bgthreads/DataExportBGThread';
 import ExportContextQueryToXLSXBGThread from './bgthreads/ExportContextQueryToXLSXBGThread';
@@ -85,7 +86,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         ModuleBGThreadServer.getInstance().registerBGThread(DataExportBGThread.getInstance());
         ModuleBGThreadServer.getInstance().registerBGThread(ExportContextQueryToXLSXBGThread.getInstance());
 
-        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCreateTrigger.registerHandler(ExportHistoricVO.API_TYPE_ID, this, this.handleTriggerExportHistoricVOCreate);
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
@@ -838,6 +839,14 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     active_api_type_ids,
                     discarded_field_paths
                 );
+                if (!var_param) {
+                    ConsoleHandler.log('make_vars_indicator_xlsx_sheet:INSIDE PIPELINE CB 1.5:!var_param :' + var_name + ':' + debug_uid);
+                    sheet.datas.push({
+                        name: LocaleManager.getInstance().t(var_name),
+                        value: null
+                    });
+                    return;
+                }
 
                 ConsoleHandler.log('make_vars_indicator_xlsx_sheet:INSIDE PIPELINE CB 2:nb :' + var_name + ':' + debug_uid + ':' + var_param.index);
 
@@ -1380,6 +1389,11 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                         active_api_type_ids,
                         discarded_field_paths
                     );
+                    if (!var_param) {
+                        ConsoleHandler.log('add_var_columns_values_for_xlsx_datas:INSIDE PIPELINE CB 1.5:nb :' + i + ':' + debug_uid + ':');
+                        row[row_field_name] = null;
+                        return;
+                    }
 
                     ConsoleHandler.log('add_var_columns_values_for_xlsx_datas:INSIDE PIPELINE CB 2:nb :' + i + ':' + debug_uid + ':' + var_param.index);
 

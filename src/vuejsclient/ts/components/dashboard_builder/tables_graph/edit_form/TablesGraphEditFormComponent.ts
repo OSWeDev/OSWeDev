@@ -26,6 +26,11 @@ export default class TablesGraphEditFormComponent extends VueComponentBase {
     private graph_mapper: MaxGraphMapper;
 
 
+    private consolelog(o): string {
+        console.log(this.graph_mapper.cells);
+        return '';
+    }
+
     private async switch_edge_acceptance(edge: MaxGraphEdgeMapper) {
 
         if ((!edge) || (edge._type != 'edge')) {

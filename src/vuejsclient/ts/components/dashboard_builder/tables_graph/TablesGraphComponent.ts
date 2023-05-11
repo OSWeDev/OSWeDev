@@ -161,11 +161,11 @@ export default class TablesGraphComponent extends VueComponentBase {
             await ModuleDAO.getInstance().insertOrUpdateVO(graphvoref);
 
             await this.throttle_init_or_update_graph();
+            this.$emit("add_api_type_id", api_type_id);
 
             // //Sélection automatique
             // let v1 = this.graphic_cells[cell.vo_type];
             // graph.setSelectionCell(v1);
-            // this.$emit("add_api_type_id", api_type_id);
         };
 
         let droppables = document.querySelectorAll('.droppable_vos .droppable_vos_wrapper .api_type_ids .api_type_id');

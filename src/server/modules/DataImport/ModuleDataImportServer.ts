@@ -43,6 +43,7 @@ import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
+import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import DataImportBGThread from './bgthreads/DataImportBGThread';
 import DataImportCronWorkersHandler from './DataImportCronWorkersHandler';
 import DataImportModuleBase from './DataImportModuleBase/DataImportModuleBase';
@@ -136,17 +137,17 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         ModuleBGThreadServer.getInstance().registerBGThread(DataImportBGThread.getInstance());
 
         // Triggers pour mettre à jour les dates
-        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         preUpdateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this, this.handleImportHistoricDateUpdate);
         preCreateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this, this.handleImportHistoricDateCreation);
 
         // Triggers pour faire avancer l'import
-        let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
         postCreateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this, this.setImportHistoricUID);
         postCreateTrigger.registerHandler(DataImportFormatVO.API_TYPE_ID, this, this.handleImportFormatCreate);
 
-        let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
         postUpdateTrigger.registerHandler(DataImportFormatVO.API_TYPE_ID, this, this.handleImportFormatUpdate);
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({

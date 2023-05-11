@@ -41,7 +41,7 @@
                             type="checkbox" 
                             id="myCheckbox"
                             @change="switch_edge_acceptance(current_cell_mapper.outgoing_edges_array[1])" 
-                            :value= "!current_cell_mapper.outgoing_edges_array[1].is_accepted" 
+                            :value= "current_cell_mapper.outgoing_edges_array[1].is_accepted" 
                             :sync="true"
                             :width="100"
                             )
@@ -64,9 +64,9 @@
                     b      
                         .icons
                             i.fa-solid.fa-table.fa-fw
-                        .title {{ cell.label }}
+                        .title {{ cell.label + ':' + consolelog(cell) }}
                 .edges
-                    template(v-for="edge in cell.outgoing_edges[cell]")
+                    template(v-for="edge in cell.outgoing_edges")
                         .edge
                             .arrow
                                 .icons 
@@ -76,7 +76,7 @@
                                 toggle-button(
                                         type="checkbox"
                                         @change="switch_edge_acceptance(edge)" 
-                                        :value= "!edge.is_accepted" 
+                                        :value= "edge.is_accepted" 
                                         :sync="true"
                                         :width="100"
                                         )

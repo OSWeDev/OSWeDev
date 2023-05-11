@@ -10,12 +10,30 @@ import MaxGraphMapper from "./MaxGraphMapper";
 
 export default class MaxGraphCellMapper {
 
+    // public static create_parent_container(maxgraph: Graph): Cell {
+
+    //     let new_maxgraph_cell = new Cell('', new Geometry(0, 0, width, height));
+    //     new_maxgraph_cell.setVertex(true);
+    //     new_maxgraph_cell.setConnectable(false);
+
+    //     maxgraph.setCellStyles('strokeColor', '#555', [new_maxgraph_cell]);
+    //     maxgraph.setCellStyles('fillColor', '#444', [new_maxgraph_cell]);
+    //     maxgraph.setCellStyles('fontColor', '#fff', [new_maxgraph_cell]);
+    //     maxgraph.setCellStyles('align', 'center', [new_maxgraph_cell]);
+    //     maxgraph.setCellStyles('verticalAlign', 'middle', [new_maxgraph_cell]);
+    //     maxgraph.setCellStyles('labelBackgroundColor', '#444', [new_maxgraph_cell]);
+    //     maxgraph.addCell(new_maxgraph_cell, parent); //Adding the cell
+
+    //     return new_maxgraph_cell;
+    // }
+
+
     public static get_new_maxgraph_cell(maxgraph: Graph, parent: Cell, label: string, x: number, y: number, width: number, height: number): Cell {
 
         let new_maxgraph_cell = new Cell(label, new Geometry(x, y, width, height));
+
         new_maxgraph_cell.setVertex(true);
         new_maxgraph_cell.setConnectable(false);
-
         maxgraph.setCellStyles('strokeColor', '#555', [new_maxgraph_cell]);
         maxgraph.setCellStyles('fillColor', '#444', [new_maxgraph_cell]);
         maxgraph.setCellStyles('fontColor', '#fff', [new_maxgraph_cell]);
@@ -73,10 +91,10 @@ export default class MaxGraphCellMapper {
         return newcell;
     }
 
-    public add_edge(target_cell: MaxGraphCellMapper, field: ModuleTableField<any>) {
+    public add_edge(target_cell: MaxGraphCellMapper, field: ModuleTableField<any>): MaxGraphEdgeMapper {
 
         if (!!this.outgoing_edges[field.field_id]) {
-            return;
+            return null;
         }
 
         let new_edge: MaxGraphEdgeMapper = new MaxGraphEdgeMapper();
@@ -88,6 +106,7 @@ export default class MaxGraphCellMapper {
 
         this.outgoing_edges[field.field_id] = new_edge;
         target_cell.incoming_edges.push(new_edge);
+        return new_edge;
     }
 
     /**

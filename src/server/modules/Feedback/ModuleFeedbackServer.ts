@@ -34,6 +34,7 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
 import ModuleTrelloAPIServer from '../TrelloAPI/ModuleTrelloAPIServer';
+import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import FeedbackConfirmationMail from './FeedbackConfirmationMail/FeedbackConfirmationMail';
 const { parse } = require('flatted/cjs');
 
@@ -236,7 +237,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             'survey.btn.title.___LABEL___')
         );
 
-        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCreateTrigger.registerHandler(FeedbackVO.API_TYPE_ID, this, this.pre_create_feedback_assign_default_state);
     }
 

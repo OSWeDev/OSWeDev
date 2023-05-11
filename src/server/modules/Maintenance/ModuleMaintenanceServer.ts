@@ -20,6 +20,7 @@ import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModuleServerBase from '../ModuleServerBase';
 import PushDataServerController from '../PushData/PushDataServerController';
+import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import VarsDatasVoUpdateHandler from '../Var/VarsDatasVoUpdateHandler';
 import MaintenanceBGThread from './bgthreads/MaintenanceBGThread';
 import MaintenanceCronWorkersHandler from './MaintenanceCronWorkersHandler';
@@ -110,7 +111,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         }, 'menu.menuelements.admin.module_maintenance.___LABEL___'));
 
 
-        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTriggerServer.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCreateTrigger.registerHandler(MaintenanceVO.API_TYPE_ID, this, this.handleTriggerPreC_MaintenanceVO);
 
         // Quand on modifie une maintenance, quelle qu'elle soit, on informe pas, il faudrait informer les 3 threads

@@ -1,5 +1,15 @@
 .tables_graph
-    .row 
+    .row(v-if='("", " ").indexOf(label("dashboard_builder.tables_graph.message.error")) == -1')
+        .col-sm-12
+            .message.error {{ label('dashboard_builder.tables_graph.message.error') }}
+    .row(v-if='("", " ").indexOf(label("dashboard_builder.tables_graph.message.warning")) == -1')
+        .col-sm-12
+            .message.warning {{ label('dashboard_builder.tables_graph.message.warning') }}
+    .row(v-if='("", " ").indexOf(label("dashboard_builder.tables_graph.message.info")) == -1')
+        .col-sm-12
+            .message.info {{ label('dashboard_builder.tables_graph.message.info') }}
+
+    .row
         .col-sm-9.container_wrapper
             .container(ref="container")
     

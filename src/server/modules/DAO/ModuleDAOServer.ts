@@ -38,7 +38,6 @@ import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultT
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
-import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VocusInfoVO from '../../../shared/modules/Vocus/vos/VocusInfoVO';
 import { VOsTypesManager } from '../../../shared/modules/VO/manager/VOsTypesManager';
@@ -77,6 +76,7 @@ import ParameterizedQueryWrapperField from '../../../shared/modules/ContextFilte
 import StatVO from '../../../shared/modules/Stats/vos/StatVO';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import StatsServerController from '../Stats/StatsServerController';
+import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -371,18 +371,18 @@ export default class ModuleDAOServer extends ModuleServerBase {
         await this.create_or_replace_function_ref_get_user();
 
         DAOServerController.getInstance().pre_update_trigger_hook = new DAOPreUpdateTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
-        ModuleTrigger.getInstance().registerTriggerHook(DAOServerController.getInstance().pre_update_trigger_hook);
+        ModuleTriggerServer.getInstance().registerTriggerHook(DAOServerController.getInstance().pre_update_trigger_hook);
         DAOServerController.getInstance().pre_create_trigger_hook = new DAOPreCreateTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        ModuleTrigger.getInstance().registerTriggerHook(DAOServerController.getInstance().pre_create_trigger_hook);
+        ModuleTriggerServer.getInstance().registerTriggerHook(DAOServerController.getInstance().pre_create_trigger_hook);
         DAOServerController.getInstance().pre_delete_trigger_hook = new DAOPreDeleteTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
-        ModuleTrigger.getInstance().registerTriggerHook(DAOServerController.getInstance().pre_delete_trigger_hook);
+        ModuleTriggerServer.getInstance().registerTriggerHook(DAOServerController.getInstance().pre_delete_trigger_hook);
 
         DAOServerController.getInstance().post_update_trigger_hook = new DAOPostUpdateTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
-        ModuleTrigger.getInstance().registerTriggerHook(DAOServerController.getInstance().post_update_trigger_hook);
+        ModuleTriggerServer.getInstance().registerTriggerHook(DAOServerController.getInstance().post_update_trigger_hook);
         DAOServerController.getInstance().post_create_trigger_hook = new DAOPostCreateTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
-        ModuleTrigger.getInstance().registerTriggerHook(DAOServerController.getInstance().post_create_trigger_hook);
+        ModuleTriggerServer.getInstance().registerTriggerHook(DAOServerController.getInstance().post_create_trigger_hook);
         DAOServerController.getInstance().post_delete_trigger_hook = new DAOPostDeleteTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
-        ModuleTrigger.getInstance().registerTriggerHook(DAOServerController.getInstance().post_delete_trigger_hook);
+        ModuleTriggerServer.getInstance().registerTriggerHook(DAOServerController.getInstance().post_delete_trigger_hook);
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Modifier'

@@ -1,4 +1,4 @@
-import { Cell, Graph } from "@maxgraph/core";
+import { Cell, Editor, Graph } from "@maxgraph/core";
 import { query } from "../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO";
 import ModuleDAO from "../../../../../../shared/modules/DAO/ModuleDAO";
 import DashboardGraphVORefVO from "../../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO";
@@ -20,13 +20,12 @@ export default class MaxGraphMapper {
             return null;
         }
 
-        let vos_refs: DashboardGraphVORefVO[] = await query(DashboardGraphVORefVO.API_TYPE_ID).filter_by_num_eq('dashboard_id', dashboard_id).select_vos<DashboardGraphVORefVO>();
-        if (!vos_refs || !vos_refs.length) {
-            return null;
-        }
-
         let res = graph_mapper ? graph_mapper : new MaxGraphMapper();
         res.dashboard_id = dashboard_id;
+        let vos_refs: DashboardGraphVORefVO[] = await query(DashboardGraphVORefVO.API_TYPE_ID).filter_by_num_eq('dashboard_id', dashboard_id).select_vos<DashboardGraphVORefVO>();
+        if (!vos_refs || !vos_refs.length) {
+            return res;
+        }
 
         /**
          * On ajoute d'abord les cellules / vo_type
@@ -114,20 +113,21 @@ export default class MaxGraphMapper {
                 }
 
                 /**
+                 * Si on a déjà l'edge, on ne le recrée pas
+                 */
+                if (res.cells[table.vo_type].outgoing_edges[field.field_id]) {
+                    continue;
+                }
+
+                /**
                  * On s'intéresse pour le moment pas aux self-références
                  */
                 if (table.vo_type == field.manyToOne_target_moduletable.vo_type) {
                     continue;
                 }
 
-                let edge: MaxGraphEdgeMapper = new MaxGraphEdgeMapper();
-                edge.source_cell = res.cells[table.vo_type];
-                edge.target_cell = res.cells[field.manyToOne_target_moduletable.vo_type];
-                edge.label = VueAppBase.getInstance().vueInstance.t(field.field_label.code_text);
-                edge.field = field;
-                edge.api_type_id = field.module_table.vo_type;
-
-                res.edges.push(edge);
+                let new_edge: MaxGraphEdgeMapper = res.cells[table.vo_type].add_edge(res.cells[field.manyToOne_target_moduletable.vo_type], field);
+                res.edges.push(new_edge);
             }
         }
 
@@ -173,6 +173,7 @@ export default class MaxGraphMapper {
     public dashboard_id: number = null;
 
     public maxgraph: Graph = null;
+    public maxgraph_editor: Editor = null;
 
     public cells: { [api_type_id: string]: MaxGraphCellMapper } = {};
     public edges: MaxGraphEdgeMapper[] = [];
@@ -203,13 +204,13 @@ export default class MaxGraphMapper {
          * Checke les cellules à ajouter / supprimer
          *  On doit ajouter les cellules qu'on a pas dans cell.maxgraph_cell et qui devraient être affichées
          */
-        this.add_remove_cells_of_maxgraph();
+        this.add_remove_maxgraph_cells();
 
         /**
          * On a pas de params sur les cells, on passe à l'ajout / suppression des edges
          *  et on remap les params des edges pour ceux qui sont déjà présents (juste la couleur si pas accepté)
          */
-        this.add_remove_remap_edges_of_maxgraph();
+        this.add_remove_remap_maxgraph_edges();
 
         let vertices = this.maxgraph.getChildVertices(this.maxgraph.getDefaultParent());
         let cells_to_delete = [];
@@ -223,12 +224,20 @@ export default class MaxGraphMapper {
         this.remove_maxgraphcells_from_maxgraph(cells_to_delete);
 
         this.maxgraph.model.endUpdate();
+        this.maxgraph.refresh();
     }
 
     public build_maxgraph(container: HTMLElement) {
 
         if (!this.maxgraph) {
+            // Bug de déplacement des cellules: avant on avait un éditeur, ça existe plus dans maxGraph je pense que ça vient de là
+            //  Pas de solution pour le moment, j'avais pensé à créer une fausse cell dans laquelle on créerait toutes les autres, mais faut bien la redimensionner
+            //  et comme c'est plus vraiment bloquant je passe à autre chose
+            // this.maxgraph_editor = new Editor(container);
+
             this.maxgraph = new Graph(container);
+            // this.maxgraph_editor.graph = this.maxgraph;
+
             this.maxgraph.setConnectable(false);
             this.maxgraph.setCellsDisconnectable(false);
             this.maxgraph.setPanning(true);
@@ -276,35 +285,31 @@ export default class MaxGraphMapper {
              * !
              */
 
-            this.maxgraph.addListener('move', async () => {
-                let selected_cell = this.maxgraph.getSelectionCell();
-
-                if (!selected_cell) {
-                    return;
-                }
-
-                let db_cells = await query(DashboardGraphVORefVO.API_TYPE_ID)
-                    .filter_by_num_eq('dashboard_id', this.dashboard_id)
-                    .filter_by_text_eq('vo_type', selected_cell.value.tables_graph_vo_type)
-                    .select_vos<DashboardGraphVORefVO>();
-
-                if ((!db_cells) || (!db_cells.length)) {
-                    ConsoleHandler.error('Event.MOVE_END:no db cell');
-                    return;
-                }
-                let db_cell = db_cells[0];
-                db_cell.x = selected_cell.geometry.x;
-                db_cell.y = selected_cell.geometry.y;
-                db_cell.width = selected_cell.geometry.width;
-                db_cell.height = selected_cell.geometry.height;
-                await ModuleDAO.getInstance().insertOrUpdateVO(db_cell);
-            });
+            this.maxgraph.addListener('resizeCells', this.edit_maxgraph_cell_cb.bind(this));
+            this.maxgraph.addListener('moveCells', this.edit_maxgraph_cell_cb.bind(this));
 
             this.maxgraph.centerZoom = false;
             this.maxgraph.swimlaneNesting = false;
             this.maxgraph.dropEnabled = true;
-            // this.maxgraph.cellsEditable = false;
-            // this.maxgraph.htmlLabels = false;
+
+            this.maxgraph.swimlaneSelectionEnabled = false;
+            this.maxgraph.gridEnabled = true;
+            this.maxgraph.snap = (value) => {
+                return Math.round(value / 10) * 10;
+            };
+
+            // On doit pouvoir déplacer les cellules même en dehors d'autres cellules
+            this.maxgraph.isCellMovable = () => {
+                return true;
+            };
+
+            this.maxgraph.isCellResizable = () => {
+                return true;
+            };
+
+            this.maxgraph.isCellSelectable = () => {
+                return true;
+            };
         }
 
         if (!this.cells) {
@@ -339,6 +344,30 @@ export default class MaxGraphMapper {
         this.add_nn_hidden_relations();
 
         this.maxgraph.model.endUpdate();
+    }
+
+    private async edit_maxgraph_cell_cb() {
+        let selected_cell = this.maxgraph.getSelectionCell();
+
+        if (!selected_cell) {
+            return;
+        }
+
+        let db_cells = await query(DashboardGraphVORefVO.API_TYPE_ID)
+            .filter_by_num_eq('dashboard_id', this.dashboard_id)
+            .filter_by_text_eq('vo_type', this.maxgraph_elt_by_maxgraph_id[selected_cell.id].api_type_id)
+            .select_vos<DashboardGraphVORefVO>();
+
+        if ((!db_cells) || (!db_cells.length)) {
+            ConsoleHandler.error('Event.MOVE_END:no db cell');
+            return;
+        }
+        let db_cell = db_cells[0];
+        db_cell.x = selected_cell.geometry.x;
+        db_cell.y = selected_cell.geometry.y;
+        db_cell.width = selected_cell.geometry.width;
+        db_cell.height = selected_cell.geometry.height;
+        await ModuleDAO.getInstance().insertOrUpdateVO(db_cell);
     }
 
     /**
@@ -394,7 +423,7 @@ export default class MaxGraphMapper {
         return cell;
     }
 
-    private add_remove_cells_of_maxgraph() {
+    private add_remove_maxgraph_cells() {
         let cells_to_delete: Cell[] = [];
         for (let i in this.cells) {
             const cell = this.cells[i];
@@ -434,7 +463,7 @@ export default class MaxGraphMapper {
         }
     }
 
-    private add_remove_remap_edges_of_maxgraph() {
+    private add_remove_remap_maxgraph_edges() {
         let edges_to_delete: Cell[] = [];
         for (let i in this.edges) {
             const edge = this.edges[i];

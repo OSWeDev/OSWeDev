@@ -89,6 +89,8 @@ export default class VarWidgetComponent extends VueComponentBase {
     private var_param: VarDataBaseVO = null;
     private last_calculation_cpt: number = 0;
 
+    private var_param_no_value_or_param_is_invalid: boolean = false;
+
     get var_id(): number {
         if (!this.widget_options) {
             return null;
@@ -171,7 +173,9 @@ export default class VarWidgetComponent extends VueComponentBase {
         this.last_calculation_cpt = launch_cpt;
 
         if (!this.var_id) {
-            return this.var_param = null;
+            this.var_param = null;
+            this.var_param_no_value_or_param_is_invalid = false;
+            return;
         }
 
         /**
@@ -201,6 +205,13 @@ export default class VarWidgetComponent extends VueComponentBase {
         if (this.last_calculation_cpt != launch_cpt) {
             return;
         }
+
+        if (!this.var_param) {
+            this.var_param_no_value_or_param_is_invalid = true;
+        } else {
+            this.var_param_no_value_or_param_is_invalid = false;
+        }
+
 
         // let query = new ContextQueryVO();
         // query.base_api_type_id = this.vo_field_ref.api_type_id;
