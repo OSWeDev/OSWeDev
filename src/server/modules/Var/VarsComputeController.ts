@@ -7,6 +7,7 @@ import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
+import StatsTypeVO from '../../../shared/modules/Stats/vos/StatsTypeVO';
 import StatVO from '../../../shared/modules/Stats/vos/StatVO';
 import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
 import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
@@ -217,9 +218,9 @@ export default class VarsComputeController {
             return;
         }
 
-        StatsServerController.register_stat('VarsComputeController.compute.has_node_to_compute_in_this_batch',
+        StatsServerController.register_stat('VarsComputeController', 'compute', 'has_node_to_compute_in_this_batch', StatsTypeVO.TYPE_COMPTEUR,
             1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsServerController.register_stats('VarsComputeController.compute.nb_nodes_per_batch',
+        StatsServerController.register_stats('VarsComputeController', 'compute', 'nb_nodes_per_batch', StatsTypeVO.TYPE_QUANTITE,
             var_dag.nb_nodes, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
 
         /**
@@ -1169,20 +1170,20 @@ export default class VarsComputeController {
             if (cache_wrapper) {
 
                 if (cache_wrapper.is_server_request) {
-                    StatsServerController.register_stat('VarsComputeController.notify_var_data_post_deploy.nb_solved_server_requests',
+                    StatsServerController.register_stat('VarsComputeController', 'notify_var_data_post_deploy', 'nb_solved_server_requests', StatsTypeVO.TYPE_COMPTEUR,
                         1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                 }
                 if (cache_wrapper.client_tab_id) {
-                    StatsServerController.register_stat('VarsComputeController.notify_var_data_post_deploy.nb_solved_client_requests',
+                    StatsServerController.register_stat('VarsComputeController', 'notify_var_data_post_deploy', 'nb_solved_client_requests', StatsTypeVO.TYPE_COMPTEUR,
                         1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                 }
                 if ((!cache_wrapper.client_tab_id) && (!cache_wrapper.is_server_request)) {
-                    StatsServerController.register_stat('VarsComputeController.notify_var_data_post_deploy.nb_solved_noclientnoserver_requests',
+                    StatsServerController.register_stat('VarsComputeController', 'notify_var_data_post_deploy', 'nb_solved_noclientnoserver_requests', StatsTypeVO.TYPE_COMPTEUR,
                         1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                 }
 
                 if (cache_wrapper.last_insert_or_update == null) {
-                    StatsServerController.register_stats('VarsComputeController.notify_var_data_post_deploy.delay',
+                    StatsServerController.register_stats('VarsComputeController', 'notify_var_data_post_deploy', 'delay', StatsTypeVO.TYPE_DUREE,
                         Dates.now_ms() - cache_wrapper.creation_date_ms, [StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
                 }
             }

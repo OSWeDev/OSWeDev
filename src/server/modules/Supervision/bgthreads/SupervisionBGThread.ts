@@ -4,6 +4,7 @@ import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
+import StatsTypeVO from '../../../../shared/modules/Stats/vos/StatsTypeVO';
 import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
 import ISupervisedItem from '../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import ISupervisedItemController from '../../../../shared/modules/Supervision/interfaces/ISupervisedItemController';
@@ -55,7 +56,7 @@ export default class SupervisionBGThread implements IBGThread {
 
         try {
 
-            StatsServerController.register_stat('SupervisionBGThread.work.IN', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            StatsServerController.register_stat('SupervisionBGThread', 'work', 'IN', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
             if (!this.loaded_param) {
                 this.loaded_param = true;
@@ -88,7 +89,7 @@ export default class SupervisionBGThread implements IBGThread {
                     // Si j'ai des items invalid, je vais throttle le controller
                     if (items && items.length) {
 
-                        StatsServerController.register_stat('SupervisionBGThread.work.invalid_items.nb', items.length, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                        StatsServerController.register_stat('SupervisionBGThread', 'work', 'invalid_items', StatsTypeVO.TYPE_QUANTITE, items.length, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
                         if (!this.throttle_by_api_type_id[api_type_id]) {
                             this.throttle_by_api_type_id[api_type_id] = throttle(
@@ -116,8 +117,8 @@ export default class SupervisionBGThread implements IBGThread {
     private stats_out(activity: string, time_in: number) {
 
         let time_out = Dates.now_ms();
-        StatsServerController.register_stat('SupervisionBGThread.work.' + activity + '.OUT.nb', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsServerController.register_stats('SupervisionBGThread.work.' + activity + '.OUT.time', time_out - time_in,
+        StatsServerController.register_stat('SupervisionBGThread', 'work', activity + '_OUT', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsServerController.register_stats('SupervisionBGThread', 'work', activity + '_OUT', StatsTypeVO.TYPE_DUREE, time_out - time_in,
             [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
     }
 }

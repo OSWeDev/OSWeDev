@@ -27,9 +27,14 @@ export default class StatsServerController {
      * @param aggregators on applique register_stat sur chaque élément du tableau
      * @param min_segment_type cf. register_stat
      */
-    public static register_stats(name: string, value: number, aggregators: number[], min_segment_type: number) {
+    public static register_stats(
+        category_name: string, sub_category_name: string, event_name: string, stat_type_name: string,
+        value: number, aggregators: number[], min_segment_type: number) {
+
         for (let i in aggregators) {
-            StatsServerController.register_stat(name, value, aggregators[i], min_segment_type);
+            StatsServerController.register_stat(
+                category_name, sub_category_name, event_name, stat_type_name,
+                value, aggregators[i], min_segment_type);
         }
     }
 
@@ -43,7 +48,9 @@ export default class StatsServerController {
      * @param aggregator à choisir parmi les constantes AGGREGATOR_* de StatVO
      * @param min_segment_type à choisir parmi les constantes TYPE_* de TimeSegmentHandler
      */
-    public static register_stat(name: string, value: number, aggregator: number, min_segment_type: number) {
+    public static register_stat(
+        category_name: string, sub_category_name: string, event_name: string, stat_type_name: string,
+        value: number, aggregator: number, min_segment_type: number) {
 
         /**
          * Si le serveur n'est pas up, on peut pas stocker des stats
@@ -56,53 +63,26 @@ export default class StatsServerController {
         stat.value = value;
         stat.timestamp_s = Dates.now();
 
-        name += StatsServerController.get_aggregator_extension(aggregator) + '.' + this.get_thread_name();
+        let stats_name = category_name + '.' + sub_category_name + '.' + event_name + '.' + stat_type_name + '.' + StatsServerController.get_aggregator_extension(aggregator) + '.' + this.get_thread_name();
 
-        if (!StatsServerController.cached_stack_groupes_by_name[name]) {
+        if (!StatsServerController.cached_stack_groupes_by_name[stats_name]) {
             let new_groupe = new StatsGroupVO();
-            new_groupe.name = name;
+            new_groupe.tmp_category_name = category_name;
+            new_groupe.tmp_sub_category_name = sub_category_name;
+            new_groupe.tmp_event_name = event_name;
+            new_groupe.tmp_stat_type_name = stat_type_name;
             new_groupe.stats_aggregator = aggregator;
             new_groupe.stats_aggregator_min_segment_type = min_segment_type;
 
-            StatsServerController.cached_stack_groupes_by_name[name] = new_groupe;
+            StatsServerController.cached_stack_groupes_by_name[stats_name] = new_groupe;
         }
 
-        stat.stat_group_id = StatsServerController.cached_stack_groupes_by_name[name].id;
-        if (!StatsServerController.stacked_registered_stats_by_group_name[name]) {
-            StatsServerController.stacked_registered_stats_by_group_name[name] = [];
+        stat.stat_group_id = StatsServerController.cached_stack_groupes_by_name[stats_name].id;
+        if (!StatsServerController.stacked_registered_stats_by_group_name[stats_name]) {
+            StatsServerController.stacked_registered_stats_by_group_name[stats_name] = [];
         }
-        StatsServerController.stacked_registered_stats_by_group_name[name].push(stat);
+        StatsServerController.stacked_registered_stats_by_group_name[stats_name].push(stat);
         StatsServerController.throttled_unstack_stats();
-
-
-        // /**
-        //  * Si on trouve pas le groupe, on renouvelle d'abord le cache, et on crée au besoin
-        //  */
-        // if (!StatsServerController.cached_stack_groupes_by_name[name]) {
-        //     let groupe = await query(StatsGroupVO.API_TYPE_ID).filter_by_text_eq('name', name).select_vo<StatsGroupVO>();
-
-        //     // si malgré le rechargement du cache on trouve pas le groupe, on le crée
-        //     if (!groupe) {
-        //         let new_groupe = new StatsGroupVO();
-        //         new_groupe.name = name;
-        //         new_groupe.stats_aggregator = aggregator;
-        //         new_groupe.stats_aggregator_min_segment_type = min_segment_type;
-
-        //         let res = await ModuleDAO.getInstance().insertOrUpdateVO(new_groupe);
-        //         if ((!res) || !res.id) {
-        //             throw new Error('Erreur lors de la création du groupe de stats ' + name);
-        //         }
-        //         new_groupe.id = res.id;
-
-        //         StatsServerController.cached_stack_groupes_by_name[name] = new_groupe;
-        //     } else {
-        //         StatsServerController.cached_stack_groupes_by_name[name] = groupe;
-        //     }
-        // }
-
-        // stat.stat_group_id = StatsServerController.cached_stack_groupes_by_name[name].id;
-        // StatsServerController.stacked_registered_stats_by_group_name.push(stat);
-        // StatsServerController.throttled_unstack_stats();
     }
 
     public static get_aggregator_extension(aggregator: number): string {
@@ -290,6 +270,11 @@ export default class StatsServerController {
                         await promises_pipeline.push(async () => {
                             let new_group = new StatsGroupVO();
                             new_group.name = group_name;
+                            new_group.tmp_category_name = group.tmp_category_name;
+                            new_group.tmp_sub_category_name = group.tmp_sub_category_name;
+                            new_group.tmp_event_name = group.tmp_event_name;
+                            new_group.tmp_stat_type_name = group.tmp_stat_type_name;
+                            new_group.tmp_thread_name = group.tmp_thread_name;
                             new_group.stats_aggregator = group.stats_aggregator;
                             new_group.stats_aggregator_min_segment_type = group.stats_aggregator_min_segment_type;
                             let res = await ModuleDAO.getInstance().insertOrUpdateVO(new_group);

@@ -3,6 +3,7 @@ import IServerUserSession from '../../../../shared/modules/AccessPolicy/vos/ISer
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
+import StatsTypeVO from '../../../../shared/modules/Stats/vos/StatsTypeVO';
 import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
 import TeamsWebhookContentSectionVO from '../../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentSectionVO';
 import TeamsWebhookContentVO from '../../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentVO';
@@ -54,7 +55,7 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
 
         try {
 
-            StatsServerController.register_stat('AccessPolicyDeleteSessionBGThread.work.IN', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            StatsServerController.register_stat('AccessPolicyDeleteSessionBGThread', 'work', 'IN', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
             let invalidate_sessions: IServerUserSession[] = ObjectHandler.getInstance().arrayFromMap(this.session_to_delete_by_sids);
 
@@ -159,8 +160,8 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
     private stats_out(activity: string, time_in: number) {
 
         let time_out = Dates.now_ms();
-        StatsServerController.register_stat('AccessPolicyDeleteSessionBGThread.work.' + activity + '.OUT.nb', 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsServerController.register_stats('AccessPolicyDeleteSessionBGThread.work.' + activity + '.OUT.time', time_out - time_in,
+        StatsServerController.register_stat('AccessPolicyDeleteSessionBGThread', 'work', activity + '_OUT', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsServerController.register_stats('AccessPolicyDeleteSessionBGThread', 'work', activity + '_OUT', StatsTypeVO.TYPE_DUREE, time_out - time_in,
             [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
     }
 }

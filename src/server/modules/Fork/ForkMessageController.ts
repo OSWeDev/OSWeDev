@@ -5,6 +5,7 @@ import { performance } from 'perf_hooks';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import StatsTypeVO from '../../../shared/modules/Stats/vos/StatsTypeVO';
 import StatVO from '../../../shared/modules/Stats/vos/StatVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import StatsServerController from '../Stats/StatsServerController';
@@ -49,7 +50,7 @@ export default class ForkMessageController {
             return false;
         }
 
-        StatsServerController.register_stat('ForkMessageController.receive.' + msg.message_type + '.nb',
+        StatsServerController.register_stat('ForkMessageController', 'receive', msg.message_type, StatsTypeVO.TYPE_COMPTEUR,
             1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
         try {
@@ -86,7 +87,7 @@ export default class ForkMessageController {
 
     public async send(msg: IForkMessage, child_process: ChildProcess = null, forked_target: IFork = null): Promise<boolean> {
 
-        StatsServerController.register_stat('ForkMessageController.send.' + msg.message_type + '.nb',
+        StatsServerController.register_stat('ForkMessageController', 'send', msg.message_type, StatsTypeVO.TYPE_COMPTEUR,
             1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
         return new Promise((resolve, reject) => {
