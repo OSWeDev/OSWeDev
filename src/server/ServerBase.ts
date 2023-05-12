@@ -474,7 +474,7 @@ export default abstract class ServerBase {
                         const client_tab_id = req.headers ? req.headers.client_tab_id : null;
 
                         if (uid && client_tab_id) {
-                            StatsServerController.register_stats('express', 'version', 'reload', StatsTypeVO.TYPE_COMPTEUR, 1, [StatVO.AGGREGATOR_SUM], TimeSegment.TYPE_MINUTE);
+                            StatsServerController.register_stat('express', 'version', 'reload', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                             ConsoleHandler.log("ServerExpressController:version:uid:" + uid + ":client_tab_id:" + client_tab_id + ": asking for reload");
                             await PushDataServerController.getInstance().notifyTabReload(uid, client_tab_id);
                         }
@@ -566,7 +566,7 @@ export default abstract class ServerBase {
 
             // Le cas du service worker est déjà traité, ici on a tout sauf le service_worker. Si on ne trouve pas le fichier c'est une erreur et on demande un reload
             if (!fs.existsSync(path.resolve('./dist' + req.url))) {
-                StatsServerController.register_stats('express', 'public', 'notfound', StatsTypeVO.TYPE_COMPTEUR, 1, [StatVO.AGGREGATOR_SUM], TimeSegment.TYPE_MINUTE);
+                StatsServerController.register_stat('express', 'public', 'notfound', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
                 const uid = req.session ? req.session.uid : null;
                 const client_tab_id = req.headers ? req.headers.client_tab_id : null;

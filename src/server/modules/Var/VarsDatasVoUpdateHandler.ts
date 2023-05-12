@@ -2,10 +2,13 @@ import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapp
 import ContextFilterVO, { filter } from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
+import StatsTypeVO from '../../../shared/modules/Stats/vos/StatsTypeVO';
+import StatVO from '../../../shared/modules/Stats/vos/StatVO';
 import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
@@ -24,6 +27,7 @@ import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import PushDataServerController from '../PushData/PushDataServerController';
+import StatsServerController from '../Stats/StatsServerController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
 import PixelVarDataController from './PixelVarDataController';
@@ -239,6 +243,16 @@ export default class VarsDatasVoUpdateHandler {
         let intersectors_by_index: { [index: string]: VarDataBaseVO } = await this.init_leaf_intersectors(vo_types, vos_update_buffer, vos_create_or_delete_buffer);
         let solved_invalidators_by_index: { [conf_id: string]: VarDataInvalidatorVO } = {};
 
+        if ((!intersectors_by_index) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(intersectors_by_index))) {
+            return false;
+        }
+
+        StatsServerController.register_stat('VarsDatasVoUpdateHandler', 'handle_buffer', 'invalidate_datas_and_parents', StatsTypeVO.TYPE_COMPTEUR,
+            1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsServerController.register_stat('VarsDatasVoUpdateHandler', 'handle_buffer', 'invalidate_datas_and_parents', StatsTypeVO.TYPE_QUANTITE,
+            Object.keys(intersectors_by_index).length, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        let time_in = Dates.now_ms();
+
         let max = ConfigurationService.node_configuration ? Math.max(ConfigurationService.node_configuration.MAX_POOL / 2, 1) : 10;
         let promise_pipeline = new PromisePipeline(max);
         for (let i in intersectors_by_index) {
@@ -252,6 +266,11 @@ export default class VarsDatasVoUpdateHandler {
         }
 
         await promise_pipeline.end();
+
+        let time_out = Dates.now_ms();
+        StatsServerController.register_stats('VarsDatasVoUpdateHandler', 'handle_buffer', 'invalidate_datas_and_parents', StatsTypeVO.TYPE_DUREE,
+            time_out - time_in, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
+
         await this.push_invalidators(Object.values(solved_invalidators_by_index));
 
         // On met à jour le param en base pour refléter les modifs qui restent en attente de traitement
@@ -1421,7 +1440,7 @@ export default class VarsDatasVoUpdateHandler {
             let dep = node.incoming_deps[j];
             let controller = (dep.incoming_node as VarCtrlDAGNode).var_controller;
 
-            let tmp = await controller.get_invalid_params_intersectors_from_dep(dep.dep_name, [intersector]);
+            let tmp = await controller.get_invalid_params_intersectors_from_dep_stats_wrapper(dep.dep_name, [intersector]);
             if (tmp && tmp.length) {
                 tmp.forEach((e) => res[e.index] = e);
             }
@@ -1463,7 +1482,7 @@ export default class VarsDatasVoUpdateHandler {
                             var_controller.varConf.id + ':' + var_controller.varConf.name + ':' + vos_create_or_delete_buffer[vo_type].length);
                     }
 
-                    let tmp = await var_controller.get_invalid_params_intersectors_on_POST_C_POST_D_group(vos_create_or_delete_buffer[vo_type]);
+                    let tmp = await var_controller.get_invalid_params_intersectors_on_POST_C_POST_D_group_stats_wrapper(vos_create_or_delete_buffer[vo_type]);
                     if (tmp && !!tmp.length) {
                         tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
                     }
@@ -1477,7 +1496,7 @@ export default class VarsDatasVoUpdateHandler {
                             var_controller.varConf.id + ':' + var_controller.varConf.name + ':' + vos_update_buffer[vo_type].length);
                     }
 
-                    let tmp = await var_controller.get_invalid_params_intersectors_on_POST_U_group(vos_update_buffer[vo_type]);
+                    let tmp = await var_controller.get_invalid_params_intersectors_on_POST_U_group_stats_wrapper(vos_update_buffer[vo_type]);
                     if (tmp && !!tmp.length) {
                         tmp.forEach((e) => e ? intersectors_by_index[e.index] = e : null);
                     }

@@ -1,5 +1,7 @@
 import NumRange from '../../../../shared/modules/DataRender/vos/NumRange';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
+import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import StatsTypeVO from '../../../../shared/modules/Stats/vos/StatsTypeVO';
 import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
 import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
@@ -25,14 +27,13 @@ export default abstract class DataSourceControllerNumRangeIndexedBase extends Da
      */
     public async load_node_data(node: VarDAGNode) {
 
-        StatsServerController.register_stat('DataSources.' + node.var_data.var_id + '.load_node_data.nb',
-            1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsServerController.register_stat('DataSourceControllerNumRangeIndexedBase.' + node.var_data.var_id + '.load_node_data.nb',
-            1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-
         if (typeof node.datasources[this.name] !== 'undefined') {
             return;
         }
+
+        StatsServerController.register_stat('DataSources', this.name, 'load_node_data_IN', StatsTypeVO.TYPE_COMPTEUR,
+            1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        let time_load_node_data_in = Dates.now_ms();
 
         let data_index: NumRange[] = this.get_data_index(node.var_data) as NumRange[];
 
@@ -49,12 +50,14 @@ export default abstract class DataSourceControllerNumRangeIndexedBase extends Da
 
             if (typeof VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][i] === 'undefined') {
 
-                StatsServerController.register_stat('DataSources.' + node.var_data.var_id + '.get_data.nb',
+                StatsServerController.register_stat('DataSources', this.name, 'get_data', StatsTypeVO.TYPE_COMPTEUR,
                     1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-                StatsServerController.register_stat('DataSourceControllerNumRangeIndexedBase.' + node.var_data.var_id + '.get_data.nb',
-                    1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-
+                let time_in = Dates.now_ms();
                 let data = await this.get_data(node.var_data);
+                let time_out = Dates.now_ms();
+                // Attention ici les chargement sont très parrallèlisés et on peut avoir des stats qui se chevauchent donc une somme des temps très nettement > au temps total réel
+                StatsServerController.register_stats('DataSources', this.name, 'get_data', StatsTypeVO.TYPE_DUREE,
+                    time_out - time_in, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MIN, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN], TimeSegment.TYPE_MINUTE);
 
                 for (let j in data) {
                     let e = data[j];
@@ -72,6 +75,11 @@ export default abstract class DataSourceControllerNumRangeIndexedBase extends Da
                 node.datasources[this.name][i] = VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][i];
             }
         });
+
+        let time_load_node_data_out = Dates.now_ms();
+        // Attention ici les chargement sont très parrallèlisés et on peut avoir des stats qui se chevauchent donc une somme des temps très nettement > au temps total réel
+        StatsServerController.register_stats('DataSources', this.name, 'load_node_data', StatsTypeVO.TYPE_DUREE,
+            time_load_node_data_out - time_load_node_data_in, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MIN, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN], TimeSegment.TYPE_MINUTE);
     }
 
     /**
