@@ -57,7 +57,7 @@ export default class DashboardCopyWidgetComponent extends VueComponentBase {
         }
     }
 
-    private async delete_widget() {
+    private delete_widget() {
         //Supprime le widget qui sera déplaçé.
         this.$emit('delete_widget', this.page_widget);
     }
@@ -180,7 +180,7 @@ export default class DashboardCopyWidgetComponent extends VueComponentBase {
 
         // Transfert des traductions
         if (this.page_widget._type == 'dashboard_pwidget') {
-            this.transfert_trad(page_widget_to_copy_id);
+            await this.transfert_trad(page_widget_to_copy_id);
         }
 
         // Suppression du widget (recharge la page par la même occasion)
@@ -197,14 +197,14 @@ export default class DashboardCopyWidgetComponent extends VueComponentBase {
     private async do_copy_widget() {
         /*Copie un widget d'un onglet vers un autre onglet*/
 
-        this.do_transfert_widget(true);
+        await this.do_transfert_widget(true);
     }
 
     private select_page_to_copy_in(page: DashboardPageVO) {
         this.copy_to_page = page;
     }
 
-    private async cancel() {
+    private cancel() {
         $('#modal_copy_widget').modal('hide');
         this.$emit('cancel');
         this.show_modal = false;

@@ -210,9 +210,9 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
      * Handle Modal State
      *  - Manage modal depending on its state
      *
-     * @return {Promise<void>}
+     * @return {<void>}
      */
-    private async handle_modal_state(): Promise<void> {
+    private handle_modal_state(): void {
         if (this.is_modal_open) {
             $('#save_favorites_filters_modal_component').modal('show');
         } else {
