@@ -186,8 +186,6 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
             return;
         }
 
-        console.log('SupervisionWidgetComponent.update_visible_options', this.pagination_offset, this.limit);
-
         const data: { items: ISupervisedItem[], total_count: number } = await SupervisionWidgetManager.find_supervision_probs_by_api_type_ids(
             this.dashboard,
             this.widget_options,
@@ -200,8 +198,6 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
             },
             { refresh: options?.refresh }
         );
-
-        console.log('SupervisionWidgetComponent.update_visible_options', this.pagination_offset, this.limit, data.items?.length, data.total_count);
 
         rows = data.items;
 

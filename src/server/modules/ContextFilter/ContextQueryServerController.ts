@@ -711,9 +711,15 @@ export default class ContextQueryServerController {
              */
             ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_query.query_tables_prefix);
 
-            // if (!ContextAccessServerController.getInstance().check_access_to_api_type_ids_field_ids(context_query.base_api_type_id, context_query.fields, access_type)) {
-            //     return null;z
-            // }
+            const has_access = ContextAccessServerController.getInstance().check_access_to_api_type_ids_field_ids(
+                context_query.base_api_type_id,
+                context_query.fields,
+                access_type
+            );
+
+            if (!has_access) {
+                return null;
+            }
 
             let base_moduletable = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
 
@@ -733,34 +739,52 @@ export default class ContextQueryServerController {
 
                 let queries: string[] = [];
 
-                if (base_moduletable.is_segmented) {
-                    let { queries: segmented_queries } = await this.build_segmented_moduletable_select_query(
+                if (!(context_query.union_queries?.length > 0) && base_moduletable.is_segmented) {
+                    let { queries: select_queries } = await this.build_segmented_moduletable_select_query(
                         context_query,
                         main_query_wrapper,
                         queries,
                         access_type,
                     );
 
-                    if (segmented_queries?.length > 0) {
-                        queries = queries.concat(segmented_queries);
+                    if (select_queries?.length > 0) {
+                        queries = queries.concat(select_queries);
                     }
                 }
 
                 // Loop on union_queries
                 if (context_query.union_queries?.length > 0) {
+                    const root_context_query = cloneDeep(context_query);
+                    let union_context_queries: ContextQueryVO[] = [];
+
+                    union_context_queries = context_query.union_queries;
+                    root_context_query.query_distinct = false;
+                    root_context_query.union_queries = [];
+
+                    union_context_queries.push(root_context_query);
 
                     // We should get the moduletable from each union query
                     // We should get the fields from each union query
                     // - The given fields shall help to force cast to the right postgresql type
-                    const { all_distinct_field } = this.get_common_field_from_union_context_query(
+                    const { all_distinct_fields } = this.get_common_fields_from_union_context_query(
                         context_query
                     );
 
+                    // Build sub-query for the final db request to union
+                    // Select offset fields as null for each moduletable
                     // Each union_query may be segmented
-                    for (const key in context_query.union_queries) {
+                    for (const key in union_context_queries) {
                         const union_context_query = context_query.union_queries[key];
 
-                        // Select offset fields as null for each moduletable
+                        const has_access_api_type_id = ContextAccessServerController.getInstance().check_access_to_api_type_ids_field_ids(
+                            union_context_query.base_api_type_id,
+                            union_context_query.fields,
+                            access_type
+                        );
+
+                        if (!has_access_api_type_id) {
+                            continue;
+                        }
 
                         const moduletable = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
 
@@ -778,14 +802,13 @@ export default class ContextQueryServerController {
                             }
 
                         } else {
-                            // Build sub-query for the final db request to union
                             const parameterized_query_wrapper = await this.build_moduletable_select_query(
                                 union_context_query,
                                 access_type,
                                 null,
                                 false,
                                 null,
-                                all_distinct_field,
+                                all_distinct_fields,
                             );
 
                             if (!!(parameterized_query_wrapper?.query?.length > 0) && !parameterized_query_wrapper?.is_segmented_non_existing_table) {
@@ -815,7 +838,6 @@ export default class ContextQueryServerController {
 
                 let aliases_n: number = 0;
 
-                // TODO: Find a way add alias to the union_query dynamically
                 let union_query = 'SELECT * FROM ((' + queries.join(') UNION ALL (') + ')) as t_union_' + (aliases_n);
 
                 if (context_query.union_queries?.length > 0) {
@@ -984,17 +1006,17 @@ export default class ContextQueryServerController {
      * Find the fields intersection between each vo_type
      *
      * @param {ContextQueryVO} context_query
-     * @returns {{ field_intersection: string[], all_field_ids: string[] }}
+     * @returns {{ fields_intersection: string[], all_field_ids: string[] }}
      */
-    private get_common_field_from_union_context_query(
+    private get_common_fields_from_union_context_query(
         context_query: ContextQueryVO
-    ): { field_intersection: Array<ModuleTableField<any>>, all_distinct_field: Array<ModuleTableField<any>> } {
+    ): { fields_intersection: Array<ModuleTableField<any>>, all_distinct_fields: Array<ModuleTableField<any>> } {
 
         // Whole unique field ids set
         const all_field_ids_set = new Set<string>();
 
-        let all_distinct_field: Array<ModuleTableField<any>> = [];
-        let field_intersection: Array<ModuleTableField<any>> = [];
+        let all_distinct_fields: Array<ModuleTableField<any>> = [];
+        let fields_intersection: Array<ModuleTableField<any>> = [];
 
         // We should get the moduletable fields from each vo_type
         const fields_by_vo_type: { [vo_type: string]: Array<ModuleTableField<any>> } = {};
@@ -1006,10 +1028,10 @@ export default class ContextQueryServerController {
 
         fields_by_vo_type[context_query.base_api_type_id] = base_moduletable.get_fields();
 
-        all_distinct_field = Array.from(new Set([...all_distinct_field, ...fields_by_vo_type[context_query.base_api_type_id]]));
+        all_distinct_fields = Array.from(new Set([...all_distinct_fields, ...fields_by_vo_type[context_query.base_api_type_id]]));
 
         if (!(context_query.union_queries?.length > 0)) {
-            return { field_intersection, all_distinct_field };
+            return { fields_intersection, all_distinct_fields };
         }
 
         for (const key in context_query.union_queries) {
@@ -1023,7 +1045,7 @@ export default class ContextQueryServerController {
         // Add all existing fields to the set
         Object.values(fields_by_vo_type).map((fields) => fields.map((field) => all_field_ids_set.add(field.field_id)));
 
-        field_intersection = Object.values(fields_by_vo_type).reduce(
+        fields_intersection = Object.values(fields_by_vo_type).reduce(
             // Accumulator shall keep all fields of previous iteration that are also in currentVal
             // And remove the one that are not in currentVal
             (accumulator: Array<ModuleTableField<any>>, currentVal: Array<ModuleTableField<any>>) => {
@@ -1033,7 +1055,7 @@ export default class ContextQueryServerController {
             }
         );
 
-        all_distinct_field = Object.values(fields_by_vo_type).reduce(
+        all_distinct_fields = Object.values(fields_by_vo_type).reduce(
             (accumulator: Array<ModuleTableField<any>>, currentVal: Array<ModuleTableField<any>>) => {
                 // Accumulator shall keep all distinct fields of each iteration
                 return accumulator.concat(
@@ -1047,7 +1069,7 @@ export default class ContextQueryServerController {
             }
         );
 
-        return { field_intersection, all_distinct_field };
+        return { fields_intersection, all_distinct_fields };
     }
 
     /**
