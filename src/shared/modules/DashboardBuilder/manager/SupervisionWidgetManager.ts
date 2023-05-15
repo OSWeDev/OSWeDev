@@ -249,11 +249,6 @@ export default class SupervisionWidgetManager {
             });
         }
 
-        console.log(
-            'SupervisionWidgetManager.select_supervision_probs_by_api_type_id - context_query',
-            JSON.stringify(context_query)
-        );
-
         await promise_pipeline.end();
 
         await promise_pipeline.push(async () => {
