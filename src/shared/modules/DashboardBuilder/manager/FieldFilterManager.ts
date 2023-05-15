@@ -6,6 +6,9 @@ import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
 import IReadableActiveFieldFilters from "../interfaces/IReadableActiveFieldFilters";
 import VOFieldRefVOManager from "./VOFieldRefVOManager";
 import DashboardPageWidgetVOManager from "./DashboardPageWidgetVOManager";
+import ModuleTable from "../../ModuleTable";
+import VOsTypesManager from "../../VO/manager/VOsTypesManager";
+import ModuleTableField from "../../ModuleTableField";
 
 
 /**
@@ -271,6 +274,17 @@ export default class FieldFilterManager {
                         // TODO: - Maybe we should update deeply the whole context_filter tree for the given api_type_id (or vo_type)
                     }
 
+                    // Check if the api_type_id (or vo_type) actually have the field_id to filter on
+                    const base_table: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[api_type_id];
+                    const base_table_fields: Array<ModuleTableField<any>> = base_table.get_fields();
+
+                    const has_context_filter_field: boolean = base_table_fields.find((field: ModuleTableField<any>) => {
+                        return field.field_id == context_filter.field_id;
+                    }) != null;
+
+                    if (!has_context_filter_field) {
+                        continue;
+                    }
 
                     if (field_filters_by_api_type_ids[api_type_id][api_type_id]) {
                         // In this case the field_filters are already set for this api_type_id

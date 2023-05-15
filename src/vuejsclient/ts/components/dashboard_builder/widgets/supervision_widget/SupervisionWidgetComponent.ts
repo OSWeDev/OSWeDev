@@ -201,11 +201,9 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
             { refresh: options?.refresh }
         );
 
-        rows = data.items;
+        console.log('SupervisionWidgetComponent.update_visible_options', this.pagination_offset, this.limit, data.items?.length, data.total_count);
 
-        // rows.sort((a, b) => {
-        //     return a.name.localeCompare(b.name);
-        // });
+        rows = data.items;
 
         this.loaded_once = true;
         this.is_busy = false;

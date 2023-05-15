@@ -21,7 +21,6 @@ import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
-import ArrayHandler from '../../../shared/tools/ArrayHandler';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
@@ -50,6 +49,8 @@ export default class ContextQueryServerController {
     private static instance: ContextQueryServerController = null;
 
     private static SORT_ALIAS_UID: number = 0;
+
+    private static INTERNAL_LABEL_REMPLACEMENT: string = '___internal___label___rplcmt____';
 
     private constructor() { }
 
@@ -472,13 +473,13 @@ export default class ContextQueryServerController {
 
         let query_wrapper = await this.build_select_query_not_count(context_query);
 
-        if (((!query_wrapper?.query)) && (!query_wrapper.is_segmented_non_existing_table)) {
+        if (((!query_wrapper?.query)) && (!query_wrapper?.is_segmented_non_existing_table)) {
             ConsoleHandler.error('Invalid query:build_query_count:INFOS context_query:' + (query_wrapper ? (query_wrapper.query ? query_wrapper.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
             context_query.log(true);
             throw new Error('Invalid query:build_query_count');
         }
 
-        if (query_wrapper.is_segmented_non_existing_table) {
+        if (query_wrapper?.is_segmented_non_existing_table) {
             // Si on a une table segmentée qui n'existe pas, on ne fait rien
             query_wrapper.query = 'SELECT 0 c';
             return query_wrapper;
@@ -688,6 +689,7 @@ export default class ContextQueryServerController {
             throw new Error('Invalid query param:build_select_query_not_count');
         }
 
+        let main_query_wrapper: ParameterizedQueryWrapper = new ParameterizedQueryWrapper(null, [], null);
         let access_type: string = ModuleDAO.DAO_ACCESS_TYPE_READ;
 
         try {
@@ -709,9 +711,9 @@ export default class ContextQueryServerController {
              */
             ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_query.query_tables_prefix);
 
-            if (!ContextAccessServerController.getInstance().check_access_to_api_type_ids_field_ids(context_query.base_api_type_id, context_query.fields, access_type)) {
-                return null;
-            }
+            // if (!ContextAccessServerController.getInstance().check_access_to_api_type_ids_field_ids(context_query.base_api_type_id, context_query.fields, access_type)) {
+            //     return null;z
+            // }
 
             let base_moduletable = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
 
@@ -729,53 +731,18 @@ export default class ContextQueryServerController {
              */
             if (base_moduletable.is_segmented || context_query.union_queries?.length > 0) {
 
-                let main_query_wrapper: ParameterizedQueryWrapper = new ParameterizedQueryWrapper(null, [], null);
                 let queries: string[] = [];
-                let ids: number[] = null;
 
                 if (base_moduletable.is_segmented) {
-                    ids = await this.get_valid_segmentations(base_moduletable, context_query);
-
-                    if (!(ids?.length > 0)) {
-                        main_query_wrapper.mark_as_is_segmented_non_existing_table();
-
-                        return main_query_wrapper;
-                    }
-                }
-
-                for (let i in ids) {
-                    let id: number = ids[i];
-
-                    let context_query_segmented: ContextQueryVO = cloneDeep(context_query)
-                        .filter_by_id(
-                            id,
-                            base_moduletable.table_segmented_field.manyToOne_target_moduletable.vo_type
-                        );
-
-
-                    // Build sub-query for the final db request to union
-                    const parameterized_query_wrapper = await this.build_moduletable_select_query(
-                        context_query_segmented,
+                    let { queries: segmented_queries } = await this.build_segmented_moduletable_select_query(
+                        context_query,
+                        main_query_wrapper,
+                        queries,
                         access_type,
-                        base_moduletable,
-                        true,
-                        id
                     );
 
-                    if (!!(parameterized_query_wrapper?.query?.length > 0) && !parameterized_query_wrapper.is_segmented_non_existing_table) {
-
-                        if (!main_query_wrapper.fields) {
-                            main_query_wrapper.fields = parameterized_query_wrapper.fields;
-                        }
-
-                        queries.push(parameterized_query_wrapper.query);
-                    }
-
-                    /**
-                     * Dans le cas des segmented, on remonte pas auto l'ajout des fields si on en avait pas dans la requete initiale, contrairement aux queries non segmentées, ce qui empeche le throttle
-                     */
-                    if (!(context_query.fields?.length > 0) && (context_query_segmented.fields)) {
-                        context_query.fields = context_query_segmented.fields;
+                    if (segmented_queries?.length > 0) {
+                        queries = queries.concat(segmented_queries);
                     }
                 }
 
@@ -789,28 +756,46 @@ export default class ContextQueryServerController {
                         context_query
                     );
 
+                    // Each union_query may be segmented
                     for (const key in context_query.union_queries) {
-                        // Select offset fields as null for each moduletable
-
                         const union_context_query = context_query.union_queries[key];
 
-                        // Build sub-query for the final db request to union
-                        const parameterized_query_wrapper = await this.build_moduletable_select_query(
-                            union_context_query,
-                            access_type,
-                            null,
-                            false,
-                            null,
-                            all_distinct_field,
-                        );
+                        // Select offset fields as null for each moduletable
 
-                        if (!!(parameterized_query_wrapper?.query?.length > 0) && !parameterized_query_wrapper.is_segmented_non_existing_table) {
+                        const moduletable = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
 
-                            if (!main_query_wrapper.fields) {
-                                main_query_wrapper.fields = parameterized_query_wrapper.fields;
+                        if (moduletable.is_segmented) {
+
+                            let { queries: segmented_queries } = await this.build_segmented_moduletable_select_query(
+                                context_query,
+                                main_query_wrapper,
+                                queries,
+                                access_type,
+                            );
+
+                            if (segmented_queries?.length > 0) {
+                                queries = queries.concat(segmented_queries);
                             }
 
-                            queries.push(parameterized_query_wrapper.query);
+                        } else {
+                            // Build sub-query for the final db request to union
+                            const parameterized_query_wrapper = await this.build_moduletable_select_query(
+                                union_context_query,
+                                access_type,
+                                null,
+                                false,
+                                null,
+                                all_distinct_field,
+                            );
+
+                            if (!!(parameterized_query_wrapper?.query?.length > 0) && !parameterized_query_wrapper?.is_segmented_non_existing_table) {
+
+                                if (!main_query_wrapper.fields) {
+                                    main_query_wrapper.fields = parameterized_query_wrapper.fields;
+                                }
+
+                                queries.push(parameterized_query_wrapper.query);
+                            }
                         }
 
                         /**
@@ -839,14 +824,30 @@ export default class ContextQueryServerController {
 
                     const union_context_query = cloneDeep(context_query);
 
+                    union_context_query.sort_by = union_context_query.sort_by?.map((sort_by) => {
+                        let alias = sort_by.alias ? sort_by.alias : sort_by.field_id;
+
+                        sort_by.alias = `t_union_${aliases_n}.` + alias;
+
+                        return sort_by;
+                    });
+
+                    union_context_query.fields = union_context_query.fields?.map((field) => {
+                        let alias = field.alias ? field.alias : field.field_id;
+
+                        field.alias = `t_union_${aliases_n}.` + alias;
+
+                        return field;
+                    });
+
+                    let GROUP_BY = await this.build_query_wrapper_group_by_clause(
+                        union_context_query,
+                        main_query_wrapper,
+                        false,
+                    );
+
                     let { SORT_BY, QUERY } = await this.build_query_wrapper_sort_by_clause(
-                        {
-                            ...union_context_query,
-                            sort_by: union_context_query.sort_by?.map((sort_by) => {
-                                sort_by.alias = `t_union_${aliases_n}.` + sort_by.field_id;
-                                return sort_by;
-                            })
-                        } as ContextQueryVO,
+                        union_context_query,
                         main_query_wrapper,
                         aliases_n,
                         access_type,
@@ -860,7 +861,7 @@ export default class ContextQueryServerController {
                         LIMIT = this.get_limit(union_context_query);
                     }
 
-                    union_query = QUERY + SORT_BY + LIMIT;
+                    union_query = QUERY + GROUP_BY + SORT_BY + LIMIT;
                 }
 
                 main_query_wrapper.set_query(union_query);
@@ -876,8 +877,70 @@ export default class ContextQueryServerController {
             }
         } catch (error) {
             ConsoleHandler.error(error);
+            return main_query_wrapper;
+        }
+    }
+
+    private async build_segmented_moduletable_select_query(
+        context_query: ContextQueryVO,
+        query_wrapper: ParameterizedQueryWrapper,
+        queries: string[],
+        access_type: string,
+    ): Promise<{ context_query: ContextQueryVO, query_wrapper: ParameterizedQueryWrapper, queries: string[] }> {
+
+        const moduletable = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
+        let ids: number[] = null;
+
+        if (!moduletable.is_segmented) {
             return null;
         }
+
+        ids = await this.get_valid_segmentations(moduletable, context_query);
+
+        if (!(ids?.length > 0)) {
+            query_wrapper.mark_as_is_segmented_non_existing_table();
+
+            return { context_query, query_wrapper, queries };
+        }
+
+        for (const i in ids) {
+            const id: number = ids[i];
+
+            const context_query_segmented: ContextQueryVO = cloneDeep(context_query)
+                .filter_by_id(
+                    id,
+                    moduletable.table_segmented_field.manyToOne_target_moduletable.vo_type
+                );
+
+
+            // Build sub-query for the final db request to union
+            const parameterized_query_wrapper = await this.build_moduletable_select_query(
+                context_query_segmented,
+                access_type,
+                moduletable,
+                true,
+                id
+            );
+
+            if (!!(parameterized_query_wrapper?.query?.length > 0) && !parameterized_query_wrapper.is_segmented_non_existing_table) {
+
+                if (!query_wrapper.fields) {
+                    query_wrapper.fields = parameterized_query_wrapper.fields;
+                }
+
+                queries.push(parameterized_query_wrapper.query);
+            }
+
+            /**
+             * Dans le cas des segmented, on remonte pas auto l'ajout des fields si on en avait pas dans
+             * la requete initiale, contrairement aux queries non segmentées, ce qui empeche le throttle
+             */
+            if (!(context_query.fields?.length > 0) && (context_query_segmented.fields)) {
+                context_query.fields = context_query_segmented.fields;
+            }
+        }
+
+        return { context_query, query_wrapper, queries };
     }
 
     /**
@@ -1164,7 +1227,14 @@ export default class ContextQueryServerController {
 
             let aggregator_prefix = '';
             let aggregator_suffix = '';
-            let field_alias = (context_field.alias ? " as " + context_field.alias : '');
+
+            let alias = context_field.alias;
+
+            if (alias == 'label') {
+                alias = ContextQueryServerController.INTERNAL_LABEL_REMPLACEMENT;
+            }
+
+            let field_alias = (alias ? " as " + alias : '');
 
             switch (context_field.aggregator) {
                 case VarConfVO.IS_NULLABLE_AGGREGATOR:
@@ -1335,7 +1405,9 @@ export default class ContextQueryServerController {
          *  - SORT_BY : Check OK
          *  - LIMIT : Check OK
          */
-        return query_wrapper.set_query(SELECT_QUERY + FROM + JOINTURES + WHERE + GROUP_BY + SORT_BY + LIMIT);
+        const QUERY = SELECT_QUERY + FROM + JOINTURES + WHERE + GROUP_BY + SORT_BY + LIMIT;
+
+        return query_wrapper.set_query(QUERY);
     }
 
     private async build_query_wrapper_where_clause(
@@ -1353,6 +1425,8 @@ export default class ContextQueryServerController {
 
         for (let i in context_query.filters) {
             let context_filter = context_query.filters[i];
+
+            // We should check if the table has the field actually
 
             aliases_n = await this.updates_jointures_from_filter(
                 context_filter,
@@ -1416,8 +1490,14 @@ export default class ContextQueryServerController {
                 ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_field.field_id);
                 ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_field.alias);
 
-                group_bys.push(context_field.alias ?
-                    context_field.alias :
+                let alias = context_field.alias;
+
+                if (alias == 'label') {
+                    alias = ContextQueryServerController.INTERNAL_LABEL_REMPLACEMENT;
+                }
+
+                group_bys.push(alias ?
+                    alias :
                     query_wrapper.tables_aliases_by_type[context_field.api_type_id] + '.' + context_field.field_id);
             }
 
@@ -1512,7 +1592,14 @@ export default class ContextQueryServerController {
                 if (is_selected_field || !context_query.query_distinct) {
 
                     if (!!sort_by.alias) {
-                        SORT_BY += modifier_start + sort_by.alias + modifier_end +
+
+                        let alias = sort_by.alias;
+
+                        if (alias == 'label') {
+                            alias = ContextQueryServerController.INTERNAL_LABEL_REMPLACEMENT;
+                        }
+
+                        SORT_BY += modifier_start + alias + modifier_end +
                             (sort_by.sort_asc ? ' ASC ' : ' DESC ');
 
                     } else {

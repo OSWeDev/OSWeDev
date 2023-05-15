@@ -331,7 +331,9 @@ export default class ContextFilterVOHandler {
 
                     // On va chercher la valeur du champs depuis la valeur de la donnée liée
                     if (!!raw_data[src_module_table_field_id]) {
-                        let ref_data: IDistantVOBase = await query(manyToOneField.targetModuleTable.vo_type).filter_by_id(raw_data[src_module_table_field_id]).select_vo();
+                        let ref_data: IDistantVOBase = await query(manyToOneField.targetModuleTable.vo_type)
+                            .filter_by_id(raw_data[src_module_table_field_id])
+                            .select_vo();
                         resData[field.datatable_field_uid] = manyToOneField.dataToHumanReadable(ref_data);
                         resData[field.datatable_field_uid + "___id___"] = raw_data[src_module_table_field_id];
                         resData[field.datatable_field_uid + "___type___"] = manyToOneField.targetModuleTable.vo_type;
@@ -363,7 +365,9 @@ export default class ContextFilterVOHandler {
 
                         for (let i in vo_ids) {
                             promises.push((async () => {
-                                let ref_data: IDistantVOBase = await query(manyToManyField.targetModuleTable.vo_type).filter_by_id(vo_ids[i]).select_vo();
+                                let ref_data: IDistantVOBase = await query(manyToManyField.targetModuleTable.vo_type)
+                                    .filter_by_id(vo_ids[i])
+                                    .select_vo();
 
                                 resData[field.datatable_field_uid].push({
                                     id: ref_data.id,
@@ -401,7 +405,9 @@ export default class ContextFilterVOHandler {
 
                         for (let i in vo_ids) {
                             promises.push((async () => {
-                                let ref_data: IDistantVOBase = await query(manyToManyField.targetModuleTable.vo_type).filter_by_id(vo_ids[i]).select_vo();
+                                let ref_data: IDistantVOBase = await query(manyToManyField.targetModuleTable.vo_type)
+                                    .filter_by_id(vo_ids[i])
+                                    .select_vo();
 
                                 resData[field.datatable_field_uid].push({
                                     id: ref_data.id,
@@ -425,7 +431,9 @@ export default class ContextFilterVOHandler {
                         refField.srcField.field_id;
 
                     await RangeHandler.foreach_ranges_batch_await(raw_data[refField_src_module_table_field_id], async (id: number) => {
-                        let ref_data: IDistantVOBase = await query(refField.targetModuleTable.vo_type).filter_by_id(id).select_vo();
+                        let ref_data: IDistantVOBase = await query(refField.targetModuleTable.vo_type)
+                            .filter_by_id(id)
+                            .select_vo();
                         resData[field.datatable_field_uid].push({
                             id: id,
                             label: refField.dataToHumanReadable(ref_data)

@@ -166,10 +166,13 @@ export default abstract class ServerBase {
                 StatsServerController.register_stat('ServerBase.PGP.query',
                     1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
             },
-            async error(e) {
+            async error(err, e) {
                 StatsServerController.register_stat('ServerBase.PGP.error',
                     1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-                ConsoleHandler.error('ServerBase.PGP.error: ' + JSON.stringify(e));
+                ConsoleHandler.error(
+                    'ServerBase.PGP.error: ' + JSON.stringify(err) +
+                    ' query: ' + JSON.stringify({ query: e.query })
+                );
             },
         });
         this.db = pgp({

@@ -24,8 +24,6 @@ export default class SupervisionWidgetManager {
      *  - The aim of this function is to load the supervision probs for the given api_type_ids
      *  - That means (for now) we must loop on the given api_type_ids and load the supervision probs for each of them
      *
-     * TODO: Do it in single request
-     *
      * @param {DashboardVO} dashboard
      * @param {SupervisionWidgetOptionsVO} widget_options
      * @param {{ [api_type_id: string]: { [field_name: string]: ContextFilterVO } }} active_field_filters
@@ -41,10 +39,9 @@ export default class SupervisionWidgetManager {
         pagination?: { offset: number, limit?: number, sort_by_field_id?: string },
         options?: { refresh: boolean }
     ): Promise<{ items: ISupervisedItem[], total_count: number }> {
-        const self = SupervisionWidgetManager.getInstance();
 
         let data: { items: ISupervisedItem[], total_count: number } = { items: [], total_count: 0 };
-        let context_filters_by_api_type_id: { [api_type_id: string]: ContextFilterVO } = {};
+        let context_filters_by_api_type_id: { [api_type_id: string]: ContextFilterVO[] } = {};
         let available_api_type_ids: string[] = [];
 
         if (active_api_type_ids?.length > 0) {
@@ -89,8 +86,6 @@ export default class SupervisionWidgetManager {
         for (const key_i in available_api_type_ids) {
             const api_type_id: string = available_api_type_ids[key_i];
 
-            // TODO: when there is no active_field_filter_by_api_type_id create default context_filter
-
             // Get the field_filters for the given api_type_id
             const field_filters = FieldFilterManager.filter_field_filters_by_api_type_id(
                 active_field_filter_by_api_type_id[api_type_id],
@@ -98,89 +93,24 @@ export default class SupervisionWidgetManager {
                 api_type_id
             );
 
-            // Get the context_filters from the active_field_filters
-            let supervision_context_filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_active_field_filters(
+            const supervision_context_filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_active_field_filters(
                 field_filters,
             );
 
-            if (!(supervision_context_filters?.length > 0)) {
-                supervision_context_filters = [new ContextFilterVO().from({ vo_type: api_type_id })];
-            }
+            const context_filters: ContextFilterVO[] = [
+                ...supervision_context_filters,
+                ...other_context_filters
+            ];
 
-            // Combine the given context_filters to have a single context_filter tree usign AND operator
-            const context_filter: ContextFilterVO = supervision_context_filters[0]?.andMany(
-                supervision_context_filters.slice(1, supervision_context_filters.length)
-            );
-
-            // We should olso combine the other context filters (from other api_type_ids)
-            // to have a single context_filter tree usign AND operator
-            context_filter?.andMany(other_context_filters);
-
-            console.log('SupervisionWidgetManager.find_supervision_probs_by_api_type_ids - context_filter',
-                JSON.stringify(context_filter),
-                'supervision_context_filters', JSON.stringify(supervision_context_filters));
-
-            context_filters_by_api_type_id[api_type_id] = context_filter;
+            context_filters_by_api_type_id[api_type_id] = context_filters;
         }
 
-        console.log('SupervisionWidgetManager.find_supervision_probs_by_api_type_ids - context_filters_by_api_type_id',
-            JSON.stringify(context_filters_by_api_type_id));
-
-        if (SupervisionWidgetManager.can_select_supervision_probs(
+        data = await SupervisionWidgetManager.select_supervision_probs_by_api_type_id(
+            dashboard,
+            widget_options,
             context_filters_by_api_type_id,
             pagination,
-            { force_reload: options?.refresh ?? false }
-        )) {
-
-            // Reset paginated_probs if needed
-            const should_reset_paginated_probs = SupervisionWidgetManager.should_reset_paginated_probs(
-                context_filters_by_api_type_id,
-                { force_reload: options?.refresh ?? false }
-            );
-
-            if (should_reset_paginated_probs) {
-                self.probs_by_api_type_id = {};
-                // Reset the paginated_probs
-                self.paginated_probs = {
-                    total_count: 0,
-                    offset: null,
-                    limit: null,
-                    items: [],
-                };
-            }
-
-            // TODO: case when refresh and current offset of paginated_probs has not been reached
-
-
-            console.log('SupervisionWidgetManager.find_supervision_probs_by_api_type_ids - can_select_supervision_probs',
-                true, 'paginated_probs.items.length', self.paginated_probs.items.length);
-            // There in no need to use the data as it is already loaded
-            // (in probs_by_api_type_id and paginated_probs)
-            data = await SupervisionWidgetManager.select_supervision_probs_by_api_type_id(
-                dashboard,
-                widget_options,
-                context_filters_by_api_type_id,
-                pagination,
-            );
-        }
-
-        let current_paginated_probs = [];
-
-        console.log('SupervisionWidgetManager.find_supervision_probs_by_api_type_ids',
-            'paginated_probs.items.length', self.paginated_probs.items.length,
-            'pagination.offset', pagination.offset
         );
-
-        if (self.paginated_probs?.items?.length > 0) {
-            current_paginated_probs = self.paginated_probs.items.slice(
-                pagination.offset,
-                pagination.offset + pagination.limit
-            );
-        }
-
-        self.old_context_filters_by_api_type_id = context_filters_by_api_type_id;
-
-        console.log('SupervisionWidgetManager.find_supervision_probs_by_api_type_ids - current_paginated_probs.length', current_paginated_probs.length);
 
         return data;
     }
@@ -270,7 +200,7 @@ export default class SupervisionWidgetManager {
     private static async select_supervision_probs_by_api_type_id(
         dashboard: DashboardVO,
         widget_options: SupervisionWidgetOptionsVO,
-        context_filters_by_api_type_id: { [api_type_id: string]: ContextFilterVO },
+        context_filters_by_api_type_id: { [api_type_id: string]: ContextFilterVO[] },
         pagination?: { offset: number, limit?: number, sort_by_field_id?: string }
     ): Promise<{
         items: ISupervisedItem[],
@@ -281,7 +211,7 @@ export default class SupervisionWidgetManager {
         const promise_pipeline = new PromisePipeline(pipeline_limit);
 
         // ContextQuery as a query builder
-        let qb: ContextQueryVO = null;
+        let context_query: ContextQueryVO = null;
 
         let limit: number = pagination?.limit ?? widget_options?.limit ?? 50;
         let items: ISupervisedItem[] = [];
@@ -289,7 +219,7 @@ export default class SupervisionWidgetManager {
 
         for (const api_type_id in context_filters_by_api_type_id) {
             // We must have a single tree of context_filters using AND operator
-            const api_type_context_filters: ContextFilterVO = context_filters_by_api_type_id[api_type_id];
+            const api_type_context_filters: ContextFilterVO[] = context_filters_by_api_type_id[api_type_id];
 
             // Récupération des sondes
             await promise_pipeline.push(async () => {
@@ -301,57 +231,44 @@ export default class SupervisionWidgetManager {
                     return;
                 }
 
-                console.log('SupervisionWidgetManager.select_supervision_probs_by_api_type_id - api_type_id', api_type_id,
-                    'api_type_context_filters', JSON.stringify(api_type_context_filters));
+                const context_filters: ContextFilterVO[] = api_type_context_filters ?? [];
 
-                const context_filters: ContextFilterVO[] = api_type_context_filters ? [api_type_context_filters] : [];
+                const api_type_context_query = query(api_type_id)
+                    .using(dashboard.api_type_ids)
+                    .add_filters(context_filters)
+                    .set_sort(new SortByVO(api_type_id, 'name', true));
 
                 // Avoid load from cache
-                if (!qb) {
+                if (!context_query) {
                     // Main first query
-                    qb = query(api_type_id)
-                        .using(dashboard.api_type_ids)
-                        .add_filters(context_filters)
-                        .set_sort(new SortByVO(api_type_id, 'name', true));
-
+                    context_query = api_type_context_query;
                 } else {
                     // Union query to be able to select all vos of each api_type_id
-                    const qb2 = query(api_type_id)
-                        .add_filters(context_filters)
-                        .set_sort(new SortByVO(api_type_id, 'name', true));
-
-                    qb.union(qb2);
+                    context_query.union(api_type_context_query);
                 }
             });
         }
 
         await promise_pipeline.end();
 
-        if (!qb) {
-            return { items, total_count };
-        }
-
         await promise_pipeline.push(async () => {
 
-            qb.set_limit(limit, pagination?.offset ?? 0);
+            context_query.set_limit(limit, pagination?.offset ?? 0);
 
-            console.log('SupervisionWidgetManager.select_supervision_probs_by_api_type_id - qb.filters', JSON.stringify(qb?.filters),
-                'query_builder', JSON.stringify(qb));
-
-            const rows_s = await qb.select_vos<ISupervisedItem>();
+            const rows_s = await context_query.select_vos<ISupervisedItem>();
 
             for (const key_j in rows_s) {
 
                 const row = rows_s[key_j];
 
                 // Si j'ai une fonction de filtre, je l'utilise
-                if (
-                    SupervisionWidgetManager.getInstance().is_item_accepted &&
-                    SupervisionWidgetManager.getInstance().is_item_accepted[dashboard.id] &&
-                    !SupervisionWidgetManager.getInstance().is_item_accepted[dashboard.id](row)
-                ) {
-                    continue;
-                }
+                // if (
+                //     SupervisionWidgetManager.getInstance().is_item_accepted &&
+                //     SupervisionWidgetManager.getInstance().is_item_accepted[dashboard.id] &&
+                //     !SupervisionWidgetManager.getInstance().is_item_accepted[dashboard.id](row)
+                // ) {
+                //     continue;
+                // }
 
                 items.push(row);
             }
@@ -359,7 +276,7 @@ export default class SupervisionWidgetManager {
 
         await promise_pipeline.push(async () => {
             // pour éviter de récuperer le cache
-            total_count = await qb.select_count();
+            total_count = await context_query.select_count();
         });
 
         await promise_pipeline.end();
