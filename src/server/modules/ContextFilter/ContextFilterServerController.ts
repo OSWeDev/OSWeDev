@@ -2697,6 +2697,12 @@ export default class ContextFilterServerController {
 
                 let where_clause_date_intersects = null;
                 context_filter.param_tsranges.forEach((tsrange) => {
+                    if (!tsrange) {
+                        ConsoleHandler.error('ERROR : tsrange null on field_id ' + field_id
+                            + ' :: param_tsranges : ' + JSON.stringify(context_filter.param_tsranges)
+                            + ' : contextQuery : ' + JSON.stringify(context_query));
+                    }
+
                     where_clause_date_intersects = (where_clause_date_intersects ? where_clause_date_intersects + ' OR ' : '');
 
                     ContextQueryInjectionCheckHandler.assert_integer(tsrange.min);

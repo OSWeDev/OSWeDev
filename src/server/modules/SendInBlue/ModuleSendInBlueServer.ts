@@ -148,7 +148,7 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
                     return;
                 }
 
-                let bdd_events = await query(MailEventVO.API_TYPE_ID).filter_by_num_eq('mail_id', mail.id).select_vos<MailEventVO>()
+                let bdd_events = await query(MailEventVO.API_TYPE_ID).filter_by_num_eq('mail_id', mail.id).select_vos<MailEventVO>();
 
                 await this.update_mail_event(mail, event, bdd_events);
             });
