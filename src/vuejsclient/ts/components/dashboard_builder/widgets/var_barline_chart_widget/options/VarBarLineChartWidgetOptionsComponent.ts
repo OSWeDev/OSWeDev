@@ -938,6 +938,6 @@ export default class VarBarLineChartWidgetOptionsComponent extends VueComponentB
     }
 
     private async update_dataset_options(dataset_options: VarBarLineDatasetChartWidgetOptions) {
-        todo
+        // todo
     }
 }
