@@ -133,7 +133,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
                 return;
             }
 
-            await ThreadHandler.sleep((this.widget_options.auto_refresh_seconds * 1000));
+            await ThreadHandler.sleep((this.widget_options.auto_refresh_seconds * 1000), 'SupervisionWidgetComponent.start_auto_refresh');
 
             this.throttled_update_visible_options();
         }

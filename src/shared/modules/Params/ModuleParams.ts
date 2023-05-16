@@ -82,12 +82,6 @@ export default class ModuleParams extends Module {
 
     public registerApis() {
 
-        // APIControllerWrapper.registerApi(new GetAPIDefinition<GetParamParamVO, string>(
-        //     ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, ParamVO.API_TYPE_ID),
-        //     ModuleParams.APINAME_getParamValue,
-        //     [ParamVO.API_TYPE_ID],
-        //     GetParamParamVOStatic
-        // ));
         APIControllerWrapper.registerApi(new PostForGetAPIDefinition<GetParamParamAsStringVO, string>(
             ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, ParamVO.API_TYPE_ID),
             ModuleParams.APINAME_getParamValueAsString,

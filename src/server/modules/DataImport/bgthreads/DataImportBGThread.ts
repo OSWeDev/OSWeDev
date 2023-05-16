@@ -12,6 +12,7 @@ import NumSegment from '../../../../shared/modules/DataRender/vos/NumSegment';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
+import StatsController from '../../../../shared/modules/Stats/StatsController';
 import StatsTypeVO from '../../../../shared/modules/Stats/vos/StatsTypeVO';
 import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
@@ -20,7 +21,6 @@ import TypesHandler from '../../../../shared/tools/TypesHandler';
 import ConfigurationService from '../../../env/ConfigurationService';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
-import StatsServerController from '../../Stats/StatsServerController';
 import VarsDatasProxy from '../../Var/VarsDatasProxy';
 import VarsDatasVoUpdateHandler from '../../Var/VarsDatasVoUpdateHandler';
 import ModuleDataImportServer from '../ModuleDataImportServer';
@@ -62,7 +62,7 @@ export default class DataImportBGThread implements IBGThread {
 
         try {
 
-            StatsServerController.register_stat('DataImportBGThread', 'work', 'IN', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat('DataImportBGThread', 'work', 'IN', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
             /**
              * Pour éviter de surcharger le système, on attend que le vos_cud des vars soit vidé (donc on a vraiment fini de traiter les imports précédents et rien de complexe en cours)
@@ -202,8 +202,8 @@ export default class DataImportBGThread implements IBGThread {
     private stats_out(activity: string, time_in: number) {
 
         let time_out = Dates.now_ms();
-        StatsServerController.register_stat('DataImportBGThread', 'work', activity + '_OUT', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsServerController.register_stats('DataImportBGThread', 'work', activity + '_OUT', StatsTypeVO.TYPE_DUREE, time_out - time_in,
+        StatsController.register_stat('DataImportBGThread', 'work', activity + '_OUT', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stats('DataImportBGThread', 'work', activity + '_OUT', StatsTypeVO.TYPE_DUREE, time_out - time_in,
             [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
     }
 
@@ -211,7 +211,7 @@ export default class DataImportBGThread implements IBGThread {
 
         let time_in = Dates.now_ms();
 
-        StatsServerController.register_stat('DataImportBGThread', 'prepare_reimports', 'IN', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat('DataImportBGThread', 'prepare_reimports', 'IN', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
         let dihs = await query(DataImportHistoricVO.API_TYPE_ID)
             .filter_by_num_eq('state', ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT)
@@ -228,8 +228,8 @@ export default class DataImportBGThread implements IBGThread {
         }
 
         let time_out = Dates.now_ms();
-        StatsServerController.register_stat('DataImportBGThread', 'prepare_reimports', 'OUT', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsServerController.register_stats('DataImportBGThread', 'prepare_reimports', 'OUT', StatsTypeVO.TYPE_DUREE, time_out - time_in,
+        StatsController.register_stat('DataImportBGThread', 'prepare_reimports', 'OUT', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stats('DataImportBGThread', 'prepare_reimports', 'OUT', StatsTypeVO.TYPE_DUREE, time_out - time_in,
             [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
     }
 

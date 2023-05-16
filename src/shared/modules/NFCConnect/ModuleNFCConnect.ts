@@ -51,6 +51,9 @@ export default class ModuleNFCConnect extends Module {
 
     public registerApis() {
 
+        /**
+         * Cas particulier d'une API GET qui réalise une action et devrait être un POST, mais qui est utilisé par les tags NFC.
+         */
         APIControllerWrapper.registerApi(new GetAPIDefinition<StringParamVO, boolean>(
             null,
             ModuleNFCConnect.APINAME_connect,
@@ -58,6 +61,9 @@ export default class ModuleNFCConnect extends Module {
             StringParamVOStatic
         ));
 
+        /**
+         * Cas particulier d'une API GET qui réalise une action et devrait être un POST, mais qui est utilisé par les tags NFC.
+         */
         APIControllerWrapper.registerApi(new GetAPIDefinition<StringParamVO, boolean>(
             null,
             ModuleNFCConnect.APINAME_connect_and_redirect,

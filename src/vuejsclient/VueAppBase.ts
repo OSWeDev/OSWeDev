@@ -56,6 +56,7 @@ import ConsoleHandler from "../shared/tools/ConsoleHandler";
 import { all_promises } from "../shared/tools/PromiseTools";
 import AlertsListContainerComponent from "./ts/components/alert/AlertsListContainerComponent";
 import i18next from 'i18next';
+import StatsVueModule from "./ts/modules/Stats/StatsVueModule";
 require('moment-json-parser').overrideDefault();
 
 
@@ -103,6 +104,7 @@ export default abstract class VueAppBase {
         await all_promises(promises);
 
         PushDataVueModule.getInstance();
+        StatsVueModule.getInstance();
 
         await this.initializeVueAppModulesDatas();
 

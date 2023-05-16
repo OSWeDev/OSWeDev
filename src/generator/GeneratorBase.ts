@@ -11,6 +11,7 @@ import ModuleServiceBase from '../server/modules/ModuleServiceBase';
 import ModuleSASSSkinConfiguratorServer from '../server/modules/SASSSkinConfigurator/ModuleSASSSkinConfiguratorServer';
 import DefaultTranslationsServerManager from '../server/modules/Translation/DefaultTranslationsServerManager';
 import ModulesManager from '../shared/modules/ModulesManager';
+import StatsController from '../shared/modules/Stats/StatsController';
 import ConsoleHandler from '../shared/tools/ConsoleHandler';
 import IGeneratorWorker from './IGeneratorWorker';
 import AddMaintenanceCreationPolicy from './inits/postmodules/AddMaintenanceCreationPolicy';
@@ -76,6 +77,9 @@ export default abstract class GeneratorBase {
     private STATIC_ENV_PARAMS: { [env: string]: EnvParam } = {};
 
     constructor(modulesService: ModuleServiceBase, STATIC_ENV_PARAMS: { [env: string]: EnvParam }) {
+
+        // BLOCK Stats Generator side
+        StatsController.ACTIVATED = false;
 
         GeneratorBase.instance = this;
         this.modulesService = modulesService;

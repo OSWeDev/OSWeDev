@@ -116,7 +116,7 @@ export default class TablesGraphComponent extends VueComponentBase {
             this.selectionChanged().then().catch((error) => { ConsoleHandler.error(error); });
 
         } else {
-            this.graph_mapper.remap();
+            await this.graph_mapper.remap();
         }
 
         this.semaphore_init_or_update_graph = false;

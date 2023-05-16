@@ -606,7 +606,8 @@ export default class ContextQueryServerController {
                 let ids: number[] = ids_map ? ids_map.map((id_map) => id_map.id) : null;
 
                 if (!ids || !ids.length) {
-                    throw new Error('Invalid segmentations');
+                    return null;
+                    // EDIT : je vois pas pourquoi ça serait un problème en fait, on a juste pas de résultats de segmentation ça semble pas grave en soit... throw new Error('Invalid segmentations');
                 }
 
                 /**
@@ -1598,8 +1599,28 @@ export default class ContextQueryServerController {
                 //TODO FIXME handle refranges
                 let field = VOsTypesManager.moduleTables_by_voType[f.vo_type].getFieldFromId(f.field_id);
                 if (field && (field.field_type == ModuleTableField.FIELD_TYPE_foreign_key)) {
-                    f.vo_type = field.manyToOne_target_moduletable.vo_type;
-                    f.field_id = 'id';
+                    /**
+                     * On doit créer un nouveau filtre sur l'id de la table ciblée par le lien
+                     */
+                    let new_filter = new ContextFilterVO();
+                    new_filter.field_id = 'id';
+                    new_filter.filter_type = f.filter_type;
+                    new_filter.id = f.id;
+                    new_filter.left_hook = f.left_hook;
+                    new_filter.param_alias = f.param_alias;
+                    new_filter.param_hourranges = f.param_hourranges;
+                    new_filter.param_numeric = f.param_numeric;
+                    new_filter.param_numeric_array = f.param_numeric_array;
+                    new_filter.param_numranges = f.param_numranges;
+                    new_filter.param_text = f.param_text;
+                    new_filter.param_textarray = f.param_textarray;
+                    new_filter.right_hook = f.right_hook;
+                    new_filter.vo_type = field.manyToOne_target_moduletable.vo_type;
+                    new_filter.param_tsranges = f.param_tsranges;
+                    new_filter.sub_query = f.sub_query;
+                    new_filter.text_ignore_case = f.text_ignore_case;
+
+                    f = new_filter;
                 } else {
                     continue;
                 }

@@ -100,8 +100,8 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
      * @returns {void}
      */
     @Watch('is_modal_open')
-    private is_modal_open_watcher(): void {
-        this.handle_modal_state();
+    private async is_modal_open_watcher() {
+        await this.handle_modal_state();
     }
 
     /**

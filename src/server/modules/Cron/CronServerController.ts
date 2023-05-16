@@ -154,7 +154,7 @@ export default class CronServerController {
             if (!CronServerController.getInstance().cronWorkers_semaphores_reload[worker_uid]) {
                 CronServerController.getInstance().cronWorkers_semaphores_reload[worker_uid] = true;
                 while (!CronServerController.getInstance().cronWorkers_semaphores[worker_uid]) {
-                    await ThreadHandler.sleep(1000);
+                    await ThreadHandler.sleep(1000, 'CronServerController.!cronWorkers_semaphores.' + worker_uid);
                 }
             } else {
                 return;

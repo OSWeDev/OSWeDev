@@ -114,7 +114,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
             ...props,
         });
 
-        this.save_favorites_filters(favorites_filters);
+        await this.save_favorites_filters(favorites_filters);
 
         this.start_update = false;
     }
@@ -135,7 +135,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
                 );
 
                 if (success) {
-                    self.reload_all_visible_active_filters();
+                    await self.reload_all_visible_active_filters();
                     resolve({
                         body: self.label('dashboard_viewer.save_favorites_filters.ok'),
                         config: {
@@ -165,7 +165,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
      *
      * @return {void}
      */
-    private reload_all_visible_active_filters(): void {
+    private async reload_all_visible_active_filters(): Promise<void> {
         for (const db_id in ReloadFiltersWidgetController.getInstance().reloaders) {
             const db_reloaders = ReloadFiltersWidgetController.getInstance().reloaders[db_id];
 
@@ -175,7 +175,7 @@ export default class SaveFavoritesFiltersWidgetComponent extends VueComponentBas
                 for (const w_id in p_reloaders) {
                     const reload = p_reloaders[w_id];
 
-                    reload();
+                    await reload();
                 }
             }
         }

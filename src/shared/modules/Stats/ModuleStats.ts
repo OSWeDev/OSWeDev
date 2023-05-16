@@ -1,4 +1,6 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import APIControllerWrapper from '../API/APIControllerWrapper';
+import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import NumSegment from '../DataRender/vos/NumSegment';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
@@ -8,12 +10,10 @@ import VarsInitController from '../Var/VarsInitController';
 import VersionedVOController from '../Versioned/VersionedVOController';
 import VOsTypesManager from '../VOsTypesManager';
 import StatsGroupSecDataRangesVO from './vars/vos/StatsGroupDayDataRangesVO';
+import StatClientWrapperVO from './vos/StatClientWrapperVO';
 import StatsCategoryVO from './vos/StatsCategoryVO';
-import StatsEventCacheLinkVO from './vos/StatsEventCacheLinkVO';
 import StatsEventVO from './vos/StatsEventVO';
-import StatsGroupCacheLinkVO from './vos/StatsGroupCacheLinkVO';
 import StatsGroupVO from './vos/StatsGroupVO';
-import StatsSubCategoryCacheLinkVO from './vos/StatsSubCategoryCacheLinkVO';
 import StatsSubCategoryVO from './vos/StatsSubCategoryVO';
 import StatsThreadVO from './vos/StatsThreadVO';
 import StatsTypeVO from './vos/StatsTypeVO';
@@ -28,6 +28,8 @@ export default class ModuleStats extends Module {
     public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleStats.MODULE_NAME + '.BO_ACCESS';
     public static POLICY_FO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleStats.MODULE_NAME + '.FO_ACCESS';
 
+    public static APINAME_register_client_stats: string = "register_client_stats";
+
     public static getInstance(): ModuleStats {
         if (!ModuleStats.instance) {
             ModuleStats.instance = new ModuleStats();
@@ -37,13 +39,15 @@ export default class ModuleStats extends Module {
 
     private static instance: ModuleStats = null;
 
+    public register_client_stats: (
+        stats_client: StatClientWrapperVO[],
+        client_timestamp_s: number, // this is the timestamp of the client at the time of calling the API, to be able to compare with the server timestamp
+    ) => Promise<any> = APIControllerWrapper.sah(ModuleStats.APINAME_register_client_stats);
+
     private constructor() {
 
         super("stats", ModuleStats.MODULE_NAME);
         this.forceActivationOnInstallation();
-    }
-
-    public registerApis() {
     }
 
     public initialize() {
@@ -61,7 +65,20 @@ export default class ModuleStats extends Module {
         // this.initializeStatsEventCacheLinkVO();
         this.initializeStatsGroupVO();
         this.initializeStatVO();
+        this.initializeStatClientWrapperVO();
         this.initializeStatsGroupSecDataRangesVO();
+    }
+
+    public registerApis() {
+
+        APIControllerWrapper.registerApi(new PostAPIDefinition<{
+            stats_client: StatClientWrapperVO[],
+            client_timestamp: number
+        }, any>(
+            null,
+            ModuleStats.APINAME_register_client_stats,
+            [], // FIXME : toute la limite de ce système est là : on ne peut pas indiquer les modifs en base quand tout est throttle derrière, donc on invalide rien pourtant ça crée des stats...
+        ));
     }
 
     private initializeStatsGroupSecDataRangesVO() {
@@ -89,6 +106,26 @@ export default class ModuleStats extends Module {
         table.segment_on_field('stat_group_id', NumSegment.TYPE_INT);
         this.datatables.push(table);
         stat_group_id.addManyToOneRelation(VOsTypesManager.moduleTables_by_voType[StatsGroupVO.API_TYPE_ID]);
+    }
+
+    private initializeStatClientWrapperVO() {
+
+        let fields = [
+            new ModuleTableField('value', ModuleTableField.FIELD_TYPE_float, 'Valeur', true, true, 0),
+            new ModuleTableField('timestamp_s', ModuleTableField.FIELD_TYPE_tstz, 'Timestamp (sec)', true, true, 0).set_segmentation_type(TimeSegment.TYPE_SECOND).set_format_localized_time(true),
+
+            new ModuleTableField('tmp_category_name', ModuleTableField.FIELD_TYPE_string, 'Catégorie - temp', false),
+            new ModuleTableField('tmp_sub_category_name', ModuleTableField.FIELD_TYPE_string, 'Sous-catégorie - temp', false),
+            new ModuleTableField('tmp_event_name', ModuleTableField.FIELD_TYPE_string, 'Evènement - temp', false),
+            new ModuleTableField('tmp_stat_type_name', ModuleTableField.FIELD_TYPE_string, 'Type - temp', false),
+            new ModuleTableField('tmp_thread_name', ModuleTableField.FIELD_TYPE_string, 'Thread - temp', false),
+
+            new ModuleTableField('stats_aggregator', ModuleTableField.FIELD_TYPE_enum, 'Aggrégateur', true, true, StatVO.AGGREGATOR_MEAN).setEnumValues(StatVO.AGGREGATOR_LABELS),
+            new ModuleTableField('stats_aggregator_min_segment_type', ModuleTableField.FIELD_TYPE_enum, 'Segmentation minimale', true, true, TimeSegment.TYPE_SECOND),
+        ];
+
+        let table = new ModuleTable(this, StatClientWrapperVO.API_TYPE_ID, () => new StatClientWrapperVO(), fields, null, 'Stats - Client side wrapper');
+        this.datatables.push(table);
     }
 
     private initializeStatsGroupVO() {

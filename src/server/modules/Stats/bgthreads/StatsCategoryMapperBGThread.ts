@@ -3,6 +3,7 @@ import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQuery
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import StatsController from '../../../../shared/modules/Stats/StatsController';
 import StatsCategoryVO from '../../../../shared/modules/Stats/vos/StatsCategoryVO';
 import StatsEventVO from '../../../../shared/modules/Stats/vos/StatsEventVO';
 import StatsGroupVO from '../../../../shared/modules/Stats/vos/StatsGroupVO';
@@ -13,7 +14,6 @@ import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
-import StatsServerController from '../StatsServerController';
 
 /**
  * On prend toutes les stats dont les liaisons de catégories sont pas à jour et on met à jour de manière centralisée
@@ -56,7 +56,7 @@ export default class StatsCategoryMapperBGThread implements IBGThread {
 
         try {
 
-            StatsServerController.register_stat('StatsCategoryMapperBGThread', 'work', 'IN', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat('StatsCategoryMapperBGThread', 'work', 'IN', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
             if (!this.cache_initialised) {
                 await this.init_cache();
@@ -91,8 +91,8 @@ export default class StatsCategoryMapperBGThread implements IBGThread {
     private stats_out(activity: string, time_in: number) {
 
         let time_out = Dates.now_ms();
-        StatsServerController.register_stat('StatsCategoryMapperBGThread', 'work', activity + '_OUT', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsServerController.register_stats('StatsCategoryMapperBGThread', 'work', activity + '_OUT', StatsTypeVO.TYPE_DUREE, time_out - time_in,
+        StatsController.register_stat('StatsCategoryMapperBGThread', 'work', activity + '_OUT', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stats('StatsCategoryMapperBGThread', 'work', activity + '_OUT', StatsTypeVO.TYPE_DUREE, time_out - time_in,
             [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
     }
 

@@ -131,7 +131,7 @@ export default class ExpressDBSessionsServerController extends Store {
 
                         // on attend un peu et on retente, le serveur est peut-etre pas démarré correctement encore
                         ConsoleHandler.warn('ExpressDBSessionsServerController.set: no session in db for this sid but insertion failed. Waiting for retry... :' + sid);
-                        await ThreadHandler.sleep(5000);
+                        await ThreadHandler.sleep(5000, 'ExpressDBSessionsServerController.Set.failed_session_insert');
                         return await this.touch(sid, sess, fn);
                     }
                 } catch (error) {
@@ -227,8 +227,8 @@ export default class ExpressDBSessionsServerController extends Store {
                     } else {
 
                         // on attend un peu et on retente
-                        ConsoleHandler.warn('ExpressDBSessionsServerController.set: no session in db for this sid but insertion failed. Waiting for retry... :' + sid);
-                        await ThreadHandler.sleep(5000);
+                        ConsoleHandler.warn('ExpressDBSessionsServerController.touch: no session in db for this sid but insertion failed. Waiting for retry... :' + sid);
+                        await ThreadHandler.sleep(5000, 'ExpressDBSessionsServerController.touch.failed_session_insert');
                         return await this.touch(sid, sess, fn);
                     }
                 } catch (error) {

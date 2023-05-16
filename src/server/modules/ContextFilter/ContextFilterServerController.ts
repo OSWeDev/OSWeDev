@@ -3186,6 +3186,7 @@ export default class ContextFilterServerController {
                             );
                             break;
                         case ModuleTableField.FIELD_TYPE_refrange_array:
+                        case ModuleTableField.FIELD_TYPE_numrange_array:
                             jointures.push(
                                 jointure_table_ref + ' ' + tables_aliases_by_type[api_type_id] +
                                 ' on ' +
@@ -3264,6 +3265,7 @@ export default class ContextFilterServerController {
                             );
                             break;
                         case ModuleTableField.FIELD_TYPE_refrange_array:
+                        case ModuleTableField.FIELD_TYPE_numrange_array:
                             jointures.push(
                                 jointure_table_ref + ' ' + tables_aliases_by_type[api_type_id] +
                                 ' on ' +

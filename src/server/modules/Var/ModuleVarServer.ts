@@ -6,6 +6,7 @@ import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyD
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ContextFilterVOHandler from '../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVOManager from '../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
+import FieldFilterManager from '../../../shared/modules/ContextFilter/manager/FieldFilterManager';
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
@@ -22,10 +23,11 @@ import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
+import StatsController from '../../../shared/modules/Stats/StatsController';
+import StatsTypeVO from '../../../shared/modules/Stats/vos/StatsTypeVO';
 import StatVO from '../../../shared/modules/Stats/vos/StatVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
-import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
@@ -63,7 +65,6 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
-import StatsServerController from '../Stats/StatsServerController';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
@@ -79,8 +80,6 @@ import VarServerControllerBase from './VarServerControllerBase';
 import VarsServerCallBackSubsController from './VarsServerCallBackSubsController';
 import VarsServerController from './VarsServerController';
 import VarsTabsSubsController from './VarsTabsSubsController';
-import FieldFilterManager from '../../../shared/modules/ContextFilter/manager/FieldFilterManager';
-import StatsTypeVO from '../../../shared/modules/Stats/vos/StatsTypeVO';
 
 export default class ModuleVarServer extends ModuleServerBase {
 
@@ -955,7 +954,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 ||
                 (await VarsDatasProxy.getInstance().has_vardata_waiting_for_computation())
             ) {
-                await ThreadHandler.sleep(1000);
+                await ThreadHandler.sleep(1000, 'ModuleVarServer.wait_for_computation_hole');
                 let actual_time = Dates.now();
 
                 if (actual_time > (start_time + 60)) {
@@ -1031,7 +1030,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 ||
                 (await VarsDatasProxy.getInstance().has_vardata_waiting_for_computation())
             ) {
-                await ThreadHandler.sleep(interval_sleep_ms);
+                await ThreadHandler.sleep(interval_sleep_ms, 'ModuleVarServer.exec_in_computation_hole');
                 let actual_time = Dates.now();
 
                 if (actual_time > (start_time + (timeout_ms / 1000))) {
@@ -1181,9 +1180,9 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
-        StatsServerController.register_stat('ModuleVarServer', 'register_params', 'IN', StatsTypeVO.TYPE_COMPTEUR,
+        StatsController.register_stat('ModuleVarServer', 'register_params', 'IN', StatsTypeVO.TYPE_COMPTEUR,
             1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsServerController.register_stats('ModuleVarServer', 'register_params', 'nb_IN_varsdatas', StatsTypeVO.TYPE_QUANTITE,
+        StatsController.register_stats('ModuleVarServer', 'register_params', 'nb_IN_varsdatas', StatsTypeVO.TYPE_QUANTITE,
             params.length, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
         let time_in = Dates.now_ms();
 
@@ -1211,7 +1210,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
-        StatsServerController.register_stats('ModuleVarServer', 'register_params', 'nb_valid_registered_varsdatas', StatsTypeVO.TYPE_QUANTITE,
+        StatsController.register_stats('ModuleVarServer', 'register_params', 'nb_valid_registered_varsdatas', StatsTypeVO.TYPE_QUANTITE,
             params.length, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
 
         let uid = StackContext.get('UID');
@@ -1241,7 +1240,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
             await PushDataServerController.getInstance().notifyVarsDatas(uid, client_tab_id, vars_to_notif);
 
-            StatsServerController.register_stats('ModuleVarServer', 'register_params', 'nb_cache_notified_varsdatas', StatsTypeVO.TYPE_QUANTITE,
+            StatsController.register_stats('ModuleVarServer', 'register_params', 'nb_cache_notified_varsdatas', StatsTypeVO.TYPE_QUANTITE,
                 notifyable_vars.length, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
 
             if (ConfigurationService.node_configuration.DEBUG_VARS) {
@@ -1254,9 +1253,9 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         let time_out = Dates.now_ms();
-        StatsServerController.register_stat('ModuleVarServer', 'register_params', 'OUT', StatsTypeVO.TYPE_COMPTEUR,
+        StatsController.register_stat('ModuleVarServer', 'register_params', 'OUT', StatsTypeVO.TYPE_COMPTEUR,
             1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsServerController.register_stats('ModuleVarServer', 'register_params', 'OUT', StatsTypeVO.TYPE_DUREE,
+        StatsController.register_stats('ModuleVarServer', 'register_params', 'OUT', StatsTypeVO.TYPE_DUREE,
             time_out - time_in, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
     }
 

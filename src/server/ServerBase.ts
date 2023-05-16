@@ -35,6 +35,7 @@ import ModuleMaintenance from '../shared/modules/Maintenance/ModuleMaintenance';
 import ModulesManager from '../shared/modules/ModulesManager';
 import ModuleParams from '../shared/modules/Params/ModuleParams';
 import ModulePushData from '../shared/modules/PushData/ModulePushData';
+import StatsController from '../shared/modules/Stats/StatsController';
 import StatsTypeVO from '../shared/modules/Stats/vos/StatsTypeVO';
 import StatVO from '../shared/modules/Stats/vos/StatVO';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
@@ -101,6 +102,14 @@ export default abstract class ServerBase {
 
         ForkedTasksController.getInstance().assert_is_main_process();
 
+        // INIT Stats Server side
+        StatsController.THREAD_NAME = 'main';
+        StatsController.THREAD_IS_CLIENT = false;
+        StatsController.UNSTACK_THROTTLE = 180000;
+        StatsController.UNSTACK_THROTTLE_PARAM_NAME = 'StatsController.UNSTACK_THROTTLE_SERVER';
+        StatsController.check_groups_handler = StatsServerController.check_groups;
+        StatsController.new_stats_handler = StatsServerController.handle_new_stats;
+
         ServerBase.instance = this;
         this.modulesService = modulesService;
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
@@ -157,19 +166,19 @@ export default abstract class ServerBase {
 
         let pgp: pg_promise.IMain = pg_promise({
             async connect(client, dc, useCount) {
-                StatsServerController.register_stat('ServerBase', 'PGP', 'connect', StatsTypeVO.TYPE_COMPTEUR,
+                StatsController.register_stat('ServerBase', 'PGP', 'connect', StatsTypeVO.TYPE_COMPTEUR,
                     1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
             },
             async disconnect(client, dc) {
-                StatsServerController.register_stat('ServerBase', 'PGP', 'disconnect', StatsTypeVO.TYPE_COMPTEUR,
+                StatsController.register_stat('ServerBase', 'PGP', 'disconnect', StatsTypeVO.TYPE_COMPTEUR,
                     1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
             },
             async query(e) {
-                StatsServerController.register_stat('ServerBase', 'PGP', 'query', StatsTypeVO.TYPE_COMPTEUR,
+                StatsController.register_stat('ServerBase', 'PGP', 'query', StatsTypeVO.TYPE_COMPTEUR,
                     1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
             },
             async error(e) {
-                StatsServerController.register_stat('ServerBase', 'PGP', 'error', StatsTypeVO.TYPE_COMPTEUR,
+                StatsController.register_stat('ServerBase', 'PGP', 'error', StatsTypeVO.TYPE_COMPTEUR,
                     1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                 ConsoleHandler.error('ServerBase.PGP.error: ' + JSON.stringify(e));
             },
@@ -199,6 +208,7 @@ export default abstract class ServerBase {
             ConsoleHandler.log('ServerExpressController:initializeDataImports:END');
         }
 
+        await StatsController.init_params();
         this.spawn = child_process.spawn;
 
         /* A voir l'intéret des différents routers this.app.use(apiRouter());
@@ -272,9 +282,9 @@ export default abstract class ServerBase {
             //     .replace(/[:.]/g, '')
             //     .replace(/\//g, '_');
 
-            StatsServerController.register_stats('express', method, status, StatsTypeVO.TYPE_DUREE,
+            StatsController.register_stats('express', method, status, StatsTypeVO.TYPE_DUREE,
                 time, [StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
-            StatsServerController.register_stat('express', method, status, StatsTypeVO.TYPE_COMPTEUR,
+            StatsController.register_stat('express', method, status, StatsTypeVO.TYPE_COMPTEUR,
                 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
             if (status >= 500) {
@@ -293,7 +303,7 @@ export default abstract class ServerBase {
                     ServerBase.SLOW_EXPRESS_QUERY_LIMIT_MS_PARAM_NAME, 1000, 300000
                 );
                 if (time > slow_queries_limit) {
-                    StatsServerController.register_stat('express', method, 'slow', StatsTypeVO.TYPE_COMPTEUR,
+                    StatsController.register_stat('express', method, 'slow', StatsTypeVO.TYPE_COMPTEUR,
                         1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                 }
             }
@@ -474,7 +484,7 @@ export default abstract class ServerBase {
                         const client_tab_id = req.headers ? req.headers.client_tab_id : null;
 
                         if (uid && client_tab_id) {
-                            StatsServerController.register_stat('express', 'version', 'reload', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                            StatsController.register_stat('express', 'version', 'reload', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
                             ConsoleHandler.log("ServerExpressController:version:uid:" + uid + ":client_tab_id:" + client_tab_id + ": asking for reload");
                             await PushDataServerController.getInstance().notifyTabReload(uid, client_tab_id);
                         }
@@ -566,13 +576,13 @@ export default abstract class ServerBase {
 
             // Le cas du service worker est déjà traité, ici on a tout sauf le service_worker. Si on ne trouve pas le fichier c'est une erreur et on demande un reload
             if (!fs.existsSync(path.resolve('./dist' + req.url))) {
-                StatsServerController.register_stat('express', 'public', 'notfound', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                StatsController.register_stat('express', 'public', 'notfound', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
                 const uid = req.session ? req.session.uid : null;
                 const client_tab_id = req.headers ? req.headers.client_tab_id : null;
 
                 // if (uid && client_tab_id) {
-                //     StatsServerController.register_stats('express', 'public', 'reload', StatsTypeVO.TYPE_COMPTEUR, 1, [StatVO.AGGREGATOR_SUM], TimeSegment.TYPE_MINUTE);
+                //     StatsController.register_stats('express', 'public', 'reload', StatsTypeVO.TYPE_COMPTEUR, 1, [StatVO.AGGREGATOR_SUM], TimeSegment.TYPE_MINUTE);
                 //     ConsoleHandler.warn("ServerExpressController:public:NOT_FOUND:" + req.url + ": asking for reload");
                 //     await PushDataServerController.getInstance().notifyTabReload(uid, client_tab_id);
                 // } else {
@@ -1164,7 +1174,7 @@ export default abstract class ServerBase {
              */
             let timeout_sec: number = 30;
             while ((!ForkServerController.getInstance().forks_are_initialized) && (timeout_sec > 0)) {
-                await ThreadHandler.sleep(1000);
+                await ThreadHandler.sleep(1000, '/cron.!forks_are_initialized');
                 timeout_sec--;
             }
 

@@ -157,8 +157,8 @@ export default class VarWidgetComponent extends VueComponentBase {
         return false;
     }
 
-    private mounted() {
-        ValidationFiltersWidgetController.getInstance().register_updater(
+    private async mounted() {
+        await ValidationFiltersWidgetController.getInstance().register_updater(
             this.dashboard_page.dashboard_id,
             this.dashboard_page.id,
             this.page_widget.id,

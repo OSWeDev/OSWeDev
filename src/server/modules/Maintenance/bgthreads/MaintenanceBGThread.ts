@@ -5,13 +5,13 @@ import ModuleMaintenance from '../../../../shared/modules/Maintenance/ModuleMain
 import MaintenanceVO from '../../../../shared/modules/Maintenance/vos/MaintenanceVO';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import NotificationVO from '../../../../shared/modules/PushData/vos/NotificationVO';
+import StatsController from '../../../../shared/modules/Stats/StatsController';
 import StatsTypeVO from '../../../../shared/modules/Stats/vos/StatsTypeVO';
 import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import PushDataServerController from '../../PushData/PushDataServerController';
-import StatsServerController from '../../Stats/StatsServerController';
 import MaintenanceServerController from '../MaintenanceServerController';
 import ModuleMaintenanceServer from '../ModuleMaintenanceServer';
 
@@ -43,7 +43,7 @@ export default class MaintenanceBGThread implements IBGThread {
 
         try {
 
-            StatsServerController.register_stat('MaintenanceBGThread', 'work', 'IN', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat('MaintenanceBGThread', 'work', 'IN', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
             // On veut voir si une maintenance est en base et inconnue pour le moment du système
             //  ou si la maintenance que l'on croit devoir préparer est toujours d'actualité
@@ -119,8 +119,8 @@ export default class MaintenanceBGThread implements IBGThread {
     private stats_out(activity: string, time_in: number) {
 
         let time_out = Dates.now_ms();
-        StatsServerController.register_stat('MaintenanceBGThread', 'work', activity + '_OUT', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsServerController.register_stats('MaintenanceBGThread', 'work', activity + '_OUT', StatsTypeVO.TYPE_DUREE, time_out - time_in,
+        StatsController.register_stat('MaintenanceBGThread', 'work', activity + '_OUT', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stats('MaintenanceBGThread', 'work', activity + '_OUT', StatsTypeVO.TYPE_DUREE, time_out - time_in,
             [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
     }
 }

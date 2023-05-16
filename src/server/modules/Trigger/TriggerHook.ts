@@ -1,8 +1,8 @@
 import TimeSegment from "../../../shared/modules/DataRender/vos/TimeSegment";
 import Dates from "../../../shared/modules/FormatDatesNombres/Dates/Dates";
+import StatsController from "../../../shared/modules/Stats/StatsController";
 import StatsTypeVO from "../../../shared/modules/Stats/vos/StatsTypeVO";
 import StatVO from "../../../shared/modules/Stats/vos/StatVO";
-import StatsServerController from "../Stats/StatsServerController";
 
 export default abstract class TriggerHook<Conditions, Params, Out> {
 
@@ -43,7 +43,7 @@ export default abstract class TriggerHook<Conditions, Params, Out> {
         let conditionalHandlers: [(params: Params) => Promise<Out>] = conditionUID ? this.registered_handlers[conditionUID] : null;
 
         let time_in = Dates.now_ms();
-        StatsServerController.register_stat('TriggerHook', this.trigger_type_UID, conditionUID, StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat('TriggerHook', this.trigger_type_UID, conditionUID, StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
         let res: Out[] = [];
 
@@ -63,7 +63,7 @@ export default abstract class TriggerHook<Conditions, Params, Out> {
         }
 
         let time_out = Dates.now_ms();
-        StatsServerController.register_stats('TriggerHook', this.trigger_type_UID, conditionUID, StatsTypeVO.TYPE_DUREE, time_out - time_in,
+        StatsController.register_stats('TriggerHook', this.trigger_type_UID, conditionUID, StatsTypeVO.TYPE_DUREE, time_out - time_in,
             [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MIN, StatVO.AGGREGATOR_MEAN], TimeSegment.TYPE_MINUTE);
 
         return res;

@@ -2,6 +2,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
+import StatsController from '../../../shared/modules/Stats/StatsController';
 import StatsTypeVO from '../../../shared/modules/Stats/vos/StatsTypeVO';
 import StatVO from '../../../shared/modules/Stats/vos/StatVO';
 import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
@@ -13,7 +14,6 @@ import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import ConfigurationService from '../../env/ConfigurationService';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
-import StatsServerController from '../Stats/StatsServerController';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import VarsComputeController from './VarsComputeController';
 import VarsDatasProxy from './VarsDatasProxy';
@@ -114,7 +114,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      */
     public async computeValue(varDAGNode: VarDAGNode) {
 
-        StatsServerController.register_stat('VarServerControllerBase', 'computeValue', this.varConf.name, StatsTypeVO.TYPE_COMPTEUR,
+        StatsController.register_stat('VarServerControllerBase', 'computeValue', this.varConf.name, StatsTypeVO.TYPE_COMPTEUR,
             1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
         let time_in = Dates.now_ms();
 
@@ -140,7 +140,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
         await VarsDatasProxy.getInstance().update_existing_buffered_older_datas([varDAGNode.var_data], 'computeValue');
 
         let time_out = Dates.now_ms();
-        StatsServerController.register_stats('VarServerControllerBase', 'computeValue', this.varConf.name, StatsTypeVO.TYPE_DUREE,
+        StatsController.register_stats('VarServerControllerBase', 'computeValue', this.varConf.name, StatsTypeVO.TYPE_DUREE,
             time_out - time_in, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
     }
 
@@ -184,16 +184,16 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
             return null;
         }
 
-        StatsServerController.register_stat('VarServerControllerBase', 'get_invalid_params_intersectors_on_POST_C_POST_D_group', this.varConf.name, StatsTypeVO.TYPE_COMPTEUR,
+        StatsController.register_stat('VarServerControllerBase', 'get_invalid_params_intersectors_on_POST_C_POST_D_group', this.varConf.name, StatsTypeVO.TYPE_COMPTEUR,
             1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsServerController.register_stat('VarServerControllerBase', 'get_invalid_params_intersectors_on_POST_C_POST_D_group', this.varConf.name, StatsTypeVO.TYPE_QUANTITE,
+        StatsController.register_stat('VarServerControllerBase', 'get_invalid_params_intersectors_on_POST_C_POST_D_group', this.varConf.name, StatsTypeVO.TYPE_QUANTITE,
             c_or_d_vos.length, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
         let time_in = Dates.now_ms();
 
         let res = await this.get_invalid_params_intersectors_on_POST_C_POST_D_group(c_or_d_vos);
 
         let time_out = Dates.now_ms();
-        StatsServerController.register_stats('VarServerControllerBase', 'get_invalid_params_intersectors_on_POST_C_POST_D_group', this.varConf.name, StatsTypeVO.TYPE_DUREE,
+        StatsController.register_stats('VarServerControllerBase', 'get_invalid_params_intersectors_on_POST_C_POST_D_group', this.varConf.name, StatsTypeVO.TYPE_DUREE,
             time_out - time_in, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
 
         return res;
@@ -236,16 +236,16 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
             return null;
         }
 
-        StatsServerController.register_stat('VarServerControllerBase', 'get_invalid_params_intersectors_on_POST_U_group', this.varConf.name, StatsTypeVO.TYPE_COMPTEUR,
+        StatsController.register_stat('VarServerControllerBase', 'get_invalid_params_intersectors_on_POST_U_group', this.varConf.name, StatsTypeVO.TYPE_COMPTEUR,
             1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsServerController.register_stat('VarServerControllerBase', 'get_invalid_params_intersectors_on_POST_U_group', this.varConf.name, StatsTypeVO.TYPE_QUANTITE,
+        StatsController.register_stat('VarServerControllerBase', 'get_invalid_params_intersectors_on_POST_U_group', this.varConf.name, StatsTypeVO.TYPE_QUANTITE,
             u_vo_holders.length, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
         let time_in = Dates.now_ms();
 
         let res = await this.get_invalid_params_intersectors_on_POST_U_group(u_vo_holders);
 
         let time_out = Dates.now_ms();
-        StatsServerController.register_stats('VarServerControllerBase', 'get_invalid_params_intersectors_on_POST_U_group', this.varConf.name, StatsTypeVO.TYPE_DUREE,
+        StatsController.register_stats('VarServerControllerBase', 'get_invalid_params_intersectors_on_POST_U_group', this.varConf.name, StatsTypeVO.TYPE_DUREE,
             time_out - time_in, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
 
         return res;
@@ -308,16 +308,16 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
             return null;
         }
 
-        StatsServerController.register_stat('VarServerControllerBase', 'get_invalid_params_intersectors_from_dep', this.varConf.name, StatsTypeVO.TYPE_COMPTEUR,
+        StatsController.register_stat('VarServerControllerBase', 'get_invalid_params_intersectors_from_dep', this.varConf.name, StatsTypeVO.TYPE_COMPTEUR,
             1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsServerController.register_stat('VarServerControllerBase', 'get_invalid_params_intersectors_from_dep', this.varConf.name, StatsTypeVO.TYPE_QUANTITE,
+        StatsController.register_stat('VarServerControllerBase', 'get_invalid_params_intersectors_from_dep', this.varConf.name, StatsTypeVO.TYPE_QUANTITE,
             intersectors.length, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
         let time_in = Dates.now_ms();
 
         let res = await this.get_invalid_params_intersectors_from_dep(dep_id, intersectors);
 
         let time_out = Dates.now_ms();
-        StatsServerController.register_stats('VarServerControllerBase', 'get_invalid_params_intersectors_from_dep', this.varConf.name, StatsTypeVO.TYPE_DUREE,
+        StatsController.register_stats('VarServerControllerBase', 'get_invalid_params_intersectors_from_dep', this.varConf.name, StatsTypeVO.TYPE_DUREE,
             time_out - time_in, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
 
         return res;

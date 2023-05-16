@@ -2,6 +2,7 @@ import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MatroidController from '../../../../shared/modules/Matroid/MatroidController';
+import StatsController from '../../../../shared/modules/Stats/StatsController';
 import StatsTypeVO from '../../../../shared/modules/Stats/vos/StatsTypeVO';
 import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
 import VarDAG from '../../../../shared/modules/Var/graph/VarDAG';
@@ -24,7 +25,6 @@ import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ForkedTasksController from '../../Fork/ForkedTasksController';
-import StatsServerController from '../../Stats/StatsServerController';
 import SlowVarKiHandler from '../SlowVarKi/SlowVarKiHandler';
 import VarDagPerfsServerController from '../VarDagPerfsServerController';
 import VarsComputeController from '../VarsComputeController';
@@ -167,7 +167,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
         let time_in = Dates.now_ms();
 
         try {
-            StatsServerController.register_stat('VarsdatasComputerBGThread', 'work', 'IN', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat('VarsdatasComputerBGThread', 'work', 'IN', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
             /**
              * On change de méthode, on lance immédiatement si c'est utile/demandé, sinon on attend le timeout
@@ -206,8 +206,8 @@ export default class VarsdatasComputerBGThread implements IBGThread {
     private stats_out(activity: string, time_in: number) {
 
         let time_out = Dates.now_ms();
-        StatsServerController.register_stat('VarsdatasComputerBGThread', 'work', activity + '_OUT', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsServerController.register_stats('VarsdatasComputerBGThread', 'work', activity + '_OUT', StatsTypeVO.TYPE_DUREE, time_out - time_in,
+        StatsController.register_stat('VarsdatasComputerBGThread', 'work', activity + '_OUT', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stats('VarsdatasComputerBGThread', 'work', activity + '_OUT', StatsTypeVO.TYPE_DUREE, time_out - time_in,
             [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
     }
 

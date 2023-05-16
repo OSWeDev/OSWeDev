@@ -7,6 +7,7 @@ import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
+import StatsController from '../../../shared/modules/Stats/StatsController';
 import StatsTypeVO from '../../../shared/modules/Stats/vos/StatsTypeVO';
 import StatVO from '../../../shared/modules/Stats/vos/StatVO';
 import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
@@ -17,7 +18,6 @@ import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager'
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
-import { all_promises } from '../../../shared/tools/PromiseTools';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
@@ -27,7 +27,6 @@ import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import PushDataServerController from '../PushData/PushDataServerController';
-import StatsServerController from '../Stats/StatsServerController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
 import PixelVarDataController from './PixelVarDataController';
@@ -187,7 +186,7 @@ export default class VarsDatasVoUpdateHandler {
                 ConsoleHandler.warn("Cache des modifications de VO vidé. Prêt pour le redémarrage");
                 return;
             }
-            await ThreadHandler.sleep(5000);
+            await ThreadHandler.sleep(5000, 'VarsDatasVoUpdateHandler.force_empty_vars_datas_vo_update_cache');
             max_sleeps--;
             if (max_sleeps <= 0) {
                 throw new Error('Unable to force_empty_vars_datas_vo_update_cache');
@@ -247,9 +246,9 @@ export default class VarsDatasVoUpdateHandler {
             return false;
         }
 
-        StatsServerController.register_stat('VarsDatasVoUpdateHandler', 'handle_buffer', 'invalidate_datas_and_parents', StatsTypeVO.TYPE_COMPTEUR,
+        StatsController.register_stat('VarsDatasVoUpdateHandler', 'handle_buffer', 'invalidate_datas_and_parents', StatsTypeVO.TYPE_COMPTEUR,
             1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsServerController.register_stat('VarsDatasVoUpdateHandler', 'handle_buffer', 'invalidate_datas_and_parents', StatsTypeVO.TYPE_QUANTITE,
+        StatsController.register_stat('VarsDatasVoUpdateHandler', 'handle_buffer', 'invalidate_datas_and_parents', StatsTypeVO.TYPE_QUANTITE,
             Object.keys(intersectors_by_index).length, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
         let time_in = Dates.now_ms();
 
@@ -268,7 +267,7 @@ export default class VarsDatasVoUpdateHandler {
         await promise_pipeline.end();
 
         let time_out = Dates.now_ms();
-        StatsServerController.register_stats('VarsDatasVoUpdateHandler', 'handle_buffer', 'invalidate_datas_and_parents', StatsTypeVO.TYPE_DUREE,
+        StatsController.register_stats('VarsDatasVoUpdateHandler', 'handle_buffer', 'invalidate_datas_and_parents', StatsTypeVO.TYPE_DUREE,
             time_out - time_in, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
 
         await this.push_invalidators(Object.values(solved_invalidators_by_index));

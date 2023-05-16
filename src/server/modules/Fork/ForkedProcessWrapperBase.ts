@@ -2,6 +2,7 @@ import pg_promise from 'pg-promise';
 import { IDatabase } from 'pg-promise';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import ModulesManager from '../../../shared/modules/ModulesManager';
+import StatsController from '../../../shared/modules/Stats/StatsController';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import LocaleManager from '../../../shared/tools/LocaleManager';
@@ -86,6 +87,13 @@ export default abstract class ForkedProcessWrapperBase {
             ConsoleHandler.error("Failed loading argv on forked process+" + error);
             process.exit(1);
         }
+
+        let thread_name = 'fork_';
+        thread_name += Object.keys(BGThreadServerController.getInstance().valid_bgthreads_names).join('_').replace(/ \./g, '_');
+        StatsController.THREAD_NAME = thread_name;
+        StatsController.THREAD_IS_CLIENT = false;
+        StatsController.UNSTACK_THROTTLE_PARAM_NAME = 'StatsController.UNSTACK_THROTTLE_SERVER';
+        StatsController.UNSTACK_THROTTLE = 180000;
     }
 
     get process_UID(): number {
@@ -125,6 +133,8 @@ export default abstract class ForkedProcessWrapperBase {
         if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ForkedProcessWrapperBase:configure_server_modules:END');
         }
+
+        await StatsController.init_params();
 
         // Derniers chargements
         await this.modulesService.late_server_modules_configurations();

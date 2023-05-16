@@ -384,7 +384,7 @@ export default class PushDataServerController {
         }
 
         await this.notify(notification);
-        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifyVarData');
     }
 
     /**
@@ -418,7 +418,7 @@ export default class PushDataServerController {
         }
 
         await this.notify(notification);
-        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifyRedirectHomeAndDisconnect');
     }
 
     /**
@@ -449,7 +449,7 @@ export default class PushDataServerController {
         }
 
         await this.notify(notification);
-        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifyUserLoggedAndRedirectHome');
     }
 
     /**
@@ -476,7 +476,7 @@ export default class PushDataServerController {
         }
 
         await this.notify(notification);
-        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifyTabReload');
     }
 
     // /**
@@ -552,7 +552,7 @@ export default class PushDataServerController {
         }
 
         await this.notify(notification);
-        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifyVarsDatas');
     }
 
     public async notifyVarsDatasBySocket(socket_id: string, vos: VarDataValueResVO[]) {
@@ -572,7 +572,7 @@ export default class PushDataServerController {
         }
 
         await this.notify(notification);
-        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifyVarsDatasBySocket_');
     }
 
     public async notifyDAOGetVoById(user_id: number, client_tab_id: string, api_type_id: string, vo_id: number) {
@@ -596,7 +596,7 @@ export default class PushDataServerController {
         notification.client_tab_id = client_tab_id;
         notification.auto_read_if_connected = true;
         await this.notify(notification);
-        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifyDAOGetVoById');
     }
 
     public async notifyDAORemoveId(user_id: number, client_tab_id: string, api_type_id: string, vo_id: number) {
@@ -620,7 +620,7 @@ export default class PushDataServerController {
         notification.client_tab_id = client_tab_id;
         notification.auto_read_if_connected = true;
         await this.notify(notification);
-        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifyDAORemoveId');
     }
 
     public async notifyDAOGetVos(user_id: number, client_tab_id: string, api_type_id: string) {
@@ -643,7 +643,7 @@ export default class PushDataServerController {
         notification.client_tab_id = client_tab_id;
         notification.auto_read_if_connected = true;
         await this.notify(notification);
-        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifyDAOGetVos');
     }
 
     public async broadcastLoggedSimple(msg_type: number, code_text: string, auto_read_if_connected: boolean = false, simple_notif_json_params: string = null) {
@@ -879,9 +879,9 @@ export default class PushDataServerController {
             };
 
             await self.notify(notification);
-            await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+            await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifyPrompt');
 
-            await ThreadHandler.sleep(120000);
+            await ThreadHandler.sleep(120000, 'PushDataServerController.notifyPrompt.120000');
             if (still_waiting) {
                 reject('No Prompt received');
             }
@@ -930,7 +930,7 @@ export default class PushDataServerController {
         notification.notif_route_params_name = notif_route_params_name;
         notification.notif_route_params_values = notif_route_params_values;
         await this.notify(notification);
-        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifyRedirect');
     }
 
     private async notifySimple(
@@ -956,7 +956,7 @@ export default class PushDataServerController {
         notification.auto_read_if_connected = auto_read_if_connected;
         notification.simple_downloadable_link = simple_downloadable_link;
         await this.notify(notification);
-        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+        await ThreadHandler.sleep(PushDataServerController.NOTIF_INTERVAL_MS, 'PushDataServerController.notifySimple');
     }
 
 

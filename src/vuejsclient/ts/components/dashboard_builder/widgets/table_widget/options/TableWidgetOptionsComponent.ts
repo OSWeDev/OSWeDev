@@ -87,12 +87,12 @@ export default class TableWidgetOptionsComponent extends VueComponentBase {
     private async switch_use_kanban_column_weight_if_exists() {
         this.use_kanban_column_weight_if_exists = !this.use_kanban_column_weight_if_exists;
         this.widget_options.use_kanban_column_weight_if_exists = this.use_kanban_column_weight_if_exists;
-        this.update_options();
+        await this.update_options();
     }
     private async switch_use_kanban_by_default_if_exists() {
         this.use_kanban_by_default_if_exists = !this.use_kanban_by_default_if_exists;
         this.widget_options.use_kanban_by_default_if_exists = this.use_kanban_by_default_if_exists;
-        this.update_options();
+        await this.update_options();
     }
 
     get crud_api_type_id_select_options(): string[] {

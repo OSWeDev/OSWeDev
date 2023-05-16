@@ -53,6 +53,9 @@ export default class ModuleMaintenance extends Module {
 
     public registerApis() {
 
+        /**
+         * Cas spécifique d'une fonction GET qui réalise une modif en base (ici un start_maintenance) pour jenkins. à modifier probablement un jour
+         */
         APIControllerWrapper.registerApi(new GetAPIDefinition<StringParamVO, void>(
             null,
             ModuleMaintenance.APINAME_START_MAINTENANCE,

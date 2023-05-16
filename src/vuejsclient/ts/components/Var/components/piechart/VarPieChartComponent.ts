@@ -137,10 +137,10 @@ export default class VarPieChartComponent extends VueComponentBase {
         this.var_datas = res;
     }
 
-    private mounted() {
+    private async mounted() {
 
         if (this.all_data_loaded) {
-            this.debounced_render_or_update_chart_js();
+            await this.debounced_render_or_update_chart_js();
         }
     }
 
@@ -379,8 +379,8 @@ export default class VarPieChartComponent extends VueComponentBase {
     }
 
     @Watch('data')
-    private onchange_datasets() {
-        this.debounced_render_or_update_chart_js();
+    private async onchange_datasets() {
+        await this.debounced_render_or_update_chart_js();
     }
 
     get labels(): string[] {
