@@ -29,6 +29,8 @@ export default class ExportContextQueryToXLSXBGThread implements IBGThread {
     public MAX_timeout: number = 2000;
     public MIN_timeout: number = 100;
 
+    public exec_in_dedicated_thread: boolean = true;
+
     private constructor() {
         ForkedTasksController.getInstance().register_task(ExportContextQueryToXLSXBGThread.TASK_NAME_push_export_query, this.push_export_query.bind(this));
     }

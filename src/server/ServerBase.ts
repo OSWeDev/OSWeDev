@@ -104,10 +104,8 @@ export default abstract class ServerBase {
 
         // INIT Stats Server side
         StatsController.THREAD_NAME = 'main';
-        StatsController.THREAD_IS_CLIENT = false;
         StatsController.getInstance().UNSTACK_THROTTLE = 60000;
         StatsController.UNSTACK_THROTTLE_PARAM_NAME = 'StatsController.UNSTACK_THROTTLE_SERVER';
-        StatsController.check_groups_handler = StatsServerController.check_groups_handler;
         StatsController.new_stats_handler = StatsServerController.new_stats_handler;
 
         ServerBase.instance = this;

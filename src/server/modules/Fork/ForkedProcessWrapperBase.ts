@@ -92,10 +92,8 @@ export default abstract class ForkedProcessWrapperBase {
         let thread_name = 'fork_';
         thread_name += Object.keys(BGThreadServerController.getInstance().valid_bgthreads_names).join('_').replace(/ \./g, '_');
         StatsController.THREAD_NAME = thread_name;
-        StatsController.THREAD_IS_CLIENT = false;
         StatsController.UNSTACK_THROTTLE_PARAM_NAME = 'StatsController.UNSTACK_THROTTLE_SERVER';
         StatsController.getInstance().UNSTACK_THROTTLE = 60000;
-        StatsController.check_groups_handler = StatsServerController.check_groups_handler;
         StatsController.new_stats_handler = StatsServerController.new_stats_handler;
     }
 

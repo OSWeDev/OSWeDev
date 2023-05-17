@@ -8,8 +8,8 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import ModuleServerBase from '../ModuleServerBase';
-import StatsCategoryMapperBGThread from './bgthreads/StatsCategoryMapperBGThread';
 import StatsInvalidatorBGThread from './bgthreads/StatsInvalidatorBGThread';
+import StatsUnstackerBGThread from './bgthreads/StatsUnstackerBGThread';
 import VarSecStatsGroupeController from './vars/controllers/VarSecStatsGroupeController';
 
 export default class ModuleStatsServer extends ModuleServerBase {
@@ -37,7 +37,7 @@ export default class ModuleStatsServer extends ModuleServerBase {
     public async configure() {
         await this.configure_vars();
         ModuleBGThreadServer.getInstance().registerBGThread(StatsInvalidatorBGThread.getInstance());
-        ModuleBGThreadServer.getInstance().registerBGThread(StatsCategoryMapperBGThread.getInstance());
+        ModuleBGThreadServer.getInstance().registerBGThread(StatsUnstackerBGThread.getInstance());
     }
 
     private async configure_vars() {

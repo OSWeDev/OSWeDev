@@ -48,6 +48,7 @@ import Patch20220809ChangeDbbTrad from './patchs/postmodules/Patch20220809Change
 import Patch20221216ChangeDbbTradsToIncludeLabels from './patchs/postmodules/Patch20221216ChangeDbbTradsToIncludeLabels';
 import Patch20221217ParamBlockVos from './patchs/postmodules/Patch20221217ParamBlockVos';
 import Patch20230428FavoriteWidgetsAreNotFilters from './patchs/postmodules/Patch20230428FavoriteWidgetsAreNotFilters';
+import Patch20230517InitParamsStats from './patchs/postmodules/Patch20230517InitParamsStats';
 import Patch20210803ChangeDIHDateType from './patchs/premodules/Patch20210803ChangeDIHDateType';
 import Patch20210914ClearDashboardWidgets from './patchs/premodules/Patch20210914ClearDashboardWidgets';
 import Patch20211004ChangeLang from './patchs/premodules/Patch20211004ChangeLang';
@@ -141,6 +142,7 @@ export default abstract class GeneratorBase {
             Patch20221216ChangeDbbTradsToIncludeLabels.getInstance(),
             Patch20221217ParamBlockVos.getInstance(),
             Patch20230428FavoriteWidgetsAreNotFilters.getInstance(),
+            Patch20230517InitParamsStats.getInstance(),
         ];
     }
 
