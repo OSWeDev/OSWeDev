@@ -1,4 +1,3 @@
-import { cloneDeep } from 'lodash';
 import ThrottleHelper from '../../tools/ThrottleHelper';
 import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
 import TimeSegment from '../DataRender/vos/TimeSegment';
@@ -25,7 +24,6 @@ export default class StatsController {
      * Throttle avant d'unstack les stats : on veut quelque chose d'assez élevé en server (ex 60000 1 min) pour éviter de faire trop de requêtes
      *  et quelque chose de plus bas en client (ex 5000 5 secs) pour pas perdre trop d'infos sur un client qui se déconnecte
      */
-    public static UNSTACK_THROTTLE: number = 5000;
     public static UNSTACK_THROTTLE_PARAM_NAME: string = 'StatsController.UNSTACK_THROTTLE_CLIENT';
 
     public static check_groups_handler: (stats_to_unstack: { [group_name: string]: StatVO[] }) => Promise<void> = null;
@@ -35,7 +33,7 @@ export default class StatsController {
     public static stacked_registered_stats_by_group_name: { [group_name: string]: StatVO[] } = {};
 
     public static throttled_unstack_stats = ThrottleHelper.getInstance().declare_throttle_without_args(
-        StatsController.unstack_stats.bind(StatsController.getInstance()), 60000, { leading: false, trailing: true }); // defaults to 1 minute
+        StatsController.unstack_stats.bind(StatsController.getInstance()), 5000, { leading: false, trailing: true }); // defaults to 1 minute
 
     public static getInstance(): StatsController {
         if (!StatsController.instance) {
@@ -50,7 +48,7 @@ export default class StatsController {
             return;
         }
 
-        StatsController.UNSTACK_THROTTLE = await ModuleParams.getInstance().getParamValueAsInt(StatsController.UNSTACK_THROTTLE_PARAM_NAME);
+        StatsController.getInstance().UNSTACK_THROTTLE = await ModuleParams.getInstance().getParamValueAsInt(StatsController.UNSTACK_THROTTLE_PARAM_NAME, 60000, 180000);
     }
 
     /**
@@ -118,6 +116,60 @@ export default class StatsController {
         }
     }
 
+    /**
+     *
+     * @param name le nom de la stat, avec des . pour gérer les groupes hiérarchiquement.
+     * La fonction ajoute automatiquement l'aggrégateur en fin de nom pour éviter les erreurs de duplicate sur des aggrégateurs différents. (donc ne pas mettre l'aggrégateur dans le nom en amont).
+     * Par ailleurs on intègre aussi l'identifiant du thread pour bien séparer les stats en fonction des rôles. Et celà évite les risques de concurrence dans la création des groupes par exemple.
+     * @param value
+     * @param aggregator à choisir parmi les constantes AGGREGATOR_* de StatVO
+     * @param min_segment_type à choisir parmi les constantes TYPE_* de TimeSegmentHandler
+     */
+    public static register_stat_agg(
+        category_name: string, sub_category_name: string, event_name: string, stat_type_name: string,
+        value: number, aggregator: number, min_segment_type: number, force_timestamp: number = null, force_thread_name: string = null) {
+
+        if (!StatsController.ACTIVATED) {
+            return;
+        }
+
+        // Côté server : pourquoi on pourrait pas les stacks, on peut pas les unstack oui, mais les stack ?
+        //  et on passe en shared, donc en plus on a plus le droit de se poser cette question
+        // /**
+        //  * Si le serveur n'est pas up, on peut pas stocker des stats
+        //  */
+        // if (!BGThreadServerController.SERVER_READY) {
+        //     return;
+        // }
+
+        let stat = new StatVO();
+        stat.value = value;
+        stat.timestamp_s = force_timestamp ? force_timestamp : Dates.now();
+
+        let thread_name = force_thread_name ? force_thread_name : StatsController.THREAD_NAME;
+        let stats_name = category_name + '.' + sub_category_name + '.' + event_name + '.' + stat_type_name + '.' + StatsController.get_aggregator_extension(aggregator) + '.' + thread_name;
+
+        if (!StatsController.cached_stack_groupes_by_name[stats_name]) {
+            let new_groupe = new StatsGroupVO();
+            new_groupe.category_name = category_name;
+            new_groupe.sub_category_name = sub_category_name;
+            new_groupe.event_name = event_name;
+            new_groupe.stat_type_name = stat_type_name;
+            new_groupe.thread_name = thread_name;
+            new_groupe.stats_aggregator = aggregator;
+            new_groupe.stats_aggregator_min_segment_type = min_segment_type;
+
+            StatsController.cached_stack_groupes_by_name[stats_name] = new_groupe;
+        }
+
+        stat.stat_group_id = StatsController.cached_stack_groupes_by_name[stats_name].id;
+        if (!StatsController.stacked_registered_stats_by_group_name[stats_name]) {
+            StatsController.stacked_registered_stats_by_group_name[stats_name] = [];
+        }
+        StatsController.stacked_registered_stats_by_group_name[stats_name].push(stat);
+        StatsController.throttled_unstack_stats();
+    }
+
     private static instance: StatsController = null;
 
     private static first_unstacking_date: number = null;
@@ -138,60 +190,11 @@ export default class StatsController {
         }
     }
 
-    /**
-     *
-     * @param name le nom de la stat, avec des . pour gérer les groupes hiérarchiquement.
-     * La fonction ajoute automatiquement l'aggrégateur en fin de nom pour éviter les erreurs de duplicate sur des aggrégateurs différents. (donc ne pas mettre l'aggrégateur dans le nom en amont).
-     * Par ailleurs on intègre aussi l'identifiant du thread pour bien séparer les stats en fonction des rôles. Et celà évite les risques de concurrence dans la création des groupes par exemple.
-     * @param value
-     * @param aggregator à choisir parmi les constantes AGGREGATOR_* de StatVO
-     * @param min_segment_type à choisir parmi les constantes TYPE_* de TimeSegmentHandler
-     */
-    private static register_stat_agg(
-        category_name: string, sub_category_name: string, event_name: string, stat_type_name: string,
-        value: number, aggregator: number, min_segment_type: number, force_timestamp: number = null) {
+    private static async unstack_stats() {
 
         if (!StatsController.ACTIVATED) {
             return;
         }
-
-        // Côté server : pourquoi on pourrait pas les stacks, on peut pas les unstack oui, mais les stack ?
-        //  et on passe en shared, donc en plus on a plus le droit de se poser cette question
-        // /**
-        //  * Si le serveur n'est pas up, on peut pas stocker des stats
-        //  */
-        // if (!BGThreadServerController.SERVER_READY) {
-        //     return;
-        // }
-
-        let stat = new StatVO();
-        stat.value = value;
-        stat.timestamp_s = force_timestamp ? force_timestamp : Dates.now();
-
-        let stats_name = category_name + '.' + sub_category_name + '.' + event_name + '.' + stat_type_name + '.' + StatsController.get_aggregator_extension(aggregator) + '.' + StatsController.THREAD_NAME;
-
-        if (!StatsController.cached_stack_groupes_by_name[stats_name]) {
-            let new_groupe = new StatsGroupVO();
-            new_groupe.tmp_category_name = category_name;
-            new_groupe.tmp_sub_category_name = sub_category_name;
-            new_groupe.tmp_event_name = event_name;
-            new_groupe.tmp_stat_type_name = stat_type_name;
-            new_groupe.tmp_thread_name = StatsController.THREAD_NAME;
-            new_groupe.stats_aggregator = aggregator;
-            new_groupe.stats_aggregator_min_segment_type = min_segment_type;
-
-            StatsController.cached_stack_groupes_by_name[stats_name] = new_groupe;
-        }
-
-        stat.stat_group_id = StatsController.cached_stack_groupes_by_name[stats_name].id;
-        if (!StatsController.stacked_registered_stats_by_group_name[stats_name]) {
-            StatsController.stacked_registered_stats_by_group_name[stats_name] = [];
-        }
-        StatsController.stacked_registered_stats_by_group_name[stats_name].push(stat);
-        StatsController.throttled_unstack_stats();
-    }
-
-    private static async unstack_stats() {
 
         if (StatsController.is_unstacking) {
             return;
@@ -269,11 +272,11 @@ export default class StatsController {
                     aggregated_stat.timestamp_s = segment_date;
                     aggregated_stat.value = 0;
 
-                    aggregated_stat.tmp_category_name = group.tmp_category_name;
-                    aggregated_stat.tmp_sub_category_name = group.tmp_sub_category_name;
-                    aggregated_stat.tmp_event_name = group.tmp_event_name;
-                    aggregated_stat.tmp_stat_type_name = group.tmp_stat_type_name;
-                    aggregated_stat.tmp_thread_name = group.tmp_thread_name;
+                    aggregated_stat.tmp_category_name = group.category_name;
+                    aggregated_stat.tmp_sub_category_name = group.sub_category_name;
+                    aggregated_stat.tmp_event_name = group.event_name;
+                    aggregated_stat.tmp_stat_type_name = group.stat_type_name;
+                    aggregated_stat.tmp_thread_name = group.thread_name;
                     aggregated_stat.stats_aggregator = group.stats_aggregator;
                     aggregated_stat.stats_aggregator_min_segment_type = group.stats_aggregator_min_segment_type;
 
@@ -292,7 +295,7 @@ export default class StatsController {
                  *  si c'est un compteur, on fait la somme des stats (comme on récupère des stats clients, potentiellement déjà aggrégées sur la minute, on peut sommer des datas de compteur qui sont différentes de 1)
                  *  si c'est une quantité ou une durée, on applique l'aggrégateur
                  */
-                switch (group.tmp_stat_type_name) {
+                switch (group.stat_type_name) {
                     case StatsTypeVO.TYPE_COMPTEUR:
 
                         let sum_COMPTEUR = 0;
@@ -340,7 +343,7 @@ export default class StatsController {
                         break;
                     default:
                         StatsController.is_unstacking = false;
-                        throw new Error('Type de stat inconnu ' + group.tmp_stat_type_name);
+                        throw new Error('Type de stat inconnu ' + group.stat_type_name);
                 }
             }
         }
@@ -360,5 +363,18 @@ export default class StatsController {
             }
             StatsController.throttled_unstack_stats();
         }
+    }
+
+    private UNSTACK_THROTTLE_: number = 5000;
+    private constructor() { }
+
+    get UNSTACK_THROTTLE(): number {
+        return this.UNSTACK_THROTTLE_;
+    }
+
+    set UNSTACK_THROTTLE(throttle: number) {
+        this.UNSTACK_THROTTLE_ = throttle;
+        StatsController.throttled_unstack_stats = ThrottleHelper.getInstance().declare_throttle_without_args(
+            StatsController.unstack_stats.bind(StatsController.getInstance()), this.UNSTACK_THROTTLE_, { leading: false, trailing: true });
     }
 }

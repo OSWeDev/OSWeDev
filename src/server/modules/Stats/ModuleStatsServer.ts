@@ -8,6 +8,7 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import ModuleServerBase from '../ModuleServerBase';
+import StatsCategoryMapperBGThread from './bgthreads/StatsCategoryMapperBGThread';
 import StatsInvalidatorBGThread from './bgthreads/StatsInvalidatorBGThread';
 import VarSecStatsGroupeController from './vars/controllers/VarSecStatsGroupeController';
 
@@ -36,6 +37,7 @@ export default class ModuleStatsServer extends ModuleServerBase {
     public async configure() {
         await this.configure_vars();
         ModuleBGThreadServer.getInstance().registerBGThread(StatsInvalidatorBGThread.getInstance());
+        ModuleBGThreadServer.getInstance().registerBGThread(StatsCategoryMapperBGThread.getInstance());
     }
 
     private async configure_vars() {
@@ -90,9 +92,9 @@ export default class ModuleStatsServer extends ModuleServerBase {
         for (let i in stats_client) {
             let stat_client = stats_client[i];
 
-            StatsController['register_stat_agg'](
+            StatsController.register_stat_agg(
                 stat_client.tmp_category_name, stat_client.tmp_sub_category_name, stat_client.tmp_event_name, stat_client.tmp_stat_type_name,
-                stat_client.value, stat_client.stats_aggregator, stat_client.stats_aggregator_min_segment_type);
+                stat_client.value, stat_client.stats_aggregator, stat_client.stats_aggregator_min_segment_type, stat_client.timestamp_s, stat_client.tmp_thread_name);
         }
     }
 }

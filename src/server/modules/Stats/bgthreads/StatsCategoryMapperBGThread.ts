@@ -1,7 +1,6 @@
 import ContextFilterVO, { filter } from '../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
-import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import StatsController from '../../../../shared/modules/Stats/StatsController';
 import StatsCategoryVO from '../../../../shared/modules/Stats/vos/StatsCategoryVO';
@@ -10,7 +9,6 @@ import StatsGroupVO from '../../../../shared/modules/Stats/vos/StatsGroupVO';
 import StatsSubCategoryVO from '../../../../shared/modules/Stats/vos/StatsSubCategoryVO';
 import StatsThreadVO from '../../../../shared/modules/Stats/vos/StatsThreadVO';
 import StatsTypeVO from '../../../../shared/modules/Stats/vos/StatsTypeVO';
-import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
@@ -52,6 +50,10 @@ export default class StatsCategoryMapperBGThread implements IBGThread {
      */
     public async work(): Promise<number> {
 
+        if (!StatsController.ACTIVATED) {
+            return ModuleBGThreadServer.TIMEOUT_COEF_SLEEP;
+        }
+
         let time_in = Dates.now_ms();
 
         try {
@@ -67,6 +69,7 @@ export default class StatsCategoryMapperBGThread implements IBGThread {
                     filter(StatsGroupVO.API_TYPE_ID, 'category_id').is_null_or_empty(),
                     filter(StatsGroupVO.API_TYPE_ID, 'sub_category_id').is_null_or_empty(),
                     filter(StatsGroupVO.API_TYPE_ID, 'event_id').is_null_or_empty(),
+                    filter(StatsGroupVO.API_TYPE_ID, 'stat_type_id').is_null_or_empty(),
                     filter(StatsGroupVO.API_TYPE_ID, 'thread_id').is_null_or_empty(),
                 ])
             ]).select_vos<StatsGroupVO>();
@@ -126,11 +129,6 @@ export default class StatsCategoryMapperBGThread implements IBGThread {
                 continue;
             }
 
-            invalid_stats_group.tmp_category_name = null;
-            invalid_stats_group.tmp_sub_category_name = null;
-            invalid_stats_group.tmp_event_name = null;
-            invalid_stats_group.tmp_stat_type_name = null;
-            invalid_stats_group.tmp_thread_name = null;
             updateds.push(invalid_stats_group);
         }
 
@@ -143,22 +141,22 @@ export default class StatsCategoryMapperBGThread implements IBGThread {
             return null;
         }
 
-        if (!invalid_stats_group.tmp_stat_type_name) {
+        if (!invalid_stats_group.stat_type_name) {
             ConsoleHandler.error('Statsstat_typeMapperBGThread:FAILED:invalid_stats_group.tmp_stat_type_name:' + invalid_stats_group.id);
-            invalid_stats_group.tmp_stat_type_name = 'ERROR';
+            invalid_stats_group.stat_type_name = 'ERROR';
         }
 
-        if (!this.stat_type_cache[invalid_stats_group.tmp_stat_type_name]) {
-            this.stat_type_cache[invalid_stats_group.tmp_stat_type_name] = new StatsTypeVO();
-            this.stat_type_cache[invalid_stats_group.tmp_stat_type_name].name = invalid_stats_group.tmp_stat_type_name;
-            let res = await ModuleDAO.getInstance().insertOrUpdateVO(this.stat_type_cache[invalid_stats_group.tmp_stat_type_name]);
+        if (!this.stat_type_cache[invalid_stats_group.stat_type_name]) {
+            this.stat_type_cache[invalid_stats_group.stat_type_name] = new StatsTypeVO();
+            this.stat_type_cache[invalid_stats_group.stat_type_name].name = invalid_stats_group.stat_type_name;
+            let res = await ModuleDAO.getInstance().insertOrUpdateVO(this.stat_type_cache[invalid_stats_group.stat_type_name]);
             if ((!res) || !res.id) {
-                delete this.stat_type_cache[invalid_stats_group.tmp_stat_type_name];
+                delete this.stat_type_cache[invalid_stats_group.stat_type_name];
                 throw new Error('Statsstat_typeMapperBGThread:FAILED:stat_type_cache:' + invalid_stats_group.id);
             }
-            this.stat_type_cache[invalid_stats_group.tmp_stat_type_name].id = res.id;
+            this.stat_type_cache[invalid_stats_group.stat_type_name].id = res.id;
         }
-        return this.stat_type_cache[invalid_stats_group.tmp_stat_type_name].id;
+        return this.stat_type_cache[invalid_stats_group.stat_type_name].id;
     }
 
     private async get_category_id(invalid_stats_group: StatsGroupVO) {
@@ -167,22 +165,22 @@ export default class StatsCategoryMapperBGThread implements IBGThread {
             return null;
         }
 
-        if (!invalid_stats_group.tmp_category_name) {
-            ConsoleHandler.error('StatsCategoryMapperBGThread:FAILED:invalid_stats_group.tmp_category_name:' + invalid_stats_group.id);
-            invalid_stats_group.tmp_category_name = 'ERROR';
+        if (!invalid_stats_group.category_name) {
+            ConsoleHandler.error('StatsCategoryMapperBGThread:FAILED:invalid_stats_group.category_name:' + invalid_stats_group.id);
+            invalid_stats_group.category_name = 'ERROR';
         }
 
-        if (!this.category_cache[invalid_stats_group.tmp_category_name]) {
-            this.category_cache[invalid_stats_group.tmp_category_name] = new StatsCategoryVO();
-            this.category_cache[invalid_stats_group.tmp_category_name].name = invalid_stats_group.tmp_category_name;
-            let res = await ModuleDAO.getInstance().insertOrUpdateVO(this.category_cache[invalid_stats_group.tmp_category_name]);
+        if (!this.category_cache[invalid_stats_group.category_name]) {
+            this.category_cache[invalid_stats_group.category_name] = new StatsCategoryVO();
+            this.category_cache[invalid_stats_group.category_name].name = invalid_stats_group.category_name;
+            let res = await ModuleDAO.getInstance().insertOrUpdateVO(this.category_cache[invalid_stats_group.category_name]);
             if ((!res) || !res.id) {
-                delete this.category_cache[invalid_stats_group.tmp_category_name];
+                delete this.category_cache[invalid_stats_group.category_name];
                 throw new Error('StatsCategoryMapperBGThread:FAILED:category_cache:' + invalid_stats_group.id);
             }
-            this.category_cache[invalid_stats_group.tmp_category_name].id = res.id;
+            this.category_cache[invalid_stats_group.category_name].id = res.id;
         }
-        return this.category_cache[invalid_stats_group.tmp_category_name].id;
+        return this.category_cache[invalid_stats_group.category_name].id;
     }
 
     private async get_sub_category_id(invalid_stats_group: StatsGroupVO) {
@@ -191,27 +189,27 @@ export default class StatsCategoryMapperBGThread implements IBGThread {
             return null;
         }
 
-        if ((!invalid_stats_group.tmp_sub_category_name) || (!invalid_stats_group.category_id)) {
+        if ((!invalid_stats_group.sub_category_name) || (!invalid_stats_group.category_id)) {
             ConsoleHandler.error('StatsCategoryMapperBGThread:FAILED:invalid_stats_group.tmp_sub_category_name:' + invalid_stats_group.id);
-            invalid_stats_group.tmp_sub_category_name = 'ERROR';
+            invalid_stats_group.sub_category_name = 'ERROR';
         }
 
         if (!this.sub_category_cache[invalid_stats_group.category_id]) {
             this.sub_category_cache[invalid_stats_group.category_id] = {};
         }
 
-        if (!this.sub_category_cache[invalid_stats_group.category_id][invalid_stats_group.tmp_sub_category_name]) {
-            this.sub_category_cache[invalid_stats_group.category_id][invalid_stats_group.tmp_sub_category_name] = new StatsSubCategoryVO();
-            this.sub_category_cache[invalid_stats_group.category_id][invalid_stats_group.tmp_sub_category_name].name = invalid_stats_group.tmp_sub_category_name;
-            this.sub_category_cache[invalid_stats_group.category_id][invalid_stats_group.tmp_sub_category_name].category_id = invalid_stats_group.category_id;
-            let res = await ModuleDAO.getInstance().insertOrUpdateVO(this.sub_category_cache[invalid_stats_group.category_id][invalid_stats_group.tmp_sub_category_name]);
+        if (!this.sub_category_cache[invalid_stats_group.category_id][invalid_stats_group.sub_category_name]) {
+            this.sub_category_cache[invalid_stats_group.category_id][invalid_stats_group.sub_category_name] = new StatsSubCategoryVO();
+            this.sub_category_cache[invalid_stats_group.category_id][invalid_stats_group.sub_category_name].name = invalid_stats_group.sub_category_name;
+            this.sub_category_cache[invalid_stats_group.category_id][invalid_stats_group.sub_category_name].category_id = invalid_stats_group.category_id;
+            let res = await ModuleDAO.getInstance().insertOrUpdateVO(this.sub_category_cache[invalid_stats_group.category_id][invalid_stats_group.sub_category_name]);
             if ((!res) || !res.id) {
-                delete this.sub_category_cache[invalid_stats_group.category_id][invalid_stats_group.tmp_sub_category_name];
+                delete this.sub_category_cache[invalid_stats_group.category_id][invalid_stats_group.sub_category_name];
                 throw new Error('StatsCategoryMapperBGThread:FAILED:sub_category_cache:' + invalid_stats_group.id);
             }
-            this.sub_category_cache[invalid_stats_group.category_id][invalid_stats_group.tmp_sub_category_name].id = res.id;
+            this.sub_category_cache[invalid_stats_group.category_id][invalid_stats_group.sub_category_name].id = res.id;
         }
-        return this.sub_category_cache[invalid_stats_group.category_id][invalid_stats_group.tmp_sub_category_name].id;
+        return this.sub_category_cache[invalid_stats_group.category_id][invalid_stats_group.sub_category_name].id;
     }
 
     private async get_event_id(invalid_stats_group: StatsGroupVO) {
@@ -220,27 +218,27 @@ export default class StatsCategoryMapperBGThread implements IBGThread {
             return null;
         }
 
-        if ((!invalid_stats_group.tmp_event_name) || (!invalid_stats_group.sub_category_id)) {
+        if ((!invalid_stats_group.event_name) || (!invalid_stats_group.sub_category_id)) {
             ConsoleHandler.error('StatsCategoryMapperBGThread:FAILED:invalid_stats_group.tmp_event_name:' + invalid_stats_group.id);
-            invalid_stats_group.tmp_event_name = 'ERROR';
+            invalid_stats_group.event_name = 'ERROR';
         }
 
         if (!this.event_cache[invalid_stats_group.sub_category_id]) {
             this.event_cache[invalid_stats_group.sub_category_id] = {};
         }
 
-        if (!this.event_cache[invalid_stats_group.sub_category_id][invalid_stats_group.tmp_event_name]) {
-            this.event_cache[invalid_stats_group.sub_category_id][invalid_stats_group.tmp_event_name] = new StatsEventVO();
-            this.event_cache[invalid_stats_group.sub_category_id][invalid_stats_group.tmp_event_name].name = invalid_stats_group.tmp_event_name;
-            this.event_cache[invalid_stats_group.sub_category_id][invalid_stats_group.tmp_event_name].sub_category_id = invalid_stats_group.sub_category_id;
-            let res = await ModuleDAO.getInstance().insertOrUpdateVO(this.event_cache[invalid_stats_group.sub_category_id][invalid_stats_group.tmp_event_name]);
+        if (!this.event_cache[invalid_stats_group.sub_category_id][invalid_stats_group.event_name]) {
+            this.event_cache[invalid_stats_group.sub_category_id][invalid_stats_group.event_name] = new StatsEventVO();
+            this.event_cache[invalid_stats_group.sub_category_id][invalid_stats_group.event_name].name = invalid_stats_group.event_name;
+            this.event_cache[invalid_stats_group.sub_category_id][invalid_stats_group.event_name].sub_category_id = invalid_stats_group.sub_category_id;
+            let res = await ModuleDAO.getInstance().insertOrUpdateVO(this.event_cache[invalid_stats_group.sub_category_id][invalid_stats_group.event_name]);
             if ((!res) || !res.id) {
-                delete this.event_cache[invalid_stats_group.sub_category_id][invalid_stats_group.tmp_event_name];
+                delete this.event_cache[invalid_stats_group.sub_category_id][invalid_stats_group.event_name];
                 throw new Error('StatsCategoryMapperBGThread:FAILED:event_cache:' + invalid_stats_group.id);
             }
-            this.event_cache[invalid_stats_group.sub_category_id][invalid_stats_group.tmp_event_name].id = res.id;
+            this.event_cache[invalid_stats_group.sub_category_id][invalid_stats_group.event_name].id = res.id;
         }
-        return this.event_cache[invalid_stats_group.sub_category_id][invalid_stats_group.tmp_event_name].id;
+        return this.event_cache[invalid_stats_group.sub_category_id][invalid_stats_group.event_name].id;
     }
 
     private async get_thread_id(invalid_stats_group: StatsGroupVO) {
@@ -249,22 +247,41 @@ export default class StatsCategoryMapperBGThread implements IBGThread {
             return null;
         }
 
-        if (!invalid_stats_group.tmp_thread_name) {
+        if (!invalid_stats_group.thread_name) {
             ConsoleHandler.error('StatsCategoryMapperBGThread:FAILED:invalid_stats_group.tmp_thread_name:' + invalid_stats_group.id);
-            invalid_stats_group.tmp_thread_name = 'ERROR';
+            invalid_stats_group.thread_name = 'ERROR';
         }
 
-        if (!this.thread_cache[invalid_stats_group.tmp_thread_name]) {
-            this.thread_cache[invalid_stats_group.tmp_thread_name] = new StatsThreadVO();
-            this.thread_cache[invalid_stats_group.tmp_thread_name].name = invalid_stats_group.tmp_thread_name;
-            let res = await ModuleDAO.getInstance().insertOrUpdateVO(this.thread_cache[invalid_stats_group.tmp_thread_name]);
-            if ((!res) || !res.id) {
-                delete this.thread_cache[invalid_stats_group.tmp_thread_name];
-                throw new Error('StatsCategoryMapperBGThread:FAILED:thread_cache:' + invalid_stats_group.id);
+        if (!this.thread_cache[invalid_stats_group.thread_name]) {
+            this.thread_cache[invalid_stats_group.thread_name] = new StatsThreadVO();
+            this.thread_cache[invalid_stats_group.thread_name].name = invalid_stats_group.thread_name;
+
+            /**
+             * Avant de créer on check qu'on a pas déjà en base, via alias par exemple ce thread, par ce que si on modifie en base en fait on ne le sait pas à ce stade
+             */
+            let lastcheck = await query(StatsThreadVO.API_TYPE_ID)
+                .add_filters([
+                    ContextFilterVO.or([
+                        filter(StatsThreadVO.API_TYPE_ID, 'name').by_text_eq(invalid_stats_group.thread_name),
+                        filter(StatsThreadVO.API_TYPE_ID, 'aliases').by_text_has(invalid_stats_group.thread_name),
+                    ])
+                ]).select_vo<StatsThreadVO>();
+            if (!lastcheck) {
+                let res = await ModuleDAO.getInstance().insertOrUpdateVO(this.thread_cache[invalid_stats_group.thread_name]);
+                if ((!res) || !res.id) {
+                    delete this.thread_cache[invalid_stats_group.thread_name];
+                    throw new Error('StatsCategoryMapperBGThread:FAILED:thread_cache:' + invalid_stats_group.id);
+                }
+                this.thread_cache[invalid_stats_group.thread_name].id = res.id;
+            } else {
+                ConsoleHandler.log('StatsCategoryMapperBGThread:ALREADY_EXISTS:thread_cache:' + lastcheck.name + ':' + lastcheck.aliases.join(','));
+                this.thread_cache[lastcheck.name] = lastcheck;
+                for (let i in lastcheck.aliases) {
+                    this.thread_cache[lastcheck.aliases[i]] = lastcheck;
+                }
             }
-            this.thread_cache[invalid_stats_group.tmp_thread_name].id = res.id;
         }
-        return this.thread_cache[invalid_stats_group.tmp_thread_name].id;
+        return this.thread_cache[invalid_stats_group.thread_name].id;
     }
 
     private async init_cache() {
@@ -272,6 +289,13 @@ export default class StatsCategoryMapperBGThread implements IBGThread {
         let subcategorys = await query(StatsSubCategoryVO.API_TYPE_ID).select_vos<StatsSubCategoryVO>();
         let events = await query(StatsEventVO.API_TYPE_ID).select_vos<StatsEventVO>();
         let threads = await query(StatsThreadVO.API_TYPE_ID).select_vos<StatsThreadVO>();
+        let stat_types = await query(StatsTypeVO.API_TYPE_ID).select_vos<StatsTypeVO>();
+
+        this.stat_type_cache = {};
+        for (let i in stat_types) {
+            let stat_type = stat_types[i];
+            this.stat_type_cache[stat_type.name] = stat_type;
+        }
 
         this.category_cache = {};
         for (let i in categorys) {

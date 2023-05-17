@@ -57,6 +57,8 @@ import { all_promises } from "../shared/tools/PromiseTools";
 import AlertsListContainerComponent from "./ts/components/alert/AlertsListContainerComponent";
 import i18next from 'i18next';
 import StatsVueModule from "./ts/modules/Stats/StatsVueModule";
+import StatsController from "../shared/modules/Stats/StatsController";
+import Dates from "../shared/modules/FormatDatesNombres/Dates/Dates";
 require('moment-json-parser').overrideDefault();
 
 
@@ -293,9 +295,16 @@ export default abstract class VueAppBase {
         this.vueRouter = new VueRouter(routerOptions);
 
         let nbTests = 20;
+        let time_in_router: number = 0;
 
         function afterEachTransitionHandler(transition) {
             let app: Vue = self.vueRouter.app;
+
+            if (!!time_in_router) {
+                let time = Dates.now_ms() - time_in_router;
+                time_in_router = 0;
+                StatsController.register_stat_DUREE('Vue_router', 'afterEachTransitionHandler', transition.name, time);
+            }
 
             // JNE : Le temps de charger l'app qui sinon ne l'est pas encore...
             if ((nbTests > 0) && ((!app) || (!app['setPerimeter']))) {
@@ -321,6 +330,12 @@ export default abstract class VueAppBase {
         VueAppController.getInstance().initGoogleAnalytics(code_google_analytics);
 
         this.vueRouter.beforeEach((route, redirect, next) => {
+
+            time_in_router = Dates.now_ms();
+            if (route.name) {
+                StatsController.register_stat_COMPTEUR('Vue_router', 'beforeEach', route.name);
+            }
+
             VueAppController.getInstance().sendToGoogleAnalytics(
                 route.name,
                 route.fullPath,

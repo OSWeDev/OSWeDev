@@ -9,6 +9,7 @@ import ModuleTableField from '../ModuleTableField';
 import VarsInitController from '../Var/VarsInitController';
 import VersionedVOController from '../Versioned/VersionedVOController';
 import VOsTypesManager from '../VOsTypesManager';
+import RegisterClientStatsParamVO, { RegisterClientStatsParamVOStatic } from './params/RegisterClientStatsParamVO';
 import StatsGroupSecDataRangesVO from './vars/vos/StatsGroupDayDataRangesVO';
 import StatClientWrapperVO from './vos/StatClientWrapperVO';
 import StatsCategoryVO from './vos/StatsCategoryVO';
@@ -71,13 +72,11 @@ export default class ModuleStats extends Module {
 
     public registerApis() {
 
-        APIControllerWrapper.registerApi(new PostAPIDefinition<{
-            stats_client: StatClientWrapperVO[],
-            client_timestamp: number
-        }, any>(
+        APIControllerWrapper.registerApi(new PostAPIDefinition<RegisterClientStatsParamVO, any>(
             null,
             ModuleStats.APINAME_register_client_stats,
             [], // FIXME : toute la limite de ce système est là : on ne peut pas indiquer les modifs en base quand tout est throttle derrière, donc on invalide rien pourtant ça crée des stats...
+            RegisterClientStatsParamVOStatic
         ));
     }
 
@@ -147,11 +146,11 @@ export default class ModuleStats extends Module {
             stat_type_id,
             thread_id,
 
-            new ModuleTableField('tmp_category_name', ModuleTableField.FIELD_TYPE_string, 'Catégorie - temp', false),
-            new ModuleTableField('tmp_sub_category_name', ModuleTableField.FIELD_TYPE_string, 'Sous-catégorie - temp', false),
-            new ModuleTableField('tmp_event_name', ModuleTableField.FIELD_TYPE_string, 'Evènement - temp', false),
-            new ModuleTableField('tmp_stat_type_name', ModuleTableField.FIELD_TYPE_string, 'Type - temp', false),
-            new ModuleTableField('tmp_thread_name', ModuleTableField.FIELD_TYPE_string, 'Thread - temp', false),
+            new ModuleTableField('category_name', ModuleTableField.FIELD_TYPE_string, 'Catégorie', false),
+            new ModuleTableField('sub_category_name', ModuleTableField.FIELD_TYPE_string, 'Sous-catégorie', false),
+            new ModuleTableField('event_name', ModuleTableField.FIELD_TYPE_string, 'Evènement', false),
+            new ModuleTableField('stat_type_name', ModuleTableField.FIELD_TYPE_string, 'Type', false),
+            new ModuleTableField('thread_name', ModuleTableField.FIELD_TYPE_string, 'Thread', false),
 
             new ModuleTableField('stats_aggregator', ModuleTableField.FIELD_TYPE_enum, 'Aggrégateur', true, true, StatVO.AGGREGATOR_MEAN).setEnumValues(StatVO.AGGREGATOR_LABELS),
             new ModuleTableField('stats_aggregator_min_segment_type', ModuleTableField.FIELD_TYPE_enum, 'Segmentation minimale', true, true, TimeSegment.TYPE_SECOND),
@@ -202,7 +201,7 @@ export default class ModuleStats extends Module {
 
     private initializeStatsSubCategoryVO() {
 
-        let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Sous-catégorie', true).unique(true);
+        let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Sous-catégorie', true).index();
         let category_id = new ModuleTableField('category_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Catégorie', true);
         let fields = [
             name_field,
@@ -217,7 +216,7 @@ export default class ModuleStats extends Module {
 
     // private initializeStatsSubCategoryCacheLinkVO() {
 
-    //     let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Sous-catégorie - cache', true).unique(true);
+    //     let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Sous-catégorie - cache', true).index();
 
     //     let fields = [
     //         name_field,
@@ -231,7 +230,7 @@ export default class ModuleStats extends Module {
 
     private initializeStatsTypeVO() {
 
-        let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Type de stat', true).unique(true);
+        let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Type de stat', true).index();
 
         let fields = [
             name_field
@@ -244,7 +243,7 @@ export default class ModuleStats extends Module {
 
     private initializeStatsEventVO() {
 
-        let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Evènement', true).unique(true);
+        let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Evènement', true).index();
         let sub_category_id = new ModuleTableField('sub_category_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Sous-catégorie', true);
 
         let fields = [
@@ -260,7 +259,7 @@ export default class ModuleStats extends Module {
 
     // private initializeStatsEventCacheLinkVO() {
 
-    //     let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Evènement - cache', true).unique(true);
+    //     let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Evènement - cache', true).index();
 
     //     let fields = [
     //         name_field,

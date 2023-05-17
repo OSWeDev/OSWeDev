@@ -4,8 +4,6 @@ import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import StatsController from '../../../../shared/modules/Stats/StatsController';
 import StatsGroupSecDataRangesVO from '../../../../shared/modules/Stats/vars/vos/StatsGroupDayDataRangesVO';
-import StatsTypeVO from '../../../../shared/modules/Stats/vos/StatsTypeVO';
-import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
 import IBGThread from '../../BGThread/interfaces/IBGThread';

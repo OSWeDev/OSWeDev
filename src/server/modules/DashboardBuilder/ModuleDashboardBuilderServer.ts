@@ -55,6 +55,19 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
     public async configure() {
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Somme'
+        }, 'StatVO.AGGREGATOR_SUM'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Min'
+        }, 'StatVO.AGGREGATOR_MIN'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Max'
+        }, 'StatVO.AGGREGATOR_MEAN'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Moyenne'
+        }, 'StatVO.AGGREGATOR_MAX'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Graphique de var - Donut, Jauge ou Camembert'
         }, 'dashboards.widgets.icons_tooltips.varpiechart.___LABEL___'));
 

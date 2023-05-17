@@ -19,11 +19,11 @@ export default class StatsGroupVO implements INamedVO {
      * Used to create the group if it does not exist
      *  and keep necessary infos for the autolink by the dedicated bgthread
      */
-    public tmp_category_name: string;
-    public tmp_sub_category_name: string;
-    public tmp_event_name: string;
-    public tmp_stat_type_name: string;
-    public tmp_thread_name: string;
+    public category_name: string;
+    public sub_category_name: string;
+    public event_name: string;
+    public stat_type_name: string;
+    public thread_name: string;
 
     public category_id: number;
     public sub_category_id: number;
