@@ -125,7 +125,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
      * @returns {void}
      */
     @Watch('tmp_active_favorites_filters_option')
-    private async onchange_tmp_filter_active_options(): void {
+    private async onchange_tmp_filter_active_options(): Promise<void> {
 
         const page_filters = this.tmp_active_favorites_filters_option?.field_filters;
 

@@ -8,7 +8,7 @@ import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../../VueComponentBase';
 import TableWidgetKanbanComponent from './kanban/TableWidgetKanbanComponent';
 import TableWidgetOptions from './options/TableWidgetOptions';
-import Tablewidgettablecomponent from './table/Tablewidgettablecomponent';
+import TableWidgetTableComponent from './table/TableWidgetTableComponent';
 import './TableWidgetComponent.scss';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
@@ -17,7 +17,7 @@ import './TableWidgetComponent.scss';
     template: require('./TableWidgetComponent.pug'),
     components: {
         Tablewidgetkanbancomponent: TableWidgetKanbanComponent,
-        Tablewidgettablecomponent: Tablewidgettablecomponent
+        Tablewidgettablecomponent: TableWidgetTableComponent
     }
 })
 export default class TableWidgetComponent extends VueComponentBase {

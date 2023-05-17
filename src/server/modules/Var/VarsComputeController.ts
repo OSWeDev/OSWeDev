@@ -1205,6 +1205,7 @@ export default class VarsComputeController {
             let var_dag_node = await VarDAGNode.getInstance(var_dag, var_to_deploy, VarsComputeController, false);
             if (!var_dag_node) {
                 await promise_pipeline.end();
+                promise_pipeline = new PromisePipeline(max);
                 return;
             }
 

@@ -57,7 +57,7 @@ export default class DashboardCopyWidgetComponent extends VueComponentBase {
         }
     }
 
-    private async delete_widget() {
+    private delete_widget() {
         //Supprime le widget qui sera déplaçé.
         this.$emit('delete_widget', this.page_widget);
     }
@@ -204,7 +204,7 @@ export default class DashboardCopyWidgetComponent extends VueComponentBase {
         this.copy_to_page = page;
     }
 
-    private async cancel() {
+    private cancel() {
         $('#modal_copy_widget').modal('hide');
         this.$emit('cancel');
         this.show_modal = false;
