@@ -92,8 +92,8 @@ export default class DBVarDatatableFieldComponent extends VueComponentBase {
 
     }
 
-    private mounted() {
-        ValidationFiltersWidgetController.getInstance().register_updater(
+    private async mounted() {
+        await ValidationFiltersWidgetController.getInstance().register_updater(
             this.dashboard_id,
             this.page_widget.page_id,
             this.page_widget.id,

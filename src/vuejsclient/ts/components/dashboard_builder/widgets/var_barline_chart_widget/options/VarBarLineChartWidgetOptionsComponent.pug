@@ -1,295 +1,295 @@
 .var_barline_chart_widget_options_component
 
-    template(v-if='widget_options')
+    //- template(v-if='widget_options')
 
-        .options_separator_lvl1 {{ label('var_barline_chart_widget_options_component.separator.widget_options') }}
-        .widget_title(v-if='title_name_code_text')
-            .widget_title_label {{ label('var_barline_chart_widget_options_component.widget_title.title_name_code_text') }}
-            .widget_title_wrapper
-                Inlinetranslatabletext(
-                    :code_text="title_name_code_text" 
-                    :is_editable="true")
-        .bg_color
-            .explication {{ label("var_barline_chart_widget_options_component.bg_color") }}
-            color-picker(v-model="bg_color" @change='throttled_update_colors')
-
-
-        .options_separator_lvl1 {{ label('var_barline_chart_widget_options_component.separator.chart_options') }}
-
-        .options_separator_lvl2 {{ label('var_barline_chart_widget_options_component.separator.chart_title_options') }}
-        .title_display
-            .input_label {{ label('var_barline_chart_widget_options_component.title_display') }}
-            .input_wrapper
-                toggle-button(
-                    @change="switch_title_display" 
-                    :value="title_display" 
-                    :sync="false"
-                    :width="60"
-                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
-                )
-        template(v-if='title_display')
-            .title_font_color
-                .explication {{ label("var_barline_chart_widget_options_component.title_font_color") }}
-                color-picker(v-model="title_font_color" @change='throttled_update_colors')
-            .title_font_size
-                .input_label {{ label('var_barline_chart_widget_options_component.title_font_size') }}
-                .input_wrapper
-                    input(
-                        type="number"
-                        v-model="title_font_size"
-                    )
-            .title_padding
-                .input_label {{ label('var_barline_chart_widget_options_component.title_padding') }}
-                .input_wrapper
-                    input(
-                        type="number"
-                        v-model="title_padding"
-                    )
-        
-        .options_separator_lvl2 {{ label('var_barline_chart_widget_options_component.separator.chart_legend_options') }}
-        .legend_display
-            .input_label {{ label('var_barline_chart_widget_options_component.legend_display') }}
-            .input_wrapper
-                toggle-button(
-                    @change="switch_legend_display" 
-                    :value="legend_display" 
-                    :sync="false"
-                    :width="60"
-                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
-                )
-        template(v-if='legend_display')
-            .legend_position 
-                .input_label {{ label('var_barline_chart_widget_options_component.legend_position') }}
-                .input_wrapper
-                    multiselect.var_name_selector(
-                        :preselect-first="false"
-                        :multiple="false"
-                        v-model="tmp_selected_legend_position"
-                        :options="legend_positions"
-                        :allow-empty="false",
-
-                        :searchable="true"
-                        :internal-search="true"
-                        
-                        select-label=''
-                        select-group-label=''
-                        selected-label=''
-                        deselect-label=''
-                        deselect-group-label=''
-
-                        placeholder=''
-                        
-                        name="legend_position_selector_1"
-                    )
-            .legend_font_color
-                .explication {{ label("var_barline_chart_widget_options_component.legend_font_color") }}
-                color-picker(v-model="legend_font_color" @change='throttled_update_colors')
-            .legend_font_size
-                .input_label {{ label('var_barline_chart_widget_options_component.legend_font_size') }}
-                .input_wrapper
-                    input(
-                        type="number"
-                        v-model="legend_font_size"
-                    )
-            .legend_box_width
-                .input_label {{ label('var_barline_chart_widget_options_component.legend_box_width') }}
-                .input_wrapper
-                    input(
-                        type="number"
-                        v-model="legend_box_width"
-                    )
-            .legend_padding
-                .input_label {{ label('var_barline_chart_widget_options_component.legend_padding') }}
-                .input_wrapper
-                    input(
-                        type="number"
-                        v-model="legend_padding"
-                    )
-            .legend_use_point_style
-                .input_label {{ label('var_barline_chart_widget_options_component.legend_use_point_style') }}
-                .input_wrapper
-                    toggle-button(
-                        @change="switch_legend_use_point_style" 
-                        :value="legend_use_point_style" 
-                        :sync="false"
-                        :width="60"
-                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
-                    )
-
-        .options_separator_lvl2 {{ label('var_barline_chart_widget_options_component.separator.axis_confs') }}
-        .show_x_axis
-            .input_label {{ label('var_barline_chart_widget_options_component.show_x_axis') }}
-            .input_wrapper
-                toggle-button(
-                    @change="switch_show_x_axis" 
-                    :value="show_x_axis" 
-                    :sync="false"
-                    :width="60"
-                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
-                )
-        .x_axis_drawTicks
-            .input_label {{ label('var_barline_chart_widget_options_component.x_axis_drawTicks') }}
-            .input_wrapper
-                toggle-button(
-                    @change="switch_x_axis_drawTicks" 
-                    :value="x_axis_drawTicks" 
-                    :sync="false"
-                    :width="60"
-                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
-                )
-        .x_axis_color
-            .explication {{ label("var_barline_chart_widget_options_component.x_axis_color") }}
-            color-picker(v-model="x_axis_color" @change='throttled_update_colors')
-        .x_axis_font_color
-            .explication {{ label("var_barline_chart_widget_options_component.x_axis_font_color") }}
-            color-picker(v-model="x_axis_font_color" @change='throttled_update_colors')
-        .x_axis_font_size
-            .input_label {{ label('var_barline_chart_widget_options_component.x_axis_font_size') }}
-            .input_wrapper
-                input(
-                    type="number"
-                    v-model="x_axis_font_size"
-                    v-tooltip="label('var_barline_chart_widget_options_component.x_axis_font_size.tooltip')"
-                )
+    //-     .options_separator_lvl1 {{ label('var_barline_chart_widget_options_component.separator.widget_options') }}
+    //-     .widget_title(v-if='title_name_code_text')
+    //-         .widget_title_label {{ label('var_barline_chart_widget_options_component.widget_title.title_name_code_text') }}
+    //-         .widget_title_wrapper
+    //-             Inlinetranslatabletext(
+    //-                 :code_text="title_name_code_text"
+    //-                 :is_editable="true")
+    //-     .bg_color
+    //-         .explication {{ label("var_barline_chart_widget_options_component.bg_color") }}
+    //-         color-picker(v-model="bg_color" @change='throttled_update_colors')
 
 
-        .show_y_axis
-            .input_label {{ label('var_barline_chart_widget_options_component.show_y_axis') }}
-            .input_wrapper
-                toggle-button(
-                    @change="switch_show_y_axis" 
-                    :value="show_y_axis" 
-                    :sync="false"
-                    :width="60"
-                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
-                )
-        .y_axis_drawTicks
-            .input_label {{ label('var_barline_chart_widget_options_component.y_axis_drawTicks') }}
-            .input_wrapper
-                toggle-button(
-                    @change="switch_y_axis_drawTicks" 
-                    :value="y_axis_drawTicks" 
-                    :sync="false"
-                    :width="60"
-                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
-                )
-        .y_axis_color
-            .explication {{ label("var_barline_chart_widget_options_component.y_axis_color") }}
-            color-picker(v-model="y_axis_color" @change='throttled_update_colors')
-        .y_axis_font_color
-            .explication {{ label("var_barline_chart_widget_options_component.y_axis_font_color") }}
-            color-picker(v-model="y_axis_font_color" @change='throttled_update_colors')
-        .y_axis_font_size
-            .input_label {{ label('var_barline_chart_widget_options_component.y_axis_font_size') }}
-            .input_wrapper
-                input(
-                    type="number"
-                    v-model="y_axis_font_size"
-                    v-tooltip="label('var_barline_chart_widget_options_component.y_axis_font_size.tooltip')"
-                )
-        .y_axis_stacked
-            .input_label {{ label('var_barline_chart_widget_options_component.y_axis_stacked') }}
-            .input_wrapper
-                toggle-button(
-                    @change="switch_y_axis_stacked" 
-                    :value="y_axis_stacked" 
-                    :sync="false"
-                    :width="60"
-                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
-                )
+    //-     .options_separator_lvl1 {{ label('var_barline_chart_widget_options_component.separator.chart_options') }}
 
-        .options_separator_lvl1 {{ label('var_barline_chart_widget_options_component.separator.datas_options') }}
+    //-     .options_separator_lvl2 {{ label('var_barline_chart_widget_options_component.separator.chart_title_options') }}
+    //-     .title_display
+    //-         .input_label {{ label('var_barline_chart_widget_options_component.title_display') }}
+    //-         .input_wrapper
+    //-             toggle-button(
+    //-                 @change="switch_title_display"
+    //-                 :value="title_display"
+    //-                 :sync="false"
+    //-                 :width="60"
+    //-                 :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+    //-             )
+    //-     template(v-if='title_display')
+    //-         .title_font_color
+    //-             .explication {{ label("var_barline_chart_widget_options_component.title_font_color") }}
+    //-             color-picker(v-model="title_font_color" @change='throttled_update_colors')
+    //-         .title_font_size
+    //-             .input_label {{ label('var_barline_chart_widget_options_component.title_font_size') }}
+    //-             .input_wrapper
+    //-                 input(
+    //-                     type="number"
+    //-                     v-model="title_font_size"
+    //-                 )
+    //-         .title_padding
+    //-             .input_label {{ label('var_barline_chart_widget_options_component.title_padding') }}
+    //-             .input_wrapper
+    //-                 input(
+    //-                     type="number"
+    //-                     v-model="title_padding"
+    //-                 )
 
-        .options_separator_lvl2 {{ label('var_barline_chart_widget_options_component.separator.datas_dimension_options') }}
-        .dimension_is_vo_field_ref
-            .input_label {{ label('var_barline_chart_widget_options_component.dimension_is_vo_field_ref') }}
-            .input_wrapper
-                toggle-button(
-                    @change="switch_dimension_is_vo_field_ref" 
-                    :value="dimension_is_vo_field_ref" 
-                    :sync="false"
-                    :width="60"
-                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
-                )
-        
-        template(v-if='dimension_is_vo_field_ref')
-            .ref
-                .input_label {{ label('var_barline_chart_widget_options_component.dimension_vo_field_ref') }}
-                .input_wrapper
-                    Singlevofieldrefholdercomponent(
-                        :vo_field_ref="dimension_vo_field_ref" @remove_field_ref="remove_dimension_vo_field_ref" @add_field_ref="add_dimension_vo_field_ref"
-                        :page_widget_id='page_widget ? page_widget.id : null'
-                    )
+    //-     .options_separator_lvl2 {{ label('var_barline_chart_widget_options_component.separator.chart_legend_options') }}
+    //-     .legend_display
+    //-         .input_label {{ label('var_barline_chart_widget_options_component.legend_display') }}
+    //-         .input_wrapper
+    //-             toggle-button(
+    //-                 @change="switch_legend_display"
+    //-                 :value="legend_display"
+    //-                 :sync="false"
+    //-                 :width="60"
+    //-                 :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+    //-             )
+    //-     template(v-if='legend_display')
+    //-         .legend_position
+    //-             .input_label {{ label('var_barline_chart_widget_options_component.legend_position') }}
+    //-             .input_wrapper
+    //-                 multiselect.var_name_selector(
+    //-                     :preselect-first="false"
+    //-                     :multiple="false"
+    //-                     v-model="tmp_selected_legend_position"
+    //-                     :options="legend_positions"
+    //-                     :allow-empty="false",
 
-        template(v-else)
-            .dimension_custom_filter_name
-                .id {{ label('var_barline_chart_widget_options_component.dimension_custom_filter_name') }}
-                .custom_filter 
-                    input(
-                        type="text"
-                        v-model="dimension_custom_filter_name"
-                        :disabled="true"
-                    )
-                .existing_custom_filters_list(v-if='get_custom_filters && get_custom_filters.length')
-                    template(v-for='custom_filter in get_custom_filters')
-                        .custom_filter.clickable(@click='change_custom_filter_dimension(custom_filter)') {{ custom_filter }}
-            .dimension_custom_filter_segment_type 
-                .input_label {{ label('var_barline_chart_widget_options_component.dimension_custom_filter_segment_type') }}
-                .input_wrapper
-                    multiselect.var_name_selector(
-                        :preselect-first="false"
-                        :multiple="false"
-                        v-model="tmp_selected_dimension_custom_filter_segment_type"
-                        :options="dimension_custom_filter_segment_types"
-                        :allow-empty="false",
+    //-                     :searchable="true"
+    //-                     :internal-search="true"
 
-                        :searchable="true"
-                        :internal-search="true"
-                        
-                        select-label=''
-                        select-group-label=''
-                        selected-label=''
-                        deselect-label=''
-                        deselect-group-label=''
+    //-                     select-label=''
+    //-                     select-group-label=''
+    //-                     selected-label=''
+    //-                     deselect-label=''
+    //-                     deselect-group-label=''
 
-                        placeholder=''
-                        
-                        name="dimension_custom_filter_segment_type_selector_1"
-                    )
+    //-                     placeholder=''
 
-        .max_dimension_values
-            .input_label {{ label('var_barline_chart_widget_options_component.max_dimension_values') }}
-            .input_wrapper
-                input(
-                    type="number"
-                    v-model="max_dimension_values"
-                    v-tooltip="label('var_barline_chart_widget_options_component.max_dimension_values.tooltip')"
-                )
+    //-                     name="legend_position_selector_1"
+    //-                 )
+    //-         .legend_font_color
+    //-             .explication {{ label("var_barline_chart_widget_options_component.legend_font_color") }}
+    //-             color-picker(v-model="legend_font_color" @change='throttled_update_colors')
+    //-         .legend_font_size
+    //-             .input_label {{ label('var_barline_chart_widget_options_component.legend_font_size') }}
+    //-             .input_wrapper
+    //-                 input(
+    //-                     type="number"
+    //-                     v-model="legend_font_size"
+    //-                 )
+    //-         .legend_box_width
+    //-             .input_label {{ label('var_barline_chart_widget_options_component.legend_box_width') }}
+    //-             .input_wrapper
+    //-                 input(
+    //-                     type="number"
+    //-                     v-model="legend_box_width"
+    //-                 )
+    //-         .legend_padding
+    //-             .input_label {{ label('var_barline_chart_widget_options_component.legend_padding') }}
+    //-             .input_wrapper
+    //-                 input(
+    //-                     type="number"
+    //-                     v-model="legend_padding"
+    //-                 )
+    //-         .legend_use_point_style
+    //-             .input_label {{ label('var_barline_chart_widget_options_component.legend_use_point_style') }}
+    //-             .input_wrapper
+    //-                 toggle-button(
+    //-                     @change="switch_legend_use_point_style"
+    //-                     :value="legend_use_point_style"
+    //-                     :sync="false"
+    //-                     :width="60"
+    //-                     :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+    //-                 )
 
-        template(v-if='dimension_is_vo_field_ref')
-            .ref
-                .input_label {{ label('var_barline_chart_widget_options_component.sort_dimension_by_vo_field_ref') }}
-                .input_wrapper
-                    Singlevofieldrefholdercomponent(
-                        :vo_field_ref="sort_dimension_by_vo_field_ref" @remove_field_ref="remove_sort_dimension_by_vo_field_ref" @add_field_ref="add_sort_dimension_by_vo_field_ref"
-                        :page_widget_id='page_widget ? page_widget.id : null'
-                    )
+    //-     .options_separator_lvl2 {{ label('var_barline_chart_widget_options_component.separator.axis_confs') }}
+    //-     .show_x_axis
+    //-         .input_label {{ label('var_barline_chart_widget_options_component.show_x_axis') }}
+    //-         .input_wrapper
+    //-             toggle-button(
+    //-                 @change="switch_show_x_axis"
+    //-                 :value="show_x_axis"
+    //-                 :sync="false"
+    //-                 :width="60"
+    //-                 :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+    //-             )
+    //-     .x_axis_drawTicks
+    //-         .input_label {{ label('var_barline_chart_widget_options_component.x_axis_drawTicks') }}
+    //-         .input_wrapper
+    //-             toggle-button(
+    //-                 @change="switch_x_axis_drawTicks"
+    //-                 :value="x_axis_drawTicks"
+    //-                 :sync="false"
+    //-                 :width="60"
+    //-                 :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+    //-             )
+    //-     .x_axis_color
+    //-         .explication {{ label("var_barline_chart_widget_options_component.x_axis_color") }}
+    //-         color-picker(v-model="x_axis_color" @change='throttled_update_colors')
+    //-     .x_axis_font_color
+    //-         .explication {{ label("var_barline_chart_widget_options_component.x_axis_font_color") }}
+    //-         color-picker(v-model="x_axis_font_color" @change='throttled_update_colors')
+    //-     .x_axis_font_size
+    //-         .input_label {{ label('var_barline_chart_widget_options_component.x_axis_font_size') }}
+    //-         .input_wrapper
+    //-             input(
+    //-                 type="number"
+    //-                 v-model="x_axis_font_size"
+    //-                 v-tooltip="label('var_barline_chart_widget_options_component.x_axis_font_size.tooltip')"
+    //-             )
 
-        .sort_dimension_by_asc
-            .input_label {{ label('var_barline_chart_widget_options_component.sort_dimension_by_asc') }}
-            .input_wrapper
-                toggle-button(
-                    @change="switch_sort_dimension_by_asc" 
-                    :value="sort_dimension_by_asc" 
-                    :sync="false"
-                    :width="60"
-                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
-                )
 
-        .options_separator_lvl2 {{ label('var_barline_chart_widget_options_component.separator.datas_sets') }}
-        template(v-for='dataset in datasets')
-            Varbarlinedatasetchartwidgetoptionscomponent(dataset_options:='dataset' @update_options='update_dataset_options')
-        template
-            button.btn.btn-primary.add_dataset.clickable(@click='add_dataset') {{ label('var_barline_chart_widget_options_component.add_dataset') }}
+    //-     .show_y_axis
+    //-         .input_label {{ label('var_barline_chart_widget_options_component.show_y_axis') }}
+    //-         .input_wrapper
+    //-             toggle-button(
+    //-                 @change="switch_show_y_axis"
+    //-                 :value="show_y_axis"
+    //-                 :sync="false"
+    //-                 :width="60"
+    //-                 :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+    //-             )
+    //-     .y_axis_drawTicks
+    //-         .input_label {{ label('var_barline_chart_widget_options_component.y_axis_drawTicks') }}
+    //-         .input_wrapper
+    //-             toggle-button(
+    //-                 @change="switch_y_axis_drawTicks"
+    //-                 :value="y_axis_drawTicks"
+    //-                 :sync="false"
+    //-                 :width="60"
+    //-                 :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+    //-             )
+    //-     .y_axis_color
+    //-         .explication {{ label("var_barline_chart_widget_options_component.y_axis_color") }}
+    //-         color-picker(v-model="y_axis_color" @change='throttled_update_colors')
+    //-     .y_axis_font_color
+    //-         .explication {{ label("var_barline_chart_widget_options_component.y_axis_font_color") }}
+    //-         color-picker(v-model="y_axis_font_color" @change='throttled_update_colors')
+    //-     .y_axis_font_size
+    //-         .input_label {{ label('var_barline_chart_widget_options_component.y_axis_font_size') }}
+    //-         .input_wrapper
+    //-             input(
+    //-                 type="number"
+    //-                 v-model="y_axis_font_size"
+    //-                 v-tooltip="label('var_barline_chart_widget_options_component.y_axis_font_size.tooltip')"
+    //-             )
+    //-     .y_axis_stacked
+    //-         .input_label {{ label('var_barline_chart_widget_options_component.y_axis_stacked') }}
+    //-         .input_wrapper
+    //-             toggle-button(
+    //-                 @change="switch_y_axis_stacked"
+    //-                 :value="y_axis_stacked"
+    //-                 :sync="false"
+    //-                 :width="60"
+    //-                 :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+    //-             )
 
-                    update_options
+    //-     .options_separator_lvl1 {{ label('var_barline_chart_widget_options_component.separator.datas_options') }}
+
+    //-     .options_separator_lvl2 {{ label('var_barline_chart_widget_options_component.separator.datas_dimension_options') }}
+    //-     .dimension_is_vo_field_ref
+    //-         .input_label {{ label('var_barline_chart_widget_options_component.dimension_is_vo_field_ref') }}
+    //-         .input_wrapper
+    //-             toggle-button(
+    //-                 @change="switch_dimension_is_vo_field_ref"
+    //-                 :value="dimension_is_vo_field_ref"
+    //-                 :sync="false"
+    //-                 :width="60"
+    //-                 :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+    //-             )
+
+    //-     template(v-if='dimension_is_vo_field_ref')
+    //-         .ref
+    //-             .input_label {{ label('var_barline_chart_widget_options_component.dimension_vo_field_ref') }}
+    //-             .input_wrapper
+    //-                 Singlevofieldrefholdercomponent(
+    //-                     :vo_field_ref="dimension_vo_field_ref" @remove_field_ref="remove_dimension_vo_field_ref" @add_field_ref="add_dimension_vo_field_ref"
+    //-                     :page_widget_id='page_widget ? page_widget.id : null'
+    //-                 )
+
+    //-     template(v-else)
+    //-         .dimension_custom_filter_name
+    //-             .id {{ label('var_barline_chart_widget_options_component.dimension_custom_filter_name') }}
+    //-             .custom_filter
+    //-                 input(
+    //-                     type="text"
+    //-                     v-model="dimension_custom_filter_name"
+    //-                     :disabled="true"
+    //-                 )
+    //-             .existing_custom_filters_list(v-if='get_custom_filters && get_custom_filters.length')
+    //-                 template(v-for='custom_filter in get_custom_filters')
+    //-                     .custom_filter.clickable(@click='change_custom_filter_dimension(custom_filter)') {{ custom_filter }}
+    //-         .dimension_custom_filter_segment_type
+    //-             .input_label {{ label('var_barline_chart_widget_options_component.dimension_custom_filter_segment_type') }}
+    //-             .input_wrapper
+    //-                 multiselect.var_name_selector(
+    //-                     :preselect-first="false"
+    //-                     :multiple="false"
+    //-                     v-model="tmp_selected_dimension_custom_filter_segment_type"
+    //-                     :options="dimension_custom_filter_segment_types"
+    //-                     :allow-empty="false",
+
+    //-                     :searchable="true"
+    //-                     :internal-search="true"
+
+    //-                     select-label=''
+    //-                     select-group-label=''
+    //-                     selected-label=''
+    //-                     deselect-label=''
+    //-                     deselect-group-label=''
+
+    //-                     placeholder=''
+
+    //-                     name="dimension_custom_filter_segment_type_selector_1"
+    //-                 )
+
+    //-     .max_dimension_values
+    //-         .input_label {{ label('var_barline_chart_widget_options_component.max_dimension_values') }}
+    //-         .input_wrapper
+    //-             input(
+    //-                 type="number"
+    //-                 v-model="max_dimension_values"
+    //-                 v-tooltip="label('var_barline_chart_widget_options_component.max_dimension_values.tooltip')"
+    //-             )
+
+    //-     template(v-if='dimension_is_vo_field_ref')
+    //-         .ref
+    //-             .input_label {{ label('var_barline_chart_widget_options_component.sort_dimension_by_vo_field_ref') }}
+    //-             .input_wrapper
+    //-                 Singlevofieldrefholdercomponent(
+    //-                     :vo_field_ref="sort_dimension_by_vo_field_ref" @remove_field_ref="remove_sort_dimension_by_vo_field_ref" @add_field_ref="add_sort_dimension_by_vo_field_ref"
+    //-                     :page_widget_id='page_widget ? page_widget.id : null'
+    //-                 )
+
+    //-     .sort_dimension_by_asc
+    //-         .input_label {{ label('var_barline_chart_widget_options_component.sort_dimension_by_asc') }}
+    //-         .input_wrapper
+    //-             toggle-button(
+    //-                 @change="switch_sort_dimension_by_asc"
+    //-                 :value="sort_dimension_by_asc"
+    //-                 :sync="false"
+    //-                 :width="60"
+    //-                 :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+    //-             )
+
+    //-     .options_separator_lvl2 {{ label('var_barline_chart_widget_options_component.separator.datas_sets') }}
+    //-     template(v-for='dataset in datasets')
+    //-         Varbarlinedatasetchartwidgetoptionscomponent(dataset_options:='dataset' @update_options='update_dataset_options')
+    //-     template
+    //-         button.btn.btn-primary.add_dataset.clickable(@click='add_dataset') {{ label('var_barline_chart_widget_options_component.add_dataset') }}
+
+    //-                 update_options
