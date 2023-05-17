@@ -52,7 +52,7 @@ export default class ExportContextQueryToXLSXBGThread implements IBGThread {
 
         try {
 
-            StatsController.register_stat('ExportContextQueryToXLSXBGThread', 'work', 'IN', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat_COMPTEUR('ExportContextQueryToXLSXBGThread', 'work', 'IN');
 
             /**
              * On dépile une demande d'export
@@ -97,8 +97,7 @@ export default class ExportContextQueryToXLSXBGThread implements IBGThread {
     private stats_out(activity: string, time_in: number) {
 
         let time_out = Dates.now_ms();
-        StatsController.register_stat('ExportContextQueryToXLSXBGThread', 'work', activity + '_OUT', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsController.register_stats('ExportContextQueryToXLSXBGThread', 'work', activity + '_OUT', StatsTypeVO.TYPE_DUREE, time_out - time_in,
-            [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('ExportContextQueryToXLSXBGThread', 'work', activity + '_OUT');
+        StatsController.register_stat_DUREE('ExportContextQueryToXLSXBGThread', 'work', activity + '_OUT', time_out - time_in);
     }
 }

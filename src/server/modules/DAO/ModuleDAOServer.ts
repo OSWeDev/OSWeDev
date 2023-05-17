@@ -2674,7 +2674,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 let uniquevos: IDistantVOBase[] = null;
 
-                StatsController.register_stat('dao', 'check_uniq_indexes', 'query', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                StatsController.register_stat_COMPTEUR('dao', 'check_uniq_indexes', 'query');
 
                 await StackContext.runPromise({ IS_CLIENT: false }, async () => {
                     uniquevos = await ModuleContextFilter.getInstance().select_vos(query_);
@@ -2693,7 +2693,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             if (uid && CLIENT_TAB_ID) {
                                 await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'dao.check_uniq_indexes.error' + DefaultTranslation.DEFAULT_LABEL_EXTENSION, true);
                             }
-                            StatsController.register_stat('dao', 'check_uniq_indexes', 'error', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                            StatsController.register_stat_COMPTEUR('dao', 'check_uniq_indexes', 'error');
 
                             let msg: string = "Ajout impossible car un élément existe déjà avec les mêmes valeurs sur le champ : " + field_id + " : " + JSON.stringify(vo);
                             ConsoleHandler.error(msg);
@@ -2711,7 +2711,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private async insertOrUpdateVO(vo: IDistantVOBase): Promise<InsertOrDeleteQueryResult> {
 
         let time_in = Dates.now_ms();
-        StatsController.register_stat('dao', 'insertOrUpdateVO', 'in', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'in');
 
         if (this.global_update_blocker) {
             let uid: number = StackContext.get('UID');
@@ -2719,17 +2719,17 @@ export default class ModuleDAOServer extends ModuleServerBase {
             if (uid && CLIENT_TAB_ID) {
                 this.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
             }
-            StatsController.register_stat('dao', 'insertOrUpdateVO', 'global_update_blocker', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'global_update_blocker');
             return null;
         }
 
         // On vérifie qu'on peut faire un insert ou update
         if ((!vo) || (!vo._type) || (!VOsTypesManager.moduleTables_by_voType[vo._type])) {
-            StatsController.register_stat('dao', 'insertOrUpdateVO', 'invalid_vo', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'invalid_vo');
             return null;
         }
         if (!this.checkAccessSync(VOsTypesManager.moduleTables_by_voType[vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE)) {
-            StatsController.register_stat('dao', 'insertOrUpdateVO', 'failed_checkAccessSync', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'failed_checkAccessSync');
             return null;
         }
 
@@ -2737,7 +2737,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let tmp_vo = await this.filterVOAccess(VOsTypesManager.moduleTables_by_voType[vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, vo);
 
         if (!tmp_vo) {
-            StatsController.register_stat('dao', 'insertOrUpdateVO', 'failed_filterVOAccess', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'failed_filterVOAccess');
             return null;
         }
         vo = tmp_vo;
@@ -2748,7 +2748,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             vos = await this.filterByForeignKeys([vo]);
 
             if ((!vos) || (vos.length != 1)) {
-                StatsController.register_stat('dao', 'insertOrUpdateVO', 'filterByForeignKeys', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'filterByForeignKeys');
                 return null;
             }
         }
@@ -2763,7 +2763,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let moduleTable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[vo._type];
 
             if (!moduleTable) {
-                StatsController.register_stat('dao', 'insertOrUpdateVO', 'no_moduletable', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'no_moduletable');
                 resolve(null);
                 return null;
             }
@@ -2776,7 +2776,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 try {
                     vo.id = await this.check_uniq_indexes(vo, moduleTable);
                 } catch (err) {
-                    StatsController.register_stat('dao', 'insertOrUpdateVO', 'failed_check_uniq_indexes', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                    StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'failed_check_uniq_indexes');
                     return null;
                 }
             }
@@ -2795,7 +2795,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     preUpdate = await query_.select_vo();
 
                     if (!preUpdate) {
-                        StatsController.register_stat('dao', 'insertOrUpdateVO', 'update_autochange_to_insert', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                        StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'update_autochange_to_insert');
                         // Cas d'un objet en cache server ou client mais qui n'existe plus sur la BDD => on doit insérer du coup un nouveau
                         isUpdate = false;
                         vo.id = null;
@@ -2808,7 +2808,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             if (!sql) {
                 ConsoleHandler.warn('Est-ce bien normal ? insertOrUpdateVO :(!sql):' + JSON.stringify(vo));
-                StatsController.register_stat('dao', 'insertOrUpdateVO', 'no_sql', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'no_sql');
                 resolve(null);
                 return null;
             }
@@ -2824,7 +2824,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let res: InsertOrDeleteQueryResult = new InsertOrDeleteQueryResult((db_result && db_result.id) ? parseInt(db_result.id.toString()) : null);
 
             if (failed) {
-                StatsController.register_stat('dao', 'insertOrUpdateVO', 'failed', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'failed');
                 resolve(null);
                 return null;
             }
@@ -2838,9 +2838,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }
             }
 
-            StatsController.register_stat('dao', 'insertOrUpdateVO', 'ok', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'ok');
             let time_out = Dates.now_ms();
-            StatsController.register_stats('dao', 'insertOrUpdateVO', 'ok_time', StatsTypeVO.TYPE_DUREE, time_out - time_in, [StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN, StatVO.AGGREGATOR_SUM], TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat_DUREE('dao', 'insertOrUpdateVO', 'ok_time', time_out - time_in);
             resolve(res);
         });
     }
@@ -2848,7 +2848,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private async deleteVOs(vos: IDistantVOBase[]): Promise<InsertOrDeleteQueryResult[]> {
 
         let time_in = Dates.now_ms();
-        StatsController.register_stat('dao', 'deleteVOs', 'in', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('dao', 'deleteVOs', 'in');
 
         if (this.global_update_blocker) {
             let uid: number = StackContext.get('UID');
@@ -2856,17 +2856,17 @@ export default class ModuleDAOServer extends ModuleServerBase {
             if (uid && CLIENT_TAB_ID) {
                 this.throttled_refuse({ [uid]: { [CLIENT_TAB_ID]: true } });
             }
-            StatsController.register_stat('dao', 'deleteVOs', 'global_update_blocker', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat_COMPTEUR('dao', 'deleteVOs', 'global_update_blocker');
             return null;
         }
 
         // On vérifie qu'on peut faire un delete
         if ((!vos) || (!vos.length) || (!vos[0]) || (!vos[0]._type) || (!VOsTypesManager.moduleTables_by_voType[vos[0]._type])) {
-            StatsController.register_stat('dao', 'deleteVOs', 'invalid_vo', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat_COMPTEUR('dao', 'deleteVOs', 'invalid_vo');
             return null;
         }
         if (!this.checkAccessSync(VOsTypesManager.moduleTables_by_voType[vos[0]._type], ModuleDAO.DAO_ACCESS_TYPE_DELETE)) {
-            StatsController.register_stat('dao', 'deleteVOs', 'failed_checkAccessSync', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat_COMPTEUR('dao', 'deleteVOs', 'failed_checkAccessSync');
             return null;
         }
 
@@ -2881,7 +2881,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
         }
         if ((!tmp_vos) || (!tmp_vos.length)) {
-            StatsController.register_stat('dao', 'deleteVOs', 'failed_filterVOAccess', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat_COMPTEUR('dao', 'deleteVOs', 'failed_filterVOAccess');
             return null;
         }
         vos = tmp_vos;
@@ -2898,7 +2898,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 let vo = vos[i];
 
                 if (!vo._type) {
-                    StatsController.register_stat('dao', 'deleteVOs', 'no_vo_type', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                    StatsController.register_stat_COMPTEUR('dao', 'deleteVOs', 'no_vo_type');
                     ConsoleHandler.error("Un VO sans _type dans le DAO ! " + JSON.stringify(vo));
                     continue;
                 }
@@ -2906,7 +2906,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 let moduletable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[vo._type];
 
                 if (!moduletable) {
-                    StatsController.register_stat('dao', 'deleteVOs', 'no_moduletable', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                    StatsController.register_stat_COMPTEUR('dao', 'deleteVOs', 'no_moduletable');
                     ConsoleHandler.error("Impossible de trouver le datatable de ce _type ! " + JSON.stringify(vo));
                     continue;
                 }
@@ -2915,7 +2915,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 //  Attention si un des output est false avant suppression, on annule la suppression
                 let res: boolean[] = await DAOServerController.getInstance().pre_delete_trigger_hook.trigger(vo._type, vo);
                 if (!BooleanHandler.getInstance().AND(res, true)) {
-                    StatsController.register_stat('dao', 'deleteVOs', 'pre_delete_trigger_hook_rejection', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                    StatsController.register_stat_COMPTEUR('dao', 'deleteVOs', 'pre_delete_trigger_hook_rejection');
                     continue;
                 }
 
@@ -3002,8 +3002,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         let time_out = Dates.now_ms();
-        StatsController.register_stats('dao', 'deleteVOs', 'time', StatsTypeVO.TYPE_DUREE, time_out - time_in, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
-        StatsController.register_stat('dao', 'deleteVOs', 'out', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_DUREE('dao', 'deleteVOs', 'time', time_out - time_in);
+        StatsController.register_stat_COMPTEUR('dao', 'deleteVOs', 'out');
         return InsertOrDeleteQueryResults;
     }
 
@@ -3068,7 +3068,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 //  Attention si un des output est false avant modification, on annule la modification
                 let res: boolean[] = await DAOServerController.getInstance().pre_update_trigger_hook.trigger(vo._type, new DAOUpdateVOHolder(pre_update_vo, vo));
                 if (!BooleanHandler.getInstance().AND(res, true)) {
-                    StatsController.register_stat('dao', 'insertOrUpdateVO', 'pre_update_trigger_hook_rejection', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                    StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'pre_update_trigger_hook_rejection');
                     return null;
                 }
             }
@@ -3123,7 +3123,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 //  Attention si un des output est false avant modification, on annule la modification
                 let res: boolean[] = await DAOServerController.getInstance().pre_create_trigger_hook.trigger(vo._type, vo);
                 if (!BooleanHandler.getInstance().AND(res, true)) {
-                    StatsController.register_stat('dao', 'insertOrUpdateVO', 'pre_create_trigger_hook_rejection', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                    StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'pre_create_trigger_hook_rejection');
                     return null;
                 }
             }

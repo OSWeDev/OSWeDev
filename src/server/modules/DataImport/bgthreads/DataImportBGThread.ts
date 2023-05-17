@@ -62,7 +62,7 @@ export default class DataImportBGThread implements IBGThread {
 
         try {
 
-            StatsController.register_stat('DataImportBGThread', 'work', 'IN', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat_COMPTEUR('DataImportBGThread', 'work', 'IN');
 
             /**
              * Pour éviter de surcharger le système, on attend que le vos_cud des vars soit vidé (donc on a vraiment fini de traiter les imports précédents et rien de complexe en cours)
@@ -202,16 +202,15 @@ export default class DataImportBGThread implements IBGThread {
     private stats_out(activity: string, time_in: number) {
 
         let time_out = Dates.now_ms();
-        StatsController.register_stat('DataImportBGThread', 'work', activity + '_OUT', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsController.register_stats('DataImportBGThread', 'work', activity + '_OUT', StatsTypeVO.TYPE_DUREE, time_out - time_in,
-            [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('DataImportBGThread', 'work', activity + '_OUT');
+        StatsController.register_stat_DUREE('DataImportBGThread', 'work', activity + '_OUT', time_out - time_in);
     }
 
     private async prepare_reimports() {
 
         let time_in = Dates.now_ms();
 
-        StatsController.register_stat('DataImportBGThread', 'prepare_reimports', 'IN', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('DataImportBGThread', 'prepare_reimports', 'IN');
 
         let dihs = await query(DataImportHistoricVO.API_TYPE_ID)
             .filter_by_num_eq('state', ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT)
@@ -228,9 +227,8 @@ export default class DataImportBGThread implements IBGThread {
         }
 
         let time_out = Dates.now_ms();
-        StatsController.register_stat('DataImportBGThread', 'prepare_reimports', 'OUT', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsController.register_stats('DataImportBGThread', 'prepare_reimports', 'OUT', StatsTypeVO.TYPE_DUREE, time_out - time_in,
-            [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('DataImportBGThread', 'prepare_reimports', 'OUT');
+        StatsController.register_stat_DUREE('DataImportBGThread', 'prepare_reimports', 'OUT', time_out - time_in);
     }
 
     private async handleImportHistoricProgression(importHistoric: DataImportHistoricVO): Promise<boolean> {

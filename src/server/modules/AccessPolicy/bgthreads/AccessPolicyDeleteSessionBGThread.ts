@@ -55,7 +55,7 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
 
         try {
 
-            StatsController.register_stat('AccessPolicyDeleteSessionBGThread', 'work', 'IN', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat_COMPTEUR('AccessPolicyDeleteSessionBGThread', 'work', 'IN');
 
             let invalidate_sessions: IServerUserSession[] = ObjectHandler.getInstance().arrayFromMap(this.session_to_delete_by_sids);
 
@@ -160,8 +160,7 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
     private stats_out(activity: string, time_in: number) {
 
         let time_out = Dates.now_ms();
-        StatsController.register_stat('AccessPolicyDeleteSessionBGThread', 'work', activity + '_OUT', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsController.register_stats('AccessPolicyDeleteSessionBGThread', 'work', activity + '_OUT', StatsTypeVO.TYPE_DUREE, time_out - time_in,
-            [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('AccessPolicyDeleteSessionBGThread', 'work', activity + '_OUT');
+        StatsController.register_stat_DUREE('AccessPolicyDeleteSessionBGThread', 'work', activity + '_OUT', time_out - time_in);
     }
 }

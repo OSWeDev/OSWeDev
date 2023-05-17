@@ -2,7 +2,7 @@ import { Cell, Geometry, Graph, Rectangle } from "@maxgraph/core";
 import DashboardGraphVORefVO from "../../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO";
 import ModuleTable from "../../../../../../shared/modules/ModuleTable";
 import ModuleTableField from "../../../../../../shared/modules/ModuleTableField";
-import { VOsTypesManager } from "../../../../../../shared/modules/VO/manager/VOsTypesManager";
+import VOsTypesManager from "../../../../../../shared/modules/VO/manager/VOsTypesManager";
 import ConsoleHandler from "../../../../../../shared/tools/ConsoleHandler";
 import VueAppBase from "../../../../../VueAppBase";
 import MaxGraphEdgeMapper from "./MaxGraphEdgeMapper";

@@ -1180,10 +1180,8 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
-        StatsController.register_stat('ModuleVarServer', 'register_params', 'IN', StatsTypeVO.TYPE_COMPTEUR,
-            1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsController.register_stats('ModuleVarServer', 'register_params', 'nb_IN_varsdatas', StatsTypeVO.TYPE_QUANTITE,
-            params.length, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('ModuleVarServer', 'register_params', 'IN');
+        StatsController.register_stat_QUANTITE('ModuleVarServer', 'register_params', 'nb_IN_varsdatas', params.length);
         let time_in = Dates.now_ms();
 
         /**
@@ -1210,8 +1208,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
-        StatsController.register_stats('ModuleVarServer', 'register_params', 'nb_valid_registered_varsdatas', StatsTypeVO.TYPE_QUANTITE,
-            params.length, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_QUANTITE('ModuleVarServer', 'register_params', 'nb_valid_registered_varsdatas', params.length);
 
         let uid = StackContext.get('UID');
         let client_tab_id = StackContext.get('CLIENT_TAB_ID');
@@ -1240,8 +1237,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
             await PushDataServerController.getInstance().notifyVarsDatas(uid, client_tab_id, vars_to_notif);
 
-            StatsController.register_stats('ModuleVarServer', 'register_params', 'nb_cache_notified_varsdatas', StatsTypeVO.TYPE_QUANTITE,
-                notifyable_vars.length, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat_QUANTITE('ModuleVarServer', 'register_params', 'nb_cache_notified_varsdatas', notifyable_vars.length);
 
             if (ConfigurationService.node_configuration.DEBUG_VARS) {
                 for (let i in notifyable_vars) {
@@ -1253,10 +1249,8 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         let time_out = Dates.now_ms();
-        StatsController.register_stat('ModuleVarServer', 'register_params', 'OUT', StatsTypeVO.TYPE_COMPTEUR,
-            1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsController.register_stats('ModuleVarServer', 'register_params', 'OUT', StatsTypeVO.TYPE_DUREE,
-            time_out - time_in, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('ModuleVarServer', 'register_params', 'OUT');
+        StatsController.register_stat_DUREE('ModuleVarServer', 'register_params', 'OUT', time_out - time_in);
     }
 
     private filter_null_fields_params(params: VarDataBaseVO[]): VarDataBaseVO[] {

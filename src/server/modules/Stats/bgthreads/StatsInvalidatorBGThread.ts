@@ -49,7 +49,7 @@ export default class StatsInvalidatorBGThread implements IBGThread {
 
         try {
 
-            StatsController.register_stat('StatsInvalidatorBGThread', 'work', 'IN', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat_COMPTEUR('StatsInvalidatorBGThread', 'work', 'IN');
 
             let invalidation_interval_sec = await ModuleParams.getInstance().getParamValueAsInt(StatsInvalidatorBGThread.PARAM_NAME_invalidation_interval_sec, 30, 300000);
             let invalidate_x_previous_minutes = await ModuleParams.getInstance().getParamValueAsInt(StatsInvalidatorBGThread.PARAM_NAME_invalidate_x_previous_minutes, 2, 300000);
@@ -82,9 +82,8 @@ export default class StatsInvalidatorBGThread implements IBGThread {
     private stats_out(activity: string, time_in: number) {
 
         let time_out = Dates.now_ms();
-        StatsController.register_stat('StatsInvalidatorBGThread', 'work', activity + '_OUT', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsController.register_stats('StatsInvalidatorBGThread', 'work', activity + '_OUT', StatsTypeVO.TYPE_DUREE, time_out - time_in,
-            [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('StatsInvalidatorBGThread', 'work', activity + '_OUT');
+        StatsController.register_stat_DUREE('StatsInvalidatorBGThread', 'work', activity + '_OUT', time_out - time_in);
     }
 
     private async invalidateStats(invalidate_x_previous_minutes: number, invalidate_current_minute: boolean) {

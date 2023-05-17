@@ -627,7 +627,7 @@ export default abstract class ModuleServiceBase {
                 ((error['message'] == 'Connection terminated unexpectedly') ||
                     (error['message'].startsWith('connect ETIMEDOUT ')))) {
 
-                StatsController.register_stat('db_none', 'error', 'connect_error', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                StatsController.register_stat_COMPTEUR('db_none', 'error', 'connect_error');
                 ConsoleHandler.error(error + ' - retrying once');
 
                 try {
@@ -641,7 +641,7 @@ export default abstract class ModuleServiceBase {
                 return;
             } else if (error && (error['message'] == 'sorry, too many clients already')) {
 
-                StatsController.register_stat('db_none', 'error', 'too_many_clients', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                StatsController.register_stat_COMPTEUR('db_none', 'error', 'too_many_clients');
                 ConsoleHandler.error(error + ' - retrying in 100 ms');
 
                 return new Promise((resolve, reject) => {
@@ -664,10 +664,8 @@ export default abstract class ModuleServiceBase {
         }
 
         let time_out = Dates.now_ms();
-        StatsController.register_stat('db_none', 'ok', '-', StatsTypeVO.TYPE_COMPTEUR,
-            1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsController.register_stats('db_none', 'ok', '-', StatsTypeVO.TYPE_DUREE,
-            time_out - time_in, [StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN, StatVO.AGGREGATOR_SUM], TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('db_none', 'ok', '-');
+        StatsController.register_stat_DUREE('db_none', 'ok', '-', time_out - time_in);
     }
 
     private async db_query(query: string, values?: []) {
@@ -684,8 +682,7 @@ export default abstract class ModuleServiceBase {
                 ((error['message'] == 'Connection terminated unexpectedly') ||
                     (error['message'].startsWith('connect ETIMEDOUT ')))) {
 
-                StatsController.register_stat('db_query', 'error', 'connect_error', StatsTypeVO.TYPE_COMPTEUR,
-                    1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                StatsController.register_stat_COMPTEUR('db_query', 'error', 'connect_error');
                 ConsoleHandler.error(error + ' - retrying once');
 
                 try {
@@ -699,8 +696,7 @@ export default abstract class ModuleServiceBase {
                 return res;
             } else if (error && (error['message'] == 'sorry, too many clients already')) {
 
-                StatsController.register_stat('db_query', 'error', 'too_many_clients', StatsTypeVO.TYPE_COMPTEUR,
-                    1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                StatsController.register_stat_COMPTEUR('db_query', 'error', 'too_many_clients');
                 ConsoleHandler.error(error + ' - retrying in 100 ms');
 
                 return new Promise((resolve, reject) => {
@@ -719,13 +715,13 @@ export default abstract class ModuleServiceBase {
             }
 
             ConsoleHandler.error(error);
-            StatsController.register_stat('db_query', 'error', 'others', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat_COMPTEUR('db_query', 'error', 'others');
             return res;
         }
 
         let time_out = Dates.now_ms();
-        StatsController.register_stat('db_query', 'ok', '-', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsController.register_stats('db_query', 'time', '-', StatsTypeVO.TYPE_DUREE, time_out - time_in, [StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN, StatVO.AGGREGATOR_SUM], TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('db_query', 'ok', '-');
+        StatsController.register_stat_DUREE('db_query', 'time', '-', time_out - time_in);
 
         return res;
     }
@@ -747,7 +743,7 @@ export default abstract class ModuleServiceBase {
                 ((error['message'] == 'Connection terminated unexpectedly') ||
                     (error['message'].startsWith('connect ETIMEDOUT ')))) {
 
-                StatsController.register_stat('db_oneOrNone', 'error', 'connect_error', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                StatsController.register_stat_COMPTEUR('db_oneOrNone', 'error', 'connect_error');
                 ConsoleHandler.error(error + ' - retrying once');
 
                 try {
@@ -761,7 +757,7 @@ export default abstract class ModuleServiceBase {
                 return res;
             } else if (error && (error['message'] == 'sorry, too many clients already')) {
 
-                StatsController.register_stat('db_oneOrNone', 'error', 'too_many_clients', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                StatsController.register_stat_COMPTEUR('db_oneOrNone', 'error', 'too_many_clients');
                 ConsoleHandler.error(error + ' - retrying in 100 ms');
 
                 return new Promise((resolve, reject) => {
@@ -784,8 +780,8 @@ export default abstract class ModuleServiceBase {
         }
 
         let time_out = Dates.now_ms();
-        StatsController.register_stat('db_oneOrNone', 'ok', '-', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsController.register_stats('db_oneOrNone', 'time', '-', StatsTypeVO.TYPE_DUREE, time_out - time_in, [StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN, StatVO.AGGREGATOR_SUM], TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('db_oneOrNone', 'ok', '-');
+        StatsController.register_stat_DUREE('db_oneOrNone', 'time', '-', time_out - time_in);
         return res;
     }
 }

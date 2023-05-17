@@ -50,8 +50,7 @@ export default class ForkMessageController {
             return false;
         }
 
-        StatsController.register_stat('ForkMessageController', 'receive', msg.message_type, StatsTypeVO.TYPE_COMPTEUR,
-            1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('ForkMessageController', 'receive', msg.message_type);
 
         try {
 
@@ -87,8 +86,7 @@ export default class ForkMessageController {
 
     public async send(msg: IForkMessage, child_process: ChildProcess = null, forked_target: IFork = null): Promise<boolean> {
 
-        StatsController.register_stat('ForkMessageController', 'send', msg.message_type, StatsTypeVO.TYPE_COMPTEUR,
-            1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('ForkMessageController', 'send', msg.message_type);
 
         return new Promise((resolve, reject) => {
 

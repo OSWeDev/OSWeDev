@@ -43,7 +43,7 @@ export default class MaintenanceBGThread implements IBGThread {
 
         try {
 
-            StatsController.register_stat('MaintenanceBGThread', 'work', 'IN', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat_COMPTEUR('MaintenanceBGThread', 'work', 'IN');
 
             // On veut voir si une maintenance est en base et inconnue pour le moment du système
             //  ou si la maintenance que l'on croit devoir préparer est toujours d'actualité
@@ -119,8 +119,7 @@ export default class MaintenanceBGThread implements IBGThread {
     private stats_out(activity: string, time_in: number) {
 
         let time_out = Dates.now_ms();
-        StatsController.register_stat('MaintenanceBGThread', 'work', activity + '_OUT', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsController.register_stats('MaintenanceBGThread', 'work', activity + '_OUT', StatsTypeVO.TYPE_DUREE, time_out - time_in,
-            [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('MaintenanceBGThread', 'work', activity + '_OUT');
+        StatsController.register_stat_DUREE('MaintenanceBGThread', 'work', activity + '_OUT', time_out - time_in);
     }
 }

@@ -32,8 +32,7 @@ export default abstract class DataSourceControllerTSRangeIndexedBase extends Dat
             return;
         }
 
-        StatsController.register_stat('DataSources', this.name, 'load_node_data_IN', StatsTypeVO.TYPE_COMPTEUR,
-            1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('DataSources', this.name, 'load_node_data_IN');
         let time_load_node_data_in = Dates.now_ms();
 
         let data_index: TSRange[] = this.get_data_index(node.var_data) as TSRange[];
@@ -53,14 +52,12 @@ export default abstract class DataSourceControllerTSRangeIndexedBase extends Dat
             let ms_i = date;
             if (typeof VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name][ms_i] === 'undefined') {
 
-                StatsController.register_stat('DataSources', this.name, 'get_data', StatsTypeVO.TYPE_COMPTEUR,
-                    1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                StatsController.register_stat_COMPTEUR('DataSources', this.name, 'get_data');
                 let time_in = Dates.now_ms();
                 let data = await this.get_data(node.var_data);
                 let time_out = Dates.now_ms();
                 // Attention ici les chargement sont très parrallèlisés et on peut avoir des stats qui se chevauchent donc une somme des temps très nettement > au temps total réel
-                StatsController.register_stats('DataSources', this.name, 'get_data', StatsTypeVO.TYPE_DUREE,
-                    time_out - time_in, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MIN, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN], TimeSegment.TYPE_MINUTE);
+                StatsController.register_stat_DUREE('DataSources', this.name, 'get_data', time_out - time_in);
 
                 for (let j in data) {
                     let e = data[j];
@@ -81,8 +78,7 @@ export default abstract class DataSourceControllerTSRangeIndexedBase extends Dat
 
         let time_load_node_data_out = Dates.now_ms();
         // Attention ici les chargement sont très parrallèlisés et on peut avoir des stats qui se chevauchent donc une somme des temps très nettement > au temps total réel
-        StatsController.register_stats('DataSources', this.name, 'load_node_data', StatsTypeVO.TYPE_DUREE,
-            time_load_node_data_out - time_load_node_data_in, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MIN, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN], TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_DUREE('DataSources', this.name, 'load_node_data', time_load_node_data_out - time_load_node_data_in);
     }
 
     /**

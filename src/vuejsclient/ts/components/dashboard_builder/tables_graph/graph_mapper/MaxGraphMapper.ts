@@ -3,7 +3,7 @@ import { query } from "../../../../../../shared/modules/ContextFilter/vos/Contex
 import ModuleDAO from "../../../../../../shared/modules/DAO/ModuleDAO";
 import DashboardGraphVORefVO from "../../../../../../shared/modules/DashboardBuilder/vos/DashboardGraphVORefVO";
 import ModuleTable from "../../../../../../shared/modules/ModuleTable";
-import { VOsTypesManager } from "../../../../../../shared/modules/VO/manager/VOsTypesManager";
+import VOsTypesManager from "../../../../../../shared/modules/VO/manager/VOsTypesManager";
 import ConsoleHandler from "../../../../../../shared/tools/ConsoleHandler";
 import VueAppBase from "../../../../../VueAppBase";
 import MaxGraphCellMapper from "./MaxGraphCellMapper";

@@ -16,6 +16,7 @@ import ServerAPIController from '../API/ServerAPIController';
 import BGThreadServerController from '../BGThread/BGThreadServerController';
 import CronServerController from '../Cron/CronServerController';
 import ModuleServiceBase from '../ModuleServiceBase';
+import StatsServerController from '../Stats/StatsServerController';
 import ForkMessageController from './ForkMessageController';
 import IForkMessage from './interfaces/IForkMessage';
 import AliveForkMessage from './messages/AliveForkMessage';
@@ -94,6 +95,8 @@ export default abstract class ForkedProcessWrapperBase {
         StatsController.THREAD_IS_CLIENT = false;
         StatsController.UNSTACK_THROTTLE_PARAM_NAME = 'StatsController.UNSTACK_THROTTLE_SERVER';
         StatsController.UNSTACK_THROTTLE = 180000;
+        StatsController.check_groups_handler = StatsServerController.check_groups_handler;
+        StatsController.new_stats_handler = StatsServerController.new_stats_handler;
     }
 
     get process_UID(): number {

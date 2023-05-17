@@ -217,10 +217,8 @@ export default class VarsComputeController {
             return;
         }
 
-        StatsController.register_stat('VarsComputeController', 'compute', 'has_node_to_compute_in_this_batch', StatsTypeVO.TYPE_COMPTEUR,
-            1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsController.register_stats('VarsComputeController', 'compute', 'nb_nodes_per_batch', StatsTypeVO.TYPE_QUANTITE,
-            var_dag.nb_nodes, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('VarsComputeController', 'compute', 'has_node_to_compute_in_this_batch');
+        StatsController.register_stat_QUANTITE('VarsComputeController', 'compute', 'nb_nodes_per_batch', var_dag.nb_nodes);
 
         /**
          * On a l'arbre. On charge les données qui restent à charger
@@ -1169,21 +1167,17 @@ export default class VarsComputeController {
             if (cache_wrapper) {
 
                 if (cache_wrapper.is_server_request) {
-                    StatsController.register_stat('VarsComputeController', 'notify_var_data_post_deploy', 'nb_solved_server_requests', StatsTypeVO.TYPE_COMPTEUR,
-                        1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                    StatsController.register_stat_COMPTEUR('VarsComputeController', 'notify_var_data_post_deploy', 'nb_solved_server_requests');
                 }
                 if (cache_wrapper.client_tab_id) {
-                    StatsController.register_stat('VarsComputeController', 'notify_var_data_post_deploy', 'nb_solved_client_requests', StatsTypeVO.TYPE_COMPTEUR,
-                        1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                    StatsController.register_stat_COMPTEUR('VarsComputeController', 'notify_var_data_post_deploy', 'nb_solved_client_requests');
                 }
                 if ((!cache_wrapper.client_tab_id) && (!cache_wrapper.is_server_request)) {
-                    StatsController.register_stat('VarsComputeController', 'notify_var_data_post_deploy', 'nb_solved_noclientnoserver_requests', StatsTypeVO.TYPE_COMPTEUR,
-                        1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                    StatsController.register_stat_COMPTEUR('VarsComputeController', 'notify_var_data_post_deploy', 'nb_solved_noclientnoserver_requests');
                 }
 
                 if (cache_wrapper.last_insert_or_update == null) {
-                    StatsController.register_stats('VarsComputeController', 'notify_var_data_post_deploy', 'delay', StatsTypeVO.TYPE_DUREE,
-                        Dates.now_ms() - cache_wrapper.creation_date_ms, [StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
+                    StatsController.register_stat_DUREE('VarsComputeController', 'notify_var_data_post_deploy', 'delay', Dates.now_ms() - cache_wrapper.creation_date_ms);
                 }
             }
         }

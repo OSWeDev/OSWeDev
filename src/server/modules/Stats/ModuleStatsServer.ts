@@ -90,7 +90,7 @@ export default class ModuleStatsServer extends ModuleServerBase {
         for (let i in stats_client) {
             let stat_client = stats_client[i];
 
-            StatsController.register_stat(
+            StatsController['register_stat_agg'](
                 stat_client.tmp_category_name, stat_client.tmp_sub_category_name, stat_client.tmp_event_name, stat_client.tmp_stat_type_name,
                 stat_client.value, stat_client.stats_aggregator, stat_client.stats_aggregator_min_segment_type);
         }

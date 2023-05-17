@@ -246,10 +246,8 @@ export default class VarsDatasVoUpdateHandler {
             return false;
         }
 
-        StatsController.register_stat('VarsDatasVoUpdateHandler', 'handle_buffer', 'invalidate_datas_and_parents', StatsTypeVO.TYPE_COMPTEUR,
-            1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsController.register_stat('VarsDatasVoUpdateHandler', 'handle_buffer', 'invalidate_datas_and_parents', StatsTypeVO.TYPE_QUANTITE,
-            Object.keys(intersectors_by_index).length, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('VarsDatasVoUpdateHandler', 'handle_buffer', 'invalidate_datas_and_parents');
+        StatsController.register_stat_QUANTITE('VarsDatasVoUpdateHandler', 'handle_buffer', 'invalidate_datas_and_parents', Object.keys(intersectors_by_index).length);
         let time_in = Dates.now_ms();
 
         let max = ConfigurationService.node_configuration ? Math.max(ConfigurationService.node_configuration.MAX_POOL / 2, 1) : 10;
@@ -267,8 +265,7 @@ export default class VarsDatasVoUpdateHandler {
         await promise_pipeline.end();
 
         let time_out = Dates.now_ms();
-        StatsController.register_stats('VarsDatasVoUpdateHandler', 'handle_buffer', 'invalidate_datas_and_parents', StatsTypeVO.TYPE_DUREE,
-            time_out - time_in, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_DUREE('VarsDatasVoUpdateHandler', 'handle_buffer', 'invalidate_datas_and_parents', time_out - time_in);
 
         await this.push_invalidators(Object.values(solved_invalidators_by_index));
 

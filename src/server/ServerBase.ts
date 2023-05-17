@@ -107,8 +107,8 @@ export default abstract class ServerBase {
         StatsController.THREAD_IS_CLIENT = false;
         StatsController.UNSTACK_THROTTLE = 180000;
         StatsController.UNSTACK_THROTTLE_PARAM_NAME = 'StatsController.UNSTACK_THROTTLE_SERVER';
-        StatsController.check_groups_handler = StatsServerController.check_groups;
-        StatsController.new_stats_handler = StatsServerController.handle_new_stats;
+        StatsController.check_groups_handler = StatsServerController.check_groups_handler;
+        StatsController.new_stats_handler = StatsServerController.new_stats_handler;
 
         ServerBase.instance = this;
         this.modulesService = modulesService;
@@ -166,20 +166,16 @@ export default abstract class ServerBase {
 
         let pgp: pg_promise.IMain = pg_promise({
             async connect(client, dc, useCount) {
-                StatsController.register_stat('ServerBase', 'PGP', 'connect', StatsTypeVO.TYPE_COMPTEUR,
-                    1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'connect');
             },
             async disconnect(client, dc) {
-                StatsController.register_stat('ServerBase', 'PGP', 'disconnect', StatsTypeVO.TYPE_COMPTEUR,
-                    1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'disconnect');
             },
             async query(e) {
-                StatsController.register_stat('ServerBase', 'PGP', 'query', StatsTypeVO.TYPE_COMPTEUR,
-                    1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'query');
             },
             async error(e) {
-                StatsController.register_stat('ServerBase', 'PGP', 'error', StatsTypeVO.TYPE_COMPTEUR,
-                    1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'error');
                 ConsoleHandler.error('ServerBase.PGP.error: ' + JSON.stringify(e));
             },
         });
@@ -282,10 +278,8 @@ export default abstract class ServerBase {
             //     .replace(/[:.]/g, '')
             //     .replace(/\//g, '_');
 
-            StatsController.register_stats('express', method, status, StatsTypeVO.TYPE_DUREE,
-                time, [StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
-            StatsController.register_stat('express', method, status, StatsTypeVO.TYPE_COMPTEUR,
-                1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat_DUREE('express', method, status, time);
+            StatsController.register_stat_COMPTEUR('express', method, status);
 
             if (status >= 500) {
                 ConsoleHandler.error(log);
@@ -303,8 +297,7 @@ export default abstract class ServerBase {
                     ServerBase.SLOW_EXPRESS_QUERY_LIMIT_MS_PARAM_NAME, 1000, 300000
                 );
                 if (time > slow_queries_limit) {
-                    StatsController.register_stat('express', method, 'slow', StatsTypeVO.TYPE_COMPTEUR,
-                        1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                    StatsController.register_stat_COMPTEUR('express', method, 'slow');
                 }
             }
         }));
@@ -484,7 +477,7 @@ export default abstract class ServerBase {
                         const client_tab_id = req.headers ? req.headers.client_tab_id : null;
 
                         if (uid && client_tab_id) {
-                            StatsController.register_stat('express', 'version', 'reload', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                            StatsController.register_stat_COMPTEUR('express', 'version', 'reload');
                             ConsoleHandler.log("ServerExpressController:version:uid:" + uid + ":client_tab_id:" + client_tab_id + ": asking for reload");
                             await PushDataServerController.getInstance().notifyTabReload(uid, client_tab_id);
                         }
@@ -576,13 +569,13 @@ export default abstract class ServerBase {
 
             // Le cas du service worker est déjà traité, ici on a tout sauf le service_worker. Si on ne trouve pas le fichier c'est une erreur et on demande un reload
             if (!fs.existsSync(path.resolve('./dist' + req.url))) {
-                StatsController.register_stat('express', 'public', 'notfound', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+                StatsController.register_stat_COMPTEUR('express', 'public', 'notfound');
 
                 const uid = req.session ? req.session.uid : null;
                 const client_tab_id = req.headers ? req.headers.client_tab_id : null;
 
                 // if (uid && client_tab_id) {
-                //     StatsController.register_stats('express', 'public', 'reload', StatsTypeVO.TYPE_COMPTEUR, 1, [StatVO.AGGREGATOR_SUM], TimeSegment.TYPE_MINUTE);
+                //     StatsController.register_stat_COMPTEUR('express', 'public', 'reload');
                 //     ConsoleHandler.warn("ServerExpressController:public:NOT_FOUND:" + req.url + ": asking for reload");
                 //     await PushDataServerController.getInstance().notifyTabReload(uid, client_tab_id);
                 // } else {

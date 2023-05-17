@@ -34,8 +34,7 @@ export default abstract class DataSourceControllerSimpleCacheBase extends DataSo
             return;
         }
 
-        StatsController.register_stat('DataSources', this.name, 'load_node_data_IN', StatsTypeVO.TYPE_COMPTEUR,
-            1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('DataSources', this.name, 'load_node_data_IN');
         let time_load_node_data_in = Dates.now_ms();
 
         if (!VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name]) {
@@ -56,15 +55,13 @@ export default abstract class DataSourceControllerSimpleCacheBase extends DataSo
             }
             VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name]['semaphore'] = true;
 
-            StatsController.register_stat('DataSources', this.name, 'get_data', StatsTypeVO.TYPE_COMPTEUR,
-                1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat_COMPTEUR('DataSources', this.name, 'get_data');
 
             let time_in = Dates.now_ms();
             let data = await this.get_data(node.var_data);
             let time_out = Dates.now_ms();
             // Attention ici les chargement sont très parrallèlisés et on peut avoir des stats qui se chevauchent donc une somme des temps très nettement > au temps total réel
-            StatsController.register_stats('DataSources', this.name, 'get_data', StatsTypeVO.TYPE_DUREE,
-                time_out - time_in, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MIN, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN], TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat_DUREE('DataSources', this.name, 'get_data', time_out - time_in);
 
             VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name]['c'] = ((typeof data === 'undefined') ? null : data);
 
@@ -79,15 +76,13 @@ export default abstract class DataSourceControllerSimpleCacheBase extends DataSo
 
             let time_load_node_data_out = Dates.now_ms();
             // Attention ici les chargement sont très parrallèlisés et on peut avoir des stats qui se chevauchent donc une somme des temps très nettement > au temps total réel
-            StatsController.register_stats('DataSources', this.name, 'load_node_data_LOADED', StatsTypeVO.TYPE_DUREE,
-                time_load_node_data_out - time_load_node_data_in, [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MIN, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN], TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat_DUREE('DataSources', this.name, 'load_node_data_LOADED', time_load_node_data_out - time_load_node_data_in);
 
             return;
         }
 
         node.datasources[this.name] = VarsdatasComputerBGThread.getInstance().current_batch_ds_cache[this.name]['c'];
 
-        StatsController.register_stat('DataSources', this.name, 'load_node_data_FROM_CACHE', StatsTypeVO.TYPE_COMPTEUR,
-            1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('DataSources', this.name, 'load_node_data_FROM_CACHE');
     }
 }

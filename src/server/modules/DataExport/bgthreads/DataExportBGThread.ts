@@ -44,7 +44,7 @@ export default class DataExportBGThread implements IBGThread {
         let time_in = Dates.now_ms();
         try {
 
-            StatsController.register_stat('DataExportBGThread', 'work', 'IN', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat_COMPTEUR('DataExportBGThread', 'work', 'IN');
 
             // Objectif, on prend l'export en attente le plus ancien, et on l'exécute. Si un export est en cours, à ce stade on devrait pas
             //  le voir, donc il y a eu une erreur, on l'indique (c'est peut-être juste un redémarrage serveur) et on relance.
@@ -85,9 +85,8 @@ export default class DataExportBGThread implements IBGThread {
     private stats_out(activity: string, time_in: number) {
 
         let time_out = Dates.now_ms();
-        StatsController.register_stat('DataExportBGThread', 'work', activity + '_OUT', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsController.register_stats('DataExportBGThread', 'work', activity + '_OUT', StatsTypeVO.TYPE_DUREE, time_out - time_in,
-            [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('DataExportBGThread', 'work', activity + '_OUT');
+        StatsController.register_stat_DUREE('DataExportBGThread', 'work', activity + '_OUT', time_out - time_in);
     }
 
     private async handleHistoric(exhi: ExportHistoricVO): Promise<boolean> {

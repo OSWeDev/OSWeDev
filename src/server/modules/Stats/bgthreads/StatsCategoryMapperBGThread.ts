@@ -56,7 +56,7 @@ export default class StatsCategoryMapperBGThread implements IBGThread {
 
         try {
 
-            StatsController.register_stat('StatsCategoryMapperBGThread', 'work', 'IN', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+            StatsController.register_stat_COMPTEUR('StatsCategoryMapperBGThread', 'work', 'IN');
 
             if (!this.cache_initialised) {
                 await this.init_cache();
@@ -91,9 +91,8 @@ export default class StatsCategoryMapperBGThread implements IBGThread {
     private stats_out(activity: string, time_in: number) {
 
         let time_out = Dates.now_ms();
-        StatsController.register_stat('StatsCategoryMapperBGThread', 'work', activity + '_OUT', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
-        StatsController.register_stats('StatsCategoryMapperBGThread', 'work', activity + '_OUT', StatsTypeVO.TYPE_DUREE, time_out - time_in,
-            [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MEAN, StatVO.AGGREGATOR_MIN], TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('StatsCategoryMapperBGThread', 'work', activity + '_OUT');
+        StatsController.register_stat_DUREE('StatsCategoryMapperBGThread', 'work', activity + '_OUT', time_out - time_in);
     }
 
     private async handle_invalid_stats_groups(invalid_stats_groups: StatsGroupVO[]) {
@@ -130,6 +129,7 @@ export default class StatsCategoryMapperBGThread implements IBGThread {
             invalid_stats_group.tmp_category_name = null;
             invalid_stats_group.tmp_sub_category_name = null;
             invalid_stats_group.tmp_event_name = null;
+            invalid_stats_group.tmp_stat_type_name = null;
             invalid_stats_group.tmp_thread_name = null;
             updateds.push(invalid_stats_group);
         }

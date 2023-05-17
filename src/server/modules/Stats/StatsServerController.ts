@@ -1,14 +1,14 @@
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import StatsGroupVO from '../../../shared/modules/Stats/vos/StatsGroupVO';
 import StatVO from '../../../shared/modules/Stats/vos/StatVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
-import TimeSegmentHandler from '../../../shared/tools/TimeSegmentHandler';
+import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
 
 export default class StatsServerController {
 
@@ -19,19 +19,19 @@ export default class StatsServerController {
         return StatsServerController.instance;
     }
 
-    public static async handle_new_stats(all_new_stats: StatVO[]) {
+    public static async new_stats_handler(all_new_stats: StatVO[]) {
 
         // Spécifique serveur
         // On crée toujours les stats en tant qu'applicatif
         await StackContext.runPromise({ IS_CLIENT: false }, async () => {
-            let res = await ModuleDAO.getInstance().insertOrUpdateVOs(all_new_stats);
+            let res = await ModuleDAOServer.getInstance().insertOrUpdateVOsMulticonnections(all_new_stats);
             if ((!res) || (!res.length) || (res.length != all_new_stats.length)) {
                 ConsoleHandler.error('Erreur lors de l\'insertion des stats');
             }
         });
     }
 
-    public static async check_groups(to_unstack: { [group_name: string]: StatVO[] }) {
+    public static async check_groups_handler(to_unstack: { [group_name: string]: StatVO[] }) {
         // Spécifique serveur
         await StatsServerController.getInstance().check_groups(to_unstack);
     }
@@ -78,25 +78,20 @@ export default class StatsServerController {
                     if (!this.is_creating_group_name[group_name]) {
                         this.is_creating_group_name[group_name] = true;
                         await promises_pipeline.push(async () => {
-                            let new_group = new StatsGroupVO();
-                            new_group.name = group_name;
-                            new_group.tmp_category_name = group.tmp_category_name;
-                            new_group.tmp_sub_category_name = group.tmp_sub_category_name;
-                            new_group.tmp_event_name = group.tmp_event_name;
-                            new_group.tmp_stat_type_name = group.tmp_stat_type_name;
-                            new_group.tmp_thread_name = group.tmp_thread_name;
-                            new_group.stats_aggregator = group.stats_aggregator;
-                            new_group.stats_aggregator_min_segment_type = group.stats_aggregator_min_segment_type;
-                            let res = await ModuleDAO.getInstance().insertOrUpdateVO(new_group);
+                            group.name = group_name;
+                            let res = await ModuleDAO.getInstance().insertOrUpdateVO(group);
 
-                            if ((!res) || !res.id) {
+                            delete this.is_creating_group_name[group_name];
+                            if ((!res) || !res.id || !group.id || !StatsController.cached_stack_groupes_by_name[group_name].id) {
                                 ConsoleHandler.error('Erreur lors de la création du groupe de stats ' + group_name);
                                 throw new Error('Erreur lors de la création du groupe de stats ' + group_name);
                             }
-                            new_group.id = res.id;
-
-                            StatsController.cached_stack_groupes_by_name[group_name] = new_group;
-                            delete this.is_creating_group_name[group_name];
+                        });
+                    } else {
+                        await promises_pipeline.push(async () => {
+                            while (!group.id) {
+                                await ThreadHandler.sleep(10, 'StatsServerController.check_groups');
+                            }
                         });
                     }
                 }
@@ -108,7 +103,7 @@ export default class StatsServerController {
         for (let group_name in to_unstack) {
             let group = StatsController.cached_stack_groupes_by_name[group_name];
             if (!group.id) {
-                ConsoleHandler.error('Pas de groupe pour ' + group_name + ' dans le cache des groupes de stats');
+                throw new Error('Pas de groupe pour ' + group_name + ' dans le cache des groupes de stats');
             }
 
             let stats = to_unstack[group_name];

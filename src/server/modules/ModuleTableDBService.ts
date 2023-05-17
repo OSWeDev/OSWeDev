@@ -1,4 +1,5 @@
 import IRange from '../../shared/modules/DataRender/interfaces/IRange';
+import NumRange from '../../shared/modules/DataRender/vos/NumRange';
 import TimeSegment from '../../shared/modules/DataRender/vos/TimeSegment';
 import IDistantVOBase from '../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../shared/modules/ModuleTable';
@@ -46,7 +47,7 @@ export default class ModuleTableDBService {
      */
     public async get_existing_segmentations_tables_of_moduletable(moduleTable: ModuleTable<any>): Promise<{ [segmented_value: number]: string }> {
 
-        StatsController.register_stat('ModuleTableDBService', 'get_existing_segmentations_tables_of_moduletable', '-', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'get_existing_segmentations_tables_of_moduletable', '-');
 
         let database_name = moduleTable.database;
         let tables: TableDescriptor[] = await this.db.query("SELECT * FROM pg_catalog.pg_tables WHERE schemaname = '" + database_name + "';");
@@ -69,7 +70,7 @@ export default class ModuleTableDBService {
 
     public async create_or_update_datatable(moduleTable: ModuleTable<any>, segments: IRange[] = null) {
 
-        StatsController.register_stat('ModuleTableDBService', 'create_or_update_datatable', '-', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'create_or_update_datatable', '-');
 
         let self = this;
 
@@ -137,6 +138,15 @@ export default class ModuleTableDBService {
 
                         segments.push(RangeHandler.create_single_elt_NumRange(segmented, moduleTable.table_segmented_field_segment_type));
                     }
+                }
+            }
+
+            // On check que les segments sont bien des numranges
+            for (let i in segments) {
+                let segment = segments[i];
+
+                if ((!segment) || (segment.range_type != NumRange.RANGE_TYPE)) {
+                    throw new Error('create_or_update_datatable: segment is not a NumRange:' + JSON.stringify(segment) + ':' + JSON.stringify(segments));
                 }
             }
 
@@ -228,7 +238,7 @@ export default class ModuleTableDBService {
 
     private async handle_check_segment(moduleTable: ModuleTable<any>, segmented_value: number, common_id_seq_name: string, migration_todo: boolean): Promise<boolean> {
 
-        StatsController.register_stat('ModuleTableDBService', 'handle_check_segment', '-', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'handle_check_segment', '-');
 
         let res: boolean = false;
 
@@ -259,7 +269,7 @@ export default class ModuleTableDBService {
      */
     private async do_check_or_update_moduletable(moduleTable: ModuleTable<any>, database_name: string, table_name: string, segmented_value: number): Promise<boolean> {
 
-        StatsController.register_stat('ModuleTableDBService', 'do_check_or_update_moduletable', '-', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'do_check_or_update_moduletable', '-');
 
         // Changement radical, si on a une table déjà en place on vérifie la structure, principalement pour ajouter des champs supplémentaires
         //  et alerter si il y a des champs en base que l'on ne connait pas dans la structure métier
@@ -292,7 +302,7 @@ export default class ModuleTableDBService {
      */
     private async check_datatable_structure(moduleTable: ModuleTable<any>, database_name: string, table_name: string, table_cols: TableColumnDescriptor[]): Promise<boolean> {
 
-        StatsController.register_stat('ModuleTableDBService', 'check_datatable_structure', '-', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'check_datatable_structure', '-');
 
         let fields_by_field_id: { [field_id: string]: ModuleTableField<any> } = {};
         for (let i in moduleTable.get_fields()) {
@@ -335,7 +345,7 @@ export default class ModuleTableDBService {
         database_name: string,
         table_name: string): Promise<boolean> {
 
-        StatsController.register_stat('ModuleTableDBService', 'checkConstraintsOnForeignKey', '-', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'checkConstraintsOnForeignKey', '-');
 
         let full_name = database_name + '.' + table_name;
         let res: boolean = false;
@@ -425,7 +435,7 @@ export default class ModuleTableDBService {
         database_name: string,
         table_name: string): Promise<boolean> {
 
-        StatsController.register_stat('ModuleTableDBService', 'checkMissingInTS', '-', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'checkMissingInTS', '-');
 
         let full_name = database_name + '.' + table_name;
         let res: boolean = false;
@@ -480,7 +490,7 @@ export default class ModuleTableDBService {
         database_name: string,
         table_name: string): Promise<boolean> {
 
-        StatsController.register_stat('ModuleTableDBService', 'checkMissingInDB', '-', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'checkMissingInDB', '-');
 
         let full_name = database_name + '.' + table_name;
         let res: boolean = false;
@@ -551,7 +561,7 @@ export default class ModuleTableDBService {
         database_name: string,
         table_name: string): Promise<boolean> {
 
-        StatsController.register_stat('ModuleTableDBService', 'checkColumnsStrutInDB', '-', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'checkColumnsStrutInDB', '-');
 
         let full_name = database_name + '.' + table_name;
         let res: boolean = false;
@@ -630,7 +640,7 @@ export default class ModuleTableDBService {
      */
     private async chec_indexes(moduleTable: ModuleTable<any>, database_name: string, table_name: string): Promise<boolean> {
 
-        StatsController.register_stat('ModuleTableDBService', 'chec_indexes', '-', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'chec_indexes', '-');
 
         let res_: boolean = false;
         for (let i = 0; i < moduleTable.get_fields().length; i++) {
@@ -656,7 +666,7 @@ export default class ModuleTableDBService {
 
     private async create_new_datatable(moduleTable: ModuleTable<any>, database_name: string, table_name: string) {
 
-        StatsController.register_stat('ModuleTableDBService', 'create_new_datatable', '-', StatsTypeVO.TYPE_COMPTEUR, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        StatsController.register_stat_COMPTEUR('ModuleTableDBService', 'create_new_datatable', '-');
 
         let full_name = database_name + '.' + table_name;
 
