@@ -82,7 +82,7 @@ export default class ModuleTableDBService {
 
             let migration_todo: boolean = false;
 
-            if (!segments) {
+            if ((!segments) || (!segments.length)) {
 
                 // Si on est sur du segmenté on doit vérifier 2 choses :
                 //  1- le format de toutes les tables existantes
