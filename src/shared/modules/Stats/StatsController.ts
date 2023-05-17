@@ -1,3 +1,4 @@
+import { cloneDeep } from 'lodash';
 import ThrottleHelper from '../../tools/ThrottleHelper';
 import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
 import TimeSegment from '../DataRender/vos/TimeSegment';
@@ -197,7 +198,8 @@ export default class StatsController {
         }
         StatsController.is_unstacking = true;
 
-        let to_unstack: { [group_name: string]: StatVO[] } = StatsController.stacked_registered_stats_by_group_name;
+        let to_unstack: { [group_name: string]: StatVO[] } = Object.assign({}, StatsController.stacked_registered_stats_by_group_name);
+        StatsController.stacked_registered_stats_by_group_name = {};
         if (!!StatsController.check_groups_handler) {
             await StatsController.check_groups_handler(to_unstack);
         }
@@ -207,7 +209,6 @@ export default class StatsController {
             StatsController.first_unstacking_date = unstacking_date;
         }
         let to_restack: { [group_name: string]: StatVO[] } = {};
-        StatsController.stacked_registered_stats_by_group_name = {};
 
         if ((!to_unstack) || (!Object.keys(to_unstack).length)) {
             StatsController.is_unstacking = false;
