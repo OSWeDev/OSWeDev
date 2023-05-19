@@ -84,7 +84,7 @@ export default class ContextQueryServerController {
         query_wrapper = query_wrapper ?? await this.build_select_query(context_query);
 
         //Requête
-        if (!(query_wrapper?.query) && (!query_wrapper.is_segmented_non_existing_table)) {
+        if (!query_wrapper || (!query_wrapper.query && !query_wrapper.is_segmented_non_existing_table)) {
             ConsoleHandler.error('Invalid query:select_vos:INFOS context_query:' + (query_wrapper ? (query_wrapper.query ? query_wrapper.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
             context_query.log(true);
             throw new Error('Invalid query:select_vos');
