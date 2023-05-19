@@ -33,7 +33,7 @@ export default class ShowFavoritesFiltersWidgetController {
         }
         this.updaters[dashboard_id][page_id][page_widget_id].push(updater);
 
-        updater();
+        await updater();
     }
 
     private async throttled_call_updaters(params: any[]) {

@@ -99,9 +99,11 @@ export default class PromisePipeline {
 
         // Promise resolever declaration that
         // will be called when all promises are finished
-        await new Promise<void>((resolve, reject) => {
+        let wait_for_end = new Promise<void>((resolve, reject) => {
             self.end_promise_resolve = resolve;
         });
+
+        await wait_for_end;
 
         if (EnvHandler.DEBUG_PROMISE_PIPELINE) {
             ConsoleHandler.log('PromisePipeline.end():WAIT END:' + this.uid + ':' + ' [' + this.nb_running_promises + ']');
@@ -140,7 +142,9 @@ export default class PromisePipeline {
                 ConsoleHandler.log('PromisePipeline.do_cb():END PROMISE:' + this.uid + ':cb_name:' + cb.name + ':' + cb_uid + ':' + ' [' + this.nb_running_promises + ']');
             }
 
-            await this.end_promise_resolve();
+            let end_promise = this.end_promise_resolve;
+            this.end_promise_resolve = null;
+            await end_promise();
         }
     }
 

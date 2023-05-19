@@ -582,8 +582,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         return this.can_open_vocus_right && this.widget_options.vocus_button;
     }
 
-    private mounted() {
-        ValidationFiltersWidgetController.getInstance().register_updater(
+    private async mounted() {
+        await ValidationFiltersWidgetController.getInstance().register_updater(
             this.dashboard_page.dashboard_id,
             this.dashboard_page.id,
             this.page_widget.id,

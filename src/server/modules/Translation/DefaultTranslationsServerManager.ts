@@ -64,8 +64,8 @@ export default class DefaultTranslationsServerManager {
         });
 
         await promise_pipeline.end();
-
         promise_pipeline = new PromisePipeline(max);
+
         for (let i in registered_default_translations) {
 
             await promise_pipeline.push(async () => {

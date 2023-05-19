@@ -1089,11 +1089,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         await promise_pipeline.end();
+        promise_pipeline = new PromisePipeline(max_connections_to_use);
 
         let res: InsertOrDeleteQueryResult[] = [];
         let reste_a_faire = [];
 
-        promise_pipeline = new PromisePipeline(max_connections_to_use);
         for (let tablename in vos_by_vo_tablename_and_ids) {
             let tableFields: string[] = [];
 
