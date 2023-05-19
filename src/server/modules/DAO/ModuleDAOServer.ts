@@ -61,6 +61,7 @@ import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ServerAnonymizationController from '../Anonymization/ServerAnonymizationController';
+import ModuleDBService from '../ModuleDBService';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
@@ -943,6 +944,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
         // max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL));
         max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL - 1));
         let promise_pipeline = new PromisePipeline(max_connections_to_use);
+
+        /**
+         * Si les vos sont segmentés, on check en amont l'existence des tables segmentées
+         *  car on ne peut pas les créer en parallèle. Du coup on les crée en amont si besoin
+         */
+        await this.confirm_segmented_tables_existence(vos);
 
         let res: InsertOrDeleteQueryResult[] = [];
         for (let i in vos) {
@@ -5259,5 +5266,55 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
         }
         await all_promises(promises);
+    }
+
+    private async confirm_segmented_tables_existence(vos: IDistantVOBase[]) {
+        let segment_ok_by_type_and_segment_value: { [api_type_id: string]: { [segment: number]: boolean } } = {};
+        let is_segmented_type: { [api_type_id: string]: boolean } = {};
+
+        let tables_to_create_numranges: { [api_type_id: string]: NumRange[] } = {};
+
+        for (let i in vos) {
+            let vo = vos[i];
+
+            if (is_segmented_type[vo._type] == null) {
+                is_segmented_type[vo._type] = VOsTypesManager.moduleTables_by_voType[vo._type].is_segmented;
+            }
+
+            if (!is_segmented_type[vo._type]) {
+                continue;
+            }
+
+            if (!segment_ok_by_type_and_segment_value[vo._type]) {
+                segment_ok_by_type_and_segment_value[vo._type] = [];
+            }
+
+            let moduletable = VOsTypesManager.moduleTables_by_voType[vo._type];
+            let segment_value = moduletable.get_segmented_field_value_from_vo(vo);
+            let table_name = moduletable.get_segmented_name_from_vo(vo);
+
+            if (segment_ok_by_type_and_segment_value[vo._type][segment_value] == null) {
+                if ((DAOServerController.segmented_known_databases[moduletable.database] == null) || (DAOServerController.segmented_known_databases[moduletable.database][table_name] == null)) {
+                    // La table n'existe pas on la crée tout de suite
+                    // ATTENTION : ne pas mettre en tableau de promises, et ne pas utiliser dans un promise pipeline par exemple. On ne doit pas paralléliser la création de tables segmentées
+                    if (!tables_to_create_numranges[vo._type]) {
+                        tables_to_create_numranges[vo._type] = [];
+                    }
+                    tables_to_create_numranges[vo._type].push(RangeHandler.create_single_elt_NumRange(segment_value, NumSegment.TYPE_INT));
+                }
+                segment_ok_by_type_and_segment_value[vo._type][segment_value] = true;
+            }
+        }
+
+        for (let vo_type in tables_to_create_numranges) {
+            let numranges = tables_to_create_numranges[vo_type];
+            let moduletable = VOsTypesManager.moduleTables_by_voType[vo_type];
+
+            if (!numranges || (numranges.length == 0)) {
+                continue;
+            }
+
+            await ModuleTableDBService.getInstance(null).create_or_update_datatable(moduletable, numranges);
+        }
     }
 }

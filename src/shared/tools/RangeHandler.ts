@@ -16,6 +16,7 @@ import ConsoleHandler from './ConsoleHandler';
 import HourSegmentHandler from './HourSegmentHandler';
 import MatroidIndexHandler from './MatroidIndexHandler';
 import NumSegmentHandler from './NumSegmentHandler';
+import PromisePipeline from './PromisePipeline/PromisePipeline';
 import { all_promises } from './PromiseTools';
 import TimeSegmentHandler from './TimeSegmentHandler';
 
@@ -1051,20 +1052,15 @@ export default class RangeHandler {
             ranges = ranges.slice().reverse();
         }
 
-        let promises = [];
+        let promises_pipeline = new PromisePipeline(batch_size);
         for (let i in ranges) {
 
-            if (promises && (promises.length >= batch_size)) {
-                await all_promises(promises);
-                promises = [];
-            }
-
-            promises.push(RangeHandler.foreach_batch_await(ranges[i], callback, segment_type, min_inclusiv, max_inclusiv));
+            await promises_pipeline.push(async () => {
+                await RangeHandler.foreach_batch_await(ranges[i], callback, segment_type, min_inclusiv, max_inclusiv);
+            });
         }
 
-        if (promises.length) {
-            await all_promises(promises);
-        }
+        await promises_pipeline.end();
     }
 
     public static foreach_ranges_sync(

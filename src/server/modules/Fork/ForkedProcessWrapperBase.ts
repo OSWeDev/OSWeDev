@@ -171,6 +171,6 @@ export default abstract class ForkedProcessWrapperBase {
         // On prévient le process parent qu'on est ready
         await ForkMessageController.getInstance().send(new AliveForkMessage());
 
-        await MemoryUsageStat.updateMemoryUsageStat();
+        setInterval(MemoryUsageStat.updateMemoryUsageStat, 45000);
     }
 }

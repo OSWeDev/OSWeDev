@@ -2176,7 +2176,7 @@ export default class TableWidgetKanbanComponent extends VueComponentBase {
         this.tmp_nbpages_pagination_list = (!this.widget_options || (this.widget_options.nbpages_pagination_list == null)) ? TableWidgetOptions.DEFAULT_NBPAGES_PAGINATION_LIST : this.widget_options.nbpages_pagination_list;
 
         let promises = [
-            this.throttle_do_update_visible_options(),
+            this.loaded_once ? this.throttle_do_update_visible_options() : this.throttle_update_visible_options(), // Pour éviter de forcer le chargement de la table sans avoir cliqué sur le bouton de validation des filtres
             this.update_filter_by_access_cache()
         ];
         await all_promises(promises);

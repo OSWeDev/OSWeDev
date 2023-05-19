@@ -61,6 +61,15 @@ import StatsController from "../shared/modules/Stats/StatsController";
 import Dates from "../shared/modules/FormatDatesNombres/Dates/Dates";
 require('moment-json-parser').overrideDefault();
 
+// const loadComponent = async (component) => {
+//     try {
+//         return await import(`@/components/${component}.vue`);
+//     } catch (err) {
+//         if (err.message.includes("Failed to fetch dynamically imported module")) {
+//             window.location.reload(true); // force reload to bypass cache
+//         }
+//     }
+// };
 
 export default abstract class VueAppBase {
 
@@ -162,6 +171,12 @@ export default abstract class VueAppBase {
         let default_locale = LocaleManager.getInstance().getDefaultLocale();
         // let uiDebug = this.appController.data_ui_debug == "1" || window.location.search.indexOf('ui-debug=1') != -1;
         moment.locale(default_locale);
+
+        // Vue.config.errorHandler = function (err, vm, info) {
+        //     if (err.message.includes("Failed to fetch dynamically imported module")) {
+        //         window.location.reload(true); // force reload to bypass cache
+        //     }
+        // };
 
         Vue.use(ColorPanel);
         Vue.use(ColorPicker);

@@ -14,6 +14,7 @@ import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
+import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ForkedTasksController from '../../Fork/ForkedTasksController';
 
 /**
@@ -116,6 +117,7 @@ export default class StatsUnstackerBGThread implements IBGThread {
                 await this.init_cache();
             }
 
+            let stats_to_insert = [];
             for (let i in aggregated_stats) {
                 let aggregated_stat = aggregated_stats[i];
 
@@ -146,13 +148,14 @@ export default class StatsUnstackerBGThread implements IBGThread {
                 new_stat.value = aggregated_stat.value;
                 new_stat.timestamp_s = aggregated_stat.timestamp_s;
                 new_stat.stat_group_id = await this.get_group_id(aggregated_stat, stats_name);
-
                 if (!new_stat.stat_group_id) {
                     ConsoleHandler.error('StatsUnstackerBGThread:FAILED:aggregated_stat:Check fields:' + JSON.stringify(aggregated_stat));
                     continue;
                 }
 
+                stats_to_insert.push(new_stat);
             }
+            await ModuleDAOServer.getInstance().insertOrUpdateVOsMulticonnections(stats_to_insert);
 
             this.stats_out('ok', time_in);
             return ModuleBGThreadServer.TIMEOUT_COEF_NEUTRAL;
@@ -208,7 +211,6 @@ export default class StatsUnstackerBGThread implements IBGThread {
 
         if (!this.group_cache[stat_name]) {
             let new_group = new StatsGroupVO();
-            new_group = new StatsGroupVO();
             new_group.name = stat_name;
 
             new_group.category_name = client_stat.tmp_category_name;

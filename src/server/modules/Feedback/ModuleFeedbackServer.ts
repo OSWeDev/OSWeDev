@@ -17,9 +17,9 @@ import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
+import StatsController from '../../../shared/modules/Stats/StatsController';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
-import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import CRUDHandler from '../../../shared/tools/CRUDHandler';
 import FileHandler from '../../../shared/tools/FileHandler';
@@ -273,6 +273,9 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             return false;
         }
 
+        let time_in: number = Dates.now_ms();
+        StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "IN");
+
         let uid = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
         let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
@@ -280,11 +283,13 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
 
             let user_session: IServerUserSession = ModuleAccessPolicyServer.getInstance().getUserSession();
             if (!user_session) {
+                StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_NO_USER_SESSION");
                 return false;
             }
 
             let FEEDBACK_TRELLO_LIST_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_LIST_ID_PARAM_NAME);
             if (!FEEDBACK_TRELLO_LIST_ID) {
+                StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_NO_FEEDBACK_TRELLO_LIST_ID");
                 throw new Error('Le module FEEDBACK nécessite la configuration du paramètre FEEDBACK_TRELLO_LIST_ID qui indique le code du tableau Trello à utiliser (cf URL d\'une card de la liste +.json => idList)');
             }
 
@@ -294,6 +299,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             let FEEDBACK_TRELLO_NOT_SET_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_NOT_SET_ID_PARAM_NAME);
             let FEEDBACK_TRELLO_RAPPELER_ID = await ModuleParams.getInstance().getParamValueAsString(ModuleFeedbackServer.FEEDBACK_TRELLO_RAPPELER_ID_PARAM_NAME);
             if ((!FEEDBACK_TRELLO_POSSIBLE_BUG_ID) || (!FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID) || (!FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID) || (!FEEDBACK_TRELLO_NOT_SET_ID)) {
+                StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_NO_FEEDBACK_TRELLO_POSSIBLE_BUG_ID");
                 throw new Error('Le module FEEDBACK nécessite la configuration des paramètres FEEDBACK_TRELLO_POSSIBLE_BUG_ID,FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID,FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID,FEEDBACK_TRELLO_NOT_SET_ID qui indiquent les codes des marqueurs Trello à utiliser (cf URL d\'une card de la liste +.json => labels:id)');
             }
 
@@ -315,6 +321,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             // Puis créer le feedback en base
             let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(feedback);
             if ((!res) || (!res.id)) {
+                StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_NO_FEEDBACK_CREATED");
                 throw new Error('Failed feedback creation');
             }
             feedback.id = res.id;
@@ -372,17 +379,28 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             trello_message = ((trello_message.length > 15000) ? trello_message.substr(0, 15000) + ' ... [truncated 15000 cars]' : trello_message);
             trello_message = '[FEEDBACK FILE : ' + file_url + '](' + file_url + ')' + ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + trello_message;
 
-            response = await trello_api.card.create({
-                name: card_name,
-                desc: trello_message,
-                pos: 'top',
-                idList: FEEDBACK_TRELLO_LIST_ID, //REQUIRED
-                idLabels: idLabels,
-            });
+            try {
+
+                response = await trello_api.card.create({
+                    name: card_name,
+                    desc: trello_message,
+                    pos: 'top',
+                    idList: FEEDBACK_TRELLO_LIST_ID, //REQUIRED
+                    idLabels: idLabels,
+                });
+            } catch (error) {
+                ConsoleHandler.error(error);
+                StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_TRELLO_API");
+            }
 
             // Faire le lien entre le feedback en base et le Trello
             feedback.trello_ref = response;
             let ires: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(feedback);
+            if ((!ires) || (!ires.id)) {
+                StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_INSERTING_FEEDBACK");
+                throw new Error('Failed feedback creation');
+            }
+
             feedback.id = ires.id;
 
             // Envoyer un mail pour confirmer la prise en compte du feedback
@@ -390,9 +408,13 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
 
             await PushDataServerController.getInstance().notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'feedback.feedback.success', true);
 
+            StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "FEEDBACK_CREATED");
+            StatsController.register_stat_DUREE("ModuleFeedback", "feedback", "FEEDBACK_CREATED", Dates.now_ms() - time_in);
+
             return true;
         } catch (error) {
             ConsoleHandler.error(error);
+            StatsController.register_stat_COMPTEUR("ModuleFeedback", "feedback", "ERROR_THROWN");
             await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'feedback.feedback.error', true);
             return false;
         }

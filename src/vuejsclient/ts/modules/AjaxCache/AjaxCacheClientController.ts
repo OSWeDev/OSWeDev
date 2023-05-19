@@ -13,6 +13,7 @@ import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import EnvHandler from '../../../../shared/tools/EnvHandler';
 import { all_promises } from '../../../../shared/tools/PromiseTools';
 import zlib from 'zlib';
+import StatsController from '../../../../shared/modules/Stats/StatsController';
 
 export default class AjaxCacheClientController implements IAjaxCacheClientController {
 
@@ -54,11 +55,18 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
     private debounced_requests_wrapper = debounce(this.processRequestsWrapper, this.ajaxcache_debouncer);
 
     public async getCSRFToken() {
+        StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'getCSRFToken', 'IN');
+        let time_in = Dates.now_ms();
+
         let res = await this.get(null, '/api/getcsrftoken', CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED);
         if (!res) {
+            StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'getCSRFToken', 'FAILED');
+            StatsController.register_stat_DUREE('AjaxCacheClientController', 'getCSRFToken', 'FAILED', Dates.now_ms() - time_in);
             return;
         }
         this.csrf_token = res['csrfToken'];
+        StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'getCSRFToken', 'OK');
+        StatsController.register_stat_DUREE('AjaxCacheClientController', 'getCSRFToken', 'OK', Dates.now_ms() - time_in);
     }
 
     /**
@@ -83,9 +91,23 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
         timeout: number = null,
         post_for_get: boolean = false) {
 
+        let time_in = Dates.now_ms();
+        StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'get', 'IN');
         let self = this;
 
         return new Promise((resolve, reject) => {
+
+            let resolve_stats_wrapper = (res) => {
+                StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'get', 'OK');
+                StatsController.register_stat_DUREE('AjaxCacheClientController', 'get', 'OK', Dates.now_ms() - time_in);
+                resolve(res);
+            };
+
+            let reject_stats_wrapper = (err) => {
+                StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'get', 'FAILED');
+                StatsController.register_stat_DUREE('AjaxCacheClientController', 'get', 'FAILED', Dates.now_ms() - time_in);
+                reject(err);
+            };
 
             // If in cache
             let UIDindex = AjaxCacheController.getInstance().getUIDIndex(url, postdatas, post_for_get ? RequestResponseCacheVO.API_TYPE_POST_FOR_GET : RequestResponseCacheVO.API_TYPE_GET);
@@ -101,19 +123,19 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                     // If valid
                     if (self.isValidCache(cache)) {
                         if (cache.state == RequestResponseCacheVO.STATE_RESOLVED) {
-                            resolve(cache.datas);
+                            resolve_stats_wrapper(cache.datas);
                         } else if (cache.state == RequestResponseCacheVO.STATE_REJECTED) {
-                            reject(cache.datas);
+                            reject_stats_wrapper(cache.datas);
                         }
                     } else {
                         self.invalidateCachedItem(cache);
-                        self.addCallback(cache, resolve, reject);
+                        self.addCallback(cache, resolve_stats_wrapper, reject_stats_wrapper);
                         self.addToWaitingRequestsStack(cache);
                     }
                 } else if (cache.state == RequestResponseCacheVO.STATE_REQUESTED) {
-                    self.addCallback(cache, resolve, reject);
+                    self.addCallback(cache, resolve_stats_wrapper, reject_stats_wrapper);
                 } else if (cache.state == RequestResponseCacheVO.STATE_INIT) {
-                    self.addCallback(cache, resolve, reject);
+                    self.addCallback(cache, resolve_stats_wrapper, reject_stats_wrapper);
                     self.addToWaitingRequestsStack(cache);
                 }
             } else {
@@ -126,8 +148,8 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                     processData,
                     timeout,
                     api_types_involved,
-                    resolve,
-                    reject,
+                    resolve_stats_wrapper,
+                    reject_stats_wrapper,
                     post_for_get ? RequestResponseCacheVO.API_TYPE_POST_FOR_GET : RequestResponseCacheVO.API_TYPE_GET);
                 self.addToWaitingRequestsStack(cache);
             }
@@ -151,6 +173,9 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
         contentType: string = 'application/json; charset=utf-8', processData = null, timeout: number = null, post_for_get: boolean = false,
         is_wrapper: boolean = false): Promise<any> {
 
+        let time_in = Dates.now_ms();
+        StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'get', 'IN');
+
         let self = this;
 
         if (!is_wrapper) {
@@ -169,6 +194,18 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
 
         let res = new Promise(async (resolve, reject) => {
 
+            let resolve_stats_wrapper = (datas) => {
+                StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'post', 'OK');
+                StatsController.register_stat_DUREE('AjaxCacheClientController', 'post', 'OK', Dates.now_ms() - time_in);
+                resolve(datas);
+            };
+
+            let reject_stats_wrapper = (err) => {
+                StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'post', 'FAILED');
+                StatsController.register_stat_DUREE('AjaxCacheClientController', 'post', 'FAILED', Dates.now_ms() - time_in);
+                reject(err);
+            };
+
             // On ajoute le système de catch code retour pour les POST aussi
             let cache = self.addCache(
                 apiDefinition,
@@ -179,8 +216,8 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 processData,
                 timeout,
                 api_types_involved,
-                resolve,
-                reject,
+                resolve_stats_wrapper,
+                reject_stats_wrapper,
                 post_for_get ? RequestResponseCacheVO.API_TYPE_POST_FOR_GET : RequestResponseCacheVO.API_TYPE_POST);
 
             if (!post_for_get) {
@@ -228,7 +265,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             if (!!EnvHandler.VERSION) {
                 options.headers['version'] = EnvHandler.VERSION;
             }
-            self.addCallback(cache, resolve, reject);
+            self.addCallback(cache, resolve_stats_wrapper, reject_stats_wrapper);
 
             // const $ = await import(/* webpackChunkName: "jquery" */ 'jquery');
             if ($.ajax) {
@@ -401,17 +438,22 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
 
     private async traitementFailRequest(err, request: RequestResponseCacheVO) {
         let self = this;
+        StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'traitementFailRequest', 'IN');
 
         if (401 == err.status) {
+            StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'traitementFailRequest', '401');
             (window as any).location.replace('/login');
         } else if (((503 == err.status) || (502 == err.status) || ('timeout' == err.statusText)) && (request.tries < 3) && (request.type != RequestResponseCacheVO.API_TYPE_POST)) {
+            StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'traitementFailRequest', '503_502_timeout_NOT_POST_3_tries');
             request.tries += 1;
             setTimeout(() => {
                 self.addToWaitingRequestsStack(request);
             }, 2000);
         } else {
+            StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'traitementFailRequest', 'Default');
             ConsoleHandler.log("request failed :" + request + ":" + err);
             if ((503 == err.status) || (502 == err.status) || ('timeout' == err.statusText)) {
+                StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'traitementFailRequest', 'Loading_failure_Please_reload_your_page');
                 (window as any).alert('Loading failure - Please reload your page');
             }
             request.datasDate = Dates.now();
@@ -511,6 +553,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 null, null, false, true) as RequestsWrapperResult;
 
             if ((!results) || (!results.requests_results)) {
+                StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'wrap_request', 'Pas_de_resultat_pour_la_requete_groupee');
                 throw new Error('Pas de résultat pour la requête groupée.');
             }
 
@@ -518,6 +561,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 let wrapped_request = wrappable_requests[i];
 
                 if ((!wrapped_request.url) || (typeof results.requests_results[i] === 'undefined')) {
+                    StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'wrap_request', 'Pas_de_resultat_pour_la_requete');
                     throw new Error('Pas de résultat pour la requête :' + wrapped_request.url + ":");
                 }
 
@@ -526,6 +570,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 await this.resolve_request(wrapped_request, results.requests_results[i]);
             }
         } catch (error) {
+            StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'wrap_request', 'Echec_de_requete_groupee');
             ConsoleHandler.error("Echec de requête groupée : " + error);
 
             // Si ça échoue, on relance avec une logique de dichotomie, si il reste plus d'une requête à traiter. On demande minimum 2 requêtes par wrap

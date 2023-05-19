@@ -261,13 +261,13 @@ export default class StatsController {
                 stats_to_aggregate_by_segment[stat_segment_start].push(stat);
             }
 
-            let aggregated_stats: { [segment_date: number]: StatVO | StatClientWrapperVO } = {};
+            let aggregated_stats: { [segment_date: number]: StatClientWrapperVO } = {};
 
             for (let i in stats_to_aggregate_by_segment) {
                 let segment_date = parseInt(i);
                 let segment_stats = stats_to_aggregate_by_segment[segment_date];
 
-                let aggregated_stat: StatVO | StatClientWrapperVO = new StatClientWrapperVO();
+                let aggregated_stat: StatClientWrapperVO = new StatClientWrapperVO();
                 aggregated_stat.timestamp_s = segment_date;
                 aggregated_stat.value = 0;
 

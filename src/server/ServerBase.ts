@@ -1210,7 +1210,7 @@ export default abstract class ServerBase {
             ConsoleHandler.error("Node nearly failed: " + err.stack);
         });
 
-        await MemoryUsageStat.updateMemoryUsageStat();
+        setInterval(MemoryUsageStat.updateMemoryUsageStat, 45000);
 
         ConsoleHandler.log('listening on port: ' + ServerBase.getInstance().port);
         ServerBase.getInstance().db.one('SELECT 1')

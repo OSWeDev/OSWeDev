@@ -120,7 +120,7 @@ export default class ModuleStats extends Module {
             new ModuleTableField('tmp_thread_name', ModuleTableField.FIELD_TYPE_string, 'Thread - temp', false),
 
             new ModuleTableField('stats_aggregator', ModuleTableField.FIELD_TYPE_enum, 'Aggrégateur', true, true, StatVO.AGGREGATOR_MEAN).setEnumValues(StatVO.AGGREGATOR_LABELS),
-            new ModuleTableField('stats_aggregator_min_segment_type', ModuleTableField.FIELD_TYPE_enum, 'Segmentation minimale', true, true, TimeSegment.TYPE_SECOND),
+            new ModuleTableField('stats_aggregator_min_segment_type', ModuleTableField.FIELD_TYPE_enum, 'Segmentation minimale', true, true, TimeSegment.TYPE_SECOND).setEnumValues(TimeSegment.TYPE_NAMES_ENUM),
         ];
 
         let table = new ModuleTable(this, StatClientWrapperVO.API_TYPE_ID, () => new StatClientWrapperVO(), fields, null, 'Stats - Client side wrapper');

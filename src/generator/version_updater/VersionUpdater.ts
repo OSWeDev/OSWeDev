@@ -18,9 +18,9 @@ export default class VersionUpdater {
     /* istanbul ignore next: really difficult test depending on files */
     public async update_version() {
 
-        if (!ConfigurationService.node_configuration.ACTIVATE_PWA) {
-            return;
-        }
+        // if (!ConfigurationService.node_configuration.ACTIVATE_PWA) {
+        //     return;
+        // }
 
         let package_json_file = './package.json';
         let package_json_content = await ModuleFileServer.getInstance().readFile(package_json_file);
