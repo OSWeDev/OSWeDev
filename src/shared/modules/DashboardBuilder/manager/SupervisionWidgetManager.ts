@@ -224,12 +224,12 @@ export default class SupervisionWidgetManager {
             // Récupération des sondes
             await promise_pipeline.push(async () => {
 
-                // const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id);
-                // const has_access = await ModuleAccessPolicy.getInstance().testAccess(access_policy_name);
+                const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id);
+                const has_access = await ModuleAccessPolicy.getInstance().testAccess(access_policy_name);
 
-                // if (!has_access) {
-                //     return;
-                // }
+                if (!has_access) {
+                    return;
+                }
 
                 const context_filters: ContextFilterVO[] = api_type_context_filters ?? [];
 

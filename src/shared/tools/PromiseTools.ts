@@ -18,7 +18,7 @@ export default class PromiseTools {
             let result = res[i];
 
             if (result.status === "rejected") {
-                // TODO: May be throw and catch (to log the error)
+                // TODO: May be throw and catch (to only log the error without stopping the queued promises)
                 throw new Error(result.reason);
             }
         }

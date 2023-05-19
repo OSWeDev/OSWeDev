@@ -90,102 +90,118 @@ export default class FieldValueFilterEnumWidgetManager {
         let context_query: ContextQueryVO = null;
 
         for (const i in available_api_type_ids) {
-            const api_type_id: string = available_api_type_ids[i];
+            await promise_pipeline.push(async () => {
+                const api_type_id: string = available_api_type_ids[i];
 
-            const api_type_field_filters = field_filters_by_api_type_id[api_type_id];
+                const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id);
+                const has_access = await ModuleAccessPolicy.getInstance().testAccess(access_policy_name);
 
-            const api_type_context_filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_active_field_filters(
-                api_type_field_filters
-            );
-
-            // TODO: May be add widget_options boolean to enable/disable keep_other_context_filters (or specify api_type_ids to keep)
-            const other_context_filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_active_field_filters(
-                other_field_filter,
-            );
-
-            if (widget_options.force_filter_by_all_api_type_ids) {
-                vo_field_ref.api_type_id = api_type_id;
-            }
-
-            const context_filters: ContextFilterVO[] = [
-                ...api_type_context_filters,
-                ...other_context_filters,
-            ];
-
-            let api_type_context_query = query(api_type_id)
-                .using(dashboard.api_type_ids)
-                .field(vo_field_ref.field_id, 'label', vo_field_ref.api_type_id)
-                .add_filters(context_filters)
-                .set_limit(widget_options.max_visible_options)
-                .set_query_distinct();
-
-            FieldValueFilterWidgetManager.add_discarded_field_paths(
-                api_type_context_query,
-                discarded_field_paths
-            );
-
-            api_type_context_query.filters = ContextFilterVOHandler.getInstance().add_context_filters_exclude_values(
-                widget_options.get_exclude_values(),
-                vo_field_ref,
-                api_type_context_query.filters,
-                false,
-            );
-
-            // Si je suis sur une table segmentée, je vais voir si j'ai un filtre sur mon field qui segmente
-            // Si ce n'est pas le cas, je n'envoie pas la requête
-            let base_table: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[api_type_context_query.base_api_type_id];
-
-            if (
-                base_table &&
-                base_table.is_segmented
-            ) {
-                if (
-                    !base_table.table_segmented_field ||
-                    !base_table.table_segmented_field.manyToOne_target_moduletable ||
-                    !active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type] ||
-                    !Object.keys(active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type]).length
-                ) {
+                if (!has_access) {
                     return;
                 }
 
-                let has_filter: boolean = false;
+                const api_type_field_filters = field_filters_by_api_type_id[api_type_id];
 
-                for (let field_id in active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type]) {
-                    if (active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type][field_id]) {
-                        has_filter = true;
-                        break;
+                const api_type_context_filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_active_field_filters(
+                    api_type_field_filters
+                );
+
+                // TODO: May be add widget_options boolean to enable/disable keep_other_context_filters (or specify api_type_ids to keep)
+                const other_context_filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_active_field_filters(
+                    other_field_filter,
+                );
+
+                if (widget_options.force_filter_by_all_api_type_ids) {
+                    vo_field_ref.api_type_id = api_type_id;
+                }
+
+                const context_filters: ContextFilterVO[] = [
+                    ...api_type_context_filters,
+                    ...other_context_filters,
+                ];
+
+                let api_type_context_query = query(api_type_id)
+                    .using(dashboard.api_type_ids)
+                    .field(vo_field_ref.field_id, 'label', vo_field_ref.api_type_id)
+                    .add_filters(context_filters)
+                    .set_limit(widget_options.max_visible_options)
+                    .set_query_distinct();
+
+                FieldValueFilterWidgetManager.add_discarded_field_paths(
+                    api_type_context_query,
+                    discarded_field_paths
+                );
+
+                api_type_context_query.filters = ContextFilterVOHandler.getInstance().add_context_filters_exclude_values(
+                    widget_options.get_exclude_values(),
+                    vo_field_ref,
+                    api_type_context_query.filters,
+                    false,
+                );
+
+                // Si je suis sur une table segmentée, je vais voir si j'ai un filtre sur mon field qui segmente
+                // Si ce n'est pas le cas, je n'envoie pas la requête
+                let base_table: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[api_type_context_query.base_api_type_id];
+
+                if (
+                    base_table &&
+                    base_table.is_segmented
+                ) {
+                    if (
+                        !base_table.table_segmented_field ||
+                        !base_table.table_segmented_field.manyToOne_target_moduletable ||
+                        !active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type] ||
+                        !Object.keys(active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type]).length
+                    ) {
+                        return;
+                    }
+
+                    let has_filter: boolean = false;
+
+                    for (let field_id in active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type]) {
+                        if (active_field_filters[base_table.table_segmented_field.manyToOne_target_moduletable.vo_type][field_id]) {
+                            has_filter = true;
+                            break;
+                        }
+                    }
+
+                    if (!has_filter) {
+                        return;
+                    }
+                } else {
+                    const overflowing_api_type_id = await FieldValueFilterWidgetManager.get_overflowing_segmented_options_api_type_id_from_dashboard(
+                        dashboard,
+                        api_type_context_query,
+                        true
+                    );
+
+                    if (overflowing_api_type_id?.length > 0) {
+                        api_type_context_query = FieldValueFilterWidgetManager.remove_overflowing_api_type_id_from_context_query(
+                            api_type_context_query,
+                            overflowing_api_type_id,
+                            discarded_field_paths
+                        );
                     }
                 }
 
-                if (!has_filter) {
-                    return;
+                if (!context_query) {
+                    // Main first query
+                    context_query = api_type_context_query;
+                } else {
+                    // Union query to be able to select all vos of each api_type_id
+                    context_query.union(api_type_context_query);
                 }
-            } else {
-                const overflowing_api_type_id = await FieldValueFilterWidgetManager.get_overflowing_segmented_options_api_type_id_from_dashboard(
-                    dashboard,
-                    api_type_context_query,
-                    true
-                );
-
-                if (overflowing_api_type_id?.length > 0) {
-                    api_type_context_query = FieldValueFilterWidgetManager.remove_overflowing_api_type_id_from_context_query(
-                        api_type_context_query,
-                        overflowing_api_type_id,
-                        discarded_field_paths
-                    );
-                }
-            }
-
-            if (!context_query) {
-                // Main first query
-                context_query = api_type_context_query;
-            } else {
-                // Union query to be able to select all vos of each api_type_id
-                context_query.union(api_type_context_query);
-            }
+            });
         }
 
-        await promise_pipeline.push(async () => {
+        await promise_pipeline.end();
+
+        if (!context_query) {
+            return enum_data_filters;
+        }
+
+        promise_pipeline.push(async () => {
+
             let data_filters: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
                 context_query,
                 actual_query
@@ -208,10 +224,6 @@ export default class FieldValueFilterEnumWidgetManager {
 
     /**
      * find_enum_data_filters_count_from_widget_options
-     *
-     * TODO: when filter actif and count result is 0, the filter shall stay visible
-     *
-     * @returns TODO vérifier car pas certains que ça fonctionnent dans tous les cas...
      *
      * @param {DashboardVO} dashboard  the actual dashboard
      * @param {FieldValueFilterWidgetOptionsVO} widget_options the actual widget options
@@ -240,6 +252,7 @@ export default class FieldValueFilterEnumWidgetManager {
             widget_options = new FieldValueFilterWidgetOptionsVO().from(widget_options);
         }
 
+        const context_query_by_enum_data_filters: { [enum_value: number]: ContextQueryVO } = {};
         const vo_field_ref = widget_options?.vo_field_ref;
 
         const discarded_field_paths = await DashboardBuilderBoardManager.find_discarded_field_paths(
@@ -281,6 +294,9 @@ export default class FieldValueFilterEnumWidgetManager {
         const pipeline_limit = EnvHandler.MAX_POOL / 2;
         const promise_pipeline = new PromisePipeline(pipeline_limit);
 
+        // We must do it in two separate states (with promise_pipeline)
+        // The first one is to check access and build the query
+        // The second one is to perform the query and get the count
         for (const key in enum_data_filters) {
             const filter_opt: DataFilterOption = enum_data_filters[key];
 
@@ -290,69 +306,75 @@ export default class FieldValueFilterEnumWidgetManager {
 
             let context_query: ContextQueryVO = null;
 
-            // On RAZ le champ
-            count_by_enum_data_filter[filter_opt.numeric_value] = 0;
-
             for (const i in available_api_type_ids) {
-                const api_type_id: string = available_api_type_ids[i];
 
-                const api_type_field_filters = field_filters_by_api_type_id[api_type_id];
+                await promise_pipeline.push(async () => {
+                    const api_type_id: string = available_api_type_ids[i];
 
-                const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id);
-                const has_access = await ModuleAccessPolicy.getInstance().testAccess(access_policy_name);
+                    const api_type_field_filters = field_filters_by_api_type_id[api_type_id];
 
-                if (!has_access) {
-                    return;
-                }
+                    const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id);
+                    const has_access = await ModuleAccessPolicy.getInstance().testAccess(access_policy_name);
 
-                const api_type_context_filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_active_field_filters(
-                    api_type_field_filters
-                );
+                    if (!has_access) {
+                        return;
+                    }
 
-                const enum_context_filter = ContextFilterVOManager.get_context_filter_from_data_filter_option(
-                    filter_opt,
-                    null,
-                    VOsTypesManager.get_field_from_vo_field_ref(vo_field_ref),
-                    vo_field_ref,
-                );
+                    const api_type_context_filters: ContextFilterVO[] = ContextFilterVOManager.get_context_filters_from_active_field_filters(
+                        api_type_field_filters
+                    );
 
-                if (widget_options.force_filter_by_all_api_type_ids) {
-                    // Filter on this iterated api_type_id
-                    enum_context_filter.vo_type = api_type_id;
-                }
+                    const enum_context_filter = ContextFilterVOManager.get_context_filter_from_data_filter_option(
+                        filter_opt,
+                        null,
+                        VOsTypesManager.get_field_from_vo_field_ref(vo_field_ref),
+                        vo_field_ref,
+                    );
 
-                const context_filters: ContextFilterVO[] = [
-                    ...api_type_context_filters,
-                    ...other_context_filters,
-                    enum_context_filter,
-                ];
+                    if (widget_options.force_filter_by_all_api_type_ids) {
+                        // Filter on this iterated api_type_id
+                        enum_context_filter.vo_type = api_type_id;
+                    }
 
-                const api_type_context_query = query(api_type_id)
-                    .using(dashboard.api_type_ids)
-                    .add_filters(context_filters);
+                    const context_filters: ContextFilterVO[] = [
+                        ...api_type_context_filters,
+                        ...other_context_filters,
+                        enum_context_filter,
+                    ];
 
-                FieldValueFilterWidgetManager.add_discarded_field_paths(
-                    api_type_context_query,
-                    discarded_field_paths
-                );
+                    const api_type_context_query = query(api_type_id)
+                        .using(dashboard.api_type_ids)
+                        .add_filters(context_filters);
 
-                // Avoid load from cache
-                if (!context_query) {
-                    // Main first query
-                    context_query = api_type_context_query;
-                } else {
-                    // Union query to be able to select all vos of each api_type_id
-                    context_query.union(api_type_context_query);
-                }
+                    FieldValueFilterWidgetManager.add_discarded_field_paths(
+                        api_type_context_query,
+                        discarded_field_paths
+                    );
+
+                    // Avoid load from cache
+                    if (!context_query) {
+                        // Main first query
+                        context_query = api_type_context_query;
+                    } else {
+                        // Union query to be able to select all vos of each api_type_id
+                        context_query.union(api_type_context_query);
+                    }
+                });
             }
 
-            promise_pipeline.end();
+            await promise_pipeline.end();
+
+            context_query_by_enum_data_filters[filter_opt.numeric_value] = context_query;
+        }
+
+        for (const enum_value in context_query_by_enum_data_filters) {
+            const context_query = context_query_by_enum_data_filters[enum_value];
 
             await promise_pipeline.push(async () => {
                 const count: number = await context_query.select_count();
 
                 if (count >= 0) {
-                    count_by_enum_data_filter[filter_opt.numeric_value] = count;
+                    count_by_enum_data_filter[enum_value] = count;
                 }
             });
         }

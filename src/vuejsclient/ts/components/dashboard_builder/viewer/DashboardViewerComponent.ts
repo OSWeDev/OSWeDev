@@ -3,6 +3,8 @@ import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import { query } from '../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../shared/modules/ContextFilter/vos/SortByVO';
+import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
+import DashboardWidgetVOManager from '../../../../../shared/modules/DashboardBuilder/manager/DashboardWidgetVOManager';
 import ModuleDashboardBuilder from '../../../../../shared/modules/DashboardBuilder/ModuleDashboardBuilder';
 import DashboardPageVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
@@ -101,7 +103,18 @@ export default class DashboardViewerComponent extends VueComponentBase {
             return;
         }
 
-        this.dashboard = await query(DashboardVO.API_TYPE_ID).filter_by_id(this.dashboard_id).select_vo<DashboardVO>();
+        const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DashboardVO.API_TYPE_ID);
+        const has_dashboard_access = await ModuleAccessPolicy.getInstance().testAccess(access_policy_name);
+
+        if (!has_dashboard_access) {
+            this.loading = false;
+            return;
+        }
+
+        this.dashboard = await query(DashboardVO.API_TYPE_ID)
+            .filter_by_id(this.dashboard_id)
+            .select_vo<DashboardVO>();
+
         if (!this.dashboard) {
             this.can_edit = false;
             this.loading = false;
@@ -110,13 +123,21 @@ export default class DashboardViewerComponent extends VueComponentBase {
 
         this.clear_active_field_filters();
 
-        this.pages = await query(DashboardPageVO.API_TYPE_ID).filter_by_num_eq('dashboard_id', this.dashboard.id).set_sorts([new SortByVO(DashboardPageVO.API_TYPE_ID, 'weight', true), new SortByVO(DashboardPageVO.API_TYPE_ID, 'id', true)]).select_vos<DashboardPageVO>();
+        this.pages = await query(DashboardPageVO.API_TYPE_ID)
+            .filter_by_num_eq('dashboard_id', this.dashboard.id)
+            .set_sorts([
+                new SortByVO(DashboardPageVO.API_TYPE_ID, 'weight', true),
+                new SortByVO(DashboardPageVO.API_TYPE_ID, 'id', true)]
+            )
+            .select_vos<DashboardPageVO>();
 
         if (!this.pages) {
             this.isLoading = false;
             this.can_edit = false;
             return;
         }
+
+        DashboardWidgetVOManager.getInstance().initialize();
 
         WeightHandler.getInstance().sortByWeight(this.pages);
         this.page = this.pages[0];
@@ -129,7 +150,6 @@ export default class DashboardViewerComponent extends VueComponentBase {
         this.add_page_history(this.page);
         this.select_widget(null);
         this.page = page;
-
     }
 
     get dashboard_name_code_text(): string {

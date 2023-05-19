@@ -38,19 +38,16 @@ export default class DashboardBuilderBoardItemComponent extends VueComponentBase
     @Prop()
     private page_widget: DashboardPageWidgetVO;
 
-
-
     @Prop({ default: true })
     private is_edit_mode: boolean;
 
     @Prop({ default: false })
     private is_selected: boolean;
 
-
     private widget: DashboardWidgetVO = null;
 
     private mounted() {
-        if ((!this.page_widget) || (!this.page_widget.id)) {
+        if ((!this.page_widget?.id)) {
             return;
         }
 
@@ -69,7 +66,9 @@ export default class DashboardBuilderBoardItemComponent extends VueComponentBase
             return;
         }
 
-        this.widget = await query(DashboardWidgetVO.API_TYPE_ID).filter_by_id(this.page_widget.widget_id).select_vo<DashboardWidgetVO>();
+        this.widget = await query(DashboardWidgetVO.API_TYPE_ID)
+            .filter_by_id(this.page_widget.widget_id)
+            .select_vo<DashboardWidgetVO>();
 
         if (!this.page_widget.id) {
             return;
@@ -98,12 +97,13 @@ export default class DashboardBuilderBoardItemComponent extends VueComponentBase
         this.$emit('select_page', page);
     }
 
-
-
     private async copy_widget() {
-        await this.get_Dashboardcopywidgetcomponent.open_copy_modal(this.page_widget, this.dashboard_pages, null);
+        await this.get_Dashboardcopywidgetcomponent.open_copy_modal(
+            this.page_widget,
+            this.dashboard_pages,
+            null
+        );
 
         // this.$emit('copy_widget', this.page_widget);
     }
-
 }

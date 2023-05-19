@@ -10,7 +10,7 @@ import VueComponentBase from '../../../VueComponentBase';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import SupervisionTypeWidgetOptions from './options/SupervisionTypeWidgetOptions';
 import SupervisedCategoryVO from '../../../../../../shared/modules/Supervision/vos/SupervisedCategoryVO';
-import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import ContextQueryVO, { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
 import ISupervisedItemController from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItemController';
 import SupervisionController from '../../../../../../shared/modules/Supervision/SupervisionController';
@@ -86,14 +86,13 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
     @Watch("supervision_api_type_ids")
     private async onchange_supervision_api_type_ids() {
 
-        // TODO: Apply filed_filters by the selected supervision_api_type_id;
-
         let available_api_type_ids: string[] = [];
 
-        let limit = EnvHandler.MAX_POOL / 2;
-        let promise_pipeline = new PromisePipeline(limit);
+        const pipeline_limit = EnvHandler.MAX_POOL / 2;
+        const promise_pipeline = new PromisePipeline(pipeline_limit);
 
         const supervision_category_active_field_filters = this.get_active_field_filters && this.get_active_field_filters[SupervisedCategoryVO.API_TYPE_ID];
+        const context_query_by_api_type_id: { [api_type_id: string]: ContextQueryVO } = {};
 
         let category_selections: SupervisedCategoryVO[] = null;
 
@@ -102,6 +101,8 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
             this.available_api_type_ids = this.supervision_api_type_ids;
             return;
         }
+
+        this.available_api_type_ids = [];
 
         // Shall load all supervision_api_type_ids by default
         // Show supervision_api_type_ids that match the supervision_category_active_field_filters
@@ -130,27 +131,43 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
             }
 
             // Load each supervision_api_type_ids count by selected category
+            // We must do it in two steps to avoid check access failure
             await promise_pipeline.push(async () => {
 
-                const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id);
+                const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(
+                    ModuleDAO.DAO_ACCESS_TYPE_READ,
+                    api_type_id
+                );
+                const has_access = await ModuleAccessPolicy.getInstance().testAccess(access_policy_name);
 
-                if (!await ModuleAccessPolicy.getInstance().testAccess(access_policy_name)) {
+                if (!has_access) {
                     return;
                 }
 
                 // Avoid load from cache
                 AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([api_type_id]);
 
-                let qb = query(api_type_id)
+                let api_type_context_query = query(api_type_id)
                     .using(this.dashboard.api_type_ids);
 
                 if (category_selections?.length > 0) {
-                    qb = qb.filter_by_num_eq('category_id',
+                    api_type_context_query = api_type_context_query.filter_by_num_eq(
+                        'category_id',
                         category_selections?.map((cat) => cat?.id)
                     );
                 }
 
-                const items_count: number = await qb.select_count();
+                context_query_by_api_type_id[api_type_id] = api_type_context_query;
+            });
+        }
+
+        await promise_pipeline.end();
+
+        for (let api_type_id in context_query_by_api_type_id) {
+            const api_type_context_query = context_query_by_api_type_id[api_type_id];
+
+            await promise_pipeline.push(async () => {
+                const items_count: number = await api_type_context_query.select_count();
 
                 if (items_count > 0) {
                     available_api_type_ids.push(api_type_id);

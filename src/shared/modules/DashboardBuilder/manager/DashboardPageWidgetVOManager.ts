@@ -3,7 +3,8 @@ import DashboardWidgetVOManager from "./DashboardWidgetVOManager";
 import DashboardPageWidgetVO from "../vos/DashboardPageWidgetVO";
 import { query } from "../../ContextFilter/vos/ContextQueryVO";
 import DashboardWidgetVO from "../vos/DashboardWidgetVO";
-import { isEqual } from 'lodash';
+import ModuleAccessPolicy from '../../AccessPolicy/ModuleAccessPolicy';
+import ModuleDAO from '../../DAO/ModuleDAO';
 
 /**
  * @class DashboardPageWidgetVOManager
@@ -45,7 +46,7 @@ export default class DashboardPageWidgetVOManager {
 
         // Find id of widget that have type "yearfilter"
         const widget_id = sorted_widgets_types?.find(
-            (widget_type) => widget_type.name == widget_name
+            (widget_type) => widget_type?.name == widget_name
         ).id;
 
         // widget_id required to continue
@@ -121,7 +122,7 @@ export default class DashboardPageWidgetVOManager {
                 res[page_widget_id] = {
                     widget_options: page_widget_options,
                     page_widget_id: page_widget.id,
-                    widget_name: widget_type.name,
+                    widget_name: widget_type?.name,
                 };
             }
         }
@@ -173,6 +174,13 @@ export default class DashboardPageWidgetVOManager {
      */
     public static async find_page_widget_items_by_page_id(page_id: number): Promise<DashboardPageWidgetVO[]> {
         const self = DashboardPageWidgetVOManager.getInstance();
+
+        const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DashboardPageWidgetVO.API_TYPE_ID);
+        const has_access = await ModuleAccessPolicy.getInstance().testAccess(access_policy_name);
+
+        if (!has_access) {
+            return;
+        }
 
         // Initialize page_widgets (all_page_widget in dashboard) of DashboardPageWidgetVOManager instance
         // its should be initialized each time the dashboard page is loaded

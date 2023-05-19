@@ -671,7 +671,13 @@ export default class ContextQueryServerController {
                     throw new Error('Invalid segmentation_moduletable');
                 }
 
-                return await this.configure_query_for_segmented_table_segment_listing(query(segmentation_field.manyToOne_target_moduletable.vo_type).field('id').set_query_distinct(), moduletable, context_query.filters).select_count();
+                return await this.configure_query_for_segmented_table_segment_listing(
+                    query(segmentation_field.manyToOne_target_moduletable.vo_type)
+                        .field('id')
+                        .set_query_distinct(),
+                    moduletable,
+                    context_query.filters
+                ).select_count();
             default:
                 throw new Error('Invalid segmentation_moduletable');
         }
@@ -717,9 +723,9 @@ export default class ContextQueryServerController {
                 access_type
             );
 
-            if (!has_access) {
-                return null;
-            }
+            // if (!has_access) {
+            //     return null;
+            // }
 
             let base_moduletable = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
 
@@ -782,9 +788,9 @@ export default class ContextQueryServerController {
                             access_type
                         );
 
-                        if (!has_access_api_type_id) {
-                            continue;
-                        }
+                        // if (!has_access_api_type_id) {
+                        //     continue;
+                        // }
 
                         const moduletable = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
 
@@ -890,12 +896,14 @@ export default class ContextQueryServerController {
 
                 return main_query_wrapper;
             } else {
-                return await this.build_select_query_not_count_segment(
+                main_query_wrapper = await this.build_select_query_not_count_segment(
                     context_query,
                     access_type,
                     base_moduletable,
                     base_moduletable.vo_type
                 );
+
+                return main_query_wrapper;
             }
         } catch (error) {
             ConsoleHandler.error(error);

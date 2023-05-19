@@ -505,9 +505,10 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 JSON.stringify(sendable_objects),
                 null,
                 'application/json; charset=utf-8',
-                null, null, false, true) as RequestsWrapperResult;
+                null, null, false, true
+            ) as RequestsWrapperResult;
 
-            if ((!results) || (!results.requests_results)) {
+            if ((!results?.requests_results)) {
                 throw new Error('Pas de résultat pour la requête groupée.');
             }
 

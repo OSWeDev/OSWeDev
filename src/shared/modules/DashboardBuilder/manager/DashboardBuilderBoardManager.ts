@@ -1,4 +1,6 @@
+import ModuleAccessPolicy from "../../AccessPolicy/ModuleAccessPolicy";
 import { query } from "../../ContextFilter/vos/ContextQueryVO";
+import ModuleDAO from "../../DAO/ModuleDAO";
 import DashboardGraphVORefVO from "../vos/DashboardGraphVORefVO";
 import DashboardVO from "../vos/DashboardVO";
 
@@ -21,6 +23,13 @@ export default class DashboardBuilderBoardManager {
 
         if (discarded_field_paths_by_dashboard_id[dashboard.id]) {
             return discarded_field_paths_by_dashboard_id[dashboard.id];
+        }
+
+        const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DashboardGraphVORefVO.API_TYPE_ID);
+        const has_access = await ModuleAccessPolicy.getInstance().testAccess(access_policy_name);
+
+        if (!has_access) {
+            return;
         }
 
         const db_cells_source = await query(DashboardGraphVORefVO.API_TYPE_ID)

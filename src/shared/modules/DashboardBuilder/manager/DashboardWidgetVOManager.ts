@@ -1,5 +1,6 @@
 import ConsoleHandler from "../../../tools/ConsoleHandler";
 import WeightHandler from "../../../tools/WeightHandler";
+import ModuleAccessPolicy from "../../AccessPolicy/ModuleAccessPolicy";
 import { query } from "../../ContextFilter/vos/ContextQueryVO";
 import ModuleDAO from "../../DAO/ModuleDAO";
 import InsertOrDeleteQueryResult from "../../DAO/vos/InsertOrDeleteQueryResult";
@@ -78,6 +79,14 @@ export default class DashboardWidgetVOManager {
     public async initialize() {
 
         if (this.initialized) {
+            return;
+        }
+
+        const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DashboardWidgetVO.API_TYPE_ID);
+        const has_access = await ModuleAccessPolicy.getInstance().testAccess(access_policy_name);
+
+        if (!has_access) {
+            this.initialized = true;
             return;
         }
 

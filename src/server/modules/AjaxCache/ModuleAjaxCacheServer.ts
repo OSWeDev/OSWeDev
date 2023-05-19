@@ -10,7 +10,9 @@ import APIDefinition from '../../../shared/modules/API/vos/APIDefinition';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import EnvHandler from '../../../shared/tools/EnvHandler';
+import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import { all_promises } from '../../../shared/tools/PromiseTools';
+import ConfigurationService from '../../env/ConfigurationService';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
@@ -58,7 +60,8 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
         let res: RequestsWrapperResult = new RequestsWrapperResult();
         res.requests_results = {};
 
-        let promises = [];
+        let limit = ConfigurationService.node_configuration.MAX_POOL / 2;
+        let promise_pipeline = new PromisePipeline(limit);
 
         for (let i in requests) {
             let wrapped_request: LightWeightSendableRequestVO = requests[i];
@@ -67,11 +70,12 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
                 continue;
             }
 
-            promises.push((async () => {
+            promise_pipeline.push(async () => {
 
                 let apiDefinition: APIDefinition<any, any> = null;
 
                 for (let j in APIControllerWrapper.registered_apis) {
+                    // Find the registered API
                     let registered_api = APIControllerWrapper.registered_apis[j];
                     if (APIControllerWrapper.requestUrlMatchesApiUrl(wrapped_request.url, APIControllerWrapper.getAPI_URL(registered_api))) {
                         apiDefinition = registered_api;
@@ -81,6 +85,7 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
 
                 if (!apiDefinition) {
                     ConsoleHandler.error('API introuvable:' + wrapped_request.url);
+                    res.requests_results[wrapped_request.index] = null;
                     return null;
                 }
 
@@ -88,6 +93,7 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
                     if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(apiDefinition.access_policy_name)) {
                         let session: IServerUserSession = (req as any).session;
                         ConsoleHandler.error('Access denied to API:' + apiDefinition.api_name + ':' + ' sessionID:' + (req as any).sessionID + ": UID:" + (session ? session.uid : "null") + ":");
+                        res.requests_results[wrapped_request.index] = null;
                         return null;
                     }
                 }
@@ -124,11 +130,11 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
                 //     (apiDefinition.api_return_type == APIDefinition.API_RETURN_TYPE_FILE)) {
                 //     res.requests_results[wrapped_request.index] = APIController.getInstance().try_translate_vo_to_api(res.requests_results[wrapped_request.index]);
                 // }
-            })());
+            });
 
         }
 
-        await all_promises(promises);
+        await promise_pipeline.end();
 
         return res;
     }

@@ -71,7 +71,9 @@ export default class ModulesManager {
         }
     }
     public getModuleByNameAndRole(name: string, role: string) {
-        return this.modules_by_name[name] ? this.modules_by_name[name].getModuleComponentByRole(role) : null;
+        const module = this.modules_by_name[name];
+
+        return module?.getModuleComponentByRole(role) ?? null;
     }
     public getModuleWrapperByName(name: string) {
         return this.modules_by_name[name];
