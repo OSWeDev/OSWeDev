@@ -1,7 +1,4 @@
-import StatsServerController from "../../../server/modules/Stats/StatsServerController";
-import TimeSegment from "../DataRender/vos/TimeSegment";
 import Dates from "../FormatDatesNombres/Dates/Dates";
-import StatVO from "../Stats/vos/StatVO";
 
 export default abstract class TriggerHook<Conditions, Params, Out> {
 
@@ -41,8 +38,8 @@ export default abstract class TriggerHook<Conditions, Params, Out> {
         let conditionUID: string = this.getConditionUID_from_Conditions(conditions);
         let conditionalHandlers: [(params: Params) => Promise<Out>] = conditionUID ? this.registered_handlers[conditionUID] : null;
 
-        let time_in = Dates.now_ms();
-        StatsServerController.register_stat('TriggerHook.trigger.' + this.trigger_type_UID + '.' + conditionUID, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
+        // let time_in = Dates.now_ms();
+        // StatsServerController.register_stat('TriggerHook.trigger.' + this.trigger_type_UID + '.' + conditionUID, 1, StatVO.AGGREGATOR_SUM, TimeSegment.TYPE_MINUTE);
 
         let res: Out[] = [];
 
@@ -62,8 +59,8 @@ export default abstract class TriggerHook<Conditions, Params, Out> {
         }
 
         let time_out = Dates.now_ms();
-        StatsServerController.register_stats('TriggerHook.trigger.' + this.trigger_type_UID + '.' + conditionUID + '.time', time_out - time_in,
-            [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MIN, StatVO.AGGREGATOR_MEAN], TimeSegment.TYPE_MINUTE);
+        // StatsServerController.register_stats('TriggerHook.trigger.' + this.trigger_type_UID + '.' + conditionUID + '.time', time_out - time_in,
+        //     [StatVO.AGGREGATOR_SUM, StatVO.AGGREGATOR_MAX, StatVO.AGGREGATOR_MIN, StatVO.AGGREGATOR_MEAN], TimeSegment.TYPE_MINUTE);
 
         return res;
     }
