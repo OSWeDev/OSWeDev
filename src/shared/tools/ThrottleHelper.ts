@@ -21,15 +21,15 @@ export default class ThrottleHelper {
     private constructor() { }
 
     public declare_throttle_without_args(
-        func: () => any,
+        func: () => void | Promise<void>,
         wait_ms: number,
         options?: ThrottleSettings) {
 
         let UID = this.UID++;
         let self = this;
-        this.throttles[UID] = throttle(() => {
+        this.throttles[UID] = throttle(async () => {
             self.throttles_semaphore[UID] = false;
-            func();
+            await func();
         }, wait_ms, options);
 
         return () => ThrottleHelper.getInstance().throttle_without_args(UID);
@@ -37,36 +37,36 @@ export default class ThrottleHelper {
 
 
     public declare_throttle_with_mappable_args(
-        func: (mappable_args: { [map_elt_id: string]: any }) => any,
+        func: (mappable_args: { [map_elt_id: string]: any }) => void | Promise<void>,
         wait_ms: number,
         options?: ThrottleSettings) {
 
         let UID = this.UID++;
         let self = this;
-        this.throttles[UID] = throttle(() => {
+        this.throttles[UID] = throttle(async () => {
 
             let params = self.throttles_mappable_args[UID];
             self.throttles_mappable_args[UID] = {};
             self.throttles_semaphore[UID] = false;
-            func(params);
+            await func(params);
         }, wait_ms, options);
 
         return (mappable_args: { [map_elt_id: string]: any }) => ThrottleHelper.getInstance().throttle_with_mappable_args(UID, mappable_args);
     }
 
     public declare_throttle_with_stackable_args(
-        func: (stackable_args: any[]) => any,
+        func: (stackable_args: any[]) => void | Promise<void>,
         wait_ms: number,
         options?: ThrottleSettings
     ) {
 
         let UID = this.UID++;
-        this.throttles[UID] = throttle(() => {
+        this.throttles[UID] = throttle(async () => {
 
             let params = this.throttles_stackable_args[UID];
             this.throttles_stackable_args[UID] = [];
 
-            return func(params);
+            await func(params);
 
         }, wait_ms, options);
 
