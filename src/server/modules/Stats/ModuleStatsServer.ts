@@ -62,10 +62,7 @@ export default class ModuleStatsServer extends ModuleServerBase {
         }
 
         // On commence par vérifier que le timestamp est cohérent avec le server
-        //  on se donne une limite à 1 minute de décalage
-        //  si on est au delà :
-        //      on checke un delta en nombre d'heures. Si on a un nombre d'heures cohérent, on considère que c'est un décalage horaire et on ajuste le timestamp des statsclient
-        //      sinon on refuse l'enregistrement des stats
+        // Sinon on décale d'autant toutes les stats (on devrait pas aoir plus de 30 secondes entre la créa du ts de verif côté client et l'appel de l'api côté serveur)
         let server_timestamp_s = Dates.now();
         let delta_s = server_timestamp_s - client_timestamp_s;
 
@@ -73,20 +70,19 @@ export default class ModuleStatsServer extends ModuleServerBase {
         let delta_vs_decalage_horaire = (delta_s % (60 * 60)) / 60; // on compte le nombre de minutes de différence entre le décalage horaire et la diff réelle
 
         if (delta_vs_decalage_horaire > 1) {
-            ConsoleHandler.warn('WARNING : stats client timestamp is not coherent with server timestamp - IGNORING STATS:delta_s:' + delta_s +
-                ':nb_hours:' + nb_hours +
-                ':delta_vs_decalage_horaire:' + delta_vs_decalage_horaire + ':');
-            return;
+            StatsController.register_stat_COMPTEUR('ModuleStatsServer', 'register_client_stats', 'delta_vs_decalage_horaire_supp3min');
+        } else {
+            StatsController.register_stat_COMPTEUR('ModuleStatsServer', 'register_client_stats', 'delta_vs_decalage_horaire_inf3min');
         }
 
         if (!!nb_hours) {
-            ConsoleHandler.log('Stats client timestamp is not coherent with server timestamp - APPLYING TIME ZONE DIFFERENCE:delta_s:' + delta_s +
-                ':nb_hours:' + nb_hours +
-                ':delta_vs_decalage_horaire:' + delta_vs_decalage_horaire + ':');
+            StatsController.register_stat_COMPTEUR('ModuleStatsServer', 'register_client_stats', 'has_nb_hours');
+        } else {
+            StatsController.register_stat_COMPTEUR('ModuleStatsServer', 'register_client_stats', 'hasnt_nb_hours');
+        }
 
-            for (let i in stats_client) {
-                stats_client[i].timestamp_s += nb_hours * 60 * 60;
-            }
+        for (let i in stats_client) {
+            stats_client[i].timestamp_s += delta_s;
         }
 
         for (let i in stats_client) {
