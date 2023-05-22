@@ -27,9 +27,9 @@ export default class ThrottleHelper {
 
         let UID = this.UID++;
         let self = this;
-        this.throttles[UID] = throttle(() => {
+        this.throttles[UID] = throttle(async () => {
             self.throttles_semaphore[UID] = false;
-            func();
+            await func();
         }, wait_ms, options);
 
         return () => ThrottleHelper.getInstance().throttle_without_args(UID);
@@ -43,12 +43,12 @@ export default class ThrottleHelper {
 
         let UID = this.UID++;
         let self = this;
-        this.throttles[UID] = throttle(() => {
+        this.throttles[UID] = throttle(async () => {
 
             let params = self.throttles_mappable_args[UID];
             self.throttles_mappable_args[UID] = {};
             self.throttles_semaphore[UID] = false;
-            func(params);
+            await func(params);
         }, wait_ms, options);
 
         return (mappable_args: { [map_elt_id: string]: any }) => ThrottleHelper.getInstance().throttle_with_mappable_args(UID, mappable_args);
@@ -61,13 +61,12 @@ export default class ThrottleHelper {
     ) {
 
         let UID = this.UID++;
-        this.throttles[UID] = throttle(() => {
+        this.throttles[UID] = throttle(async () => {
 
             let params = this.throttles_stackable_args[UID];
             this.throttles_stackable_args[UID] = [];
 
-            return func(params);
-
+            await func(params);
         }, wait_ms, options);
 
         return (stackable_args: any | any[]) => {
