@@ -4,6 +4,7 @@ import 'bootstrap';
 import moment from 'moment';
 
 import 'select2';
+import { quillEditor } from 'vue-quill-editor';
 import VCalendar from 'v-calendar';
 import VTooltip from 'v-tooltip';
 import Vue from 'vue';
@@ -416,7 +417,7 @@ export default abstract class VueAppBase {
         Vue.component('vue-draggable-resizable', VueDraggableResizable);
         Vue.use(ToggleButton);
         Vue.use(VModal);
-        Vue.component('Vuequilleditor', async () => (await import(/* webpackChunkName: "quillEditor" */  'vue-quill-editor')).quillEditor);
+        Vue.component('Vuequilleditor', quillEditor);
         Vue.component('Usernotifsmarkercomponent', UserNotifsMarkerComponent);
         Vue.component('multiselect', Multiselect);
         Vue.component('v-select', vSelect);
