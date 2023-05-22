@@ -565,8 +565,10 @@ export default abstract class ServerBase {
         // this.app.use('/public', express.static('dist/public'));
         this.app.get('/public/*', async (req, res, next) => {
 
+            let url = decodeURIComponent(req.url);
+
             // Le cas du service worker est déjà traité, ici on a tout sauf le service_worker. Si on ne trouve pas le fichier c'est une erreur et on demande un reload
-            if (!fs.existsSync(path.resolve('./dist' + req.url))) {
+            if (!fs.existsSync(path.resolve('./dist' + url))) {
                 StatsController.register_stat_COMPTEUR('express', 'public', 'notfound');
 
                 const uid = req.session ? req.session.uid : null;
@@ -577,14 +579,14 @@ export default abstract class ServerBase {
                 //     ConsoleHandler.warn("ServerExpressController:public:NOT_FOUND:" + req.url + ": asking for reload");
                 //     await PushDataServerController.getInstance().notifyTabReload(uid, client_tab_id);
                 // } else {
-                ConsoleHandler.error("ServerExpressController:public:NOT_FOUND:" + req.url + ": no uid or no tab_id - doing nothing...:uid:" + uid + ":client_tab_id:" + client_tab_id);
+                ConsoleHandler.error("ServerExpressController:public:NOT_FOUND:" + url + ": no uid or no tab_id - doing nothing...:uid:" + uid + ":client_tab_id:" + client_tab_id);
                 // }
 
                 res.status(404).send("Not found");
                 return;
             }
 
-            res.sendFile(path.resolve('./dist' + req.url));
+            res.sendFile(path.resolve('./dist' + url));
         });
 
         // Le service de push
