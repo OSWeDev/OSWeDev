@@ -89,7 +89,7 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
         let available_api_type_ids: string[] = [];
 
         const pipeline_limit = EnvHandler.MAX_POOL / 2;
-        const promise_pipeline = new PromisePipeline(pipeline_limit);
+        let promise_pipeline = new PromisePipeline(pipeline_limit);
 
         const supervision_category_active_field_filters = this.get_active_field_filters && this.get_active_field_filters[SupervisedCategoryVO.API_TYPE_ID];
         const context_query_by_api_type_id: { [api_type_id: string]: ContextQueryVO } = {};
@@ -162,6 +162,7 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
         }
 
         await promise_pipeline.end();
+        promise_pipeline = new PromisePipeline(pipeline_limit);
 
         for (let api_type_id in context_query_by_api_type_id) {
             const api_type_context_query = context_query_by_api_type_id[api_type_id];
