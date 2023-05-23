@@ -522,10 +522,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
         if (!DAOServerController.getInstance().access_hooks[API_TYPE_ID]) {
             DAOServerController.getInstance().access_hooks[API_TYPE_ID] = {};
         }
+
         if (!DAOServerController.getInstance().access_hooks[API_TYPE_ID][access_type]) {
             DAOServerController.getInstance().access_hooks[API_TYPE_ID][access_type] = [];
         }
-        DAOServerController.getInstance().access_hooks[API_TYPE_ID][access_type].push(hook.bind(handler_bind_this));
+
+        DAOServerController.getInstance().access_hooks[API_TYPE_ID][access_type].push(
+            hook.bind(handler_bind_this)
+        );
     }
 
     /**

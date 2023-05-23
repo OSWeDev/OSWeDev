@@ -311,7 +311,7 @@ export default class ContextFilterVO extends AbstractVO implements IDistantVOBas
         let root_filter: ContextFilterVO = null;
 
         // Construct the context_filter tree
-        // We have to combine all of the given context_filters by using the given type (AND, OR, XOR, UNION)
+        // We have to combine all of the given context_filters by using the given clause type (AND, OR, XOR, UNION)
         for (const key in filters) {
             const context_filter = filters[key];
 

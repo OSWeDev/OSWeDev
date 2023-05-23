@@ -126,6 +126,12 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
      */
     public discarded_field_paths: { [vo_type: string]: { [field_id: string]: boolean } };
 
+    public set_base_api_type_id(base_api_type_id: string): ContextQueryVO {
+        this.base_api_type_id = base_api_type_id;
+
+        return this;
+    }
+
     public set_query_distinct() {
         this.query_distinct = true;
         return this;
@@ -280,6 +286,7 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
         if (!this.fields) {
             this.fields = [];
         }
+
         this.fields = this.fields.concat(fields);
         this.update_active_api_type_ids_from_fields(fields);
 

@@ -723,9 +723,9 @@ export default class ContextQueryServerController {
                 access_type
             );
 
-            // if (!has_access) {
-            //     return null;
-            // }
+            if (!has_access) {
+                return null;
+            }
 
             let base_moduletable = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
 
