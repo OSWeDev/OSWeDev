@@ -40,7 +40,6 @@ export default class SupervisionWidgetManager {
         options?: { refresh: boolean }
     ): Promise<{ items: ISupervisedItem[], total_count: number }> {
 
-        let data: { items: ISupervisedItem[], total_count: number } = { items: [], total_count: 0 };
         let context_filters_by_api_type_id: { [api_type_id: string]: ContextFilterVO[] } = {};
         let available_api_type_ids: string[] = [];
 
@@ -105,14 +104,12 @@ export default class SupervisionWidgetManager {
             context_filters_by_api_type_id[api_type_id] = context_filters;
         }
 
-        data = await SupervisionWidgetManager.select_supervision_probs_by_api_type_id(
+        return await SupervisionWidgetManager.select_supervision_probs_by_api_type_id(
             dashboard,
             widget_options,
             context_filters_by_api_type_id,
             pagination,
         );
-
-        return data;
     }
 
     public static getInstance(): SupervisionWidgetManager {
@@ -208,7 +205,7 @@ export default class SupervisionWidgetManager {
     }> {
 
         const pipeline_limit = EnvHandler.MAX_POOL / 2;
-        const promise_pipeline = new PromisePipeline(pipeline_limit);
+        let promise_pipeline = new PromisePipeline(pipeline_limit);
 
         // ContextQuery as a query builder
         let context_query: ContextQueryVO = null;
@@ -226,7 +223,6 @@ export default class SupervisionWidgetManager {
 
                 const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id);
                 const has_access = await ModuleAccessPolicy.getInstance().testAccess(access_policy_name);
-
                 if (!has_access) {
                     return;
                 }
@@ -250,13 +246,17 @@ export default class SupervisionWidgetManager {
         }
 
         await promise_pipeline.end();
+        promise_pipeline = new PromisePipeline(pipeline_limit);
 
         await promise_pipeline.push(async () => {
 
             context_query.set_limit(limit, pagination?.offset ?? 0);
+            // let debug_query = await context_query.get_select_query_str();
+            // console.log('DEBUG select_supervision_probs_by_api_type_id query ' + debug_query.query);
+            // console.log('DEBUG select_supervision_probs_by_api_type_id params ' + (!!debug_query.params && !!debug_query.params ? debug_query.params.join(' ; ') : ''));
 
             const rows_s = await context_query.select_vos<ISupervisedItem>();
-
+            // pourquoi on parcourt les rows_s ? pourquoi ne pas directement concaténer dans items ?
             for (const key_j in rows_s) {
 
                 const row = rows_s[key_j];
