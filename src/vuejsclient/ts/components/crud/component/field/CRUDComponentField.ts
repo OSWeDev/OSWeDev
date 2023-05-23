@@ -385,7 +385,7 @@ export default class CRUDComponentField extends VueComponentBase
 
             this.has_loaded_can_insert_or_update_target = true;
             await ModuleAccessPolicy.getInstance().testAccess(
-                ModuleDAO.getInstance().getAccessPolicyName(
+                DAOController.getAccessPolicyName(
                     ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE,
                     (this.field as ReferenceDatatableField<any>).targetModuleTable.vo_type)).then((res: boolean) => {
 

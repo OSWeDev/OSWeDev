@@ -1,9 +1,52 @@
 import NumRange from '../modules/DataRender/vos/NumRange';
 import IDistantVOBase from '../modules/IDistantVOBase';
+import ModuleTable from '../modules/ModuleTable';
 import ConsoleHandler from './ConsoleHandler';
 import RangeHandler from './RangeHandler';
 
+export const field_names: <T extends IDistantVOBase>(obj?: T) => { [P in keyof T]?: P } = <T extends IDistantVOBase>(obj?: T): { [P in keyof T]?: P } => {
+
+    if (!ObjectHandler.field_names_cache[obj._type]) {
+        ObjectHandler.field_names_cache[obj._type] = new Proxy({}, {
+            get: (_, prop) => prop,
+            set: () => {
+                throw Error('Set not supported');
+            },
+        }) as {
+                [P in keyof T]?: P;
+            };
+    }
+
+    return ObjectHandler.field_names_cache[obj._type] as {
+        [P in keyof T]?: P;
+    };
+};
+
 export default class ObjectHandler {
+
+    /**
+     * Permet d'afficher en string le nom des champs, qu'on peut garder dans le code dans un format renommable
+     *  Utiliser avec cette notation : ObjectHandler.field_names<TypeVO>().field_id
+     *  où field_id est le nom du champ dans la table TypeVO (extends IDistantVOBase)
+     */
+    public static field_names_cache: { [api_type_id: string]: any } = {};
+
+    /**
+     * Copie d'object VO. Pas opti mais fonctionnel
+     */
+    public static clone_vo<T extends IDistantVOBase>(vo: T): T {
+        return ModuleTable.default_from_api_version(ModuleTable.default_get_api_version(vo));
+    }
+
+    public static clone_vos<T extends IDistantVOBase>(vos: T[]): T[] {
+        let res: T[] = [];
+
+        for (let i in vos) {
+            res.push(ObjectHandler.clone_vo(vos[i]));
+        }
+
+        return res;
+    }
 
     public static empty_target(val) {
         return Array.isArray(val) ? [] : {};

@@ -191,24 +191,16 @@ export default class AccessPolicyServerController {
         this.throttled_reload_access_matrix_computation();
     }
 
-    /**
-     * On passe en SERVER pour refaire les matrices
-     */
     public async reload_access_matrix_computation() {
-        await StackContext.runPromise({ IS_CLIENT: false, UID: null }, async () => {
-
-            /**
-             * Le changement de access_matrix et validity sont fait directement en générant la matrice
-             */
-            let promises = [];
-            if (!this.access_matrix_validity) {
-                promises.push(ModuleAccessPolicy.getInstance().getAccessMatrix(false));
-            }
-            if (!this.access_matrix_heritance_only_validity) {
-                promises.push(ModuleAccessPolicy.getInstance().getAccessMatrix(true));
-            }
-            await all_promises(promises);
-        });
+        /**
+         * Le changement de access_matrix et validity sont fait directement en générant la matrice
+         */
+        if (!this.access_matrix_validity) {
+            this.getAccessMatrix(false);
+        }
+        if (!this.access_matrix_heritance_only_validity) {
+            this.getAccessMatrix(true);
+        }
     }
 
     public async preload_registered_users_roles() {
@@ -965,7 +957,7 @@ export default class AccessPolicyServerController {
         return res;
     }
 
-    public async getAccessMatrix(ignore_role: boolean = false): Promise<{ [policy_id: number]: { [role_id: number]: boolean } }> {
+    public getAccessMatrix(ignore_role: boolean = false): { [policy_id: number]: { [role_id: number]: boolean } } {
         if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS)) {
             return null;
         }

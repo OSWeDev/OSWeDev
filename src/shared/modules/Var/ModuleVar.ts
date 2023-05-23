@@ -18,7 +18,6 @@ import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import APIGetVarDataByIndexParamVO from './params/APIGetVarDataByIndexParamVO';
 import VarsController from './VarsController';
-import VarsPerfMonController from './VarsPerfMonController';
 import GetVarParamFromContextFiltersParamVO, { GetVarParamFromContextFiltersParamVOStatic } from './vos/GetVarParamFromContextFiltersParamVO';
 import SlowVarVO from './vos/SlowVarVO';
 import VarBatchNodePerfVO from './vos/VarBatchNodePerfVO';
@@ -190,10 +189,6 @@ export default class ModuleVar extends Module {
         this.initVarBatchNodePerfVO();
         this.initVarNodeParentPerfVO();
         this.initVarNodePerfElementVO();
-
-        VarsPerfMonController.getInstance().initialize_VarControllerPMLInfosVO(this);
-        VarsPerfMonController.getInstance().initialize_DSControllerPMLInfosVO(this);
-        VarsPerfMonController.getInstance().initialize_MatroidBasePMLInfoVO(this);
 
         ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleVar.MANUAL_TASK_NAME_force_empty_vars_datas_vo_update_cache] = null;
         ManualTasksController.getInstance().registered_manual_tasks_by_name[ModuleVar.MANUAL_TASK_NAME_switch_add_computation_time_to_learning_base] = null;

@@ -1,5 +1,6 @@
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
+import ContextQueryVO from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import FieldPathWrapper from '../../../shared/modules/ContextFilter/vos/FieldPathWrapper';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
@@ -23,11 +24,12 @@ export default class ContextAccessServerController {
     }
 
     public check_access_to_api_type_ids_field_ids(
+        context_query: ContextQueryVO,
         base_api_type_id: string,
         fields: ContextQueryFieldVO[],
         access_type: string): boolean {
 
-        if (!StackContext.get('IS_CLIENT')) {
+        if (context_query.is_admin || !StackContext.get('IS_CLIENT')) {
             return true;
         }
 
@@ -63,10 +65,11 @@ export default class ContextAccessServerController {
     }
 
     public check_access_to_fields(
+        context_query: ContextQueryVO,
         fields: FieldPathWrapper[],
         access_type: string): boolean {
 
-        if (!StackContext.get('IS_CLIENT')) {
+        if (context_query.is_admin || !StackContext.get('IS_CLIENT')) {
             return true;
         }
 
@@ -91,11 +94,12 @@ export default class ContextAccessServerController {
     }
 
     public check_access_to_field_retrieve_roles(
+        context_query: ContextQueryVO,
         api_type_id: string,
         field_id: string,
         access_type: string): boolean {
 
-        if (!StackContext.get('IS_CLIENT')) {
+        if (context_query.is_admin || !StackContext.get('IS_CLIENT')) {
             return true;
         }
 
@@ -129,7 +133,7 @@ export default class ContextAccessServerController {
         }
 
         let target_policy: AccessPolicyVO = AccessPolicyServerController.getInstance().get_registered_policy(
-            ModuleDAO.getInstance().getAccessPolicyName(tmp_access_type, api_type_id)
+            DAOController.getAccessPolicyName(tmp_access_type, api_type_id)
         );
 
         if (!AccessPolicyServerController.getInstance().checkAccessTo(target_policy, roles)) {

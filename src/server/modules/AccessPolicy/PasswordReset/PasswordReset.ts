@@ -7,6 +7,7 @@ import NotificationVO from '../../../../shared/modules/PushData/vos/Notification
 import VOsTypesManager from '../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import StackContext from '../../../StackContext';
+import DAOServerController from '../../DAO/DAOServerController';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import PushDataServerController from '../../PushData/PushDataServerController';
 
@@ -136,7 +137,7 @@ export default class PasswordReset {
             return false;
         }
 
-        if (ModuleDAOServer.getInstance().global_update_blocker) {
+        if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
             // On est en readonly partout, donc on informe sur impossibilité de se connecter
             await PushDataServerController.getInstance().notifySession(
                 'error.global_update_blocker.activated.___LABEL___',

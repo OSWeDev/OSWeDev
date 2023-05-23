@@ -574,7 +574,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         filter_or.left_hook = filter_no_roles;
         filter_or.right_hook = filter_roles;
 
-        let res: ContextQueryVO = query(AnimationModuleVO.API_TYPE_ID).field('id', 'filter_animation_module_id').add_filters([filter_or]).ignore_access_hooks();
+        let res: ContextQueryVO = query(AnimationModuleVO.API_TYPE_ID).field('id', 'filter_animation_module_id').add_filters([filter_or]).exec_as_admin();
 
         return res;
     }

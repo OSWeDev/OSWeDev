@@ -180,7 +180,7 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
         }
 
         this.has_access = await ModuleAccessPolicy.getInstance().testAccess(
-            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.api_type_id));
+            DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, this.api_type_id));
     }
 
     get api_type_id(): string {

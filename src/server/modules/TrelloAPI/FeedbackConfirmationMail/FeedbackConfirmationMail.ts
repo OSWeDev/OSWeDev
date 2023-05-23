@@ -29,29 +29,25 @@ export default class FeedbackConfirmationMail {
 
     public async sendConfirmationEmail(feedback: FeedbackVO): Promise<void> {
 
-        // On doit se comporter comme un server à ce stade
-        await StackContext.runPromise({ IS_CLIENT: false }, async () => {
+        // Si on est en impersonate, on envoie pas le mail au compte client mais au compte admin
+        let user_id: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let target_user_id: number = feedback.is_impersonated ? feedback.impersonated_from_user_id : feedback.user_id;
+        let user: UserVO = null;
+        if (user_id == target_user_id) {
+            user = await ModuleAccessPolicyServer.getInstance().getSelfUser();
+        } else {
+            user = await query(UserVO.API_TYPE_ID).filter_by_id(target_user_id).exec_as_admin().select_vo<UserVO>();
+        }
 
-            // Si on est en impersonate, on envoie pas le mail au compte client mais au compte admin
-            let user_id: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
-            let target_user_id: number = feedback.is_impersonated ? feedback.impersonated_from_user_id : feedback.user_id;
-            let user: UserVO = null;
-            if (user_id == target_user_id) {
-                user = await ModuleAccessPolicyServer.getInstance().getSelfUser();
-            } else {
-                user = await query(UserVO.API_TYPE_ID).filter_by_id(target_user_id).select_vo<UserVO>();
-            }
-
-            // Send mail
-            let translatable_mail_subject: TranslatableTextVO = await ModuleTranslation.getInstance().getTranslatableText(FeedbackConfirmationMail.CODE_TEXT_MAIL_SUBJECT_FeedbackConfirmationMail);
-            let translated_mail_subject: TranslationVO = await ModuleTranslation.getInstance().getTranslation(user.lang_id, translatable_mail_subject.id);
-            await ModuleMailerServer.getInstance().sendMail({
-                to: user.email,
-                subject: translated_mail_subject.translated,
-                html: await ModuleMailerServer.getInstance().prepareHTML(FeedbackConfirmationMail_html_template, user.lang_id, {
-                    FEEDBACK_ID: feedback.id.toString()
-                })
-            });
+        // Send mail
+        let translatable_mail_subject: TranslatableTextVO = await ModuleTranslation.getInstance().getTranslatableText(FeedbackConfirmationMail.CODE_TEXT_MAIL_SUBJECT_FeedbackConfirmationMail);
+        let translated_mail_subject: TranslationVO = await ModuleTranslation.getInstance().getTranslation(user.lang_id, translatable_mail_subject.id);
+        await ModuleMailerServer.getInstance().sendMail({
+            to: user.email,
+            subject: translated_mail_subject.translated,
+            html: await ModuleMailerServer.getInstance().prepareHTML(FeedbackConfirmationMail_html_template, user.lang_id, {
+                FEEDBACK_ID: feedback.id.toString()
+            })
         });
     }
 }

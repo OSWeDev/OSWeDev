@@ -292,7 +292,7 @@ export default class FieldValueFilterEnumWidgetManager {
 
                 await promise_pipeline.push(async () => {
 
-                    const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id);
+                    const access_policy_name = DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id);
                     const has_access = await ModuleAccessPolicy.getInstance().testAccess(access_policy_name);
 
                     if (!has_access) {

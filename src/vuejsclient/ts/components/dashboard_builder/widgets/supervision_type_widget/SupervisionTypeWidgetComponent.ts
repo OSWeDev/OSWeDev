@@ -136,7 +136,7 @@ export default class SupervisionTypeWidgetComponent extends VueComponentBase {
             // Load each supervision_api_type_ids count by selected category
             await promise_pipeline.push(async () => {
 
-                if (!await ModuleAccessPolicy.getInstance().testAccess(ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id))) {
+                if (!await ModuleAccessPolicy.getInstance().testAccess(DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id))) {
                     return;
                 }
 

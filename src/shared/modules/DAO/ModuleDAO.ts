@@ -39,6 +39,9 @@ export default class ModuleDAO extends Module {
 
     public static POLICY_CAN_EDIT_REMOVED_CRUD_FIELDS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDAO.MODULE_NAME + ".CAN_EDIT_REMOVED_CRUD_FIELDS_ACCESS";
 
+    public static PARAM_NAME_MAX_DELETE_PER_QUERY: string = "ModuleDAO.MAX_DELETE_PER_QUERY";
+    public static PARAM_NAME_MAX_UPDATE_PER_QUERY: string = "ModuleDAO.MAX_UPDATE_PER_QUERY";
+
     public static APINAME_selectUsersForCheckUnicity = "selectUsersForCheckUnicity";
 
     public static APINAME_truncate = "truncate";
@@ -99,7 +102,7 @@ export default class ModuleDAO extends Module {
         APIControllerWrapper.sah(ModuleDAO.APINAME_selectUsersForCheckUnicity);
 
     /**
-     * @deprecated
+     * @deprecated use context queries - will be deleted soon
      */
     public getVosByRefFieldsIdsAndFieldsString: <T extends IDistantVOBase>(
         API_TYPE_ID: string,
@@ -163,15 +166,15 @@ export default class ModuleDAO extends Module {
 
     public insertOrUpdateVO: (vo: IDistantVOBase) => Promise<InsertOrDeleteQueryResult> = APIControllerWrapper.sah(ModuleDAO.APINAME_INSERT_OR_UPDATE_VO);
     /**
-     * @deprecated
+     * @deprecated use context queries - will be deleted soon
      */
     public getNamedVoByName: <T extends INamedVO>(API_TYPE_ID: string, vo_name: string) => Promise<T> = APIControllerWrapper.sah(ModuleDAO.APINAME_GET_NAMED_VO_BY_NAME);
     /**
-     * @deprecated
+     * @deprecated use context queries - will be deleted soon
      */
     public getVoById: <T extends IDistantVOBase>(API_TYPE_ID: string, id: number, segmentation_ranges?: IRange[]) => Promise<T> = APIControllerWrapper.sah(ModuleDAO.APINAME_GET_VO_BY_ID);
     /**
-     * @deprecated
+     * @deprecated use context queries - will be deleted soon
      */
     public getVosByIds: <T extends IDistantVOBase>(API_TYPE_ID: string, ids: number[]) => Promise<T[]> = APIControllerWrapper.sah(
         ModuleDAO.APINAME_GET_VOS_BY_IDS,
@@ -191,7 +194,7 @@ export default class ModuleDAO extends Module {
             return true;
         });
     /**
-     * @deprecated
+     * @deprecated use context queries - will be deleted soon
      */
     public getVosByIdsRanges: <T extends IDistantVOBase>(API_TYPE_ID: string, ranges: NumRange[]) => Promise<T[]> = APIControllerWrapper.sah(
         ModuleDAO.APINAME_GET_VOS_BY_IDS_RANGES,
@@ -243,7 +246,7 @@ export default class ModuleDAO extends Module {
         });
 
     /**
-     * @deprecated
+     * @deprecated use context queries - will be deleted soon
      * Retourne tous les matroids inclus les matroids en param
      * @param API_TYPE_ID
      * @param matroids
@@ -261,7 +264,7 @@ export default class ModuleDAO extends Module {
         });
 
     /**
-     * @deprecated
+     * @deprecated use context queries - will be deleted soon
      * Retourne tous les matroids intersectant les matroids en param
      * @param API_TYPE_ID
      * @param matroids
@@ -279,11 +282,11 @@ export default class ModuleDAO extends Module {
         });
 
     /**
-     * @deprecated
+     * @deprecated use context queries - will be deleted soon
      */
     public getVosByRefFieldIds: <T extends IDistantVOBase>(API_TYPE_ID: string, field_name: string, ids: number[]) => Promise<T[]> = APIControllerWrapper.sah(ModuleDAO.APINAME_GET_VOS_BY_REFFIELD_IDS);
     /**
-     * @deprecated
+     * @deprecated use context queries - will be deleted soon
      */
     public getVosByRefFieldsIds: <T extends IDistantVOBase>(
         API_TYPE_ID: string,
@@ -311,7 +314,7 @@ export default class ModuleDAO extends Module {
             });
 
     /**
-     * @deprecated
+     * @deprecated use context queries - will be deleted soon
      */
     public getVos: <T extends IDistantVOBase>(API_TYPE_ID: string, limit?: number, offset?: number) => Promise<T[]> = APIControllerWrapper.sah(ModuleDAO.APINAME_GET_VOS);
 

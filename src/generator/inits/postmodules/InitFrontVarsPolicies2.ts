@@ -40,13 +40,13 @@ export default class InitFrontVarsPolicies2 implements IGeneratorWorker {
         let policies_ids_by_name: { [policy_name: string]: number } = await this.get_policies_ids_by_name();
 
         await this.activate_policies(
-            policies_ids_by_name[ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS, VarConfVO.API_TYPE_ID)],
+            policies_ids_by_name[DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS, VarConfVO.API_TYPE_ID)],
             [
                 roles_ids_by_name[ModuleAccessPolicy.ROLE_LOGGED],
             ], access_matrix);
 
         await this.activate_policies(
-            policies_ids_by_name[ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, VarConfVO.API_TYPE_ID)],
+            policies_ids_by_name[DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, VarConfVO.API_TYPE_ID)],
             [
                 roles_ids_by_name[ModuleAccessPolicy.ROLE_LOGGED],
             ], access_matrix);

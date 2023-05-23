@@ -723,12 +723,7 @@ export default abstract class ServerBase {
                     (Dates.now() >= (session.last_check_blocked_or_expired + 60))) {
 
                     // On doit vérifier que le compte est ni bloqué ni expiré
-                    let user = null;
-                    await StackContext.runPromise(
-                        { IS_CLIENT: false },
-                        async () => {
-                            user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).select_vo<UserVO>();
-                        });
+                    let user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).exec_as_admin().select_vo<UserVO>();
 
                     if ((!user) || user.blocked || user.invalidated) {
 
@@ -1031,12 +1026,7 @@ export default abstract class ServerBase {
                 let uid: number = session.uid;
 
                 // On doit vérifier que le compte est ni bloqué ni expiré
-                let user = null;
-                await StackContext.runPromise(
-                    { IS_CLIENT: false },
-                    async () => {
-                        user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).select_vo<UserVO>();
-                    });
+                let user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).exec_as_admin().select_vo<UserVO>();
                 if ((!user) || user.blocked || user.invalidated) {
 
                     await ConsoleHandler.warn('unregisterSession:getcsrftoken:UID:' + session.uid + ':user:' + (user ? JSON.stringify(user) : 'N/A'));
@@ -1068,6 +1058,7 @@ export default abstract class ServerBase {
                  */
                 user_log.handle_impersonation(session);
 
+                // TODO FIXME : Retrait is_client false pour les insertOrUpdateVO => ajouter en param de la fonction le context directement
                 await StackContext.runPromise(
                     { IS_CLIENT: false },
                     async () => {
@@ -1178,7 +1169,8 @@ export default abstract class ServerBase {
 
                 try {
 
-                    await StackContext.runPromise({ IS_CLIENT: false }, async () => await CronServerController.getInstance().executeWorkers());
+                    // Retrait IS_CLIENT false puisque les crons sont sur des bgthreads, il n'y a pas de maintien du context client dans tous les cas
+                    await CronServerController.getInstance().executeWorkers();
                     res.json();
                 } catch (err) {
                     ConsoleHandler.error("error: " + (err.message || err));

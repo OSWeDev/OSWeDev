@@ -2,12 +2,14 @@ import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import DatatableField from '../DAO/vos/datatable/DatatableField';
+import InsertOrDeleteQueryResult from '../DAO/vos/InsertOrDeleteQueryResult';
 import TableColumnDescVO from '../DashboardBuilder/vos/TableColumnDescVO';
 import DataFilterOption from '../DataRender/vos/DataFilterOption';
 import IDistantVOBase from '../IDistantVOBase';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
+import StatsController from '../Stats/StatsController';
 import VarConfVO from '../Var/vos/VarConfVO';
 import BuildSelectQueryParamVO, { BuildSelectQueryParamVOStatic } from './vos/BuildSelectQueryParamVO';
 import ContextFilterVO from './vos/ContextFilterVO';
@@ -113,19 +115,17 @@ export default class ModuleContextFilter extends Module {
      *  en bdd côté perf, on pourrait vouloir ajouter cette option mais attention aux triggers qui
      *  ne seraient pas exécutés dans ce cas...
      */
-    public delete_vos: (context_query: ContextQueryVO) => Promise<void> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_delete_vos);
+    public delete_vos: (context_query: ContextQueryVO) => Promise<InsertOrDeleteQueryResult[]> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_delete_vos);
 
     /**
      * Update des vos en appliquant les filtres
      *  1 à un (enfin en paquet de 100) pour appeler les triggers => rien de comparable à un update qui serait faire directement
      *  en bdd côté perf, on pourrait vouloir ajouter cette option mais attention aux triggers qui
      *  ne seraient pas exécutés dans ce cas...
-     * @param update_field_id En cas d'update, le nom du champs cible (sur le base_api_type_id)
-     * @param new_api_translated_value En cas d'update, la valeur api_translated (par exemple issue de moduletable.default_get_field_api_version)
-     *  qu'on va mettre en remplacement de la valeur actuelle
+     * @param new_api_translated_values Map, avec en KEY Le nom du champs cible (sur le base_api_type_id), et en valeur la nouvelle valeur du champ. ATTENTION à la passer en format api_translated (par exemple issue de moduletable.default_get_field_api_version)
      */
     public update_vos: (
-        context_query: ContextQueryVO, update_field_id: string, new_api_translated_value: any
+        context_query: ContextQueryVO, new_api_translated_values: { [update_field_id: string]: any }
     ) => Promise<void> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_update_vos);
 
     /**
@@ -211,7 +211,7 @@ export default class ModuleContextFilter extends Module {
             SelectVosParamVOStatic
         ));
 
-        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<DeleteVosParamVO, void>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<DeleteVosParamVO, InsertOrDeleteQueryResult[]>(
             null,
             ModuleContextFilter.APINAME_delete_vos,
             null,
@@ -286,7 +286,7 @@ export default class ModuleContextFilter extends Module {
             new ModuleTableField('query_offset', ModuleTableField.FIELD_TYPE_int, 'query_offset', true, true, 0),
             new ModuleTableField('sort_by', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'sort_by', false),
             new ModuleTableField('query_tables_prefix', ModuleTableField.FIELD_TYPE_string, 'query_tables_prefix', false),
-            new ModuleTableField('is_access_hook_def', ModuleTableField.FIELD_TYPE_boolean, 'is_access_hook_def', true, true, false),
+            new ModuleTableField('is_admin', ModuleTableField.FIELD_TYPE_boolean, 'is_admin', true, true, false).set_custom_translate_to_api(this.is_admin_custom_translate_to_api).set_custom_translate_from_api(this.is_admin_custom_translate_from_api),
             new ModuleTableField('use_technical_field_versioning', ModuleTableField.FIELD_TYPE_boolean, 'use_technical_field_versioning', true, true, false),
             new ModuleTableField('query_distinct', ModuleTableField.FIELD_TYPE_boolean, 'query_distinct', true, true, false),
             new ModuleTableField('discarded_field_paths', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'discarded_field_paths', false),
@@ -294,5 +294,29 @@ export default class ModuleContextFilter extends Module {
 
         let datatable = new ModuleTable(this, ContextQueryVO.API_TYPE_ID, () => new ContextQueryVO(), datatable_fields, null, "Requête");
         this.datatables.push(datatable);
+    }
+
+    /**
+     * On ne veut pas que le is_access_hook_def/is_admin soit envoyé par le client
+     *  Si on tente un envoi depuis le client en true, on stat et on modifie en false
+     */
+    private is_admin_custom_translate_to_api(e: boolean): boolean {
+        if (!!e) {
+            StatsController.register_stat_COMPTEUR(StatsController.GROUP_NAME_ERROR_ALERTS, "translate_to_api", "query.is_admin");
+            return false;
+        }
+        return e;
+    }
+
+    /**
+     * On ne veut pas que le is_access_hook_def/is_admin soit envoyé par le client
+     *  Si on reçoit une api depuis le client en true, on stat et on modifie en false
+     */
+    private is_admin_custom_translate_from_api(e: boolean): boolean {
+        if (!!e) {
+            StatsController.register_stat_COMPTEUR(StatsController.GROUP_NAME_ERROR_ALERTS, "translate_from_api", "query.is_admin");
+            return false;
+        }
+        return e;
     }
 }

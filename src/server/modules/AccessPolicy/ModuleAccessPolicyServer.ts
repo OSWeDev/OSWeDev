@@ -35,6 +35,7 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import TextHandler from '../../../shared/tools/TextHandler';
 import StackContext from '../../StackContext';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
+import DAOServerController from '../DAO/DAOServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
 import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
@@ -916,7 +917,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                  */
                 user_log.handle_impersonation(session);
 
-
+                // TODO FIXME : Retrait is_client false pour les insertOrUpdateVO => ajouter en param de la fonction le context directement
                 await StackContext.runPromise(
                     { IS_CLIENT: false },
                     async () => {
@@ -1084,11 +1085,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return null;
         }
 
-        let user: UserVO = await StackContext.runPromise({ IS_CLIENT: false }, async () => {
-            return await query(UserVO.API_TYPE_ID).filter_by_id(user_id).ignore_access_hooks().select_vo<UserVO>();
-        }) as UserVO;
-
-        return user;
+        return await query(UserVO.API_TYPE_ID).filter_by_id(user_id).exec_as_admin().select_vo<UserVO>();
     }
 
     public async getMyLang(): Promise<LangVO> {
@@ -1234,7 +1231,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         try {
             let session = StackContext.get('SESSION');
 
-            if (ModuleDAOServer.getInstance().global_update_blocker) {
+            if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
                 // On est en readonly partout, donc on informe sur impossibilité de se connecter
                 await PushDataServerController.getInstance().notifySession(
                     'error.global_update_blocker.activated.___LABEL___',
@@ -1247,11 +1244,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 return false;
             }
 
-            let user: UserVO = null;
-
-            await StackContext.runPromise({ IS_CLIENT: false }, async () => {
-                user = await query(UserVO.API_TYPE_ID).filter_by_id(uid).select_vo<UserVO>();
-            });
+            let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_id(uid).exec_as_admin().select_vo<UserVO>();
 
             if (!user) {
                 return false;
@@ -1263,6 +1256,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             if (!user.logged_once) {
                 user.logged_once = true;
+                // TODO FIXME : Retrait is_client false pour les insertOrUpdateVO => ajouter en param de la fonction le context directement
                 await StackContext.runPromise({ IS_CLIENT: false }, async () => {
                     await ModuleDAO.getInstance().insertOrUpdateVO(user);
                 });
@@ -1280,6 +1274,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.referer = StackContext.get('REFERER');
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
+            // TODO FIXME : Retrait is_client false pour les insertOrUpdateVO => ajouter en param de la fonction le context directement
             await StackContext.runPromise(
                 { IS_CLIENT: false },
                 async () => {
@@ -1484,7 +1479,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     private async getAccessMatrix(bool: boolean): Promise<{ [policy_id: number]: { [role_id: number]: boolean } }> {
 
         /**
-         * Si la matrice est disponible, on la renvoie, sinon on force un recalcule avant de la renvoyer
+         * Si la matrice est disponible, on la renvoie, sinon on force un recalcul avant de la renvoyer
          */
         if ((!bool) && AccessPolicyServerController.getInstance().access_matrix_validity) {
             return AccessPolicyServerController.getInstance().access_matrix;
@@ -1492,7 +1487,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         if ((bool) && AccessPolicyServerController.getInstance().access_matrix_heritance_only_validity) {
             return AccessPolicyServerController.getInstance().access_matrix_heritance_only;
         }
-        return await AccessPolicyServerController.getInstance().getAccessMatrix(bool);
+        return AccessPolicyServerController.getInstance().getAccessMatrix(bool);
     }
 
     private async getMyRoles(): Promise<RoleVO[]> {
@@ -1508,7 +1503,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         return await
-            query(RoleVO.API_TYPE_ID).filter_by_id(uid, UserVO.API_TYPE_ID).ignore_access_hooks().select_vos();
+            query(RoleVO.API_TYPE_ID).filter_by_id(uid, UserVO.API_TYPE_ID).exec_as_admin().select_vos();
     }
 
     private async get_user_roles(uid: number): Promise<RoleVO[]> {
@@ -1518,7 +1513,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         return await
-            query(RoleVO.API_TYPE_ID).filter_by_id(uid, UserVO.API_TYPE_ID).ignore_access_hooks().select_vos();
+            query(RoleVO.API_TYPE_ID).filter_by_id(uid, UserVO.API_TYPE_ID).exec_as_admin().select_vos();
     }
 
     /**
@@ -1798,7 +1793,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         try {
             let session = StackContext.get('SESSION');
 
-            if (ModuleDAOServer.getInstance().global_update_blocker) {
+            if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
                 // On est en readonly partout, donc on informe sur impossibilité de se connecter
                 await PushDataServerController.getInstance().notifySession(
                     'error.global_update_blocker.activated.___LABEL___',
@@ -1898,7 +1893,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         try {
             let session = StackContext.get('SESSION');
 
-            if (ModuleDAOServer.getInstance().global_update_blocker) {
+            if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
                 // On est en readonly partout, donc on informe sur impossibilité de se connecter
                 await PushDataServerController.getInstance().notifySession(
                     'error.global_update_blocker.activated.___LABEL___',
@@ -1983,7 +1978,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             let session = StackContext.get('SESSION');
             let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
 
-            if (ModuleDAOServer.getInstance().global_update_blocker) {
+            if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
                 // On est en readonly partout, donc on informe sur impossibilité de se connecter
                 await PushDataServerController.getInstance().notifySimpleERROR(
                     StackContext.get('UID'),
@@ -2093,7 +2088,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         res.add_fields([new ContextQueryFieldVO(AccessPolicyVO.API_TYPE_ID, 'id', 'filter_access_policy_id')]);
         res.add_filters([filter_or]);
-        res.ignore_access_hooks();
+        res.exec_as_admin();
 
         return res;
     }

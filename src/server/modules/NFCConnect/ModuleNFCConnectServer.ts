@@ -317,23 +317,12 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
             return false;
         }
 
-        return await StackContext.runPromise({ IS_CLIENT: false }, async () => {
+        let insertOrDeleteQueryResult = await query(NFCTagVO.API_TYPE_ID).filter_by_text_eq('name', serial_number).exec_as_admin().delete_vos();
+        if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.length) || (!insertOrDeleteQueryResult[0].id)) {
+            ConsoleHandler.error("Impossible de supprimer le tag user. Abandon.");
+            return false;
+        }
 
-            let insertOrDeleteQueryResult = null;
-            let tag = await ModuleDAO.getInstance().getNamedVoByName<NFCTagVO>(NFCTagVO.API_TYPE_ID, serial_number);
-            if (!tag) {
-
-                ConsoleHandler.error("Impossible de supprimer le tag. Tag Introuvable.");
-                return false;
-            }
-
-            insertOrDeleteQueryResult = await ModuleDAO.getInstance().deleteVOs([tag]);
-            if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
-                ConsoleHandler.error("Impossible de supprimer le tag user. Abandon.");
-                return false;
-            }
-
-            return true;
-        });
+        return true;
     }
 }

@@ -25,11 +25,11 @@ export default class Patch20230519AddRightsFeedbackStateVO extends PostModulesPo
         policies_ids_by_name: { [policy_name: string]: number }
     ) {
         await this.activate_policies(
-            policies_ids_by_name[ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS, FeedbackStateVO.API_TYPE_ID)],
+            policies_ids_by_name[DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS, FeedbackStateVO.API_TYPE_ID)],
             [roles_ids_by_name[ModuleAccessPolicy.ROLE_ANONYMOUS]]
         );
         await this.activate_policies(
-            policies_ids_by_name[ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, FeedbackStateVO.API_TYPE_ID)],
+            policies_ids_by_name[DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, FeedbackStateVO.API_TYPE_ID)],
             [roles_ids_by_name[ModuleAccessPolicy.ROLE_ANONYMOUS]]
         );
     }

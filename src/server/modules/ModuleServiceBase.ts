@@ -20,7 +20,6 @@ import ModuleDashboardBuilder from '../../shared/modules/DashboardBuilder/Module
 import ModuleDataExport from '../../shared/modules/DataExport/ModuleDataExport';
 import ModuleDataImport from '../../shared/modules/DataImport/ModuleDataImport';
 import ModuleDataRender from '../../shared/modules/DataRender/ModuleDataRender';
-import TimeSegment from '../../shared/modules/DataRender/vos/TimeSegment';
 import ModuleDataSource from '../../shared/modules/DataSource/ModuleDataSource';
 import ModuleDocument from '../../shared/modules/Document/ModuleDocument';
 import ModuleEvolizAPI from '../../shared/modules/EvolizAPI/ModuleEvolizAPI';
@@ -40,7 +39,6 @@ import ModuleMenu from '../../shared/modules/Menu/ModuleMenu';
 import Module from '../../shared/modules/Module';
 import ModuleNFCConnect from '../../shared/modules/NFCConnect/ModuleNFCConnect';
 import ModuleParams from '../../shared/modules/Params/ModuleParams';
-import ModulePerfMon from '../../shared/modules/PerfMon/ModulePerfMon';
 import ModulePopup from '../../shared/modules/Popup/ModulePopup';
 import ModulePowershell from '../../shared/modules/Powershell/ModulePowershell';
 import ModulePushData from '../../shared/modules/PushData/ModulePushData';
@@ -49,8 +47,6 @@ import ModuleSASSSkinConfigurator from '../../shared/modules/SASSSkinConfigurato
 import ModuleSendInBlue from '../../shared/modules/SendInBlue/ModuleSendInBlue';
 import ModuleStats from '../../shared/modules/Stats/ModuleStats';
 import StatsController from '../../shared/modules/Stats/StatsController';
-import StatsTypeVO from '../../shared/modules/Stats/vos/StatsTypeVO';
-import StatVO from '../../shared/modules/Stats/vos/StatVO';
 import ModuleSupervision from '../../shared/modules/Supervision/ModuleSupervision';
 import ModuleSurvey from '../../shared/modules/Survey/ModuleSurvey';
 import ModuleTableFieldTypes from '../../shared/modules/TableFieldTypes/ModuleTableFieldTypes';
@@ -104,7 +100,6 @@ import ModuleServerBase from './ModuleServerBase';
 import ModuleTableDBService from './ModuleTableDBService';
 import ModuleNFCConnectServer from './NFCConnect/ModuleNFCConnectServer';
 import ModuleParamsServer from './Params/ModuleParamsServer';
-import ModulePerfMonServer from './PerfMon/ModulePerfMonServer';
 import ModulePopupServer from './Popup/ModulePopupServer';
 import ModulePowershellServer from './Powershell/ModulePowershellServer';
 import ModulePushDataServer from './PushData/ModulePushDataServer';
@@ -499,7 +494,6 @@ export default abstract class ModuleServiceBase {
             ModuleDAO.getInstance(),
             ModuleTranslation.getInstance(),
             ModuleAccessPolicy.getInstance(),
-            ModulePerfMon.getInstance(),
             ModuleAPI.getInstance(),
             ModuleAjaxCache.getInstance(),
             ModuleFile.getInstance(),
@@ -560,7 +554,6 @@ export default abstract class ModuleServiceBase {
             ModuleDAOServer.getInstance(),
             ModuleTranslationServer.getInstance(),
             ModuleAccessPolicyServer.getInstance(),
-            ModulePerfMonServer.getInstance(),
             ModuleAPIServer.getInstance(),
             ModuleAjaxCacheServer.getInstance(),
             ModuleFileServer.getInstance(),

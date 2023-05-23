@@ -23,6 +23,7 @@ import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
+import DAOServerController from '../DAO/DAOServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ForkedTasksController from '../Fork/ForkedTasksController';
@@ -170,7 +171,7 @@ export default class VarsDatasVoUpdateHandler {
      */
     public async force_empty_vars_datas_vo_update_cache() {
 
-        ModuleDAOServer.getInstance().global_update_blocker = true;
+        DAOServerController.GLOBAL_UPDATE_BLOCKER = true;
         let max_sleeps = 100;
 
         while (true) {

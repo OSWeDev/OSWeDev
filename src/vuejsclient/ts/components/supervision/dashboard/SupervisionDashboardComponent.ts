@@ -244,7 +244,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
             //récupération des sondes
             promises.push((async () => {
 
-                if (!await ModuleAccessPolicy.getInstance().testAccess(ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id))) {
+                if (!await ModuleAccessPolicy.getInstance().testAccess(DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id))) {
                     return;
                 }
 

@@ -3166,7 +3166,7 @@ export default class ContextFilterServerController {
                         }
                     } else {
 
-                        let full_name = await this.get_table_full_name(joined_tables_by_vo_type[api_type_id], filters);
+                        let full_name = await this.get_table_full_name(context_query, joined_tables_by_vo_type[api_type_id], filters);
                         if (!full_name) {
                             throw new Error('Table not found');
                         }
@@ -3245,7 +3245,7 @@ export default class ContextFilterServerController {
                         }
                     } else {
 
-                        let full_name = await this.get_table_full_name(joined_tables_by_vo_type[api_type_id], filters);
+                        let full_name = await this.get_table_full_name(context_query, joined_tables_by_vo_type[api_type_id], filters);
                         if (!full_name) {
                             throw new Error('Table not found');
                         }
@@ -3344,7 +3344,7 @@ export default class ContextFilterServerController {
                 }
             } else {
 
-                let full_name = await this.get_table_full_name(joined_tables_by_vo_type[api_type_id], filters);
+                let full_name = await this.get_table_full_name(context_query, joined_tables_by_vo_type[api_type_id], filters);
                 if (!full_name) {
                     throw new Error('Table not found');
                 }
@@ -3366,6 +3366,7 @@ export default class ContextFilterServerController {
      * Check injection OK : get_segmented_full_name est ok et est le seul risque identifié
      */
     public async get_table_full_name(
+        context_query: ContextQueryVO,
         moduletable: ModuleTable<any>,
         filters: ContextFilterVO[]): Promise<string> {
 
@@ -3420,12 +3421,18 @@ export default class ContextFilterServerController {
 
                 if (simple_filters && simple_filters.length) {
 
-                    let context_query = query(linked_segment_table.vo_type).add_filters(simple_filters);
-                    let query_res: any[] = await ContextQueryServerController.getInstance().select_vos(context_query);
+                    let linked_query = query(linked_segment_table.vo_type).add_filters(simple_filters);
+
+                    // Si le context_query est admin, on doit faire la requete en admin
+                    if (context_query.is_admin) {
+                        linked_query.exec_as_admin();
+                    }
+
+                    let query_res: any[] = await ContextQueryServerController.getInstance().select_vos(linked_query);
 
                     if (query_res && query_res.length) {
 
-                        let unique_segment_vos = await ModuleDAOServer.getInstance().filterVOsAccess(linked_segment_table, ModuleDAO.DAO_ACCESS_TYPE_READ, query_res);
+                        let unique_segment_vos = context_query.is_admin ? query_res : await ModuleDAOServer.getInstance().filterVOsAccess(linked_segment_table, ModuleDAO.DAO_ACCESS_TYPE_READ, query_res);
 
                         if (unique_segment_vos && (unique_segment_vos.length == 1)) {
                             is_implemented = true;

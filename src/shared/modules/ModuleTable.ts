@@ -780,7 +780,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
         }
 
         /**
-         * Si le champ possible un custom_to_api
+         * Si le champ possède un custom_to_api
          */
         if (!!field.custom_translate_to_api) {
             return field.custom_translate_to_api(e);

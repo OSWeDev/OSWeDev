@@ -2,6 +2,7 @@ import { isArray } from "lodash";
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
 import ConsoleHandler from "../../../tools/ConsoleHandler";
 import DatatableField from "../../DAO/vos/datatable/DatatableField";
+import InsertOrDeleteQueryResult from "../../DAO/vos/InsertOrDeleteQueryResult";
 import TableColumnDescVO from "../../DashboardBuilder/vos/TableColumnDescVO";
 import NumRange from "../../DataRender/vos/NumRange";
 import TimeSegment from "../../DataRender/vos/TimeSegment";
@@ -85,15 +86,25 @@ export default class ContextQueryVO implements IDistantVOBase {
     public query_tables_prefix: string;
 
     /**
-     * Pas fan de cette solution : le but est d'identifier qu'on est en train de définir un accesshook
-     *  pour éviter de tourner en boucle sur l'ajout de conditions where sur le base_type_id.
-     *  si on identifie pas ce cas correctement on définit le access hook en renvoyer un contextquery,
-     *  qui par définition va déclencher l'appel au contexte accesshook et ajouter une condition sur subquery... en boucle
-     *  donc quand on définit un access_hook on met ce paramètre à true dans le contextquery pour éviter ce problème
-     * @depracated il faut supprimer cette option, ou parvenir à bloquer l'usage via api. On doit pouvoir différencier une requête
-     *  access_hook_def d'une classique, mais pas d'une manière qu'on puisse utiliser côté client...
+     * On renomme / remplace is_access_hook_def par is_admin => on indique qu'on ignore tout type de
+     *  filtrage des types de données et des données (les droits, et les content access hooks)
+     * Ce paramètre est forcé à false quand on arrive par l'API, seul le serveur peut décider de le mettre à true
      */
-    public is_access_hook_def: boolean;
+    public is_admin: boolean;
+
+    /**
+     * @deprecated use is_admin
+     */
+    get is_access_hook_def(): boolean {
+        return this.is_admin;
+    }
+
+    /**
+     * @deprecated use is_admin
+     */
+    set is_access_hook_def(is_admin: boolean) {
+        this.is_admin = is_admin;
+    }
 
     /**
      * Pour exclure les champs techniques de type versioning du path autorisé (false pour exclure)
@@ -839,12 +850,23 @@ export default class ContextQueryVO implements IDistantVOBase {
     /**
      * Ignorer les context access hooks => à utiliser si l'on est en train de déclarer un context access hook pour
      *  éviter une récursivité du hook
-     * @depracated il faut supprimer cette option, ou parvenir à bloquer l'usage via api. On doit pouvoir différencier une requête
-     *  access_hook_def d'une classique, mais pas d'une manière qu'on puisse utiliser côté client...
+     * ATTENTION : on ignore aussi tout type de filtrage de droit => on devient ADMIN. Equivalent de l'ancien IS_CLIENT: false
+     * @depracated use query_as_admin
      */
     public ignore_access_hooks(): ContextQueryVO {
 
         this.is_access_hook_def = true;
+
+        return this;
+    }
+
+    /**
+     * Ignorer les content access hooks et les droits d'accès aux API_TYPE_IDS => on devient ADMIN. Equivalent de l'ancien IS_CLIENT: false
+     *  => à utiliser par exemple si l'on est en train de déclarer un context access hook pour éviter une récursivité du hook
+     */
+    public exec_as_admin(is_admin = true): ContextQueryVO {
+
+        this.is_admin = is_admin;
 
         return this;
     }
@@ -872,6 +894,15 @@ export default class ContextQueryVO implements IDistantVOBase {
      */
     public async select_vos<T extends IDistantVOBase>(): Promise<T[]> {
         return await ModuleContextFilter.getInstance().select_vos(this);
+    }
+
+    /**
+     * Faire la requête en mode select_vos
+     *  Si on avait défini des fields on les supprime puisqu'ils deviennent invalides
+     * @returns les vos issus de la requête
+     */
+    public async delete_vos(): Promise<InsertOrDeleteQueryResult[]> {
+        return await ModuleContextFilter.getInstance().delete_vos(this);
     }
 
     /**

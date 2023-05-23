@@ -11,6 +11,16 @@ import StatsTypeVO from './vos/StatsTypeVO';
 export default class StatsController {
 
     /**
+     * TODO: Ce groupe de stats [devrait générer] génère des alertes directement dans Teams/Mail si la liaison est paramétrée
+     */
+    public static GROUP_NAME_ERROR_ALERTS: string = 'ERROR_ALERTS';
+
+    /**
+     * TODO: Ce groupe de stats [devrait générer] génère des warnings directement dans Teams/Mail si la liaison est paramétrée
+     */
+    public static GROUP_NAME_WARNING_ALERTS: string = 'WARNING_ALERTS';
+
+    /**
      * Le générateur ne crée pas de stats
      */
     public static ACTIVATED: boolean = true;

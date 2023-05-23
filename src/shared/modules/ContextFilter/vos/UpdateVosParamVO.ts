@@ -5,26 +5,24 @@ import ContextQueryVO from "./ContextQueryVO";
 export default class UpdateVosParamVO implements IAPIParamTranslator<UpdateVosParamVO> {
 
     public static fromParams(
-        context_query: ContextQueryVO, update_field_id: string, new_api_translated_value: any
+        context_query: ContextQueryVO, new_api_translated_values: { [update_field_id: string]: any }
     ): UpdateVosParamVO {
 
         return new UpdateVosParamVO(
-            context_query, update_field_id, new_api_translated_value
+            context_query, new_api_translated_values
         );
     }
 
     public static getAPIParams(param: UpdateVosParamVO): any[] {
         return [
             param.context_query,
-            param.update_field_id,
-            param.new_api_translated_value
+            param.new_api_translated_values
         ];
     }
 
     public constructor(
         public context_query: ContextQueryVO,
-        public update_field_id: string,
-        public new_api_translated_value: any
+        public new_api_translated_values: { [update_field_id: string]: any }
     ) {
     }
 }

@@ -20,6 +20,8 @@ import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
 
 export default class DAOServerController {
 
+    public static GLOBAL_UPDATE_BLOCKER: boolean = false;
+
     /**
      * Global application cache - Brocasted CUD - Local R -----
      */
@@ -226,7 +228,7 @@ export default class DAOServerController {
     }
 
     public get_inherited_right(DAO_ACCESS_TYPE: string, inherit_rights_from_vo_type: string): AccessPolicyVO {
-        return AccessPolicyServerController.getInstance().get_registered_policy(ModuleDAO.getInstance().getAccessPolicyName(DAO_ACCESS_TYPE, inherit_rights_from_vo_type));
+        return AccessPolicyServerController.getInstance().get_registered_policy(DAOController.getAccessPolicyName(DAO_ACCESS_TYPE, inherit_rights_from_vo_type));
     }
 
     public get_dao_dependency_default_denied(from: AccessPolicyVO, to: AccessPolicyVO): PolicyDependencyVO {

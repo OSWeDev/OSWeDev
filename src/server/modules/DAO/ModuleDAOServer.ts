@@ -17,6 +17,7 @@ import ModuleContextFilter from '../../../shared/modules/ContextFilter/ModuleCon
 import ContextFilterVO, { filter } from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ParameterizedQueryWrapperField from '../../../shared/modules/ContextFilter/vos/ParameterizedQueryWrapperField';
+import DAOController from '../../../shared/modules/DAO/DAOController';
 import { IContextHookFilterVos } from '../../../shared/modules/DAO/interface/IContextHookFilterVos';
 import { IHookFilterVos } from '../../../shared/modules/DAO/interface/IHookFilterVos';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
@@ -97,7 +98,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private static instance: ModuleDAOServer = null;
 
     public check_foreign_keys: boolean = true;
-    public global_update_blocker: boolean = false;
+
+    public throttled_refuse = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.refuse.bind(this), 1000, { leading: false, trailing: true });
 
     private copy_dedicated_pool = null;
     private log_db_query_perf_uid: number = 0;
@@ -121,7 +123,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     private log_db_query_perf_start_by_uid: { [uid: number]: number } = {};
 
-    private throttled_refuse = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.refuse.bind(this), 1000, { leading: false, trailing: true });
     private throttled_select_query_ = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.throttled_select_query.bind(this), 1, { leading: false, trailing: true });
 
     private constructor() {
@@ -286,7 +287,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     (async () => {
                         vo_list = await ModuleAccessPolicyServer.getInstance().registerPolicy(
                             DAOServerController.getInstance().get_dao_policy(
-                                ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS, vo_type),
+                                DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS, vo_type),
                                 group, isAccessConfVoType, AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE),
                             (vo_translation && (vo_translation != "")) ? new DefaultTranslation({ 'fr-fr': 'Lister les données de type "' + vo_translation + '"' }) : null,
                             module_);
@@ -294,7 +295,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     (async () => {
                         vo_read = await ModuleAccessPolicyServer.getInstance().registerPolicy(
                             DAOServerController.getInstance().get_dao_policy(
-                                ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, vo_type),
+                                DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, vo_type),
                                 group, isAccessConfVoType, AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE),
                             (vo_translation && (vo_translation != "")) ? new DefaultTranslation({ 'fr-fr': 'Consulter les données de type "' + vo_translation + '"' }) : null,
                             module_);
@@ -302,7 +303,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     (async () => {
                         vo_insert_or_update = await ModuleAccessPolicyServer.getInstance().registerPolicy(
                             DAOServerController.getInstance().get_dao_policy(
-                                ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, vo_type),
+                                DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, vo_type),
                                 group, isAccessConfVoType, AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN),
                             (vo_translation && (vo_translation != "")) ? new DefaultTranslation({ 'fr-fr': 'Ajouter ou modifier des données de type "' + vo_translation + '"' }) : null,
                             module_);
@@ -310,7 +311,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     (async () => {
                         vo_delete = await ModuleAccessPolicyServer.getInstance().registerPolicy(
                             DAOServerController.getInstance().get_dao_policy(
-                                ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, vo_type),
+                                DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, vo_type),
                                 group, isAccessConfVoType, AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN),
                             (vo_translation && (vo_translation != "")) ? new DefaultTranslation({ 'fr-fr': 'Supprimer des données de type "' + vo_translation + '"' }) : null,
                             module_);
@@ -366,6 +367,198 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     public async late_configuration() {
         await ModuleDAO.getInstance().late_configuration();
+    }
+
+    public async getqueryfor_insertOrUpdateVO(vo: IDistantVOBase, pre_update_vo: IDistantVOBase): Promise<string> {
+
+        if (!vo._type) {
+            ConsoleHandler.error("Un VO sans _type dans le DAO ! " + JSON.stringify(vo));
+            return null;
+        }
+
+        let moduleTable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[vo._type];
+
+        if (!moduleTable) {
+            ConsoleHandler.error("Impossible de trouver le moduleTable de ce _type ! " + JSON.stringify(vo));
+            return null;
+        }
+
+        let sql: string = null;
+
+        if (vo.id) {
+
+            if (DAOServerController.getInstance().pre_update_trigger_hook.has_trigger(vo._type)) {
+
+                // Ajout des triggers, avant et après modification.
+                //  Attention si un des output est false avant modification, on annule la modification
+                let res: boolean[] = await DAOServerController.getInstance().pre_update_trigger_hook.trigger(vo._type, new DAOUpdateVOHolder(pre_update_vo, vo));
+                if (!BooleanHandler.getInstance().AND(res, true)) {
+                    StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'pre_update_trigger_hook_rejection');
+                    return null;
+                }
+            }
+
+            const setters = [];
+            let fields = moduleTable.get_fields();
+            for (let i in fields) {
+                let field: ModuleTableField<any> = fields[i];
+
+                if (typeof vo[field.field_id] == "undefined") {
+                    if (!field.has_default || typeof field.field_default == 'undefined') {
+                        continue;
+                    }
+
+                    vo[field.field_id] = field.field_default;
+                }
+
+                setters.push(field.field_id + ' = ${' + field.field_id + '}');
+
+                /**
+                 * Cas des ranges
+                 */
+                if ((field.field_type == ModuleTableField.FIELD_TYPE_numrange) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_tsrange) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_hourrange) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_numrange_array) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_refrange_array) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_isoweekdays) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)) {
+
+                    setters.push(field.field_id + '_ndx = ${' + field.field_id + '_ndx}');
+                }
+            }
+
+            let full_name = null;
+
+            if (moduleTable.is_segmented) {
+                // Si on est sur une table segmentée on adapte le comportement
+                full_name = moduleTable.get_segmented_full_name_from_vo(vo);
+            } else {
+                full_name = moduleTable.full_name;
+            }
+
+            sql = "UPDATE " + full_name + " SET " + setters.join(', ') + " WHERE id = ${id} RETURNING ID";
+
+        } else {
+
+            if (DAOServerController.getInstance().pre_create_trigger_hook.has_trigger(vo._type)) {
+
+                // Ajout des triggers, avant et après modification.
+                //  Attention si un des output est false avant modification, on annule la modification
+                let res: boolean[] = await DAOServerController.getInstance().pre_create_trigger_hook.trigger(vo._type, vo);
+                if (!BooleanHandler.getInstance().AND(res, true)) {
+                    StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'pre_create_trigger_hook_rejection');
+                    return null;
+                }
+            }
+
+            const tableFields = [];
+            const placeHolders = [];
+            for (const f in moduleTable.get_fields()) {
+                let field: ModuleTableField<any> = moduleTable.get_fields()[f];
+
+                if (typeof vo[field.field_id] == "undefined") {
+                    if (!field.has_default || typeof field.field_default == 'undefined') {
+                        continue;
+                    }
+
+                    vo[field.field_id] = field.field_default;
+                }
+
+                tableFields.push(field.field_id);
+                placeHolders.push('${' + field.field_id + '}');
+
+                /**
+                 * Cas des ranges
+                 */
+                if ((field.field_type == ModuleTableField.FIELD_TYPE_numrange) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_tsrange) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_hourrange) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_numrange_array) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_refrange_array) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_isoweekdays) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
+                    (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)) {
+
+                    tableFields.push(field.field_id + '_ndx');
+                    placeHolders.push('${' + field.field_id + '_ndx}');
+                }
+            }
+
+            let full_name = null;
+
+            if (moduleTable.is_segmented) {
+                // Si on est sur une table segmentée on adapte le comportement
+                let name = moduleTable.get_segmented_name_from_vo(vo);
+                full_name = moduleTable.get_segmented_full_name_from_vo(vo);
+
+                // Si on est sur du segmented en insert on doit vérifier l'existence de la table, sinon il faut la créer avant d'insérer la première donnée
+                if ((!DAOServerController.segmented_known_databases[moduleTable.database]) || (!DAOServerController.segmented_known_databases[moduleTable.database][name])) {
+
+                    await ModuleTableDBService.getInstance(null).create_or_update_datatable(
+                        moduleTable,
+                        [RangeHandler.create_single_elt_range(moduleTable.table_segmented_field_range_type, moduleTable.get_segmented_field_value_from_vo(vo), moduleTable.table_segmented_field_segment_type)]);
+                }
+            } else {
+                full_name = moduleTable.full_name;
+            }
+
+            sql = "INSERT INTO " + full_name + " (" + tableFields.join(', ') + ") VALUES (" + placeHolders.join(', ') + ") RETURNING id";
+        }
+
+        return sql;
+    }
+
+    public async confirm_segmented_tables_existence(vos: IDistantVOBase[]) {
+        let segment_ok_by_type_and_segment_value: { [api_type_id: string]: { [segment: number]: boolean } } = {};
+        let is_segmented_type: { [api_type_id: string]: boolean } = {};
+
+        let tables_to_create_numranges: { [api_type_id: string]: NumRange[] } = {};
+
+        for (let i in vos) {
+            let vo = vos[i];
+
+            if (is_segmented_type[vo._type] == null) {
+                is_segmented_type[vo._type] = VOsTypesManager.moduleTables_by_voType[vo._type].is_segmented;
+            }
+
+            if (!is_segmented_type[vo._type]) {
+                continue;
+            }
+
+            if (!segment_ok_by_type_and_segment_value[vo._type]) {
+                segment_ok_by_type_and_segment_value[vo._type] = [];
+            }
+
+            let moduletable = VOsTypesManager.moduleTables_by_voType[vo._type];
+            let segment_value = moduletable.get_segmented_field_value_from_vo(vo);
+            let table_name = moduletable.get_segmented_name_from_vo(vo);
+
+            if (segment_ok_by_type_and_segment_value[vo._type][segment_value] == null) {
+                if ((DAOServerController.segmented_known_databases[moduletable.database] == null) || (DAOServerController.segmented_known_databases[moduletable.database][table_name] == null)) {
+                    // La table n'existe pas on la crée tout de suite
+                    // ATTENTION : ne pas mettre en tableau de promises, et ne pas utiliser dans un promise pipeline par exemple. On ne doit pas paralléliser la création de tables segmentées
+                    if (!tables_to_create_numranges[vo._type]) {
+                        tables_to_create_numranges[vo._type] = [];
+                    }
+                    tables_to_create_numranges[vo._type].push(RangeHandler.create_single_elt_NumRange(segment_value, NumSegment.TYPE_INT));
+                }
+                segment_ok_by_type_and_segment_value[vo._type][segment_value] = true;
+            }
+        }
+
+        // ATTENTION : ne pas mettre en tableau de promises, et ne pas utiliser dans un promise pipeline par exemple. On ne doit pas paralléliser la création de tables segmentées
+        for (let vo_type in tables_to_create_numranges) {
+            let numranges = tables_to_create_numranges[vo_type];
+            let moduletable = VOsTypesManager.moduleTables_by_voType[vo_type];
+
+            if (!numranges || (numranges.length == 0)) {
+                continue;
+            }
+
+            await ModuleTableDBService.getInstance(null).create_or_update_datatable(moduletable, numranges);
+        }
     }
 
     public async configure() {
@@ -592,7 +785,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         // On applique les accès au global sur le droit de faire un SELECT
-        return ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleDAO.getInstance().getAccessPolicyName(access_type, datatable.vo_type));
+        return ModuleAccessPolicyServer.getInstance().checkAccessSync(DAOController.getAccessPolicyName(access_type, datatable.vo_type));
     }
 
     public async preload_segmented_known_database(t: ModuleTable<any>) {
@@ -1012,7 +1205,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
      * Attention, on appel aucun triggers de l'appli en faisant ça...
      */
     public async insertOrUpdateVOs_without_triggers(vos: IDistantVOBase[], max_connections_to_use: number = 0): Promise<InsertOrDeleteQueryResult[]> {
-        if (this.global_update_blocker) {
+        if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
             let uid: number = StackContext.get('UID');
             let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
             if (uid && CLIENT_TAB_ID) {
@@ -1301,7 +1494,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
      *  - on ne gère pas les segmentations
      */
     public async insert_without_triggers_using_COPY(vos: IDistantVOBase[], segmented_value: number = null): Promise<boolean> {
-        if (this.global_update_blocker) {
+        if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
             let uid: number = StackContext.get('UID');
             let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
             if (uid && CLIENT_TAB_ID) {
@@ -1660,7 +1853,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
      */
     public async truncate(api_type_id: string, ranges: IRange[] = null) {
 
-        if (this.global_update_blocker) {
+        if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
             let uid: number = StackContext.get('UID');
             let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
             if (uid && CLIENT_TAB_ID) {
@@ -1716,7 +1909,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
 
     /**
-     * @deprecated utiliser la version contextquery query(API_TYPE_ID).select_vos<T>();
+     * @deprecated  use context queries - will be deleted soon [utiliser la version contextquery query(API_TYPE_ID).select_vos<T>();]
      */
     public async selectAll<T extends IDistantVOBase>(
         API_TYPE_ID: string, query_: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null,
@@ -1826,7 +2019,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     /**
-     * @deprecated utiliser la version contextquery query(API_TYPE_ID).select_vo<T>();
+     * @deprecated use context queries - will be deleted soon [utiliser la version contextquery query(API_TYPE_ID).select_vo<T>();]
      */
     public async selectOne<T extends IDistantVOBase>(API_TYPE_ID: string, query_: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null, ranges: IRange[] = null): Promise<T> {
         let moduleTable: ModuleTable<T> = VOsTypesManager.moduleTables_by_voType[API_TYPE_ID];
@@ -1915,7 +2108,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
      * @param query_
      */
     public async query(query_: string = null, values: any = null): Promise<any> {
-        if (this.global_update_blocker && !/^select /i.test(query_)) {
+        if (DAOServerController.GLOBAL_UPDATE_BLOCKER && !/^select /i.test(query_)) {
             let uid: number = StackContext.get('UID');
             let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
             if (uid && CLIENT_TAB_ID) {
@@ -2128,6 +2321,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let datatable: ModuleTable<UserVO> = VOsTypesManager.moduleTables_by_voType[UserVO.API_TYPE_ID];
 
         try {
+
+
             let query_string = "select * from ref.get_user(" + login.toLowerCase().trim() + ", $1, $1, $2, $3);";
             let query_uid = this.log_db_query_perf_start('selectOneUser', query_string);
             let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone(
@@ -2219,6 +2414,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return vo;
     }
 
+    /**
+     * @depracated do not use anymore, use context queries instead - will be deleted soon
+     */
     public async filterVOsAccess<T extends IDistantVOBase>(datatable: ModuleTable<T>, access_type: string, vos: T[]): Promise<T[]> {
 
         if (!ModuleAccessPolicy.getInstance().actif) {
@@ -2364,7 +2562,17 @@ export default class ModuleDAOServer extends ModuleServerBase {
      * Fonction qui vérifie chaque champ de foreign ref et qui si la bdd ne gère pas la foreign key le fait (vérifie
      * que l'id ciblé existe bien, sinon on refuse l'insertion)
      */
-    private async filterByForeignKeys<T extends IDistantVOBase>(vos: T[]): Promise<T[]> {
+    public async filterByForeignKeys<T extends IDistantVOBase>(vos: T[]): Promise<T[]> {
+
+        StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'filterByForeignKeys', 'IN');
+
+        if (!vos || !vos.length) {
+            StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'filterByForeignKeys', 'USELESS');
+            return null;
+        }
+
+        let time_in = Dates.now_ms();
+
         let res: T[] = [];
 
         let max = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
@@ -2384,14 +2592,22 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         await promise_pipeline.end();
 
+        StatsController.register_stat_QUANTITE('ModuleDAOServer', 'filterByForeignKeys', '-', vos.length);
+        StatsController.register_stat_DUREE('ModuleDAOServer', 'filterByForeignKeys', '-', Dates.now_ms() - time_in);
+
         return res;
     }
 
     private async refuseVOByForeignKeys<T extends IDistantVOBase>(vo: T): Promise<boolean> {
+
+        let time_in = Dates.now_ms();
+
+        StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'refuseVOByForeignKeys', 'IN');
         let moduleTable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[vo._type];
 
         if (!moduleTable) {
-            return null;
+            StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'refuseVOByForeignKeys', 'USELESS');
+            return true;
         }
 
         let fields = moduleTable.get_fields();
@@ -2433,18 +2649,20 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     })());
                     break;
                 default:
+                    StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'refuseVOByForeignKeys', 'FILTERED_FIELD_TYPE');
                     return true;
             }
         }
 
         await all_promises(promises);
+        StatsController.register_stat_DUREE('ModuleDAOServer', 'refuseVOByForeignKeys', '-', Dates.now_ms() - time_in);
 
         return refuse;
     }
 
     private async insertOrUpdateVOs<T extends IDistantVOBase>(vos: T[]): Promise<InsertOrDeleteQueryResult[]> {
 
-        if (this.global_update_blocker) {
+        if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
             let uid: number = StackContext.get('UID');
             let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
             if (uid && CLIENT_TAB_ID) {
@@ -2677,7 +2895,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 /**
                  * On doit absolument ignorer tout access hook à ce niveau sinon on risque de rater l'élément en base
                  */
-                query_.ignore_access_hooks();
+                query_.exec_as_admin();
 
                 let uniquevos: IDistantVOBase[] = null;
 
@@ -2720,7 +2938,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let time_in = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'in');
 
-        if (this.global_update_blocker) {
+        if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
             let uid: number = StackContext.get('UID');
             let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
             if (uid && CLIENT_TAB_ID) {
@@ -2857,7 +3075,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let time_in = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('dao', 'deleteVOs', 'in');
 
-        if (this.global_update_blocker) {
+        if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
             let uid: number = StackContext.get('UID');
             let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
             if (uid && CLIENT_TAB_ID) {
@@ -3016,7 +3234,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     private async deleteVOsByIds(API_TYPE_ID: string, ids: number[]): Promise<any[]> {
 
-        if (this.global_update_blocker) {
+        if (DAOServerController.GLOBAL_UPDATE_BLOCKER) {
             let uid: number = StackContext.get('UID');
             let CLIENT_TAB_ID: string = StackContext.get('CLIENT_TAB_ID');
             if (uid && CLIENT_TAB_ID) {
@@ -3051,147 +3269,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return await this.deleteVOs(vos);
     }
 
-    private async getqueryfor_insertOrUpdateVO(vo: IDistantVOBase, pre_update_vo: IDistantVOBase): Promise<string> {
-
-        if (!vo._type) {
-            ConsoleHandler.error("Un VO sans _type dans le DAO ! " + JSON.stringify(vo));
-            return null;
-        }
-
-        let moduleTable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[vo._type];
-
-        if (!moduleTable) {
-            ConsoleHandler.error("Impossible de trouver le moduleTable de ce _type ! " + JSON.stringify(vo));
-            return null;
-        }
-
-        let sql: string = null;
-
-        if (vo.id) {
-
-            if (DAOServerController.getInstance().pre_update_trigger_hook.has_trigger(vo._type)) {
-
-                // Ajout des triggers, avant et après modification.
-                //  Attention si un des output est false avant modification, on annule la modification
-                let res: boolean[] = await DAOServerController.getInstance().pre_update_trigger_hook.trigger(vo._type, new DAOUpdateVOHolder(pre_update_vo, vo));
-                if (!BooleanHandler.getInstance().AND(res, true)) {
-                    StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'pre_update_trigger_hook_rejection');
-                    return null;
-                }
-            }
-
-            const setters = [];
-            let fields = moduleTable.get_fields();
-            for (let i in fields) {
-                let field: ModuleTableField<any> = fields[i];
-
-                if (typeof vo[field.field_id] == "undefined") {
-                    if (!field.has_default || typeof field.field_default == 'undefined') {
-                        continue;
-                    }
-
-                    vo[field.field_id] = field.field_default;
-                }
-
-                setters.push(field.field_id + ' = ${' + field.field_id + '}');
-
-                /**
-                 * Cas des ranges
-                 */
-                if ((field.field_type == ModuleTableField.FIELD_TYPE_numrange) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_tsrange) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_hourrange) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_numrange_array) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_refrange_array) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_isoweekdays) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)) {
-
-                    setters.push(field.field_id + '_ndx = ${' + field.field_id + '_ndx}');
-                }
-            }
-
-            let full_name = null;
-
-            if (moduleTable.is_segmented) {
-                // Si on est sur une table segmentée on adapte le comportement
-                full_name = moduleTable.get_segmented_full_name_from_vo(vo);
-            } else {
-                full_name = moduleTable.full_name;
-            }
-
-            sql = "UPDATE " + full_name + " SET " + setters.join(', ') + " WHERE id = ${id} RETURNING ID";
-
-        } else {
-
-            if (DAOServerController.getInstance().pre_create_trigger_hook.has_trigger(vo._type)) {
-
-                // Ajout des triggers, avant et après modification.
-                //  Attention si un des output est false avant modification, on annule la modification
-                let res: boolean[] = await DAOServerController.getInstance().pre_create_trigger_hook.trigger(vo._type, vo);
-                if (!BooleanHandler.getInstance().AND(res, true)) {
-                    StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'pre_create_trigger_hook_rejection');
-                    return null;
-                }
-            }
-
-            const tableFields = [];
-            const placeHolders = [];
-            for (const f in moduleTable.get_fields()) {
-                let field: ModuleTableField<any> = moduleTable.get_fields()[f];
-
-                if (typeof vo[field.field_id] == "undefined") {
-                    if (!field.has_default || typeof field.field_default == 'undefined') {
-                        continue;
-                    }
-
-                    vo[field.field_id] = field.field_default;
-                }
-
-                tableFields.push(field.field_id);
-                placeHolders.push('${' + field.field_id + '}');
-
-                /**
-                 * Cas des ranges
-                 */
-                if ((field.field_type == ModuleTableField.FIELD_TYPE_numrange) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_tsrange) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_hourrange) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_numrange_array) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_refrange_array) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_isoweekdays) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
-                    (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array)) {
-
-                    tableFields.push(field.field_id + '_ndx');
-                    placeHolders.push('${' + field.field_id + '_ndx}');
-                }
-            }
-
-            let full_name = null;
-
-            if (moduleTable.is_segmented) {
-                // Si on est sur une table segmentée on adapte le comportement
-                let name = moduleTable.get_segmented_name_from_vo(vo);
-                full_name = moduleTable.get_segmented_full_name_from_vo(vo);
-
-                // Si on est sur du segmented en insert on doit vérifier l'existence de la table, sinon il faut la créer avant d'insérer la première donnée
-                if ((!DAOServerController.segmented_known_databases[moduleTable.database]) || (!DAOServerController.segmented_known_databases[moduleTable.database][name])) {
-
-                    await ModuleTableDBService.getInstance(null).create_or_update_datatable(
-                        moduleTable,
-                        [RangeHandler.create_single_elt_range(moduleTable.table_segmented_field_range_type, moduleTable.get_segmented_field_value_from_vo(vo), moduleTable.table_segmented_field_segment_type)]);
-                }
-            } else {
-                full_name = moduleTable.full_name;
-            }
-
-            sql = "INSERT INTO " + full_name + " (" + tableFields.join(', ') + ") VALUES (" + placeHolders.join(', ') + ") RETURNING id";
-        }
-
-        return sql;
-    }
-
+    /**
+     * @depracated do not use anymore, use context queries instead - will be deleted soon
+     */
     private async filterVOAccess<T extends IDistantVOBase>(datatable: ModuleTable<T>, access_type: string, vo: T): Promise<T> {
 
         if (!ModuleAccessPolicy.getInstance().actif) {
@@ -3239,7 +3319,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     /**
-     * @deprecated prefer context queries
+     * @deprecated use context queries - will be deleted soon
      * @param API_TYPE_ID
      * @param id
      * @param segmentation_ranges
@@ -3351,7 +3431,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     /**
-     * @deprecated use await query(T.API_TYPE_ID).filter_by_num_eq('field_name', ids).select_vos<T>() instead
+     * @deprecated use context queries - will be deleted soon [use await query(T.API_TYPE_ID).filter_by_num_eq('field_name', ids).select_vos<T>() instead]
      */
     private async getVosByRefFieldIds<T extends IDistantVOBase>(API_TYPE_ID: string, field_name: string, ids: number[]): Promise<T[]> {
 
@@ -3526,6 +3606,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return res;
     }
 
+    /**
+     * @depracated use contextqueries
+     */
     private async getVosByRefFieldsIds<T extends IDistantVOBase>(
         API_TYPE_ID: string,
         field_name1: string,
@@ -3597,6 +3680,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return res;
     }
 
+    /**
+     * @deprecated use context queries - will be deleted soon
+     */
     private async getVosByRefFieldsIdsAndFieldsString<T extends IDistantVOBase>(
         API_TYPE_ID: string,
         field_name1: string,
@@ -3673,6 +3759,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
         );
     }
 
+    /**
+     * @deprecated use context queries - will be deleted soon
+     */
     private async get_request_for_getVosByRefFieldsIdsAndFieldsString<T extends IDistantVOBase>(
         field_name1: string,
         ids1: number[],
@@ -3755,6 +3844,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return res;
     }
 
+    /**
+     * @deprecated use context queries - will be deleted soon
+     */
     private async getVosByIds<T extends IDistantVOBase>(API_TYPE_ID: string, ids: number[]): Promise<T[]> {
 
         if ((!ids) || (!ids.length)) {
@@ -3838,6 +3930,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return res;
     }
 
+    /**
+     * @deprecated use context queries - will be deleted soon
+     */
     private async getVosByIdsRanges<T extends IDistantVOBase>(API_TYPE_ID: string, ranges: NumRange[]): Promise<T[]> {
 
         if ((!ranges) || (!ranges.length)) {
@@ -3898,6 +3993,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return res;
     }
 
+    /**
+     * ATTENTION on est admin sur cette partie le but est de vérifier que les liens sont cohérents et existent en bdd
+     */
     private async countVosByIdsRanges<T extends IDistantVOBase>(API_TYPE_ID: string, ranges: NumRange[]): Promise<number> {
 
         if ((!ranges) || (!ranges.length)) {
@@ -3906,21 +4004,17 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         let moduleTable: ModuleTable<T> = VOsTypesManager.moduleTables_by_voType[API_TYPE_ID];
 
-        // On vérifie qu'on peut faire un select
-        if (!this.checkAccessSync(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ)) {
-            return 0;
-        }
-
         if (moduleTable.is_segmented) {
-            // TODO FIXME segmented moduletable
-            throw new Error('Not Implemented');
+            StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'countVosByIdsRanges', 'segmented');
+            // En vrai maintenant c'est géré ... c'est juste pas efficace du tout... et on a pas envie de le faire quoi
+            // throw new Error('Not Implemented');
         }
 
-        return await query(API_TYPE_ID).filter_by_ids(ranges).select_count();
+        return await query(API_TYPE_ID).filter_by_ids(ranges).exec_as_admin().select_count();
     }
 
     /**
-     * @deprecated use query instead
+     * @deprecated use context queries - will be deleted soon
      */
     private async getVos<T extends IDistantVOBase>(text: string, limit: number = 0, offset: number = 0): Promise<T[]> {
 
@@ -3929,7 +4023,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     /**
-     * @deprecated use query instead
+     * @deprecated use context queries - will be deleted soon
      */
     private async getNamedVoByName<U extends INamedVO>(API_TYPE_ID: string, name: string): Promise<U> {
 
@@ -3937,7 +4031,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
 
-
+    /**
+     * @deprecated use context queries - will be deleted soon
+     */
     private async getVarImportsByMatroidParams<T extends IDistantVOBase>(
         api_type_id: string,
         matroids: IMatroid[],
@@ -3991,7 +4087,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     /**
-     * @deprecated use query instead
+     * @deprecated use context queries - will be deleted soon
      */
     private async filterVosByMatroids<T extends IDistantVOBase>(
         api_type_id: string,
@@ -4046,7 +4142,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     /**
-     * @deprecated use query instead
+     * @deprecated use context queries - will be deleted soon
      */
     private async getDAOsByMatroid<T extends IDistantVOBase>(api_type_id: string, matroid: IMatroid, fields_ids_mapper: { [matroid_field_id: string]: string }, additional_condition: string): Promise<T[]> {
         if (!matroid) {
@@ -4216,6 +4312,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return matroid_fields_ranges_by_datatable_field_id;
     }
 
+    /**
+     * @deprecated use context queries - will be deleted soon
+     */
     private async filterVosByMatroidsIntersections<T extends IDistantVOBase>(
         api_type_id: string,
         matroids: IMatroid[],
@@ -4380,6 +4479,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return res;
     }
 
+    /**
+     * @deprecated use context queries - will be deleted soon
+     */
     private async getVosByExactMatroid<T extends IDistantVOBase>(
         api_type_id: string,
         matroids: IMatroid[],
@@ -5266,55 +5368,5 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
         }
         await all_promises(promises);
-    }
-
-    private async confirm_segmented_tables_existence(vos: IDistantVOBase[]) {
-        let segment_ok_by_type_and_segment_value: { [api_type_id: string]: { [segment: number]: boolean } } = {};
-        let is_segmented_type: { [api_type_id: string]: boolean } = {};
-
-        let tables_to_create_numranges: { [api_type_id: string]: NumRange[] } = {};
-
-        for (let i in vos) {
-            let vo = vos[i];
-
-            if (is_segmented_type[vo._type] == null) {
-                is_segmented_type[vo._type] = VOsTypesManager.moduleTables_by_voType[vo._type].is_segmented;
-            }
-
-            if (!is_segmented_type[vo._type]) {
-                continue;
-            }
-
-            if (!segment_ok_by_type_and_segment_value[vo._type]) {
-                segment_ok_by_type_and_segment_value[vo._type] = [];
-            }
-
-            let moduletable = VOsTypesManager.moduleTables_by_voType[vo._type];
-            let segment_value = moduletable.get_segmented_field_value_from_vo(vo);
-            let table_name = moduletable.get_segmented_name_from_vo(vo);
-
-            if (segment_ok_by_type_and_segment_value[vo._type][segment_value] == null) {
-                if ((DAOServerController.segmented_known_databases[moduletable.database] == null) || (DAOServerController.segmented_known_databases[moduletable.database][table_name] == null)) {
-                    // La table n'existe pas on la crée tout de suite
-                    // ATTENTION : ne pas mettre en tableau de promises, et ne pas utiliser dans un promise pipeline par exemple. On ne doit pas paralléliser la création de tables segmentées
-                    if (!tables_to_create_numranges[vo._type]) {
-                        tables_to_create_numranges[vo._type] = [];
-                    }
-                    tables_to_create_numranges[vo._type].push(RangeHandler.create_single_elt_NumRange(segment_value, NumSegment.TYPE_INT));
-                }
-                segment_ok_by_type_and_segment_value[vo._type][segment_value] = true;
-            }
-        }
-
-        for (let vo_type in tables_to_create_numranges) {
-            let numranges = tables_to_create_numranges[vo_type];
-            let moduletable = VOsTypesManager.moduleTables_by_voType[vo_type];
-
-            if (!numranges || (numranges.length == 0)) {
-                continue;
-            }
-
-            await ModuleTableDBService.getInstance(null).create_or_update_datatable(moduletable, numranges);
-        }
     }
 }
