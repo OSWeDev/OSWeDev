@@ -85,7 +85,7 @@ export default class FieldValueFilterEnumWidgetManager {
         );
 
         const pipeline_limit = EnvHandler.MAX_POOL / 2;
-        const promise_pipeline = new PromisePipeline(pipeline_limit);
+        let promise_pipeline = new PromisePipeline(pipeline_limit);
 
         let context_query: ContextQueryVO = null;
 
@@ -195,6 +195,7 @@ export default class FieldValueFilterEnumWidgetManager {
         }
 
         await promise_pipeline.end();
+        promise_pipeline = new PromisePipeline(pipeline_limit);
 
         if (!context_query) {
             return enum_data_filters;
@@ -292,7 +293,7 @@ export default class FieldValueFilterEnumWidgetManager {
         );
 
         const pipeline_limit = EnvHandler.MAX_POOL / 2;
-        const promise_pipeline = new PromisePipeline(pipeline_limit);
+        let promise_pipeline = new PromisePipeline(pipeline_limit);
 
         // We must do it in two separate states (with promise_pipeline)
         // The first one is to check access and build the query
@@ -363,6 +364,7 @@ export default class FieldValueFilterEnumWidgetManager {
             }
 
             await promise_pipeline.end();
+            promise_pipeline = new PromisePipeline(pipeline_limit);
 
             context_query_by_enum_data_filters[filter_opt.numeric_value] = context_query;
         }
