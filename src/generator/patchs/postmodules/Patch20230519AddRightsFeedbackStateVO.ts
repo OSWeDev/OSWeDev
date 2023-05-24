@@ -1,6 +1,7 @@
 /* istanbul ignore file: no unit tests on patchs */
 
 import ModuleAccessPolicy from "../../../shared/modules/AccessPolicy/ModuleAccessPolicy";
+import DAOController from "../../../shared/modules/DAO/DAOController";
 import ModuleDAO from "../../../shared/modules/DAO/ModuleDAO";
 import FeedbackStateVO from "../../../shared/modules/Feedback/vos/FeedbackStateVO";
 import PostModulesPoliciesPatchBase from "../PostModulesPoliciesPatchBase";

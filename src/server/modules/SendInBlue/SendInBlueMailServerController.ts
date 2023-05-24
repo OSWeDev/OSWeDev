@@ -233,7 +233,7 @@ export default class SendInBlueMailServerController {
     }
 
     private async get_uid_if_exists(email: string) {
-        let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_text_eq('email', email).exec_as_admin().select_vo<UserVO>();
+        let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_text_eq('email', email).exec_as_server().select_vo<UserVO>();
         if (!!user) {
             return user.id;
         }

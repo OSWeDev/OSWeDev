@@ -70,7 +70,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
 
         if (!vo.version_author_id) {
             if (!robot_user) {
-                robot_user = await query(UserVO.API_TYPE_ID).filter_by_text_eq('name', 'robot').exec_as_admin().select_vo<UserVO>();
+                robot_user = await query(UserVO.API_TYPE_ID).filter_by_text_eq('name', 'robot').exec_as_server().select_vo<UserVO>();
             }
 
             vo.version_author_id = (!!uid) ? uid : ((robot_user) ? robot_user.id : null);
@@ -80,7 +80,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
 
         if (!vo.version_edit_author_id) {
             if (!robot_user) {
-                robot_user = await query(UserVO.API_TYPE_ID).filter_by_text_eq('name', 'robot').exec_as_admin().select_vo<UserVO>();
+                robot_user = await query(UserVO.API_TYPE_ID).filter_by_text_eq('name', 'robot').exec_as_server().select_vo<UserVO>();
             }
 
             vo.version_edit_author_id = (!!uid) ? uid : ((robot_user) ? robot_user.id : null);
@@ -114,7 +114,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
         if (!!uid) {
             vo_update_handler.post_update_vo.version_edit_author_id = uid;
         } else {
-            let robot_user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_text_eq('name', 'robot').exec_as_admin().select_vo<UserVO>();
+            let robot_user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_text_eq('name', 'robot').exec_as_server().select_vo<UserVO>();
             vo_update_handler.post_update_vo.version_edit_author_id = robot_user ? robot_user.id : null;
         }
 

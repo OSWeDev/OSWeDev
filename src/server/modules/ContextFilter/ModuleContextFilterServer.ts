@@ -69,8 +69,8 @@ export default class ModuleContextFilterServer extends ModuleServerBase {
      * @param new_api_translated_value En cas d'update, la valeur api_translated (par exemple issue de moduletable.default_get_field_api_version)
      *  qu'on va mettre en remplacement de la valeur actuelle
      */
-    public async update_vos(
-        context_query: ContextQueryVO, new_api_translated_values: { [update_field_id: string]: any }
+    public async update_vos<T extends IDistantVOBase>(
+        context_query: ContextQueryVO, new_api_translated_values: { [update_field_id in keyof T]?: any }
     ): Promise<InsertOrDeleteQueryResult[]> {
         return await ContextQueryServerController.getInstance().update_vos(context_query, new_api_translated_values);
     }

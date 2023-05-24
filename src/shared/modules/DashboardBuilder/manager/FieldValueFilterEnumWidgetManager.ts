@@ -16,6 +16,7 @@ import FieldFilterManager from "../../ContextFilter/manager/FieldFilterManager";
 import DashboardBuilderDataFilterManager from "./DashboardBuilderDataFilterManager";
 import ModuleAccessPolicy from "../../AccessPolicy/ModuleAccessPolicy";
 import ModuleDAO from "../../DAO/ModuleDAO";
+import DAOController from "../../DAO/DAOController";
 
 /**
  * FieldValueFilterEnumWidgetManager

@@ -124,9 +124,9 @@ export default class ModuleContextFilter extends Module {
      *  ne seraient pas exécutés dans ce cas...
      * @param new_api_translated_values Map, avec en KEY Le nom du champs cible (sur le base_api_type_id), et en valeur la nouvelle valeur du champ. ATTENTION à la passer en format api_translated (par exemple issue de moduletable.default_get_field_api_version)
      */
-    public update_vos: (
-        context_query: ContextQueryVO, new_api_translated_values: { [update_field_id: string]: any }
-    ) => Promise<void> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_update_vos);
+    public update_vos: <T extends IDistantVOBase>(
+        context_query: ContextQueryVO, new_api_translated_values: { [update_field_id in keyof T]?: any }
+    ) => Promise<InsertOrDeleteQueryResult[]> = APIControllerWrapper.sah(ModuleContextFilter.APINAME_update_vos);
 
     /**
      * Filtrer des datafilteroption (pour les filtrages type multiselect) avec les context filters, en indiquant obligatoirement le champs ciblé
@@ -218,7 +218,7 @@ export default class ModuleContextFilter extends Module {
             DeleteVosParamVOStatic
         ));
 
-        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<UpdateVosParamVO, void>(
+        APIControllerWrapper.registerApi(new PostForGetAPIDefinition<UpdateVosParamVO<any>, InsertOrDeleteQueryResult[]>(
             null,
             ModuleContextFilter.APINAME_update_vos,
             null,

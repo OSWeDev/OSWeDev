@@ -1,10 +1,7 @@
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
-import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import MatroidController from '../../../../shared/modules/Matroid/MatroidController';
 import StatsController from '../../../../shared/modules/Stats/StatsController';
-import StatsTypeVO from '../../../../shared/modules/Stats/vos/StatsTypeVO';
-import StatVO from '../../../../shared/modules/Stats/vos/StatVO';
 import VarDAG from '../../../../shared/modules/Var/graph/VarDAG';
 import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
 import VarsController from '../../../../shared/modules/Var/VarsController';
@@ -332,13 +329,11 @@ export default class VarsdatasComputerBGThread implements IBGThread {
     private async save_last_dag_perfs(var_dag: VarDAG) {
 
         let vardag_perfs = var_dag.perfs;
-        let vardag_perfs_res = await ModuleDAO.getInstance().insertOrUpdateVO(vardag_perfs);
-        if ((!vardag_perfs_res) || (!vardag_perfs_res.id)) {
+        await ModuleDAOServer.getInstance().insert_vos([vardag_perfs], true);
+        if (!vardag_perfs.id) {
             ConsoleHandler.error('Failed insert vardag_perfs_res:save_last_dag_perfs');
             return;
         }
-
-        vardag_perfs.id = vardag_perfs_res.id;
 
         let all_var_perfs: { [var_id: number]: VarBatchVarPerfVO } = {};
         for (let i in var_dag.nodes) {
@@ -356,7 +351,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
             this.add_var_node_perfs(node.perfs, this_var_perfs, node);
         }
 
-        await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(Object.values(all_var_perfs));
+        await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(Object.values(all_var_perfs), null, true);
     }
 
     private init_new_var_batch_var_perf_element(var_batch_perf_id: number, var_id: number): VarBatchVarPerfVO {

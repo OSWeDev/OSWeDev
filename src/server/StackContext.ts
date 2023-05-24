@@ -14,6 +14,10 @@ export default class StackContext {
         StackContext.ns.run(() => next());
     }
 
+    /**
+     * Replace when possible by StackContext.set, or contextqueries excec_as_admin, or insert_vos(vos, true)
+     * @deprecated Should only be used on ServerBase for the main request
+     */
     public static async runPromise(scope_overloads: { [scope_key: string]: any }, callback: (...params: any) => Promise<any>): Promise<any> {
 
         let result = null;

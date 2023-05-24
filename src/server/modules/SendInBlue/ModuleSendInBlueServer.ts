@@ -15,6 +15,7 @@ import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultT
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import SendInBlueMailServerController from './SendInBlueMailServerController';
@@ -129,7 +130,7 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
         let mails: MailVO[] = await query(MailVO.API_TYPE_ID)
             .filter_by_text_eq('message_id', event.messageId)
             .filter_by_text_eq('email', event.email)
-            .exec_as_admin()
+            .exec_as_server()
             .select_vos<MailVO>();
 
         if ((!mails) || (!mails.length)) {
@@ -146,7 +147,7 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
             return;
         }
 
-        let bdd_events = await query(MailEventVO.API_TYPE_ID).filter_by_num_eq('mail_id', mail.id).exec_as_admin().select_vos<MailEventVO>();
+        let bdd_events = await query(MailEventVO.API_TYPE_ID).filter_by_num_eq('mail_id', mail.id).exec_as_server().select_vos<MailEventVO>();
 
         await this.update_mail_event(mail, event, bdd_events);
     }
@@ -228,13 +229,7 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
         if (!found) {
             ConsoleHandler.log('sendinblue:new event:' + JSON.stringify(event));
 
-            // TODO FIXME : Retrait is_client false pour les insertOrUpdateVO => ajouter en param de la fonction le context directement
-            await StackContext.runPromise(
-                { IS_CLIENT: false },
-                async () => {
-
-                    await ModuleDAO.getInstance().insertOrUpdateVO(new_event);
-                });
+            await ModuleDAOServer.getInstance().insert_vos([new_event], true);
         }
     }
 }

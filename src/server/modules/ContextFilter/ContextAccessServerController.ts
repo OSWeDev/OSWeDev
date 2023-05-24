@@ -2,6 +2,7 @@ import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolic
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import ContextQueryVO from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import FieldPathWrapper from '../../../shared/modules/ContextFilter/vos/FieldPathWrapper';
+import DAOController from '../../../shared/modules/DAO/DAOController';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import StackContext from '../../StackContext';
@@ -29,7 +30,7 @@ export default class ContextAccessServerController {
         fields: ContextQueryFieldVO[],
         access_type: string): boolean {
 
-        if (context_query.is_admin || !StackContext.get('IS_CLIENT')) {
+        if (context_query.is_server || !StackContext.get('IS_CLIENT')) {
             return true;
         }
 
@@ -69,7 +70,7 @@ export default class ContextAccessServerController {
         fields: FieldPathWrapper[],
         access_type: string): boolean {
 
-        if (context_query.is_admin || !StackContext.get('IS_CLIENT')) {
+        if (context_query.is_server || !StackContext.get('IS_CLIENT')) {
             return true;
         }
 
@@ -99,7 +100,7 @@ export default class ContextAccessServerController {
         field_id: string,
         access_type: string): boolean {
 
-        if (context_query.is_admin || !StackContext.get('IS_CLIENT')) {
+        if (context_query.is_server || !StackContext.get('IS_CLIENT')) {
             return true;
         }
 

@@ -64,12 +64,7 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
             return null;
         }
 
-        let user: UserVO = null;
-        await StackContext.runPromise(
-            { IS_CLIENT: false },
-            async () => {
-                user = await query(UserVO.API_TYPE_ID).filter_by_id(exhi.export_to_uid).select_vo<UserVO>();
-            });
+        let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_id(exhi.export_to_uid).exec_as_server().select_vo<UserVO>();
         let import_params: AnimationReportingParamVO = APIControllerWrapper.try_translate_vo_from_api(JSON.parse(exhi.export_params_stringified));
 
         let all_anim_theme_by_ids: { [id: number]: AnimationThemeVO } = VOsTypesManager.vosArray_to_vosByIds(await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>());
@@ -320,12 +315,7 @@ export default class AnimationReportingExportHandler extends ExportHandlerBase {
     }
 
     private async get_column_labels(exhi: ExportHistoricVO): Promise<{ [field_name: string]: string }> {
-        let user: UserVO = null;
-        await StackContext.runPromise(
-            { IS_CLIENT: false },
-            async () => {
-                user = await query(UserVO.API_TYPE_ID).filter_by_id(exhi.export_to_uid).select_vo<UserVO>();
-            });
+        let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_id(exhi.export_to_uid).exec_as_server().select_vo<UserVO>();
 
         if (!user) {
             return null;

@@ -39,6 +39,7 @@ import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ServerAnonymizationController from '../Anonymization/ServerAnonymizationController';
 import DAOServerController from '../DAO/DAOServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModuleVocusServer from '../Vocus/ModuleVocusServer';
 import ContextAccessServerController from './ContextAccessServerController';
@@ -506,7 +507,7 @@ export default class ContextQueryServerController {
      *  qu'on va mettre en remplacement de la valeur actuelle
      */
     public async update_vos<T extends IDistantVOBase>(
-        context_query: ContextQueryVO, new_api_translated_values: { [update_field_id: string]: any }): Promise<InsertOrDeleteQueryResult[]> {
+        context_query: ContextQueryVO, new_api_translated_values: { [update_field_id in keyof T]?: any }): Promise<InsertOrDeleteQueryResult[]> {
 
         let time_in = Dates.now_ms();
         StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'IN');
@@ -530,11 +531,16 @@ export default class ContextQueryServerController {
         }
 
         // On vérifie qu'on peut faire un update
-        if ((!context_query.is_admin) && !ModuleAccessPolicyServer.getInstance().checkAccessSync(DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, context_query.base_api_type_id))) {
+        if ((!context_query.is_server) && !ModuleAccessPolicyServer.getInstance().checkAccessSync(DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, context_query.base_api_type_id))) {
             StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'failed_checkAccessSync');
             return null;
         }
 
+        // On vérifie qu'il y a un filtrage au minimum, sinon on log un WARNING
+        if ((!context_query.filters) || (!context_query.filters.length)) {
+            ConsoleHandler.warn('WARNING: update_vos without filters:' + JSON.stringify(context_query));
+            StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'no_filters');
+        }
 
         /**
          * On se fixe des paquets de 100 vos à updater
@@ -581,6 +587,9 @@ export default class ContextQueryServerController {
         }
 
         let res: InsertOrDeleteQueryResult[] = [];
+        /**
+         * FIXME Faudra creuser comment on peut faire du FASTTRACK pour pas faire les updates 1 par 1 si on a pas besoin
+         */
 
         if (ObjectHandler.getInstance().hasAtLeastOneAttribute(fields_by_id)) {
             while (might_have_more) {
@@ -627,7 +636,7 @@ export default class ContextQueryServerController {
                     }
                     already_treated_ids[vo.id] = true;
 
-                    for (let field_id in new_api_translated_values) {
+                    for (let field_id in new_api_translated_values as IDistantVOBase) {
                         let new_api_translated_value = new_api_translated_values[field_id];
 
                         vo[field_id] = moduletable.default_field_from_api_version(new_api_translated_value, fields_by_id[field_id]);
@@ -645,69 +654,41 @@ export default class ContextQueryServerController {
                         let sql: string = await ModuleDAOServer.getInstance().getqueryfor_insertOrUpdateVO(vo_to_update, preupdate_vo);
 
                         if (!sql) {
-                            ConsoleHandler.warn('Est-ce bien normal ? insertOrUpdateVO :(!sql):' + JSON.stringify(vo));
-                            StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'no_sql');
-                            resolve(null);
+                            ConsoleHandler.warn('Est-ce bien normal ? UpdateVO :(!sql):' + JSON.stringify(vo_to_update));
+                            StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'no_sql');
                             return null;
                         }
                         let failed: boolean = false;
 
-                        TODO
-
-                        return new Promise<InsertOrDeleteQueryResult>(async (resolve, reject) => {
-
-                            let preUpdate: IDistantVOBase = null;
-
-                            /**
-                             * Si on est sur un update et si on a des triggers de mise à jour on veut récupérer le vo en base avant de l'écraser pour le passer aux triggers
-                             */
-                            if (vo.id) {
-
-                            }
-
-                            let sql: string = await ModuleDAOServer.getInstance().getqueryfor_insertOrUpdateVO(vo, preUpdate);
-                            let failed: boolean = false;
-
-                            if (!sql) {
-                                ConsoleHandler.warn('Est-ce bien normal ? insertOrUpdateVO :(!sql):' + JSON.stringify(vo));
-                                StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'no_sql');
-                                resolve(null);
-                                return null;
-                            }
-
-                            let bdd_version = moduleTable.get_bdd_version(vo);
-                            let query_uid = this.log_db_query_perf_start('insertOrUpdateVO', 'type:' + vo._type);
-                            let db_result = await ModuleServiceBase.getInstance().db.oneOrNone(sql, bdd_version).catch((reason) => {
-                                ConsoleHandler.error('insertOrUpdateVO :' + reason);
-                                failed = true;
-                            });
-                            this.log_db_query_perf_end(query_uid, 'insertOrUpdateVO', 'type:' + vo._type);
-
-                            let res: InsertOrDeleteQueryResult = new InsertOrDeleteQueryResult((db_result && db_result.id) ? parseInt(db_result.id.toString()) : null);
-
-                            if (failed) {
-                                StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'failed');
-                                resolve(null);
-                                return null;
-                            }
-
-                            if (res && vo) {
-                                if (isUpdate) {
-                                    await DAOServerController.getInstance().post_update_trigger_hook.trigger(vo._type, new DAOUpdateVOHolder(preUpdate, vo));
-                                } else {
-                                    vo.id = res.id;
-                                    await DAOServerController.getInstance().post_create_trigger_hook.trigger(vo._type, vo);
-                                }
-                            }
-
-                            StatsController.register_stat_COMPTEUR('dao', 'insertOrUpdateVO', 'ok');
-                            let time_out = Dates.now_ms();
-                            StatsController.register_stat_DUREE('dao', 'insertOrUpdateVO', 'ok_time', time_out - time_in);
-                            resolve(res);
+                        let bdd_version = moduleTable.get_bdd_version(vo_to_update);
+                        let query_uid = ModuleDAOServer.getInstance().log_db_query_perf_start('UpdateVO', 'type:' + vo_to_update._type);
+                        let db_result = await ModuleServiceBase.getInstance().db.oneOrNone(sql, bdd_version).catch((reason) => {
+                            ConsoleHandler.error('UpdateVO :' + reason);
+                            failed = true;
                         });
-                    }
-        }
+                        ModuleDAOServer.getInstance().log_db_query_perf_end(query_uid, 'UpdateVO', 'type:' + vo_to_update._type);
+
+                        let this_res: InsertOrDeleteQueryResult = new InsertOrDeleteQueryResult((db_result && db_result.id) ? parseInt(db_result.id.toString()) : null);
+
+                        if (failed || (!this_res) || (!this_res.id)) {
+                            StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'failed');
+                            return null;
+                        }
+
+                        await DAOServerController.getInstance().post_update_trigger_hook.trigger(vo_to_update._type, new DAOUpdateVOHolder(preupdate_vo, vo_to_update));
+
+                        StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'OK');
+                        StatsController.register_stat_DUREE('ContextQueryServerController', 'update_vos', 'OK', Dates.now_ms() - time_in);
+                        res.push(this_res);
+                    });
+                }
+
+                await promise_pipeline.end();
             }
+        }
+
+        return res;
+    }
 
     /**
      * Delete des vos en appliquant les filtres
@@ -743,7 +724,7 @@ export default class ContextQueryServerController {
         }
 
         // On vérifie qu'on peut faire un delete
-        if ((!context_query.is_admin) && !ModuleAccessPolicyServer.getInstance().checkAccessSync(DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, context_query.base_api_type_id))) {
+        if ((!context_query.is_server) && !ModuleAccessPolicyServer.getInstance().checkAccessSync(DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, context_query.base_api_type_id))) {
             StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'failed_checkAccessSync');
             return null;
         }
@@ -818,13 +799,13 @@ export default class ContextQueryServerController {
                         let is_ok = false;
                         await deps_promise_pipeline.push(async () => {
                             try {
-                                let count_links: number = await query(dep.linked_type).filter_by_id(dep.linked_id).exec_as_admin(context_query.is_admin).select_count();
+                                let count_links: number = await query(dep.linked_type).filter_by_id(dep.linked_id).exec_as_server(context_query.is_server).select_count();
                                 if (!count_links) {
                                     is_ok = true;
                                     return;
                                 }
 
-                                let deleted_links: InsertOrDeleteQueryResult[] = await query(dep.linked_type).filter_by_id(dep.linked_id).exec_as_admin(context_query.is_admin).delete_vos();
+                                let deleted_links: InsertOrDeleteQueryResult[] = await query(dep.linked_type).filter_by_id(dep.linked_id).exec_as_server(context_query.is_server).delete_vos();
                                 if ((!deleted_links) || (deleted_links.length != count_links)) {
                                     StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'failed_delete_links');
                                     ConsoleHandler.error('FAILED DELETE DEPS :' + dep.linked_type + ':' + dep.linked_id + ':ABORT DELETION:' + JSON.stringify(vo_to_delete));
@@ -947,7 +928,7 @@ export default class ContextQueryServerController {
                 /**
                  * Si la requete principale est admin, la requete de segmentation doit l'être aussi
                  */
-                let seg_query = query(segmentation_field.manyToOne_target_moduletable.vo_type).field('id').set_query_distinct().exec_as_admin(context_query.is_admin);
+                let seg_query = query(segmentation_field.manyToOne_target_moduletable.vo_type).field('id').set_query_distinct().exec_as_server(context_query.is_server);
 
                 let ids_map: IDistantVOBase[] = await this.configure_query_for_segmented_table_segment_listing(seg_query, moduletable, context_query.filters).select_vos();
                 let ids: number[] = ids_map ? ids_map.map((id_map) => id_map.id) : null;
@@ -1010,7 +991,7 @@ export default class ContextQueryServerController {
                 /**
                  * Si la requete principale est admin, la requete de segmentation doit l'être aussi
                  */
-                let seg_query = query(segmentation_field.manyToOne_target_moduletable.vo_type).field('id').set_query_distinct().exec_as_admin(context_query.is_admin);
+                let seg_query = query(segmentation_field.manyToOne_target_moduletable.vo_type).field('id').set_query_distinct().exec_as_server(context_query.is_server);
 
                 return await this.configure_query_for_segmented_table_segment_listing(seg_query, moduletable, context_query.filters).select_count();
             default:
@@ -1052,7 +1033,7 @@ export default class ContextQueryServerController {
             ContextQueryInjectionCheckHandler.assert_postgresql_name_format(context_query.query_tables_prefix);
 
             // Si on ignore_access_hook, on ignore les droits aussi
-            if ((!context_query.is_admin) && !ContextAccessServerController.getInstance().check_access_to_api_type_ids_field_ids(context_query, context_query.base_api_type_id, context_query.fields, access_type)) {
+            if ((!context_query.is_server) && !ContextAccessServerController.getInstance().check_access_to_api_type_ids_field_ids(context_query, context_query.base_api_type_id, context_query.fields, access_type)) {
                 return null;
             }
 
@@ -1377,7 +1358,7 @@ export default class ContextQueryServerController {
         }
 
         let tables_aliases_by_type_for_access_hooks = cloneDeep(tables_aliases_by_type);
-        if (!context_query.is_admin) {
+        if (!context_query.is_server) {
             /**
              * Check injection : OK
              */
@@ -1585,7 +1566,7 @@ export default class ContextQueryServerController {
                 /**
                  * On doit faire la jointure malgré le manque de chemin, ce qu'on ne fait ps s'il s'agit d'un filtrage ou d'un sort by
                  */
-                if ((!context_query.is_admin) && !await ContextAccessServerController.getInstance().check_access_to_field_retrieve_roles(context_query, selected_field.api_type_id, selected_field.field_id, access_type)) {
+                if ((!context_query.is_server) && !await ContextAccessServerController.getInstance().check_access_to_field_retrieve_roles(context_query, selected_field.api_type_id, selected_field.field_id, access_type)) {
                     ConsoleHandler.warn('join_api_type_id:check_access_to_field_retrieve_roles:Access denied to field ' + selected_field.field_id + ' of type ' + selected_field.api_type_id + ' for access_type ' + access_type);
                     return aliases_n;
                 }
@@ -1608,7 +1589,7 @@ export default class ContextQueryServerController {
         /**
          * On doit checker le trajet complet
          */
-        if ((!context_query.is_admin) && !ContextAccessServerController.getInstance().check_access_to_fields(context_query, path, access_type)) {
+        if ((!context_query.is_server) && !ContextAccessServerController.getInstance().check_access_to_fields(context_query, path, access_type)) {
             return aliases_n;
         }
 
@@ -1703,7 +1684,7 @@ export default class ContextQueryServerController {
         /**
          * Si on est serveur, on ignore cette étape
          */
-        if (context_query.is_admin || !StackContext.get('IS_CLIENT')) {
+        if (context_query.is_server || !StackContext.get('IS_CLIENT')) {
             return;
         }
 

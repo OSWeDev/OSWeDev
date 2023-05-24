@@ -36,7 +36,7 @@ export default class FeedbackConfirmationMail {
         if (user_id == target_user_id) {
             user = await ModuleAccessPolicyServer.getInstance().getSelfUser();
         } else {
-            user = await query(UserVO.API_TYPE_ID).filter_by_id(target_user_id).exec_as_admin().select_vo<UserVO>();
+            user = await query(UserVO.API_TYPE_ID).filter_by_id(target_user_id).exec_as_server().select_vo<UserVO>();
         }
 
         // Send mail

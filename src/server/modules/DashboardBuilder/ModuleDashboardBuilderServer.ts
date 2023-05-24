@@ -61,10 +61,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
             'fr-fr': 'Min'
         }, 'StatVO.AGGREGATOR_MIN'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Max'
+            'fr-fr': 'Moyenne'
         }, 'StatVO.AGGREGATOR_MEAN'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
-            'fr-fr': 'Moyenne'
+            'fr-fr': 'Max'
         }, 'StatVO.AGGREGATOR_MAX'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({

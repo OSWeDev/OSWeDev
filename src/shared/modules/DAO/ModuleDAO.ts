@@ -52,6 +52,7 @@ export default class ModuleDAO extends Module {
 
     public static APINAME_DELETE_VOS_BY_IDS = "DAO_DELETE_VOS_BY_IDS";
     public static APINAME_INSERT_OR_UPDATE_VOS = "DAO_INSERT_OR_UPDATE_VOS";
+    public static APINAME_INSERT_VOS = "INSERT_VOS";
     public static APINAME_INSERT_OR_UPDATE_VOS_MULTICONNECTIONS = "DAO_INSERT_OR_UPDATE_VOS_MULTICONNEXIONS";
 
     public static APINAME_INSERT_OR_UPDATE_VO = "DAO_INSERT_OR_UPDATE_VO";
@@ -151,7 +152,12 @@ export default class ModuleDAO extends Module {
 
     public deleteVOsMulticonnections: (vos: IDistantVOBase[]) => Promise<any[]> = APIControllerWrapper.sah(ModuleDAO.APINAME_DELETE_VOS_MULTICONNECTIONS);
     public deleteVOs: (vos: IDistantVOBase[]) => Promise<any[]> = APIControllerWrapper.sah(ModuleDAO.APINAME_DELETE_VOS);
+
+    /**
+     * @deprecated Choose between insert or update, use contextqueries for update, and ModuleDAO.insert_vos for inserts
+     */
     public insertOrUpdateVOs: (vos: IDistantVOBase[]) => Promise<InsertOrDeleteQueryResult[]> = APIControllerWrapper.sah(ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS);
+
     // public insertOrUpdateVOsMulticonnections: (vos: IDistantVOBase[], max_connections_to_use?: number) => Promise<InsertOrDeleteQueryResult[]> =
     //     APIControllerWrapper.sah(ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS_MULTICONNECTIONS, null, (vos: IDistantVOBase[], max_connections_to_use?: number) => {
     //         if ((!vos) || (!vos.length)) {
@@ -164,6 +170,14 @@ export default class ModuleDAO extends Module {
     //         }
     //     });
 
+    /**
+     * Insère les vos, et met l'id retourné par la bdd dans le vo et le retourne également en InsertOrDeleteQueryResult
+     */
+    public insert_vos: (vos: IDistantVOBase[]) => Promise<InsertOrDeleteQueryResult[]> = APIControllerWrapper.sah(ModuleDAO.APINAME_INSERT_VOS);
+
+    /**
+     * @deprecated Choose between insert or update, use contextqueries for update, and ModuleDAO.insert_vos for inserts
+     */
     public insertOrUpdateVO: (vo: IDistantVOBase) => Promise<InsertOrDeleteQueryResult> = APIControllerWrapper.sah(ModuleDAO.APINAME_INSERT_OR_UPDATE_VO);
     /**
      * @deprecated use context queries - will be deleted soon
@@ -361,6 +375,23 @@ export default class ModuleDAO extends Module {
             (param: APIDAOParamsVO) => [param.API_TYPE_ID],
             APIDAOParamsVOStatic
         ));
+
+        APIControllerWrapper.registerApi(new PostAPIDefinition<IDistantVOBase[], InsertOrDeleteQueryResult[]>(
+            null,
+            ModuleDAO.APINAME_INSERT_VOS,
+            (params: IDistantVOBase[]) => {
+                let res: { [type: string]: boolean } = {};
+
+                for (let i in params) {
+                    let param = params[i];
+
+                    res[param._type] = true;
+                }
+
+                return Object.keys(res);
+            }
+        ));
+
         APIControllerWrapper.registerApi(new PostAPIDefinition<IDistantVOBase[], InsertOrDeleteQueryResult[]>(
             null,
             ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS,

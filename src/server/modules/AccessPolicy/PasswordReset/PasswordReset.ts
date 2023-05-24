@@ -1,6 +1,7 @@
-
+import { field_names } from '../../../../shared/tools/ObjectHandler';
 import AccessPolicyController from '../../../../shared/modules/AccessPolicy/AccessPolicyController';
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
+import { query } from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import Dates from '../../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import NotificationVO from '../../../../shared/modules/PushData/vos/NotificationVO';
@@ -146,12 +147,8 @@ export default class PasswordReset {
             return false;
         }
 
-        // On doit se comporter comme un server à ce stade
-        await StackContext.runPromise({ IS_CLIENT: false }, async () => {
-
-            AccessPolicyController.getInstance().prepareForInsertOrUpdateAfterPwdChange(user, new_pwd1);
-            await ModuleDAO.getInstance().insertOrUpdateVO(user);
-        });
+        AccessPolicyController.getInstance().prepareForInsertOrUpdateAfterPwdChange(user, new_pwd1);
+        await query(UserVO.API_TYPE_ID).filter_by_id(user.id).exec_as_server().update_vos<UserVO>(user);
 
         return true;
     }

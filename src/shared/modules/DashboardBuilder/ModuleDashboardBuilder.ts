@@ -29,6 +29,7 @@ import DashboardVO from './vos/DashboardVO';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import ModuleDAO from '../DAO/ModuleDAO';
+import DAOController from '../DAO/DAOController';
 
 export default class ModuleDashboardBuilder extends Module {
 

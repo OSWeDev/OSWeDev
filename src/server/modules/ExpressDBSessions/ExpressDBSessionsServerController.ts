@@ -4,10 +4,12 @@ import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ExpressSessionController from '../../../shared/modules/ExpressDBSessions/ExpressSessionController';
 import ExpressSessionVO from '../../../shared/modules/ExpressDBSessions/vos/ExpressSessionVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import StatsController from '../../../shared/modules/Stats/StatsController';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import ObjectHandler, { field_names } from '../../../shared/tools/ObjectHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import StackContext from '../../StackContext';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
 
 const session = expressSession as any;
 const Store = session.Store || session.session.Store;
@@ -52,7 +54,7 @@ export default class ExpressDBSessionsServerController extends Store {
         } else {
 
             // On sort du contexte client pour faire la requete, on doit toujours pouvoir récupérer la session
-            this_session = await query(ExpressSessionVO.API_TYPE_ID).filter_by_text_eq('sid', sid).filter_by_date_same_or_after('expire', Dates.now()).exec_as_admin().select_vo<ExpressSessionVO>();
+            this_session = await query(ExpressSessionVO.API_TYPE_ID).filter_by_text_eq('sid', sid).filter_by_date_same_or_after('expire', Dates.now()).exec_as_server().select_vo<ExpressSessionVO>();
             ExpressDBSessionsServerController.session_cache[sid] = this_session;
         }
 
@@ -78,6 +80,7 @@ export default class ExpressDBSessionsServerController extends Store {
      */
     public async set(sid, sess, fn) {
         const expireTime = ExpressSessionController.getExpireTime(sess);
+        StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'set', 'IN');
 
         /**
          * On ne met à jour que si : le contenu de la session change (objet sess) ou la date d'expiration a bougé de plus de 7 jours
@@ -95,33 +98,43 @@ export default class ExpressDBSessionsServerController extends Store {
             do_update = (Math.abs(expireTime - ExpressDBSessionsServerController.session_cache[sid].expire) > 7 * 24 * 60 * 60);
         }
 
-        if (do_update) {
-            if (!ExpressDBSessionsServerController.session_cache[sid]) {
-                ExpressDBSessionsServerController.session_cache[sid] = new ExpressSessionVO();
-                ExpressDBSessionsServerController.session_cache[sid].sid = sid;
-            }
-            ExpressDBSessionsServerController.session_cache[sid].expire = expireTime;
-            ExpressDBSessionsServerController.session_cache[sid].sess = (typeof sess === 'string') ? sess : JSON.stringify(sess);
+        let db_session_time_in = Dates.now_ms();
 
-            // On sort du contexte client pour faire la requete, on doit toujours pouvoir save la session
-            let res = await StackContext.runPromise({ IS_CLIENT: false }, async () => {
-                return await ModuleDAO.getInstance().insertOrUpdateVO(ExpressDBSessionsServerController.session_cache[sid]);
-            });
+        if (do_update) {
+            let res = ExpressDBSessionsServerController.session_cache[sid];
+            if (!res) {
+
+                StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'set', 'insert');
+                res = new ExpressSessionVO();
+                res.sid = sid;
+                res.sess = (typeof sess === 'string') ? sess : JSON.stringify(sess);
+                res.expire = expireTime;
+                await ModuleDAOServer.getInstance().insert_vos([res], true);
+                ExpressDBSessionsServerController.session_cache[sid] = res;
+                StatsController.register_stat_DUREE('ExpressDBSessionsServerController', 'set', 'insert_out', Dates.now_ms() - db_session_time_in);
+            } else {
+
+                StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'set', 'update');
+                res.sess = (typeof sess === 'string') ? sess : JSON.stringify(sess);
+                res.expire = expireTime;
+                await query(ExpressSessionVO.API_TYPE_ID).filter_by_id(res.id).exec_as_server().update_vos<ExpressSessionVO>({
+                    [field_names<ExpressSessionVO>().expire]: res.expire,
+                    [field_names<ExpressSessionVO>().sess]: res.sess
+                });
+                StatsController.register_stat_DUREE('ExpressDBSessionsServerController', 'set', 'update_out', Dates.now_ms() - db_session_time_in);
+            }
 
             if (!res || !res.id) {
                 /**
                  * On a un problème, on supprime la session du cache pour forcer une nouvelle insertion
                  */
                 delete ExpressDBSessionsServerController.session_cache[sid];
+                StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'set', 'ERROR_session_cache');
                 try {
-                    let db_sess: ExpressSessionVO = await StackContext.runPromise({ IS_CLIENT: false }, async () => {
-                        return await query(ExpressSessionVO.API_TYPE_ID).filter_by_text_eq('sid', sid).select_vo<ExpressSessionVO>();
-                    });
+                    let db_sess: ExpressSessionVO = await query(ExpressSessionVO.API_TYPE_ID).filter_by_text_eq('sid', sid).exec_as_server().select_vo<ExpressSessionVO>();
 
                     if (db_sess) {
-                        await StackContext.runPromise({ IS_CLIENT: false }, async () => {
-                            await ModuleDAO.getInstance().deleteVOs([db_sess]);
-                        });
+                        await query(ExpressSessionVO.API_TYPE_ID).filter_by_id(db_sess.id).exec_as_server().delete_vos();
                         ConsoleHandler.warn('ExpressDBSessionsServerController.set: found a session in db for this sid. deleting and replacing with new session:' + sid);
 
                         return await this.set(sid, sess, fn);
@@ -141,6 +154,7 @@ export default class ExpressDBSessionsServerController extends Store {
             ExpressDBSessionsServerController.session_cache[sid].id = ExpressDBSessionsServerController.session_cache[sid].id ? ExpressDBSessionsServerController.session_cache[sid].id : res.id;
 
             if (!ExpressDBSessionsServerController.session_cache[sid].id) {
+                StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'set', 'ERROR_no_id');
                 ConsoleHandler.error('ExpressDBSessionsServerController.set: no id for session sid:' + sid +
                     ': sess:' + ((typeof sess === 'string') ? sess : JSON.stringify(sess)) +
                     ': res:' + JSON.stringify(res));
@@ -160,15 +174,22 @@ export default class ExpressDBSessionsServerController extends Store {
      * @access public
      */
     public async destroy(sid, fn) {
-        if (!ExpressDBSessionsServerController.session_cache[sid]) {
+        if (!ExpressDBSessionsServerController.session_cache[sid] || !ExpressDBSessionsServerController.session_cache[sid].id) {
             if (fn) {
                 return fn(null);
             }
         }
 
-        await StackContext.runPromise({ IS_CLIENT: false }, async () => {
-            await ModuleDAO.getInstance().deleteVOs([ExpressDBSessionsServerController.session_cache[sid]]);
-        });
+        StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'destroy', 'IN');
+        try {
+            let db_session_time_in = Dates.now_ms();
+            await query(ExpressSessionVO.API_TYPE_ID).filter_by_id(ExpressDBSessionsServerController.session_cache[sid].id).exec_as_server().delete_vos();
+            StatsController.register_stat_DUREE('ExpressDBSessionsServerController', 'destroy', 'OUT', Dates.now_ms() - db_session_time_in);
+            StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'destroy', 'OUT');
+        } catch (error) {
+            StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'destroy', 'error');
+            ConsoleHandler.error('ExpressDBSessionsServerController.destroy: error on delete sid:' + sid + ': ' + error);
+        }
         delete ExpressDBSessionsServerController.session_cache[sid];
 
         if (fn) {
@@ -195,30 +216,41 @@ export default class ExpressDBSessionsServerController extends Store {
             do_update = (Math.abs(expireTime - ExpressDBSessionsServerController.session_cache[sid].expire) > 7 * 24 * 60 * 60);
         }
 
+        StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'touch', 'IN');
+        let db_session_time_in = Dates.now_ms();
+
         if (do_update) {
-            if (!ExpressDBSessionsServerController.session_cache[sid]) {
-                ExpressDBSessionsServerController.session_cache[sid] = new ExpressSessionVO();
-                ExpressDBSessionsServerController.session_cache[sid].sid = sid;
-                ExpressDBSessionsServerController.session_cache[sid].sess = (typeof sess === 'string') ? sess : JSON.stringify(sess);
+            let res = ExpressDBSessionsServerController.session_cache[sid];
+            if (!res) {
+
+                StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'touch', 'insert');
+                res = new ExpressSessionVO();
+                res.sid = sid;
+                res.sess = (typeof sess === 'string') ? sess : JSON.stringify(sess);
+                res.expire = expireTime;
+                await ModuleDAOServer.getInstance().insert_vos([res], true);
+                ExpressDBSessionsServerController.session_cache[sid] = res;
+                StatsController.register_stat_DUREE('ExpressDBSessionsServerController', 'touch', 'insert_out', Dates.now_ms() - db_session_time_in);
+            } else {
+
+                StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'touch', 'update');
+                res.expire = expireTime;
+                await query(ExpressSessionVO.API_TYPE_ID).filter_by_id(res.id).exec_as_server().update_vos<ExpressSessionVO>({
+                    [field_names<ExpressSessionVO>().expire]: res.expire
+                });
+                StatsController.register_stat_DUREE('ExpressDBSessionsServerController', 'touch', 'update_out', Dates.now_ms() - db_session_time_in);
             }
-            ExpressDBSessionsServerController.session_cache[sid].expire = expireTime;
-            let res = await StackContext.runPromise({ IS_CLIENT: false }, async () => {
-                return await ModuleDAO.getInstance().insertOrUpdateVO(ExpressDBSessionsServerController.session_cache[sid]);
-            });
 
             if (!res || !res.id) {
                 /**
                  * On a un problème, on supprime la session du cache pour forcer une nouvelle insertion
                  */
+                StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'touch', 'ERROR_session_cache');
                 delete ExpressDBSessionsServerController.session_cache[sid];
                 try {
-                    let db_sess: ExpressSessionVO = await StackContext.runPromise({ IS_CLIENT: false }, async () => {
-                        return await query(ExpressSessionVO.API_TYPE_ID).filter_by_text_eq('sid', sid).select_vo<ExpressSessionVO>();
-                    });
-                    if (db_sess) {
-                        await StackContext.runPromise({ IS_CLIENT: false }, async () => {
-                            await ModuleDAO.getInstance().deleteVOs([db_sess]);
-                        });
+                    let db_sess: ExpressSessionVO = await query(ExpressSessionVO.API_TYPE_ID).filter_by_text_eq('sid', sid).exec_as_server().select_vo<ExpressSessionVO>();
+                    if (db_sess && db_sess.id) {
+                        await query(ExpressSessionVO.API_TYPE_ID).filter_by_id(db_sess.id).exec_as_server().delete_vos();
                         ConsoleHandler.warn('ExpressDBSessionsServerController.touch: found a session in db for this sid. deleting and replacing with new session:' + sid);
 
                         return await this.touch(sid, sess, fn);
@@ -238,6 +270,7 @@ export default class ExpressDBSessionsServerController extends Store {
             ExpressDBSessionsServerController.session_cache[sid].id = ExpressDBSessionsServerController.session_cache[sid].id ? ExpressDBSessionsServerController.session_cache[sid].id : res.id;
 
             if (!ExpressDBSessionsServerController.session_cache[sid].id) {
+                StatsController.register_stat_COMPTEUR('ExpressDBSessionsServerController', 'touch', 'ERROR_no_id');
                 ConsoleHandler.error('ExpressDBSessionsServerController.touch: no id for session sid:' + sid +
                     ': sess:' + ((typeof sess === 'string') ? sess : JSON.stringify(sess)) +
                     ': res:' + JSON.stringify(res));

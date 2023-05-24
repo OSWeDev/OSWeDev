@@ -3424,15 +3424,15 @@ export default class ContextFilterServerController {
                     let linked_query = query(linked_segment_table.vo_type).add_filters(simple_filters);
 
                     // Si le context_query est admin, on doit faire la requete en admin
-                    if (context_query.is_admin) {
-                        linked_query.exec_as_admin();
+                    if (context_query.is_server) {
+                        linked_query.exec_as_server();
                     }
 
                     let query_res: any[] = await ContextQueryServerController.getInstance().select_vos(linked_query);
 
                     if (query_res && query_res.length) {
 
-                        let unique_segment_vos = context_query.is_admin ? query_res : await ModuleDAOServer.getInstance().filterVOsAccess(linked_segment_table, ModuleDAO.DAO_ACCESS_TYPE_READ, query_res);
+                        let unique_segment_vos = context_query.is_server ? query_res : await ModuleDAOServer.getInstance().filterVOsAccess(linked_segment_table, ModuleDAO.DAO_ACCESS_TYPE_READ, query_res);
 
                         if (unique_segment_vos && (unique_segment_vos.length == 1)) {
                             is_implemented = true;

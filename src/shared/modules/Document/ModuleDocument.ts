@@ -3,6 +3,7 @@ import RoleVO from '../AccessPolicy/vos/RoleVO';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
+import DAOController from '../DAO/DAOController';
 import ModuleDAO from '../DAO/ModuleDAO';
 import FileVO from '../File/vos/FileVO';
 import Module from '../Module';

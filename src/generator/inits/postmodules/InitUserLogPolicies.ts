@@ -6,6 +6,7 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserLogVO from '../../../shared/modules/AccessPolicy/vos/UserLogVO';
+import DAOController from '../../../shared/modules/DAO/DAOController';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import IGeneratorWorker from '../../IGeneratorWorker';
 

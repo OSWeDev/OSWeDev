@@ -4,6 +4,7 @@ import ModuleAccessPolicyServer from '../../../server/modules/AccessPolicy/Modul
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
+import DAOController from '../../../shared/modules/DAO/DAOController';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 

@@ -10,6 +10,7 @@ import EnvHandler from "../../../tools/EnvHandler";
 import ModuleDAO from "../../DAO/ModuleDAO";
 import { query } from "../../ContextFilter/vos/ContextQueryVO";
 import DashboardVO from "../vos/DashboardVO";
+import DAOController from "../../DAO/DAOController";
 
 /**
  * @class SupervisionWidgetManager

@@ -441,7 +441,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         root_filter.left_hook = is_own_facilitator_filter;
         root_filter.right_hook = is_own_facilitators_manager_filter;
 
-        return query(moduletable.vo_type).using(this.programplan_shared_module.manager_type_id).field('id', 'filter_' + moduletable.vo_type + '_id').add_filters([root_filter]).exec_as_admin();
+        return query(moduletable.vo_type).using(this.programplan_shared_module.manager_type_id).field('id', 'filter_' + moduletable.vo_type + '_id').add_filters([root_filter]).exec_as_server();
     }
 
     /**
@@ -502,7 +502,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         root_filter.left_hook = is_own_manager_filter;
         root_filter.right_hook = is_own_facilitators_manager_filter;
 
-        return query(moduletable.vo_type).using(this.programplan_shared_module.facilitator_type_id).field('id', 'filter_' + moduletable.vo_type + '_id').add_filters([root_filter]).exec_as_admin();
+        return query(moduletable.vo_type).using(this.programplan_shared_module.facilitator_type_id).field('id', 'filter_' + moduletable.vo_type + '_id').add_filters([root_filter]).exec_as_server();
     }
 
     /**
@@ -709,7 +709,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         is_own_facilitators_rdv_filter.filter_type = ContextFilterVO.TYPE_NUMERIC_EQUALS_ALL;
         is_own_facilitators_rdv_filter.param_numeric = loggedUserId;
 
-        return query(moduletable.vo_type).field('id', 'filter_' + moduletable.vo_type + '_id').add_filters([is_own_facilitators_rdv_filter]).exec_as_admin();
+        return query(moduletable.vo_type).field('id', 'filter_' + moduletable.vo_type + '_id').add_filters([is_own_facilitators_rdv_filter]).exec_as_server();
     }
 
     /**
@@ -767,7 +767,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             .field('id', 'filter_' + moduletable.vo_type + '_id')
             .filter_by_num_in('rdv_id',
                 query(this.programplan_shared_module.rdv_type_id).field('id', 'filter_' + this.programplan_shared_module.rdv_type_id + '_id_for_filter_' + moduletable.vo_type + '_id'))
-            .exec_as_admin();
+            .exec_as_server();
 
         res.is_access_hook_def = true;
         return res;

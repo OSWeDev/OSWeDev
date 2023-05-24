@@ -18,6 +18,7 @@ import { all_promises } from '../../../shared/tools/PromiseTools';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import StackContext from '../../StackContext';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import SocketWrapper from './vos/SocketWrapper';
 
@@ -999,10 +1000,7 @@ export default class PushDataServerController {
 
             // On ne stocke en base que les notifications de type simple, pour les retrouver dans le compte utilisateur
             if ((notification.notification_type == NotificationVO.TYPE_NOTIF_SIMPLE || notification.notification_type == NotificationVO.TYPE_NOTIF_REDIRECT) && (notification.user_id)) {
-                let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(notification);
-                if (res && res.id) {
-                    notification.id = res.id;
-                }
+                await ModuleDAOServer.getInstance().insert_vos([notification], true);
             }
 
             if (socketWrappers && socketWrappers.length) {

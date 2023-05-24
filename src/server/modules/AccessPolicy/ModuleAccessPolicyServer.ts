@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import AccessPolicyController from '../../../shared/modules/AccessPolicy/AccessPolicyController';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
@@ -14,6 +15,7 @@ import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapp
 import ContextFilterVO from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
 import ContextQueryVO, { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import SortByVO from '../../../shared/modules/ContextFilter/vos/SortByVO';
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
@@ -57,6 +59,7 @@ import PasswordInitialisation from './PasswordInitialisation/PasswordInitialisat
 import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
 import UserRecapture from './UserRecapture/UserRecapture';
+import StatsController from '../../../shared/modules/Stats/StatsController';
 
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
@@ -916,13 +919,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                  * Gestion du impersonate
                  */
                 user_log.handle_impersonation(session);
-
-                // TODO FIXME : Retrait is_client false pour les insertOrUpdateVO => ajouter en param de la fonction le context directement
-                await StackContext.runPromise(
-                    { IS_CLIENT: false },
-                    async () => {
-                        await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
-                    });
+                await ModuleDAOServer.getInstance().insert_vos([user_log], true);
             }
 
             /**
@@ -1085,7 +1082,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return null;
         }
 
-        return await query(UserVO.API_TYPE_ID).filter_by_id(user_id).exec_as_admin().select_vo<UserVO>();
+        return await query(UserVO.API_TYPE_ID).filter_by_id(user_id).exec_as_server().select_vo<UserVO>();
     }
 
     public async getMyLang(): Promise<LangVO> {
@@ -1099,20 +1096,29 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     public async generate_challenge(user: UserVO) {
 
+        StatsController.register_stat_COMPTEUR('ModuleAccessPolicyServer', 'generate_challenge', '-');
+
         // on génère un code qu'on stocke dans le user en base (en datant) et qu'on envoie par mail
         // Si un code existe déjà et n'a pas encore expiré, on le prolonge et on le renvoie pour pas invalider un mail qui serait très récent
         if (user.recovery_challenge && user.recovery_expiration && (user.recovery_expiration >= Dates.now())) {
             console.debug("challenge - pushing expiration:" + user.email + ':' + user.recovery_challenge + ':');
             user.recovery_expiration = Dates.add(Dates.now(), await ModuleParams.getInstance().getParamValueAsFloat(ModuleAccessPolicy.PARAM_NAME_RECOVERY_HOURS), TimeSegment.TYPE_HOUR);
-            await ModuleDAO.getInstance().insertOrUpdateVO(user);
+
+            await query(UserVO.API_TYPE_ID).filter_by_id(user.id).exec_as_server().update_vos<UserVO>({
+                [field_names<UserVO>().recovery_expiration]: user.recovery_expiration
+            });
             return;
         }
 
         let challenge: string = TextHandler.getInstance().generateChallenge();
         user.recovery_challenge = challenge;
-        console.debug("challenge:" + user.email + ':' + challenge + ':');
         user.recovery_expiration = Dates.add(Dates.now(), await ModuleParams.getInstance().getParamValueAsFloat(ModuleAccessPolicy.PARAM_NAME_RECOVERY_HOURS), TimeSegment.TYPE_HOUR);
-        await ModuleDAO.getInstance().insertOrUpdateVO(user);
+        console.debug("challenge:" + user.email + ':' + challenge + ':');
+
+        await query(UserVO.API_TYPE_ID).filter_by_id(user.id).exec_as_server().update_vos<UserVO>({
+            [field_names<UserVO>().recovery_expiration]: user.recovery_expiration,
+            [field_names<UserVO>().recovery_challenge]: user.recovery_challenge
+        });
     }
 
     public async change_lang(num: number): Promise<void> {
@@ -1244,7 +1250,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 return false;
             }
 
-            let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_id(uid).exec_as_admin().select_vo<UserVO>();
+            let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_id(uid).exec_as_server().select_vo<UserVO>();
 
             if (!user) {
                 return false;
@@ -1256,9 +1262,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             if (!user.logged_once) {
                 user.logged_once = true;
-                // TODO FIXME : Retrait is_client false pour les insertOrUpdateVO => ajouter en param de la fonction le context directement
-                await StackContext.runPromise({ IS_CLIENT: false }, async () => {
-                    await ModuleDAO.getInstance().insertOrUpdateVO(user);
+
+                await query(UserVO.API_TYPE_ID).filter_by_id(user.id).exec_as_server().update_vos<UserVO>({
+                    [field_names<UserVO>().logged_once]: user.logged_once
                 });
             }
 
@@ -1274,12 +1280,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.referer = StackContext.get('REFERER');
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
-            // TODO FIXME : Retrait is_client false pour les insertOrUpdateVO => ajouter en param de la fonction le context directement
-            await StackContext.runPromise(
-                { IS_CLIENT: false },
-                async () => {
-                    await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
-                });
+            await ModuleDAOServer.getInstance().insert_vos([user_log], true);
 
             await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
 
@@ -1503,7 +1504,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         return await
-            query(RoleVO.API_TYPE_ID).filter_by_id(uid, UserVO.API_TYPE_ID).exec_as_admin().select_vos();
+            query(RoleVO.API_TYPE_ID).filter_by_id(uid, UserVO.API_TYPE_ID).exec_as_server().select_vos();
     }
 
     private async get_user_roles(uid: number): Promise<RoleVO[]> {
@@ -1513,7 +1514,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         return await
-            query(RoleVO.API_TYPE_ID).filter_by_id(uid, UserVO.API_TYPE_ID).exec_as_admin().select_vos();
+            query(RoleVO.API_TYPE_ID).filter_by_id(uid, UserVO.API_TYPE_ID).exec_as_server().select_vos();
     }
 
     /**
@@ -1813,74 +1814,59 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 return null;
             }
 
-            return await StackContext.runPromise({ IS_CLIENT: false }, async () => {
-                let user: UserVO = await ModuleDAOServer.getInstance().selectOneUser(email, password);
+            let user: UserVO = await ModuleDAOServer.getInstance().selectOneUser(email, password);
 
-                if (!!user) {
+            if (!!user) {
 
-                    if (user.invalidated) {
+                if (user.invalidated) {
 
-                        await PasswordRecovery.getInstance().beginRecovery(user.email);
+                    await PasswordRecovery.getInstance().beginRecovery(user.email);
 
-                    }
-                    return null;
-                } else {
-                    user = new UserVO();
                 }
+                return null;
+            } else {
+                user = new UserVO();
+            }
+
+            user.logged_once = true;
+            user.name = nom;
+            user.password = password;
+            user.email = email;
+            user.blocked = false;
+            user.reminded_pwd_1 = false;
+            user.reminded_pwd_2 = false;
+            user.invalidated = false;
+            user.recovery_challenge = "";
+            user.phone = "";
+            user.recovery_expiration = 0;
+            user.password_change_date = Dates.now();
+            user.creation_date = Dates.now();
 
 
-                user.logged_once = true;
-                user.name = nom;
-                user.password = password;
-                user.email = email;
-                user.blocked = false;
-                user.reminded_pwd_1 = false;
-                user.reminded_pwd_2 = false;
-                user.invalidated = false;
-                user.recovery_challenge = "";
-                user.phone = "";
-                user.recovery_expiration = 0;
-                user.password_change_date = Dates.now();
-                user.creation_date = Dates.now();
+            // Pour la création d'un User, on utilise la première Lang qui est en BDD et si ca doit changer ca se fera dans un trigger dans le projet
+            let lang: LangVO = await query(LangVO.API_TYPE_ID).set_sort(new SortByVO(LangVO.API_TYPE_ID, 'id', true)).set_limit(1).select_vo<LangVO>();
+            user.lang_id = lang.id;
 
+            await ModuleDAOServer.getInstance().insert_vos([user], true);
 
-                // Pour la création d'un User, on utilise la première Lang qui est en BDD et si ca doit changer ca se fera dans un trigger dans le projet
-                let langs: LangVO[] = await ModuleDAO.getInstance().getVos(LangVO.API_TYPE_ID);
-                user.lang_id = langs[0].id;
-                // let res: InsertOrDeleteQueryResult = await StackContext.runPromise({ IS_CLIENT: false }, async () =>
-                //     await ModuleDAO.getInstance().insertOrUpdateVO(user)) as InsertOrDeleteQueryResult;
+            if (!user.id) {
+                throw new Error('Impossible de créer le compte');
+            }
+            session.uid = user.id;
+            PushDataServerController.getInstance().registerSession(session);
 
+            // On stocke le log de connexion en base
+            let user_log = new UserLogVO();
+            user_log.user_id = user.id;
+            user_log.log_time = Dates.now();
+            user_log.impersonated = false;
+            user_log.referer = StackContext.get('REFERER');
+            user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
-                let insertOrDeleteQueryResult = null;
+            await ModuleDAOServer.getInstance().insert_vos([user_log], true);
+            await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
 
-                let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(user);
-
-                if (!res || !res.id) {
-                    throw new Error();
-                }
-                session.uid = res.id;
-                PushDataServerController.getInstance().registerSession(session);
-
-                // On stocke le log de connexion en base
-                let user_log = new UserLogVO();
-                user_log.user_id = res.id;
-                user_log.log_time = Dates.now();
-                user_log.impersonated = false;
-                user_log.referer = StackContext.get('REFERER');
-                user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
-
-                // On await pas ici on se fiche du résultat
-                await StackContext.runPromise(
-                    { IS_CLIENT: false },
-                    async () => {
-                        await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
-                    });
-
-                await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
-
-                return res.id;
-
-            });
+            return user.id;
         } catch (error) {
             ConsoleHandler.error("login:" + email + ":" + error);
         }
@@ -1955,12 +1941,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.referer = StackContext.get('REFERER');
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
-            // On await pas ici on se fiche du résultat
-            await StackContext.runPromise(
-                { IS_CLIENT: false },
-                async () => {
-                    await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
-                });
+            await ModuleDAOServer.getInstance().insert_vos([user_log], true);
 
             await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
 
@@ -2025,11 +2006,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
             user_log.handle_impersonation(session);
 
-            await StackContext.runPromise(
-                { IS_CLIENT: false },
-                async () => {
-                    await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
-                });
+            await ModuleDAOServer.getInstance().insert_vos([user_log], true);
 
             await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
 
@@ -2088,7 +2065,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         res.add_fields([new ContextQueryFieldVO(AccessPolicyVO.API_TYPE_ID, 'id', 'filter_access_policy_id')]);
         res.add_filters([filter_or]);
-        res.exec_as_admin();
+        res.exec_as_server();
 
         return res;
     }
@@ -2185,11 +2162,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     private async checkBlockingOrInvalidatingUser(user: UserVO) {
         let old_user: UserVO = null;
         if (!!user.id) {
-            await StackContext.runPromise(
-                { IS_CLIENT: false },
-                async () => {
-                    old_user = await query(UserVO.API_TYPE_ID).filter_by_id(user.id).select_vo<UserVO>();
-                });
+            old_user = await query(UserVO.API_TYPE_ID).filter_by_id(user.id).ignore_access_hooks().select_vo<UserVO>();
         }
 
         return ModuleAccessPolicyServer.getInstance().checkBlockingOrInvalidatingUser_(user, old_user);
@@ -2262,11 +2235,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
             user_log.handle_impersonation(session);
 
-            await StackContext.runPromise(
-                { IS_CLIENT: false },
-                async () => {
-                    await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
-                });
+            await ModuleDAOServer.getInstance().insert_vos([user_log], true);
         }
 
         /**
@@ -2290,11 +2259,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
             user_log.handle_impersonation(session);
 
-            await StackContext.runPromise(
-                { IS_CLIENT: false },
-                async () => {
-                    await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
-                });
+            await ModuleDAOServer.getInstance().insert_vos([user_log], true);
         }
 
         await ConsoleHandler.log('unregisterSession:delete_session:uid:' + session.uid);

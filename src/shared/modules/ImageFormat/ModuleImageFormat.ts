@@ -1,6 +1,7 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import APIControllerWrapper from '../API/APIControllerWrapper';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import DAOController from '../DAO/DAOController';
 import ModuleDAO from '../DAO/ModuleDAO';
 import FileVO from '../File/vos/FileVO';
 import Module from '../Module';

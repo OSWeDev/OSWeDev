@@ -404,7 +404,7 @@ export default class VarsDatasProxy {
                     }
 
                     promises.push((async () => {
-                        if (!await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(filtered_insert)) {
+                        if (!await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(filtered_insert, null, true)) {
                             result = false;
                         }
 
@@ -416,7 +416,8 @@ export default class VarsDatasProxy {
                             let var_data = filtered_insert[i];
                             filtered_insert_by_index[var_data.index] = var_data;
                         }
-                        let inserted_vars: VarDataBaseVO[] = await query(api_type_id).filter_by_text_has('_bdd_only_index', to_insert.map((var_data: VarDataBaseVO) => var_data.index)).select_vos<VarDataBaseVO>();
+                        let inserted_vars: VarDataBaseVO[] = await query(api_type_id)
+                            .filter_by_text_has('_bdd_only_index', to_insert.map((var_data: VarDataBaseVO) => var_data.index)).exec_as_server().select_vos<VarDataBaseVO>();
 
                         for (let i in inserted_vars) {
                             let inserted_var = inserted_vars[i];

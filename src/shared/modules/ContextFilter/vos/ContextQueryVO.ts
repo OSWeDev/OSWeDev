@@ -90,20 +90,20 @@ export default class ContextQueryVO implements IDistantVOBase {
      *  filtrage des types de données et des données (les droits, et les content access hooks)
      * Ce paramètre est forcé à false quand on arrive par l'API, seul le serveur peut décider de le mettre à true
      */
-    public is_admin: boolean;
+    public is_server: boolean;
 
     /**
      * @deprecated use is_admin
      */
     get is_access_hook_def(): boolean {
-        return this.is_admin;
+        return this.is_server;
     }
 
     /**
      * @deprecated use is_admin
      */
     set is_access_hook_def(is_admin: boolean) {
-        this.is_admin = is_admin;
+        this.is_server = is_admin;
     }
 
     /**
@@ -851,7 +851,7 @@ export default class ContextQueryVO implements IDistantVOBase {
      * Ignorer les context access hooks => à utiliser si l'on est en train de déclarer un context access hook pour
      *  éviter une récursivité du hook
      * ATTENTION : on ignore aussi tout type de filtrage de droit => on devient ADMIN. Equivalent de l'ancien IS_CLIENT: false
-     * @depracated use query_as_admin
+     * @deprecated use query_as_admin
      */
     public ignore_access_hooks(): ContextQueryVO {
 
@@ -861,12 +861,12 @@ export default class ContextQueryVO implements IDistantVOBase {
     }
 
     /**
-     * Ignorer les content access hooks et les droits d'accès aux API_TYPE_IDS => on devient ADMIN. Equivalent de l'ancien IS_CLIENT: false
+     * Ignorer les content access hooks et les droits d'accès aux API_TYPE_IDS => on devient SERVER. Equivalent de l'ancien IS_CLIENT: false
      *  => à utiliser par exemple si l'on est en train de déclarer un context access hook pour éviter une récursivité du hook
      */
-    public exec_as_admin(is_admin = true): ContextQueryVO {
+    public exec_as_server(is_server = true): ContextQueryVO {
 
-        this.is_admin = is_admin;
+        this.is_server = is_server;
 
         return this;
     }
@@ -897,12 +897,23 @@ export default class ContextQueryVO implements IDistantVOBase {
     }
 
     /**
-     * Faire la requête en mode select_vos
-     *  Si on avait défini des fields on les supprime puisqu'ils deviennent invalides
+     * Faire la requête en mode delete_vos
+     * ATTENTION : les access_hooks sont ignorés, il faut passer par un trigger pre-delete pour refuser le delete
+     *  ou modifier le comportement comme expliqué sur "context_access_hooks" dans le ModuleDAOServer
      * @returns les vos issus de la requête
      */
     public async delete_vos(): Promise<InsertOrDeleteQueryResult[]> {
         return await ModuleContextFilter.getInstance().delete_vos(this);
+    }
+
+    /**
+     * Faire la requête en mode delete_vos
+     * ATTENTION : les access_hooks sont ignorés, il faut passer par un trigger pre-delete pour refuser le delete
+     *  ou modifier le comportement comme expliqué sur "context_access_hooks" dans le ModuleDAOServer
+     * @returns les vos issus de la requête
+     */
+    public async update_vos<T extends IDistantVOBase>(new_api_translated_values: { [update_field_id in keyof T]?: any }): Promise<InsertOrDeleteQueryResult[]> {
+        return await ModuleContextFilter.getInstance().update_vos<T>(this, new_api_translated_values);
     }
 
     /**

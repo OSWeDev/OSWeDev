@@ -1911,7 +1911,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     private async load_slowvars() {
 
-        let items: SlowVarVO[] = await query(SlowVarVO.API_TYPE_ID).filter_by_num_eq('type', SlowVarVO.TYPE_DENIED).select_vos<SlowVarVO>();
+        let items: SlowVarVO[] = await query(SlowVarVO.API_TYPE_ID).filter_by_num_eq('type', SlowVarVO.TYPE_DENIED).exec_as_server().select_vos<SlowVarVO>();
 
         VarsDatasProxy.getInstance().denied_slowvars = {};
         for (let i in items) {
@@ -1972,7 +1972,8 @@ export default class ModuleVarServer extends ModuleServerBase {
                     // }
 
                     // let results: VarDataBaseVO[] = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
-                    let results: VarDataBaseVO[] = await query(api_type_id).filter_by_text_has('_bdd_only_index', indexes).select_vos<VarDataBaseVO>();
+                    // TODO en vrai avec les contexts queries et les index réversibles, estèce qu'on a besoin de tout ce bordel ?
+                    let results: VarDataBaseVO[] = await query(api_type_id).filter_by_text_has('_bdd_only_index', indexes).exec_as_server().select_vos<VarDataBaseVO>();
 
                     for (let i in results) {
                         let vo = results[i];

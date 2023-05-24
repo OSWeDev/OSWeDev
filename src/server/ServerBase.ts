@@ -53,6 +53,7 @@ import AccessPolicyDeleteSessionBGThread from './modules/AccessPolicy/bgthreads/
 import ModuleAccessPolicyServer from './modules/AccessPolicy/ModuleAccessPolicyServer';
 import BGThreadServerController from './modules/BGThread/BGThreadServerController';
 import CronServerController from './modules/Cron/CronServerController';
+import ModuleDAOServer from './modules/DAO/ModuleDAOServer';
 import ExpressDBSessionsServerController from './modules/ExpressDBSessions/ExpressDBSessionsServerController';
 import ModuleFileServer from './modules/File/ModuleFileServer';
 import ForkedTasksController from './modules/Fork/ForkedTasksController';
@@ -723,7 +724,7 @@ export default abstract class ServerBase {
                     (Dates.now() >= (session.last_check_blocked_or_expired + 60))) {
 
                     // On doit vérifier que le compte est ni bloqué ni expiré
-                    let user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).exec_as_admin().select_vo<UserVO>();
+                    let user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).exec_as_server().select_vo<UserVO>();
 
                     if ((!user) || user.blocked || user.invalidated) {
 
@@ -1026,7 +1027,7 @@ export default abstract class ServerBase {
                 let uid: number = session.uid;
 
                 // On doit vérifier que le compte est ni bloqué ni expiré
-                let user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).exec_as_admin().select_vo<UserVO>();
+                let user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).exec_as_server().select_vo<UserVO>();
                 if ((!user) || user.blocked || user.invalidated) {
 
                     await ConsoleHandler.warn('unregisterSession:getcsrftoken:UID:' + session.uid + ':user:' + (user ? JSON.stringify(user) : 'N/A'));
@@ -1058,12 +1059,7 @@ export default abstract class ServerBase {
                  */
                 user_log.handle_impersonation(session);
 
-                // TODO FIXME : Retrait is_client false pour les insertOrUpdateVO => ajouter en param de la fonction le context directement
-                await StackContext.runPromise(
-                    { IS_CLIENT: false },
-                    async () => {
-                        await ModuleDAO.getInstance().insertOrUpdateVO(user_log);
-                    });
+                await ModuleDAOServer.getInstance().insert_vos([user_log], true);
             }
 
             return res.json({ csrfToken: req.csrfToken() });

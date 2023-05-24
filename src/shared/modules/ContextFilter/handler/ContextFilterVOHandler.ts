@@ -611,7 +611,7 @@ export default class ContextFilterVOHandler {
         filter_none.field_id = 'id';
         filter_none.vo_type = api_type_id;
 
-        return query(api_type_id).field('id').set_query_distinct().add_filters([filter_none]).exec_as_admin();
+        return query(api_type_id).field('id').set_query_distinct().add_filters([filter_none]).exec_as_server();
     }
 
     public add_context_filters_exclude_values(

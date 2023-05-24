@@ -25,7 +25,7 @@ export default class ServerExpressController {
             UID: session.uid,
             SESSION: session,
             CLIENT_TAB_ID: req.headers.client_tab_id,
-            SELF_USER: session.uid ? await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).exec_as_admin().select_vo<UserVO>() : null
+            SELF_USER: session.uid ? await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).exec_as_server().select_vo<UserVO>() : null
         };
     }
 }

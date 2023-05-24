@@ -52,6 +52,7 @@ import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
 import PushDataServerController from '../PushData/PushDataServerController';
@@ -702,15 +703,11 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         // On log l'export
         if (!!user_log_id) {
 
-            await StackContext.runPromise(
-                { IS_CLIENT: false },
-                async () => {
-                    await ModuleDAO.getInstance().insertOrUpdateVO(ExportLogVO.createNew(
-                        api_type_id ? api_type_id : 'N/A',
-                        Dates.now(),
-                        user_log_id
-                    ));
-                });
+            await ModuleDAOServer.getInstance().insert_vos([ExportLogVO.createNew(
+                api_type_id ? api_type_id : 'N/A',
+                Dates.now(),
+                user_log_id
+            )], true);
         }
 
         return filepath;
@@ -946,12 +943,11 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         file.path = filepath;
         file.file_access_policy_name = file_access_policy_name;
         file.is_secured = is_secured;
-        let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(file);
-        if ((!res) || (!res.id)) {
+        await ModuleDAOServer.getInstance().insert_vos([file], true);
+        if (!file.id) {
             ConsoleHandler.error('Erreur lors de l\'enregistrement du fichier en base:' + filepath);
             return null;
         }
-        file.id = res.id;
 
         return file;
     }
@@ -1013,15 +1009,12 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         // On log l'export
         if (!!user_log_id) {
-            await StackContext.runPromise(
-                { IS_CLIENT: false },
-                async () => {
-                    await ModuleDAO.getInstance().insertOrUpdateVO(ExportLogVO.createNew(
-                        api_type_id,
-                        Dates.now(),
-                        user_log_id
-                    ));
-                });
+
+            await ModuleDAOServer.getInstance().insert_vos([ExportLogVO.createNew(
+                api_type_id,
+                Dates.now(),
+                user_log_id
+            )], true);
         }
 
         return filepath;
