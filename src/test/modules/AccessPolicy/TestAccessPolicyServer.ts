@@ -21,28 +21,28 @@ describe('AccessPolicyServer', () => {
 
     it('test check access - denied by default to all but admin', () => {
 
-        AccessPolicyServerController.getInstance().role_anonymous = new RoleVO();
-        AccessPolicyServerController.getInstance().role_anonymous.parent_role_id = null;
-        AccessPolicyServerController.getInstance().role_anonymous.id = 1;
-        AccessPolicyServerController.getInstance().role_anonymous.translatable_name = 'role_anonymous';
+        AccessPolicyServerController.role_anonymous = new RoleVO();
+        AccessPolicyServerController.role_anonymous.parent_role_id = null;
+        AccessPolicyServerController.role_anonymous.id = 1;
+        AccessPolicyServerController.role_anonymous.translatable_name = 'role_anonymous';
 
-        AccessPolicyServerController.getInstance().role_logged = new RoleVO();
-        AccessPolicyServerController.getInstance().role_logged.parent_role_id = AccessPolicyServerController.getInstance().role_anonymous.id;
-        AccessPolicyServerController.getInstance().role_logged.id = 2;
-        AccessPolicyServerController.getInstance().role_logged.translatable_name = 'role_logged';
+        AccessPolicyServerController.role_logged = new RoleVO();
+        AccessPolicyServerController.role_logged.parent_role_id = AccessPolicyServerController.role_anonymous.id;
+        AccessPolicyServerController.role_logged.id = 2;
+        AccessPolicyServerController.role_logged.translatable_name = 'role_logged';
 
-        AccessPolicyServerController.getInstance().role_admin = new RoleVO();
-        AccessPolicyServerController.getInstance().role_admin.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
-        AccessPolicyServerController.getInstance().role_admin.id = 3;
-        AccessPolicyServerController.getInstance().role_admin.translatable_name = 'role_admin';
+        AccessPolicyServerController.role_admin = new RoleVO();
+        AccessPolicyServerController.role_admin.parent_role_id = AccessPolicyServerController.role_logged.id;
+        AccessPolicyServerController.role_admin.id = 3;
+        AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
         let all_roles: { [role_id: number]: RoleVO } = {
-            1: AccessPolicyServerController.getInstance().role_anonymous,
-            2: AccessPolicyServerController.getInstance().role_logged,
-            3: AccessPolicyServerController.getInstance().role_admin
+            1: AccessPolicyServerController.role_anonymous,
+            2: AccessPolicyServerController.role_logged,
+            3: AccessPolicyServerController.role_admin
         };
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             null,
             null,
             null,
@@ -51,7 +51,7 @@ describe('AccessPolicyServer', () => {
             null
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             new AccessPolicyVO(),
             null,
             all_roles,
@@ -60,7 +60,7 @@ describe('AccessPolicyServer', () => {
             null
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             new AccessPolicyVO(),
             {},
             all_roles,
@@ -76,7 +76,7 @@ describe('AccessPolicyServer', () => {
         let policies: { [policy_id: number]: AccessPolicyVO } = {
             1: policy
         };
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policy,
             null,
             all_roles,
@@ -85,7 +85,7 @@ describe('AccessPolicyServer', () => {
             null
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policy,
             null,
             all_roles,
@@ -94,27 +94,27 @@ describe('AccessPolicyServer', () => {
             null
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policy,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             null,
             policies,
             null
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policy,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             null,
             policies,
             null
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policy,
-            { [AccessPolicyServerController.getInstance().role_admin.id]: AccessPolicyServerController.getInstance().role_admin },
+            { [AccessPolicyServerController.role_admin.id]: AccessPolicyServerController.role_admin },
             all_roles,
             null,
             policies,
@@ -123,25 +123,25 @@ describe('AccessPolicyServer', () => {
     });
 
     it('test check access - role inherit : denied by default to all but admin', () => {
-        AccessPolicyServerController.getInstance().role_anonymous = new RoleVO();
-        AccessPolicyServerController.getInstance().role_anonymous.parent_role_id = null;
-        AccessPolicyServerController.getInstance().role_anonymous.id = 1;
-        AccessPolicyServerController.getInstance().role_anonymous.translatable_name = 'role_anonymous';
+        AccessPolicyServerController.role_anonymous = new RoleVO();
+        AccessPolicyServerController.role_anonymous.parent_role_id = null;
+        AccessPolicyServerController.role_anonymous.id = 1;
+        AccessPolicyServerController.role_anonymous.translatable_name = 'role_anonymous';
 
-        AccessPolicyServerController.getInstance().role_logged = new RoleVO();
-        AccessPolicyServerController.getInstance().role_logged.parent_role_id = AccessPolicyServerController.getInstance().role_anonymous.id;
-        AccessPolicyServerController.getInstance().role_logged.id = 2;
-        AccessPolicyServerController.getInstance().role_logged.translatable_name = 'role_logged';
+        AccessPolicyServerController.role_logged = new RoleVO();
+        AccessPolicyServerController.role_logged.parent_role_id = AccessPolicyServerController.role_anonymous.id;
+        AccessPolicyServerController.role_logged.id = 2;
+        AccessPolicyServerController.role_logged.translatable_name = 'role_logged';
 
-        AccessPolicyServerController.getInstance().role_admin = new RoleVO();
-        AccessPolicyServerController.getInstance().role_admin.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
-        AccessPolicyServerController.getInstance().role_admin.id = 3;
-        AccessPolicyServerController.getInstance().role_admin.translatable_name = 'role_admin';
+        AccessPolicyServerController.role_admin = new RoleVO();
+        AccessPolicyServerController.role_admin.parent_role_id = AccessPolicyServerController.role_logged.id;
+        AccessPolicyServerController.role_admin.id = 3;
+        AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
         let all_roles: { [role_id: number]: RoleVO } = {
-            1: AccessPolicyServerController.getInstance().role_anonymous,
-            2: AccessPolicyServerController.getInstance().role_logged,
-            3: AccessPolicyServerController.getInstance().role_admin
+            1: AccessPolicyServerController.role_anonymous,
+            2: AccessPolicyServerController.role_logged,
+            3: AccessPolicyServerController.role_admin
         };
 
 
@@ -155,12 +155,12 @@ describe('AccessPolicyServer', () => {
         };
 
         let new_role: RoleVO = new RoleVO();
-        new_role.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
+        new_role.parent_role_id = AccessPolicyServerController.role_logged.id;
         new_role.translatable_name = 'new_role';
         new_role.id = 1001;
 
         all_roles[new_role.id] = new_role;
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policy,
             { [new_role.id]: new_role },
             all_roles,
@@ -169,11 +169,11 @@ describe('AccessPolicyServer', () => {
             null
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policy,
             {
                 [new_role.id]: new_role,
-                [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous
+                [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous
             },
             all_roles,
             null,
@@ -181,11 +181,11 @@ describe('AccessPolicyServer', () => {
             null
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policy,
             {
                 [new_role.id]: new_role,
-                [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged
+                [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged
             },
             all_roles,
             null,
@@ -193,12 +193,12 @@ describe('AccessPolicyServer', () => {
             null
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policy,
             {
                 [new_role.id]: new_role,
-                [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged,
-                [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous
+                [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged,
+                [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous
             },
             all_roles,
             null,
@@ -206,11 +206,11 @@ describe('AccessPolicyServer', () => {
             null
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policy,
             {
                 [new_role.id]: new_role,
-                [AccessPolicyServerController.getInstance().role_admin.id]: AccessPolicyServerController.getInstance().role_admin
+                [AccessPolicyServerController.role_admin.id]: AccessPolicyServerController.role_admin
             },
             all_roles,
             null,
@@ -218,12 +218,12 @@ describe('AccessPolicyServer', () => {
             null
         )).to.equal(true);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policy,
             {
-                [AccessPolicyServerController.getInstance().role_admin.id]: AccessPolicyServerController.getInstance().role_admin,
-                [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged,
-                [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous
+                [AccessPolicyServerController.role_admin.id]: AccessPolicyServerController.role_admin,
+                [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged,
+                [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous
             },
             all_roles,
             null,
@@ -234,25 +234,25 @@ describe('AccessPolicyServer', () => {
     });
 
     it('test check access - inheritance test (ignore explicit policies) - no rp', () => {
-        AccessPolicyServerController.getInstance().role_anonymous = new RoleVO();
-        AccessPolicyServerController.getInstance().role_anonymous.parent_role_id = null;
-        AccessPolicyServerController.getInstance().role_anonymous.id = 1;
-        AccessPolicyServerController.getInstance().role_anonymous.translatable_name = 'role_anonymous';
+        AccessPolicyServerController.role_anonymous = new RoleVO();
+        AccessPolicyServerController.role_anonymous.parent_role_id = null;
+        AccessPolicyServerController.role_anonymous.id = 1;
+        AccessPolicyServerController.role_anonymous.translatable_name = 'role_anonymous';
 
-        AccessPolicyServerController.getInstance().role_logged = new RoleVO();
-        AccessPolicyServerController.getInstance().role_logged.parent_role_id = AccessPolicyServerController.getInstance().role_anonymous.id;
-        AccessPolicyServerController.getInstance().role_logged.id = 2;
-        AccessPolicyServerController.getInstance().role_logged.translatable_name = 'role_logged';
+        AccessPolicyServerController.role_logged = new RoleVO();
+        AccessPolicyServerController.role_logged.parent_role_id = AccessPolicyServerController.role_anonymous.id;
+        AccessPolicyServerController.role_logged.id = 2;
+        AccessPolicyServerController.role_logged.translatable_name = 'role_logged';
 
-        AccessPolicyServerController.getInstance().role_admin = new RoleVO();
-        AccessPolicyServerController.getInstance().role_admin.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
-        AccessPolicyServerController.getInstance().role_admin.id = 3;
-        AccessPolicyServerController.getInstance().role_admin.translatable_name = 'role_admin';
+        AccessPolicyServerController.role_admin = new RoleVO();
+        AccessPolicyServerController.role_admin.parent_role_id = AccessPolicyServerController.role_logged.id;
+        AccessPolicyServerController.role_admin.id = 3;
+        AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
         let all_roles: { [role_id: number]: RoleVO } = {
-            1: AccessPolicyServerController.getInstance().role_anonymous,
-            2: AccessPolicyServerController.getInstance().role_logged,
-            3: AccessPolicyServerController.getInstance().role_admin
+            1: AccessPolicyServerController.role_anonymous,
+            2: AccessPolicyServerController.role_logged,
+            3: AccessPolicyServerController.role_admin
         };
 
 
@@ -266,33 +266,33 @@ describe('AccessPolicyServer', () => {
         };
 
         let new_role: RoleVO = new RoleVO();
-        new_role.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
+        new_role.parent_role_id = AccessPolicyServerController.role_logged.id;
         new_role.translatable_name = 'new_role';
         new_role.id = 1001;
 
         all_roles[new_role.id] = new_role;
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             null,
             policies,
             null,
-            AccessPolicyServerController.getInstance().role_anonymous
+            AccessPolicyServerController.role_anonymous
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             null,
             policies,
             null,
-            AccessPolicyServerController.getInstance().role_logged
+            AccessPolicyServerController.role_logged
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
             { [new_role.id]: new_role },
             all_roles,
@@ -302,39 +302,39 @@ describe('AccessPolicyServer', () => {
             new_role
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
-            { [AccessPolicyServerController.getInstance().role_admin.id]: AccessPolicyServerController.getInstance().role_admin },
+            { [AccessPolicyServerController.role_admin.id]: AccessPolicyServerController.role_admin },
             all_roles,
             null,
             policies,
             null,
-            AccessPolicyServerController.getInstance().role_admin
+            AccessPolicyServerController.role_admin
         )).to.equal(true);
 
         delete all_roles[new_role.id];
     });
 
     it('test check access - inheritance test (ignore explicit policies) - rp anon', () => {
-        AccessPolicyServerController.getInstance().role_anonymous = new RoleVO();
-        AccessPolicyServerController.getInstance().role_anonymous.parent_role_id = null;
-        AccessPolicyServerController.getInstance().role_anonymous.id = 1;
-        AccessPolicyServerController.getInstance().role_anonymous.translatable_name = 'role_anonymous';
+        AccessPolicyServerController.role_anonymous = new RoleVO();
+        AccessPolicyServerController.role_anonymous.parent_role_id = null;
+        AccessPolicyServerController.role_anonymous.id = 1;
+        AccessPolicyServerController.role_anonymous.translatable_name = 'role_anonymous';
 
-        AccessPolicyServerController.getInstance().role_logged = new RoleVO();
-        AccessPolicyServerController.getInstance().role_logged.parent_role_id = AccessPolicyServerController.getInstance().role_anonymous.id;
-        AccessPolicyServerController.getInstance().role_logged.id = 2;
-        AccessPolicyServerController.getInstance().role_logged.translatable_name = 'role_logged';
+        AccessPolicyServerController.role_logged = new RoleVO();
+        AccessPolicyServerController.role_logged.parent_role_id = AccessPolicyServerController.role_anonymous.id;
+        AccessPolicyServerController.role_logged.id = 2;
+        AccessPolicyServerController.role_logged.translatable_name = 'role_logged';
 
-        AccessPolicyServerController.getInstance().role_admin = new RoleVO();
-        AccessPolicyServerController.getInstance().role_admin.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
-        AccessPolicyServerController.getInstance().role_admin.id = 3;
-        AccessPolicyServerController.getInstance().role_admin.translatable_name = 'role_admin';
+        AccessPolicyServerController.role_admin = new RoleVO();
+        AccessPolicyServerController.role_admin.parent_role_id = AccessPolicyServerController.role_logged.id;
+        AccessPolicyServerController.role_admin.id = 3;
+        AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
         let all_roles: { [role_id: number]: RoleVO } = {
-            1: AccessPolicyServerController.getInstance().role_anonymous,
-            2: AccessPolicyServerController.getInstance().role_logged,
-            3: AccessPolicyServerController.getInstance().role_admin
+            1: AccessPolicyServerController.role_anonymous,
+            2: AccessPolicyServerController.role_logged,
+            3: AccessPolicyServerController.role_admin
         };
 
 
@@ -348,7 +348,7 @@ describe('AccessPolicyServer', () => {
         };
 
         let new_role: RoleVO = new RoleVO();
-        new_role.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
+        new_role.parent_role_id = AccessPolicyServerController.role_logged.id;
         new_role.translatable_name = 'new_role';
         new_role.id = 1001;
 
@@ -357,50 +357,50 @@ describe('AccessPolicyServer', () => {
         let role_policyA: RolePolicyVO = new RolePolicyVO();
         role_policyA.id = 1;
         role_policyA.accpol_id = policyA.id;
-        role_policyA.role_id = AccessPolicyServerController.getInstance().role_anonymous.id;
+        role_policyA.role_id = AccessPolicyServerController.role_anonymous.id;
         role_policyA.granted = true;
 
         let role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {
-            [AccessPolicyServerController.getInstance().role_anonymous.id]: {
+            [AccessPolicyServerController.role_anonymous.id]: {
                 [policyA.id]: role_policyA
             }
         };
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             role_policies,
             policies,
             null,
-            AccessPolicyServerController.getInstance().role_anonymous
+            AccessPolicyServerController.role_anonymous
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             role_policies,
             policies,
             null,
-            AccessPolicyServerController.getInstance().role_logged
+            AccessPolicyServerController.role_logged
         )).to.equal(true);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
             {
-                [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous,
-                [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged
+                [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous,
+                [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged
             },
             all_roles,
             role_policies,
             policies,
             null,
-            AccessPolicyServerController.getInstance().role_logged
+            AccessPolicyServerController.role_logged
         )).to.equal(true);
 
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
             { [new_role.id]: new_role },
             all_roles,
@@ -410,11 +410,11 @@ describe('AccessPolicyServer', () => {
             new_role
         )).to.equal(true);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
             {
-                [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous,
-                [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged,
+                [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous,
+                [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged,
                 [new_role.id]: new_role
             },
             all_roles,
@@ -424,53 +424,53 @@ describe('AccessPolicyServer', () => {
             new_role
         )).to.equal(true);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
-            { [AccessPolicyServerController.getInstance().role_admin.id]: AccessPolicyServerController.getInstance().role_admin },
+            { [AccessPolicyServerController.role_admin.id]: AccessPolicyServerController.role_admin },
             all_roles,
             role_policies,
             policies,
             null,
-            AccessPolicyServerController.getInstance().role_admin
+            AccessPolicyServerController.role_admin
         )).to.equal(true);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
             {
-                [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous,
-                [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged,
-                [AccessPolicyServerController.getInstance().role_admin.id]: AccessPolicyServerController.getInstance().role_admin
+                [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous,
+                [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged,
+                [AccessPolicyServerController.role_admin.id]: AccessPolicyServerController.role_admin
             },
             all_roles,
             role_policies,
             policies,
             null,
-            AccessPolicyServerController.getInstance().role_admin
+            AccessPolicyServerController.role_admin
         )).to.equal(true);
 
         delete all_roles[new_role.id];
     });
 
     it('test check access - inheritance test (ignore explicit policies) - rp logged', () => {
-        AccessPolicyServerController.getInstance().role_anonymous = new RoleVO();
-        AccessPolicyServerController.getInstance().role_anonymous.parent_role_id = null;
-        AccessPolicyServerController.getInstance().role_anonymous.id = 1;
-        AccessPolicyServerController.getInstance().role_anonymous.translatable_name = 'role_anonymous';
+        AccessPolicyServerController.role_anonymous = new RoleVO();
+        AccessPolicyServerController.role_anonymous.parent_role_id = null;
+        AccessPolicyServerController.role_anonymous.id = 1;
+        AccessPolicyServerController.role_anonymous.translatable_name = 'role_anonymous';
 
-        AccessPolicyServerController.getInstance().role_logged = new RoleVO();
-        AccessPolicyServerController.getInstance().role_logged.parent_role_id = AccessPolicyServerController.getInstance().role_anonymous.id;
-        AccessPolicyServerController.getInstance().role_logged.id = 2;
-        AccessPolicyServerController.getInstance().role_logged.translatable_name = 'role_logged';
+        AccessPolicyServerController.role_logged = new RoleVO();
+        AccessPolicyServerController.role_logged.parent_role_id = AccessPolicyServerController.role_anonymous.id;
+        AccessPolicyServerController.role_logged.id = 2;
+        AccessPolicyServerController.role_logged.translatable_name = 'role_logged';
 
-        AccessPolicyServerController.getInstance().role_admin = new RoleVO();
-        AccessPolicyServerController.getInstance().role_admin.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
-        AccessPolicyServerController.getInstance().role_admin.id = 3;
-        AccessPolicyServerController.getInstance().role_admin.translatable_name = 'role_admin';
+        AccessPolicyServerController.role_admin = new RoleVO();
+        AccessPolicyServerController.role_admin.parent_role_id = AccessPolicyServerController.role_logged.id;
+        AccessPolicyServerController.role_admin.id = 3;
+        AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
         let all_roles: { [role_id: number]: RoleVO } = {
-            1: AccessPolicyServerController.getInstance().role_anonymous,
-            2: AccessPolicyServerController.getInstance().role_logged,
-            3: AccessPolicyServerController.getInstance().role_admin
+            1: AccessPolicyServerController.role_anonymous,
+            2: AccessPolicyServerController.role_logged,
+            3: AccessPolicyServerController.role_admin
         };
 
 
@@ -484,7 +484,7 @@ describe('AccessPolicyServer', () => {
         };
 
         let new_role: RoleVO = new RoleVO();
-        new_role.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
+        new_role.parent_role_id = AccessPolicyServerController.role_logged.id;
         new_role.translatable_name = 'new_role';
         new_role.id = 1001;
 
@@ -493,36 +493,36 @@ describe('AccessPolicyServer', () => {
         let role_policyA: RolePolicyVO = new RolePolicyVO();
         role_policyA.id = 1;
         role_policyA.accpol_id = policyA.id;
-        role_policyA.role_id = AccessPolicyServerController.getInstance().role_logged.id;
+        role_policyA.role_id = AccessPolicyServerController.role_logged.id;
         role_policyA.granted = true;
 
         let role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {
-            [AccessPolicyServerController.getInstance().role_logged.id]: {
+            [AccessPolicyServerController.role_logged.id]: {
                 [policyA.id]: role_policyA
             }
         };
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             role_policies,
             policies,
             null,
-            AccessPolicyServerController.getInstance().role_anonymous
+            AccessPolicyServerController.role_anonymous
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             role_policies,
             policies,
             null,
-            AccessPolicyServerController.getInstance().role_logged
+            AccessPolicyServerController.role_logged
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
             { [new_role.id]: new_role },
             all_roles,
@@ -532,39 +532,39 @@ describe('AccessPolicyServer', () => {
             new_role
         )).to.equal(true);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
-            { [AccessPolicyServerController.getInstance().role_admin.id]: AccessPolicyServerController.getInstance().role_admin },
+            { [AccessPolicyServerController.role_admin.id]: AccessPolicyServerController.role_admin },
             all_roles,
             role_policies,
             policies,
             null,
-            AccessPolicyServerController.getInstance().role_admin
+            AccessPolicyServerController.role_admin
         )).to.equal(true);
 
         delete all_roles[new_role.id];
     });
 
     it('test check access - inheritance test (ignore explicit policies) - rp inherit logged', () => {
-        AccessPolicyServerController.getInstance().role_anonymous = new RoleVO();
-        AccessPolicyServerController.getInstance().role_anonymous.parent_role_id = null;
-        AccessPolicyServerController.getInstance().role_anonymous.id = 1;
-        AccessPolicyServerController.getInstance().role_anonymous.translatable_name = 'role_anonymous';
+        AccessPolicyServerController.role_anonymous = new RoleVO();
+        AccessPolicyServerController.role_anonymous.parent_role_id = null;
+        AccessPolicyServerController.role_anonymous.id = 1;
+        AccessPolicyServerController.role_anonymous.translatable_name = 'role_anonymous';
 
-        AccessPolicyServerController.getInstance().role_logged = new RoleVO();
-        AccessPolicyServerController.getInstance().role_logged.parent_role_id = AccessPolicyServerController.getInstance().role_anonymous.id;
-        AccessPolicyServerController.getInstance().role_logged.id = 2;
-        AccessPolicyServerController.getInstance().role_logged.translatable_name = 'role_logged';
+        AccessPolicyServerController.role_logged = new RoleVO();
+        AccessPolicyServerController.role_logged.parent_role_id = AccessPolicyServerController.role_anonymous.id;
+        AccessPolicyServerController.role_logged.id = 2;
+        AccessPolicyServerController.role_logged.translatable_name = 'role_logged';
 
-        AccessPolicyServerController.getInstance().role_admin = new RoleVO();
-        AccessPolicyServerController.getInstance().role_admin.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
-        AccessPolicyServerController.getInstance().role_admin.id = 3;
-        AccessPolicyServerController.getInstance().role_admin.translatable_name = 'role_admin';
+        AccessPolicyServerController.role_admin = new RoleVO();
+        AccessPolicyServerController.role_admin.parent_role_id = AccessPolicyServerController.role_logged.id;
+        AccessPolicyServerController.role_admin.id = 3;
+        AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
         let all_roles: { [role_id: number]: RoleVO } = {
-            1: AccessPolicyServerController.getInstance().role_anonymous,
-            2: AccessPolicyServerController.getInstance().role_logged,
-            3: AccessPolicyServerController.getInstance().role_admin
+            1: AccessPolicyServerController.role_anonymous,
+            2: AccessPolicyServerController.role_logged,
+            3: AccessPolicyServerController.role_admin
         };
 
 
@@ -578,7 +578,7 @@ describe('AccessPolicyServer', () => {
         };
 
         let new_role: RoleVO = new RoleVO();
-        new_role.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
+        new_role.parent_role_id = AccessPolicyServerController.role_logged.id;
         new_role.translatable_name = 'new_role';
         new_role.id = 1001;
 
@@ -596,27 +596,27 @@ describe('AccessPolicyServer', () => {
             }
         };
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             role_policies,
             policies,
             null,
-            AccessPolicyServerController.getInstance().role_anonymous
+            AccessPolicyServerController.role_anonymous
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             role_policies,
             policies,
             null,
-            AccessPolicyServerController.getInstance().role_logged
+            AccessPolicyServerController.role_logged
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
             { [new_role.id]: new_role },
             all_roles,
@@ -626,39 +626,39 @@ describe('AccessPolicyServer', () => {
             new_role
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
-            { [AccessPolicyServerController.getInstance().role_admin.id]: AccessPolicyServerController.getInstance().role_admin },
+            { [AccessPolicyServerController.role_admin.id]: AccessPolicyServerController.role_admin },
             all_roles,
             role_policies,
             policies,
             null,
-            AccessPolicyServerController.getInstance().role_admin
+            AccessPolicyServerController.role_admin
         )).to.equal(true);
 
         delete all_roles[new_role.id];
     });
 
     it('test check access - inheritance test (ignore explicit policies) - dp granted', () => {
-        AccessPolicyServerController.getInstance().role_anonymous = new RoleVO();
-        AccessPolicyServerController.getInstance().role_anonymous.parent_role_id = null;
-        AccessPolicyServerController.getInstance().role_anonymous.id = 1;
-        AccessPolicyServerController.getInstance().role_anonymous.translatable_name = 'role_anonymous';
+        AccessPolicyServerController.role_anonymous = new RoleVO();
+        AccessPolicyServerController.role_anonymous.parent_role_id = null;
+        AccessPolicyServerController.role_anonymous.id = 1;
+        AccessPolicyServerController.role_anonymous.translatable_name = 'role_anonymous';
 
-        AccessPolicyServerController.getInstance().role_logged = new RoleVO();
-        AccessPolicyServerController.getInstance().role_logged.parent_role_id = AccessPolicyServerController.getInstance().role_anonymous.id;
-        AccessPolicyServerController.getInstance().role_logged.id = 2;
-        AccessPolicyServerController.getInstance().role_logged.translatable_name = 'role_logged';
+        AccessPolicyServerController.role_logged = new RoleVO();
+        AccessPolicyServerController.role_logged.parent_role_id = AccessPolicyServerController.role_anonymous.id;
+        AccessPolicyServerController.role_logged.id = 2;
+        AccessPolicyServerController.role_logged.translatable_name = 'role_logged';
 
-        AccessPolicyServerController.getInstance().role_admin = new RoleVO();
-        AccessPolicyServerController.getInstance().role_admin.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
-        AccessPolicyServerController.getInstance().role_admin.id = 3;
-        AccessPolicyServerController.getInstance().role_admin.translatable_name = 'role_admin';
+        AccessPolicyServerController.role_admin = new RoleVO();
+        AccessPolicyServerController.role_admin.parent_role_id = AccessPolicyServerController.role_logged.id;
+        AccessPolicyServerController.role_admin.id = 3;
+        AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
         let all_roles: { [role_id: number]: RoleVO } = {
-            1: AccessPolicyServerController.getInstance().role_anonymous,
-            2: AccessPolicyServerController.getInstance().role_logged,
-            3: AccessPolicyServerController.getInstance().role_admin
+            1: AccessPolicyServerController.role_anonymous,
+            2: AccessPolicyServerController.role_logged,
+            3: AccessPolicyServerController.role_admin
         };
 
 
@@ -678,7 +678,7 @@ describe('AccessPolicyServer', () => {
         };
 
         let new_role: RoleVO = new RoleVO();
-        new_role.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
+        new_role.parent_role_id = AccessPolicyServerController.role_logged.id;
         new_role.translatable_name = 'new_role';
         new_role.id = 1001;
 
@@ -693,27 +693,27 @@ describe('AccessPolicyServer', () => {
             [policyA.id]: [dependency]
         };
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             null,
             policies,
             policies_dependencies,
-            AccessPolicyServerController.getInstance().role_anonymous
+            AccessPolicyServerController.role_anonymous
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             null,
             policies,
             policies_dependencies,
-            AccessPolicyServerController.getInstance().role_logged
+            AccessPolicyServerController.role_logged
         )).to.equal(true);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
             { [new_role.id]: new_role },
             all_roles,
@@ -723,39 +723,39 @@ describe('AccessPolicyServer', () => {
             new_role
         )).to.equal(true);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
-            { [AccessPolicyServerController.getInstance().role_admin.id]: AccessPolicyServerController.getInstance().role_admin },
+            { [AccessPolicyServerController.role_admin.id]: AccessPolicyServerController.role_admin },
             all_roles,
             null,
             policies,
             policies_dependencies,
-            AccessPolicyServerController.getInstance().role_admin
+            AccessPolicyServerController.role_admin
         )).to.equal(true);
 
         delete all_roles[new_role.id];
     });
 
     it('test check access - inheritance test (ignore explicit policies) - dp denied', () => {
-        AccessPolicyServerController.getInstance().role_anonymous = new RoleVO();
-        AccessPolicyServerController.getInstance().role_anonymous.parent_role_id = null;
-        AccessPolicyServerController.getInstance().role_anonymous.id = 1;
-        AccessPolicyServerController.getInstance().role_anonymous.translatable_name = 'role_anonymous';
+        AccessPolicyServerController.role_anonymous = new RoleVO();
+        AccessPolicyServerController.role_anonymous.parent_role_id = null;
+        AccessPolicyServerController.role_anonymous.id = 1;
+        AccessPolicyServerController.role_anonymous.translatable_name = 'role_anonymous';
 
-        AccessPolicyServerController.getInstance().role_logged = new RoleVO();
-        AccessPolicyServerController.getInstance().role_logged.parent_role_id = AccessPolicyServerController.getInstance().role_anonymous.id;
-        AccessPolicyServerController.getInstance().role_logged.id = 2;
-        AccessPolicyServerController.getInstance().role_logged.translatable_name = 'role_logged';
+        AccessPolicyServerController.role_logged = new RoleVO();
+        AccessPolicyServerController.role_logged.parent_role_id = AccessPolicyServerController.role_anonymous.id;
+        AccessPolicyServerController.role_logged.id = 2;
+        AccessPolicyServerController.role_logged.translatable_name = 'role_logged';
 
-        AccessPolicyServerController.getInstance().role_admin = new RoleVO();
-        AccessPolicyServerController.getInstance().role_admin.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
-        AccessPolicyServerController.getInstance().role_admin.id = 3;
-        AccessPolicyServerController.getInstance().role_admin.translatable_name = 'role_admin';
+        AccessPolicyServerController.role_admin = new RoleVO();
+        AccessPolicyServerController.role_admin.parent_role_id = AccessPolicyServerController.role_logged.id;
+        AccessPolicyServerController.role_admin.id = 3;
+        AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
         let all_roles: { [role_id: number]: RoleVO } = {
-            1: AccessPolicyServerController.getInstance().role_anonymous,
-            2: AccessPolicyServerController.getInstance().role_logged,
-            3: AccessPolicyServerController.getInstance().role_admin
+            1: AccessPolicyServerController.role_anonymous,
+            2: AccessPolicyServerController.role_logged,
+            3: AccessPolicyServerController.role_admin
         };
 
 
@@ -775,7 +775,7 @@ describe('AccessPolicyServer', () => {
         };
 
         let new_role: RoleVO = new RoleVO();
-        new_role.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
+        new_role.parent_role_id = AccessPolicyServerController.role_logged.id;
         new_role.translatable_name = 'new_role';
         new_role.id = 1001;
 
@@ -790,27 +790,27 @@ describe('AccessPolicyServer', () => {
             [policyA.id]: [dependency]
         };
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             null,
             policies,
             policies_dependencies,
-            AccessPolicyServerController.getInstance().role_anonymous
+            AccessPolicyServerController.role_anonymous
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             null,
             policies,
             policies_dependencies,
-            AccessPolicyServerController.getInstance().role_logged
+            AccessPolicyServerController.role_logged
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
             { [new_role.id]: new_role },
             all_roles,
@@ -820,14 +820,14 @@ describe('AccessPolicyServer', () => {
             new_role
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
-            { [AccessPolicyServerController.getInstance().role_admin.id]: AccessPolicyServerController.getInstance().role_admin },
+            { [AccessPolicyServerController.role_admin.id]: AccessPolicyServerController.role_admin },
             all_roles,
             null,
             policies,
             policies_dependencies,
-            AccessPolicyServerController.getInstance().role_admin
+            AccessPolicyServerController.role_admin
         )).to.equal(true);
 
         delete all_roles[new_role.id];
@@ -835,25 +835,25 @@ describe('AccessPolicyServer', () => {
 
     it('test check access - policy explicit configuration', () => {
 
-        AccessPolicyServerController.getInstance().role_anonymous = new RoleVO();
-        AccessPolicyServerController.getInstance().role_anonymous.parent_role_id = null;
-        AccessPolicyServerController.getInstance().role_anonymous.id = 1;
-        AccessPolicyServerController.getInstance().role_anonymous.translatable_name = 'role_anonymous';
+        AccessPolicyServerController.role_anonymous = new RoleVO();
+        AccessPolicyServerController.role_anonymous.parent_role_id = null;
+        AccessPolicyServerController.role_anonymous.id = 1;
+        AccessPolicyServerController.role_anonymous.translatable_name = 'role_anonymous';
 
-        AccessPolicyServerController.getInstance().role_logged = new RoleVO();
-        AccessPolicyServerController.getInstance().role_logged.parent_role_id = AccessPolicyServerController.getInstance().role_anonymous.id;
-        AccessPolicyServerController.getInstance().role_logged.id = 2;
-        AccessPolicyServerController.getInstance().role_logged.translatable_name = 'role_logged';
+        AccessPolicyServerController.role_logged = new RoleVO();
+        AccessPolicyServerController.role_logged.parent_role_id = AccessPolicyServerController.role_anonymous.id;
+        AccessPolicyServerController.role_logged.id = 2;
+        AccessPolicyServerController.role_logged.translatable_name = 'role_logged';
 
-        AccessPolicyServerController.getInstance().role_admin = new RoleVO();
-        AccessPolicyServerController.getInstance().role_admin.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
-        AccessPolicyServerController.getInstance().role_admin.id = 3;
-        AccessPolicyServerController.getInstance().role_admin.translatable_name = 'role_admin';
+        AccessPolicyServerController.role_admin = new RoleVO();
+        AccessPolicyServerController.role_admin.parent_role_id = AccessPolicyServerController.role_logged.id;
+        AccessPolicyServerController.role_admin.id = 3;
+        AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
         let all_roles: { [role_id: number]: RoleVO } = {
-            1: AccessPolicyServerController.getInstance().role_anonymous,
-            2: AccessPolicyServerController.getInstance().role_logged,
-            3: AccessPolicyServerController.getInstance().role_admin
+            1: AccessPolicyServerController.role_anonymous,
+            2: AccessPolicyServerController.role_logged,
+            3: AccessPolicyServerController.role_admin
         };
 
 
@@ -870,16 +870,16 @@ describe('AccessPolicyServer', () => {
         let role_policy: RolePolicyVO = new RolePolicyVO();
         role_policy.id = 1;
         role_policy.accpol_id = 1;
-        role_policy.role_id = AccessPolicyServerController.getInstance().role_logged.id;
+        role_policy.role_id = AccessPolicyServerController.role_logged.id;
         role_policy.granted = false;
 
         let role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {
-            [AccessPolicyServerController.getInstance().role_logged.id]: {
+            [AccessPolicyServerController.role_logged.id]: {
                 [policy.id]: role_policy
             }
         };
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policy,
             null,
             all_roles,
@@ -888,27 +888,27 @@ describe('AccessPolicyServer', () => {
             null
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policy,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             role_policies,
             policies,
             null
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policy,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             role_policies,
             policies,
             null
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policy,
-            { [AccessPolicyServerController.getInstance().role_admin.id]: AccessPolicyServerController.getInstance().role_admin },
+            { [AccessPolicyServerController.role_admin.id]: AccessPolicyServerController.role_admin },
             all_roles,
             role_policies,
             policies,
@@ -917,27 +917,27 @@ describe('AccessPolicyServer', () => {
 
 
         policy.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ANONYMOUS;
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policy,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             role_policies,
             policies,
             null
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policy,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             role_policies,
             policies,
             null
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policy,
-            { [AccessPolicyServerController.getInstance().role_admin.id]: AccessPolicyServerController.getInstance().role_admin },
+            { [AccessPolicyServerController.role_admin.id]: AccessPolicyServerController.role_admin },
             all_roles,
             role_policies,
             policies,
@@ -947,25 +947,25 @@ describe('AccessPolicyServer', () => {
 
     it('test check access - policy explicit inheritance', () => {
 
-        AccessPolicyServerController.getInstance().role_anonymous = new RoleVO();
-        AccessPolicyServerController.getInstance().role_anonymous.parent_role_id = null;
-        AccessPolicyServerController.getInstance().role_anonymous.id = 1;
-        AccessPolicyServerController.getInstance().role_anonymous.translatable_name = 'role_anonymous';
+        AccessPolicyServerController.role_anonymous = new RoleVO();
+        AccessPolicyServerController.role_anonymous.parent_role_id = null;
+        AccessPolicyServerController.role_anonymous.id = 1;
+        AccessPolicyServerController.role_anonymous.translatable_name = 'role_anonymous';
 
-        AccessPolicyServerController.getInstance().role_logged = new RoleVO();
-        AccessPolicyServerController.getInstance().role_logged.parent_role_id = AccessPolicyServerController.getInstance().role_anonymous.id;
-        AccessPolicyServerController.getInstance().role_logged.id = 2;
-        AccessPolicyServerController.getInstance().role_logged.translatable_name = 'role_logged';
+        AccessPolicyServerController.role_logged = new RoleVO();
+        AccessPolicyServerController.role_logged.parent_role_id = AccessPolicyServerController.role_anonymous.id;
+        AccessPolicyServerController.role_logged.id = 2;
+        AccessPolicyServerController.role_logged.translatable_name = 'role_logged';
 
-        AccessPolicyServerController.getInstance().role_admin = new RoleVO();
-        AccessPolicyServerController.getInstance().role_admin.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
-        AccessPolicyServerController.getInstance().role_admin.id = 3;
-        AccessPolicyServerController.getInstance().role_admin.translatable_name = 'role_admin';
+        AccessPolicyServerController.role_admin = new RoleVO();
+        AccessPolicyServerController.role_admin.parent_role_id = AccessPolicyServerController.role_logged.id;
+        AccessPolicyServerController.role_admin.id = 3;
+        AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
         let all_roles: { [role_id: number]: RoleVO } = {
-            1: AccessPolicyServerController.getInstance().role_anonymous,
-            2: AccessPolicyServerController.getInstance().role_logged,
-            3: AccessPolicyServerController.getInstance().role_admin
+            1: AccessPolicyServerController.role_anonymous,
+            2: AccessPolicyServerController.role_logged,
+            3: AccessPolicyServerController.role_admin
         };
 
 
@@ -981,18 +981,18 @@ describe('AccessPolicyServer', () => {
         let role_policy: RolePolicyVO = new RolePolicyVO();
         role_policy.id = 1;
         role_policy.accpol_id = 1;
-        role_policy.role_id = AccessPolicyServerController.getInstance().role_logged.id;
+        role_policy.role_id = AccessPolicyServerController.role_logged.id;
         role_policy.granted = false;
 
         let role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {
-            [AccessPolicyServerController.getInstance().role_logged.id]: {
+            [AccessPolicyServerController.role_logged.id]: {
                 [policy.id]: role_policy
             }
         };
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policy,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             role_policies,
             policies,
@@ -1000,18 +1000,18 @@ describe('AccessPolicyServer', () => {
         )).to.equal(true);
 
         // ATTENTION : un rôle ne peut pas avoir moins d'accès que son parent
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policy,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             role_policies,
             policies,
             null
         )).to.equal(true);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policy,
-            { [AccessPolicyServerController.getInstance().role_admin.id]: AccessPolicyServerController.getInstance().role_admin },
+            { [AccessPolicyServerController.role_admin.id]: AccessPolicyServerController.role_admin },
             all_roles,
             role_policies,
             policies,
@@ -1021,25 +1021,25 @@ describe('AccessPolicyServer', () => {
 
     it('test check access - policy explicit dependency', () => {
 
-        AccessPolicyServerController.getInstance().role_anonymous = new RoleVO();
-        AccessPolicyServerController.getInstance().role_anonymous.parent_role_id = null;
-        AccessPolicyServerController.getInstance().role_anonymous.id = 1;
-        AccessPolicyServerController.getInstance().role_anonymous.translatable_name = 'role_anonymous';
+        AccessPolicyServerController.role_anonymous = new RoleVO();
+        AccessPolicyServerController.role_anonymous.parent_role_id = null;
+        AccessPolicyServerController.role_anonymous.id = 1;
+        AccessPolicyServerController.role_anonymous.translatable_name = 'role_anonymous';
 
-        AccessPolicyServerController.getInstance().role_logged = new RoleVO();
-        AccessPolicyServerController.getInstance().role_logged.parent_role_id = AccessPolicyServerController.getInstance().role_anonymous.id;
-        AccessPolicyServerController.getInstance().role_logged.id = 2;
-        AccessPolicyServerController.getInstance().role_logged.translatable_name = 'role_logged';
+        AccessPolicyServerController.role_logged = new RoleVO();
+        AccessPolicyServerController.role_logged.parent_role_id = AccessPolicyServerController.role_anonymous.id;
+        AccessPolicyServerController.role_logged.id = 2;
+        AccessPolicyServerController.role_logged.translatable_name = 'role_logged';
 
-        AccessPolicyServerController.getInstance().role_admin = new RoleVO();
-        AccessPolicyServerController.getInstance().role_admin.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
-        AccessPolicyServerController.getInstance().role_admin.id = 3;
-        AccessPolicyServerController.getInstance().role_admin.translatable_name = 'role_admin';
+        AccessPolicyServerController.role_admin = new RoleVO();
+        AccessPolicyServerController.role_admin.parent_role_id = AccessPolicyServerController.role_logged.id;
+        AccessPolicyServerController.role_admin.id = 3;
+        AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
         let all_roles: { [role_id: number]: RoleVO } = {
-            1: AccessPolicyServerController.getInstance().role_anonymous,
-            2: AccessPolicyServerController.getInstance().role_logged,
-            3: AccessPolicyServerController.getInstance().role_admin
+            1: AccessPolicyServerController.role_anonymous,
+            2: AccessPolicyServerController.role_logged,
+            3: AccessPolicyServerController.role_admin
         };
 
 
@@ -1062,36 +1062,36 @@ describe('AccessPolicyServer', () => {
         let role_policyA: RolePolicyVO = new RolePolicyVO();
         role_policyA.id = 1;
         role_policyA.accpol_id = 1;
-        role_policyA.role_id = AccessPolicyServerController.getInstance().role_anonymous.id;
+        role_policyA.role_id = AccessPolicyServerController.role_anonymous.id;
         role_policyA.granted = true;
 
         let role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {
-            [AccessPolicyServerController.getInstance().role_logged.id]: {
+            [AccessPolicyServerController.role_logged.id]: {
                 [policyA.id]: role_policyA
             }
         };
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             role_policies,
             policies,
             null
         )).to.equal(true);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyB,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             role_policies,
             policies,
             null
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyB,
-            { [AccessPolicyServerController.getInstance().role_admin.id]: AccessPolicyServerController.getInstance().role_admin },
+            { [AccessPolicyServerController.role_admin.id]: AccessPolicyServerController.role_admin },
             all_roles,
             role_policies,
             policies,
@@ -1108,27 +1108,27 @@ describe('AccessPolicyServer', () => {
             [policyA.id]: [dependency]
         };
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyB,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             role_policies,
             policies,
             policies_dependencies
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyB,
-            { [AccessPolicyServerController.getInstance().role_admin.id]: AccessPolicyServerController.getInstance().role_admin },
+            { [AccessPolicyServerController.role_admin.id]: AccessPolicyServerController.role_admin },
             all_roles,
             role_policies,
             policies,
             policies_dependencies
         )).to.equal(true);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             role_policies,
             policies,
@@ -1136,9 +1136,9 @@ describe('AccessPolicyServer', () => {
         )).to.equal(true);
 
         // L'admin a juste accès à tout
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
-            { [AccessPolicyServerController.getInstance().role_admin.id]: AccessPolicyServerController.getInstance().role_admin },
+            { [AccessPolicyServerController.role_admin.id]: AccessPolicyServerController.role_admin },
             all_roles,
             role_policies,
             policies,
@@ -1146,9 +1146,9 @@ describe('AccessPolicyServer', () => {
         )).to.equal(true);
 
         dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             role_policies,
             policies,
@@ -1158,24 +1158,24 @@ describe('AccessPolicyServer', () => {
         let role_policyB: RolePolicyVO = new RolePolicyVO();
         role_policyB.id = 2;
         role_policyB.accpol_id = policyB.id;
-        role_policyB.role_id = AccessPolicyServerController.getInstance().role_anonymous.id;
+        role_policyB.role_id = AccessPolicyServerController.role_anonymous.id;
         role_policyB.granted = true;
 
-        role_policies[AccessPolicyServerController.getInstance().role_anonymous.id] = {};
-        role_policies[AccessPolicyServerController.getInstance().role_anonymous.id][policyB.id] = role_policyB;
+        role_policies[AccessPolicyServerController.role_anonymous.id] = {};
+        role_policies[AccessPolicyServerController.role_anonymous.id][policyB.id] = role_policyB;
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             role_policies,
             policies,
             policies_dependencies
         )).to.equal(true);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             role_policies,
             policies,
@@ -1183,9 +1183,9 @@ describe('AccessPolicyServer', () => {
         )).to.equal(true);
 
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
-            { [AccessPolicyServerController.getInstance().role_admin.id]: AccessPolicyServerController.getInstance().role_admin },
+            { [AccessPolicyServerController.role_admin.id]: AccessPolicyServerController.role_admin },
             all_roles,
             role_policies,
             policies,
@@ -1194,18 +1194,18 @@ describe('AccessPolicyServer', () => {
 
         role_policyB.granted = false;
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             role_policies,
             policies,
             policies_dependencies
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             role_policies,
             policies,
@@ -1213,9 +1213,9 @@ describe('AccessPolicyServer', () => {
         )).to.equal(false);
 
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
-            { [AccessPolicyServerController.getInstance().role_admin.id]: AccessPolicyServerController.getInstance().role_admin },
+            { [AccessPolicyServerController.role_admin.id]: AccessPolicyServerController.role_admin },
             all_roles,
             role_policies,
             policies,
@@ -1225,18 +1225,18 @@ describe('AccessPolicyServer', () => {
         role_policyA.granted = false;
         role_policyB.granted = true;
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             role_policies,
             policies,
             policies_dependencies
         )).to.equal(true);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             role_policies,
             policies,
@@ -1244,9 +1244,9 @@ describe('AccessPolicyServer', () => {
         )).to.equal(true);
 
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
-            { [AccessPolicyServerController.getInstance().role_admin.id]: AccessPolicyServerController.getInstance().role_admin },
+            { [AccessPolicyServerController.role_admin.id]: AccessPolicyServerController.role_admin },
             all_roles,
             role_policies,
             policies,
@@ -1256,25 +1256,25 @@ describe('AccessPolicyServer', () => {
 
     it('test check access - policy multiple dependencies defaults GRANTED', () => {
 
-        AccessPolicyServerController.getInstance().role_anonymous = new RoleVO();
-        AccessPolicyServerController.getInstance().role_anonymous.parent_role_id = null;
-        AccessPolicyServerController.getInstance().role_anonymous.id = 1;
-        AccessPolicyServerController.getInstance().role_anonymous.translatable_name = 'role_anonymous';
+        AccessPolicyServerController.role_anonymous = new RoleVO();
+        AccessPolicyServerController.role_anonymous.parent_role_id = null;
+        AccessPolicyServerController.role_anonymous.id = 1;
+        AccessPolicyServerController.role_anonymous.translatable_name = 'role_anonymous';
 
-        AccessPolicyServerController.getInstance().role_logged = new RoleVO();
-        AccessPolicyServerController.getInstance().role_logged.parent_role_id = AccessPolicyServerController.getInstance().role_anonymous.id;
-        AccessPolicyServerController.getInstance().role_logged.id = 2;
-        AccessPolicyServerController.getInstance().role_logged.translatable_name = 'role_logged';
+        AccessPolicyServerController.role_logged = new RoleVO();
+        AccessPolicyServerController.role_logged.parent_role_id = AccessPolicyServerController.role_anonymous.id;
+        AccessPolicyServerController.role_logged.id = 2;
+        AccessPolicyServerController.role_logged.translatable_name = 'role_logged';
 
-        AccessPolicyServerController.getInstance().role_admin = new RoleVO();
-        AccessPolicyServerController.getInstance().role_admin.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
-        AccessPolicyServerController.getInstance().role_admin.id = 3;
-        AccessPolicyServerController.getInstance().role_admin.translatable_name = 'role_admin';
+        AccessPolicyServerController.role_admin = new RoleVO();
+        AccessPolicyServerController.role_admin.parent_role_id = AccessPolicyServerController.role_logged.id;
+        AccessPolicyServerController.role_admin.id = 3;
+        AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
         let all_roles: { [role_id: number]: RoleVO } = {
-            1: AccessPolicyServerController.getInstance().role_anonymous,
-            2: AccessPolicyServerController.getInstance().role_logged,
-            3: AccessPolicyServerController.getInstance().role_admin
+            1: AccessPolicyServerController.role_anonymous,
+            2: AccessPolicyServerController.role_logged,
+            3: AccessPolicyServerController.role_admin
         };
 
 
@@ -1303,17 +1303,17 @@ describe('AccessPolicyServer', () => {
         let role_policyA: RolePolicyVO = new RolePolicyVO();
         role_policyA.id = 1;
         role_policyA.accpol_id = policyA.id;
-        role_policyA.role_id = AccessPolicyServerController.getInstance().role_logged.id;
+        role_policyA.role_id = AccessPolicyServerController.role_logged.id;
         role_policyA.granted = true;
 
         let role_policyB: RolePolicyVO = new RolePolicyVO();
         role_policyB.id = 2;
         role_policyB.accpol_id = policyB.id;
-        role_policyB.role_id = AccessPolicyServerController.getInstance().role_logged.id;
+        role_policyB.role_id = AccessPolicyServerController.role_logged.id;
         role_policyB.granted = true;
 
         let role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {
-            [AccessPolicyServerController.getInstance().role_logged.id]: {
+            [AccessPolicyServerController.role_logged.id]: {
                 [policyA.id]: role_policyA,
                 [policyB.id]: role_policyB
             }
@@ -1333,27 +1333,27 @@ describe('AccessPolicyServer', () => {
             [policyC.id]: [dependencyCA, dependencyCB],
         };
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyC,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             role_policies,
             policies,
             policies_dependencies
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyC,
-            { [AccessPolicyServerController.getInstance().role_admin.id]: AccessPolicyServerController.getInstance().role_admin },
+            { [AccessPolicyServerController.role_admin.id]: AccessPolicyServerController.role_admin },
             all_roles,
             role_policies,
             policies,
             policies_dependencies
         )).to.equal(true);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyC,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             role_policies,
             policies,
@@ -1362,9 +1362,9 @@ describe('AccessPolicyServer', () => {
 
         role_policyB.granted = false;
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyC,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             role_policies,
             policies,
@@ -1373,9 +1373,9 @@ describe('AccessPolicyServer', () => {
 
         role_policyA.granted = false;
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyC,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             role_policies,
             policies,
@@ -1384,9 +1384,9 @@ describe('AccessPolicyServer', () => {
 
         role_policyB.granted = true;
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyC,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             role_policies,
             policies,
@@ -1395,9 +1395,9 @@ describe('AccessPolicyServer', () => {
 
         role_policyA.granted = true;
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyC,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             role_policies,
             policies,
@@ -1407,25 +1407,25 @@ describe('AccessPolicyServer', () => {
 
     it('test check access - policy multiple dependencies defaults DENIED', () => {
 
-        AccessPolicyServerController.getInstance().role_anonymous = new RoleVO();
-        AccessPolicyServerController.getInstance().role_anonymous.parent_role_id = null;
-        AccessPolicyServerController.getInstance().role_anonymous.id = 1;
-        AccessPolicyServerController.getInstance().role_anonymous.translatable_name = 'role_anonymous';
+        AccessPolicyServerController.role_anonymous = new RoleVO();
+        AccessPolicyServerController.role_anonymous.parent_role_id = null;
+        AccessPolicyServerController.role_anonymous.id = 1;
+        AccessPolicyServerController.role_anonymous.translatable_name = 'role_anonymous';
 
-        AccessPolicyServerController.getInstance().role_logged = new RoleVO();
-        AccessPolicyServerController.getInstance().role_logged.parent_role_id = AccessPolicyServerController.getInstance().role_anonymous.id;
-        AccessPolicyServerController.getInstance().role_logged.id = 2;
-        AccessPolicyServerController.getInstance().role_logged.translatable_name = 'role_logged';
+        AccessPolicyServerController.role_logged = new RoleVO();
+        AccessPolicyServerController.role_logged.parent_role_id = AccessPolicyServerController.role_anonymous.id;
+        AccessPolicyServerController.role_logged.id = 2;
+        AccessPolicyServerController.role_logged.translatable_name = 'role_logged';
 
-        AccessPolicyServerController.getInstance().role_admin = new RoleVO();
-        AccessPolicyServerController.getInstance().role_admin.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
-        AccessPolicyServerController.getInstance().role_admin.id = 3;
-        AccessPolicyServerController.getInstance().role_admin.translatable_name = 'role_admin';
+        AccessPolicyServerController.role_admin = new RoleVO();
+        AccessPolicyServerController.role_admin.parent_role_id = AccessPolicyServerController.role_logged.id;
+        AccessPolicyServerController.role_admin.id = 3;
+        AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
         let all_roles: { [role_id: number]: RoleVO } = {
-            1: AccessPolicyServerController.getInstance().role_anonymous,
-            2: AccessPolicyServerController.getInstance().role_logged,
-            3: AccessPolicyServerController.getInstance().role_admin
+            1: AccessPolicyServerController.role_anonymous,
+            2: AccessPolicyServerController.role_logged,
+            3: AccessPolicyServerController.role_admin
         };
 
 
@@ -1454,17 +1454,17 @@ describe('AccessPolicyServer', () => {
         let role_policyA: RolePolicyVO = new RolePolicyVO();
         role_policyA.id = 1;
         role_policyA.accpol_id = policyA.id;
-        role_policyA.role_id = AccessPolicyServerController.getInstance().role_logged.id;
+        role_policyA.role_id = AccessPolicyServerController.role_logged.id;
         role_policyA.granted = true;
 
         let role_policyB: RolePolicyVO = new RolePolicyVO();
         role_policyB.id = 2;
         role_policyB.accpol_id = policyB.id;
-        role_policyB.role_id = AccessPolicyServerController.getInstance().role_logged.id;
+        role_policyB.role_id = AccessPolicyServerController.role_logged.id;
         role_policyB.granted = true;
 
         let role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {
-            [AccessPolicyServerController.getInstance().role_logged.id]: {
+            [AccessPolicyServerController.role_logged.id]: {
                 [policyA.id]: role_policyA,
                 [policyB.id]: role_policyB
             }
@@ -1484,27 +1484,27 @@ describe('AccessPolicyServer', () => {
             [policyC.id]: [dependencyCA, dependencyCB],
         };
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyC,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             role_policies,
             policies,
             policies_dependencies
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyC,
-            { [AccessPolicyServerController.getInstance().role_admin.id]: AccessPolicyServerController.getInstance().role_admin },
+            { [AccessPolicyServerController.role_admin.id]: AccessPolicyServerController.role_admin },
             all_roles,
             role_policies,
             policies,
             policies_dependencies
         )).to.equal(true);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyC,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             role_policies,
             policies,
@@ -1513,9 +1513,9 @@ describe('AccessPolicyServer', () => {
 
         role_policyB.granted = false;
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyC,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             role_policies,
             policies,
@@ -1524,9 +1524,9 @@ describe('AccessPolicyServer', () => {
 
         role_policyA.granted = false;
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyC,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             role_policies,
             policies,
@@ -1535,9 +1535,9 @@ describe('AccessPolicyServer', () => {
 
         role_policyB.granted = true;
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyC,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             role_policies,
             policies,
@@ -1546,9 +1546,9 @@ describe('AccessPolicyServer', () => {
 
         role_policyA.granted = true;
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyC,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             role_policies,
             policies,
@@ -1558,25 +1558,25 @@ describe('AccessPolicyServer', () => {
 
     it('test check access - policy multiple dependencies different defaults', () => {
 
-        AccessPolicyServerController.getInstance().role_anonymous = new RoleVO();
-        AccessPolicyServerController.getInstance().role_anonymous.parent_role_id = null;
-        AccessPolicyServerController.getInstance().role_anonymous.id = 1;
-        AccessPolicyServerController.getInstance().role_anonymous.translatable_name = 'role_anonymous';
+        AccessPolicyServerController.role_anonymous = new RoleVO();
+        AccessPolicyServerController.role_anonymous.parent_role_id = null;
+        AccessPolicyServerController.role_anonymous.id = 1;
+        AccessPolicyServerController.role_anonymous.translatable_name = 'role_anonymous';
 
-        AccessPolicyServerController.getInstance().role_logged = new RoleVO();
-        AccessPolicyServerController.getInstance().role_logged.parent_role_id = AccessPolicyServerController.getInstance().role_anonymous.id;
-        AccessPolicyServerController.getInstance().role_logged.id = 2;
-        AccessPolicyServerController.getInstance().role_logged.translatable_name = 'role_logged';
+        AccessPolicyServerController.role_logged = new RoleVO();
+        AccessPolicyServerController.role_logged.parent_role_id = AccessPolicyServerController.role_anonymous.id;
+        AccessPolicyServerController.role_logged.id = 2;
+        AccessPolicyServerController.role_logged.translatable_name = 'role_logged';
 
-        AccessPolicyServerController.getInstance().role_admin = new RoleVO();
-        AccessPolicyServerController.getInstance().role_admin.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
-        AccessPolicyServerController.getInstance().role_admin.id = 3;
-        AccessPolicyServerController.getInstance().role_admin.translatable_name = 'role_admin';
+        AccessPolicyServerController.role_admin = new RoleVO();
+        AccessPolicyServerController.role_admin.parent_role_id = AccessPolicyServerController.role_logged.id;
+        AccessPolicyServerController.role_admin.id = 3;
+        AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
         let all_roles: { [role_id: number]: RoleVO } = {
-            1: AccessPolicyServerController.getInstance().role_anonymous,
-            2: AccessPolicyServerController.getInstance().role_logged,
-            3: AccessPolicyServerController.getInstance().role_admin
+            1: AccessPolicyServerController.role_anonymous,
+            2: AccessPolicyServerController.role_logged,
+            3: AccessPolicyServerController.role_admin
         };
 
 
@@ -1605,17 +1605,17 @@ describe('AccessPolicyServer', () => {
         let role_policyA: RolePolicyVO = new RolePolicyVO();
         role_policyA.id = 1;
         role_policyA.accpol_id = policyA.id;
-        role_policyA.role_id = AccessPolicyServerController.getInstance().role_logged.id;
+        role_policyA.role_id = AccessPolicyServerController.role_logged.id;
         role_policyA.granted = true;
 
         let role_policyB: RolePolicyVO = new RolePolicyVO();
         role_policyB.id = 2;
         role_policyB.accpol_id = policyB.id;
-        role_policyB.role_id = AccessPolicyServerController.getInstance().role_logged.id;
+        role_policyB.role_id = AccessPolicyServerController.role_logged.id;
         role_policyB.granted = true;
 
         let role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {
-            [AccessPolicyServerController.getInstance().role_logged.id]: {
+            [AccessPolicyServerController.role_logged.id]: {
                 [policyA.id]: role_policyA,
                 [policyB.id]: role_policyB
             }
@@ -1635,27 +1635,27 @@ describe('AccessPolicyServer', () => {
             [policyC.id]: [dependencyCA, dependencyCB],
         };
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyC,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             role_policies,
             policies,
             policies_dependencies
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyC,
-            { [AccessPolicyServerController.getInstance().role_admin.id]: AccessPolicyServerController.getInstance().role_admin },
+            { [AccessPolicyServerController.role_admin.id]: AccessPolicyServerController.role_admin },
             all_roles,
             role_policies,
             policies,
             policies_dependencies
         )).to.equal(true);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyC,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             role_policies,
             policies,
@@ -1664,9 +1664,9 @@ describe('AccessPolicyServer', () => {
 
         role_policyB.granted = false;
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyC,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             role_policies,
             policies,
@@ -1675,9 +1675,9 @@ describe('AccessPolicyServer', () => {
 
         role_policyA.granted = false;
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyC,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             role_policies,
             policies,
@@ -1686,9 +1686,9 @@ describe('AccessPolicyServer', () => {
 
         role_policyB.granted = true;
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyC,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             role_policies,
             policies,
@@ -1697,9 +1697,9 @@ describe('AccessPolicyServer', () => {
 
         role_policyA.granted = true;
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyC,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             role_policies,
             policies,
@@ -1709,107 +1709,107 @@ describe('AccessPolicyServer', () => {
 
     it('test getUsersRoles', () => {
 
-        AccessPolicyServerController.getInstance().role_anonymous = new RoleVO();
-        AccessPolicyServerController.getInstance().role_anonymous.parent_role_id = null;
-        AccessPolicyServerController.getInstance().role_anonymous.id = 1;
-        AccessPolicyServerController.getInstance().role_anonymous.translatable_name = 'role_anonymous';
+        AccessPolicyServerController.role_anonymous = new RoleVO();
+        AccessPolicyServerController.role_anonymous.parent_role_id = null;
+        AccessPolicyServerController.role_anonymous.id = 1;
+        AccessPolicyServerController.role_anonymous.translatable_name = 'role_anonymous';
 
-        AccessPolicyServerController.getInstance().role_logged = new RoleVO();
-        AccessPolicyServerController.getInstance().role_logged.parent_role_id = AccessPolicyServerController.getInstance().role_anonymous.id;
-        AccessPolicyServerController.getInstance().role_logged.id = 2;
-        AccessPolicyServerController.getInstance().role_logged.translatable_name = 'role_logged';
+        AccessPolicyServerController.role_logged = new RoleVO();
+        AccessPolicyServerController.role_logged.parent_role_id = AccessPolicyServerController.role_anonymous.id;
+        AccessPolicyServerController.role_logged.id = 2;
+        AccessPolicyServerController.role_logged.translatable_name = 'role_logged';
 
-        AccessPolicyServerController.getInstance().role_admin = new RoleVO();
-        AccessPolicyServerController.getInstance().role_admin.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
-        AccessPolicyServerController.getInstance().role_admin.id = 3;
-        AccessPolicyServerController.getInstance().role_admin.translatable_name = 'role_admin';
+        AccessPolicyServerController.role_admin = new RoleVO();
+        AccessPolicyServerController.role_admin.parent_role_id = AccessPolicyServerController.role_logged.id;
+        AccessPolicyServerController.role_admin.id = 3;
+        AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
         let all_roles: { [role_id: number]: RoleVO } = {
-            1: AccessPolicyServerController.getInstance().role_anonymous,
-            2: AccessPolicyServerController.getInstance().role_logged,
-            3: AccessPolicyServerController.getInstance().role_admin
+            1: AccessPolicyServerController.role_anonymous,
+            2: AccessPolicyServerController.role_logged,
+            3: AccessPolicyServerController.role_admin
         };
 
 
 
         let new_role: RoleVO = new RoleVO();
-        new_role.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
+        new_role.parent_role_id = AccessPolicyServerController.role_logged.id;
         new_role.translatable_name = 'new_role';
         new_role.id = 1001;
 
         all_roles[new_role.id] = new_role;
-        expect(AccessPolicyServerController.getInstance().getUsersRoles(false, null, null, null)).to.deep.equal({
-            [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous
+        expect(AccessPolicyServerController.getUsersRoles(false, null, null, null)).to.deep.equal({
+            [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous
         });
 
-        expect(AccessPolicyServerController.getInstance().getUsersRoles(false, null, [], all_roles)).to.deep.equal({
-            [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous
+        expect(AccessPolicyServerController.getUsersRoles(false, null, [], all_roles)).to.deep.equal({
+            [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous
         });
 
-        expect(AccessPolicyServerController.getInstance().getUsersRoles(true, null, [], all_roles)).to.deep.equal({
-            [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous,
-            [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged
+        expect(AccessPolicyServerController.getUsersRoles(true, null, [], all_roles)).to.deep.equal({
+            [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous,
+            [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged
         });
 
-        expect(AccessPolicyServerController.getInstance().getUsersRoles(true, null, null, all_roles)).to.deep.equal({
-            [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous,
-            [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged
+        expect(AccessPolicyServerController.getUsersRoles(true, null, null, all_roles)).to.deep.equal({
+            [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous,
+            [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged
         });
 
-        expect(AccessPolicyServerController.getInstance().getUsersRoles(true, null, [
-            AccessPolicyServerController.getInstance().role_anonymous
+        expect(AccessPolicyServerController.getUsersRoles(true, null, [
+            AccessPolicyServerController.role_anonymous
         ], all_roles)).to.deep.equal({
-            [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous,
-            [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged
+            [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous,
+            [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged
         });
 
-        expect(AccessPolicyServerController.getInstance().getUsersRoles(true, null, [
-            AccessPolicyServerController.getInstance().role_anonymous,
-            AccessPolicyServerController.getInstance().role_logged
+        expect(AccessPolicyServerController.getUsersRoles(true, null, [
+            AccessPolicyServerController.role_anonymous,
+            AccessPolicyServerController.role_logged
         ], all_roles)).to.deep.equal({
-            [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged,
-            [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous
+            [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged,
+            [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous
         });
 
-        expect(AccessPolicyServerController.getInstance().getUsersRoles(true, null, [
+        expect(AccessPolicyServerController.getUsersRoles(true, null, [
             new_role
         ], all_roles)).to.deep.equal({
             [new_role.id]: new_role,
-            [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged,
-            [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous
+            [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged,
+            [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous
         });
 
-        expect(AccessPolicyServerController.getInstance().getUsersRoles(true, null, [
-            AccessPolicyServerController.getInstance().role_admin
+        expect(AccessPolicyServerController.getUsersRoles(true, null, [
+            AccessPolicyServerController.role_admin
         ], all_roles)).to.deep.equal({
-            [AccessPolicyServerController.getInstance().role_admin.id]: AccessPolicyServerController.getInstance().role_admin,
-            [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged,
-            [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous
+            [AccessPolicyServerController.role_admin.id]: AccessPolicyServerController.role_admin,
+            [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged,
+            [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous
         });
 
         delete all_roles[new_role.id];
     });
 
     it('test check access - inheritance test - complex - dont inherit role policy when dependency not validated', () => {
-        AccessPolicyServerController.getInstance().role_anonymous = new RoleVO();
-        AccessPolicyServerController.getInstance().role_anonymous.parent_role_id = null;
-        AccessPolicyServerController.getInstance().role_anonymous.id = 1;
-        AccessPolicyServerController.getInstance().role_anonymous.translatable_name = 'role_anonymous';
+        AccessPolicyServerController.role_anonymous = new RoleVO();
+        AccessPolicyServerController.role_anonymous.parent_role_id = null;
+        AccessPolicyServerController.role_anonymous.id = 1;
+        AccessPolicyServerController.role_anonymous.translatable_name = 'role_anonymous';
 
-        AccessPolicyServerController.getInstance().role_logged = new RoleVO();
-        AccessPolicyServerController.getInstance().role_logged.parent_role_id = AccessPolicyServerController.getInstance().role_anonymous.id;
-        AccessPolicyServerController.getInstance().role_logged.id = 2;
-        AccessPolicyServerController.getInstance().role_logged.translatable_name = 'role_logged';
+        AccessPolicyServerController.role_logged = new RoleVO();
+        AccessPolicyServerController.role_logged.parent_role_id = AccessPolicyServerController.role_anonymous.id;
+        AccessPolicyServerController.role_logged.id = 2;
+        AccessPolicyServerController.role_logged.translatable_name = 'role_logged';
 
-        AccessPolicyServerController.getInstance().role_admin = new RoleVO();
-        AccessPolicyServerController.getInstance().role_admin.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
-        AccessPolicyServerController.getInstance().role_admin.id = 3;
-        AccessPolicyServerController.getInstance().role_admin.translatable_name = 'role_admin';
+        AccessPolicyServerController.role_admin = new RoleVO();
+        AccessPolicyServerController.role_admin.parent_role_id = AccessPolicyServerController.role_logged.id;
+        AccessPolicyServerController.role_admin.id = 3;
+        AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
         let all_roles: { [role_id: number]: RoleVO } = {
-            1: AccessPolicyServerController.getInstance().role_anonymous,
-            2: AccessPolicyServerController.getInstance().role_logged,
-            3: AccessPolicyServerController.getInstance().role_admin
+            1: AccessPolicyServerController.role_anonymous,
+            2: AccessPolicyServerController.role_logged,
+            3: AccessPolicyServerController.role_admin
         };
 
 
@@ -1840,38 +1840,38 @@ describe('AccessPolicyServer', () => {
         let role_policyA: RolePolicyVO = new RolePolicyVO();
         role_policyA.id = 1;
         role_policyA.accpol_id = policyA.id;
-        role_policyA.role_id = AccessPolicyServerController.getInstance().role_logged.id;
+        role_policyA.role_id = AccessPolicyServerController.role_logged.id;
         role_policyA.granted = true;
 
         let role_policyB: RolePolicyVO = new RolePolicyVO();
         role_policyB.id = 2;
         role_policyB.accpol_id = policyB.id;
-        role_policyB.role_id = AccessPolicyServerController.getInstance().role_anonymous.id;
+        role_policyB.role_id = AccessPolicyServerController.role_anonymous.id;
         role_policyB.granted = true;
 
         let role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {
-            [AccessPolicyServerController.getInstance().role_anonymous.id]: {
+            [AccessPolicyServerController.role_anonymous.id]: {
                 [policyB.id]: role_policyB
             },
-            [AccessPolicyServerController.getInstance().role_logged.id]: {
+            [AccessPolicyServerController.role_logged.id]: {
                 [policyA.id]: role_policyA
             }
         };
 
         // anon ne peut hériter dans ce contexte, et pas de droit anon sur A
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             role_policies,
             policies,
             policies_dependencies,
-            AccessPolicyServerController.getInstance().role_anonymous
+            AccessPolicyServerController.role_anonymous
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             role_policies,
             policies,
@@ -1879,19 +1879,19 @@ describe('AccessPolicyServer', () => {
         )).to.equal(false);
 
         // Anon sur B nécessite anon A donc false pour les 2
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyB,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             role_policies,
             policies,
             policies_dependencies,
-            AccessPolicyServerController.getInstance().role_anonymous
+            AccessPolicyServerController.role_anonymous
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyB,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             role_policies,
             policies,
@@ -1899,19 +1899,19 @@ describe('AccessPolicyServer', () => {
         )).to.equal(false);
 
         // logged sur A ok, mais pas hérité
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             role_policies,
             policies,
             policies_dependencies,
-            AccessPolicyServerController.getInstance().role_logged
+            AccessPolicyServerController.role_logged
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyA,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             role_policies,
             policies,
@@ -1919,19 +1919,19 @@ describe('AccessPolicyServer', () => {
         )).to.equal(true);
 
         // logged sur B nécessite A (ok) mais ne peut hériter de B sur anon puisque A anon est invalide
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyB,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             role_policies,
             policies,
             policies_dependencies,
-            AccessPolicyServerController.getInstance().role_logged
+            AccessPolicyServerController.role_logged
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyB,
-            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            { [AccessPolicyServerController.role_logged.id]: AccessPolicyServerController.role_logged },
             all_roles,
             role_policies,
             policies,
@@ -1941,25 +1941,25 @@ describe('AccessPolicyServer', () => {
 
 
     it('test dao access - isAccessConfVoType && inherited', () => {
-        AccessPolicyServerController.getInstance().role_anonymous = new RoleVO();
-        AccessPolicyServerController.getInstance().role_anonymous.parent_role_id = null;
-        AccessPolicyServerController.getInstance().role_anonymous.id = 1;
-        AccessPolicyServerController.getInstance().role_anonymous.translatable_name = 'role_anonymous';
+        AccessPolicyServerController.role_anonymous = new RoleVO();
+        AccessPolicyServerController.role_anonymous.parent_role_id = null;
+        AccessPolicyServerController.role_anonymous.id = 1;
+        AccessPolicyServerController.role_anonymous.translatable_name = 'role_anonymous';
 
-        AccessPolicyServerController.getInstance().role_logged = new RoleVO();
-        AccessPolicyServerController.getInstance().role_logged.parent_role_id = AccessPolicyServerController.getInstance().role_anonymous.id;
-        AccessPolicyServerController.getInstance().role_logged.id = 2;
-        AccessPolicyServerController.getInstance().role_logged.translatable_name = 'role_logged';
+        AccessPolicyServerController.role_logged = new RoleVO();
+        AccessPolicyServerController.role_logged.parent_role_id = AccessPolicyServerController.role_anonymous.id;
+        AccessPolicyServerController.role_logged.id = 2;
+        AccessPolicyServerController.role_logged.translatable_name = 'role_logged';
 
-        AccessPolicyServerController.getInstance().role_admin = new RoleVO();
-        AccessPolicyServerController.getInstance().role_admin.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
-        AccessPolicyServerController.getInstance().role_admin.id = 3;
-        AccessPolicyServerController.getInstance().role_admin.translatable_name = 'role_admin';
+        AccessPolicyServerController.role_admin = new RoleVO();
+        AccessPolicyServerController.role_admin.parent_role_id = AccessPolicyServerController.role_logged.id;
+        AccessPolicyServerController.role_admin.id = 3;
+        AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
         let all_roles: { [role_id: number]: RoleVO } = {
-            1: AccessPolicyServerController.getInstance().role_anonymous,
-            2: AccessPolicyServerController.getInstance().role_logged,
-            3: AccessPolicyServerController.getInstance().role_admin
+            1: AccessPolicyServerController.role_anonymous,
+            2: AccessPolicyServerController.role_logged,
+            3: AccessPolicyServerController.role_admin
         };
 
         let policy_global_access: AccessPolicyVO = new AccessPolicyVO();
@@ -2086,69 +2086,69 @@ describe('AccessPolicyServer', () => {
             [policyDELETE.id]: [dependencyDELETE, global_access_DELETE, inherited_DELETE],
         };
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyLIST_LABELS,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             null,
             policies,
             policies_dependencies,
-            AccessPolicyServerController.getInstance().role_anonymous
+            AccessPolicyServerController.role_anonymous
         )).to.equal(true);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyREAD,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             null,
             policies,
             policies_dependencies,
-            AccessPolicyServerController.getInstance().role_anonymous
+            AccessPolicyServerController.role_anonymous
         )).to.equal(true);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyINSERT_OR_UPDATE,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             null,
             policies,
             policies_dependencies,
-            AccessPolicyServerController.getInstance().role_anonymous
+            AccessPolicyServerController.role_anonymous
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyDELETE,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             null,
             policies,
             policies_dependencies,
-            AccessPolicyServerController.getInstance().role_anonymous
+            AccessPolicyServerController.role_anonymous
         )).to.equal(false);
     });
 
 
 
     it('test dao access - isAccessConfVoType', () => {
-        AccessPolicyServerController.getInstance().role_anonymous = new RoleVO();
-        AccessPolicyServerController.getInstance().role_anonymous.parent_role_id = null;
-        AccessPolicyServerController.getInstance().role_anonymous.id = 1;
-        AccessPolicyServerController.getInstance().role_anonymous.translatable_name = 'role_anonymous';
+        AccessPolicyServerController.role_anonymous = new RoleVO();
+        AccessPolicyServerController.role_anonymous.parent_role_id = null;
+        AccessPolicyServerController.role_anonymous.id = 1;
+        AccessPolicyServerController.role_anonymous.translatable_name = 'role_anonymous';
 
-        AccessPolicyServerController.getInstance().role_logged = new RoleVO();
-        AccessPolicyServerController.getInstance().role_logged.parent_role_id = AccessPolicyServerController.getInstance().role_anonymous.id;
-        AccessPolicyServerController.getInstance().role_logged.id = 2;
-        AccessPolicyServerController.getInstance().role_logged.translatable_name = 'role_logged';
+        AccessPolicyServerController.role_logged = new RoleVO();
+        AccessPolicyServerController.role_logged.parent_role_id = AccessPolicyServerController.role_anonymous.id;
+        AccessPolicyServerController.role_logged.id = 2;
+        AccessPolicyServerController.role_logged.translatable_name = 'role_logged';
 
-        AccessPolicyServerController.getInstance().role_admin = new RoleVO();
-        AccessPolicyServerController.getInstance().role_admin.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
-        AccessPolicyServerController.getInstance().role_admin.id = 3;
-        AccessPolicyServerController.getInstance().role_admin.translatable_name = 'role_admin';
+        AccessPolicyServerController.role_admin = new RoleVO();
+        AccessPolicyServerController.role_admin.parent_role_id = AccessPolicyServerController.role_logged.id;
+        AccessPolicyServerController.role_admin.id = 3;
+        AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
         let all_roles: { [role_id: number]: RoleVO } = {
-            1: AccessPolicyServerController.getInstance().role_anonymous,
-            2: AccessPolicyServerController.getInstance().role_logged,
-            3: AccessPolicyServerController.getInstance().role_admin
+            1: AccessPolicyServerController.role_anonymous,
+            2: AccessPolicyServerController.role_logged,
+            3: AccessPolicyServerController.role_admin
         };
 
         let policy_global_access: AccessPolicyVO = new AccessPolicyVO();
@@ -2223,68 +2223,68 @@ describe('AccessPolicyServer', () => {
             [policyDELETE.id]: [dependencyDELETE, global_access_DELETE],
         };
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyLIST_LABELS,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             null,
             policies,
             policies_dependencies,
-            AccessPolicyServerController.getInstance().role_anonymous
+            AccessPolicyServerController.role_anonymous
         )).to.equal(true);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyREAD,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             null,
             policies,
             policies_dependencies,
-            AccessPolicyServerController.getInstance().role_anonymous
+            AccessPolicyServerController.role_anonymous
         )).to.equal(true);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyINSERT_OR_UPDATE,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             null,
             policies,
             policies_dependencies,
-            AccessPolicyServerController.getInstance().role_anonymous
+            AccessPolicyServerController.role_anonymous
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyDELETE,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             null,
             policies,
             policies_dependencies,
-            AccessPolicyServerController.getInstance().role_anonymous
+            AccessPolicyServerController.role_anonymous
         )).to.equal(false);
     });
 
 
     it('test dao access - !isAccessConfVoType && inherited', () => {
-        AccessPolicyServerController.getInstance().role_anonymous = new RoleVO();
-        AccessPolicyServerController.getInstance().role_anonymous.parent_role_id = null;
-        AccessPolicyServerController.getInstance().role_anonymous.id = 1;
-        AccessPolicyServerController.getInstance().role_anonymous.translatable_name = 'role_anonymous';
+        AccessPolicyServerController.role_anonymous = new RoleVO();
+        AccessPolicyServerController.role_anonymous.parent_role_id = null;
+        AccessPolicyServerController.role_anonymous.id = 1;
+        AccessPolicyServerController.role_anonymous.translatable_name = 'role_anonymous';
 
-        AccessPolicyServerController.getInstance().role_logged = new RoleVO();
-        AccessPolicyServerController.getInstance().role_logged.parent_role_id = AccessPolicyServerController.getInstance().role_anonymous.id;
-        AccessPolicyServerController.getInstance().role_logged.id = 2;
-        AccessPolicyServerController.getInstance().role_logged.translatable_name = 'role_logged';
+        AccessPolicyServerController.role_logged = new RoleVO();
+        AccessPolicyServerController.role_logged.parent_role_id = AccessPolicyServerController.role_anonymous.id;
+        AccessPolicyServerController.role_logged.id = 2;
+        AccessPolicyServerController.role_logged.translatable_name = 'role_logged';
 
-        AccessPolicyServerController.getInstance().role_admin = new RoleVO();
-        AccessPolicyServerController.getInstance().role_admin.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
-        AccessPolicyServerController.getInstance().role_admin.id = 3;
-        AccessPolicyServerController.getInstance().role_admin.translatable_name = 'role_admin';
+        AccessPolicyServerController.role_admin = new RoleVO();
+        AccessPolicyServerController.role_admin.parent_role_id = AccessPolicyServerController.role_logged.id;
+        AccessPolicyServerController.role_admin.id = 3;
+        AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
         let all_roles: { [role_id: number]: RoleVO } = {
-            1: AccessPolicyServerController.getInstance().role_anonymous,
-            2: AccessPolicyServerController.getInstance().role_logged,
-            3: AccessPolicyServerController.getInstance().role_admin
+            1: AccessPolicyServerController.role_anonymous,
+            2: AccessPolicyServerController.role_logged,
+            3: AccessPolicyServerController.role_admin
         };
 
         let policy_global_access: AccessPolicyVO = new AccessPolicyVO();
@@ -2411,69 +2411,69 @@ describe('AccessPolicyServer', () => {
             [policyDELETE.id]: [dependencyDELETE, global_access_DELETE, inherited_DELETE],
         };
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyLIST_LABELS,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             null,
             policies,
             policies_dependencies,
-            AccessPolicyServerController.getInstance().role_anonymous
+            AccessPolicyServerController.role_anonymous
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyREAD,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             null,
             policies,
             policies_dependencies,
-            AccessPolicyServerController.getInstance().role_anonymous
+            AccessPolicyServerController.role_anonymous
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyINSERT_OR_UPDATE,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             null,
             policies,
             policies_dependencies,
-            AccessPolicyServerController.getInstance().role_anonymous
+            AccessPolicyServerController.role_anonymous
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyDELETE,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             null,
             policies,
             policies_dependencies,
-            AccessPolicyServerController.getInstance().role_anonymous
+            AccessPolicyServerController.role_anonymous
         )).to.equal(false);
     });
 
 
 
     it('test dao access - !isAccessConfVoType', () => {
-        AccessPolicyServerController.getInstance().role_anonymous = new RoleVO();
-        AccessPolicyServerController.getInstance().role_anonymous.parent_role_id = null;
-        AccessPolicyServerController.getInstance().role_anonymous.id = 1;
-        AccessPolicyServerController.getInstance().role_anonymous.translatable_name = 'role_anonymous';
+        AccessPolicyServerController.role_anonymous = new RoleVO();
+        AccessPolicyServerController.role_anonymous.parent_role_id = null;
+        AccessPolicyServerController.role_anonymous.id = 1;
+        AccessPolicyServerController.role_anonymous.translatable_name = 'role_anonymous';
 
-        AccessPolicyServerController.getInstance().role_logged = new RoleVO();
-        AccessPolicyServerController.getInstance().role_logged.parent_role_id = AccessPolicyServerController.getInstance().role_anonymous.id;
-        AccessPolicyServerController.getInstance().role_logged.id = 2;
-        AccessPolicyServerController.getInstance().role_logged.translatable_name = 'role_logged';
+        AccessPolicyServerController.role_logged = new RoleVO();
+        AccessPolicyServerController.role_logged.parent_role_id = AccessPolicyServerController.role_anonymous.id;
+        AccessPolicyServerController.role_logged.id = 2;
+        AccessPolicyServerController.role_logged.translatable_name = 'role_logged';
 
-        AccessPolicyServerController.getInstance().role_admin = new RoleVO();
-        AccessPolicyServerController.getInstance().role_admin.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
-        AccessPolicyServerController.getInstance().role_admin.id = 3;
-        AccessPolicyServerController.getInstance().role_admin.translatable_name = 'role_admin';
+        AccessPolicyServerController.role_admin = new RoleVO();
+        AccessPolicyServerController.role_admin.parent_role_id = AccessPolicyServerController.role_logged.id;
+        AccessPolicyServerController.role_admin.id = 3;
+        AccessPolicyServerController.role_admin.translatable_name = 'role_admin';
 
         let all_roles: { [role_id: number]: RoleVO } = {
-            1: AccessPolicyServerController.getInstance().role_anonymous,
-            2: AccessPolicyServerController.getInstance().role_logged,
-            3: AccessPolicyServerController.getInstance().role_admin
+            1: AccessPolicyServerController.role_anonymous,
+            2: AccessPolicyServerController.role_logged,
+            3: AccessPolicyServerController.role_admin
         };
 
         let policy_global_access: AccessPolicyVO = new AccessPolicyVO();
@@ -2548,44 +2548,44 @@ describe('AccessPolicyServer', () => {
             [policyDELETE.id]: [dependencyDELETE, global_access_DELETE],
         };
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyLIST_LABELS,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             null,
             policies,
             policies_dependencies,
-            AccessPolicyServerController.getInstance().role_anonymous
+            AccessPolicyServerController.role_anonymous
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyREAD,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             null,
             policies,
             policies_dependencies,
-            AccessPolicyServerController.getInstance().role_anonymous
+            AccessPolicyServerController.role_anonymous
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyINSERT_OR_UPDATE,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             null,
             policies,
             policies_dependencies,
-            AccessPolicyServerController.getInstance().role_anonymous
+            AccessPolicyServerController.role_anonymous
         )).to.equal(false);
 
-        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        expect(AccessPolicyServerController.checkAccessTo(
             policyDELETE,
-            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            { [AccessPolicyServerController.role_anonymous.id]: AccessPolicyServerController.role_anonymous },
             all_roles,
             null,
             policies,
             policies_dependencies,
-            AccessPolicyServerController.getInstance().role_anonymous
+            AccessPolicyServerController.role_anonymous
         )).to.equal(false);
     });
 });

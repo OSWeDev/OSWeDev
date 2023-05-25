@@ -196,7 +196,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
             admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
             admin_access_dependency.src_pol_id = bo_access.id;
-            admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
+            admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
             await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
         })());
 
@@ -407,11 +407,11 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
      */
     private async filterIPlanFacilitatorByManagerByContextAccessHook(moduletable: ModuleTable<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
 
-        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
+        if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return null;
         }
 
-        if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
+        if (!AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
             return ContextFilterVOHandler.getInstance().get_empty_res_context_hook_query(moduletable.vo_type);
         }
 
@@ -448,10 +448,10 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
      * @deprecated access_hook à remplacer petit à petit par les context_access_hooks
      */
     private async filterIPlanFacilitatorByManagerByAccess(datatable: ModuleTable<IPlanFacilitator>, vos: IPlanFacilitator[], uid: number): Promise<IPlanFacilitator[]> {
-        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
+        if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return vos;
         }
-        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
+        if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
             return await this.filterIPlanFacilitatorByManagerByAccess_ownTeam(datatable, vos, uid);
         }
         return null;
@@ -468,11 +468,11 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
      */
     private async filterManagerByIdByContextAccessHook(moduletable: ModuleTable<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
 
-        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
+        if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return null;
         }
 
-        if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
+        if (!AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
             return ContextFilterVOHandler.getInstance().get_empty_res_context_hook_query(moduletable.vo_type);
         }
 
@@ -509,10 +509,10 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
      * @deprecated access_hook à remplacer petit à petit par les context_access_hooks
      */
     private async filterManagerByIdByAccess(datatable: ModuleTable<IPlanManager>, vos: IPlanManager[], uid: number): Promise<IPlanManager[]> {
-        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
+        if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return vos;
         }
-        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
+        if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
             return await this.filterManagerByIdByAccess_own_team(datatable, vos, uid);
         }
         return null;
@@ -690,11 +690,11 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
      */
     private async filterRDVsByFacilitatorIdByContextAccessHook(moduletable: ModuleTable<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
 
-        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
+        if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return null;
         }
 
-        if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
+        if (!AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
             return ContextFilterVOHandler.getInstance().get_empty_res_context_hook_query(moduletable.vo_type);
         }
 
@@ -716,10 +716,10 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
      * @deprecated access_hook à remplacer petit à petit par les context_access_hooks
      */
     private async filterRDVsByFacilitatorIdByAccess(datatable: ModuleTable<IPlanRDV>, vos: IPlanRDV[], uid: number): Promise<IPlanRDV[]> {
-        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
+        if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return vos;
         }
-        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
+        if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
             return await this.filterRDVsByFacilitatorIdByAccess_ownTeam(datatable, vos, uid);
         }
         return null;
@@ -751,11 +751,11 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
      */
     private async filterRDVCRPrepsByFacilitatorIdByContextAccessHook(moduletable: ModuleTable<any>, uid: number, user: UserVO, user_data: IUserData, user_roles: RoleVO[]): Promise<ContextQueryVO> {
 
-        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
+        if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return null;
         }
 
-        if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
+        if (!AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
             return ContextFilterVOHandler.getInstance().get_empty_res_context_hook_query(moduletable.vo_type);
         }
 
@@ -777,10 +777,10 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
      * @deprecated access_hook à remplacer petit à petit par les context_access_hooks
      */
     private async filterRDVCRPrepsByFacilitatorIdByAccess(datatable: ModuleTable<IPlanRDVCR | IPlanRDVPrep>, vos: IPlanRDVCR[] | IPlanRDVPrep[], uid: number): Promise<IPlanRDVCR[] | IPlanRDVPrep[]> {
-        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
+        if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return vos;
         }
-        if (ModuleAccessPolicyServer.getInstance().checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
+        if (AccessPolicyServerController.checkAccessSync(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
             return await this.filterRDVCRPrepsByFacilitatorIdByAccess_ownTeam(datatable, vos, uid);
         }
         return null;

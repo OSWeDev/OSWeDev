@@ -37,9 +37,9 @@ export default class ContextAccessServerController {
         let uid: number = StackContext.get('UID');
         let roles;
         if (!uid) {
-            roles = AccessPolicyServerController.getInstance().getUsersRoles(false, null);
+            roles = AccessPolicyServerController.getUsersRoles(false, null);
         } else {
-            roles = AccessPolicyServerController.getInstance().getUsersRoles(true, uid);
+            roles = AccessPolicyServerController.getUsersRoles(true, uid);
         }
 
         if (fields && fields.length) {
@@ -77,9 +77,9 @@ export default class ContextAccessServerController {
         let uid: number = StackContext.get('UID');
         let roles;
         if (!uid) {
-            roles = AccessPolicyServerController.getInstance().getUsersRoles(false, null);
+            roles = AccessPolicyServerController.getUsersRoles(false, null);
         } else {
-            roles = AccessPolicyServerController.getInstance().getUsersRoles(true, uid);
+            roles = AccessPolicyServerController.getUsersRoles(true, uid);
         }
 
         for (let i in fields) {
@@ -107,9 +107,9 @@ export default class ContextAccessServerController {
         let uid: number = StackContext.get('UID');
         let roles;
         if (!uid) {
-            roles = AccessPolicyServerController.getInstance().getUsersRoles(false, null);
+            roles = AccessPolicyServerController.getUsersRoles(false, null);
         } else {
-            roles = AccessPolicyServerController.getInstance().getUsersRoles(true, uid);
+            roles = AccessPolicyServerController.getUsersRoles(true, uid);
         }
         if (!this.check_access_to_field(api_type_id, field_id, access_type, roles)) {
             return false;
@@ -133,11 +133,11 @@ export default class ContextAccessServerController {
             tmp_access_type = ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS;
         }
 
-        let target_policy: AccessPolicyVO = AccessPolicyServerController.getInstance().get_registered_policy(
+        let target_policy: AccessPolicyVO = AccessPolicyServerController.get_registered_policy(
             DAOController.getAccessPolicyName(tmp_access_type, api_type_id)
         );
 
-        if (!AccessPolicyServerController.getInstance().checkAccessTo(target_policy, roles)) {
+        if (!AccessPolicyServerController.checkAccessTo(target_policy, roles)) {
             return false;
         }
 

@@ -11,6 +11,7 @@ import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultT
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import EnvHandler from '../../../shared/tools/EnvHandler';
 import { all_promises } from '../../../shared/tools/PromiseTools';
+import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
@@ -85,7 +86,7 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
                 }
 
                 if (!!apiDefinition.access_policy_name) {
-                    if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(apiDefinition.access_policy_name)) {
+                    if (!AccessPolicyServerController.checkAccessSync(apiDefinition.access_policy_name)) {
                         let session: IServerUserSession = (req as any).session;
                         ConsoleHandler.error('Access denied to API:' + apiDefinition.api_name + ':' + ' sessionID:' + (req as any).sessionID + ": UID:" + (session ? session.uid : "null") + ":");
                         return null;

@@ -11,6 +11,7 @@ import ConfigurationService from '../../env/ConfigurationService';
 import ServerBase from '../../ServerBase';
 import ServerExpressController from '../../ServerExpressController';
 import StackContext from '../../StackContext';
+import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 const zlib = require('zlib');
@@ -65,7 +66,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
         return async (req: Request, res: Response) => {
 
             if (!!api.access_policy_name) {
-                if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(api.access_policy_name)) {
+                if (!AccessPolicyServerController.checkAccessSync(api.access_policy_name)) {
                     ConsoleHandler.error('Access denied to API:' + api.api_name + ': sessionID' + req.sessionID + ":");
                     this.respond_on_error(api, res);
                     return;

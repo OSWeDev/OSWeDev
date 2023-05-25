@@ -49,6 +49,7 @@ import EnvParam from './env/EnvParam';
 import FileLoggerHandler from './FileLoggerHandler';
 import I18nextInit from './I18nextInit';
 import MemoryUsageStat from './MemoryUsageStat';
+import AccessPolicyServerController from './modules/AccessPolicy/AccessPolicyServerController';
 import AccessPolicyDeleteSessionBGThread from './modules/AccessPolicy/bgthreads/AccessPolicyDeleteSessionBGThread';
 import ModuleAccessPolicyServer from './modules/AccessPolicy/ModuleAccessPolicyServer';
 import BGThreadServerController from './modules/BGThread/BGThreadServerController';
@@ -867,7 +868,7 @@ export default abstract class ServerBase {
                 await ServerExpressController.getInstance().getStackContextFromReq(req, session),
                 async () => {
                     file = await query(FileVO.API_TYPE_ID).filter_is_true('is_secured').filter_by_text_eq('path', ModuleFile.SECURED_FILES_ROOT + folders + file_name).select_vo<FileVO>();
-                    has_access = (file && file.file_access_policy_name) ? ModuleAccessPolicyServer.getInstance().checkAccessSync(file.file_access_policy_name) : false;
+                    has_access = (file && file.file_access_policy_name) ? AccessPolicyServerController.checkAccessSync(file.file_access_policy_name) : false;
                 });
 
             if (!has_access) {
@@ -950,7 +951,7 @@ export default abstract class ServerBase {
 
             let has_access: boolean = await StackContext.runPromise(
                 await ServerExpressController.getInstance().getStackContextFromReq(req, session),
-                async () => ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_FO_ACCESS, can_fail));
+                async () => AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_FO_ACCESS, can_fail));
 
             if (!has_access) {
                 ServerBase.getInstance().redirect_login_or_home(req, res);
@@ -974,7 +975,7 @@ export default abstract class ServerBase {
 
             let has_access: boolean = await StackContext.runPromise(
                 await ServerExpressController.getInstance().getStackContextFromReq(req, session),
-                async () => ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_BO_ACCESS, can_fail));
+                async () => AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_BO_ACCESS, can_fail));
 
             if (!has_access) {
 
@@ -996,7 +997,7 @@ export default abstract class ServerBase {
                 await StackContext.runPromise(
                     await ServerExpressController.getInstance().getStackContextFromReq(req, session),
                     async () => {
-                        has_access = ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS) && ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS);
+                        has_access = AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS) && AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS);
                     });
             }
 

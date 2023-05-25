@@ -606,7 +606,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         // let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         // admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         // admin_access_dependency.src_pol_id = bo_translations_access.id;
-        // admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().registered_policies[ModuleAccessPolicy.POLICY_BO_ACCESS].id;
+        // admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.registered_policies[ModuleAccessPolicy.POLICY_BO_ACCESS].id;
         // await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
 
         let promises = [];
@@ -621,7 +621,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             // admin_access_dependency = new PolicyDependencyVO();
             // admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
             // admin_access_dependency.src_pol_id = bo_others_access.id;
-            // admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().registered_policies[ModuleAccessPolicy.POLICY_BO_ACCESS].id;
+            // admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.registered_policies[ModuleAccessPolicy.POLICY_BO_ACCESS].id;
             // await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
             let access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
             access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
@@ -712,7 +712,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
     }
 
     private async trigger_ondelete_lang(lang: LangVO): Promise<boolean> {
-        let LANG_SELECTOR_PER_LANG_ACCESS: AccessPolicyVO = AccessPolicyServerController.getInstance().get_registered_policy(ModuleTranslation.getInstance().get_LANG_SELECTOR_PER_LANG_ACCESS_name(lang.id));
+        let LANG_SELECTOR_PER_LANG_ACCESS: AccessPolicyVO = AccessPolicyServerController.get_registered_policy(ModuleTranslation.getInstance().get_LANG_SELECTOR_PER_LANG_ACCESS_name(lang.id));
         if (!LANG_SELECTOR_PER_LANG_ACCESS) {
             return false;
         }

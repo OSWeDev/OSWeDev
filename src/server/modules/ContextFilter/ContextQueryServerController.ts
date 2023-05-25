@@ -531,7 +531,7 @@ export default class ContextQueryServerController {
         }
 
         // On vérifie qu'on peut faire un update
-        if ((!context_query.is_server) && !ModuleAccessPolicyServer.getInstance().checkAccessSync(DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, context_query.base_api_type_id))) {
+        if ((!context_query.is_server) && !AccessPolicyServerController.checkAccessSync(DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, context_query.base_api_type_id))) {
             StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'failed_checkAccessSync');
             return null;
         }
@@ -724,7 +724,7 @@ export default class ContextQueryServerController {
         }
 
         // On vérifie qu'on peut faire un delete
-        if ((!context_query.is_server) && !ModuleAccessPolicyServer.getInstance().checkAccessSync(DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, context_query.base_api_type_id))) {
+        if ((!context_query.is_server) && !AccessPolicyServerController.checkAccessSync(DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, context_query.base_api_type_id))) {
             StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'failed_checkAccessSync');
             return null;
         }
@@ -1711,7 +1711,7 @@ export default class ContextQueryServerController {
 
                 uid = StackContext.get('UID');
                 user = await ModuleAccessPolicyServer.getInstance().getSelfUser();
-                user_roles_by_role_id = AccessPolicyServerController.getInstance().getUsersRoles(true, uid);
+                user_roles_by_role_id = AccessPolicyServerController.getUsersRoles(true, uid);
                 user_roles = ObjectHandler.getInstance().hasAtLeastOneAttribute(user_roles_by_role_id) ? Object.values(user_roles_by_role_id) : null;
             }
 

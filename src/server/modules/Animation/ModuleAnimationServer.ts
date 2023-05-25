@@ -99,7 +99,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             let admin_access_dependency_bo: PolicyDependencyVO = new PolicyDependencyVO();
             admin_access_dependency_bo.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
             admin_access_dependency_bo.src_pol_id = bo_access.id;
-            admin_access_dependency_bo.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
+            admin_access_dependency_bo.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
             admin_access_dependency_bo = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency_bo);
         })());
 
@@ -114,7 +114,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             let admin_access_dependency_fo: PolicyDependencyVO = new PolicyDependencyVO();
             admin_access_dependency_fo.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
             admin_access_dependency_fo.src_pol_id = fo_access.id;
-            admin_access_dependency_fo.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_FO_ACCESS).id;
+            admin_access_dependency_fo.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_FO_ACCESS).id;
             admin_access_dependency_fo = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency_fo);
         })());
 
@@ -129,7 +129,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             let admin_access_dependency_fo_inline_edit: PolicyDependencyVO = new PolicyDependencyVO();
             admin_access_dependency_fo_inline_edit.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
             admin_access_dependency_fo_inline_edit.src_pol_id = fo_inline_edit_access.id;
-            admin_access_dependency_fo_inline_edit.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_FO_ACCESS).id;
+            admin_access_dependency_fo_inline_edit.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_FO_ACCESS).id;
             admin_access_dependency_fo_inline_edit = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency_fo_inline_edit);
         })());
 
@@ -144,7 +144,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             let admin_access_dependency_fo_reporting: PolicyDependencyVO = new PolicyDependencyVO();
             admin_access_dependency_fo_reporting.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
             admin_access_dependency_fo_reporting.src_pol_id = fo_reporting_access.id;
-            admin_access_dependency_fo_reporting.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_FO_ACCESS).id;
+            admin_access_dependency_fo_reporting.depends_on_pol_id = AccessPolicyServerController.get_registered_policy(ModuleAccessPolicy.POLICY_FO_ACCESS).id;
             admin_access_dependency_fo_reporting = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency_fo_reporting);
         })());
 
@@ -506,7 +506,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
 
             // Test Roles IDS sur les USERS
             if (role_ids.length > 0) {
-                let roles: RoleVO[] = AccessPolicyServerController.getInstance().get_registered_user_roles_by_uid(aum.user_id);
+                let roles: RoleVO[] = AccessPolicyServerController.get_registered_user_roles_by_uid(aum.user_id);
 
                 if (roles && roles.length > 0) {
                     for (let j in roles) {
@@ -587,7 +587,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             return vos;
         }
 
-        let user_roles: RoleVO[] = AccessPolicyServerController.getInstance().get_user_roles_by_uid(uid);
+        let user_roles: RoleVO[] = AccessPolicyServerController.get_user_roles_by_uid(uid);
         let user_role_id_ranges: NumRange[] = [];
 
         for (let i in user_roles) {
@@ -598,7 +598,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             while (parent_role_id) {
                 user_role_id_ranges.push(RangeHandler.create_single_elt_NumRange(parent_role_id, NumSegment.TYPE_INT));
 
-                let parent_role: RoleVO = AccessPolicyServerController.getInstance().get_registered_role_by_id(parent_role_id);
+                let parent_role: RoleVO = AccessPolicyServerController.get_registered_role_by_id(parent_role_id);
 
                 parent_role_id = (parent_role && parent_role.parent_role_id) ? parent_role.parent_role_id : null;
             }
@@ -634,7 +634,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
             return false;
         }
 
-        let user_roles: RoleVO[] = AccessPolicyServerController.getInstance().get_user_roles_by_uid(uid);
+        let user_roles: RoleVO[] = AccessPolicyServerController.get_user_roles_by_uid(uid);
 
         for (let i in user_roles) {
             if (user_roles[i].translatable_name == ModuleAccessPolicy.ROLE_ADMIN) {

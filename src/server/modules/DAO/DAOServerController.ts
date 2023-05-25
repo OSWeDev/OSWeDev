@@ -231,7 +231,7 @@ export default class DAOServerController {
     }
 
     public get_inherited_right(DAO_ACCESS_TYPE: string, inherit_rights_from_vo_type: string): AccessPolicyVO {
-        return AccessPolicyServerController.getInstance().get_registered_policy(DAOController.getAccessPolicyName(DAO_ACCESS_TYPE, inherit_rights_from_vo_type));
+        return AccessPolicyServerController.get_registered_policy(DAOController.getAccessPolicyName(DAO_ACCESS_TYPE, inherit_rights_from_vo_type));
     }
 
     public get_dao_dependency_default_denied(from: AccessPolicyVO, to: AccessPolicyVO): PolicyDependencyVO {

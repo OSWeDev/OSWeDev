@@ -57,6 +57,7 @@ import RangeHandler from '../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import ConfigurationService from '../../env/ConfigurationService';
 import StackContext from '../../StackContext';
+import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ServerAnonymizationController from '../Anonymization/ServerAnonymizationController';
 import ModuleServerBase from '../ModuleServerBase';
@@ -974,7 +975,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         // On applique les accès au global sur le droit de faire un SELECT
-        return ModuleAccessPolicyServer.getInstance().checkAccessSync(DAOController.getAccessPolicyName(access_type, datatable.vo_type));
+        return AccessPolicyServerController.checkAccessSync(DAOController.getAccessPolicyName(access_type, datatable.vo_type));
     }
 
     public async preload_segmented_known_database(t: ModuleTable<any>) {
@@ -2359,7 +2360,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         // On vérifie qu'on peut faire des modifs de table modules
-        if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleDAO.DAO_ACCESS_QUERY)) {
+        if (!AccessPolicyServerController.checkAccessSync(ModuleDAO.DAO_ACCESS_QUERY)) {
             return null;
         }
 

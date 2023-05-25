@@ -60,6 +60,7 @@ import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
 import UserRecapture from './UserRecapture/UserRecapture';
 import StatsController from '../../../shared/modules/Stats/StatsController';
+import { all_promises } from '../../../shared/tools/PromiseTools';
 
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
@@ -96,14 +97,17 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         this.rights_have_been_preloaded = true;
         // On preload ce qui l'a pas été et on complète les listes avec les données en base qui peuvent
         //  avoir été ajoutée en parralèle des déclarations dans le source
-        await AccessPolicyServerController.getInstance().preload_registered_roles();
-        await AccessPolicyServerController.getInstance().preload_registered_policies();
-        await AccessPolicyServerController.getInstance().preload_registered_policy_groups();
-        await AccessPolicyServerController.getInstance().preload_registered_dependencies();
+        await all_promises([
 
-        await AccessPolicyServerController.getInstance().preload_registered_users_roles();
-        await AccessPolicyServerController.getInstance().preload_registered_roles_policies();
-        await AccessPolicyServerController.getInstance().reload_access_matrix();
+            AccessPolicyServerController.preload_registered_roles(), // init registered_roles, registered_roles_by_ids
+            AccessPolicyServerController.preload_registered_policies(), // init registered_policies, registered_policies_by_ids
+            AccessPolicyServerController.preload_registered_policy_groups(), // init registered_policy_groups
+            AccessPolicyServerController.preload_registered_dependencies(), // init registered_dependencies / registered_dependencies_for_loading_process
+            AccessPolicyServerController.preload_registered_roles_policies(), // init registered_roles_policies
+        ]);
+
+        await AccessPolicyServerController.preload_registered_users_roles(); // init registered_users_roles / needs registered_roles_by_ids
+        await AccessPolicyServerController.reload_access_matrix();
     }
 
     /**
@@ -262,21 +266,21 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * Les héritages sont gérés directement dans la fonction register_role pour ces rôles de base
      */
     public async registerAccessRoles(): Promise<void> {
-        AccessPolicyServerController.getInstance().role_anonymous = new RoleVO();
-        AccessPolicyServerController.getInstance().role_anonymous.translatable_name = ModuleAccessPolicy.ROLE_ANONYMOUS;
-        AccessPolicyServerController.getInstance().role_anonymous = await this.registerRole(AccessPolicyServerController.getInstance().role_anonymous, new DefaultTranslation({
+        AccessPolicyServerController.role_anonymous = new RoleVO();
+        AccessPolicyServerController.role_anonymous.translatable_name = ModuleAccessPolicy.ROLE_ANONYMOUS;
+        AccessPolicyServerController.role_anonymous = await this.registerRole(AccessPolicyServerController.role_anonymous, new DefaultTranslation({
             'fr-fr': 'Utilisateur anonyme'
         }));
 
-        AccessPolicyServerController.getInstance().role_logged = new RoleVO();
-        AccessPolicyServerController.getInstance().role_logged.translatable_name = ModuleAccessPolicy.ROLE_LOGGED;
-        AccessPolicyServerController.getInstance().role_logged = await this.registerRole(AccessPolicyServerController.getInstance().role_logged, new DefaultTranslation({
+        AccessPolicyServerController.role_logged = new RoleVO();
+        AccessPolicyServerController.role_logged.translatable_name = ModuleAccessPolicy.ROLE_LOGGED;
+        AccessPolicyServerController.role_logged = await this.registerRole(AccessPolicyServerController.role_logged, new DefaultTranslation({
             'fr-fr': 'Utilisateur connecté'
         }));
 
-        AccessPolicyServerController.getInstance().role_admin = new RoleVO();
-        AccessPolicyServerController.getInstance().role_admin.translatable_name = ModuleAccessPolicy.ROLE_ADMIN;
-        AccessPolicyServerController.getInstance().role_admin = await this.registerRole(AccessPolicyServerController.getInstance().role_admin, new DefaultTranslation({
+        AccessPolicyServerController.role_admin = new RoleVO();
+        AccessPolicyServerController.role_admin.translatable_name = ModuleAccessPolicy.ROLE_ADMIN;
+        AccessPolicyServerController.role_admin = await this.registerRole(AccessPolicyServerController.role_admin, new DefaultTranslation({
             'fr-fr': 'Administrateur'
         }));
     }
@@ -857,47 +861,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleAccessPolicy.APINAME_BEGIN_RECOVER_SMS_UID, this.BEGIN_RECOVER_SMS_UID.bind(this));
     }
 
-    /**
-     * Privilégier cette fonction synchrone pour vérifier les droits côté serveur
-     * @param policy_name
-     */
-    public checkAccessSync(policy_name: string, can_fail: boolean = false): boolean {
-
-        if ((!ModuleAccessPolicy.getInstance().actif) || (!policy_name)) {
-            ConsoleHandler.error('checkAccessSync:!policy_name');
-            return false;
-        }
-
-        if (!StackContext.get('IS_CLIENT')) {
-            return true;
-        }
-
-        let target_policy: AccessPolicyVO = AccessPolicyServerController.getInstance().get_registered_policy(policy_name);
-        if (!target_policy) {
-            ConsoleHandler.error('checkAccessSync:!target_policy:' + policy_name + ':');
-            return false;
-        }
-
-        let uid: number = StackContext.get('UID');
-        if (!uid) {
-            // profil anonyme
-            return AccessPolicyServerController.getInstance().checkAccessTo(
-                target_policy,
-                AccessPolicyServerController.getInstance().getUsersRoles(false, null),
-                undefined, undefined, undefined, undefined, undefined, can_fail);
-        }
-
-        if (!AccessPolicyServerController.getInstance().get_registered_user_roles_by_uid(uid)) {
-            ConsoleHandler.warn('checkAccessSync:!get_registered_user_roles_by_uid:uid:' + uid + ':policy_name:' + policy_name + ':');
-            return false;
-        }
-
-        return AccessPolicyServerController.getInstance().checkAccessTo(
-            target_policy,
-            AccessPolicyServerController.getInstance().getUsersRoles(true, uid),
-            undefined, undefined, undefined, undefined, undefined, can_fail);
-    }
-
     public async logout() {
 
         return new Promise(async (accept, reject) => {
@@ -960,7 +923,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_SENDRECAPTURE)) {
+        if (!AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_SENDRECAPTURE)) {
             return;
         }
 
@@ -972,7 +935,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_SENDINITPWD)) {
+        if (!AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_SENDINITPWD)) {
             return;
         }
 
@@ -984,7 +947,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_SENDINITPWD)) {
+        if (!AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_SENDINITPWD)) {
             return;
         }
 
@@ -1020,7 +983,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_SENDINITPWD)) {
+        if (!AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_SENDINITPWD)) {
             return;
         }
 
@@ -1033,7 +996,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS)) {
+        if (!AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS)) {
             return;
         }
 
@@ -1060,7 +1023,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             for (let j in role_names) {
                 let role_name = role_names[j];
 
-                await this.activate_policy(policies_ids_by_name[policy_name], roles_ids_by_name[role_name], AccessPolicyServerController.getInstance().access_matrix);
+                await this.activate_policy(policies_ids_by_name[policy_name], roles_ids_by_name[role_name], AccessPolicyServerController.access_matrix);
             }
         }
     }
@@ -1141,7 +1104,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * @param default_translation La traduction par défaut. Le code_text est écrasé par la fonction avec le translatable_name
      */
     public async registerRole(role: RoleVO, default_translation: DefaultTranslation): Promise<RoleVO> {
-        return await AccessPolicyServerController.getInstance().registerRole(role, default_translation);
+        return await AccessPolicyServerController.registerRole(role, default_translation);
     }
 
     /**
@@ -1149,7 +1112,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * @param default_translation La traduction par défaut. Le code_text est écrasé par la fonction avec le translatable_name
      */
     public async registerPolicyGroup(group: AccessPolicyGroupVO, default_translation: DefaultTranslation): Promise<AccessPolicyGroupVO> {
-        return await AccessPolicyServerController.getInstance().registerPolicyGroup(group, default_translation);
+        return await AccessPolicyServerController.registerPolicyGroup(group, default_translation);
     }
 
     /**
@@ -1157,7 +1120,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * @param default_translation La traduction par défaut. Le code_text est écrasé par la fonction avec le translatable_name
      */
     public async registerPolicy(policy: AccessPolicyVO, default_translation: DefaultTranslation, moduleVO: ModuleVO): Promise<AccessPolicyVO> {
-        return await AccessPolicyServerController.getInstance().registerPolicy(policy, default_translation, moduleVO);
+        return await AccessPolicyServerController.registerPolicy(policy, default_translation, moduleVO);
     }
 
 
@@ -1166,7 +1129,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return null;
         }
 
-        return await AccessPolicyServerController.getInstance().registerPolicyDependency(dependency);
+        return await AccessPolicyServerController.registerPolicyDependency(dependency);
     }
 
     /**
@@ -1402,10 +1365,10 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         let uid: number = StackContext.get('UID');
         if (!uid) {
-            return role_ids.indexOf(AccessPolicyServerController.getInstance().role_anonymous.id) >= 0;
+            return role_ids.indexOf(AccessPolicyServerController.role_anonymous.id) >= 0;
         }
 
-        let user_roles: { [role_id: number]: RoleVO } = AccessPolicyServerController.getInstance().getUsersRoles(true, uid);
+        let user_roles: { [role_id: number]: RoleVO } = AccessPolicyServerController.getUsersRoles(true, uid);
 
         for (let i in user_roles) {
             if (role_ids.indexOf(user_roles[i].id) >= 0) {
@@ -1435,16 +1398,16 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS)) {
+        if (!AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS)) {
             return false;
         }
 
-        let target_policy: AccessPolicyVO = AccessPolicyServerController.getInstance().get_registered_policy_by_id(policy_id);
-        let role: RoleVO = AccessPolicyServerController.getInstance().get_registered_role_by_id(role_id);
+        let target_policy: AccessPolicyVO = AccessPolicyServerController.get_registered_policy_by_id(policy_id);
+        let role: RoleVO = AccessPolicyServerController.get_registered_role_by_id(role_id);
         /**
          * Le but est d'avoir false, donc on esquive le log et la déco avec le dernier param
          */
-        if (AccessPolicyServerController.getInstance().checkAccessTo(
+        if (AccessPolicyServerController.checkAccessTo(
             target_policy,
             { [role.id]: role }, undefined, undefined, undefined, undefined, role, true)) {
             // On devrait pas pouvoir arriver là avec un héritage true
@@ -1453,7 +1416,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         // Il faut qu'on sache si il existe une policy explicit à cet endroit
         let insertOrDeleteQueryResult: InsertOrDeleteQueryResult;
-        let role_policy: RolePolicyVO = AccessPolicyServerController.getInstance().get_role_policy_by_ids(role.id, target_policy.id);
+        let role_policy: RolePolicyVO = AccessPolicyServerController.get_role_policy_by_ids(role.id, target_policy.id);
         if (role_policy) {
 
             // Si oui on la supprime
@@ -1482,13 +1445,13 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         /**
          * Si la matrice est disponible, on la renvoie, sinon on force un recalcul avant de la renvoyer
          */
-        if ((!bool) && AccessPolicyServerController.getInstance().access_matrix_validity) {
-            return AccessPolicyServerController.getInstance().access_matrix;
+        if ((!bool) && AccessPolicyServerController.access_matrix_validity) {
+            return AccessPolicyServerController.access_matrix;
         }
-        if ((bool) && AccessPolicyServerController.getInstance().access_matrix_heritance_only_validity) {
-            return AccessPolicyServerController.getInstance().access_matrix_heritance_only;
+        if ((bool) && AccessPolicyServerController.access_matrix_heritance_only_validity) {
+            return AccessPolicyServerController.access_matrix_heritance_only;
         }
-        return AccessPolicyServerController.getInstance().getAccessMatrix(bool);
+        return AccessPolicyServerController.getAccessMatrix(bool);
     }
 
     private async getMyRoles(): Promise<RoleVO[]> {
@@ -1566,14 +1529,14 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
     }
 
-    private async testAccess(policy_name: string): Promise<boolean> {
+    private testAccess(policy_name: string): boolean {
 
-        return this.checkAccessSync(policy_name, true);
+        return AccessPolicyServerController.checkAccessSync(policy_name, true);
     }
 
-    private async checkAccess(policy_name: string): Promise<boolean> {
+    private checkAccess(policy_name: string): boolean {
 
-        return this.checkAccessSync(policy_name);
+        return AccessPolicyServerController.checkAccessSync(policy_name);
     }
 
     private async beginRecover(text: string): Promise<boolean> {
@@ -1582,7 +1545,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        return PasswordRecovery.getInstance().beginRecovery(text);
+        return await PasswordRecovery.getInstance().beginRecovery(text);
     }
 
     private async beginRecoverSMS(text: string): Promise<boolean> {
@@ -1595,7 +1558,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        return PasswordRecovery.getInstance().beginRecoverySMS(text);
+        return await PasswordRecovery.getInstance().beginRecoverySMS(text);
     }
 
     private async checkCode(email: string, challenge: string, new_pwd1: string): Promise<boolean> {
@@ -1901,8 +1864,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             let user: UserVO = null;
 
-            if (AccessPolicyServerController.getInstance().hook_user_login) {
-                user = await AccessPolicyServerController.getInstance().hook_user_login(email, password);
+            if (AccessPolicyServerController.hook_user_login) {
+                user = await AccessPolicyServerController.hook_user_login(email, password);
             } else {
                 user = await ModuleDAOServer.getInstance().selectOneUser(email, password);
             }
@@ -1973,7 +1936,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 return null;
             }
 
-            if (!ModuleAccessPolicyServer.getInstance().checkAccessSync(ModuleAccessPolicy.POLICY_IMPERSONATE)) {
+            if (!AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_IMPERSONATE)) {
                 return null;
             }
 
