@@ -105,12 +105,20 @@ export default class ContextQueryServerController {
 
         let query_res = null;
         if (context_query.throttle_query_select) {
-            query_res = await ModuleDAOServer.getInstance().throttle_select_query(query_wrapper.query, query_wrapper.params, query_wrapper.fields, context_query);
+            query_res = await ModuleDAOServer.getInstance().throttle_select_query(
+                query_wrapper.query,
+                query_wrapper.params,
+                query_wrapper.fields,
+                context_query
+            );
         } else {
-            query_res = await ModuleDAOServer.getInstance().query(query_wrapper.query, query_wrapper.params);
+            query_res = await ModuleDAOServer.getInstance().query(
+                query_wrapper.query,
+                query_wrapper.params
+            );
         }
 
-        if ((!query_res) || (!query_res.length)) {
+        if (!(query_res?.length > 0)) {
             return [];
         }
 
@@ -123,15 +131,26 @@ export default class ContextQueryServerController {
 
         let moduletable = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
 
-        for (let i in query_res) {
-            let data = query_res[i];
+        // Case when union_query => we need to take care of each res vo_type
+        for (const i in query_res) {
+            const data = query_res[i];
+
             data._type = moduletable.vo_type;
+
+            if (data.api_type_id) {
+                data._type = data.api_type_id;
+            }
         }
 
         // Anonymisation
         let uid = await StackContext.get('UID');
 
-        await ServerAnonymizationController.getInstance().anonymise_context_filtered_rows(query_res, context_query.fields, uid);
+        await ServerAnonymizationController.getInstance().anonymise_context_filtered_rows(
+            query_res,
+            context_query.fields,
+            uid
+        );
+
         return moduletable.forceNumerics(query_res);
     }
 
@@ -788,9 +807,9 @@ export default class ContextQueryServerController {
                             access_type
                         );
 
-                        // if (!has_access_api_type_id) {
-                        //     continue;
-                        // }
+                        if (!has_access_api_type_id) {
+                            continue;
+                        }
 
                         const moduletable = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
 
@@ -848,6 +867,7 @@ export default class ContextQueryServerController {
 
                 if (context_query.union_queries?.length > 0) {
                     // We should Apply Filters clauses on the union_query
+                    // We should Keep the api_type_id for each union_query
                     // Must build the query_wrapper clause for the union_queries, shall be the root context_query
 
                     const union_context_query = cloneDeep(context_query);
@@ -1134,42 +1154,58 @@ export default class ContextQueryServerController {
             //     throw new Error('Incompatible options:distinct & !fields');
             // }
 
-            context_query.field('id');
+            context_query.add_field('id');
 
-            let fields = base_moduletable.get_fields();
+            let base_moduletable_fields = base_moduletable.get_fields();
 
-            for (const i in fields) {
-                const field = fields[i];
+            // Set all context_query fields by default
+            base_moduletable_fields.map((field) => {
+                context_query.add_field(field.field_id);
+            });
 
-                context_query.field(field.field_id);
-            }
-
-            // Fields which are in the in the all_required_fields
+            // Fields which are in all_required_fields
             // But not in moduletable.get_fields()
-            const fields_to_add: string[] = all_required_fields?.filter(
-                (required_field) => !fields.find(
+            all_required_fields?.filter((required_field) => {
+                if (required_field.field_id === 'api_type_id') {
+                    return false;
+                }
+
+                return !base_moduletable_fields.find(
                     (f) => f.field_id === required_field.field_id
-                )
-            ).map((field) => field.field_id);
+                );
+            }).map((field_to_add) => {
+                // Case when base_moduletable does not have field_to_add set select as null
 
-            // Set all fields by default
-            // Case when does not have fields set select as null
-            for (const i in fields_to_add) {
-                const field_id = fields_to_add[i];
+                let cast_with = 'text';
 
-                context_query.field(
-                    field_id,
+                if (typeof field_to_add?.getPGSqlFieldType === 'function') {
+                    cast_with = field_to_add.getPGSqlFieldType();
+                }
+
+                context_query.add_field(
+                    field_to_add.field_id,
                     null,
                     null,
                     VarConfVO.NO_AGGREGATOR,
                     ContextQueryFieldVO.FIELD_MODIFIER_NULL_IF_NO_COLUMN,
-                    all_required_fields.find(
-                        (field) => field.field_id === field_id
-                    )?.getPGSqlFieldType()
+                    cast_with
                 );
-            }
+            });
 
+            // We should order all fields in the same way of the given all_required_fields
+            // We should also add|specify vo_type_id field to retrieve it later
             if (all_required_fields?.length > 0) {
+                all_required_fields.push({ field_id: 'api_type_id' } as ModuleTableField<any>);
+
+                // We should also add|specify vo_type_id field to retrieve it later
+                context_query.add_field(
+                    'api_type_id',
+                    null,
+                    null,
+                    VarConfVO.NO_AGGREGATOR,
+                    ContextQueryFieldVO.FIELD_MODIFIER_FIELD_AS_API_TYPE_ID,
+                );
+
                 // We should order all fields in the same way of the given all_required_fields
                 context_query.fields = context_query.fields.sort((field_a: ContextQueryFieldVO, field_b: ContextQueryFieldVO) => {
                     const all_required_field_ids = all_required_fields.map((field) => field.field_id);
@@ -1251,9 +1287,15 @@ export default class ContextQueryServerController {
                 context_field.alias ?? context_field.field_id
             );
 
-            let field_full_name = context_field.modifier === ContextQueryFieldVO.FIELD_MODIFIER_NULL_IF_NO_COLUMN ?
-                context_field.field_id :
-                query_wrapper.tables_aliases_by_type[context_field.api_type_id] + "." + context_field.field_id;
+            let field_full_name = query_wrapper.tables_aliases_by_type[context_field.api_type_id] + "." + context_field.field_id;
+
+            if (
+                context_field.modifier === ContextQueryFieldVO.FIELD_MODIFIER_FIELD_AS_API_TYPE_ID ||
+                context_field.modifier === ContextQueryFieldVO.FIELD_MODIFIER_NULL_IF_NO_COLUMN
+            ) {
+                field_full_name = context_field.field_id;
+            }
+
 
             let aggregator_prefix = '';
             let aggregator_suffix = '';

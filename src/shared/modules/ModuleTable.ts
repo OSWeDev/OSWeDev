@@ -29,14 +29,20 @@ import ContextQueryInjectionCheckHandler from './ContextFilter/ContextQueryInjec
 export default class ModuleTable<T extends IDistantVOBase> {
 
     public static defaultforceNumeric<T extends IDistantVOBase>(e: T) {
+
         if (e == null) {
             return null;
         }
+
         if (!e._type) {
             return e;
         }
 
         let moduleTable = VOsTypesManager.moduleTables_by_voType[e._type];
+
+        if (!moduleTable) {
+            return e;
+        }
 
         for (let i in moduleTable.readonlyfields_by_ids) {
             let field = moduleTable.readonlyfields_by_ids[i];

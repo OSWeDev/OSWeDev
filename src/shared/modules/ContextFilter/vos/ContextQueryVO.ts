@@ -152,9 +152,11 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
      * @returns {ContextQueryVO}
      */
     public set_discard_field_path(vo_type: string, field_id: string): ContextQueryVO {
+
         if (!this.discarded_field_paths) {
             this.discarded_field_paths = {};
         }
+
         if (!this.discarded_field_paths[vo_type]) {
             this.discarded_field_paths[vo_type] = {};
         }
@@ -248,6 +250,24 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
      * @param field_id l'id du field à ajouter.
      */
     public field(
+        field_id: string,
+        alias: string = null,
+        api_type_id: string = null,
+        aggregator: number = VarConfVO.NO_AGGREGATOR,
+        modifier: number = ContextQueryFieldVO.FIELD_MODIFIER_NONE,
+        cast_with: string = null,
+    ): ContextQueryVO {
+        return this.add_field(field_id, alias, api_type_id, aggregator, modifier, cast_with);
+    }
+
+    /**
+     * Ajouter un field attendu en résultat de la requête par le field_id, et optionnellement un alias spécifique
+     *  on utilise base_api_type_id de la requete si on en fournit pas un explicitement ici
+     *  Si on veut un vo complet il ne faut pas demander les fields
+     *
+     * @param field_id l'id du field à ajouter.
+     */
+    public add_field(
         field_id: string,
         alias: string = null,
         api_type_id: string = null,

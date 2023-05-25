@@ -70,7 +70,7 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
                 continue;
             }
 
-            promise_pipeline.push(async () => {
+            await promise_pipeline.push(async () => {
 
                 let apiDefinition: APIDefinition<any, any> = null;
 

@@ -209,15 +209,16 @@ export default class FieldFilterManager {
      *
      * @param {any} widget_options
      * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} active_field_filters
-     * @param {string[]} available_api_type_ids - The api_type_ids that are available for the current widget
-     * @param {string[]} required_api_type_ids  - The api_type_ids that are required for the current widget
+     * @param {string[]} required_api_type_ids - The api_type_ids that are required for the current widget
+     * @param {string[]} all_possible_api_type_ids  - The api_type_ids that are possible to update for the current widget
      * @returns {{ [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } }}
      */
     public static update_field_filters_for_required_api_type_ids(
         widget_options: any,
         active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
-        available_api_type_ids: string[],
         required_api_type_ids: string[],
+        all_possible_api_type_ids: string[],
+        options?: {},
     ): { [api_type_id: string]: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } } {
 
         active_field_filters = cloneDeep(active_field_filters);
@@ -234,23 +235,27 @@ export default class FieldFilterManager {
             { should_restrict_to_api_type_id: !widget_options.no_inter_filter }
         );
 
-        // Check whether the given field_filters_for_request are compatible with the required_api_type_ids
+        // Check whether the given field_filters_for_request are compatible with the all_possible_api_type_ids
         // If not, we must reject the field_filters_for_request
-        // At least one of the required_api_type_ids must be present in the field_filters_for_request
+        // At least one of the all_possible_api_type_ids must be present in the field_filters_for_request
         const api_type_ids_for_request = Object.keys(field_filters_for_request).filter((api_type_id: string) => {
-            return required_api_type_ids.includes(api_type_id);
+            return all_possible_api_type_ids.includes(api_type_id);
         });
 
-        for (const key in api_type_ids_for_request) {
+        for (const key_i in api_type_ids_for_request) {
 
             // We must apply the context_filters of the actual filtering on this api_type_id
-            // to all of the required_api_type_ids
-            const api_type_id_for_request: string = api_type_ids_for_request[key];
+            // to all of the all_possible_api_type_ids
+            const api_type_id_for_request: string = api_type_ids_for_request[key_i];
 
-            for (let i in available_api_type_ids) {
-                const api_type_id: string = available_api_type_ids[i];
+            const field_filter_for_request = field_filters_for_request[api_type_id_for_request];
 
-                const field_filters: { [field_id: string]: ContextFilterVO } = cloneDeep(field_filters_for_request[api_type_id_for_request]);
+            for (let key_j in required_api_type_ids) {
+                const api_type_id: string = required_api_type_ids[key_j];
+
+                const field_filters: {
+                    [field_id: string]: ContextFilterVO
+                } = cloneDeep(field_filter_for_request);
 
                 for (const field_id in field_filters) {
                     const context_filter: ContextFilterVO = field_filters[field_id];
@@ -260,6 +265,7 @@ export default class FieldFilterManager {
                     if (!field_filters_by_api_type_ids[api_type_id]) {
                         // We must create an empty field_filters for the given api_type_id if it does not exist
                         const empty_field_filters = {};
+
                         empty_field_filters[api_type_id] = {};
 
                         field_filters_by_api_type_ids[api_type_id] = empty_field_filters;

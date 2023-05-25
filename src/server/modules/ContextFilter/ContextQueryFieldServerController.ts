@@ -128,16 +128,22 @@ export default class ContextQueryFieldServerController {
             case ContextQueryFieldVO.FIELD_MODIFIER_NULL_IF_NAN:
                 return "NULLIF(" + field_query_statement + ", 'NaN')";
 
-            case ContextQueryFieldVO.FIELD_MODIFIER_NULL_IF_NO_COLUMN:
+            case ContextQueryFieldVO.FIELD_MODIFIER_NULL_IF_NO_COLUMN: {
                 const cast_with = context_query_field.cast_with;
 
-                let modifier = "(NULL)";
+                let null_modifier = "(NULL)";
 
                 if (cast_with?.length > 0) {
-                    modifier += "::" + cast_with;
+                    null_modifier += "::" + cast_with;
                 }
 
-                return modifier + " as " + field_query_statement;
+                return null_modifier + " as " + field_query_statement;
+            }
+
+            case ContextQueryFieldVO.FIELD_MODIFIER_FIELD_AS_API_TYPE_ID:
+                const api_type_id = context_query_field.api_type_id;
+
+                return `('${api_type_id}')::text as ${field_query_statement}`;
 
             case ContextQueryFieldVO.FIELD_MODIFIER_NONE:
 

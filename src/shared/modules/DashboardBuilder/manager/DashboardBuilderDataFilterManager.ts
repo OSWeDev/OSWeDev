@@ -38,13 +38,13 @@ export default class DashboardBuilderDataFilterManager {
             api_type_ids = [vo_field_ref?.api_type_id];
         }
 
-        if (options.active_api_type_ids?.length > 0) {
+        if (options?.active_api_type_ids?.length > 0) {
             // Get selected api type ids (e.g. from supervision widget options)
-            api_type_ids = options.active_api_type_ids;
+            api_type_ids = options?.active_api_type_ids;
 
-        } else if (options.query_api_type_ids.length > 0 && widget_options.force_filter_by_all_api_type_ids) {
+        } else if (options?.query_api_type_ids?.length > 0 && widget_options.force_filter_by_all_api_type_ids) {
             // Get default api type ids (e.g. from supervision widget_options)
-            api_type_ids = options.query_api_type_ids;
+            api_type_ids = options?.query_api_type_ids;
         }
 
         return api_type_ids;

@@ -12,6 +12,8 @@ import ModuleDAO from "../../DAO/ModuleDAO";
 import { query } from "../../ContextFilter/vos/ContextQueryVO";
 import DashboardVO from "../vos/DashboardVO";
 import { isEqual } from 'lodash';
+import ISupervisedItemController from "../../Supervision/interfaces/ISupervisedItemController";
+import SupervisionController from "../../Supervision/SupervisionController";
 
 /**
  * @class SupervisionWidgetManager
@@ -41,15 +43,56 @@ export default class SupervisionWidgetManager {
     ): Promise<{ items: ISupervisedItem[], total_count: number }> {
 
         let context_filters_by_api_type_id: { [api_type_id: string]: ContextFilterVO[] } = {};
-        let available_api_type_ids: string[] = [];
+        let active_supervision_api_type_ids: string[] = [];
 
         if (active_api_type_ids?.length > 0) {
             // Setted api_type_ids (default or setted from filters)
-            available_api_type_ids = active_api_type_ids;
+            active_supervision_api_type_ids = active_api_type_ids;
         } else {
             // Default (from supervision widget) api_type_ids
-            available_api_type_ids = widget_options?.supervision_api_type_ids;
+            active_supervision_api_type_ids = widget_options?.supervision_api_type_ids;
         }
+
+        const active_registered_supervision_api_type_ids: string[] = [];
+
+        for (const key in active_supervision_api_type_ids) {
+            const api_type_id: string = active_supervision_api_type_ids[key];
+
+            const registered_api_type: ISupervisedItemController<any> = SupervisionController.getInstance().registered_controllers[api_type_id];
+
+            if (!registered_api_type?.is_actif()) {
+                continue;
+            }
+
+            active_registered_supervision_api_type_ids.push(api_type_id);
+        }
+
+        const pipeline_limit = active_registered_supervision_api_type_ids.length; // One query|request by api_type_id
+        let promise_pipeline = new PromisePipeline(pipeline_limit);
+
+        const allowed_api_type_ids: string[] = [];
+
+        for (const key in active_registered_supervision_api_type_ids) {
+            // Get the api_type_id
+            const api_type_id: string = active_registered_supervision_api_type_ids[key];
+
+            // Récupération des sondes
+            await promise_pipeline.push(async () => {
+
+                const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id);
+                const has_access = await ModuleAccessPolicy.getInstance().testAccess(access_policy_name);
+
+                if (!has_access) {
+                    return;
+                }
+
+                allowed_api_type_ids.push(api_type_id);
+            });
+        }
+
+        await promise_pipeline.end();
+
+        promise_pipeline = new PromisePipeline(pipeline_limit);
 
         // We must update|standardize|normalize the active_field_filters for the given available_api_type_ids
         const active_field_filter_by_api_type_id: {
@@ -57,7 +100,7 @@ export default class SupervisionWidgetManager {
         } = FieldFilterManager.update_field_filters_for_required_api_type_ids(
             widget_options,
             active_field_filters,
-            available_api_type_ids,
+            allowed_api_type_ids,
             widget_options?.supervision_api_type_ids ?? [],
         );
 
@@ -82,13 +125,13 @@ export default class SupervisionWidgetManager {
          * les types de supervision, alors qu'on fait une requete par type et qu'on aggrège les résultats par la suite.
          */
 
-        for (const key_i in available_api_type_ids) {
-            const api_type_id: string = available_api_type_ids[key_i];
+        for (const key_i in allowed_api_type_ids) {
+            const api_type_id: string = allowed_api_type_ids[key_i];
 
             // Get the field_filters for the given api_type_id
             const field_filters = FieldFilterManager.filter_field_filters_by_api_type_id(
                 active_field_filter_by_api_type_id[api_type_id],
-                available_api_type_ids,
+                allowed_api_type_ids,
                 api_type_id
             );
 
@@ -108,6 +151,7 @@ export default class SupervisionWidgetManager {
             dashboard,
             widget_options,
             context_filters_by_api_type_id,
+            allowed_api_type_ids,
             pagination,
         );
     }
@@ -198,13 +242,14 @@ export default class SupervisionWidgetManager {
         dashboard: DashboardVO,
         widget_options: SupervisionWidgetOptionsVO,
         context_filters_by_api_type_id: { [api_type_id: string]: ContextFilterVO[] },
+        allowed_api_type_ids: string[],
         pagination?: { offset: number, limit?: number, sort_by_field_id?: string }
     ): Promise<{
         items: ISupervisedItem[],
         total_count: number,
     }> {
 
-        const pipeline_limit = EnvHandler.MAX_POOL / 2;
+        const pipeline_limit = Object.keys(context_filters_by_api_type_id).length; // One query|request by api_type_id
         let promise_pipeline = new PromisePipeline(pipeline_limit);
 
         // ContextQuery as a query builder
@@ -215,47 +260,36 @@ export default class SupervisionWidgetManager {
         let total_count: number = 0;
 
         for (const api_type_id in context_filters_by_api_type_id) {
+
             // We must have a single tree of context_filters using AND operator
             const api_type_context_filters: ContextFilterVO[] = context_filters_by_api_type_id[api_type_id];
 
-            // Récupération des sondes
-            await promise_pipeline.push(async () => {
+            const context_filters: ContextFilterVO[] = api_type_context_filters ?? [];
 
-                const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id);
-                const has_access = await ModuleAccessPolicy.getInstance().testAccess(access_policy_name);
-                if (!has_access) {
-                    return;
-                }
+            const api_type_context_query = query(api_type_id)
+                .using(allowed_api_type_ids)
+                .add_filters(context_filters)
+                .set_sort(new SortByVO(api_type_id, 'name', true));
 
-                const context_filters: ContextFilterVO[] = api_type_context_filters ?? [];
+            // Avoid load from cache
+            if (!context_query) {
+                // Main first query
+                context_query = api_type_context_query;
+            } else {
+                // Union query to be able to select all vos of each api_type_id
+                context_query.union(api_type_context_query);
+            }
 
-                const api_type_context_query = query(api_type_id)
-                    .using(dashboard.api_type_ids)
-                    .add_filters(context_filters)
-                    .set_sort(new SortByVO(api_type_id, 'name', true));
-
-                // Avoid load from cache
-                if (!context_query) {
-                    // Main first query
-                    context_query = api_type_context_query;
-                } else {
-                    // Union query to be able to select all vos of each api_type_id
-                    context_query.union(api_type_context_query);
-                }
-            });
         }
-
-        await promise_pipeline.end();
-        promise_pipeline = new PromisePipeline(pipeline_limit);
 
         await promise_pipeline.push(async () => {
 
             context_query.set_limit(limit, pagination?.offset ?? 0);
-            // let debug_query = await context_query.get_select_query_str();
-            // console.log('DEBUG select_supervision_probs_by_api_type_id query ' + debug_query.query);
-            // console.log('DEBUG select_supervision_probs_by_api_type_id params ' + (!!debug_query.params && !!debug_query.params ? debug_query.params.join(' ; ') : ''));
 
-            const rows_s = await context_query.select_vos<ISupervisedItem>();
+            let rows_s: ISupervisedItem[] = [];
+
+            rows_s = await context_query.select_vos();
+
             // pourquoi on parcourt les rows_s ? pourquoi ne pas directement concaténer dans items ?
             for (const key_j in rows_s) {
 
@@ -275,8 +309,9 @@ export default class SupervisionWidgetManager {
         });
 
         await promise_pipeline.push(async () => {
-            // pour éviter de récuperer le cache
             total_count = await context_query.select_count();
+
+            // pour éviter de récuperer le cache
         });
 
         await promise_pipeline.end();

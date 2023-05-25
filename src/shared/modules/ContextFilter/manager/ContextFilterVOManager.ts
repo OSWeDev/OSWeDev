@@ -711,13 +711,13 @@ export default class ContextFilterVOManager {
     public static get_context_filters_from_active_field_filters(
         active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } }
     ): ContextFilterVO[] {
-        let context_filters: ContextFilterVO[] = [];
+        const context_filters: ContextFilterVO[] = [];
 
-        for (const i in active_field_filters) {
-            const field_filters = active_field_filters[i];
+        for (const key_i in active_field_filters) {
+            const field_filters = active_field_filters[key_i];
 
-            for (const j in field_filters) {
-                let context_filter = field_filters[j];
+            for (const key_j in field_filters) {
+                let context_filter = field_filters[key_j];
 
                 if (!(context_filter instanceof ContextFilterVO)) {
                     context_filter = new ContextFilterVO().from(context_filter);
