@@ -66,13 +66,14 @@ export default class SupervisionTypeWidgetManager {
         let categories_by_name: { [name: string]: SupervisedCategoryVO } = options?.categories_by_name ?? null;
         let category_selections: SupervisedCategoryVO[] = null;
 
+        // Supervision api type ids that have been registered in widget_options
         const supervision_api_type_ids: string[] = widget_options.supervision_api_type_ids;
 
         if (!categories_by_name) {
             categories_by_name = await SupervisionTypeWidgetManager.find_all_supervised_categories_by_name();
         }
 
-        const active_registered_supervision_api_type_ids: string[] = [];
+        const registered_supervision_api_type_ids: string[] = [];
 
         for (const key in supervision_api_type_ids) {
             const api_type_id: string = supervision_api_type_ids[key];
@@ -83,12 +84,12 @@ export default class SupervisionTypeWidgetManager {
                 continue;
             }
 
-            active_registered_supervision_api_type_ids.push(api_type_id);
+            registered_supervision_api_type_ids.push(api_type_id);
         }
 
         // If there is no filter, we show all default (widget_options) ones
-        if (!supervision_category_active_field_filters && !(active_registered_supervision_api_type_ids?.length > 0)) {
-            available_supervision_api_type_ids = active_registered_supervision_api_type_ids;
+        if (!supervision_category_active_field_filters && !(registered_supervision_api_type_ids?.length > 0)) {
+            available_supervision_api_type_ids = registered_supervision_api_type_ids;
 
             return {
                 total_count: available_supervision_api_type_ids.length,
@@ -111,15 +112,15 @@ export default class SupervisionTypeWidgetManager {
             });
         }
 
-        const pipeline_limit = active_registered_supervision_api_type_ids.length; // One query|request by api_type_id
+        const pipeline_limit = registered_supervision_api_type_ids.length; // One query|request by api_type_id
         let promise_pipeline = new PromisePipeline(pipeline_limit);
 
         const allowed_supervision_api_type_ids: string[] = [];
 
         // Load each active_supervision_api_type_ids count by selected category
         // - We must check if the controller is actif
-        for (const key in active_registered_supervision_api_type_ids) {
-            const api_type_id: string = active_registered_supervision_api_type_ids[key];
+        for (const key in registered_supervision_api_type_ids) {
+            const api_type_id: string = registered_supervision_api_type_ids[key];
 
             // Load each active_supervision_api_type_ids count by selected category
             // We must do it in two steps to avoid check access failure

@@ -353,7 +353,7 @@ export default class FieldValueFilterEnumWidgetManager {
             let context_query: ContextQueryVO = null;
 
             for (const key in allowed_api_type_ids) {
-                const api_type_id: string = available_api_type_ids[key];
+                const api_type_id: string = allowed_api_type_ids[key];
 
                 const api_type_field_filters = field_filters_by_api_type_id[api_type_id];
 
