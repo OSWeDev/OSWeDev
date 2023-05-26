@@ -220,7 +220,7 @@ export default class DashboardBuilderBoardComponent extends VueComponentBase {
     }
 
     private async load_widgets() {
-        let widgets = await DashboardPageWidgetVOManager.find_page_widget_items_by_page_id(
+        let widgets = await DashboardPageWidgetVOManager.find_page_widgets_by_page_id(
             this.dashboard_page.id
         );
 

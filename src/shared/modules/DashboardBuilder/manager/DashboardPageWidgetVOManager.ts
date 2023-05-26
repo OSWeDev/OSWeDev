@@ -138,16 +138,16 @@ export default class DashboardPageWidgetVOManager {
      * @param options
      * @returns {{ widget_options: any, widget_name: string, page_widget_id: number }[]}
      */
-    public static find_all_page_wigdets_options_by_vo_field_ref(
+    public static async find_all_page_wigdets_options_by_vo_field_ref(
         vo_field_ref: VOFieldRefVO,
         options?: {
             all_page_widgets?: DashboardPageWidgetVO[],
             sorted_widgets_types?: DashboardWidgetVO[],
         }
-    ): Array<{ widget_options: any, widget_name: string, page_widget_id: number }> {
+    ): Promise<Array<{ widget_options: any, widget_name: string, page_widget_id: number }>> {
 
         // Get sorted_page_widgets_options from dashboard
-        const sorted_page_widgets_options = DashboardPageWidgetVOManager.find_all_sorted_page_wigdets_options(options);
+        const sorted_page_widgets_options = await DashboardPageWidgetVOManager.find_all_sorted_page_wigdets_options(options);
 
         let res: Array<{ widget_options: any, widget_name: string, page_widget_id: number }> = [];
 
@@ -167,12 +167,12 @@ export default class DashboardPageWidgetVOManager {
 
 
     /**
-     * find_page_widget_items_by_page_id
+     * find_page_widgets_by_page_id
      *
      * @param {number} page_id
      * @returns {Promise<DashboardPageWidgetVO[]>}
      */
-    public static async find_page_widget_items_by_page_id(page_id: number): Promise<DashboardPageWidgetVO[]> {
+    public static async find_page_widgets_by_page_id(page_id: number): Promise<DashboardPageWidgetVO[]> {
         const self = DashboardPageWidgetVOManager.getInstance();
 
         const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DashboardPageWidgetVO.API_TYPE_ID);

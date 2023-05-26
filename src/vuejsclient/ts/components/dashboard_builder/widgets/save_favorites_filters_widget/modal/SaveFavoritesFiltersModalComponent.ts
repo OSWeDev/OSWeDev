@@ -413,15 +413,15 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
 
         if (this.is_field_filter_selected(props)) {
             delete tmp_selected_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id];
-        } else {
-            if (!FieldFilterManager.is_field_filters_empty(props, active_field_filters)) {
-                const context_filter = active_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id];
-                tmp_selected_field_filters = FieldFilterManager.overwrite_field_filters_with_context_filter(
-                    tmp_selected_field_filters,
-                    vo_field_ref,
-                    context_filter
-                );
-            }
+
+        } else if (!FieldFilterManager.is_field_filters_empty(props, active_field_filters)) {
+            const context_filter = active_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id];
+
+            tmp_selected_field_filters = FieldFilterManager.overwrite_field_filters_with_context_filter(
+                tmp_selected_field_filters,
+                vo_field_ref,
+                context_filter
+            );
         }
 
         this.selected_favorite_field_filters = tmp_selected_field_filters;
@@ -514,7 +514,13 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
      * @returns {string}
      */
     private get_translation_by_vo_field_ref_name_code_text(name_code_text: string): string {
-        return VueAppController.getInstance().ALL_FLAT_LOCALE_TRANSLATIONS[name_code_text];
+        let translation: string = VueAppController.getInstance().ALL_FLAT_LOCALE_TRANSLATIONS[name_code_text];
+
+        if (!translation) {
+            translation = name_code_text;
+        }
+
+        return translation;
     }
 
     /**
@@ -523,10 +529,10 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
      *
      * @return {{ [translatable_field_filters_code: string]: IReadableActiveFieldFilters }}
      */
-    get readable_active_field_filters(): { [translatable_field_filters_code: string]: IReadableActiveFieldFilters } {
+    private async readable_active_field_filters(): Promise<{ [translatable_field_filters_code: string]: IReadableActiveFieldFilters }> {
         const active_field_filters = cloneDeep(this.selectionnable_active_field_filters);
 
-        const readable_field_filters = FieldFilterManager.create_readable_filters_text_from_field_filters(active_field_filters);
+        const readable_field_filters = await FieldFilterManager.create_readable_filters_text_from_field_filters(active_field_filters);
 
         return readable_field_filters;
     }

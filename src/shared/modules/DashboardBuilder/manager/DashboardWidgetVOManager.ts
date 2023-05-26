@@ -51,6 +51,25 @@ export default class DashboardWidgetVOManager {
         widget_type.id = insertOrDeleteQueryResult.id;
     }
 
+    public static async find_all_sorted_widgets_types(): Promise<DashboardWidgetVO[]> {
+        const self = DashboardWidgetVOManager.getInstance();
+
+        const sorted_widgets = await query(DashboardWidgetVO.API_TYPE_ID)
+            .select_vos<DashboardWidgetVO>();
+
+        WeightHandler.getInstance().sortByWeight(sorted_widgets);
+
+        // keep the same reference on sorted_widgets
+        self.sorted_widgets_types = sorted_widgets;
+        self.sorted_widgets = sorted_widgets;
+
+        if (!self.sorted_widgets) {
+            self.sorted_widgets = [];
+        }
+
+        return sorted_widgets;
+    }
+
     public static getInstance(): DashboardWidgetVOManager {
         if (!DashboardWidgetVOManager.instance) {
             DashboardWidgetVOManager.instance = new DashboardWidgetVOManager();
@@ -90,20 +109,12 @@ export default class DashboardWidgetVOManager {
             return;
         }
 
-        this.sorted_widgets = await query(DashboardWidgetVO.API_TYPE_ID)
-            .select_vos<DashboardWidgetVO>();
-
-        // keep the same reference on sorted_widgets
-        this.sorted_widgets_types = this.sorted_widgets;
-
-        if (!this.sorted_widgets) {
-            this.sorted_widgets = [];
-        }
-
-        WeightHandler.getInstance().sortByWeight(this.sorted_widgets);
+        await DashboardWidgetVOManager.find_all_sorted_widgets_types();
 
         this.initialized = true;
     }
+
+
 
     /**
      * @deprecated use registerWidgetType instead

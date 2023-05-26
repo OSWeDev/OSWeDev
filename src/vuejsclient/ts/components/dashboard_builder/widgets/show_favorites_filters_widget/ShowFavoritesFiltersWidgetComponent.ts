@@ -16,7 +16,7 @@ import ModuleTableField from '../../../../../../shared/modules/ModuleTableField'
 import VOsTypesManager from '../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ThrottleHelper from '../../../../../../shared/tools/ThrottleHelper';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
-import { cloneDeep, delay, isEmpty, isEqual } from 'lodash';
+import { cloneDeep, isEmpty, isEqual } from 'lodash';
 import { ModuleTranslatableTextGetter } from '../../../InlineTranslatableText/TranslatableTextStore';
 import ReloadFiltersWidgetController from '../reload_filters_widget/RealoadFiltersWidgetController';
 import ResetFiltersWidgetController from '../reset_filters_widget/ResetFiltersWidgetController';
@@ -94,7 +94,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
     );
     private throttled_open_favorites_filters_modal = ThrottleHelper.getInstance().declare_throttle_with_stackable_args(
         this.open_favorites_filters_modal.bind(this),
-        500,
+        1000,
         { leading: false, trailing: true }
     );
 
@@ -299,7 +299,7 @@ export default class ShowFavoritesFiltersWidgetComponent extends VueComponentBas
      * @returns {void}
      */
     private update_active_field_filters(): void {
-        const favorites_filters = this.tmp_active_favorites_filters_option;
+        const favorites_filters: FavoritesFiltersVO = this.tmp_active_favorites_filters_option;
         const old_active_field_filters = this.old_active_field_filters;
 
         let field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = {};

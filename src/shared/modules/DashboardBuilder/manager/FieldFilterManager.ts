@@ -4,11 +4,11 @@ import ContextFilterVOManager from "../../ContextFilter/manager/ContextFilterVOM
 import VOFieldRefVO from '../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import ContextFilterVO from "../../ContextFilter/vos/ContextFilterVO";
 import IReadableActiveFieldFilters from "../interfaces/IReadableActiveFieldFilters";
-import VOFieldRefVOManager from "./VOFieldRefVOManager";
 import DashboardPageWidgetVOManager from "./DashboardPageWidgetVOManager";
-import ModuleTable from "../../ModuleTable";
 import VOsTypesManager from "../../VO/manager/VOsTypesManager";
+import VOFieldRefVOManager from "./VOFieldRefVOManager";
 import ModuleTableField from "../../ModuleTableField";
+import ModuleTable from "../../ModuleTable";
 
 
 /**
@@ -27,9 +27,6 @@ export default class FieldFilterManager {
         active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
     ): { [translatable_field_filters_code: string]: IReadableActiveFieldFilters } {
 
-        // Get sorted_page_widgets_options from dashboard
-        const sorted_page_widgets_options = DashboardPageWidgetVOManager.find_all_sorted_page_wigdets_options();
-
         let human_readable_field_filters: { [translatable_field_filters_code: string]: IReadableActiveFieldFilters } = {};
 
         active_field_filters = cloneDeep(active_field_filters);
@@ -46,25 +43,10 @@ export default class FieldFilterManager {
                     { vo_field_ref: { api_type_id, field_id } },
                 );
 
-                // Get the page_wigdet_options from sorted_page_widgets_options
-                // - The page_wigdet_options is used to get the label of the filter
-                const page_wigdet_options = Object.values(sorted_page_widgets_options)?.filter((sorted_page_widget_option) => {
-
-                    const _vo_field_ref = sorted_page_widget_option?.widget_options?.vo_field_ref;
-
-                    if (!_vo_field_ref?.api_type_id || !_vo_field_ref?.field_id) {
-                        return false;
-                    }
-
-                    return _vo_field_ref?.api_type_id == vo_field_ref.api_type_id &&
-                        _vo_field_ref?.field_id == vo_field_ref.field_id;
-                })?.shift();
-
-                // Label of filter to be displayed
-                let label = `${api_type_id}.${field_id}`;
-                if (page_wigdet_options?.page_widget_id) {
-                    label = vo_field_ref.get_translatable_name_code_text(page_wigdet_options.page_widget_id);
-                }
+                // The actual label
+                const label: string = VOFieldRefVOManager.create_readable_vo_field_ref_label(
+                    { field_id, api_type_id }
+                );
 
                 // Get HMI readable active field filters
                 const readable_field_filters = ContextFilterVOHandler.context_filter_to_readable_ihm(context_filter);

@@ -23,7 +23,6 @@ export default class SupervisionWidgetManager {
     /**
      * Find supervision probs by api type ids
      *  - The aim of this function is to load the supervision probs for the given api_type_ids
-     *  - That means (for now) we must loop on the given api_type_ids and load the supervision probs for each of them
      *
      * @param {DashboardVO} dashboard
      * @param {SupervisionWidgetOptionsVO} widget_options
@@ -259,16 +258,13 @@ export default class SupervisionWidgetManager {
         for (const api_type_id in context_filters_by_api_type_id) {
 
             // We must have a single tree of context_filters using AND operator
-            const api_type_context_filters: ContextFilterVO[] = context_filters_by_api_type_id[api_type_id];
-
-            const context_filters: ContextFilterVO[] = api_type_context_filters ?? [];
+            const context_filters: ContextFilterVO[] = context_filters_by_api_type_id[api_type_id];
 
             const api_type_context_query = query(api_type_id)
                 .using(dashboard.api_type_ids)
                 .add_filters(context_filters)
                 .set_sort(new SortByVO(api_type_id, 'name', true));
 
-            // Avoid load from cache
             if (!context_query) {
                 // Main first query
                 context_query = api_type_context_query;
