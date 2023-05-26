@@ -20,6 +20,7 @@ import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
@@ -75,7 +76,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
     }
 
     private async force_formatted_image_path_from_file_changed(vo_update_handler: DAOUpdateVOHolder<FileVO>) {
-        let fimgs: FormattedImageVO[] = await query(FormattedImageVO.API_TYPE_ID).filter_by_num_eq('file_id', vo_update_handler.post_update_vo.id).select_vos<FormattedImageVO>();
+        let fimgs: FormattedImageVO[] = await query(FormattedImageVO.API_TYPE_ID).filter_by_num_eq('file_id', vo_update_handler.post_update_vo.id).exec_as_server().select_vos<FormattedImageVO>();
 
         if ((!fimgs) || (!fimgs.length)) {
             return;
@@ -85,8 +86,8 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
             let fimg = fimgs[i];
 
             fimg.formatted_src = vo_update_handler.post_update_vo.path;
-            await ModuleDAO.getInstance().insertOrUpdateVO(fimg);
         }
+        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(fimgs);
     }
 
     private async handleTriggerPostUpdateImageFormat(update: DAOUpdateVOHolder<ImageFormatVO>) {

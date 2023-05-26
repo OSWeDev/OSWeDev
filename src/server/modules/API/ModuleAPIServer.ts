@@ -5,6 +5,8 @@ import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapp
 import IAPIParamTranslator from '../../../shared/modules/API/interfaces/IAPIParamTranslator';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import APIDefinition from '../../../shared/modules/API/vos/APIDefinition';
+import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import StatsController from '../../../shared/modules/Stats/StatsController';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import ConfigurationService from '../../env/ConfigurationService';
@@ -33,17 +35,21 @@ export default class ModuleAPIServer extends ModuleServerBase {
 
     public registerExpressApis(app: Express): void {
 
+        let time_in = Dates.now_ms();
+        StatsController.register_stat_COMPTEUR('ModuleAPIServer', 'registerExpressApis', 'IN');
+
         // On doit register toutes les APIs
         for (let i in APIControllerWrapper.registered_apis) {
             let api: APIDefinition<any, any> = APIControllerWrapper.registered_apis[i];
 
+            StatsController.register_stat_COMPTEUR('ModuleAPIServer', 'registerExpressApis', 'API');
             switch (api.api_type) {
                 case APIDefinition.API_TYPE_GET:
-                    ConsoleHandler.log("AJOUT API GET  :" + APIControllerWrapper.getAPI_URL(api).toLowerCase());
+                    // ConsoleHandler.log("AJOUT API GET  :" + APIControllerWrapper.getAPI_URL(api).toLowerCase());
                     app.get(APIControllerWrapper.getAPI_URL(api).toLowerCase(), this.createApiRequestHandler(api).bind(this));
                     break;
                 case APIDefinition.API_TYPE_POST:
-                    ConsoleHandler.log("AJOUT API POST :" + APIControllerWrapper.getAPI_URL(api).toLowerCase());
+                    // ConsoleHandler.log("AJOUT API POST :" + APIControllerWrapper.getAPI_URL(api).toLowerCase());
                     if (api.csrf_protection) {
                         app.post(APIControllerWrapper.getAPI_URL(api).toLowerCase(), ServerBase.getInstance().csrfProtection, this.createApiRequestHandler(api).bind(this));
                     } else {
@@ -51,7 +57,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
                     }
                     break;
                 case APIDefinition.API_TYPE_POST_FOR_GET:
-                    ConsoleHandler.log("AJOUT API POST FOR GET :" + APIControllerWrapper.getAPI_URL(api).toLowerCase());
+                    // ConsoleHandler.log("AJOUT API POST FOR GET :" + APIControllerWrapper.getAPI_URL(api).toLowerCase());
                     if (api.csrf_protection) {
                         app.post(APIControllerWrapper.getAPI_URL(api).toLowerCase(), ServerBase.getInstance().csrfProtection, this.createApiRequestHandler(api).bind(this));
                     } else {
@@ -60,6 +66,8 @@ export default class ModuleAPIServer extends ModuleServerBase {
                     break;
             }
         }
+        StatsController.register_stat_COMPTEUR('ModuleAPIServer', 'registerExpressApis', 'OUT');
+        StatsController.register_stat_DUREE('ModuleAPIServer', 'registerExpressApis', 'OUT', Dates.now_ms() - time_in);
     }
 
     private createApiRequestHandler<T, U>(api: APIDefinition<T, U>): (req: Request, res: Response) => void {

@@ -703,11 +703,11 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         // On log l'export
         if (!!user_log_id) {
 
-            await ModuleDAOServer.getInstance().insert_vos([ExportLogVO.createNew(
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(ExportLogVO.createNew(
                 api_type_id ? api_type_id : 'N/A',
                 Dates.now(),
                 user_log_id
-            )], true);
+            ));
         }
 
         return filepath;
@@ -943,7 +943,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         file.path = filepath;
         file.file_access_policy_name = file_access_policy_name;
         file.is_secured = is_secured;
-        await ModuleDAOServer.getInstance().insert_vos([file], true);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(file);
         if (!file.id) {
             ConsoleHandler.error('Erreur lors de l\'enregistrement du fichier en base:' + filepath);
             return null;
@@ -1010,11 +1010,11 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         // On log l'export
         if (!!user_log_id) {
 
-            await ModuleDAOServer.getInstance().insert_vos([ExportLogVO.createNew(
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(ExportLogVO.createNew(
                 api_type_id,
                 Dates.now(),
                 user_log_id
-            )], true);
+            ));
         }
 
         return filepath;

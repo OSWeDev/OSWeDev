@@ -39,6 +39,7 @@ import ModuleMenu from '../../shared/modules/Menu/ModuleMenu';
 import Module from '../../shared/modules/Module';
 import ModuleNFCConnect from '../../shared/modules/NFCConnect/ModuleNFCConnect';
 import ModuleParams from '../../shared/modules/Params/ModuleParams';
+import ModulePlayWright from '../../shared/modules/PlayWright/ModulePlayWright';
 import ModulePopup from '../../shared/modules/Popup/ModulePopup';
 import ModulePowershell from '../../shared/modules/Powershell/ModulePowershell';
 import ModulePushData from '../../shared/modules/PushData/ModulePushData';
@@ -100,6 +101,7 @@ import ModuleServerBase from './ModuleServerBase';
 import ModuleTableDBService from './ModuleTableDBService';
 import ModuleNFCConnectServer from './NFCConnect/ModuleNFCConnectServer';
 import ModuleParamsServer from './Params/ModuleParamsServer';
+import ModulePlayWrightServer from './PlayWright/ModulePlayWrightServer';
 import ModulePopupServer from './Popup/ModulePopupServer';
 import ModulePowershellServer from './Powershell/ModulePowershellServer';
 import ModulePushDataServer from './PushData/ModulePushDataServer';
@@ -546,6 +548,7 @@ export default abstract class ModuleServiceBase {
             ModuleStats.getInstance(),
             ModuleExpressDBSessions.getInstance(),
             ModuleUserLogVars.getInstance(),
+            ModulePlayWright.getInstance(),
         ];
     }
 
@@ -604,6 +607,7 @@ export default abstract class ModuleServiceBase {
             ModuleStatsServer.getInstance(),
             ModuleExpressDBSessionServer.getInstance(),
             ModuleUserLogVarsServer.getInstance(),
+            ModulePlayWrightServer.getInstance(),
         ];
     }
 

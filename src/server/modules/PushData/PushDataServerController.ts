@@ -1000,7 +1000,7 @@ export default class PushDataServerController {
 
             // On ne stocke en base que les notifications de type simple, pour les retrouver dans le compte utilisateur
             if ((notification.notification_type == NotificationVO.TYPE_NOTIF_SIMPLE || notification.notification_type == NotificationVO.TYPE_NOTIF_REDIRECT) && (notification.user_id)) {
-                await ModuleDAOServer.getInstance().insert_vos([notification], true);
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(notification);
             }
 
             if (socketWrappers && socketWrappers.length) {

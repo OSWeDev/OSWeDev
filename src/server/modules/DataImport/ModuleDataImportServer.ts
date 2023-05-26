@@ -705,7 +705,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                 //     all_formats_datas[importHistoric.data_import_format_id]);
                 // /*Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2))*/100000);
             } else {
-                await ModuleDAOServer.getInstance().insert_vos(all_formats_datas[importHistoric.data_import_format_id], true);
+                await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(all_formats_datas[importHistoric.data_import_format_id]);
             }
         }
 
@@ -887,7 +887,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                     //     validated_imported_datas);
                     // /*Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2))*/100000);
                 } else {
-                    await ModuleDAOServer.getInstance().insert_vos(validated_imported_datas, true);
+                    await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(validated_imported_datas);
                 }
 
                 return false;
@@ -904,7 +904,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                     //     validated_imported_datas);
                     // /*Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2))*/100000);
                 } else {
-                    await ModuleDAOServer.getInstance().insert_vos(validated_imported_datas, true);
+                    await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(validated_imported_datas);
                 }
             }
         }
@@ -953,7 +953,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                     //     validated_imported_datas);
                     // /*Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2))*/100000);
                 } else {
-                    await ModuleDAOServer.getInstance().insert_vos(validated_imported_datas, true);
+                    await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(validated_imported_datas);
                 }
 
                 return true;
@@ -969,7 +969,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                     //     validated_imported_datas);
                     // /*Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2))*/100000);
                 } else {
-                    await ModuleDAOServer.getInstance().insert_vos(validated_imported_datas, true);
+                    await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(validated_imported_datas);
                 }
             }
 
@@ -1008,13 +1008,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     }
 
     public async updateImportHistoric(importHistoric: DataImportHistoricVO) {
-        if (!importHistoric || !importHistoric.id) {
-            await ModuleDAOServer.getInstance().insert_vos([importHistoric], true);
-        } else {
-            await query(DataImportHistoricVO.API_TYPE_ID).filter_by_id(importHistoric.id)
-                .exec_as_server(true)
-                .update_vos(importHistoric);
-        }
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(importHistoric);
         await PushDataServerController.getInstance().notifyDAOGetVoById(importHistoric.user_id, null, DataImportHistoricVO.API_TYPE_ID, importHistoric.id);
     }
 
@@ -1202,7 +1196,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                     if (format.use_multiple_connections) {
                         await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(insertable_datas, null, true);
                     } else {
-                        await ModuleDAOServer.getInstance().insert_vos(insertable_datas, true);
+                        await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(insertable_datas);
                     }
 
                     break;
@@ -1220,7 +1214,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
             if (format.use_multiple_connections) {
                 await ModuleDAOServer.getInstance().insert_without_triggers_using_COPY(validated_imported_datas, null, true);
             } else {
-                await ModuleDAOServer.getInstance().insert_vos(validated_imported_datas, true);
+                await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(validated_imported_datas);
             }
         }
     }

@@ -9,8 +9,10 @@ import IVersionedVO from '../../../shared/modules/Versioned/interfaces/IVersione
 import ModuleVersioned from '../../../shared/modules/Versioned/ModuleVersioned';
 import VersionedVOController from '../../../shared/modules/Versioned/VersionedVOController';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import { field_names } from '../../../shared/tools/ObjectHandler';
 import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import DAOPreDeleteTriggerHook from '../DAO/triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
@@ -107,7 +109,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
         cloned._type = VersionedVOController.getInstance().getVersionedVoType(cloned._type);
         cloned.parent_id = vo_update_handler.post_update_vo.id;
 
-        await ModuleDAO.getInstance().insertOrUpdateVO(cloned);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(cloned);
 
         let uid: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
 
@@ -134,9 +136,11 @@ export default class ModuleVersionedServer extends ModuleServerBase {
 
         // On crée une nouvelle version pour garder trace de la date + utilisateur qui a fait la suppression
         vo.trashed = true;
-        await ModuleDAO.getInstance().insertOrUpdateVO(vo);
+        await query(vo._type).filter_by_id(vo.id).exec_as_server().update_vos<IVersionedVO>({
+            [field_names<IVersionedVO>().trashed]: vo.trashed,
+        });
 
-        let cloned: IVersionedVO = await query(vo._type).filter_by_id(vo.id).select_vo();
+        let cloned: IVersionedVO = await query(vo._type).filter_by_id(vo.id).exec_as_server().select_vo();
 
         if (!cloned) {
             return false;
@@ -145,14 +149,14 @@ export default class ModuleVersionedServer extends ModuleServerBase {
         cloned._type = VersionedVOController.getInstance().getTrashedVoType(vo._type);
         cloned.id = null;
 
-        let insertionRes: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(cloned);
-        if ((!insertionRes) || (!insertionRes.id)) {
-            ConsoleHandler.error('handleTriggerVOPreDelete failed:insertionRes:' + JSON.stringify(insertionRes));
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(cloned);
+        if (!cloned.id) {
+            ConsoleHandler.error('handleTriggerVOPreDelete failed:insertionRes:' + JSON.stringify(cloned));
             return false;
         }
-        cloned.id = insertionRes.id;
 
-        let versions: IVersionedVO[] = await query(VersionedVOController.getInstance().getVersionedVoType(vo._type)).filter_by_num_eq('parent_id', vo.id).select_vos<IVersionedVO>();
+        let versions_query = query(VersionedVOController.getInstance().getVersionedVoType(vo._type)).filter_by_num_eq('parent_id', vo.id).exec_as_server();
+        let versions: IVersionedVO[] = await versions_query.select_vos<IVersionedVO>();
 
         for (let i in versions) {
             let version = versions[i];
@@ -163,9 +167,9 @@ export default class ModuleVersionedServer extends ModuleServerBase {
             cloned_version.id = null;
             cloned_version.parent_id = cloned.id;
 
-            await ModuleDAO.getInstance().insertOrUpdateVO(cloned_version);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(cloned_version);
         }
-        await ModuleDAO.getInstance().deleteVOs(versions);
+        await versions_query.delete_vos();
 
         return true;
     }
@@ -177,14 +181,15 @@ export default class ModuleVersionedServer extends ModuleServerBase {
         cloned._type = VersionedVOController.getInstance().recoverOriginalVoTypeFromTrashed(vo._type);
         cloned.id = null;
 
-        let insertionRes: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(cloned);
+        let insertionRes: InsertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(cloned);
         if ((!insertionRes) || (!insertionRes.id)) {
             ConsoleHandler.error('restoreTrashedVo failed:insertionRes:' + JSON.stringify(insertionRes));
             return false;
         }
         cloned.id = insertionRes.id;
 
-        let versions: IVersionedVO[] = await query(VersionedVOController.getInstance().getTrashedVersionedVoType(cloned._type)).filter_by_num_eq('parent_id', vo.id).select_vos<IVersionedVO>();
+        let versions_query = query(VersionedVOController.getInstance().getTrashedVersionedVoType(cloned._type)).filter_by_num_eq('parent_id', vo.id).exec_as_server();
+        let versions: IVersionedVO[] = await versions_query.select_vos<IVersionedVO>();
 
         for (let i in versions) {
             let version = versions[i];
@@ -195,14 +200,14 @@ export default class ModuleVersionedServer extends ModuleServerBase {
             cloned_version.id = null;
             cloned_version.parent_id = cloned.id;
 
-            await ModuleDAO.getInstance().insertOrUpdateVO(cloned_version);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(cloned_version);
         }
-        await ModuleDAO.getInstance().deleteVOs(versions);
-        await ModuleDAO.getInstance().deleteVOs([vo]);
+        await versions_query.delete_vos();
+        await query(vo._type).filter_by_id(vo.id).delete_vos();
 
         // On crée une nouvelle version pour garder trace de la date + utilisateur qui a fait la suppression
         cloned.trashed = false;
-        await ModuleDAO.getInstance().insertOrUpdateVO(cloned);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(cloned);
 
         return true;
     }

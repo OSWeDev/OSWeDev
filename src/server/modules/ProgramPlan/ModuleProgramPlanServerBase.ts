@@ -21,7 +21,6 @@ import IPlanRDVPrep from '../../../shared/modules/ProgramPlan/interfaces/IPlanRD
 import ModuleProgramPlanBase from '../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
-import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import TimeSegmentHandler from '../../../shared/tools/TimeSegmentHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
@@ -822,13 +821,13 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         }
         if ((rdv.state == this.programplan_shared_module.RDV_STATE_CREATED) && (rdv.target_validation)) {
 
-            let crs: IPlanRDVCR[] = await query(this.programplan_shared_module.rdv_cr_type_id).filter_by_num_eq('rdv_id', rdv.id).select_vos<IPlanRDVCR>();
+            let crs: IPlanRDVCR[] = await query(this.programplan_shared_module.rdv_cr_type_id).filter_by_num_eq('rdv_id', rdv.id).exec_as_server().select_vos<IPlanRDVCR>();
 
             let cr = crs ? crs[0] : null;
 
             let prep = null;
             if (!!this.programplan_shared_module.rdv_prep_type_id) {
-                let preps: IPlanRDVPrep[] = await query(this.programplan_shared_module.rdv_prep_type_id).filter_by_num_eq('rdv_id', rdv.id).select_vos<IPlanRDVPrep>();
+                let preps: IPlanRDVPrep[] = await query(this.programplan_shared_module.rdv_prep_type_id).filter_by_num_eq('rdv_id', rdv.id).exec_as_server().select_vos<IPlanRDVPrep>();
                 prep = preps ? preps[0] : null;
             }
 
@@ -836,7 +835,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
             if (rdv.state != state) {
                 rdv.state = state;
-                await ModuleDAO.getInstance().insertOrUpdateVO(rdv);
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(rdv);
             }
         }
 
@@ -849,7 +848,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return true;
         }
 
-        let rdv: IPlanRDV = await query(this.programplan_shared_module.rdv_type_id).filter_by_id(cr.rdv_id).select_vo<IPlanRDV>();
+        let rdv: IPlanRDV = await query(this.programplan_shared_module.rdv_type_id).filter_by_id(cr.rdv_id).exec_as_server().select_vo<IPlanRDV>();
 
         if ((!rdv) || (!rdv.id)) {
             return true;
@@ -857,7 +856,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
         let prep = null;
         if (!!this.programplan_shared_module.rdv_prep_type_id) {
-            let preps: IPlanRDVPrep[] = await query(this.programplan_shared_module.rdv_prep_type_id).filter_by_num_eq('rdv_id', rdv.id).select_vos<IPlanRDVPrep>();
+            let preps: IPlanRDVPrep[] = await query(this.programplan_shared_module.rdv_prep_type_id).filter_by_num_eq('rdv_id', rdv.id).exec_as_server().select_vos<IPlanRDVPrep>();
 
             prep = preps ? preps[0] : null;
         }
@@ -866,7 +865,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
         if (rdv.state != state) {
             rdv.state = state;
-            await ModuleDAO.getInstance().insertOrUpdateVO(rdv);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(rdv);
         }
 
         return true;
@@ -881,13 +880,13 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return false;
         }
 
-        let rdv: IPlanRDV = await query(this.programplan_shared_module.rdv_type_id).filter_by_id(prep.rdv_id).select_vo<IPlanRDV>();
+        let rdv: IPlanRDV = await query(this.programplan_shared_module.rdv_type_id).filter_by_id(prep.rdv_id).exec_as_server().select_vo<IPlanRDV>();
 
         if ((!rdv) || (!rdv.id)) {
             return true;
         }
 
-        let crs: IPlanRDVCR[] = await query(this.programplan_shared_module.rdv_cr_type_id).filter_by_num_eq('rdv_id', rdv.id).select_vos<IPlanRDVCR>();
+        let crs: IPlanRDVCR[] = await query(this.programplan_shared_module.rdv_cr_type_id).filter_by_num_eq('rdv_id', rdv.id).exec_as_server().select_vos<IPlanRDVCR>();
 
         let cr = crs ? crs[0] : null;
 
@@ -895,7 +894,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
         if (rdv.state != state) {
             rdv.state = state;
-            await ModuleDAO.getInstance().insertOrUpdateVO(rdv);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(rdv);
         }
 
         return true;
@@ -906,7 +905,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return true;
         }
 
-        let rdv: IPlanRDV = await query(this.programplan_shared_module.rdv_type_id).filter_by_id(cr.rdv_id).select_vo<IPlanRDV>();
+        let rdv: IPlanRDV = await query(this.programplan_shared_module.rdv_type_id).filter_by_id(cr.rdv_id).exec_as_server().select_vo<IPlanRDV>();
 
         if ((!rdv) || (!rdv.id)) {
             return true;
@@ -915,7 +914,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         let prep = null;
 
         if (!!this.programplan_shared_module.rdv_prep_type_id) {
-            let preps: IPlanRDVPrep[] = await query(this.programplan_shared_module.rdv_prep_type_id).filter_by_num_eq('rdv_id', rdv.id).select_vos<IPlanRDVPrep>();
+            let preps: IPlanRDVPrep[] = await query(this.programplan_shared_module.rdv_prep_type_id).filter_by_num_eq('rdv_id', rdv.id).exec_as_server().select_vos<IPlanRDVPrep>();
 
             prep = preps ? preps[0] : null;
         }
@@ -924,7 +923,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
         if (rdv.state != state) {
             rdv.state = state;
-            await ModuleDAO.getInstance().insertOrUpdateVO(rdv);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(rdv);
         }
 
         return true;
@@ -939,13 +938,13 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return false;
         }
 
-        let rdv: IPlanRDV = await query(this.programplan_shared_module.rdv_type_id).filter_by_id(prep.rdv_id).select_vo<IPlanRDV>();
+        let rdv: IPlanRDV = await query(this.programplan_shared_module.rdv_type_id).filter_by_id(prep.rdv_id).exec_as_server().select_vo<IPlanRDV>();
 
         if ((!rdv) || (!rdv.id)) {
             return true;
         }
 
-        let crs: IPlanRDVCR[] = await query(this.programplan_shared_module.rdv_cr_type_id).filter_by_num_eq('rdv_id', rdv.id).select_vos<IPlanRDVCR>();
+        let crs: IPlanRDVCR[] = await query(this.programplan_shared_module.rdv_cr_type_id).filter_by_num_eq('rdv_id', rdv.id).exec_as_server().select_vos<IPlanRDVCR>();
 
         let cr = crs ? crs[0] : null;
 
@@ -953,7 +952,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
         if (rdv.state != state) {
             rdv.state = state;
-            await ModuleDAO.getInstance().insertOrUpdateVO(rdv);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(rdv);
         }
 
         return true;

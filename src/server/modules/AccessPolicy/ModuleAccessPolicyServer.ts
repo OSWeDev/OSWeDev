@@ -882,7 +882,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                  * Gestion du impersonate
                  */
                 user_log.handle_impersonation(session);
-                await ModuleDAOServer.getInstance().insert_vos([user_log], true);
+                await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
             }
 
             /**
@@ -990,23 +990,23 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         await PasswordInitialisation.getInstance().begininitpwd_uid(num);
     }
 
-    public async addRoleToUser(user_id: number, role_id: number): Promise<void> {
+    public async addRoleToUser(user_id: number, role_id: number, exec_as_server: boolean = false): Promise<void> {
 
         if ((!ModuleAccessPolicy.getInstance().actif) || (!user_id) || (!role_id)) {
             return;
         }
 
-        if (!AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS)) {
+        if (!exec_as_server && !AccessPolicyServerController.checkAccessSync(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS)) {
             return;
         }
 
-        let userRole: UserRoleVO = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('user_id', user_id).filter_by_num_eq('role_id', role_id).select_vo<UserRoleVO>();
+        let userRole: UserRoleVO = await query(UserRoleVO.API_TYPE_ID).filter_by_num_eq('user_id', user_id).filter_by_num_eq('role_id', role_id).exec_as_server(exec_as_server).select_vo<UserRoleVO>();
 
         if (!userRole) {
             userRole = new UserRoleVO();
             userRole.role_id = role_id;
             userRole.user_id = user_id;
-            await ModuleDAO.getInstance().insertOrUpdateVO(userRole);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(userRole, exec_as_server);
         }
     }
 
@@ -1243,7 +1243,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.referer = StackContext.get('REFERER');
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
-            await ModuleDAOServer.getInstance().insert_vos([user_log], true);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
 
             await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
 
@@ -1616,7 +1616,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         if ((!vo) || (!vo.password)) {
             return true;
         }
-        let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_text_eq('email', vo.email).select_vo<UserVO>();
+        let user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_text_eq('email', vo.email).exec_as_server().select_vo<UserVO>();
         if (!!user) {
             await ModuleAccessPolicyServer.getInstance().sendErrorMsg('accesspolicy.user-create.mail.exists' + DefaultTranslation.DEFAULT_LABEL_EXTENSION);
             return false;
@@ -1810,7 +1810,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             let lang: LangVO = await query(LangVO.API_TYPE_ID).set_sort(new SortByVO(LangVO.API_TYPE_ID, 'id', true)).set_limit(1).select_vo<LangVO>();
             user.lang_id = lang.id;
 
-            await ModuleDAOServer.getInstance().insert_vos([user], true);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user);
 
             if (!user.id) {
                 throw new Error('Impossible de créer le compte');
@@ -1826,7 +1826,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.referer = StackContext.get('REFERER');
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
-            await ModuleDAOServer.getInstance().insert_vos([user_log], true);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
             await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
 
             return user.id;
@@ -1904,7 +1904,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.referer = StackContext.get('REFERER');
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
-            await ModuleDAOServer.getInstance().insert_vos([user_log], true);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
 
             await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
 
@@ -1969,7 +1969,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
             user_log.handle_impersonation(session);
 
-            await ModuleDAOServer.getInstance().insert_vos([user_log], true);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
 
             await PushDataServerController.getInstance().notifyUserLoggedAndRedirectHome();
 
@@ -2125,7 +2125,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     private async checkBlockingOrInvalidatingUser(user: UserVO) {
         let old_user: UserVO = null;
         if (!!user.id) {
-            old_user = await query(UserVO.API_TYPE_ID).filter_by_id(user.id).ignore_access_hooks().select_vo<UserVO>();
+            old_user = await query(UserVO.API_TYPE_ID).filter_by_id(user.id).exec_as_server().select_vo<UserVO>();
         }
 
         return ModuleAccessPolicyServer.getInstance().checkBlockingOrInvalidatingUser_(user, old_user);
@@ -2198,7 +2198,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
             user_log.handle_impersonation(session);
 
-            await ModuleDAOServer.getInstance().insert_vos([user_log], true);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
         }
 
         /**
@@ -2222,7 +2222,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
             user_log.handle_impersonation(session);
 
-            await ModuleDAOServer.getInstance().insert_vos([user_log], true);
+            await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(user_log);
         }
 
         await ConsoleHandler.log('unregisterSession:delete_session:uid:' + session.uid);

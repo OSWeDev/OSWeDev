@@ -146,7 +146,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
             return;
         }
 
-        let maintenance: MaintenanceVO = await query(MaintenanceVO.API_TYPE_ID).filter_by_id(num).select_vo<MaintenanceVO>();
+        let maintenance: MaintenanceVO = await query(MaintenanceVO.API_TYPE_ID).filter_by_id(num).exec_as_server().select_vo<MaintenanceVO>();
 
         maintenance.maintenance_over = true;
         maintenance.end_ts = Dates.now();
@@ -154,7 +154,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         DAOServerController.GLOBAL_UPDATE_BLOCKER = false;
 
         await PushDataServerController.getInstance().broadcastAllSimple(NotificationVO.SIMPLE_SUCCESS, ModuleMaintenance.MSG4_code_text);
-        await ModuleDAO.getInstance().insertOrUpdateVO(maintenance);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(maintenance);
         await PushDataServerController.getInstance().notifyDAOGetVoById(session.uid, null, MaintenanceVO.API_TYPE_ID, maintenance.id);
     }
 
@@ -176,7 +176,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         planned_maintenance.end_ts = Dates.now();
 
         await PushDataServerController.getInstance().broadcastAllSimple(NotificationVO.SIMPLE_SUCCESS, ModuleMaintenance.MSG4_code_text);
-        await ModuleDAO.getInstance().insertOrUpdateVO(planned_maintenance);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(planned_maintenance);
         if (session && !!session.uid) {
             await PushDataServerController.getInstance().notifyDAOGetVoById(session.uid, null, MaintenanceVO.API_TYPE_ID, planned_maintenance.id);
         }
@@ -215,7 +215,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
          *  - Par défaut on laisse 1 minute entre la réception de la notification et le passage en readonly de l'application
          */
         ConsoleHandler.error('Maintenance programmée dans 10 minutes');
-        await ModuleDAO.getInstance().insertOrUpdateVO(maintenance);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(maintenance);
 
         let readonly_maintenance_deadline = await ModuleParams.getInstance().getParamValueAsInt(ModuleMaintenance.PARAM_NAME_start_maintenance_force_readonly_after_x_ms, 60000, 180000);
         await ThreadHandler.sleep(readonly_maintenance_deadline, 'ModuleMaintenanceServer.start_maintenance');
@@ -225,6 +225,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
     public async get_planned_maintenance(): Promise<MaintenanceVO> {
         let maintenances: MaintenanceVO[] = await query(MaintenanceVO.API_TYPE_ID)
             .filter_is_false('maintenance_over')
+            .exec_as_server()
             .select_vos<MaintenanceVO>();
         return (maintenances && maintenances.length) ? maintenances[0] : null;
     }

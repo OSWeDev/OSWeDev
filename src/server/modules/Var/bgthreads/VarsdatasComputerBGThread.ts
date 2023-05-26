@@ -329,7 +329,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
     private async save_last_dag_perfs(var_dag: VarDAG) {
 
         let vardag_perfs = var_dag.perfs;
-        await ModuleDAOServer.getInstance().insert_vos([vardag_perfs], true);
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(vardag_perfs);
         if (!vardag_perfs.id) {
             ConsoleHandler.error('Failed insert vardag_perfs_res:save_last_dag_perfs');
             return;

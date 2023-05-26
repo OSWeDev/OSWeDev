@@ -94,7 +94,7 @@ export default class ContextQueryServerController {
         query_wrapper = query_wrapper ?? await this.build_select_query(context_query);
 
         //Requête
-        if ((!query_wrapper || !query_wrapper.query) && !query_wrapper.is_segmented_non_existing_table) {
+        if ((!query_wrapper) || (!query_wrapper.query && !query_wrapper.is_segmented_non_existing_table)) {
             ConsoleHandler.error('Invalid query:select_vos:INFOS context_query:' + (query_wrapper ? (query_wrapper.query ? query_wrapper.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
             context_query.log(true);
             throw new Error('Invalid query:select_vos');
@@ -478,7 +478,7 @@ export default class ContextQueryServerController {
 
 
         let query_wrapper = await this.build_select_query_not_count(context_query);
-        if ((!query_wrapper || !query_wrapper.query) && !query_wrapper.is_segmented_non_existing_table) {
+        if ((!query_wrapper) || (!query_wrapper.query && !query_wrapper.is_segmented_non_existing_table)) {
             ConsoleHandler.error('Invalid query:build_query_count:INFOS context_query:' + (query_wrapper ? (query_wrapper.query ? query_wrapper.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
             context_query.log(true);
             throw new Error('Invalid query:build_query_count');
@@ -571,6 +571,10 @@ export default class ContextQueryServerController {
         let fields_by_id: { [id: string]: ModuleTableField<any> } = {};
         for (let field_id in new_api_translated_values) {
             let field = moduletable.getFieldFromId(field_id);
+
+            if (!field) {
+                continue;
+            }
 
             if (field.is_readonly) {
                 StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'readonly_field');
@@ -1756,7 +1760,7 @@ export default class ContextQueryServerController {
                 let query_ = querys[j];
 
                 let query_wrapper = await this.build_select_query(query_.set_query_distinct());
-                if ((!query_wrapper || !query_wrapper.query) && !query_wrapper.is_segmented_non_existing_table) {
+                if ((!query_wrapper) || (!query_wrapper.query && !query_wrapper.is_segmented_non_existing_table)) {
                     ConsoleHandler.error('Invalid query:add_context_access_hooks:INFOS context_query:' + (query_wrapper ? (query_wrapper.query ? query_wrapper.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
                     context_query.log(true);
                     throw new Error('Invalid query:add_context_access_hooks');

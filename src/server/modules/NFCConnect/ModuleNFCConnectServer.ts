@@ -268,7 +268,7 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
             tag = new NFCTagVO();
             tag.activated = true;
             tag.name = serial_number;
-            insertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insert_vos([tag], true);
+            insertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(tag);
             if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
 
                 ConsoleHandler.error("Impossible de créer le nouveau tag. Abandon.");
@@ -291,7 +291,7 @@ export default class ModuleNFCConnectServer extends ModuleServerBase {
         let add_tag_user = new NFCTagUserVO();
         add_tag_user.nfc_tag_id = tag.id;
         add_tag_user.user_id = user_id;
-        insertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insert_vos([add_tag_user], true);
+        insertOrDeleteQueryResult = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(add_tag_user);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
 
             ConsoleHandler.error("Impossible de créer le nouveau tag user. Abandon.");

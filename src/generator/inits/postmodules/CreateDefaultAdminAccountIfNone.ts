@@ -70,7 +70,7 @@ export default class CreateDefaultAdminAccountIfNone implements IGeneratorWorker
             return user;
         }
 
-        let lang: LangVO = await query(LangVO.API_TYPE_ID).filter_by_text_eq(field_names<LangVO>().code_lang, 'fr-fr').select_one();
+        let lang: LangVO = await query(LangVO.API_TYPE_ID).filter_by_text_eq(field_names<LangVO>().code_lang, 'fr-fr').exec_as_server().select_one();
 
         user = new UserVO();
 

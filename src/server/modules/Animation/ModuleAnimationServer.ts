@@ -180,7 +180,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
         vo.computed_name = vo.name;
 
         if (vo.role_id_ranges && vo.role_id_ranges.length) {
-            let role_by_ids: { [id: number]: RoleVO } = VOsTypesManager.vosArray_to_vosByIds(await query(RoleVO.API_TYPE_ID).select_vos<RoleVO>());
+            let role_by_ids: { [id: number]: RoleVO } = VOsTypesManager.vosArray_to_vosByIds(await query(RoleVO.API_TYPE_ID).exec_as_server().select_vos<RoleVO>());
             let role_names: string[] = [];
 
             RangeHandler.foreach_ranges_sync(vo.role_id_ranges, (role_id: number) => {
@@ -193,6 +193,7 @@ export default class ModuleAnimationServer extends ModuleServerBase {
 
             let langs: LangVO[] = await query(LangVO.API_TYPE_ID)
                 .filter_by_text_eq('code_lang', ConfigurationService.node_configuration.DEFAULT_LOCALE)
+                .exec_as_server()
                 .select_vos<LangVO>();
             let lang: LangVO = langs ? langs[0] : null;
 
