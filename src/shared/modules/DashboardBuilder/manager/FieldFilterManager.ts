@@ -1,4 +1,4 @@
-import { cloneDeep, isEqual } from "lodash";
+import { cloneDeep } from "lodash";
 import ContextFilterVOHandler from "../../ContextFilter/handler/ContextFilterVOHandler";
 import ContextFilterVOManager from "../../ContextFilter/manager/ContextFilterVOManager";
 import VOFieldRefVO from '../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
@@ -205,7 +205,7 @@ export default class FieldFilterManager {
     /**
      * Update field_filters by required api type ids
      * - The aim of this function is to update and return field_filters for each given api_type_id
-     * /!\ Updating is not filtering, in this way we are actually updating the context_filter.vo_type with the required api_type_id
+     * - /!\ Updating is not filtering, in this way we are actually updating the context_filter.vo_type with the required api_type_id
      *
      * @param {any} widget_options
      * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} active_field_filters
@@ -295,8 +295,6 @@ export default class FieldFilterManager {
                     if (field_filters_by_api_type_ids[api_type_id][api_type_id]) {
                         // In this case the field_filters are already set for this api_type_id
                         // We must merge the two field_filters
-                        // TODO: - Merge the two field_filters
-                        // TODO: - Check if the api_type_id (or vo_type) actually have the field_id to filter on
                         field_filters_by_api_type_ids[api_type_id] = FieldFilterManager.merge_field_filters_with_context_filter(
                             field_filters_by_api_type_ids[api_type_id],
                             { api_type_id, field_id },
@@ -343,7 +341,6 @@ export default class FieldFilterManager {
         const api_type_ids_to_keep_for_request = Object.keys(field_filters_for_request).filter((api_type_id: string) => {
             return !api_type_ids_to_exclude.includes(api_type_id);
         });
-
 
         for (const key in api_type_ids_to_keep_for_request) {
             const api_type_id_to_keep: string = api_type_ids_to_keep_for_request[key];

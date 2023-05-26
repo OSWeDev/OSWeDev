@@ -7,7 +7,6 @@ import ContextFilterVO from '../../../../shared/modules/ContextFilter/vos/Contex
 import ContextQueryVO from '../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleAccessPolicy from "../../AccessPolicy/ModuleAccessPolicy";
 import SortByVO from "../../ContextFilter/vos/SortByVO";
-import EnvHandler from "../../../tools/EnvHandler";
 import ModuleDAO from "../../DAO/ModuleDAO";
 import { query } from "../../ContextFilter/vos/ContextQueryVO";
 import DashboardVO from "../vos/DashboardVO";
@@ -151,7 +150,6 @@ export default class SupervisionWidgetManager {
             dashboard,
             widget_options,
             context_filters_by_api_type_id,
-            allowed_api_type_ids,
             pagination,
         );
     }
@@ -242,7 +240,6 @@ export default class SupervisionWidgetManager {
         dashboard: DashboardVO,
         widget_options: SupervisionWidgetOptionsVO,
         context_filters_by_api_type_id: { [api_type_id: string]: ContextFilterVO[] },
-        allowed_api_type_ids: string[],
         pagination?: { offset: number, limit?: number, sort_by_field_id?: string }
     ): Promise<{
         items: ISupervisedItem[],
@@ -267,7 +264,7 @@ export default class SupervisionWidgetManager {
             const context_filters: ContextFilterVO[] = api_type_context_filters ?? [];
 
             const api_type_context_query = query(api_type_id)
-                .using(allowed_api_type_ids)
+                .using(dashboard.api_type_ids)
                 .add_filters(context_filters)
                 .set_sort(new SortByVO(api_type_id, 'name', true));
 
@@ -279,7 +276,6 @@ export default class SupervisionWidgetManager {
                 // Union query to be able to select all vos of each api_type_id
                 context_query.union(api_type_context_query);
             }
-
         }
 
         await promise_pipeline.push(async () => {
@@ -310,8 +306,6 @@ export default class SupervisionWidgetManager {
 
         await promise_pipeline.push(async () => {
             total_count = await context_query.select_count();
-
-            // pour éviter de récuperer le cache
         });
 
         await promise_pipeline.end();

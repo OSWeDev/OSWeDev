@@ -1,4 +1,3 @@
-import EnvHandler from "../../../tools/EnvHandler";
 import PromisePipeline from "../../../tools/PromisePipeline/PromisePipeline";
 import DashboardVO from "../vos/DashboardVO";
 import DataFilterOption from "../../DataRender/vos/DataFilterOption";
@@ -276,7 +275,6 @@ export default class FieldValueFilterEnumWidgetManager {
             widget_options = new FieldValueFilterWidgetOptionsVO().from(widget_options);
         }
 
-        const context_query_by_enum_data_filters: { [enum_value: number]: ContextQueryVO } = {};
         const vo_field_ref = widget_options?.vo_field_ref;
 
         const discarded_field_paths = await DashboardBuilderBoardManager.find_discarded_field_paths(
@@ -299,10 +297,11 @@ export default class FieldValueFilterEnumWidgetManager {
         // We must do it in two separate states (with promise_pipeline)
         // The first one is to check access and build the query
         // The second one is to perform the query and get the count
-        for (const i in available_api_type_ids) {
+        for (const key in available_api_type_ids) {
+            const api_type_id: string = available_api_type_ids[key];
+
             // We must check access on each api_type_id
             await promise_pipeline.push(async () => {
-                const api_type_id: string = available_api_type_ids[i];
 
                 const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id);
                 const has_access = await ModuleAccessPolicy.getInstance().testAccess(access_policy_name);
@@ -398,17 +397,11 @@ export default class FieldValueFilterEnumWidgetManager {
                 }
             }
 
-            context_query_by_enum_data_filters[filter_opt.numeric_value] = context_query;
-        }
-
-        for (const enum_value in context_query_by_enum_data_filters) {
-            const context_query = context_query_by_enum_data_filters[enum_value];
-
             await promise_pipeline.push(async () => {
                 const count: number = await context_query.select_count();
 
                 if (count >= 0) {
-                    count_by_enum_data_filter[enum_value] = count;
+                    count_by_enum_data_filter[filter_opt.numeric_value] = count;
                 }
             });
         }
