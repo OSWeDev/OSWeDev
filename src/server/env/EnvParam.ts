@@ -47,4 +47,9 @@ export default class EnvParam implements IEnvParam {
     public ACTIVATE_PWA: boolean = false;
     public RETRY_FAILED_FAST_TRACK_IMPORTS_WITH_NORMAL_IMPORTATION?: boolean = true;
     public ZOOM_AUTO?: boolean = false;
+
+    /**
+     * ATTENTION : bien indiquer l'environnement principal de production. On bloque par exemple les comptes tests sur cet environnement.
+     */
+    public IS_MAIN_PROD_ENV: boolean = false;
 }

@@ -61,11 +61,26 @@ export default class DocumentHandlerModalComponent extends VueComponentBase {
     }
 
     @Watch('get_hidden')
-    public onchange_hidden() {
+    public async onchange_hidden() {
 
         let self = this;
 
         if (!this.get_hidden) {
+
+            if (!this.loaded) {
+                let datas: DocumentHandlerDatasVO = await DocumentHandlerController.getInstance().reloadDatas();
+
+                this.all_d_by_ids = datas.all_d_by_ids;
+                this.all_dt_by_ids = datas.all_dt_by_ids;
+                this.dt_by_ids = datas.dt_by_ids;
+                this.dts_by_dtg_ids = datas.dts_by_dtg_ids;
+                this.dtg_by_ids = datas.dtg_by_ids;
+                this.dtgs_by_weight = datas.dtgs_by_weight;
+                this.d_dts = datas.d_dts;
+
+                this.reload_list();
+            }
+
             $('#document_handler_modal').modal('show');
 
             setTimeout(async () => {
@@ -83,18 +98,6 @@ export default class DocumentHandlerModalComponent extends VueComponentBase {
         let self = this;
 
         this.$nextTick(async () => {
-            let datas: DocumentHandlerDatasVO = await DocumentHandlerController.getInstance().reloadDatas();
-
-            this.all_d_by_ids = datas.all_d_by_ids;
-            this.all_dt_by_ids = datas.all_dt_by_ids;
-            this.dt_by_ids = datas.dt_by_ids;
-            this.dts_by_dtg_ids = datas.dts_by_dtg_ids;
-            this.dtg_by_ids = datas.dtg_by_ids;
-            this.dtgs_by_weight = datas.dtgs_by_weight;
-            this.d_dts = datas.d_dts;
-
-            this.reload_list();
-
             $("#document_handler_modal").on("hidden.bs.modal", function () {
                 self.set_hidden(true);
             });

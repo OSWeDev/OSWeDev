@@ -4,6 +4,7 @@ import { fork } from 'child_process';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ThrottleHelper from '../../../shared/tools/ThrottleHelper';
 import ConfigurationService from '../../env/ConfigurationService';
@@ -39,7 +40,7 @@ export default class ForkServerController {
     public forks_availability: { [uid: number]: number } = {};
     public forks_reload_asap: { [uid: number]: boolean } = {};
     public forks_alive: { [uid: number]: boolean } = {};
-    public throttled_reload_unavailable_threads = ThrottleHelper.getInstance().declare_throttle_without_args(this.reload_unavailable_threads.bind(this), 10000, { leading: false, trailing: true });
+    public throttled_reload_unavailable_threads = ThrottleHelper.getInstance().declare_throttle_without_args(this.reload_unavailable_threads.bind(this), 500, { leading: false, trailing: true });
     public fork_by_type_and_name: { [exec_type: string]: { [name: string]: IFork } } = {};
     private forks: { [uid: number]: IFork } = {};
     private UID: number = 0;
@@ -129,27 +130,60 @@ export default class ForkServerController {
                 await ForkMessageController.getInstance().message_handler(msg, forked.child_process);
             });
 
-            /**
-             * On attend le alive du fork avant de continuer
-             */
-            let max_timeout = 300;
-            while (!ForkServerController.getInstance().forks_alive[i]) {
-                await ThreadHandler.sleep(1000, 'reload_unavailable_threads.!forks_alive.' + forked.uid);
-                max_timeout--;
-                if (!(max_timeout % 10)) {
-                    ConsoleHandler.log('Waiting for ALIVE SIGNAL from fork ' + forked.uid);
-                }
+            // /**
+            //  * On attend le alive du fork avant de continuer
+            //  */
+            // let max_timeout = 300;
+            // while (!ForkServerController.getInstance().forks_alive[i]) {
+            //     await ThreadHandler.sleep(1000, 'reload_unavailable_threads.!forks_alive.' + forked.uid);
+            //     max_timeout--;
+            //     if (!(max_timeout % 10)) {
+            //         ConsoleHandler.log('Waiting for ALIVE SIGNAL from fork ' + forked.uid);
+            //     }
 
-                if (max_timeout == 60) {
-                    ConsoleHandler.warn('60 secs until timeout while waiting for ALIVE SIGNAL from fork ' + forked.uid);
-                }
+            //     if (max_timeout == 60) {
+            //         ConsoleHandler.warn('60 secs until timeout while waiting for ALIVE SIGNAL from fork ' + forked.uid);
+            //     }
 
-                if (max_timeout <= 0) {
-                    ConsoleHandler.error('Timeout while waiting for ALIVE SIGNAL from fork ' + forked.uid);
-                    break;
-                }
-            }
+            //     if (max_timeout <= 0) {
+            //         ConsoleHandler.error('Timeout while waiting for ALIVE SIGNAL from fork ' + forked.uid);
+            //         break;
+            //     }
+            // }
         }
+
+        /**
+         * On attend le alive des forks avant de continuer
+         */
+        let promises_pipeline = new PromisePipeline(100);
+        for (let i in ForkServerController.getInstance().forks) {
+            let forked: IFork = ForkServerController.getInstance().forks[i];
+
+            if (ForkServerController.getInstance().forks_availability[i]) {
+                continue;
+            }
+
+            await promises_pipeline.push(async () => {
+                let max_timeout = 300;
+                while (!ForkServerController.getInstance().forks_alive[i]) {
+                    await ThreadHandler.sleep(1000, 'reload_unavailable_threads.!forks_alive.' + forked.uid);
+                    max_timeout--;
+                    if (!(max_timeout % 10)) {
+                        ConsoleHandler.log('Waiting for ALIVE SIGNAL from fork ' + forked.uid);
+                    }
+
+                    if (max_timeout == 60) {
+                        ConsoleHandler.warn('60 secs until timeout while waiting for ALIVE SIGNAL from fork ' + forked.uid);
+                    }
+
+                    if (max_timeout <= 0) {
+                        ConsoleHandler.error('Timeout while waiting for ALIVE SIGNAL from fork ' + forked.uid);
+                        break;
+                    }
+                }
+            });
+        }
+        await promises_pipeline.end();
     }
 
     private get_argv(forked: IFork): string[] {

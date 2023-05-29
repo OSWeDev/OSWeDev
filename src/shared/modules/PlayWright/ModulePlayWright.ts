@@ -7,7 +7,7 @@ import Module from '../Module';
 
 export default class ModulePlayWright extends Module {
 
-    public static MODULE_NAME: string = 'Document';
+    public static MODULE_NAME: string = 'PlayWright';
 
     public static APINAME_setup_and_login: string = "playwright_setup_and_login";
     // public static APINAME_global_setup: string = "playwright_global_setup";
@@ -37,7 +37,7 @@ export default class ModulePlayWright extends Module {
 
     private constructor() {
 
-        super("document", ModulePlayWright.MODULE_NAME);
+        super("playwright", ModulePlayWright.MODULE_NAME);
         this.forceActivationOnInstallation();
     }
 

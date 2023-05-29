@@ -6,8 +6,6 @@ import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapp
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import StatsController from '../../../shared/modules/Stats/StatsController';
-import StatsTypeVO from '../../../shared/modules/Stats/vos/StatsTypeVO';
-import StatVO from '../../../shared/modules/Stats/vos/StatVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ForkServerController from './ForkServerController';
 import IFork from './interfaces/IFork';
@@ -37,7 +35,7 @@ export default class ForkMessageController {
 
     private last_log_msg_error: number = 0;
 
-    private throttled_retry = throttle(this.retry.bind(this), 1000);
+    private throttled_retry = throttle(this.retry.bind(this), 500);
 
     private constructor() { }
 

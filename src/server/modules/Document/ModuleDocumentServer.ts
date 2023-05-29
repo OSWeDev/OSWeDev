@@ -2,7 +2,11 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
+import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
+import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import APIControllerWrapper from '../../../shared/modules/API/APIControllerWrapper';
+import ContextFilterVO, { filter } from '../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleDocument from '../../../shared/modules/Document/ModuleDocument';
@@ -22,6 +26,7 @@ import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager'
 import FileHandler from '../../../shared/tools/FileHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import ConfigurationService from '../../env/ConfigurationService';
+import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
@@ -230,94 +235,23 @@ export default class ModuleDocumentServer extends ModuleServerBase {
 
 
     private async get_ds_by_user_lang(): Promise<DocumentVO[]> {
-        let vos: DocumentVO[] = await query(DocumentVO.API_TYPE_ID).select_vos<DocumentVO>();
-        if ((!vos) || (!vos.length)) {
-            return null;
-        }
-
-        let user_lang: LangVO = await ModuleAccessPolicyServer.getInstance().getMyLang();
-        if (!user_lang) {
-            return null;
-        }
-
-        let res: DocumentVO[] = [];
-        let d_ids: number[] = ObjectHandler.getInstance().getIdsList(vos);
-        let d_by_ids: { [id: number]: DocumentVO } = VOsTypesManager.vosArray_to_vosByIds(vos);
-        let doc_langs: DocumentLangVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIds(DocumentLangVO.API_TYPE_ID, 'lang_id', [user_lang.id], 'd_id', d_ids);
-        let doc_roles: DocumentRoleVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIds(DocumentRoleVO.API_TYPE_ID, 'd_id', d_ids);
-        let doc_role_ids_by_docid: { [docid: number]: number[] } = {};
-
-        for (let i in doc_roles) {
-            let doc_role = doc_roles[i];
-
-            if (!doc_role_ids_by_docid[doc_role.d_id]) {
-                doc_role_ids_by_docid[doc_role.d_id] = [];
-            }
-            doc_role_ids_by_docid[doc_role.d_id].push(doc_role.role_id);
-        }
-
-        for (let i in doc_langs) {
-            let doc_lang = doc_langs[i];
-            let doc: DocumentVO = d_by_ids[doc_lang.d_id];
-
-            if (!doc_role_ids_by_docid[doc.id]) {
-                res.push(doc);
-                continue;
-            }
-
-            if (ModuleAccessPolicyServer.getInstance().checkAccessByRoleIds(doc_role_ids_by_docid[doc.id])) {
-                res.push(doc);
-                continue;
-            }
-        }
-        return res;
+        let main_query = query(DocumentVO.API_TYPE_ID);
+        return await main_query
+            .filter_by_num_eq('lang_id', StackContext.get('user').lang_id, DocumentLangVO.API_TYPE_ID)
+            .add_filters([
+                ContextFilterVO.or([
+                    filter(DocumentRoleVO.API_TYPE_ID, 'role_id').by_num_in(query(UserRoleVO.API_TYPE_ID).field('role_id').exec_as_server().filter_by_num_eq('user_id', StackContext.get('UID')), main_query),
+                    filter(DocumentRoleVO.API_TYPE_ID, 'role_id').is_null_or_empty()
+                ])
+            ])
+            .select_vos<DocumentVO>();
     }
 
     private async get_dts_by_user_lang(): Promise<DocumentTagVO[]> {
-        let vos: DocumentTagVO[] = await query(DocumentTagVO.API_TYPE_ID).select_vos<DocumentTagVO>();
-        if ((!vos) || (!vos.length)) {
-            return vos;
-        }
-
-        let user_lang: LangVO = await ModuleAccessPolicyServer.getInstance().getMyLang();
-        if (!user_lang) {
-            return null;
-        }
-
-        let res: DocumentTagVO[] = [];
-        let dt_ids: number[] = ObjectHandler.getInstance().getIdsList(vos);
-        let dt_by_ids: { [id: number]: DocumentTagVO } = VOsTypesManager.vosArray_to_vosByIds(vos);
-        let doc_langs: DocumentTagLangVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIds(DocumentTagLangVO.API_TYPE_ID, 'lang_id', [user_lang.id], 'dt_id', dt_ids);
-
-        for (let i in doc_langs) {
-            let doc_lang = doc_langs[i];
-
-            res.push(dt_by_ids[doc_lang.dt_id]);
-        }
-        return res;
+        return query(DocumentTagVO.API_TYPE_ID).filter_by_num_eq('lang_id', StackContext.get('user').lang_id, DocumentTagLangVO.API_TYPE_ID).select_vos<DocumentTagVO>();
     }
 
     private async get_dtgs_by_user_lang(): Promise<DocumentTagGroupVO[]> {
-        let vos: DocumentTagGroupVO[] = await query(DocumentTagGroupVO.API_TYPE_ID).select_vos<DocumentTagGroupVO>();
-        if ((!vos) || (!vos.length)) {
-            return vos;
-        }
-
-        let user_lang: LangVO = await ModuleAccessPolicyServer.getInstance().getMyLang();
-        if (!user_lang) {
-            return null;
-        }
-
-        let res: DocumentTagGroupVO[] = [];
-        let dtg_ids: number[] = ObjectHandler.getInstance().getIdsList(vos);
-        let dtg_by_ids: { [id: number]: DocumentTagGroupVO } = VOsTypesManager.vosArray_to_vosByIds(vos);
-        let doc_langs: DocumentTagGroupLangVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIds(DocumentTagGroupLangVO.API_TYPE_ID, 'lang_id', [user_lang.id], 'dtg_id', dtg_ids);
-
-        for (let i in doc_langs) {
-            let doc_lang = doc_langs[i];
-
-            res.push(dtg_by_ids[doc_lang.dtg_id]);
-        }
-        return res;
+        return query(DocumentTagGroupVO.API_TYPE_ID).filter_by_num_eq('lang_id', StackContext.get('user').lang_id, DocumentTagGroupLangVO.API_TYPE_ID).select_vos<DocumentTagVO>();
     }
 }

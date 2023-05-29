@@ -375,6 +375,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
         }
     }
 
+
     /**
      * On ne peut segmenter que sur un field de type range ou ranges pour le moment
      *  techniquement rien n'empeche d'étendre ça à tous les autres types de données

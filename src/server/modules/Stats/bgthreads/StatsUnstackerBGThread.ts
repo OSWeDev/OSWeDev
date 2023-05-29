@@ -155,7 +155,7 @@ export default class StatsUnstackerBGThread implements IBGThread {
 
                 stats_to_insert.push(new_stat);
             }
-            await ModuleDAOServer.getInstance().insertOrUpdateVOsMulticonnections(stats_to_insert);
+            await ModuleDAOServer.getInstance().insertOrUpdateVOs_as_server(stats_to_insert);
 
             this.stats_out('ok', time_in);
             return ModuleBGThreadServer.TIMEOUT_COEF_NEUTRAL;
@@ -188,7 +188,7 @@ export default class StatsUnstackerBGThread implements IBGThread {
         if (!this.stat_type_cache[invalid_stats_group.stat_type_name]) {
             this.stat_type_cache[invalid_stats_group.stat_type_name] = new StatsTypeVO();
             this.stat_type_cache[invalid_stats_group.stat_type_name].name = invalid_stats_group.stat_type_name;
-            let res = await ModuleDAO.getInstance().insertOrUpdateVO(this.stat_type_cache[invalid_stats_group.stat_type_name]);
+            let res = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(this.stat_type_cache[invalid_stats_group.stat_type_name]);
             if ((!res) || !res.id) {
                 delete this.stat_type_cache[invalid_stats_group.stat_type_name];
                 throw new Error('Statsstat_typeMapperBGThread:FAILED:stat_type_cache:' + JSON.stringify(invalid_stats_group));
@@ -231,7 +231,7 @@ export default class StatsUnstackerBGThread implements IBGThread {
                 throw new Error('StatsUnstackerBGThread:FAILED:group_cache:' + JSON.stringify(client_stat));
             }
 
-            let res = await ModuleDAO.getInstance().insertOrUpdateVO(new_group);
+            let res = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(new_group);
             if ((!res) || !res.id || !new_group.id) {
                 delete this.group_cache[stat_name];
                 throw new Error('StatsUnstackerBGThread:FAILED:group_cache:' + JSON.stringify(client_stat));
@@ -255,7 +255,7 @@ export default class StatsUnstackerBGThread implements IBGThread {
         if (!this.category_cache[invalid_stats_group.category_name]) {
             this.category_cache[invalid_stats_group.category_name] = new StatsCategoryVO();
             this.category_cache[invalid_stats_group.category_name].name = invalid_stats_group.category_name;
-            let res = await ModuleDAO.getInstance().insertOrUpdateVO(this.category_cache[invalid_stats_group.category_name]);
+            let res = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(this.category_cache[invalid_stats_group.category_name]);
             if ((!res) || !res.id) {
                 delete this.category_cache[invalid_stats_group.category_name];
                 throw new Error('StatsUnstackerBGThread:FAILED:category_cache:' + JSON.stringify(invalid_stats_group));
@@ -284,7 +284,7 @@ export default class StatsUnstackerBGThread implements IBGThread {
             this.sub_category_cache[invalid_stats_group.category_id][invalid_stats_group.sub_category_name] = new StatsSubCategoryVO();
             this.sub_category_cache[invalid_stats_group.category_id][invalid_stats_group.sub_category_name].name = invalid_stats_group.sub_category_name;
             this.sub_category_cache[invalid_stats_group.category_id][invalid_stats_group.sub_category_name].category_id = invalid_stats_group.category_id;
-            let res = await ModuleDAO.getInstance().insertOrUpdateVO(this.sub_category_cache[invalid_stats_group.category_id][invalid_stats_group.sub_category_name]);
+            let res = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(this.sub_category_cache[invalid_stats_group.category_id][invalid_stats_group.sub_category_name]);
             if ((!res) || !res.id) {
                 delete this.sub_category_cache[invalid_stats_group.category_id][invalid_stats_group.sub_category_name];
                 throw new Error('StatsUnstackerBGThread:FAILED:sub_category_cache:' + JSON.stringify(invalid_stats_group));
@@ -313,7 +313,7 @@ export default class StatsUnstackerBGThread implements IBGThread {
             this.event_cache[invalid_stats_group.sub_category_id][invalid_stats_group.event_name] = new StatsEventVO();
             this.event_cache[invalid_stats_group.sub_category_id][invalid_stats_group.event_name].name = invalid_stats_group.event_name;
             this.event_cache[invalid_stats_group.sub_category_id][invalid_stats_group.event_name].sub_category_id = invalid_stats_group.sub_category_id;
-            let res = await ModuleDAO.getInstance().insertOrUpdateVO(this.event_cache[invalid_stats_group.sub_category_id][invalid_stats_group.event_name]);
+            let res = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(this.event_cache[invalid_stats_group.sub_category_id][invalid_stats_group.event_name]);
             if ((!res) || !res.id) {
                 delete this.event_cache[invalid_stats_group.sub_category_id][invalid_stats_group.event_name];
                 throw new Error('StatsUnstackerBGThread:FAILED:event_cache:' + JSON.stringify(invalid_stats_group));
@@ -342,6 +342,7 @@ export default class StatsUnstackerBGThread implements IBGThread {
              * Avant de créer on check qu'on a pas déjà en base, via alias par exemple ce thread, par ce que si on modifie en base en fait on ne le sait pas à ce stade
              */
             let lastcheck = await query(StatsThreadVO.API_TYPE_ID)
+                .exec_as_server()
                 .add_filters([
                     ContextFilterVO.or([
                         filter(StatsThreadVO.API_TYPE_ID, 'name').by_text_eq(invalid_stats_group.thread_name),
@@ -349,7 +350,7 @@ export default class StatsUnstackerBGThread implements IBGThread {
                     ])
                 ]).select_vo<StatsThreadVO>();
             if (!lastcheck) {
-                let res = await ModuleDAO.getInstance().insertOrUpdateVO(this.thread_cache[invalid_stats_group.thread_name]);
+                let res = await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(this.thread_cache[invalid_stats_group.thread_name]);
                 if ((!res) || !res.id) {
                     delete this.thread_cache[invalid_stats_group.thread_name];
                     throw new Error('StatsUnstackerBGThread:FAILED:thread_cache:' + JSON.stringify(invalid_stats_group));
@@ -367,12 +368,12 @@ export default class StatsUnstackerBGThread implements IBGThread {
     }
 
     private async init_cache() {
-        let groups = await query(StatsGroupVO.API_TYPE_ID).select_vos<StatsGroupVO>();
-        let categorys = await query(StatsCategoryVO.API_TYPE_ID).select_vos<StatsCategoryVO>();
-        let subcategorys = await query(StatsSubCategoryVO.API_TYPE_ID).select_vos<StatsSubCategoryVO>();
-        let events = await query(StatsEventVO.API_TYPE_ID).select_vos<StatsEventVO>();
-        let threads = await query(StatsThreadVO.API_TYPE_ID).select_vos<StatsThreadVO>();
-        let stat_types = await query(StatsTypeVO.API_TYPE_ID).select_vos<StatsTypeVO>();
+        let groups = await query(StatsGroupVO.API_TYPE_ID).exec_as_server().select_vos<StatsGroupVO>();
+        let categorys = await query(StatsCategoryVO.API_TYPE_ID).exec_as_server().select_vos<StatsCategoryVO>();
+        let subcategorys = await query(StatsSubCategoryVO.API_TYPE_ID).exec_as_server().select_vos<StatsSubCategoryVO>();
+        let events = await query(StatsEventVO.API_TYPE_ID).exec_as_server().select_vos<StatsEventVO>();
+        let threads = await query(StatsThreadVO.API_TYPE_ID).exec_as_server().select_vos<StatsThreadVO>();
+        let stat_types = await query(StatsTypeVO.API_TYPE_ID).exec_as_server().select_vos<StatsTypeVO>();
 
         this.group_cache = {};
         for (let i in groups) {

@@ -174,10 +174,6 @@ export default class ModuleDAO extends Module {
      * Insère les vos, et met l'id retourné par la bdd dans le vo et le retourne également en InsertOrDeleteQueryResult
      */
     public insert_vos: (vos: IDistantVOBase[]) => Promise<InsertOrDeleteQueryResult[]> = APIControllerWrapper.sah(ModuleDAO.APINAME_INSERT_VOS);
-
-    /**
-     * @deprecated Choose between insert or update, use contextqueries for update, and ModuleDAO.insert_vos for inserts
-     */
     public insertOrUpdateVO: (vo: IDistantVOBase) => Promise<InsertOrDeleteQueryResult> = APIControllerWrapper.sah(ModuleDAO.APINAME_INSERT_OR_UPDATE_VO);
     /**
      * @deprecated use context queries - will be deleted soon

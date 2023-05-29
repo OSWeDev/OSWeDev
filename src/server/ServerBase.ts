@@ -724,6 +724,7 @@ export default abstract class ServerBase {
                 if ((!session.last_check_blocked_or_expired) ||
                     (Dates.now() >= (session.last_check_blocked_or_expired + 60))) {
 
+                    session.last_check_blocked_or_expired = Dates.now();
                     // On doit vérifier que le compte est ni bloqué ni expiré
                     let user = await query(UserVO.API_TYPE_ID).filter_by_id(session.uid).exec_as_server().select_vo<UserVO>();
 
@@ -742,7 +743,6 @@ export default abstract class ServerBase {
 
                         return;
                     }
-                    session.last_check_blocked_or_expired = Dates.now();
                 }
 
                 PushDataServerController.getInstance().registerSession(session);

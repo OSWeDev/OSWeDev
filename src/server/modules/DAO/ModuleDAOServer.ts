@@ -120,7 +120,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     private log_db_query_perf_start_by_uid: { [uid: number]: number } = {};
 
-    private throttled_select_query_ = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.throttled_select_query.bind(this), 1, { leading: false, trailing: true });
+    private throttled_select_query_ = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.throttled_select_query.bind(this), 10, { leading: false, trailing: true });
 
     private constructor() {
         super(ModuleDAO.getInstance().name);
@@ -1132,12 +1132,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     /**
-     * @deprecated [à confirmer mais a priori le nouveau insert_vos pourrait être plus rapide et plus safe]
+     * @deprecated [à confirmer mais a priori le nouveau insertOrUpdateVOs_as_server pourrait être plus rapide et plus safe]
      * @param vos
      * @param max_connections_to_use
      * @returns
      */
-    public async insertOrUpdateVOsMulticonnections<T extends IDistantVOBase>(vos: T[], max_connections_to_use: number = 0): Promise<InsertOrDeleteQueryResult[]> {
+    public async insertOrUpdateVOsMulticonnections<T extends IDistantVOBase>(vos: T[], max_connections_to_use: number = 0, exec_as_server: boolean = false): Promise<InsertOrDeleteQueryResult[]> {
 
         // max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL));
         max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL - 1));
@@ -1148,19 +1148,20 @@ export default class ModuleDAOServer extends ModuleServerBase {
          *  car on ne peut pas les créer en parallèle. Du coup on les crée en amont si besoin
          */
         await this.confirm_segmented_tables_existence(vos);
+        return await this.insertOrUpdateVOs_as_server(vos, exec_as_server);
 
-        let res: InsertOrDeleteQueryResult[] = [];
-        for (let i in vos) {
-            let vo = vos[i];
+        // let res: InsertOrDeleteQueryResult[] = [];
+        // for (let i in vos) {
+        //     let vo = vos[i];
 
-            await promise_pipeline.push(async () => {
-                res.push(await this.insertOrUpdateVO(vo));
-            });
-        }
+        //     await promise_pipeline.push(async () => {
+        //         res.push(await this.insertOrUpdateVO(vo));
+        //     });
+        // }
 
-        await promise_pipeline.end();
+        // await promise_pipeline.end();
 
-        return res;
+        // return res;
     }
 
     /**
@@ -2373,7 +2374,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         try {
 
-            let query_string = "select * from ref.get_user(" + login.toLowerCase().trim() + ", $1, $1, $2, $3);";
+
+            let query_string = "select * from ref.get_user('" + login.toLowerCase().trim() + "', '" + login.toLowerCase().trim() + "', '" + login.toLowerCase().trim() + "', PWD, " + (check_pwd ? 'true' : 'false') + ");";
             let query_uid = this.log_db_query_perf_start('selectOneUser', query_string);
             let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone(
                 "select * from ref.get_user($1, $1, $1, $2, $3);", [login.toLowerCase().trim(), password, check_pwd]) as UserVO;

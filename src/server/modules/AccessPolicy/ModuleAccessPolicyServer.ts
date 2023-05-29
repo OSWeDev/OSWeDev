@@ -908,6 +908,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 await PushDataServerController.getInstance().unregisterSession(session);
 
                 session.uid = null;
+                session.user_vo = null;
                 session.save((err) => {
                     if (err) {
                         ConsoleHandler.log(err);
@@ -1232,6 +1233,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }
 
             session.uid = user.id;
+            session.user_vo = user;
 
             PushDataServerController.getInstance().registerSession(session);
 
@@ -1772,6 +1774,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }
 
             session.uid = null;
+            session.user_vo = null;
 
             if ((!email) || (!password) || (!nom)) {
                 return null;
@@ -1816,6 +1819,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 throw new Error('Impossible de créer le compte');
             }
             session.uid = user.id;
+            session.user_vo = user;
             PushDataServerController.getInstance().registerSession(session);
 
             // On stocke le log de connexion en base
@@ -1857,6 +1861,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }
 
             session.uid = null;
+            session.user_vo = null;
 
             if ((!email) || (!password)) {
                 return null;
@@ -1893,6 +1898,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }
 
             session.uid = user.id;
+            session.user_vo = user;
 
             PushDataServerController.getInstance().registerSession(session);
 
@@ -1958,6 +1964,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             session.impersonated_from = Object.assign({}, session);
             session.uid = user.id;
+            session.user_vo = user;
 
             PushDataServerController.getInstance().registerSession(session);
 
@@ -2229,6 +2236,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         await PushDataServerController.getInstance().unregisterSession(session, true);
 
         session.uid = null;
+        session.user_vo = null;
         session.destroy((err) => {
             if (err) {
                 ConsoleHandler.log(err);

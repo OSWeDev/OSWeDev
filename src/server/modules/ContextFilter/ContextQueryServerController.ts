@@ -533,6 +533,7 @@ export default class ContextQueryServerController {
         // On vérifie qu'on peut faire un update
         if ((!context_query.is_server) && !AccessPolicyServerController.checkAccessSync(DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, context_query.base_api_type_id))) {
             StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'failed_checkAccessSync');
+            ConsoleHandler.warn('WARNING: update_vos without access and not as server:' + JSON.stringify(context_query));
             return null;
         }
 
@@ -568,9 +569,11 @@ export default class ContextQueryServerController {
             }
         }
 
+        let fields = moduletable.get_fields();
         let fields_by_id: { [id: string]: ModuleTableField<any> } = {};
-        for (let field_id in new_api_translated_values) {
-            let field = moduletable.getFieldFromId(field_id);
+
+        for (let i in fields) {
+            let field = fields[i];
 
             if (!field) {
                 continue;
@@ -581,8 +584,25 @@ export default class ContextQueryServerController {
                 continue;
             }
 
-            fields_by_id[field_id] = field;
+            fields_by_id[field.field_id] = field;
         }
+
+        // // Problème des triggers, qui modifient des champs, et on prend pas en compte ces champs si on limite aux new_api_translated_values
+        // let fields_by_id: { [id: string]: ModuleTableField<any> } = {};
+        // for (let field_id in new_api_translated_values) {
+        //     let field = moduletable.getFieldFromId(field_id);
+
+        //     if (!field) {
+        //         continue;
+        //     }
+
+        //     if (field.is_readonly) {
+        //         StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'readonly_field');
+        //         continue;
+        //     }
+
+        //     fields_by_id[field_id] = field;
+        // }
 
         let moduleTable: ModuleTable<any> = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
         if (!moduleTable) {
@@ -641,6 +661,12 @@ export default class ContextQueryServerController {
                     already_treated_ids[vo.id] = true;
 
                     for (let field_id in new_api_translated_values as IDistantVOBase) {
+
+                        // Si le champs est filtré (readonly par exemple) on ne le met pas à jour
+                        if (!fields_by_id[field_id]) {
+                            continue;
+                        }
+
                         let new_api_translated_value = new_api_translated_values[field_id];
 
                         vo[field_id] = moduletable.default_field_from_api_version(new_api_translated_value, fields_by_id[field_id]);
@@ -730,6 +756,7 @@ export default class ContextQueryServerController {
         // On vérifie qu'on peut faire un delete
         if ((!context_query.is_server) && !AccessPolicyServerController.checkAccessSync(DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, context_query.base_api_type_id))) {
             StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'delete_vos', 'failed_checkAccessSync');
+            ConsoleHandler.warn('WARNING: selete_vos without access and not as server:' + JSON.stringify(context_query));
             return null;
         }
 
