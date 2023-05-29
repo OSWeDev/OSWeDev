@@ -174,7 +174,7 @@ export default abstract class PlayWrightServerController {
             });
         }
 
-Crudcomponentfield        if (!test_user.id) {
+        if (!test_user.id) {
             throw new Error('PlayWrightServerController: test_user.id should not be null');
         }
 
