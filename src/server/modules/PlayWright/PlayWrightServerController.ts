@@ -6,10 +6,12 @@ import TimeSegment from "../../../shared/modules/DataRender/vos/TimeSegment";
 import Dates from "../../../shared/modules/FormatDatesNombres/Dates/Dates";
 import ModuleParams from "../../../shared/modules/Params/ModuleParams";
 import ParamVO from "../../../shared/modules/Params/vos/ParamVO";
+import StatsController from "../../../shared/modules/Stats/StatsController";
 import LangVO from "../../../shared/modules/Translation/vos/LangVO";
 import ConsoleHandler from "../../../shared/tools/ConsoleHandler";
 import MatroidIndexHandler from "../../../shared/tools/MatroidIndexHandler";
 import { field_names } from "../../../shared/tools/ObjectHandler";
+import ConfigurationService from "../../env/ConfigurationService";
 import ModuleAccessPolicyServer from "../AccessPolicy/ModuleAccessPolicyServer";
 import ModuleDAOServer from "../DAO/ModuleDAOServer";
 
@@ -78,6 +80,15 @@ export default abstract class PlayWrightServerController {
      *  idem pour les infos du compte, on les génère aléatoirement si elles n'existent pas et on stocke
      */
     protected async login() {
+
+        /**
+         * On bloque en prod dans tous les cas pour le moment pour raison de sécurité
+         */
+        if (ConfigurationService.node_configuration.IS_MAIN_PROD_ENV) {
+            StatsController.register_stat_COMPTEUR('PlayWrightServerController', 'login', 'IS_MAIN_PROD_ENV');
+            throw new Error('PlayWrightServerController: login should not be called in prod');
+        }
+
         let test_user_name: string = await ModuleParams.getInstance().getParamValueAsString(PlayWrightServerController.PARAM_NAME_TEST_USER_NAME);
         let test_user_email: string = await ModuleParams.getInstance().getParamValueAsString(PlayWrightServerController.PARAM_NAME_TEST_USER_EMAIL);
         let test_user_firstname: string = await ModuleParams.getInstance().getParamValueAsString(PlayWrightServerController.PARAM_NAME_TEST_USER_FIRSTNAME);
@@ -155,14 +166,15 @@ export default abstract class PlayWrightServerController {
             ConsoleHandler.log('PlayWrightServerController: adding rôle admin to test_user');
             await ModuleAccessPolicyServer.getInstance().addRoleToUser(test_user.id, rôle_admin.id, true);
         } else {
+            ConsoleHandler.log('PlayWrightServerController: test_user found, updating its password');
+
             // dans tous les cas on reset le mot de passe à chaque session
-            await query(UserVO.API_TYPE_ID).filter_by_id(test_user.id).update_vos<UserVO>({
+            await query(UserVO.API_TYPE_ID).filter_by_id(test_user.id).exec_as_server().update_vos<UserVO>({
                 [field_names<UserVO>().password]: test_user_password
             });
         }
-        ConsoleHandler.log('PlayWrightServerController: test_user_password: ' + test_user_password);
 
-        if (!test_user.id) {
+Crudcomponentfield        if (!test_user.id) {
             throw new Error('PlayWrightServerController: test_user.id should not be null');
         }
 
