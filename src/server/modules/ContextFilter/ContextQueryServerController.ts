@@ -489,6 +489,9 @@ export default class ContextQueryServerController {
             throw new Error('Invalid context_query param');
         }
 
+        context_query.do_count_results = true;
+        context_query.query_offset = null;
+        context_query.query_limit = null;
 
         let query_wrapper = await this.build_select_query_not_count(context_query);
 

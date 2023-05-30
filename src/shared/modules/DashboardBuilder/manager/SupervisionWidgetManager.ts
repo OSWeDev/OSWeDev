@@ -10,9 +10,9 @@ import SortByVO from "../../ContextFilter/vos/SortByVO";
 import ModuleDAO from "../../DAO/ModuleDAO";
 import { query } from "../../ContextFilter/vos/ContextQueryVO";
 import DashboardVO from "../vos/DashboardVO";
-import { isEqual } from 'lodash';
 import ISupervisedItemController from "../../Supervision/interfaces/ISupervisedItemController";
 import SupervisionController from "../../Supervision/SupervisionController";
+import { cloneDeep } from "lodash";
 
 /**
  * @class SupervisionWidgetManager
@@ -37,8 +37,8 @@ export default class SupervisionWidgetManager {
         active_field_filters: { [api_type_id: string]: { [field_name: string]: ContextFilterVO } },
         active_api_type_ids: string[],
         pagination?: { offset: number, limit?: number, sort_by_field_id?: string },
-        options?: { refresh: boolean }
     ): Promise<{ items: ISupervisedItem[], total_count: number }> {
+        const self = SupervisionWidgetManager.getInstance();
 
         let context_filters_by_api_type_id: { [api_type_id: string]: ContextFilterVO[] } = {};
         let active_supervision_api_type_ids: string[] = [];
@@ -52,6 +52,8 @@ export default class SupervisionWidgetManager {
         }
 
         const active_registered_supervision_api_type_ids: string[] = [];
+
+
 
         for (const key in active_supervision_api_type_ids) {
             const api_type_id: string = active_supervision_api_type_ids[key];
@@ -163,78 +165,6 @@ export default class SupervisionWidgetManager {
 
     private static instance: SupervisionWidgetManager;
 
-
-    /**
-     * Check if we can select the supervision probs by api_type_ids
-     */
-    private static can_select_supervision_probs(
-        context_filters_by_api_type_id: { [api_type_id: string]: ContextFilterVO },
-        pagination?: { offset: number, limit?: number, sort_by_field_id?: string },
-        options?: { force_reload?: boolean },
-    ): boolean {
-        let can_select = true;
-
-        const self = SupervisionWidgetManager.getInstance();
-
-        let current_paginated_probs = [];
-
-        if (self.paginated_probs?.items?.length > 0) {
-            current_paginated_probs = self.paginated_probs.items.slice(
-                pagination.offset,
-                pagination.offset + pagination.limit
-            );
-        }
-
-        // We have to select new supervision_probs (from database)
-        // if we should reset the paginated_probs
-        const should_reset_paginated_probs = SupervisionWidgetManager.should_reset_paginated_probs(
-            context_filters_by_api_type_id,
-            { force_reload: options?.force_reload ?? false }
-        );
-
-        if (should_reset_paginated_probs) {
-            return true;
-        }
-
-        // We can not select the supervision_probs (from database)
-        // if we did not reach the end of the current_paginated_probs
-        if (current_paginated_probs?.length == pagination.limit) {
-            return false;
-        }
-
-        // Case when we have more items in the database than the current_paginated_probs
-        // We must continue to select the supervision_probs (from database)
-        if (self.paginated_probs.total_count > pagination.offset + pagination.limit) {
-            return true;
-        }
-
-        return can_select;
-    }
-
-    /**
-     * Check if we should reset the paginated_probs
-     *
-     * @param context_filters_by_api_type_id
-     * @param options
-     * @returns {boolean}
-     */
-    private static should_reset_paginated_probs(
-        context_filters_by_api_type_id: { [api_type_id: string]: ContextFilterVO },
-        options?: { force_reload?: boolean },
-    ): boolean {
-        const self = SupervisionWidgetManager.getInstance();
-
-        // We don't need to reset the paginated_probs
-        // if the given context_filters_by_api_type_id are the same as the previous one
-        if (options?.force_reload ||
-            !isEqual(self.old_context_filters_by_api_type_id, context_filters_by_api_type_id)
-        ) {
-            return true;
-        }
-
-        return false;
-    }
-
     private static async select_supervision_probs_by_api_type_id(
         dashboard: DashboardVO,
         widget_options: SupervisionWidgetOptionsVO,
@@ -275,29 +205,11 @@ export default class SupervisionWidgetManager {
         }
 
         await promise_pipeline.push(async () => {
+            const vo_context_query = cloneDeep(context_query);
 
-            context_query.set_limit(limit, pagination?.offset ?? 0);
+            vo_context_query.set_limit(limit, pagination?.offset ?? 0);
 
-            let rows_s: ISupervisedItem[] = [];
-
-            rows_s = await context_query.select_vos();
-
-            // pourquoi on parcourt les rows_s ? pourquoi ne pas directement concaténer dans items ?
-            for (const key_j in rows_s) {
-
-                const row = rows_s[key_j];
-
-                // Si j'ai une fonction de filtre, je l'utilise
-                // if (
-                //     SupervisionWidgetManager.getInstance().is_item_accepted &&
-                //     SupervisionWidgetManager.getInstance().is_item_accepted[dashboard.id] &&
-                //     !SupervisionWidgetManager.getInstance().is_item_accepted[dashboard.id](row)
-                // ) {
-                //     continue;
-                // }
-
-                items.push(row);
-            }
+            items = await vo_context_query.select_vos();
         });
 
         await promise_pipeline.push(async () => {
@@ -310,14 +222,7 @@ export default class SupervisionWidgetManager {
     }
 
     public is_item_accepted: { [dashboard_id: number]: (supervised_item: ISupervisedItem) => boolean } = {};
-
-    // As we are loading probs_by_api_type_id in parallel,
-    // We must paginate within the buffer (current_pagination) before load the next page from the database
-    public paginated_probs: { offset: number, limit?: number, items: ISupervisedItem[], total_count: number } = {
-        offset: null, limit: null, items: [], total_count: 0
-    };
-    public old_context_filters_by_api_type_id: { [api_type_id: string]: ContextFilterVO } = {};
-    public probs_by_api_type_id: { [api_type_id: string]: ISupervisedItem[] } = {};
+    public allowed_api_type_ids: string[] = [];
 
     protected constructor() { }
 

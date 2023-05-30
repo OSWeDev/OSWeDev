@@ -136,7 +136,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
 
             await ThreadHandler.sleep((this.widget_options.auto_refresh_seconds * 1000));
 
-            this.throttled_update_visible_options({ refresh: true });
+            this.throttled_update_visible_options();
         }
     }
 
@@ -159,7 +159,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
     private async handle_throttled_update_visible_options(args: any[]): Promise<void> {
         const options = Array.isArray(args) && args.length > 0 ? args.shift() : null;
 
-        return await this.update_visible_options(options);
+        return await this.update_visible_options();
     }
 
     /**
@@ -171,7 +171,7 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
      * @param options
      * @returns {Promise<void>}
      */
-    private async update_visible_options(options?: { refresh: boolean }) {
+    private async update_visible_options() {
 
         let launch_cpt: number = (this.last_calculation_cpt + 1);
         let rows: ISupervisedItem[] = [];
@@ -196,7 +196,6 @@ export default class SupervisionWidgetComponent extends VueComponentBase {
                 limit: this.limit,
                 sort_by_field_id: 'name'
             },
-            { refresh: options?.refresh }
         );
 
         rows = data.items;
