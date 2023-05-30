@@ -492,7 +492,7 @@ export default class ContextQueryServerController {
 
         let query_wrapper = await this.build_select_query_not_count(context_query);
 
-        if (((!query_wrapper?.query)) && (!query_wrapper?.is_segmented_non_existing_table)) {
+        if ((!query_wrapper) || ((!query_wrapper.query)) && (!query_wrapper.is_segmented_non_existing_table)) {
             ConsoleHandler.error('Invalid query:build_query_count:INFOS context_query:' + (query_wrapper ? (query_wrapper.query ? query_wrapper.is_segmented_non_existing_table : 'NO QUERY') : 'NO QUERY RESULT'));
             context_query.log(true);
             throw new Error('Invalid query:build_query_count');
@@ -780,11 +780,11 @@ export default class ContextQueryServerController {
                 // Loop on union_queries
                 if (context_query.union_queries?.length > 0) {
                     const root_context_query = cloneDeep(context_query);
-                    let union_context_queries: ContextQueryVO[] = [];
 
-                    union_context_queries = context_query.union_queries;
+                    const union_context_queries: ContextQueryVO[] = context_query.union_queries;
+
                     root_context_query.query_distinct = false;
-                    root_context_query.union_queries = [];
+                    root_context_query.union_queries = null;
 
                     union_context_queries.push(root_context_query);
 
@@ -1118,6 +1118,10 @@ export default class ContextQueryServerController {
             throw new Error('base_api_type_id is required');
         }
 
+        if (all_required_fields?.length > 0) {
+            all_required_fields = cloneDeep(all_required_fields);
+        }
+
         let aliases_n: number = 0;
         let FROM: string = null;
 
@@ -1154,27 +1158,31 @@ export default class ContextQueryServerController {
             //     throw new Error('Incompatible options:distinct & !fields');
             // }
 
-            context_query.add_field('id');
+            context_query.field('id');
 
-            let base_moduletable_fields = base_moduletable.get_fields();
+            let fields = base_moduletable.get_fields();
 
-            // Set all context_query fields by default
-            base_moduletable_fields.map((field) => {
+            for (const i in fields) {
+                const field = fields[i];
                 context_query.add_field(field.field_id);
-            });
+            }
 
-            // Fields which are in all_required_fields
+            // Fields which are in the in the all_required_fields
             // But not in moduletable.get_fields()
-            all_required_fields?.filter((required_field) => {
-                if (required_field.field_id === 'api_type_id') {
-                    return false;
-                }
-
-                return !base_moduletable_fields.find(
+            const field_ids_to_add: string[] = all_required_fields?.filter(
+                (required_field) => !fields.find(
                     (f) => f.field_id === required_field.field_id
+                )
+            ).map((field) => field.field_id);
+
+            // Set all fields by default
+            // Case when base_moduletable does not have field_to_add set select as null
+            for (const i in field_ids_to_add) {
+                const field_id = field_ids_to_add[i];
+
+                const field_to_add = all_required_fields.find(
+                    (field) => field.field_id === field_id
                 );
-            }).map((field_to_add) => {
-                // Case when base_moduletable does not have field_to_add set select as null
 
                 let cast_with = 'text';
 
@@ -1183,14 +1191,14 @@ export default class ContextQueryServerController {
                 }
 
                 context_query.add_field(
-                    field_to_add.field_id,
+                    field_id,
                     null,
                     null,
                     VarConfVO.NO_AGGREGATOR,
                     ContextQueryFieldVO.FIELD_MODIFIER_NULL_IF_NO_COLUMN,
                     cast_with
                 );
-            });
+            }
 
             // We should order all fields in the same way of the given all_required_fields
             // We should also add|specify vo_type_id field to retrieve it later
