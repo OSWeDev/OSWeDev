@@ -95,6 +95,7 @@ export default abstract class ForkedProcessWrapperBase {
         StatsController.UNSTACK_THROTTLE_PARAM_NAME = 'StatsController.UNSTACK_THROTTLE_SERVER';
         StatsController.getInstance().UNSTACK_THROTTLE = 60000;
         StatsController.new_stats_handler = StatsServerController.new_stats_handler;
+        StatsController.register_stat_COMPTEUR('ServerBase', 'START', '-');
     }
 
     get process_UID(): number {
