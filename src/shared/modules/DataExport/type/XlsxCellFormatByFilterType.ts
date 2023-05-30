@@ -3,7 +3,7 @@
  * List of all available cell formats by filter type
  */
 export enum XlsxCellFormatByFilterType {
-    amount = "#,##0.00",
+    amount = "#,##0.00", // TODO: add currency
     percent = "0.00%",
     toFixed = "#,##0.00",
     toFixedCeil = "#,##0.00",

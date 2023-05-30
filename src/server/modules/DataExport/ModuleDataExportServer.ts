@@ -847,9 +847,19 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                             value = (value as any).replace(/\s+/g, '');
                         }
 
-                        if (varcolumn_conf.filter_type == 'percent') {
+                        if (
+                            varcolumn_conf.filter_type == FilterObj.FILTER_TYPE_percent
+                        ) {
                             value = (value as any).replace(/%/g, '');
                             value = parseFloat(value as any) / 100;
+                        }
+
+                        if (
+                            varcolumn_conf.filter_type == FilterObj.FILTER_TYPE_toFixed ||
+                            varcolumn_conf.filter_type == FilterObj.FILTER_TYPE_toFixedCeil ||
+                            varcolumn_conf.filter_type == FilterObj.FILTER_TYPE_toFixedFloor
+                        ) {
+                            value = parseFloat(value as any);
                         }
                     }
                 }
@@ -1330,9 +1340,19 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                         value = value.replace(/\s+/g, '');
                     }
 
-                    if (column.filter_type == 'percent') {
+                    if (
+                        column.filter_type == FilterObj.FILTER_TYPE_percent
+                    ) {
                         value = (value as any).replace(/%/g, '');
                         value = parseFloat(value as any) / 100;
+                    }
+
+                    if (
+                        column.filter_type == FilterObj.FILTER_TYPE_toFixed ||
+                        column.filter_type == FilterObj.FILTER_TYPE_toFixedCeil ||
+                        column.filter_type == FilterObj.FILTER_TYPE_toFixedFloor
+                    ) {
+                        value = parseFloat(value as any);
                     }
                 }
 
