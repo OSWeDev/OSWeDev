@@ -1539,7 +1539,7 @@ export default class VarsDatasVoUpdateHandler {
                 if (VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes) {
                     for (let i in VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes) {
                         let wrapper = VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes[i];
-                        if ((wrapper.is_server_request || wrapper.client_tab_id || wrapper.client_user_id) && !VarsServerController.getInstance().has_valid_value(wrapper.var_data)) {
+                        if ((wrapper.is_server_request || wrapper.client_tab_id || wrapper.client_user_id) && !VarsServerController.has_valid_value(wrapper.var_data)) {
                             ConsoleHandler.warn('VarsDatasVoUpdateHandler:prepare_updates:INTERROMPU:demandes client ou serveur en attente de résolution:' + wrapper.var_data.index);
                             return;
                         }

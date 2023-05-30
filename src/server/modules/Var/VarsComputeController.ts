@@ -286,7 +286,7 @@ export default class VarsComputeController {
         node.has_started_deployment = true;
 
         // si le noeud est déjà chargé, on sort
-        if ((VarsServerController.getInstance().has_valid_value(node.var_data)) || (node.already_tried_loading_data_and_deploy)) {
+        if ((VarsServerController.has_valid_value(node.var_data)) || (node.already_tried_loading_data_and_deploy)) {
             node.successfully_deployed = true;
 
             if (node.perfs && node.perfs.ctree_ddeps_try_load_cache_complet) {
@@ -332,11 +332,11 @@ export default class VarsComputeController {
          * Cache complet - inutile si on est sur un noeud du vars_datas ou si on a déjà fait le chargement
          *  on teste toujours de retrouver un calcul existant
          */
-        if ((!node.already_tried_load_cache_complet) && (!VarsServerController.getInstance().has_valid_value(node.var_data)) && (!vars_datas[node.var_data.index])) {
+        if ((!node.already_tried_load_cache_complet) && (!VarsServerController.has_valid_value(node.var_data)) && (!vars_datas[node.var_data.index])) {
 
             await this.try_load_cache_complet_perf_wrapper(node);
 
-            if (VarsServerController.getInstance().has_valid_value(node.var_data)) {
+            if (VarsServerController.has_valid_value(node.var_data)) {
 
                 if (node.perfs && node.perfs.ctree_ddeps_load_imports_and_split_nodes) {
                     node.perfs.ctree_ddeps_load_imports_and_split_nodes.skip_and_update_parents_perfs();
@@ -357,7 +357,7 @@ export default class VarsComputeController {
         /**
          * Imports
          */
-        if ((!VarsServerController.getInstance().has_valid_value(node.var_data)) && (!controller || !controller.optimization__has_no_imports)) {
+        if ((!VarsServerController.has_valid_value(node.var_data)) && (!controller || !controller.optimization__has_no_imports)) {
 
             /**
              * On doit essayer de récupérer des données parcellaires
@@ -366,7 +366,7 @@ export default class VarsComputeController {
 
             await this.load_imports_and_split_nodes_perf_wrapper(node);
 
-            if (VarsServerController.getInstance().has_valid_value(node.var_data)) {
+            if (VarsServerController.has_valid_value(node.var_data)) {
 
                 if (node.perfs && node.perfs.ctree_ddeps_handle_pixellisation) {
                     node.perfs.ctree_ddeps_handle_pixellisation.skip_and_update_parents_perfs();
@@ -402,7 +402,7 @@ export default class VarsComputeController {
             /**
              * Cache step C : cache partiel : uniquement si on a pas splitt sur import
              */
-            if ((!VarsServerController.getInstance().has_valid_value(node.var_data)) && (!vars_datas[node.var_data.index]) &&
+            if ((!VarsServerController.has_valid_value(node.var_data)) && (!vars_datas[node.var_data.index]) &&
                 (!node.is_aggregator) &&
                 (VarsCacheController.getInstance().use_partial_cache(node))) {
 
@@ -410,7 +410,7 @@ export default class VarsComputeController {
                 await this.try_load_cache_partiel(node);
                 VarDagPerfsServerController.getInstance().end_nodeperfelement(node.perfs.ctree_ddeps_try_load_cache_partiel);
 
-                if (VarsServerController.getInstance().has_valid_value(node.var_data)) {
+                if (VarsServerController.has_valid_value(node.var_data)) {
 
                     if (node.perfs && node.perfs.ctree_ddeps_get_node_deps) {
                         node.perfs.ctree_ddeps_get_node_deps.skip_and_update_parents_perfs();
@@ -527,7 +527,7 @@ export default class VarsComputeController {
             let wrapper = VarsDatasProxy.getInstance().vars_datas_buffer_wrapped_indexes[node.var_data.index];
 
             // Si le noeud a une valeur on se fout de load les datas
-            if (VarsServerController.getInstance().has_valid_value(node.var_data)) {
+            if (VarsServerController.has_valid_value(node.var_data)) {
 
                 if (env.DEBUG_VARS) {
                     ConsoleHandler.log('load_nodes_datas:has_valid_value:index:' + node.var_data.index + ":value:" + node.var_data.value + ":value_ts:" + node.var_data.value_ts + ":type:" + VarDataBaseVO.VALUE_TYPE_LABELS[node.var_data.value_type] +
@@ -1081,7 +1081,7 @@ export default class VarsComputeController {
             let node = var_dag.nodes[i];
             let var_data = node.var_data;
 
-            if (node.already_tried_loading_data_and_deploy || VarsServerController.getInstance().has_valid_value(var_data)) {
+            if (node.already_tried_loading_data_and_deploy || VarsServerController.has_valid_value(var_data)) {
                 continue;
             }
 
@@ -1156,7 +1156,7 @@ export default class VarsComputeController {
          * On fait la notif post déploiement si ça a du sens
          */
         if ((!var_dag_node.already_sent_result_to_subs) &&
-            VarsServerController.getInstance().has_valid_value(var_dag_node.var_data)) {
+            VarsServerController.has_valid_value(var_dag_node.var_data)) {
 
             var_dag_node.already_sent_result_to_subs = true;
             await VarsTabsSubsController.getInstance().notify_vardatas(
@@ -1198,7 +1198,7 @@ export default class VarsComputeController {
         for (let i in vars_to_deploy) {
             let var_to_deploy = vars_to_deploy[i];
 
-            if (VarsServerController.getInstance().has_valid_value(var_to_deploy)) {
+            if (VarsServerController.has_valid_value(var_to_deploy)) {
                 continue;
             }
 
@@ -1369,7 +1369,7 @@ export default class VarsComputeController {
 
             for (let i in var_dag.roots) {
                 let root = var_dag.roots[i];
-                if (root.successfully_deployed || VarsServerController.getInstance().has_valid_value(root.var_data)) {
+                if (root.successfully_deployed || VarsServerController.has_valid_value(root.var_data)) {
                     continue;
                 }
                 node = root;
@@ -1388,7 +1388,7 @@ export default class VarsComputeController {
 
         for (let i in var_dag.nodes) {
             let node = var_dag.nodes[i];
-            if ((!node.successfully_deployed) && !VarsServerController.getInstance().has_valid_value(node.var_data)) {
+            if ((!node.successfully_deployed) && !VarsServerController.has_valid_value(node.var_data)) {
                 return true;
             }
         }
@@ -1412,11 +1412,11 @@ export default class VarsComputeController {
         for (let i in var_dag.nodes) {
             let node = var_dag.nodes[i];
 
-            if (!VarsServerController.getInstance().has_valid_value(node.var_data)) {
+            if (!VarsServerController.has_valid_value(node.var_data)) {
                 await DAGController.getInstance().visit_bottom_up_to_node(
                     node,
                     async (visited_node: VarDAGNode) => await this.compute_node(visited_node),
-                    (next_node: VarDAGNode) => !VarsServerController.getInstance().has_valid_value(next_node.var_data));
+                    (next_node: VarDAGNode) => !VarsServerController.has_valid_value(next_node.var_data));
             }
         }
         if (var_dag.perfs) {
@@ -1640,7 +1640,7 @@ export default class VarsComputeController {
                         return;
                     }
 
-                    if (VarsServerController.getInstance().has_valid_value(dep_node.var_data)) {
+                    if (VarsServerController.has_valid_value(dep_node.var_data)) {
                         this.end_node_deploiement(dep_node);
                         await this.notify_var_data_post_deploy(dep_node);
                     }

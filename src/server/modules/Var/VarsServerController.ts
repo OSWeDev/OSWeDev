@@ -23,6 +23,33 @@ import VarServerControllerBase from './VarServerControllerBase';
 export default class VarsServerController {
 
     /**
+     * ATTENTION : Si on est client on doit pas utiliser cette méthode par ce qu'elle ne voit pas les
+     *  vardatares or les valeurs sont là bas et pas dans le vardata
+     * On considère la valeur valide si elle a une date de calcul ou d'init, une valeur pas undefined et
+     *  si on a une conf de cache, pas expirée. Par contre est-ce que les imports expirent ? surement pas
+     *  dont il faut aussi indiquer ces var datas valides
+     *
+     * Si denied ici on dit que c'est valid, mais il faut bien remonter l'info qu'on deny aussi la var qui dépend de ce truc
+     */
+    public static has_valid_value(param: VarDataBaseVO): boolean {
+
+        if (!param) {
+            return false;
+        }
+
+        if ((param.value_type === VarDataBaseVO.VALUE_TYPE_IMPORT) ||
+            (param.value_type === VarDataBaseVO.VALUE_TYPE_DENIED)) {
+            return true;
+        }
+
+        if ((typeof param.value !== 'undefined') && (!!param.value_ts)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Multithreading notes :
      *  - There's only one bgthread doing all the computations, and separated from the other threads if the project decides to do so
      */
@@ -202,34 +229,6 @@ export default class VarsServerController {
 
     get registered_vars_controller_by_api_type_id(): { [api_type_id: string]: Array<VarServerControllerBase<any>> } {
         return this._registered_vars_controller_by_api_type_id;
-    }
-
-
-    /**
-     * ATTENTION : Si on est client on doit pas utiliser cette méthode par ce qu'elle ne voit pas les
-     *  vardatares or les valeurs sont là bas et pas dans le vardata
-     * On considère la valeur valide si elle a une date de calcul ou d'init, une valeur pas undefined et
-     *  si on a une conf de cache, pas expirée. Par contre est-ce que les imports expirent ? surement pas
-     *  dont il faut aussi indiquer ces var datas valides
-     *
-     * Si denied ici on dit que c'est valid, mais il faut bien remonter l'info qu'on deny aussi la var qui dépend de ce truc
-     */
-    public has_valid_value(param: VarDataBaseVO): boolean {
-
-        if (!param) {
-            return false;
-        }
-
-        if ((param.value_type === VarDataBaseVO.VALUE_TYPE_IMPORT) ||
-            (param.value_type === VarDataBaseVO.VALUE_TYPE_DENIED)) {
-            return true;
-        }
-
-        if ((typeof param.value !== 'undefined') && (!!param.value_ts)) {
-            return true;
-        }
-
-        return false;
     }
 
     public getVarConf(var_name: string): VarConfVO {
