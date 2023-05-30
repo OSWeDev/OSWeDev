@@ -1238,7 +1238,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                                 sub_sql += ',';
                             }
 
-                            sub_sql += pgPromise.as.format('$1', [vos_values[i][j]]);
+                            sub_sql += vos_values[i][j];
                         }
 
                         sql_values += sub_sql;
