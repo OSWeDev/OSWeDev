@@ -110,7 +110,7 @@ export default class ClientAPIController implements IAPIController {
                         null,
                         'application/json; charset=utf-8') as string;
 
-                    // const { default: $ } = await import(/* webpackChunkName: "jquery" */ 'jquery');
+                    // const { default: $ } = await import('jquery');
 
                     let iframe = $('<iframe style="display:none" src="' + filePath + '"></iframe>');
                     $('body').append(iframe);

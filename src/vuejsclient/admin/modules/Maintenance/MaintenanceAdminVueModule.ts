@@ -75,7 +75,7 @@ export default class MaintenanceAdminVueModule extends VueModuleBase {
     private get_maintenance_crud(): CRUD<any> {
         let crud = CRUD.getNewCRUD(MaintenanceVO.API_TYPE_ID);
 
-        Vue.component('Terminatemaintenancecomponent', async () => (await import(/* webpackChunkName: "TerminateMaintenanceComponent" */  './component/TerminateMaintenanceComponent')));
+        Vue.component('Terminatemaintenancecomponent', async () => (await import('./component/TerminateMaintenanceComponent')));
         crud.readDatatable.pushField(ComponentDatatableFieldVO.createNew(
             'terminate',
             'Terminatemaintenancecomponent',

@@ -22,9 +22,9 @@ import './VarDescExplainComponent.scss';
     template: require('./VarDescExplainComponent.pug'),
     components: {
         Inlinetranslatabletext: InlineTranslatableText,
-        Vardescexplaindepcomponent: () => import(/* webpackChunkName: "VarDescExplainDepComponent" */ './dep/VarDescExplainDepComponent'),
-        Vardescexplaindscomponent: () => import(/* webpackChunkName: "VarDescExplainDsComponent" */ './ds/VarDescExplainDsComponent'),
-        Vardescexplainimportscomponent: () => import(/* webpackChunkName: "VarDescExplainImportsComponent" */ './imports/VarDescExplainImportsComponent'),
+        Vardescexplaindepcomponent: () => import('./dep/VarDescExplainDepComponent'),
+        Vardescexplaindscomponent: () => import('./ds/VarDescExplainDsComponent'),
+        Vardescexplainimportscomponent: () => import('./imports/VarDescExplainImportsComponent'),
     }
 })
 export default class VarDescExplainComponent extends VueComponentBase {

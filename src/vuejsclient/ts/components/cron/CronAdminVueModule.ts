@@ -65,7 +65,7 @@ export default class CronAdminVueModule extends VueModuleBase {
         this.routes.push({
             path: url,
             name: main_route_name,
-            component: () => import(/* webpackChunkName: "CronComponent" */ './CronComponent')
+            component: () => import('./CronComponent')
         });
         let menuelt = MenuElementVO.create_new(
             ModuleCron.POLICY_BO_ACCESS,

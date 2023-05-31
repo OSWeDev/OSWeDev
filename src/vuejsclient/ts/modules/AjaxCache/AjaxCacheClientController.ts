@@ -267,7 +267,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             }
             self.addCallback(cache, resolve_stats_wrapper, reject_stats_wrapper);
 
-            // const $ = await import(/* webpackChunkName: "jquery" */ 'jquery');
+            // const $ = await import('jquery');
             if ($.ajax) {
                 await $.ajax(options)
                     .done(async (r) => {
@@ -628,7 +628,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             switch (request.type) {
                 case RequestResponseCacheVO.API_TYPE_GET:
 
-                    // const $ = await import(/* webpackChunkName: "jquery" */ 'jquery');
+                    // const $ = await import('jquery');
 
                     if ($.ajaxSetup) {
                         $.ajaxSetup({

@@ -9,7 +9,7 @@ import './VarDescExplainDsComponent.scss';
 @Component({
     template: require('./VarDescExplainDsComponent.pug'),
     components: {
-        Vardescdscomponent: () => import(/* webpackChunkName: "VarDescDsComponent" */ '../../ds/VarDescDsComponent'),
+        Vardescdscomponent: () => import('../../ds/VarDescDsComponent'),
         VueJsonPretty
     }
 })

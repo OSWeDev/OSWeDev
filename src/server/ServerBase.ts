@@ -236,35 +236,6 @@ export default abstract class ServerBase {
             return stringValue;
         });
 
-        // Une fois qu'on a créé les fichiers pour les modules côté client / admin, on lance les webpacks
-        // Il faut relancer une compilation si on change les datas ou si on active / désactive un module.
-        // WebpackInitializer.getInstance().compile();
-
-        // .init({
-        //     saveMissing: true,
-        //     sendMissingTo: 'fallback',
-        //     fallbackLng: envParam.DEFAULT_LOCALE,
-        //     preload: [envParam.DEFAULT_LOCALE],
-        //     debugger: false,
-        //     resGetPath: __dirname + '/../../src/client/locales/__lng__/__ns__.json',
-        //     resPostPath: __dirname + '/../../src/client/locales/__lng__/__ns__.missing.json',
-        //     backend: {
-        //         loadPath: path.join(__dirname, '/../../src/public/locales/{{lng}}/{{ns}}.json'),
-        //         // path to post missing resources
-        //         addPath: path.join(__dirname, '/../../src/public/locales/{{lng}}/{{ns}}.missing.json'),
-
-        //         // jsonIndent to use when storing json files
-        //         jsonIndent: 2
-        //     },
-        // }
-        // /*, function() {
-        //   i18nextMiddleware.addRoute(i18next, '/:lng/key-to-translate', ['fr-FR', 'de', 'es'], app, 'get',
-        //     function(req, res) {
-        //       // endpoint function
-        //     })
-        //   }*/
-        // );
-
         if (ConfigurationService.node_configuration.DEBUG_START_SERVER) {
             ConsoleHandler.log('ServerExpressController:express:START');
         }
@@ -371,17 +342,6 @@ export default abstract class ServerBase {
             priority: ["accept-language", "default"],
             default: this.envParam.DEFAULT_LOCALE
         }));
-
-        // Chargement des WebPack Client et Admin
-        // const webpack = require('webpack');
-
-        // let compiler_client = webpack(WebpackConfigClient);
-        // compiler_client.apply(new webpack.ProgressPlugin());
-        // compiler_client.run(function (err, stats) {
-        //     if (err) {
-        //         ConsoleHandler.error("[CLIENT]:" + err);
-        //     }
-        // });
 
         // JNE : Ajout du header no cache sur les requetes gérées par express
         this.app.use(

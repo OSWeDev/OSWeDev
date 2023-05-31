@@ -15,7 +15,7 @@ import DocumentHandlerReloadListVO from './vos/DocumentHandlerReloadListVO';
 @Component({
     template: require('./DocumentHandlerComponent.pug'),
     components: {
-        isotope: () => import(/* webpackChunkName: "vueisotope" */ 'vueisotope')
+        isotope: () => import('vueisotope')
     }
 })
 export default class DocumentHandlerComponent extends VueComponentBase {

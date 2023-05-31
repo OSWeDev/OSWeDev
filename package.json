@@ -32,7 +32,7 @@
         "xcopy_vuejsclient": "xcopy \"src\\vuejsclient\" \"dist\\vuejsclient\\\" /D /E /C /F /K /H /R /Y /I /J",
         "build": "npm run-script clean && tsc --project ./",
         "tsc-watch": "tsc-watch --project ./",
-        "project-watch": "npm run-script clean && concurrently --prefix \"[{name}]\" --names \"TSC,WEBPACK\" -c \"bgBlue.bold,bgRed.bold\" \"npm run tsc-watch\" \"npm run watch\"",
+        "project-watch": "npm run-script clean && concurrently --prefix \"[{name}]\" --names \"TSC,VUE\" -c \"bgBlue.bold,bgRed.bold\" \"npm run tsc-watch\" \"npm run watch\"",
         "version": "echo $npm_package_version"
     },
     "mocha": {

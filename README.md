@@ -3,7 +3,7 @@
 Solution OpenSource NodeJs, VueJS, Typescript. Les technologies utilisées sur les projets cibles :
 
   - NodeJS
-  - WebPack 
+  - EsBuild 
   - TypeScript
   - PostGreSQL
   - VueJS

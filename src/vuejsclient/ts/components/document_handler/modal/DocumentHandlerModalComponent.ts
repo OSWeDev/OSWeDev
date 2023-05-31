@@ -15,7 +15,7 @@ import './DocumentHandlerModalComponent.scss';
 @Component({
     template: require('./DocumentHandlerModalComponent.pug'),
     components: {
-        isotope: () => import(/* webpackChunkName: "vueisotope" */ 'vueisotope')
+        isotope: () => import('vueisotope')
     }
 })
 export default class DocumentHandlerModalComponent extends VueComponentBase {

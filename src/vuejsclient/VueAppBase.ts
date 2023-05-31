@@ -303,20 +303,20 @@ export default abstract class VueAppBase {
             routerOptions.routes.push({
                 path: '/',
                 name: 'Home',
-                component: () => import(/* webpackChunkName: "DefaultHomeComponent" */ './ts/components/DefaultHome/component/DefaultHomeComponent')
+                component: () => import('./ts/components/DefaultHome/component/DefaultHomeComponent')
             });
         }
 
         routerOptions.routes.push({
             path: '/me',
             name: 'MyAccount',
-            component: () => import(/* webpackChunkName: "AccessPolicyMyAccountComponent" */ './login/AccessPolicy/my_account/AccessPolicyMyAccountComponent')
+            component: () => import('./login/AccessPolicy/my_account/AccessPolicyMyAccountComponent')
         });
 
         routerOptions.routes.push({
             path: '*',
             name: '404',
-            component: () => import(/* webpackChunkName: "Error404Component" */ './ts/components/Error404/component/Error404Component')
+            component: () => import('./ts/components/Error404/component/Error404Component')
         });
 
         this.vueRouter = new VueRouter(routerOptions);
@@ -432,29 +432,29 @@ export default abstract class VueAppBase {
         Vue.component('Usernotifsmarkercomponent', UserNotifsMarkerComponent);
         Vue.component('multiselect', Multiselect);
         Vue.component('v-select', vSelect);
-        Vue.component('v-slider', async () => (await import(/* webpackChunkName: "VueSlider" */  'vue-slider-component')));
-        Vue.component('vue-dropzone', async () => (await import(/* webpackChunkName: "Vue2Dropzone" */  'vue2-dropzone')));
-        Vue.component('var-data', () => import(/* webpackChunkName: "VarDataRefComponent" */ './ts/components/Var/components/dataref/VarDataRefComponent'));
-        Vue.component('vars-sum', () => import(/* webpackChunkName: "VarDataSumComponent" */ './ts/components/Var/components/datasum/VarDataSumComponent'));
-        Vue.component('vars-data', () => import(/* webpackChunkName: "VarDatasRefsComponent" */ './ts/components/Var/components/datasrefs/VarDatasRefsComponent'));
-        Vue.component('var-desc', () => import(/* webpackChunkName: "VarDescComponent" */ './ts/components/Var/components/desc/VarDescComponent'));
-        Vue.component('var-if', () => import(/* webpackChunkName: "VarDataIfComponent" */ './ts/components/Var/components/varif/VarDataIfComponent'));
-        // Vue.component('var-bar-chart', () => import(/* webpackChunkName: "VarDataBarChartComponent" */ './ts/components/Var/components/databarchart/VarDataBarChartComponent'));
-        Vue.component('vars-bar-chart', () => import(/* webpackChunkName: "VarDatasBarChartComponent" */ './ts/components/Var/components/datasbarchart/VarDatasBarChartComponent'));
-        Vue.component('var-pie-chart', () => import(/* webpackChunkName: "VarPieChartComponent" */ './ts/components/Var/components/piechart/VarPieChartComponent'));
-        Vue.component('Resizableimg', () => import(/* webpackChunkName: "ResizableImageComponent" */ './ts/components/resizable_img/ResizableImageComponent'));
+        Vue.component('v-slider', async () => (await import('vue-slider-component')));
+        Vue.component('vue-dropzone', async () => (await import('vue2-dropzone')));
+        Vue.component('var-data', () => import('./ts/components/Var/components/dataref/VarDataRefComponent'));
+        Vue.component('vars-sum', () => import('./ts/components/Var/components/datasum/VarDataSumComponent'));
+        Vue.component('vars-data', () => import('./ts/components/Var/components/datasrefs/VarDatasRefsComponent'));
+        Vue.component('var-desc', () => import('./ts/components/Var/components/desc/VarDescComponent'));
+        Vue.component('var-if', () => import('./ts/components/Var/components/varif/VarDataIfComponent'));
+        // Vue.component('var-bar-chart', () => import('./ts/components/Var/components/databarchart/VarDataBarChartComponent'));
+        Vue.component('vars-bar-chart', () => import('./ts/components/Var/components/datasbarchart/VarDatasBarChartComponent'));
+        Vue.component('var-pie-chart', () => import('./ts/components/Var/components/piechart/VarPieChartComponent'));
+        Vue.component('Resizableimg', () => import('./ts/components/resizable_img/ResizableImageComponent'));
         Vue.component('Intersect', Intersect);
-        Vue.component('Crudcomponentfield', () => import(/* webpackChunkName: "CRUDComponentField" */ './ts/components/crud/component/field/CRUDComponentField'));
+        Vue.component('Crudcomponentfield', () => import('./ts/components/crud/component/field/CRUDComponentField'));
         Vue.component('Multipleselectfiltercomponent', MultipleSelectFilterComponent);
         Vue.component('Datepicker', Datepicker);
         Vue.component('Alertcomponent', AlertComponent);
         Vue.component('Alertslistcontainercomponent', AlertsListContainerComponent);
-        Vue.component('Numrangecomponent', () => import(/* webpackChunkName: "NumRangeComponent" */ './ts/components/ranges/numrange/NumRangeComponent'));
-        Vue.component('Numrangescomponent', () => import(/* webpackChunkName: "NumRangesComponent" */ './ts/components/ranges/numranges/NumRangesComponent'));
-        Vue.component('Tsrangecomponent', () => import(/* webpackChunkName: "TSRangeComponent" */ './ts/components/ranges/tsrange/TSRangeComponent'));
-        Vue.component('Tsrangescomponent', () => import(/* webpackChunkName: "TSRangesComponent" */ './ts/components/ranges/tsranges/TSRangesComponent'));
-        Vue.component('Hourrangecomponent', () => import(/* webpackChunkName: "HourRangeComponent" */ './ts/components/ranges/hourrange/HourRangeComponent'));
-        Vue.component('Hourrangescomponent', () => import(/* webpackChunkName: "HourRangesComponent" */ './ts/components/ranges/hourranges/HourRangesComponent'));
+        Vue.component('Numrangecomponent', () => import('./ts/components/ranges/numrange/NumRangeComponent'));
+        Vue.component('Numrangescomponent', () => import('./ts/components/ranges/numranges/NumRangesComponent'));
+        Vue.component('Tsrangecomponent', () => import('./ts/components/ranges/tsrange/TSRangeComponent'));
+        Vue.component('Tsrangescomponent', () => import('./ts/components/ranges/tsranges/TSRangesComponent'));
+        Vue.component('Hourrangecomponent', () => import('./ts/components/ranges/hourrange/HourRangeComponent'));
+        Vue.component('Hourrangescomponent', () => import('./ts/components/ranges/hourranges/HourRangesComponent'));
 
         Vue.directive('var-directive', VarDirective.getInstance());
         Vue.directive('vars-directive', VarsDirective.getInstance());

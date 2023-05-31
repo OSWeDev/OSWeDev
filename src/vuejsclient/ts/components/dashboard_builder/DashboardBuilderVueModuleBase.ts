@@ -58,7 +58,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         this.routes = this.routes.concat(DashboardBuilderController.getInstance().addRouteForDashboard(
             url,
             main_route_name,
-            () => import(/* webpackChunkName: "DashboardViewerComponent" */ './viewer/DashboardViewerComponent'),
+            () => import('./viewer/DashboardViewerComponent'),
             true,
         ));
 
@@ -68,7 +68,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         this.routes.push({
             path: url,
             name: main_route_name,
-            component: () => import(/* webpackChunkName: "DashboardBuilderComponent" */ './DashboardBuilderComponent'),
+            component: () => import('./DashboardBuilderComponent'),
             props: (route) => ({
                 dashboard_id: null
             })
@@ -80,7 +80,7 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
         this.routes = this.routes.concat(DashboardBuilderController.getInstance().addRouteForDashboard(
             url,
             main_route_name,
-            () => import(/* webpackChunkName: "DashboardBuilderComponent" */ './DashboardBuilderComponent'),
+            () => import('./DashboardBuilderComponent'),
             true,
         ));
 
@@ -133,9 +133,9 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(BulkOps, () => new BulkOpsWidgetOptions(null, 10), BulkOpsWidgetOptions.get_selected_fields);
 
-        Vue.component('Bulkopswidgetcomponent', () => import(/* webpackChunkName: "BulkOpsWidgetComponent" */ './widgets/bulkops_widget/BulkOpsWidgetComponent'));
-        Vue.component('Bulkopswidgetoptionscomponent', () => import(/* webpackChunkName: "BulkOpsWidgetOptionsComponent" */ './widgets/bulkops_widget/options/BulkOpsWidgetOptionsComponent'));
-        Vue.component('Bulkopswidgeticoncomponent', () => import(/* webpackChunkName: "BulkOpsWidgetIconComponent" */ './widgets/bulkops_widget/icon/BulkOpsWidgetIconComponent'));
+        Vue.component('Bulkopswidgetcomponent', () => import('./widgets/bulkops_widget/BulkOpsWidgetComponent'));
+        Vue.component('Bulkopswidgetoptionscomponent', () => import('./widgets/bulkops_widget/options/BulkOpsWidgetOptionsComponent'));
+        Vue.component('Bulkopswidgeticoncomponent', () => import('./widgets/bulkops_widget/icon/BulkOpsWidgetIconComponent'));
     }
 
     private async initializeWidget_Checklist() {
@@ -152,9 +152,9 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(Checklist, () => new ChecklistWidgetOptions(10, null, false, true, true, true), ChecklistWidgetOptions.get_selected_fields);
 
-        Vue.component('Checklistwidgetcomponent', () => import(/* webpackChunkName: "ChecklistWidgetComponent" */ './widgets/checklist_widget/ChecklistWidgetComponent'));
-        Vue.component('Checklistwidgetoptionscomponent', () => import(/* webpackChunkName: "ChecklistWidgetOptionsComponent" */ './widgets/checklist_widget/options/ChecklistWidgetOptionsComponent'));
-        Vue.component('Checklistwidgeticoncomponent', () => import(/* webpackChunkName: "ChecklistWidgetIconComponent" */ './widgets/checklist_widget/icon/ChecklistWidgetIconComponent'));
+        Vue.component('Checklistwidgetcomponent', () => import('./widgets/checklist_widget/ChecklistWidgetComponent'));
+        Vue.component('Checklistwidgetoptionscomponent', () => import('./widgets/checklist_widget/options/ChecklistWidgetOptionsComponent'));
+        Vue.component('Checklistwidgeticoncomponent', () => import('./widgets/checklist_widget/icon/ChecklistWidgetIconComponent'));
     }
 
     private async initializeWidget_Supervision() {
@@ -171,9 +171,9 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(supervision, () => new SupervisionWidgetOptions(100, [], true, true, 30, true), SupervisionWidgetOptions.get_selected_fields);
 
-        Vue.component('Supervisionwidgetcomponent', () => import(/* webpackChunkName: "SupervisionWidgetComponent" */ './widgets/supervision_widget/SupervisionWidgetComponent'));
-        Vue.component('Supervisionwidgetoptionscomponent', () => import(/* webpackChunkName: "SupervisionWidgetOptionsComponent" */ './widgets/supervision_widget/options/SupervisionWidgetOptionsComponent'));
-        Vue.component('Supervisionwidgeticoncomponent', () => import(/* webpackChunkName: "SupervisionWidgetIconComponent" */ './widgets/supervision_widget/icon/SupervisionWidgetIconComponent'));
+        Vue.component('Supervisionwidgetcomponent', () => import('./widgets/supervision_widget/SupervisionWidgetComponent'));
+        Vue.component('Supervisionwidgetoptionscomponent', () => import('./widgets/supervision_widget/options/SupervisionWidgetOptionsComponent'));
+        Vue.component('Supervisionwidgeticoncomponent', () => import('./widgets/supervision_widget/icon/SupervisionWidgetIconComponent'));
     }
 
     private async initializeWidget_SupervisionType() {
@@ -190,9 +190,9 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(supervision_type, () => new SupervisionTypeWidgetOptions([]), SupervisionTypeWidgetOptions.get_selected_fields);
 
-        Vue.component('Supervisiontypewidgetcomponent', () => import(/* webpackChunkName: "SupervisionTypeWidgetComponent" */ './widgets/supervision_type_widget/SupervisionTypeWidgetComponent'));
-        Vue.component('Supervisiontypewidgetoptionscomponent', () => import(/* webpackChunkName: "SupervisionTypeWidgetOptionsComponent" */ './widgets/supervision_type_widget/options/SupervisionTypeWidgetOptionsComponent'));
-        Vue.component('Supervisiontypewidgeticoncomponent', () => import(/* webpackChunkName: "SupervisionTypeWidgetIconComponent" */ './widgets/supervision_type_widget/icon/SupervisionTypeWidgetIconComponent'));
+        Vue.component('Supervisiontypewidgetcomponent', () => import('./widgets/supervision_type_widget/SupervisionTypeWidgetComponent'));
+        Vue.component('Supervisiontypewidgetoptionscomponent', () => import('./widgets/supervision_type_widget/options/SupervisionTypeWidgetOptionsComponent'));
+        Vue.component('Supervisiontypewidgeticoncomponent', () => import('./widgets/supervision_type_widget/icon/SupervisionTypeWidgetIconComponent'));
     }
 
     private async initializeWidget_DataTable() {
@@ -209,9 +209,9 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptions(null, true, 100, null, false, true, false, true, true, true, true, true, true, true, true, false, null, false, 5, false, false, null, false, true, true, false, false), TableWidgetOptions.get_selected_fields);
 
-        Vue.component('Tablewidgetcomponent', () => import(/* webpackChunkName: "TableWidgetComponent" */ './widgets/table_widget/TableWidgetComponent'));
-        Vue.component('Tablewidgetoptionscomponent', () => import(/* webpackChunkName: "TableWidgetOptionsComponent" */ './widgets/table_widget/options/TableWidgetOptionsComponent'));
-        Vue.component('Tablewidgeticoncomponent', () => import(/* webpackChunkName: "TableWidgetIconComponent" */ './widgets/table_widget/icon/TableWidgetIconComponent'));
+        Vue.component('Tablewidgetcomponent', () => import('./widgets/table_widget/TableWidgetComponent'));
+        Vue.component('Tablewidgetoptionscomponent', () => import('./widgets/table_widget/options/TableWidgetOptionsComponent'));
+        Vue.component('Tablewidgeticoncomponent', () => import('./widgets/table_widget/icon/TableWidgetIconComponent'));
     }
 
     private async initializeWidget_ValueTable() {
@@ -228,9 +228,9 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(Table, () => new TableWidgetOptions(null, false, 100, null, false, false, false, false, false, true, true, true, true, true, true, false, null, false, 5, false, false, null, false, true, true, false, false), TableWidgetOptions.get_selected_fields);
 
-        Vue.component('Tablewidgetcomponent', () => import(/* webpackChunkName: "TableWidgetComponent" */ './widgets/table_widget/TableWidgetComponent'));
-        Vue.component('Tablewidgetoptionscomponent', () => import(/* webpackChunkName: "TableWidgetOptionsComponent" */ './widgets/table_widget/options/TableWidgetOptionsComponent'));
-        Vue.component('Tablewidgeticoncomponent', () => import(/* webpackChunkName: "TableWidgetIconComponent" */ './widgets/table_widget/icon/TableWidgetIconComponent'));
+        Vue.component('Tablewidgetcomponent', () => import('./widgets/table_widget/TableWidgetComponent'));
+        Vue.component('Tablewidgetoptionscomponent', () => import('./widgets/table_widget/options/TableWidgetOptionsComponent'));
+        Vue.component('Tablewidgeticoncomponent', () => import('./widgets/table_widget/icon/TableWidgetIconComponent'));
     }
 
     private async initializeWidget_FieldValueFilter() {
@@ -248,9 +248,9 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(fieldValueFilter, () => new FieldValueFilterWidgetOptions(null, null, null, true, false, FieldValueFilterWidgetOptions.CHECKBOX_COLUMNS_1, 50, false, false, null, false, AdvancedStringFilter.FILTER_TYPE_CONTIENT, false, false, null, null, null, null, false, false, false, null, null, null, null, false, null, false, false, false, null, null, false, false, false, null, null, null), FieldValueFilterWidgetOptions.get_selected_fields);
 
-        Vue.component('Fieldvaluefilterwidgetcomponent', () => import(/* webpackChunkName: "FieldValueFilterWidgetComponent" */ './widgets/field_value_filter_widget/FieldValueFilterWidgetComponent'));
-        Vue.component('Fieldvaluefilterwidgetoptionscomponent', () => import(/* webpackChunkName: "FieldValueFilterWidgetOptionsComponent" */ './widgets/field_value_filter_widget/options/FieldValueFilterWidgetOptionsComponent'));
-        Vue.component('Fieldvaluefilterwidgeticoncomponent', () => import(/* webpackChunkName: "FieldValueFilterWidgetIconComponent" */ './widgets/field_value_filter_widget/icon/FieldValueFilterWidgetIconComponent'));
+        Vue.component('Fieldvaluefilterwidgetcomponent', () => import('./widgets/field_value_filter_widget/FieldValueFilterWidgetComponent'));
+        Vue.component('Fieldvaluefilterwidgetoptionscomponent', () => import('./widgets/field_value_filter_widget/options/FieldValueFilterWidgetOptionsComponent'));
+        Vue.component('Fieldvaluefilterwidgeticoncomponent', () => import('./widgets/field_value_filter_widget/icon/FieldValueFilterWidgetIconComponent'));
     }
 
     private async initializeWidget_DOWFilter() {
@@ -267,9 +267,9 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(DOWFilter, () => new DOWFilterWidgetOptions(true, null, null), DOWFilterWidgetOptions.get_selected_fields);
 
-        Vue.component('Dowfilterwidgetcomponent', () => import(/* webpackChunkName: "DOWFilterWidgetComponent" */ './widgets/dow_filter_widget/DOWFilterWidgetComponent'));
-        Vue.component('Dowfilterwidgetoptionscomponent', () => import(/* webpackChunkName: "DOWFilterWidgetOptionsComponent" */ './widgets/dow_filter_widget/options/DOWFilterWidgetOptionsComponent'));
-        Vue.component('Dowfilterwidgeticoncomponent', () => import(/* webpackChunkName: "DOWFilterWidgetIconComponent" */ './widgets/dow_filter_widget/icon/DOWFilterWidgetIconComponent'));
+        Vue.component('Dowfilterwidgetcomponent', () => import('./widgets/dow_filter_widget/DOWFilterWidgetComponent'));
+        Vue.component('Dowfilterwidgetoptionscomponent', () => import('./widgets/dow_filter_widget/options/DOWFilterWidgetOptionsComponent'));
+        Vue.component('Dowfilterwidgeticoncomponent', () => import('./widgets/dow_filter_widget/icon/DOWFilterWidgetIconComponent'));
     }
 
     private async initializeWidget_MonthFilter() {
@@ -286,9 +286,9 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(MonthFilter, () => new MonthFilterWidgetOptions(true, null, null, false, 1, 12, false, false, null, null, false, null, false), MonthFilterWidgetOptions.get_selected_fields);
 
-        Vue.component('Monthfilterwidgetcomponent', () => import(/* webpackChunkName: "MonthFilterWidgetComponent" */ './widgets/month_filter_widget/MonthFilterWidgetComponent'));
-        Vue.component('Monthfilterwidgetoptionscomponent', () => import(/* webpackChunkName: "MonthFilterWidgetOptionsComponent" */ './widgets/month_filter_widget/options/MonthFilterWidgetOptionsComponent'));
-        Vue.component('Monthfilterwidgeticoncomponent', () => import(/* webpackChunkName: "MonthFilterWidgetIconComponent" */ './widgets/month_filter_widget/icon/MonthFilterWidgetIconComponent'));
+        Vue.component('Monthfilterwidgetcomponent', () => import('./widgets/month_filter_widget/MonthFilterWidgetComponent'));
+        Vue.component('Monthfilterwidgetoptionscomponent', () => import('./widgets/month_filter_widget/options/MonthFilterWidgetOptionsComponent'));
+        Vue.component('Monthfilterwidgeticoncomponent', () => import('./widgets/month_filter_widget/icon/MonthFilterWidgetIconComponent'));
     }
 
     private async initializeWidget_AdvancedDateFilter() {
@@ -305,9 +305,9 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(AdvancedDateFilter, () => new AdvancedDateFilterWidgetOptions(true, null, null, null, false), AdvancedDateFilterWidgetOptions.get_selected_fields);
 
-        Vue.component('Advanceddatefilterwidgetcomponent', () => import(/* webpackChunkName: "AdvancedDateFilterWidgetComponent" */ './widgets/advanced_date_filter_widget/AdvancedDateFilterWidgetComponent'));
-        Vue.component('Advanceddatefilterwidgetoptionscomponent', () => import(/* webpackChunkName: "AdvancedDateFilterWidgetOptionsComponent" */ './widgets/advanced_date_filter_widget/options/AdvancedDateFilterWidgetOptionsComponent'));
-        Vue.component('Advanceddatefilterwidgeticoncomponent', () => import(/* webpackChunkName: "AdvancedDateFilterWidgetIconComponent" */ './widgets/advanced_date_filter_widget/icon/AdvancedDateFilterWidgetIconComponent'));
+        Vue.component('Advanceddatefilterwidgetcomponent', () => import('./widgets/advanced_date_filter_widget/AdvancedDateFilterWidgetComponent'));
+        Vue.component('Advanceddatefilterwidgetoptionscomponent', () => import('./widgets/advanced_date_filter_widget/options/AdvancedDateFilterWidgetOptionsComponent'));
+        Vue.component('Advanceddatefilterwidgeticoncomponent', () => import('./widgets/advanced_date_filter_widget/icon/AdvancedDateFilterWidgetIconComponent'));
     }
 
     private async initializeWidget_VarPieChart() {
@@ -394,9 +394,9 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
             false,
         ), VarPieChartWidgetOptions.get_selected_fields);
 
-        Vue.component('Varpiechartwidgetcomponent', () => import(/* webpackChunkName: "VarPieChartWidgetComponent" */ './widgets/var_pie_chart_widget/VarPieChartWidgetComponent'));
-        Vue.component('Varpiechartwidgetoptionscomponent', () => import(/* webpackChunkName: "VarPieChartWidgetOptionsComponent" */ './widgets/var_pie_chart_widget/options/VarPieChartWidgetOptionsComponent'));
-        Vue.component('Varpiechartwidgeticoncomponent', () => import(/* webpackChunkName: "VarPieChartWidgetIconComponent" */ './widgets/var_pie_chart_widget/icon/VarPieChartWidgetIconComponent'));
+        Vue.component('Varpiechartwidgetcomponent', () => import('./widgets/var_pie_chart_widget/VarPieChartWidgetComponent'));
+        Vue.component('Varpiechartwidgetoptionscomponent', () => import('./widgets/var_pie_chart_widget/options/VarPieChartWidgetOptionsComponent'));
+        Vue.component('Varpiechartwidgeticoncomponent', () => import('./widgets/var_pie_chart_widget/icon/VarPieChartWidgetIconComponent'));
     }
 
     private async initializeWidget_YearFilter() {
@@ -413,9 +413,9 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(YearFilter, () => new YearFilterWidgetOptionsVO(true, null, null, true, -2, 2, true, true, 0, 0, false, null, false), YearFilterWidgetOptionsVO.get_selected_fields);
 
-        Vue.component('Yearfilterwidgetcomponent', () => import(/* webpackChunkName: "YearFilterWidgetComponent" */ './widgets/year_filter_widget/YearFilterWidgetComponent'));
-        Vue.component('Yearfilterwidgetoptionscomponent', () => import(/* webpackChunkName: "YearFilterWidgetOptionsComponent" */ './widgets/year_filter_widget/options/YearFilterWidgetOptionsComponent'));
-        Vue.component('Yearfilterwidgeticoncomponent', () => import(/* webpackChunkName: "YearFilterWidgetIconComponent" */ './widgets/year_filter_widget/icon/YearFilterWidgetIconComponent'));
+        Vue.component('Yearfilterwidgetcomponent', () => import('./widgets/year_filter_widget/YearFilterWidgetComponent'));
+        Vue.component('Yearfilterwidgetoptionscomponent', () => import('./widgets/year_filter_widget/options/YearFilterWidgetOptionsComponent'));
+        Vue.component('Yearfilterwidgeticoncomponent', () => import('./widgets/year_filter_widget/icon/YearFilterWidgetIconComponent'));
     }
 
     private async initializeWidget_ValidationFilters() {
@@ -434,9 +434,9 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(ValidationFilters, null, null);
 
-        Vue.component('Validationfilterswidgetcomponent', () => import(/* webpackChunkName: "ValidationFiltersWidgetComponent" */ './widgets/validation_filters_widget/ValidationFiltersWidgetComponent'));
-        Vue.component('Validationfilterswidgetoptionscomponent', () => import(/* webpackChunkName: "ValidationFiltersWidgetOptionsComponent" */ './widgets/validation_filters_widget/options/ValidationFiltersWidgetOptionsComponent'));
-        Vue.component('Validationfilterswidgeticoncomponent', () => import(/* webpackChunkName: "ValidationFiltersWidgetIconComponent" */ './widgets/validation_filters_widget/icon/ValidationFiltersWidgetIconComponent'));
+        Vue.component('Validationfilterswidgetcomponent', () => import('./widgets/validation_filters_widget/ValidationFiltersWidgetComponent'));
+        Vue.component('Validationfilterswidgetoptionscomponent', () => import('./widgets/validation_filters_widget/options/ValidationFiltersWidgetOptionsComponent'));
+        Vue.component('Validationfilterswidgeticoncomponent', () => import('./widgets/validation_filters_widget/icon/ValidationFiltersWidgetIconComponent'));
     }
 
     private async initializeWidget_SaveFavoritesFilters() {
@@ -453,9 +453,9 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(SaveFavoritesFilters, null, null);
 
-        Vue.component('Savefavoritesfilterswidgetcomponent', () => import(/* webpackChunkName: "SaveFavoritesFiltersWidgetComponent" */ './widgets/save_favorites_filters_widget/SaveFavoritesFiltersWidgetComponent'));
-        Vue.component('Savefavoritesfilterswidgetoptionscomponent', () => import(/* webpackChunkName: "SaveFavoritesFiltersWidgetOptionsComponent" */ './widgets/save_favorites_filters_widget/options/SaveFavoritesFiltersWidgetOptionsComponent'));
-        Vue.component('Savefavoritesfilterswidgeticoncomponent', () => import(/* webpackChunkName: "SaveFavoritesFiltersWidgetIconComponent" */ './widgets/save_favorites_filters_widget/icon/SaveFavoritesFiltersWidgetIconComponent'));
+        Vue.component('Savefavoritesfilterswidgetcomponent', () => import('./widgets/save_favorites_filters_widget/SaveFavoritesFiltersWidgetComponent'));
+        Vue.component('Savefavoritesfilterswidgetoptionscomponent', () => import('./widgets/save_favorites_filters_widget/options/SaveFavoritesFiltersWidgetOptionsComponent'));
+        Vue.component('Savefavoritesfilterswidgeticoncomponent', () => import('./widgets/save_favorites_filters_widget/icon/SaveFavoritesFiltersWidgetIconComponent'));
     }
 
     private async initializeWidget_ShowFavoritesFilters() {
@@ -472,9 +472,9 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(ShowFavoritesFilters, null, null);
 
-        Vue.component('Showfavoritesfilterswidgetcomponent', () => import(/* webpackChunkName: "ShowFavoritesFiltersWidgetComponent" */ './widgets/show_favorites_filters_widget/ShowFavoritesFiltersWidgetComponent'));
-        Vue.component('Showfavoritesfilterswidgetoptionscomponent', () => import(/* webpackChunkName: "ShowFavoritesFiltersWidgetOptionsComponent" */ './widgets/show_favorites_filters_widget/options/ShowFavoritesFiltersWidgetOptionsComponent'));
-        Vue.component('Showfavoritesfilterswidgeticoncomponent', () => import(/* webpackChunkName: "ShowFavoritesFiltersWidgetIconComponent" */ './widgets/show_favorites_filters_widget/icon/ShowFavoritesFiltersWidgetIconComponent'));
+        Vue.component('Showfavoritesfilterswidgetcomponent', () => import('./widgets/show_favorites_filters_widget/ShowFavoritesFiltersWidgetComponent'));
+        Vue.component('Showfavoritesfilterswidgetoptionscomponent', () => import('./widgets/show_favorites_filters_widget/options/ShowFavoritesFiltersWidgetOptionsComponent'));
+        Vue.component('Showfavoritesfilterswidgeticoncomponent', () => import('./widgets/show_favorites_filters_widget/icon/ShowFavoritesFiltersWidgetIconComponent'));
     }
 
     private async initializeWidget_ResetFilters() {
@@ -492,9 +492,9 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(ResetFilters, null, null);
 
-        Vue.component('Resetfilterswidgetcomponent', () => import(/* webpackChunkName: "ResetFiltersWidgetComponent" */ './widgets/reset_filters_widget/ResetFiltersWidgetComponent'));
-        Vue.component('Resetfilterswidgetoptionscomponent', () => import(/* webpackChunkName: "ResetFiltersWidgetOptionsComponent" */ './widgets/reset_filters_widget/options/ResetFiltersWidgetOptionsComponent'));
-        Vue.component('Resetfilterswidgeticoncomponent', () => import(/* webpackChunkName: "ResetFiltersWidgetIconComponent" */ './widgets/reset_filters_widget/icon/ResetFiltersWidgetIconComponent'));
+        Vue.component('Resetfilterswidgetcomponent', () => import('./widgets/reset_filters_widget/ResetFiltersWidgetComponent'));
+        Vue.component('Resetfilterswidgetoptionscomponent', () => import('./widgets/reset_filters_widget/options/ResetFiltersWidgetOptionsComponent'));
+        Vue.component('Resetfilterswidgeticoncomponent', () => import('./widgets/reset_filters_widget/icon/ResetFiltersWidgetIconComponent'));
     }
 
     private async initializeWidget_Var() {
@@ -511,9 +511,9 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(var_widget, () => new VarWidgetOptions(null, null, null, null, null, null, null), VarWidgetOptions.get_selected_fields);
 
-        Vue.component('Varwidgetcomponent', () => import(/* webpackChunkName: "VarWidgetComponent" */ './widgets/var_widget/VarWidgetComponent'));
-        Vue.component('Varwidgetoptionscomponent', () => import(/* webpackChunkName: "VarWidgetOptionsComponent" */ './widgets/var_widget/options/VarWidgetOptionsComponent'));
-        Vue.component('Varwidgeticoncomponent', () => import(/* webpackChunkName: "VarWidgetIconComponent" */ './widgets/var_widget/icon/VarWidgetIconComponent'));
+        Vue.component('Varwidgetcomponent', () => import('./widgets/var_widget/VarWidgetComponent'));
+        Vue.component('Varwidgetoptionscomponent', () => import('./widgets/var_widget/options/VarWidgetOptionsComponent'));
+        Vue.component('Varwidgeticoncomponent', () => import('./widgets/var_widget/icon/VarWidgetIconComponent'));
     }
 
     private async initializeWidget_PageSwitch() {
@@ -530,8 +530,8 @@ export default class DashboardBuilderVueModuleBase extends VueModuleBase {
 
         await DashboardBuilderWidgetsController.getInstance().registerWidget(pageswitch_widget, () => new PageSwitchWidgetOptions(null), () => null);
 
-        Vue.component('Pageswitchwidgetcomponent', () => import(/* webpackChunkName: "PageSwitchWidgetComponent" */ './widgets/page_switch_widget/PageSwitchWidgetComponent'));
-        Vue.component('Pageswitchwidgetoptionscomponent', () => import(/* webpackChunkName: "PageSwitchWidgetOptionsComponent" */ './widgets/page_switch_widget/options/PageSwitchWidgetOptionsComponent'));
-        Vue.component('Pageswitchwidgeticoncomponent', () => import(/* webpackChunkName: "PageSwitchWidgetIconComponent" */ './widgets/page_switch_widget/icon/PageSwitchWidgetIconComponent'));
+        Vue.component('Pageswitchwidgetcomponent', () => import('./widgets/page_switch_widget/PageSwitchWidgetComponent'));
+        Vue.component('Pageswitchwidgetoptionscomponent', () => import('./widgets/page_switch_widget/options/PageSwitchWidgetOptionsComponent'));
+        Vue.component('Pageswitchwidgeticoncomponent', () => import('./widgets/page_switch_widget/icon/PageSwitchWidgetIconComponent'));
     }
 }
