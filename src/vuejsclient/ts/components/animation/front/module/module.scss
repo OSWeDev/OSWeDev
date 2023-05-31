@@ -466,7 +466,7 @@ $circle-width-hover: 0.07em;
         // loop to rotate all 100 circles
         @for $j from 1 through 100 {
             &.p#{$j} .bar {
-                transform: rotate((360/100*$j) + deg);
+                transform: rotate(calc((360/100*$j) + deg));
             }
         }
 

@@ -17,20 +17,3 @@ import $1 from '$2';
 REPLACE all without regexp :
 import * as 
 import 
-
-
-
-
-
-
-
-
-Not sure this part is mandatory, try without but then if it fails try with it :
-
-Add 
-    "browser": {
-        "zlib": false
-    },
-Over
-    "dependencies": {
-in your package.json
