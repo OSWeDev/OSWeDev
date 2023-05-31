@@ -59,6 +59,7 @@ import TableWidgetController from './../TableWidgetController';
 import TableWidgetKanbanCardFooterLinksComponent from './kanban_card_footer_links/TableWidgetKanbanCardFooterLinksComponent';
 import TableWidgetKanbanCardHeaderCollageComponent from './kanban_card_header_collage/TableWidgetKanbanCardHeaderCollageComponent';
 import './TableWidgetKanbanComponent.scss';
+import DAOController from '../../../../../../../shared/modules/DAO/DAOController';
 
 //TODO Faire en sorte que les champs qui n'existent plus car supprimés du dashboard ne se conservent pas lors de la création d'un tableau
 
