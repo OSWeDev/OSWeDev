@@ -12,6 +12,7 @@ import DefaultTranslationManager from '../../../shared/modules/Translation/Defau
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 
@@ -79,16 +80,12 @@ export default class ModuleParamsServer extends ModuleServerBase {
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
     }
 
-    public async setParamValue(param_name: string, param_value: string | number | boolean) {
-        let param: ParamVO = await query(ParamVO.API_TYPE_ID).filter_by_text_eq('name', param_name, ParamVO.API_TYPE_ID, true).select_vo<ParamVO>();
+    public async setParamValue_as_server(param_name: string, param_value: string | number | boolean, exec_as_server: boolean = true) {
+        await this._setParamValue(param_name, param_value, true);
+    }
 
-        if (!param) {
-            param = new ParamVO();
-            param.name = param_name;
-        }
-        param.value = param_value as string;
-        param.last_up_date = Dates.now();
-        await ModuleDAO.getInstance().insertOrUpdateVO(param);
+    public async setParamValue(param_name: string, param_value: string | number | boolean) {
+        await this._setParamValue(param_name, param_value, false);
     }
 
     public async setParamValue_if_not_exists(param_name: string, param_value: string | number | boolean) {
@@ -105,12 +102,49 @@ export default class ModuleParamsServer extends ModuleServerBase {
         await ModuleDAO.getInstance().insertOrUpdateVO(param);
     }
 
+    public async getParamValueAsString_as_server(param_name: string, default_if_undefined: string = null, max_cache_age_ms: number = null, exec_as_server: boolean = true): Promise<string> {
+        return await this.getParamValue(
+            param_name,
+            (param_value: string) => (param_value != null) ? param_value : default_if_undefined,
+            default_if_undefined,
+            max_cache_age_ms,
+            exec_as_server);
+    }
+
+    public async getParamValueAsInt_as_server(param_name: string, default_if_undefined: number = null, max_cache_age_ms: number = null, exec_as_server: boolean = true): Promise<number> {
+        return await this.getParamValue(
+            param_name,
+            (param_value: string) => (param_value != null) ? parseInt(param_value) : default_if_undefined,
+            default_if_undefined,
+            max_cache_age_ms,
+            exec_as_server);
+    }
+
+    public async getParamValueAsBoolean_as_server(param_name: string, default_if_undefined: boolean = false, max_cache_age_ms: number = null, exec_as_server: boolean = true): Promise<boolean> {
+        return await this.getParamValue(
+            param_name,
+            (param_value: string) => (param_value != null) ? (parseInt(param_value) != 0) : default_if_undefined,
+            default_if_undefined,
+            max_cache_age_ms,
+            exec_as_server);
+    }
+
+    public async getParamValueAsFloat_as_server(param_name: string, default_if_undefined: number = null, max_cache_age_ms: number = null, exec_as_server: boolean = true): Promise<number> {
+        return await this.getParamValue(
+            param_name,
+            (param_value: string) => (param_value != null) ? parseFloat(param_value) : default_if_undefined,
+            default_if_undefined,
+            max_cache_age_ms,
+            exec_as_server);
+    }
+
     public async getParamValueAsString(param_name: string, default_if_undefined: string = null, max_cache_age_ms: number = null): Promise<string> {
         return await this.getParamValue(
             param_name,
             (param_value: string) => (param_value != null) ? param_value : default_if_undefined,
             default_if_undefined,
-            max_cache_age_ms);
+            max_cache_age_ms,
+            false);
     }
 
     public async getParamValueAsInt(param_name: string, default_if_undefined: number = null, max_cache_age_ms: number = null): Promise<number> {
@@ -118,7 +152,8 @@ export default class ModuleParamsServer extends ModuleServerBase {
             param_name,
             (param_value: string) => (param_value != null) ? parseInt(param_value) : default_if_undefined,
             default_if_undefined,
-            max_cache_age_ms);
+            max_cache_age_ms,
+            false);
     }
 
     public async getParamValueAsBoolean(param_name: string, default_if_undefined: boolean = false, max_cache_age_ms: number = null): Promise<boolean> {
@@ -126,7 +161,8 @@ export default class ModuleParamsServer extends ModuleServerBase {
             param_name,
             (param_value: string) => (param_value != null) ? (parseInt(param_value) != 0) : default_if_undefined,
             default_if_undefined,
-            max_cache_age_ms);
+            max_cache_age_ms,
+            false);
     }
 
     public async getParamValueAsFloat(param_name: string, default_if_undefined: number = null, max_cache_age_ms: number = null): Promise<number> {
@@ -134,14 +170,16 @@ export default class ModuleParamsServer extends ModuleServerBase {
             param_name,
             (param_value: string) => (param_value != null) ? parseFloat(param_value) : default_if_undefined,
             default_if_undefined,
-            max_cache_age_ms);
+            max_cache_age_ms,
+            false);
     }
 
     private async getParamValue(
         text: string,
         transformer: (param_value: string) => any,
         default_if_undefined: string | number | boolean,
-        max_cache_age_ms: number): Promise<any> {
+        max_cache_age_ms: number,
+        exec_as_server: boolean = false): Promise<any> {
 
         if (max_cache_age_ms) {
             if (this.throttled_param_cache_lastupdate_ms[text] && (this.throttled_param_cache_lastupdate_ms[text] + max_cache_age_ms > Dates.now_ms())) {
@@ -149,12 +187,30 @@ export default class ModuleParamsServer extends ModuleServerBase {
             }
         }
 
-        let param: ParamVO = await query(ParamVO.API_TYPE_ID).filter_by_text_eq('name', text, ParamVO.API_TYPE_ID, true).select_vo<ParamVO>();
+        let param: ParamVO = await query(ParamVO.API_TYPE_ID)
+            .filter_by_text_eq('name', text, ParamVO.API_TYPE_ID, true)
+            .exec_as_server(exec_as_server)
+            .select_vo<ParamVO>();
         let res = param ? transformer(param.value) : default_if_undefined;
 
         this.throttled_param_cache_lastupdate_ms[text] = Dates.now_ms();
         this.throttled_param_cache_value[text] = res;
 
         return res;
+    }
+
+    private async _setParamValue(param_name: string, param_value: string | number | boolean, exec_as_server: boolean = false) {
+        let param: ParamVO = await query(ParamVO.API_TYPE_ID)
+            .filter_by_text_eq('name', param_name, ParamVO.API_TYPE_ID, true)
+            .exec_as_server(exec_as_server)
+            .select_vo<ParamVO>();
+
+        if (!param) {
+            param = new ParamVO();
+            param.name = param_name;
+        }
+        param.value = param_value as string;
+        param.last_up_date = Dates.now();
+        await ModuleDAOServer.getInstance().insertOrUpdateVO_as_server(param, exec_as_server);
     }
 }
