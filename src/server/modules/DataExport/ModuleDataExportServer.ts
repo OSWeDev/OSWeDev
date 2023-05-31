@@ -1,5 +1,5 @@
 
-import { cloneDeep } from 'lodash';
+import { cloneDeep, indexOf } from 'lodash';
 import XLSX from 'xlsx';
 import { WorkBook } from 'xlsx';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
@@ -36,13 +36,12 @@ import ModuleTranslation from '../../../shared/modules/Translation/ModuleTransla
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
-import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VOsTypesManager from '../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import { filter_by_name } from '../../../shared/tools/Filters';
+import FilterObj, { filter_by_name } from '../../../shared/tools/Filters';
 import LocaleManager from '../../../shared/tools/LocaleManager';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import PromisePipeline from '../../../shared/tools/PromisePipeline/PromisePipeline';
@@ -63,6 +62,8 @@ import DataExportBGThread from './bgthreads/DataExportBGThread';
 import ExportContextQueryToXLSXBGThread from './bgthreads/ExportContextQueryToXLSXBGThread';
 import ExportContextQueryToXLSXQueryVO from './bgthreads/vos/ExportContextQueryToXLSXQueryVO';
 import DataExportServerController from './DataExportServerController';
+import VOFieldRefVOManager from '../../../shared/modules/DashboardBuilder/manager/VOFieldRefVOManager';
+import { XlsxCellFormatByFilterType } from '../../../shared/modules/DataExport/type/XlsxCellFormatByFilterType';
 
 export default class ModuleDataExportServer extends ModuleServerBase {
 
@@ -139,8 +140,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         APIControllerWrapper.registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToXLSXParamVO, this.exportDataToXLSX.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToXLSXParamVOFile, this.exportDataToXLSXFile.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVO, this.exportDataToMultiSheetsXLSX.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVOFile, this.exportDataToMultiSheetsXLSXFile.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVO, this.export_data_to_multi_sheets_xlsx.bind(this));
+        APIControllerWrapper.registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVOFile, this.export_data_to_multi_sheets_xslw_file.bind(this));
     }
 
     public async exportDataToXLSX(
@@ -417,7 +418,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         await this.update_custom_fields(translated_datas, exportable_datatable_custom_field_columns);
 
-        // - update to columns format (percent, toFixed etc...)
+        // - Update to columns format (percent, toFixed etc...)
         const xlsx_datas = await this.update_to_xlsx_columns_format(translated_datas, columns);
 
         let sheets: IExportableSheet[] = [];
@@ -434,7 +435,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         // Sheet for active field filters
         if (export_options?.export_active_field_filters) {
-            const active_filters_sheet = await this.make_active_filters_xlsx_sheet(active_field_filters);
+            const active_filters_sheet = await this.create_active_filters_xlsx_sheet(active_field_filters);
             sheets.push(active_filters_sheet);
         }
 
@@ -443,7 +444,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
             try {
 
-                const vars_indicator_sheet = await this.make_vars_indicator_xlsx_sheet(
+                const vars_indicator_sheet = await this.create_vars_indicator_xlsx_sheet(
                     vars_indicator,
                     active_field_filters,
                     active_api_type_ids,
@@ -458,7 +459,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         }
 
         // Final Excel file
-        let filepath: string = await this.exportDataToMultiSheetsXLSX(
+        let filepath: string = await this.export_data_to_multi_sheets_xlsx(
             filename,
             sheets,
             api_type_id,
@@ -662,9 +663,9 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         // we need to make sure the name is suitable
         filename = filename.replace(/[^-._a-z0-9]/gi, '_');
 
-        let worksheetColumns = [];
+        let worksheet_columns = [];
         for (let i in ordered_column_list) {
-            worksheetColumns.push({ wch: 25 });
+            worksheet_columns.push({ wch: 25 });
         }
 
         let workbook: WorkBook = XLSX.utils.book_new();
@@ -714,13 +715,13 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     }
 
     /**
-     * make_active_filters_xlsx_sheet
+     * create_active_filters_xlsx_sheet
      *  - Make the Xlsx sheet of Active field filters
      *
-     * @param active_field_filters {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }}
+     * @param {{ [api_type_id: string]: { [field_id: string]: ContextFilterVO } }} active_field_filters
      * @returns {IExportableSheet}
      */
-    private async make_active_filters_xlsx_sheet(
+    private async create_active_filters_xlsx_sheet(
         active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
     ): Promise<IExportableSheet> {
 
@@ -729,10 +730,10 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         }
 
         const sheet: IExportableSheet = {
+            column_labels: { filter_name: 'Filtre', value: 'Valeur' },
+            ordered_column_list: ['filter_name', 'value'],
             sheet_name: 'Filtres Actifs',
             datas: [],
-            ordered_column_list: ['filter_name', 'value'],
-            column_labels: { filter_name: 'Filtre', value: 'Valeur' },
         };
 
         for (const api_type_id in active_field_filters) {
@@ -741,12 +742,20 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             for (const context_filter_name in active_filter) {
                 const context_filter: ContextFilterVO = active_filter[context_filter_name];
 
-                if (context_filter == null) { continue; }
+                if (context_filter == null) {
+                    continue;
+                }
 
-                sheet.datas.push({
-                    filter_name: `${context_filter.vo_type} - ${context_filter.field_id}`,
-                    value: ContextFilterVOHandler.context_filter_to_readable_ihm(context_filter)
-                });
+                const vo_field_ref_label: string = await VOFieldRefVOManager.create_readable_vo_field_ref_label(
+                    { api_type_id: context_filter.vo_type, field_id: context_filter.field_id }
+                );
+
+                const data: { [column_list_key: string]: { value: string | number, format?: string } } = {
+                    filter_name: { value: vo_field_ref_label },
+                    value: { value: ContextFilterVOHandler.context_filter_to_readable_ihm(context_filter) }
+                };
+
+                sheet.datas.push(data);
             }
         }
 
@@ -754,7 +763,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     }
 
     /**
-     * make_vars_indicator_xlsx_sheet
+     * create_vars_indicator_xlsx_sheet
      *  - Make the Xlsx sheet of the given Vars Indicator
      *
      * @param vars_indicator {ExportVarIndicator}
@@ -763,7 +772,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
      * @param discarded_field_paths {{ [vo_type: string]: { [field_id: string]: boolean } }}
      * @returns {IExportableSheet}
      */
-    private async make_vars_indicator_xlsx_sheet(
+    private async create_vars_indicator_xlsx_sheet(
         vars_indicator: ExportVarIndicator,
         active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null,
         active_api_type_ids: string[] = null,
@@ -790,6 +799,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         for (let var_name in vars_indicator.varcolumn_conf) {
 
             const varcolumn_conf = vars_indicator.varcolumn_conf[var_name];
+
             let this_custom_filters: { [var_param_field_name: string]: ContextFilterVO } = {};
             let filter_additional_params = null;
 
@@ -804,27 +814,28 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
             }
 
-
-            for (const field_filter in varcolumn_conf.custom_field_filters) {
+            for (const var_param_field_name in varcolumn_conf.custom_field_filters) {
                 // varcolumn_conf filter name
-                const varcolumn_conf_custom_filter_name = varcolumn_conf.custom_field_filters[field_filter];
+                const varcolumn_conf_custom_field_filters_key = varcolumn_conf.custom_field_filters[var_param_field_name];
 
                 // find the actual field filters key from active_field_filters
-                const field_filters_key: string = Object.keys(current_active_field_filters)
-                    .find((key_a) => Object.keys(current_active_field_filters[key_a])
-                        .find((key_b) => key_b === varcolumn_conf_custom_filter_name)
+                const varcolumn_conf_api_type_id: string = Object.keys(current_active_field_filters)
+                    .find((api_type_id) => Object.keys(current_active_field_filters[api_type_id])
+                        .find((field_filter_key) => field_filter_key === varcolumn_conf_custom_field_filters_key)
                     );
 
-                if (!field_filters_key) { continue; }
+                if (!varcolumn_conf_api_type_id) {
+                    continue;
+                }
 
-                this_custom_filters[field_filter] = current_active_field_filters[field_filters_key][varcolumn_conf_custom_filter_name];
+                this_custom_filters[var_param_field_name] = current_active_field_filters[varcolumn_conf_api_type_id][varcolumn_conf_custom_field_filters_key];
             }
 
             debug_uid++;
-            ConsoleHandler.log('make_vars_indicator_xlsx_sheet:PRE PIPELINE PUSH:nb :' + var_name + ':' + debug_uid);
+            ConsoleHandler.log('create_vars_indicator_xlsx_sheet:PRE PIPELINE PUSH:nb :' + var_name + ':' + debug_uid);
             await promise_pipeline.push(async () => {
 
-                ConsoleHandler.log('make_vars_indicator_xlsx_sheet:INSIDE PIPELINE CB 1:nb :' + var_name + ':' + debug_uid);
+                ConsoleHandler.log('create_vars_indicator_xlsx_sheet:INSIDE PIPELINE CB 1:nb :' + var_name + ':' + debug_uid);
 
                 /**
                  * On doit récupérer le param en fonction de la ligne et les filtres actifs utilisés pour l'export
@@ -837,46 +848,66 @@ export default class ModuleDataExportServer extends ModuleServerBase {
                     discarded_field_paths
                 );
                 if (!var_param) {
-                    ConsoleHandler.log('make_vars_indicator_xlsx_sheet:INSIDE PIPELINE CB 1.5:!var_param :' + var_name + ':' + debug_uid);
+                    ConsoleHandler.log('create_vars_indicator_xlsx_sheet:INSIDE PIPELINE CB 1.5:!var_param :' + var_name + ':' + debug_uid);
                     sheet.datas.push({
-                        name: LocaleManager.getInstance().t(var_name),
+                        name: { value: LocaleManager.getInstance().t(var_name) },
                         value: null
                     });
                     return;
                 }
 
-                ConsoleHandler.log('make_vars_indicator_xlsx_sheet:INSIDE PIPELINE CB 2:nb :' + var_name + ':' + debug_uid + ':' + var_param.index);
+                ConsoleHandler.log('create_vars_indicator_xlsx_sheet:INSIDE PIPELINE CB 2:nb :' + var_name + ':' + debug_uid + ':' + var_param.index);
 
                 try {
 
-                    let var_data = await VarsServerCallBackSubsController.getInstance().get_var_data(var_param, 'make_vars_indicator_xlsx_sheet: exporting data');
+                    let var_data = await VarsServerCallBackSubsController.getInstance().get_var_data(var_param, 'create_vars_indicator_xlsx_sheet: exporting data');
                     let value = var_data ? var_data.value : null;
+                    let format: XlsxCellFormatByFilterType = null;
 
                     if (value != null) {
-                        let params = [value];
-                        params = params.concat(filter_additional_params);
+                        const params = [value].concat(filter_additional_params);
 
                         if (typeof filter_by_name[varcolumn_conf.filter_type]?.read === 'function') {
                             value = filter_by_name[varcolumn_conf.filter_type].read.apply(null, params);
+                            format = varcolumn_conf.filter_type as XlsxCellFormatByFilterType;
+
                             if (varcolumn_conf.filter_type != 'tstz') {
                                 value = (value as any).replace(/\s+/g, '');
                             }
                         }
+
+                        if (
+                            varcolumn_conf.filter_type == FilterObj.FILTER_TYPE_percent
+                        ) {
+                            value = (value as any).replace(/%/g, '');
+                            value = parseFloat(value as any) / 100;
+                        }
+
+                        if (
+                            varcolumn_conf.filter_type == FilterObj.FILTER_TYPE_toFixed ||
+                            varcolumn_conf.filter_type == FilterObj.FILTER_TYPE_toFixedCeil ||
+                            varcolumn_conf.filter_type == FilterObj.FILTER_TYPE_toFixedFloor
+                        ) {
+                            value = parseFloat(value as any);
+                        }
                     }
 
-                    sheet.datas.push({
-                        name: LocaleManager.getInstance().t(var_name),
-                        value,
-                    });
+                    const data: { [column_list_key: string]: { value: string | number, format?: string } } = {
+                        name: { value: LocaleManager.getInstance().t(var_name) },
+                        value: { value, format }
+                    };
+
+                    sheet.datas.push(data);
                 } catch (error) {
 
-                    ConsoleHandler.error('make_vars_indicator_xlsx_sheet:FAILED get_var_data:nb :' + var_name + ':' + debug_uid + ':' + var_param._bdd_only_index + ':' + error);
+                    ConsoleHandler.error('create_vars_indicator_xlsx_sheet:FAILED get_var_data:nb :' + var_name + ':' + debug_uid + ':' + var_param._bdd_only_index + ':' + error);
                     has_errors = true;
                 }
 
-                ConsoleHandler.log('make_vars_indicator_xlsx_sheet:INSIDE PIPELINE CB 3:nb :' + var_name + ':' + debug_uid);
+                ConsoleHandler.log('create_vars_indicator_xlsx_sheet:INSIDE PIPELINE CB 3:nb :' + var_name + ':' + debug_uid);
             });
-            ConsoleHandler.log('make_vars_indicator_xlsx_sheet:POST PIPELINE PUSH:nb :' + var_name + ':' + debug_uid);
+
+            ConsoleHandler.log('create_vars_indicator_xlsx_sheet:POST PIPELINE PUSH:nb :' + var_name + ':' + debug_uid);
         }
 
         await promise_pipeline.end();
@@ -889,7 +920,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     }
 
 
-    private async exportDataToMultiSheetsXLSX(
+    private async export_data_to_multi_sheets_xlsx(
         filename: string,
         sheets: IExportableSheet[],
         api_type_id: string,
@@ -897,7 +928,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         file_access_policy_name: string = null
     ): Promise<string> {
 
-        let filepath: string = await this.exportDataToMultiSheetsXLSX_base(
+        let filepath: string = await this.export_data_to_multi_sheets_xlsx_base(
             filename,
             sheets,
             api_type_id,
@@ -911,10 +942,11 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         }
 
         await this.getFileVo(filepath, is_secured, file_access_policy_name);
+
         return filepath;
     }
 
-    private async exportDataToMultiSheetsXLSXFile(
+    private async export_data_to_multi_sheets_xslw_file(
         filename: string,
         sheets: IExportableSheet[],
         api_type_id: string,
@@ -922,7 +954,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         file_access_policy_name: string = null
     ): Promise<FileVO> {
 
-        let filepath: string = await this.exportDataToMultiSheetsXLSX_base(
+        let filepath: string = await this.export_data_to_multi_sheets_xlsx_base(
             filename,
             sheets,
             api_type_id,
@@ -952,7 +984,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         return file;
     }
 
-    private async exportDataToMultiSheetsXLSX_base(
+    private async export_data_to_multi_sheets_xlsx_base(
         filename: string,
         sheets: IExportableSheet[],
         api_type_id: string,
@@ -967,39 +999,83 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         ConsoleHandler.log('EXPORT : ' + filename);
         let workbook: WorkBook = XLSX.utils.book_new();
 
+        // For each sheet that we want to export
         for (let sheeti in sheets) {
             let sheet = sheets[sheeti];
 
-            let worksheetColumns = [];
-            for (let i in sheet.ordered_column_list) {
-                worksheetColumns.push({ wch: 25 });
-            }
-
+            let ws_formats: { [cell: string]: string } = {};
             let ws_data = [];
             let ws_row = [];
-            for (let i in sheet.ordered_column_list) {
-                let data_field_name: string = sheet.ordered_column_list[i];
-                let title: string = sheet.column_labels[data_field_name];
 
+            // We create the sheet
+            const worksheet_columns = [];
+            for (let i in sheet.ordered_column_list) {
+
+                // Add worksheet columns list width
+                worksheet_columns.push({ wch: 25 });
+
+                const data_field_name: string = sheet.ordered_column_list[i];
+                const title: string = sheet.column_labels[data_field_name];
+
+                // Add worksheet columns_list title row
                 ws_row.push(title);
             }
+
+            // Add worksheet columns_list title row (columns_list titles)
             ws_data.push(ws_row);
 
-            for (let r in sheet.datas) {
-                let row_data = sheet.datas[r];
+            // Add worksheet columns_list data rows
+            for (const row_i in sheet.datas) {
+                const row_data = sheet.datas[row_i];
+
                 ws_row = [];
 
-                for (let i in sheet.ordered_column_list) {
-                    let data_field_name: string = sheet.ordered_column_list[i];
-                    let data = row_data[data_field_name];
+                for (const i in sheet.ordered_column_list) {
+                    const data_field_name: string = sheet.ordered_column_list[i];
 
-                    ws_row.push(data);
+                    const format = row_data[data_field_name]?.format; // The actual format of the cell
+                    const value = row_data[data_field_name]?.value; // The actual value of the cell
+
+                    const column_number = indexOf(sheet.ordered_column_list, data_field_name); // The actual column number of the cell
+                    const column_letter = String.fromCharCode(97 + column_number); // The actual column letter of the cell
+                    const cell = column_letter?.toUpperCase() + (parseInt(row_i) + 2); // The actual cell
+
+                    let cell_format = null;
+                    if (format) {
+                        cell_format = XlsxCellFormatByFilterType[format] ?? null;
+                    }
+
+                    ws_formats[cell] = cell_format; // The actual format of the cell
+
+                    ws_row.push(value);
                 }
+
                 ws_data.push(ws_row);
             }
 
-            let ws = XLSX.utils.aoa_to_sheet(ws_data);
-            XLSX.utils.book_append_sheet(workbook, ws, sheet.sheet_name);
+            const ws = XLSX.utils.aoa_to_sheet(ws_data);
+
+            // Add|Assign cell (number) format
+            for (const cell in ws_formats) {
+                const cell_format = ws_formats[cell];
+                const ws_cell = ws[cell];
+
+                if (!cell_format) {
+                    continue;
+                }
+
+                if (!ws_cell) {
+                    continue;
+                }
+
+                ws_cell.z = ws_formats[cell];
+            }
+
+            XLSX.utils.book_append_sheet(
+                workbook,
+                ws,
+                sheet.sheet_name
+            );
         }
 
         let filepath: string = (is_secured ? ModuleFile.SECURED_FILES_ROOT : ModuleFile.FILES_ROOT) + filename;
@@ -1252,7 +1328,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         columns: TableColumnDescVO[] = null,
     ) {
 
-        const rows = cloneDeep(datas);
+        const xlsx_datas = cloneDeep(datas);
 
         for (const field_uid in columns) {
             const column = columns[field_uid];
@@ -1266,8 +1342,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
             }
 
-            for (const row_key in rows) {
-                let row = rows[row_key];
+            for (const row_key in xlsx_datas) {
+                let row = xlsx_datas[row_key];
 
                 if (row[column.datatable_field_uid] == null) {
                     continue;
@@ -1275,24 +1351,52 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
                 row[column.datatable_field_uid + '__raw'] = row[column.datatable_field_uid];
 
+                let value = row[column.datatable_field_uid] ?? null;
+                let format: XlsxCellFormatByFilterType = null;
+
+                row[column.datatable_field_uid] = {
+                    format,
+                    value,
+                };
+
                 if (!(filter_additional_params?.length > 0)) {
                     continue;
                 }
 
-                let params = [row[column.datatable_field_uid]];
-
-                params = params.concat(filter_additional_params);
+                let params = [value].concat(filter_additional_params);
 
                 if (typeof filter_by_name[column.filter_type]?.read === 'function') {
-                    row[column.datatable_field_uid] = filter_by_name[column.filter_type].read.apply(null, params);
+                    value = filter_by_name[column.filter_type].read.apply(null, params);
+                    format = column.filter_type as XlsxCellFormatByFilterType;
+
                     if (column.filter_type != 'tstz') {
-                        row[column.datatable_field_uid] = (row[column.datatable_field_uid] as any).replace(/\s+/g, '');
+                        value = value.replace(/\s+/g, '');
+                    }
+
+                    if (
+                        column.filter_type == FilterObj.FILTER_TYPE_percent
+                    ) {
+                        value = (value as any).replace(/%/g, '');
+                        value = parseFloat(value as any) / 100;
+                    }
+
+                    if (
+                        column.filter_type == FilterObj.FILTER_TYPE_toFixed ||
+                        column.filter_type == FilterObj.FILTER_TYPE_toFixedCeil ||
+                        column.filter_type == FilterObj.FILTER_TYPE_toFixedFloor
+                    ) {
+                        value = parseFloat(value as any);
                     }
                 }
+
+                row[column.datatable_field_uid] = {
+                    format,
+                    value,
+                };
             }
         }
 
-        return rows;
+        return xlsx_datas;
     }
 
     /**

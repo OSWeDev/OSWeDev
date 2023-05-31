@@ -109,6 +109,7 @@ export default abstract class VueAppBase {
                 Vue.config.devtools = true;
             }
         })());
+
         promises.push((async () => {
             await this.appController.initialize();
         })());
@@ -129,25 +130,32 @@ export default abstract class VueAppBase {
             DroppableVoFieldsController.getInstance().visible_fields_and_api_type_ids[type] = null
         );
 
+        const modules_by_name = ModulesManager.getInstance().modules_by_name;
+
         // On commence par demander tous les droits d'accès des modules
         promises = [];
-        for (let i in ModulesManager.getInstance().modules_by_name) {
-            let module_: VueModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(i, VueModuleBase.IVueModuleRoleName) as VueModuleBase;
+        for (let module_name in modules_by_name) {
+            let module_: VueModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(
+                module_name,
+                VueModuleBase.IVueModuleRoleName
+            ) as VueModuleBase;
 
             /**
              * FIXME : peut-etre séparer les policies_tocheck et des policies_totest pour identifier les policies qui manqueraient de façon anormale
              */
-            if (module_ && module_.policies_needed && module_.policies_needed.length) {
+            if (module_?.policies_needed?.length > 0) {
                 promises.push((async () => {
 
                     let local_promises = [];
 
-                    for (let j in module_.policies_needed) {
-                        let policy_name = module_.policies_needed[j];
+                    for (const j in module_.policies_needed) {
+                        const policy_name = module_.policies_needed[j];
+
                         local_promises.push((async () => {
                             module_.policies_loaded[policy_name] = await ModuleAccessPolicy.getInstance().testAccess(policy_name);
                         })());
                     }
+
                     await all_promises(local_promises);
                 })());
             }
@@ -155,8 +163,11 @@ export default abstract class VueAppBase {
         await all_promises(promises);
 
         // On lance les initializeAsync des modules Vue
-        for (let i in ModulesManager.getInstance().modules_by_name) {
-            let module_: VueModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(i, VueModuleBase.IVueModuleRoleName) as VueModuleBase;
+        for (let module_name in modules_by_name) {
+            let module_: VueModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(
+                module_name,
+                VueModuleBase.IVueModuleRoleName
+            ) as VueModuleBase;
 
             if (module_) {
                 await module_.initializeAsync();

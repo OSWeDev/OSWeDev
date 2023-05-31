@@ -231,8 +231,8 @@ Namespace.prototype.enter = function enter(context) {
     //     debug2(`${indentStr}CONTEXT-ENTER: (${this.name}) currentUid:${currentUid} triggerId:${triggerId} asyncHooksCurrentId:${asyncHooksCurrentId} len:${this._set.length} ${util.inspect(context)}`);
     // }
 
-    this.active = context;
     this._set.push(this.active);
+    this.active = context;
 };
 
 Namespace.prototype.exit = function exit(context) {
@@ -250,7 +250,7 @@ Namespace.prototype.exit = function exit(context) {
 
     // Fast path for most exits that are at the top of the stack
     if (this.active === context) {
-        assert.ok(this._set.length > 0, `can\'t remove top context`);
+        assert.ok(this._set?.length > 0, `can\'t remove top context`);
         this.active = this._set.pop();
         // this._set.pop();
         // this.active = this._set.length ? this._set[this._set.length - 1] : null;

@@ -1,6 +1,6 @@
 import DefaultTranslation from "../../Translation/vos/DefaultTranslation";
 import DashboardPageWidgetVO from "./DashboardPageWidgetVO";
-import { AbstractVO } from "../../VO/abstract/AbstractVO";
+import AbstractVO from "../../VO/abstract/AbstractVO";
 
 /**
  * @class SupervisionWidgetOptionsVO

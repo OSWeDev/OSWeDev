@@ -550,7 +550,8 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 JSON.stringify(sendable_objects),
                 null,
                 'application/json; charset=utf-8',
-                null, null, false, true) as RequestsWrapperResult;
+                null, null, false, true
+            ) as RequestsWrapperResult;
 
             if ((!results) || (!results.requests_results)) {
                 StatsController.register_stat_COMPTEUR('AjaxCacheClientController', 'wrap_request', 'Pas_de_resultat_pour_la_requete_groupee');

@@ -12,9 +12,11 @@ export default class ProgramPlanClientVueModule extends VueModuleBase {
         program_plan_controller: ProgramPlanControllerBase,
         route_base_programs: string = "/plan/programs",
         route_base_program: string = "/plan/program/"): ProgramPlanClientVueModule {
+
         if (!ProgramPlanClientVueModule.instances[program_plan_shared_module.name]) {
             ProgramPlanClientVueModule.instances[program_plan_shared_module.name] = new ProgramPlanClientVueModule(
-                program_plan_shared_module, program_plan_controller, route_base_programs, route_base_program);
+                program_plan_shared_module, program_plan_controller, route_base_programs, route_base_program
+            );
         }
 
         return ProgramPlanClientVueModule.instances[program_plan_shared_module.name];

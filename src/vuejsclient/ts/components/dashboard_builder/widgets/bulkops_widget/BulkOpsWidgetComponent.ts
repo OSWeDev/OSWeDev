@@ -32,7 +32,7 @@ import { ModuleDashboardPageGetter } from '../../page/DashboardPageStore';
 import TablePaginationComponent from '../table_widget/pagination/TablePaginationComponent';
 import './BulkOpsWidgetComponent.scss';
 import BulkOpsWidgetOptions from './options/BulkOpsWidgetOptions';
-import FieldFilterManager from '../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
+import FieldFilterManager from '../../../../../../shared/modules/DashboardBuilder/manager/FieldFilterManager';
 
 @Component({
     template: require('./BulkOpsWidgetComponent.pug'),
@@ -415,7 +415,9 @@ export default class BulkOpsWidgetComponent extends VueComponentBase {
         let context_query = cloneDeep(query_);
         context_query.set_limit(0, 0);
         context_query.set_sort(null);
-        this.pagination_count = await ModuleContextFilter.getInstance().select_count(context_query);
+
+        this.pagination_count = await ModuleContextFilter.getInstance()
+            .select_count(context_query);
 
         // Si je ne suis pas sur la dernière demande, je me casse
         if (this.last_calculation_cpt != launch_cpt) {

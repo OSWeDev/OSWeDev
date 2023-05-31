@@ -13,6 +13,7 @@ import ModuleProgramPlanBase from '../../../../shared/modules/ProgramPlan/Module
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import WeightHandler from '../../../../shared/tools/WeightHandler';
 import VueAppBase from '../../../VueAppBase';
+import ContextQueryVO from '../../../../../dist/shared/modules/ContextFilter/vos/ContextQueryVO';
 
 export default abstract class ProgramPlanControllerBase {
 
@@ -156,7 +157,9 @@ export default abstract class ProgramPlanControllerBase {
             if (task_type.order_tasks_on_same_target) {
                 // il faut faire un chargement de tous les RDVs de cette target et de ce task_type_id
                 // dans le cas d'un choix auto on interdit de remettre un RDV avant un RDV existant
-                let all_rdvs: IPlanRDV[] = await query(this.programplan_shared_module.rdv_type_id).filter_by_num_eq('target_id', rdv.target_id).select_vos<IPlanRDV>();
+                let all_rdvs: IPlanRDV[] = await query(this.programplan_shared_module.rdv_type_id)
+                    .filter_by_num_eq('target_id', rdv.target_id)
+                    .select_vos<IPlanRDV>();
 
                 let max_weight: number = -1;
                 let max_weight_task: IPlanTask = null;
@@ -180,7 +183,10 @@ export default abstract class ProgramPlanControllerBase {
                     }
 
                     if (all_rdv.start_time > rdv.start_time) {
-                        VueAppBase.instance_.vueInstance.snotify.error(VueAppBase.instance_.vueInstance.label('programplan.fc.create.has_more_recent_task__denied'));
+                        VueAppBase.instance_.vueInstance.snotify.error(
+                            VueAppBase.instance_.vueInstance.label('programplan.fc.create.has_more_recent_task__denied')
+                        );
+
                         return true;
                     }
 
@@ -201,11 +207,16 @@ export default abstract class ProgramPlanControllerBase {
                         task_type_tasks.push(task_);
                     }
                 }
+
                 WeightHandler.getInstance().sortByWeight(task_type_tasks);
 
                 if ((!task_type_tasks) || (!task_type_tasks.length)) {
-                    VueAppBase.instance_.vueInstance.snotify.error(VueAppBase.instance_.vueInstance.label('programplan.fc.create.error'));
+                    VueAppBase.instance_.vueInstance.snotify.error(
+                        VueAppBase.instance_.vueInstance.label('programplan.fc.create.error')
+                    );
+
                     ConsoleHandler.error("!task_type_tasks.length");
+
                     return true;
                 }
 
@@ -220,14 +231,22 @@ export default abstract class ProgramPlanControllerBase {
                 }
 
                 if (!new_task) {
-                    VueAppBase.instance_.vueInstance.snotify.error(VueAppBase.instance_.vueInstance.label('programplan.fc.create.no_task_left'));
+                    VueAppBase.instance_.vueInstance.snotify.error(
+                        VueAppBase.instance_.vueInstance.label('programplan.fc.create.no_task_left')
+                    );
+
                     ConsoleHandler.error("!task");
+
                     return true;
                 }
 
                 if (new_task.id != rdv.task_id) {
-                    VueAppBase.instance_.vueInstance.snotify.error(VueAppBase.instance_.vueInstance.label('programplan.fc.create.error'));
+                    VueAppBase.instance_.vueInstance.snotify.error(
+                        VueAppBase.instance_.vueInstance.label('programplan.fc.create.error')
+                    );
+
                     ConsoleHandler.error("task.id != rdv.task_id");
+
                     return true;
                 }
             }
@@ -272,5 +291,9 @@ export default abstract class ProgramPlanControllerBase {
         storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void
     ): Promise<boolean> {
         return false;
+    }
+
+    public component_target_context_query_fiter_hook(): ContextQueryVO {
+        return null;
     }
 }

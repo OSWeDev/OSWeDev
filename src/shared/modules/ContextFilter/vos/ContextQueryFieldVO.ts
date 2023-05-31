@@ -8,6 +8,8 @@ export default class ContextQueryFieldVO implements IDistantVOBase {
     public static FIELD_MODIFIER_NONE: number = 0;
     public static FIELD_MODIFIER_NULL_IF_NAN: number = 1;
     public static FIELD_MODIFIER_LOWER: number = 2;
+    public static FIELD_MODIFIER_NULL_IF_NO_COLUMN: number = 3;
+    public static FIELD_MODIFIER_FIELD_AS_API_TYPE_ID: number = 4; // Case when using union we should keep api_type_id for each VO
 
     public id: number;
     public _type: string = ContextQueryFieldVO.API_TYPE_ID;
@@ -37,18 +39,25 @@ export default class ContextQueryFieldVO implements IDistantVOBase {
      */
     public modifier: number;
 
+    /**
+     * Force cast if needed
+     */
+    public cast_with: string;
+
     public constructor(
         api_type_id: string = null,
         field_id: string = null,
         alias: string = null,
         aggregator: number = VarConfVO.NO_AGGREGATOR,
-        modifier: number = ContextQueryFieldVO.FIELD_MODIFIER_NONE
+        modifier: number = ContextQueryFieldVO.FIELD_MODIFIER_NONE,
+        cast_with: string = null
     ) {
         this.api_type_id = api_type_id;
         this.field_id = field_id;
         this.alias = alias;
         this.aggregator = aggregator;
         this.modifier = modifier;
+        this.cast_with = cast_with;
     }
 
     public log(is_error: boolean = false) {

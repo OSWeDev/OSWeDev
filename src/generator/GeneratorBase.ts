@@ -60,6 +60,7 @@ import Patch20220822ChangeTypeRecurrCron from './patchs/premodules/Patch20220822
 import Patch20230209AddColumnFormatDatesNombres from './patchs/premodules/Patch20230209AddColumnFormatDatesNombres';
 import Patch20230512DeleteAllStats from './patchs/premodules/Patch20230512DeleteAllStats';
 import Patch20230517DeleteAllStats from './patchs/premodules/Patch20230517DeleteAllStats';
+import Patch20230428UpdateUserArchivedField from './patchs/premodules/Patch20230428UpdateUserArchivedField';
 import VendorBuilder from './vendor_builder/VendorBuilder';
 import VersionUpdater from './version_updater/VersionUpdater';
 
@@ -127,6 +128,7 @@ export default abstract class GeneratorBase {
             Patch20230209AddColumnFormatDatesNombres.getInstance(),
             Patch20230512DeleteAllStats.getInstance(),
             Patch20230517DeleteAllStats.getInstance(),
+            Patch20230428UpdateUserArchivedField.getInstance(),
         ];
 
         this.post_modules_workers = [

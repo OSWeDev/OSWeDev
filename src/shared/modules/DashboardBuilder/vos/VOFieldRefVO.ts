@@ -1,6 +1,6 @@
 import IDistantVOBase from "../../../../shared/modules/IDistantVOBase";
 import IWeightedItem from "../../../tools/interfaces/IWeightedItem";
-import { AbstractVO } from "../../VO/abstract/AbstractVO";
+import AbstractVO from "../../VO/abstract/AbstractVO";
 import DashboardBuilderController from "../DashboardBuilderController";
 
 /**

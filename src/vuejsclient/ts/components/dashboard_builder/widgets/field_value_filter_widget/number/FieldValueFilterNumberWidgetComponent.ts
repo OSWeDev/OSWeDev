@@ -28,8 +28,10 @@ import FieldValueFilterWidgetController from '../FieldValueFilterWidgetControlle
 import FieldValueFilterWidgetOptions from '../options/FieldValueFilterWidgetOptions';
 import AdvancedNumberFilter from './AdvancedNumberFilter';
 import './FieldValueFilterNumberWidgetComponent.scss';
-import FieldFilterManager from '../../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
 import ContextFilterVOManager from '../../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
+import FieldFilterManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFilterManager';
+import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 
 @Component({
     template: require('./FieldValueFilterNumberWidgetComponent.pug'),
@@ -382,9 +384,23 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
 
         let tmp: DataFilterOption[] = [];
 
-        let query_api_type_id: string = (this.has_other_ref_api_type_id && this.other_ref_api_type_id) ? this.other_ref_api_type_id : this.vo_field_ref.api_type_id;
+        let api_type_id: string = (this.has_other_ref_api_type_id && this.other_ref_api_type_id) ?
+            this.other_ref_api_type_id :
+            this.vo_field_ref.api_type_id;
 
-        let query_ = query(query_api_type_id).set_limit(this.widget_options.max_visible_options, 0);
+
+        const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id);
+        const has_access = await ModuleAccessPolicy.getInstance().testAccess(access_policy_name);
+
+        if (!has_access) {
+            return;
+        }
+
+        let query_ = query(api_type_id)
+            .set_limit(
+                this.widget_options.max_visible_options,
+                0
+            );
         query_.fields = [new ContextQueryFieldVO(this.vo_field_ref.api_type_id, this.vo_field_ref.field_id, 'label')];
         query_.filters = ContextFilterVOManager.get_context_filters_from_active_field_filters(active_field_filters_query);
         query_.active_api_type_ids = this.dashboard.api_type_ids;
@@ -428,7 +444,12 @@ export default class FieldValueFilterNumberWidgetComponent extends VueComponentB
                 return;
             }
         } else {
-            query_ = await FieldValueFilterWidgetController.getInstance().check_segmented_dependencies(this.dashboard, query_, this.get_discarded_field_paths, true);
+            query_ = await FieldValueFilterWidgetController.getInstance().check_segmented_dependencies(
+                this.dashboard,
+                query_,
+                this.get_discarded_field_paths,
+                true
+            );
         }
 
         tmp = await ModuleContextFilter.getInstance().select_filter_visible_options(

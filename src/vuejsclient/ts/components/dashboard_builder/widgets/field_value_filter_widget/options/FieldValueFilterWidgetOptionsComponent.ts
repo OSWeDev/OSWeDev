@@ -1,6 +1,7 @@
 import { clone, cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
@@ -875,10 +876,17 @@ export default class FieldValueFilterWidgetOptionsComponent extends VueComponent
             );
 
         } else {
+            const api_type_id = this.vo_field_ref.api_type_id;
+
+            const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id);
+            const has_access = await ModuleAccessPolicy.getInstance().testAccess(access_policy_name);
+
+            if (!has_access) {
+                return;
+            }
 
             // Load data_filters for string and number
-
-            let query_ = query(this.vo_field_ref.api_type_id)
+            let query_ = query(api_type_id)
                 .field(this.vo_field_ref.field_id, 'label')
                 .set_limit(this.max_visible_options)
                 .set_sort(new SortByVO(field_sort.api_type_id, field_sort.field_id, true))

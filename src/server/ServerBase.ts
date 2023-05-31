@@ -175,9 +175,12 @@ export default abstract class ServerBase {
             async query(e) {
                 StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'query');
             },
-            async error(e) {
+            async error(err, e) {
                 StatsController.register_stat_COMPTEUR('ServerBase', 'PGP', 'error');
-                ConsoleHandler.error('ServerBase.PGP.error: ' + JSON.stringify(e));
+                ConsoleHandler.error(
+                    'ServerBase.PGP.error: ' + JSON.stringify(err) +
+                    ' query: ' + JSON.stringify({ query: e.query })
+                );
             },
         });
         this.db = pgp({

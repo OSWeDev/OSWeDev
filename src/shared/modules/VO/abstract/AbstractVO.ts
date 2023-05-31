@@ -2,10 +2,10 @@
  * AbstractVO
  *  - Abstract class for all VO's
  */
-export abstract class AbstractVO {
+export default abstract class AbstractVO {
 
     /**
-     * Hydrate from the given properties
+     * Hydrate this from the given properties
      *
      * @param {Partial<T>} props
      * @returns {T}

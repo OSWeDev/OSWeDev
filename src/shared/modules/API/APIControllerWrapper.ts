@@ -29,6 +29,7 @@ export default class APIControllerWrapper {
         if (!APIControllerWrapper.instance) {
             APIControllerWrapper.instance = new APIControllerWrapper();
         }
+
         return APIControllerWrapper.instance;
     }
 

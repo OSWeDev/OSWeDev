@@ -23,11 +23,12 @@ export default class SortByVO implements IDistantVOBase {
         vo_type: string = null,
         field_id: string = null,
         sort_asc: boolean = true,
+        alias: string = null,
     ) {
         this.vo_type = vo_type;
         this.field_id = field_id;
         this.sort_asc = sort_asc;
-        this.alias = null;
+        this.alias = alias;
         this.modifier = SortByVO.MODIFIER_NONE;
     }
 

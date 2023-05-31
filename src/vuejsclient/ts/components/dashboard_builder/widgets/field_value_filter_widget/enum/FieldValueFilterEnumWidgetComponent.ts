@@ -1,13 +1,9 @@
 import { cloneDeep, isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ContextFilterVOHandler from '../../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVOManager from '../../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
-import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
-import DashboardBuilderDataFilterManager from '../../../../../../../shared/modules/DashboardBuilder/manager/DashboardBuilderDataFilterManager';
 import DashboardPageVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageVO';
 import DashboardPageWidgetVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardPageWidgetVO';
 import DashboardVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardVO';
@@ -16,8 +12,6 @@ import DataFilterOption from '../../../../../../../shared/modules/DataRender/vos
 import ModuleTableField from '../../../../../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../../../../../shared/modules/VO/manager/VOsTypesManager';
 import ConsoleHandler from '../../../../../../../shared/tools/ConsoleHandler';
-import EnvHandler from '../../../../../../../shared/tools/EnvHandler';
-import PromisePipeline from '../../../../../../../shared/tools/PromisePipeline/PromisePipeline';
 import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import ThrottleHelper from '../../../../../../../shared/tools/ThrottleHelper';
 import TypesHandler from '../../../../../../../shared/tools/TypesHandler';
@@ -27,10 +21,9 @@ import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../p
 import ResetFiltersWidgetController from '../../reset_filters_widget/ResetFiltersWidgetController';
 import ValidationFiltersCallUpdaters from '../../validation_filters_widget/ValidationFiltersCallUpdaters';
 import ValidationFiltersWidgetController from '../../validation_filters_widget/ValidationFiltersWidgetController';
-import FieldValueFilterWidgetController from '../FieldValueFilterWidgetController';
 import FieldValueFilterWidgetOptions from '../options/FieldValueFilterWidgetOptions';
 import './FieldValueFilterEnumWidgetComponent.scss';
-import FieldFilterManager from '../../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
+import FieldFilterManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFilterManager';
 import FieldValueFilterEnumWidgetManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldValueFilterEnumWidgetManager';
 
 @Component({
@@ -341,7 +334,21 @@ export default class FieldValueFilterEnumWidgetComponent extends VueComponentBas
             return a.numeric_value - b.numeric_value;
         });
 
-        this.filter_visible_options = data_filter_options;
+        // We should keep all distinct filters
+        this.filter_visible_options = [this.filter_visible_options, data_filter_options].reduce(
+            (accumulator: DataFilterOption[], currentVal: DataFilterOption[]) => {
+
+                // Add all filters that are not in accumulator (by filter_label)
+                const overflowing_filters = currentVal.filter(
+                    (filter: DataFilterOption) => !accumulator.find(
+                        (acc_filter) => acc_filter.label === filter.label
+                    )
+                );
+
+                // Accumulator shall keep all distinct filters of each iteration
+                return accumulator.concat(overflowing_filters);
+            }
+        );
 
         // Si on doit afficher le compteur, on fait les requêtes nécessaires
         await this.set_count_value();

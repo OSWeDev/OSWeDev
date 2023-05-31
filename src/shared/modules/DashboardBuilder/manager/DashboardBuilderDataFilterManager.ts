@@ -22,8 +22,8 @@ export default class DashboardBuilderDataFilterManager {
     public static get_required_api_type_ids_from_widget_options(
         widget_options: FieldValueFilterWidgetOptionsVO,
         options?: {
-            active_api_type_ids?: string[]; // Setted on user selection (select option) to specify query on specified vos api ids
-            query_api_type_ids?: string[]; // Setted from widget options to have custom|default query on specified vos api ids
+            active_api_type_ids?: string[]; // Setted on user selection (select option) to specify query on specified vos api_type_ids
+            query_api_type_ids?: string[]; // Setted in (supervision) widget_options to have custom|default query on specified vos api_type_ids
         }
     ): string[] {
         const vo_field_ref = widget_options?.vo_field_ref;
@@ -38,13 +38,15 @@ export default class DashboardBuilderDataFilterManager {
             api_type_ids = [vo_field_ref?.api_type_id];
         }
 
-        if (options.active_api_type_ids?.length > 0) {
+        // Active api_type_ids (that have actually been selected by the user)
+        // Should always be prioritized over query_api_type_ids
+        if (options?.active_api_type_ids?.length > 0) {
             // Get selected api type ids (e.g. from supervision widget options)
-            api_type_ids = options.active_api_type_ids;
+            api_type_ids = options?.active_api_type_ids;
 
-        } else if (options.query_api_type_ids.length > 0 && widget_options.force_filter_by_all_api_type_ids) {
+        } else if (options?.query_api_type_ids?.length > 0 && widget_options.force_filter_by_all_api_type_ids) {
             // Get default api type ids (e.g. from supervision widget_options)
-            api_type_ids = options.query_api_type_ids;
+            api_type_ids = options?.query_api_type_ids;
         }
 
         return api_type_ids;

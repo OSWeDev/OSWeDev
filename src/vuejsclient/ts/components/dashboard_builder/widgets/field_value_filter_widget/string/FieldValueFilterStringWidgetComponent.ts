@@ -33,7 +33,9 @@ import FieldValueFilterWidgetController from '../FieldValueFilterWidgetControlle
 import FieldValueFilterWidgetOptions from '../options/FieldValueFilterWidgetOptions';
 import AdvancedStringFilter from './AdvancedStringFilter';
 import './FieldValueFilterStringWidgetComponent.scss';
-import FieldFilterManager from '../../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
+import FieldFilterManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFilterManager';
+import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 
 @Component({
     template: require('./FieldValueFilterStringWidgetComponent.pug'),
@@ -846,9 +848,18 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
         let tmp: DataFilterOption[] = [];
 
-        let query_api_type_id: string = (this.has_other_ref_api_type_id && this.other_ref_api_type_id) ? this.other_ref_api_type_id : this.vo_field_ref.api_type_id;
+        let api_type_id: string = (this.has_other_ref_api_type_id && this.other_ref_api_type_id) ?
+            this.other_ref_api_type_id :
+            this.vo_field_ref.api_type_id;
 
-        let query_ = query(query_api_type_id)
+        const access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, api_type_id);
+        const has_access = await ModuleAccessPolicy.getInstance().testAccess(access_policy_name);
+
+        if (!has_access) {
+            return;
+        }
+
+        let query_ = query(api_type_id)
             .field(this.vo_field_ref.field_id, 'label', this.vo_field_ref.api_type_id)
             .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(active_field_filters_query))
             .set_limit(this.widget_options.max_visible_options)
@@ -913,7 +924,22 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
             for (let i in this.vo_field_ref_multiple) {
                 let field_ref: VOFieldRefVO = this.vo_field_ref_multiple[i];
 
-                let query_field_ref = query(field_ref.api_type_id)
+                const field_ref_api_type_id = field_ref.api_type_id;
+
+                const field_ref_access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(
+                    ModuleDAO.DAO_ACCESS_TYPE_READ,
+                    field_ref_api_type_id
+                );
+
+                const has_access_field_ref_api_type_id = await ModuleAccessPolicy.getInstance().testAccess(
+                    field_ref_access_policy_name
+                );
+
+                if (!has_access_field_ref_api_type_id) {
+                    return;
+                }
+
+                let query_field_ref = query(field_ref_api_type_id)
                     .field(field_ref.field_id, 'label')
                     .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(active_field_filters_query))
                     .set_limit(this.widget_options.max_visible_options)
@@ -993,13 +1019,32 @@ export default class FieldValueFilterStringWidgetComponent extends VueComponentB
 
                     let field_sort_lvl2: VOFieldRefVO = this.vo_field_sort_lvl2 ? this.vo_field_sort_lvl2 : this.vo_field_ref_lvl2;
 
-                    let query_opt_lvl2 = query(this.vo_field_ref_lvl2.api_type_id)
+                    const field_ref_api_type_id = this.vo_field_ref_lvl2.api_type_id;
+
+                    const field_ref_access_policy_name = ModuleDAO.getInstance().getAccessPolicyName(
+                        ModuleDAO.DAO_ACCESS_TYPE_READ,
+                        field_ref_api_type_id
+                    );
+
+                    const has_access_field_ref_api_type_id = await ModuleAccessPolicy.getInstance().testAccess(
+                        field_ref_access_policy_name
+                    );
+
+                    if (!has_access_field_ref_api_type_id) {
+                        return;
+                    }
+
+                    let query_opt_lvl2 = query(field_ref_api_type_id)
                         .field(this.vo_field_ref_lvl2.field_id, 'label')
                         .add_filters(ContextFilterVOManager.get_context_filters_from_active_field_filters(active_field_filters))
                         .set_limit(this.widget_options.max_visible_options)
                         .set_sort(new SortByVO(field_sort_lvl2.api_type_id, field_sort_lvl2.field_id, true))
                         .using(this.dashboard.api_type_ids);
-                    FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(query_opt_lvl2, this.get_discarded_field_paths);
+
+                    FieldValueFilterWidgetController.getInstance().add_discarded_field_paths(
+                        query_opt_lvl2,
+                        this.get_discarded_field_paths
+                    );
 
                     let tmp_lvl2_opts: DataFilterOption[] = await ModuleContextFilter.getInstance().select_filter_visible_options(
                         query_opt_lvl2,

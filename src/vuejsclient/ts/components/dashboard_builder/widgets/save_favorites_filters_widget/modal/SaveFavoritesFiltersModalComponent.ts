@@ -1,18 +1,29 @@
 import { cloneDeep } from 'lodash';
 import Component from 'vue-class-component';
 import { Watch } from 'vue-property-decorator';
-import ContextFilterVOHandler from '../../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
-import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
-import DashboardFavoritesFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardFavoritesFiltersVO';
+import IReadableActiveFieldFilters from '../../../../../../../shared/modules/DashboardBuilder/interfaces/IReadableActiveFieldFilters';
 import ExportContextQueryToXLSXParamVO from '../../../../../../../shared/modules/DataExport/vos/apis/ExportContextQueryToXLSXParamVO';
+import IFavoritesFiltersOptions from '../../../../../../../shared/modules/DashboardBuilder/interfaces/IFavoritesFiltersOptions';
+import FieldFilterManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFilterManager';
+import IExportFrequency from '../../../../../../../shared/modules/DashboardBuilder/interfaces/IExportFrequency';
+import FavoritesFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO';
+import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
+import VueAppController from '../../../../../../VueAppController';
 import VueComponentBase from '../../../../VueComponentBase';
 import './SaveFavoritesFiltersModalComponent.scss';
 
-export interface IReadableActiveFieldFilters {
-    readable_active_field_filters: string;
-    filter: ContextFilterVO;
-    path: { api_type_id: string, field_id: string };
+export enum ExportFrequencyGranularity {
+    DAY = "day",
+    MONTH = "month",
+    YEAR = "year",
 }
+
+export const ExportFrequencyGranularityLabel: { [granularity in ExportFrequencyGranularity]: string } = {
+    [ExportFrequencyGranularity.DAY]: 'label.day',
+    [ExportFrequencyGranularity.MONTH]: 'label.month',
+    [ExportFrequencyGranularity.YEAR]: 'label.year',
+};
+
 
 @Component({
     template: require('./SaveFavoritesFiltersModalComponent.pug'),
@@ -28,51 +39,132 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
 
     private form_errors: string[] = [];
 
+    private favorites_filters: FavoritesFiltersVO = null;
+
+    // Favorites filters name
     private favorites_filters_name: string = null;
+
+    // Favorites filters behaviors options
+    private overwrite_active_field_filters: boolean = true;
+
     private is_export_planned: boolean = false;
 
-    private export_frequency_every: string = null;       // 1, 3, e.g. 1 day, 3 months
-    private export_frequency_day_in_month: string | null = null;  // day in the month e.g. every 3 months at day 15
+    private export_frequency: IExportFrequency = { every: null, granularity: null, day_in_month: null };
 
-    private tmp_export_frequency_granularity: { label: string, value: 'day' | 'month' | 'year' } = null; // e.g. day, month, year
-    private export_frequency_granularity_options: Array<{ label: string, value: string }> = [
-        { label: 'label.day', value: 'day' },
-        { label: 'label.month', value: 'month' },
-        { label: 'label.year', value: 'year' }
-    ];
+    private selected_export_frequency_granularity: {
+        label?: string, value: 'day' | 'month' | 'year'
+    } = { label: null, value: null }; // e.g. day, month, year
 
     private selected_favorite_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null;
     private selected_exportable_data: { [title_name_code: string]: ExportContextQueryToXLSXParamVO } = null;
 
     private selectionnable_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } } = null;
 
-    private on_validation_callback: (props: Partial<DashboardFavoritesFiltersVO>) => Promise<void> = null;
+    private on_validation_callback: (props: Partial<FavoritesFiltersVO>) => Promise<void> = null;
+    private on_close_callback: (props?: Partial<FavoritesFiltersVO>) => Promise<void> = null;
+    private on_delete_callback: (props?: Partial<FavoritesFiltersVO>) => Promise<void> = null;
 
     /**
-     * Handle Open Modal
+     * Open Modal For Creation
+     *  - Open modal to create a new favorites_filters
      *
      * @param props
      * @param validation_callback
      * @return {void}
      */
-    public open_modal(
+    public open_modal_for_creation(
         props: {
             selectionnable_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
             exportable_data: { [title_name_code: string]: ExportContextQueryToXLSXParamVO },
         } = null,
-        validation_callback?: (props?: Partial<DashboardFavoritesFiltersVO>) => Promise<void>
+        validation_callback?: (props?: Partial<FavoritesFiltersVO>) => Promise<void>,
+        close_callback?: (props?: Partial<FavoritesFiltersVO>) => Promise<void>
     ): void {
         this.is_modal_open = true;
 
+        // Fields filters settings
         // Modal selectionnable filters
         this.selectionnable_active_field_filters = props?.selectionnable_active_field_filters ?? null;
         // We must set all selected by default
         this.selected_favorite_field_filters = props?.selectionnable_active_field_filters ?? null;
+
+        // Exportable data settings
         this.selected_exportable_data = props?.exportable_data ?? null;
         this.exportable_data = props?.exportable_data ?? null;
 
         if (typeof validation_callback == 'function') {
             this.on_validation_callback = validation_callback;
+        }
+
+        if (typeof close_callback == 'function') {
+            this.on_close_callback = close_callback;
+        }
+    }
+
+    /**
+     * Open Modal For Update
+     *  - Open modal to update a favorites_filters
+     *
+     * @param {FavoritesFiltersVO} favorites_filters
+     * @param {(props?: Partial<FavoritesFiltersVO>) => Promise<void>} validation_callback
+     */
+    public open_modal_for_update(
+        props: {
+            selectionnable_active_field_filters: { [api_type_id: string]: { [field_id: string]: ContextFilterVO } },
+            exportable_data: { [title_name_code: string]: ExportContextQueryToXLSXParamVO },
+            favorites_filters: FavoritesFiltersVO,
+        } = null,
+        validation_callback?: (props?: Partial<FavoritesFiltersVO>) => Promise<void>,
+        close_callback?: (props?: Partial<FavoritesFiltersVO>) => Promise<void>,
+        delete_callback?: (props?: Partial<FavoritesFiltersVO>) => Promise<void>,
+    ): void {
+
+        this.favorites_filters = props?.favorites_filters ?? null;
+
+        const favorites_filters: FavoritesFiltersVO = props?.favorites_filters ?? null;
+
+        this.is_modal_open = true;
+
+        // Favorites filters name
+        this.favorites_filters_name = favorites_filters.name;
+
+        // Favorites filters behaviors options
+        this.overwrite_active_field_filters = favorites_filters.options?.overwrite_active_field_filters ?? true;
+
+        // Fields filters settings
+        // Modal selectionnable filters
+        this.selectionnable_active_field_filters = props.selectionnable_active_field_filters ? cloneDeep(props.selectionnable_active_field_filters) : null;
+        this.selected_favorite_field_filters = favorites_filters.field_filters;
+
+        // Export settings
+        this.is_export_planned = favorites_filters.export_params?.is_export_planned ?? false;
+        this.export_frequency = favorites_filters.export_params?.export_frequency ?? {
+            every: null, granularity: null, day_in_month: null
+        };
+
+        const export_frequency_granularity = this.export_frequency.granularity ?? null;
+        if (export_frequency_granularity) {
+            this.selected_export_frequency_granularity = {
+                label: ExportFrequencyGranularityLabel[export_frequency_granularity],
+                value: export_frequency_granularity
+            };
+        }
+
+        // Exportable data settings
+        this.selected_exportable_data = favorites_filters.export_params?.exportable_data ?? null;
+        // TODO: find the actual exportable data of the current dashboard page
+        this.exportable_data = props?.exportable_data ?? null;
+
+        if (typeof validation_callback == 'function') {
+            this.on_validation_callback = validation_callback;
+        }
+
+        if (typeof close_callback == 'function') {
+            this.on_close_callback = close_callback;
+        }
+
+        if (typeof delete_callback == 'function') {
+            this.on_delete_callback = delete_callback;
         }
     }
 
@@ -105,15 +197,17 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
     }
 
     /**
-     * Watch on tmp_export_frequency_granularity
-     *  - Happen on component each time tmp_export_frequency_granularity changes
+     * Watch on selected_export_frequency_granularity
+     *  - Happen on component each time selected_export_frequency_granularity changes
      *
      * @returns {void}
      */
-    @Watch('tmp_export_frequency_granularity')
-    private tmp_export_frequency_granularity_watcher(): void {
-        if (this.tmp_export_frequency_granularity?.value != 'month') {
-            this.export_frequency_day_in_month = null;
+    @Watch('selected_export_frequency_granularity')
+    private selected_export_frequency_granularity_watcher(): void {
+        this.export_frequency.granularity = this.selected_export_frequency_granularity?.value ?? null;
+
+        if (this.selected_export_frequency_granularity?.value != 'month') {
+            this.export_frequency.day_in_month = null;
         }
     }
 
@@ -133,32 +227,56 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
      * @return {Promise<void>}
      */
     private async handle_save(): Promise<void> {
-        if (!this.check_form_valid()) {
+        if (!this.is_form_valid()) {
             return;
         }
 
-        if (typeof this.on_validation_callback === 'function') {
-
-            const is_export_planned = this.is_export_planned;
-
-            const export_frequency = is_export_planned ? {
-                day_in_month: (this.export_frequency_day_in_month?.length > 0) ? parseInt(this.export_frequency_day_in_month) : null,
-                every: (this.export_frequency_every?.length > 0) ? parseInt(this.export_frequency_every) : null,
-                granularity: this.tmp_export_frequency_granularity?.value,
-            } : null;
-
-            const exportable_data = is_export_planned ? this.selected_exportable_data : null;
-
-            await this.on_validation_callback({
-                export_params: {
-                    is_export_planned,
-                    export_frequency,
-                    exportable_data,
-                },
-                field_filters: this.selected_favorite_field_filters,
-                name: this.favorites_filters_name,
-            });
+        if (!(typeof this.on_validation_callback === 'function')) {
+            return;
         }
+
+        const is_export_planned = this.is_export_planned;
+
+        const options: IFavoritesFiltersOptions = {
+            overwrite_active_field_filters: this.overwrite_active_field_filters,
+        };
+
+        const export_frequency: IExportFrequency = is_export_planned ? this.export_frequency : null;
+
+        const exportable_data: {
+            [title_name_code: string]: ExportContextQueryToXLSXParamVO
+        } = is_export_planned ? this.selected_exportable_data : null;
+
+        const favorites_filters: FavoritesFiltersVO = new FavoritesFiltersVO().from({
+            ...this.favorites_filters,
+            field_filters: this.selected_favorite_field_filters,
+            name: this.favorites_filters_name,
+            export_params: {
+                ...this.favorites_filters?.export_params,
+                is_export_planned,
+                export_frequency,
+                exportable_data,
+            },
+            options,
+        });
+
+        await this.on_validation_callback(favorites_filters);
+
+        this.is_modal_open = false;
+    }
+
+    /**
+     * Handle Delete
+     * - Delete the current favorites_filters
+     *
+     * @return {Promise<void>}
+     */
+    private handle_delete(): Promise<void> {
+        if (!(typeof this.on_delete_callback === 'function')) {
+            return;
+        }
+
+        this.on_delete_callback(this.favorites_filters);
 
         this.is_modal_open = false;
     }
@@ -168,7 +286,7 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
      *
      * @returns boolean
      */
-    private check_form_valid(): boolean {
+    private is_form_valid(): boolean {
         this.form_errors = [];
 
         if (!(this.favorites_filters_name?.length > 0)) {
@@ -176,15 +294,15 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
         }
 
         if (this.is_export_planned) {
-            if (!(this.export_frequency_every?.length > 0)) {
+            if (!(this.export_frequency.every != null)) {
                 this.form_errors.push(this.label('dashboard_viewer.favorites_filters.export_frequency_every_required'));
             }
 
-            if (!(this.tmp_export_frequency_granularity?.value.length > 0)) {
+            if (!(this.export_frequency.granularity?.length > 0)) {
                 this.form_errors.push(this.label('dashboard_viewer.favorites_filters.export_frequency_granularity_required'));
             }
 
-            if (this.tmp_export_frequency_granularity?.value === 'month' && !(this.export_frequency_day_in_month?.length > 0)) {
+            if (this.export_frequency.granularity === 'month' && !(this.export_frequency.day_in_month > 0)) {
                 this.form_errors.push(this.label('dashboard_viewer.favorites_filters.export_frequency_day_in_month_required'));
             }
 
@@ -216,8 +334,13 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
         if (this.is_modal_open) {
             $('#save_favorites_filters_modal_component').modal('show');
         } else {
-            this.reset_modal();
             $('#save_favorites_filters_modal_component').modal('hide');
+
+            if (typeof this.on_close_callback === 'function') {
+                this.on_close_callback();
+            }
+
+            this.reset_modal();
         }
     }
 
@@ -229,8 +352,12 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
     private reset_modal(): void {
         this.form_errors = [];
         this.active_tab_view = 'selection_tab';
-        this.favorites_filters_name = null;
+        this.export_frequency = { every: null, granularity: null, day_in_month: null };
+        this.selected_export_frequency_granularity = { label: null, value: null };
         this.selected_favorite_field_filters = null;
+        this.selected_exportable_data = null;
+        this.favorites_filters_name = null;
+        this.favorites_filters = null;
         this.reset_export_plan();
     }
 
@@ -241,9 +368,11 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
      */
     private reset_export_plan(): void {
         this.is_export_planned = false;
-        this.export_frequency_day_in_month = null;
-        this.tmp_export_frequency_granularity = null;
-        this.export_frequency_every = null;
+        this.selected_export_frequency_granularity = null;
+
+        this.export_frequency.day_in_month = null;
+        this.export_frequency.granularity = null;
+        this.export_frequency.every = null;
     }
 
     /**
@@ -252,16 +381,17 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
      * @param {IReadableActiveFieldFilters} [props]
      * @returns {boolean}
      */
-    private is_active_field_filter_selected(props: IReadableActiveFieldFilters): boolean {
-        const path = props.path;
+    private is_field_filter_selected(props: IReadableActiveFieldFilters): boolean {
+        const vo_field_ref = props.vo_field_ref;
 
         if (!this.selected_favorite_field_filters) {
             return false;
         }
 
-        return this.selected_favorite_field_filters[path.api_type_id] ?
-            this.selected_favorite_field_filters[path.api_type_id][path.field_id] != undefined :
-            false;
+        return !FieldFilterManager.is_field_filters_empty(
+            { vo_field_ref },
+            this.selected_favorite_field_filters
+        );
     }
 
     /**
@@ -272,19 +402,28 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
      * @returns {void}
      */
     private handle_toggle_select_favorite_filter(props: IReadableActiveFieldFilters): void {
-        const path = props.path;
+        const vo_field_ref = props.vo_field_ref;
 
         let tmp_selected_field_filters = cloneDeep(this.selected_favorite_field_filters);
-        const active_field_filters = this.selectionnable_active_field_filters;
+        const active_field_filters = cloneDeep(this.selectionnable_active_field_filters);
 
         if (!tmp_selected_field_filters) {
             tmp_selected_field_filters = {};
         }
 
-        if (this.is_active_field_filter_selected(props)) {
-            delete tmp_selected_field_filters[path.api_type_id][path.field_id];
+        if (this.is_field_filter_selected(props)) {
+            delete tmp_selected_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id];
+
         } else {
-            tmp_selected_field_filters[path.api_type_id][path.field_id] = active_field_filters[path.api_type_id][path.field_id];
+            if (!FieldFilterManager.is_field_filters_empty(props, active_field_filters)) {
+                const context_filter = active_field_filters[vo_field_ref.api_type_id][vo_field_ref.field_id];
+
+                tmp_selected_field_filters = FieldFilterManager.overwrite_field_filters_with_context_filter(
+                    tmp_selected_field_filters,
+                    vo_field_ref,
+                    context_filter
+                );
+            }
         }
 
         this.selected_favorite_field_filters = tmp_selected_field_filters;
@@ -311,7 +450,7 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
      * @return {boolean}
      */
     private can_add_export_frequency_day_in_month(): boolean {
-        return this.tmp_export_frequency_granularity?.value == 'month';
+        return this.selected_export_frequency_granularity?.value == 'month';
     }
 
     /**
@@ -353,6 +492,15 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
     }
 
     /**
+     * Handle Toggle Is Export Planned
+     *
+     * @returns {void}
+     */
+    private handle_toggle_overwrite_active_field_filters(): void {
+        this.overwrite_active_field_filters = !this.overwrite_active_field_filters;
+    }
+
+    /**
      * Set Active Tab View
      *
      * @param {string} [tab_view]
@@ -362,45 +510,48 @@ export default class SaveFavoritesFiltersModalComponent extends VueComponentBase
     }
 
     /**
+     * Get Translation By VO Field Ref Name Code Text
+     *
+     * @param {string} name_code_text
+     * @returns {string}
+     */
+    private get_translation_by_vo_field_ref_name_code_text(name_code_text: string): string {
+        let translation: string = VueAppController.getInstance().ALL_FLAT_LOCALE_TRANSLATIONS[name_code_text];
+
+        if (!translation) {
+            translation = name_code_text;
+        }
+
+        return translation;
+    }
+
+    /**
      * Get Readable Active Field Filters HMI
      *  - For each selected active field filters get as Human readable filters
      *
      * @return {{ [translatable_field_filters_code: string]: IReadableActiveFieldFilters }}
      */
     get readable_active_field_filters(): { [translatable_field_filters_code: string]: IReadableActiveFieldFilters } {
-        let res: { [translatable_field_filters_code: string]: IReadableActiveFieldFilters } = {};
+        const active_field_filters = cloneDeep(this.selectionnable_active_field_filters);
 
-        const active_field_filters = this.selectionnable_active_field_filters;
+        const readable_field_filters = FieldFilterManager.create_readable_filters_text_from_field_filters(active_field_filters);
 
-        for (const api_type_id in active_field_filters) {
-            const filters = active_field_filters[api_type_id];
+        return readable_field_filters;
+    }
 
-            for (const field_id in filters) {
-                // Label of filter to be displayed
-                const label = `${api_type_id}.${field_id}`;
+    /**
+     * Get Frequency Granularity Options
+     *
+     * @return {Array<{ label: string, value: string }>}
+     */
+    get export_frequency_granularity_options(): Array<{ label: string, value: string }> {
+        const options: Array<{ label: string, value: string }> = [];
 
-                // the actual filter
-                const filter = filters[field_id];
-
-                // Path to find the actual filter
-                const path: { api_type_id: string, field_id: string, } = {
-                    api_type_id,
-                    field_id
-                };
-
-                // Get HMI readable active field filters
-                const readable_active_field_filters = ContextFilterVOHandler.context_filter_to_readable_ihm(filter);
-
-                res[label] = {
-                    readable_active_field_filters,
-                    filter,
-                    path,
-                };
-
-            }
+        for (const key in ExportFrequencyGranularityLabel) {
+            options.push({ label: ExportFrequencyGranularityLabel[key], value: key });
         }
 
-        return res;
+        return options;
     }
 
     /**

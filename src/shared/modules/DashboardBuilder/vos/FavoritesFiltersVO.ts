@@ -1,17 +1,19 @@
 
-import { IExportParamsProps } from '../interfaces/IExportParamsProps';
+
+import IFavoritesFiltersOptions from '../interfaces/IFavoritesFiltersOptions';
+import IExportParamsProps from '../interfaces/IExportParamsProps';
 import DashboardBuilderController from "../DashboardBuilderController";
 import ContextFilterVO from '../../ContextFilter/vos/ContextFilterVO';
 import IDistantVOBase from "../../IDistantVOBase";
 
 /**
- * DashboardFavoritesFiltersVO
+ * FavoritesFiltersVO
  *  - One user may have many favorites active filters on one page
  */
-export default class DashboardFavoritesFiltersVO implements IDistantVOBase {
+export default class FavoritesFiltersVO implements IDistantVOBase {
     public static API_TYPE_ID: string = "dashboard_p_favorites_filters";
 
-    public _type: string = DashboardFavoritesFiltersVO.API_TYPE_ID;
+    public _type: string = FavoritesFiltersVO.API_TYPE_ID;
 
     public id: number;
 
@@ -30,13 +32,16 @@ export default class DashboardFavoritesFiltersVO implements IDistantVOBase {
     // JSON object of export configurations
     public export_params: IExportParamsProps;
 
+    // JSON object of favorites filters behaviors options (ex: overwrite active_field_filters, etc...)
+    public options: IFavoritesFiltersOptions;
+
     /**
      * Hydrate from the given properties
      *
-     * @param {Partial<DashboardFavoritesFiltersVO>} [props]
-     * @returns {DashboardFavoritesFiltersVO}
+     * @param {Partial<FavoritesFiltersVO>} [props]
+     * @returns {FavoritesFiltersVO}
      */
-    public from(props: Partial<DashboardFavoritesFiltersVO>): DashboardFavoritesFiltersVO {
+    public from(props: Partial<FavoritesFiltersVO>): FavoritesFiltersVO {
 
         Object.assign(this, props);
 

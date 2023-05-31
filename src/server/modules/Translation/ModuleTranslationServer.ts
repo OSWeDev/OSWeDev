@@ -264,6 +264,12 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             'fr-fr': 'Enregistrer'
         }, 'crud.update.modal.save.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Mettre à jour'
+        }, 'crud.update.modal.update.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': 'Supprimer'
+        }, 'crud.update.modal.delete.___LABEL___'));
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Modifier'
         }, 'crud.update.modal.title.___LABEL___'));
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({

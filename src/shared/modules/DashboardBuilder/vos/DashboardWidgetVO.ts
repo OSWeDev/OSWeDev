@@ -6,7 +6,10 @@ import DashboardBuilderController from "../DashboardBuilderController";
 
 
 /**
- * DashboardWidgetVO
+ * @class DashboardWidgetVO
+ *  - DashboardWidgetVO is the DashboardPageWidgetVO type actually
+ *
+ * May be renamed to DashboardWidgetTypeVO
  */
 export default class DashboardWidgetVO implements IDistantVOBase, IWeightedItem, INamedVO {
     public static API_TYPE_ID: string = "dashboard_widget";

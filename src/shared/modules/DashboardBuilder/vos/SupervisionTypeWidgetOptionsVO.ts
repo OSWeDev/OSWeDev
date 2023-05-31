@@ -1,5 +1,5 @@
 import DefaultTranslation from "../../Translation/vos/DefaultTranslation";
-import { AbstractVO } from "../../VO/abstract/AbstractVO";
+import AbstractVO from "../../VO/abstract/AbstractVO";
 import DashboardPageWidgetVO from "./DashboardPageWidgetVO";
 
 /**

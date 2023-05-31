@@ -18,7 +18,7 @@ import ModuleTableField from '../ModuleTableField';
 import VarConfVO from '../Var/vos/VarConfVO';
 import VOsTypesManager from '../VO/manager/VOsTypesManager';
 import AdvancedDateFilterOptDescVO from './vos/AdvancedDateFilterOptDescVO';
-import DashboardFavoritesFiltersVO from './vos/DashboardFavoritesFiltersVO';
+import FavoritesFiltersVO from './vos/FavoritesFiltersVO';
 import DashboardGraphVORefVO from './vos/DashboardGraphVORefVO';
 import DashboardPageWidgetVO from './vos/DashboardPageWidgetVO';
 import DashboardWidgetVO from './vos/DashboardWidgetVO';
@@ -63,9 +63,9 @@ export default class ModuleDashboardBuilder extends Module {
     public registerApis() {
         // Load all users favorites filters and start exporting by using their filters
         APIControllerWrapper.registerApi(new PostAPIDefinition<void, void>(
-            DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, DashboardFavoritesFiltersVO.API_TYPE_ID),
+            DAOController.getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, FavoritesFiltersVO.API_TYPE_ID),
             ModuleDashboardBuilder.APINAME_START_EXPORT_DATATABLE_USING_FAVORITES_FILTERS,
-            [DashboardFavoritesFiltersVO.API_TYPE_ID]
+            [FavoritesFiltersVO.API_TYPE_ID]
         ));
     }
 
@@ -77,7 +77,7 @@ export default class ModuleDashboardBuilder extends Module {
 
         let db_page = this.init_DashboardPageVO(db_table);
 
-        this.init_DashboardFavoritesFiltersVO(db_page);
+        this.init_FavoritesFiltersVO(db_page);
 
         this.init_DashboardGraphVORefVO(db_table);
         let db_widget = this.init_DashboardWidgetVO();
@@ -217,7 +217,7 @@ export default class ModuleDashboardBuilder extends Module {
      *  - Database table to stock user favorites of active filters
      *  - May be useful to save the actual dashboard, owner_id and page_filters
      */
-    private init_DashboardFavoritesFiltersVO(db_page: ModuleTable<any>) {
+    private init_FavoritesFiltersVO(db_page: ModuleTable<any>) {
 
         let page_id = new ModuleTableField('page_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Page Dashboard', true);
 
@@ -229,13 +229,14 @@ export default class ModuleDashboardBuilder extends Module {
             new ModuleTableField('field_filters', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Field Filters', false),
             // export_params: Specify frequence (month day number e.g. 1st, 10th or 20)
             new ModuleTableField('export_params', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Export Params', false),
+            new ModuleTableField('options', ModuleTableField.FIELD_TYPE_plain_vo_obj, 'Behaviours Options', false),
         ];
 
         this.datatables.push(
             new ModuleTable(
                 this,
-                DashboardFavoritesFiltersVO.API_TYPE_ID,
-                () => new DashboardFavoritesFiltersVO(),
+                FavoritesFiltersVO.API_TYPE_ID,
+                () => new FavoritesFiltersVO(),
                 datatable_fields,
                 null,
                 "Filtres Favoris"

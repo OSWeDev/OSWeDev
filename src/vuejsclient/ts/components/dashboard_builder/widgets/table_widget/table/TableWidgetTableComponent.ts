@@ -4,7 +4,7 @@ import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ContextFilterVOHandler from '../../../../../../../shared/modules/ContextFilter/handler/ContextFilterVOHandler';
 import ContextFilterVOManager from '../../../../../../../shared/modules/ContextFilter/manager/ContextFilterVOManager';
-import FieldFilterManager from '../../../../../../../shared/modules/ContextFilter/manager/FieldFilterManager';
+import FieldFilterManager from '../../../../../../../shared/modules/DashboardBuilder/manager/FieldFilterManager';
 import ModuleContextFilter from '../../../../../../../shared/modules/ContextFilter/ModuleContextFilter';
 import ContextFilterVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextFilterVO';
 import ContextQueryFieldVO from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryFieldVO';
@@ -1475,10 +1475,11 @@ export default class TableWidgetTableComponent extends VueComponentBase {
         for (let column_id in this.fields) {
             let field = this.fields[column_id];
 
-            if ((field.type == DatatableField.VAR_FIELD_TYPE) ||
+            if (
+                (field.type == DatatableField.VAR_FIELD_TYPE) ||
                 (field.type == DatatableField.COMPONENT_FIELD_TYPE) ||
-                (field.type == DatatableField.SELECT_BOX_FIELD_TYPE)) {
-
+                (field.type == DatatableField.SELECT_BOX_FIELD_TYPE)
+            ) {
                 continue;
             }
 
@@ -2259,6 +2260,8 @@ export default class TableWidgetTableComponent extends VueComponentBase {
      */
     private async do_export_to_xlsx(limit_to_page: boolean = true) {
         let param: ExportContextQueryToXLSXParamVO = this.get_export_params_for_context_query_xlsx(limit_to_page);
+
+        console.log('TableWidgetTableComponentdo_export_to_xlsx', JSON.stringify(param));
 
         if (!!param) {
 

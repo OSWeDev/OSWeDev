@@ -20,6 +20,7 @@ export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
         if (!DAOStore.instance) {
             DAOStore.instance = new DAOStore();
         }
+
         return DAOStore.instance;
     }
 
@@ -108,20 +109,26 @@ export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
                     Vue.set(state.storedDatasArray, vo._type, {
                         [vo.id]: vo
                     });
+
                     if (state.typeWatchers[vo._type]) {
                         await callWatchers(state.typeWatchers[vo._type]);
                     }
+
                     return;
                 }
 
                 if (!state.storedDatasArray[vo._type][vo.id]) {
                     Vue.set(state.storedDatasArray[vo._type] as any, vo.id, vo);
+
                     if (state.typeWatchers[vo._type]) {
                         await callWatchers(state.typeWatchers[vo._type]);
                     }
+
                     return;
                 }
+
                 state.storedDatasArray[vo._type][vo.id] = vo;
+
                 if (state.typeWatchers[vo._type]) {
                     await callWatchers(state.typeWatchers[vo._type]);
                 }
@@ -130,6 +137,7 @@ export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
             async storeDatas(state: IDAOState, infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) {
 
                 Vue.set(state.storedDatasArray, infos.API_TYPE_ID, VOsTypesManager.vosArray_to_vosByIds(infos.vos));
+
                 if (state.typeWatchers[infos.API_TYPE_ID]) {
                     await callWatchers(state.typeWatchers[infos.API_TYPE_ID]);
                 }
@@ -138,6 +146,7 @@ export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
             async storeDatasByIds(state: IDAOState, infos: { API_TYPE_ID: string, vos_by_ids: { [id: number]: IDistantVOBase } }) {
 
                 Vue.set(state.storedDatasArray, infos.API_TYPE_ID, infos.vos_by_ids);
+
                 if (state.typeWatchers[infos.API_TYPE_ID]) {
                     await callWatchers(state.typeWatchers[infos.API_TYPE_ID]);
                 }
@@ -149,6 +158,7 @@ export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
                     let info = infos[i];
 
                     Vue.set(state.storedDatasArray, info.API_TYPE_ID, info.vos_by_ids);
+
                     if (state.typeWatchers[info.API_TYPE_ID]) {
                         await callWatchers(state.typeWatchers[info.API_TYPE_ID]);
                     }
@@ -162,6 +172,7 @@ export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
                 }
 
                 Vue.delete(state.storedDatasArray[infos.API_TYPE_ID] as any, infos.id);
+
                 if (state.typeWatchers[infos.API_TYPE_ID]) {
                     await callWatchers(state.typeWatchers[infos.API_TYPE_ID]);
                 }
@@ -169,12 +180,12 @@ export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
 
             async updateData(state: IDAOState, vo: IDistantVOBase) {
 
-
                 if ((!vo) || (!vo._type) || (!state.storedDatasArray[vo._type])) {
                     return;
                 }
 
                 state.storedDatasArray[vo._type][vo.id] = vo;
+
                 if (state.typeWatchers[vo._type]) {
                     await callWatchers(state.typeWatchers[vo._type]);
                 }

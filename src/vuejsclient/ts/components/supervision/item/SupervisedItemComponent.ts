@@ -33,7 +33,6 @@ export default class SupervisedItemComponent extends VueComponentBase {
     @Prop()
     private supervised_item_vo_type: string;
 
-
     private show_graph: boolean = false;
     private supervised_item: ISupervisedItem = null;
     private debounced_load_supervised_item = debounce(this.load_supervised_item, 200);
@@ -129,7 +128,12 @@ export default class SupervisedItemComponent extends VueComponentBase {
             return;
         }
 
-        await ModuleSupervision.getInstance().refresh_one_manually(this.supervised_item._type, this.supervised_item.name);
+        console.log('invalidate', this.supervised_item);
+
+        await ModuleSupervision.getInstance().refresh_one_manually(
+            this.supervised_item._type,
+            this.supervised_item.name
+        );
     }
 
     private async beforeDestroy() {
@@ -162,28 +166,44 @@ export default class SupervisedItemComponent extends VueComponentBase {
     }
 
     private async load_supervised_item() {
+        console.log('load_supervised_item', this.supervised_item_id, this.supervised_item_vo_type);
+
         if ((!this.supervised_item_id) || (!this.supervised_item_vo_type)) {
             this.supervised_item = null;
             return;
         }
 
-        AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([this.supervised_item_vo_type, SupervisionController.getInstance().getSupHistVoType(this.supervised_item_vo_type)]);
-        this.supervised_item = await query(this.supervised_item_vo_type).filter_by_id(this.supervised_item_id).select_vo<ISupervisedItem>();
+        const api_types = [
+            this.supervised_item_vo_type,
+            SupervisionController.getInstance().getSupHistVoType(this.supervised_item_vo_type)
+        ];
+
+        AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved(api_types);
+
+        this.supervised_item = await query(this.supervised_item_vo_type)
+            .filter_by_id(this.supervised_item_id)
+            .select_vo<ISupervisedItem>();
+
+        console.log('load_supervised_item', this.supervised_item);
 
         let promises = [];
         let tmp_hist: ISupervisedItem[] = null;
+
         promises.push((async () => {
-            tmp_hist = await query(SupervisionController.getInstance().getSupHistVoType(this.supervised_item_vo_type))
+            tmp_hist = await query(SupervisionController.getInstance()
+                .getSupHistVoType(this.supervised_item_vo_type))
                 .filter_by_text_eq('name', this.supervised_item.name)
                 .select_vos<ISupervisedItem>();
 
         })());
+
         let current_value: ISupervisedItem = null;
         promises.push((async () => {
             current_value = await query(this.supervised_item_vo_type)
                 .filter_by_text_eq('name', this.supervised_item.name, this.supervised_item_vo_type, true)
                 .select_vo<ISupervisedItem>();
         })());
+
         await all_promises(promises);
 
         tmp_hist.push(current_value);

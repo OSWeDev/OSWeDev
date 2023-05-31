@@ -9,7 +9,7 @@ import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleDroppableVoFieldsAction } from '../../../droppable_vo_fields/DroppableVoFieldsStore';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from '../../../page/DashboardPageStore';
 import './ShowFavoritesFiltersWidgetOptionsComponent.scss';
-import DashboardFavoritesFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/DashboardFavoritesFiltersVO';
+import FavoritesFiltersVO from '../../../../../../../shared/modules/DashboardBuilder/vos/FavoritesFiltersVO';
 import VOFieldRefVO from '../../../../../../../shared/modules/DashboardBuilder/vos/VOFieldRefVO';
 import { query } from '../../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 import SortByVO from '../../../../../../../shared/modules/ContextFilter/vos/SortByVO';
@@ -46,7 +46,7 @@ export default class ShowFavoritesFiltersWidgetOptionsComponent extends VueCompo
 
     private max_visible_options: number = null;
 
-    private filter_visible_options: DashboardFavoritesFiltersVO[] = [];
+    private filter_visible_options: FavoritesFiltersVO[] = [];
     private actual_query: string = null;
 
     private next_update_options: ShowFavoritesFiltersWidgetOptions = null;
@@ -110,10 +110,10 @@ export default class ShowFavoritesFiltersWidgetOptionsComponent extends VueCompo
 
         let field_sort: VOFieldRefVO = this.vo_field_ref;
 
-        let tmp: DashboardFavoritesFiltersVO[] = await query(this.vo_field_ref.api_type_id)
+        let tmp: FavoritesFiltersVO[] = await query(this.vo_field_ref.api_type_id)
             .set_limit(this.max_visible_options)
             .set_sort(new SortByVO(field_sort.api_type_id, field_sort.field_id, true))
-            .select_vos<DashboardFavoritesFiltersVO>();
+            .select_vos<FavoritesFiltersVO>();
 
         // Si je ne suis pas sur la dernière demande, je me casse
         if (this.last_calculation_cpt != launch_cpt) {
@@ -230,7 +230,7 @@ export default class ShowFavoritesFiltersWidgetOptionsComponent extends VueCompo
      * Get vo_field_ref
      */
     get vo_field_ref(): VOFieldRefVO {
-        const vo = new DashboardFavoritesFiltersVO();
+        const vo = new FavoritesFiltersVO();
 
         return new VOFieldRefVO().from({
             api_type_id: vo._type,
