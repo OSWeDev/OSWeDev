@@ -44,11 +44,6 @@ export default class VarsClientController {
      */
     public registered_var_params_to_check_next_time: { [index: string]: boolean } = {};
 
-    /**
-     * appelle la fonction {@link ModuleVarServer.register_params register_params} coté server (ModuleVarServer)
-     * @see {@link ModuleVarServer.register_params}
-     */
-
     public throttled_server_registration = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.do_server_registration.bind(this), 50, { leading: false, trailing: true });
     public throttled_server_unregistration = ThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.do_server_unregistration.bind(this), 100, { leading: false, trailing: true });
 
@@ -374,11 +369,6 @@ export default class VarsClientController {
         setTimeout(self.update_params_registration.bind(this), self.timeout_update_params_registration);
     }
 
-    /**
-     * appelle la fonction {@link ModuleVarServer.register_params register_params} coté server (ModuleVarServer)
-     * @see {@link ModuleVarServer.register_params }
-     * @param params
-     */
     private async do_server_registration(params: { [index: string]: VarDataBaseVO }) {
         await ModuleVar.getInstance().register_params(Object.values(params));
     }

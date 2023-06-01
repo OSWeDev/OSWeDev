@@ -92,7 +92,7 @@ export default class AnimationImportThemeAdminVue extends VueComponentBase {
     //--- partie export
     private async setExport() {
         this.startLoading();
-        this.themes = await ModuleDAO.getInstance().getVos(AnimationThemeVO.API_TYPE_ID);
+        this.themes = await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>();
         this.set_themes_for_export();
 
         AppVuexStoreManager.getInstance().appVuexStore.dispatch('register_hook_export_data_to_XLSX', this.get_export_params_for_xlsx);

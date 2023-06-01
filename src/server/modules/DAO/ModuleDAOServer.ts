@@ -751,7 +751,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
         APIControllerWrapper.registerServerApiHandler(ModuleDAO.APINAME_INSERT_OR_UPDATE_VO, this.insertOrUpdateVO.bind(this));
 
         APIControllerWrapper.registerServerApiHandler(ModuleDAO.APINAME_GET_VO_BY_ID, this.getVoById.bind(this));
-        APIControllerWrapper.registerServerApiHandler(ModuleDAO.APINAME_GET_VOS, this.getVos.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleDAO.APINAME_GET_VOS_BY_IDS, this.getVosByIds.bind(this));
         APIControllerWrapper.registerServerApiHandler(ModuleDAO.APINAME_GET_VOS_BY_IDS_RANGES, this.getVosByIdsRanges.bind(this));
 
@@ -1112,10 +1111,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return " (" + where_clause_params.join(" OR ") + ") ";
     }
 
-    public async deleteVOsMulticonnections<T extends IDistantVOBase>(vos: T[], max_connections_to_use: number = 0): Promise<InsertOrDeleteQueryResult[]> {
+    public async deleteVOsMulticonnections<T extends IDistantVOBase>(vos: T[]): Promise<InsertOrDeleteQueryResult[]> {
 
         // max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL));
-        max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL - 1));
+        let max_connections_to_use = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
         let promise_pipeline = new PromisePipeline(max_connections_to_use);
 
         let res: InsertOrDeleteQueryResult[] = [];
@@ -1144,7 +1143,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     public async insertOrUpdateVOsMulticonnections<T extends IDistantVOBase>(vos: T[], max_connections_to_use: number = 0, exec_as_server: boolean = false): Promise<InsertOrDeleteQueryResult[]> {
 
         // max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL));
-        max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL - 1));
+        max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
         let promise_pipeline = new PromisePipeline(max_connections_to_use);
 
         /**
@@ -1263,7 +1262,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         let vos_by_vo_tablename_and_ids: { [tablename: string]: { moduletable: ModuleTable<any>, vos: { [id: number]: IDistantVOBase[] } } } = {};
 
-        max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL - 1));
+        max_connections_to_use = max_connections_to_use || Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
 
         let promise_pipeline = new PromisePipeline(max_connections_to_use);
 

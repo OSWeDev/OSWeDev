@@ -29,7 +29,7 @@ export default class CreateDefaultLangFRIfNone implements IGeneratorWorker {
     public async work(db: IDatabase<any>) {
 
         try {
-            let langs: LangVO[] = await ModuleDAO.getInstance().getVos<LangVO>(LangVO.API_TYPE_ID);
+            let langs: LangVO[] = await query(LangVO.API_TYPE_ID).select_vos<LangVO>();
             if ((langs != null) && (langs.length > 0)) {
                 return;
             }

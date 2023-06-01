@@ -59,7 +59,7 @@ export default class ModuleAnimationImportThemeServer extends DataImportModuleBa
 
     public async validate_formatted_data(themes_data: AnimationImportThemeVO[]): Promise<AnimationImportThemeVO[]> {
 
-        let themes_db: AnimationThemeVO[] = await ModuleDAO.getInstance().getVos(AnimationThemeVO.API_TYPE_ID);
+        let themes_db: AnimationThemeVO[] = await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>();
 
         for (let theme_data of themes_data) {
 
@@ -97,7 +97,7 @@ export default class ModuleAnimationImportThemeServer extends DataImportModuleBa
             return false;
         }
 
-        let themesInDB: AnimationThemeVO[] = await ModuleDAO.getInstance().getVos(AnimationThemeVO.API_TYPE_ID);
+        let themesInDB: AnimationThemeVO[] = await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>();
 
         let succeeded = true;
         for (let i in themeDatas) {

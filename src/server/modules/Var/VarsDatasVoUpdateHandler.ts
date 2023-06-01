@@ -1179,7 +1179,7 @@ export default class VarsDatasVoUpdateHandler {
         let var_datas_by_index: { [index: string]: VarDataBaseVO } = {};
         let cached_by_index: { [index: string]: VarDataBaseVO } = {};
 
-        let max_connections_to_use: number = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL - 1));
+        let max_connections_to_use: number = Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2));
         let promise_pipeline = new PromisePipeline(max_connections_to_use);
 
         for (let var_id_s in invalidators_by_var_id) {

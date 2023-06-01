@@ -106,10 +106,10 @@ export default class AnimationImportModuleAdminVue extends VueComponentBase {
 
         let promises = [];
         promises.push((async () => {
-            this.modules = await ModuleDAO.getInstance().getVos(AnimationModuleVO.API_TYPE_ID);
+            this.modules = await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>();
         })());
         promises.push((async () => {
-            this.themes = await ModuleDAO.getInstance().getVos(AnimationThemeVO.API_TYPE_ID);
+            this.themes = await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>();
         })());
 
         await all_promises(promises);

@@ -6,7 +6,7 @@ import ConfigurationService from '../server/env/ConfigurationService';
 import EnvParam from '../server/env/EnvParam';
 import FileLoggerHandler from '../server/FileLoggerHandler';
 import ModuleAccessPolicyServer from '../server/modules/AccessPolicy/ModuleAccessPolicyServer';
-import ModulesClientInitializationDatasGenerator from '../server/modules/ModulesClientInitializationDatasGenerator';
+import ModulesClientInitializationDatasGenerator from './ModulesClientInitializationDatasGenerator';
 import ModuleServiceBase from '../server/modules/ModuleServiceBase';
 import ModuleSASSSkinConfiguratorServer from '../server/modules/SASSSkinConfigurator/ModuleSASSSkinConfiguratorServer';
 import DefaultTranslationsServerManager from '../server/modules/Translation/DefaultTranslationsServerManager';

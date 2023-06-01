@@ -63,8 +63,8 @@ export default class ModuleAnimationImportModuleServer extends DataImportModuleB
 
     public async validate_formatted_data(module_datas: AnimationImportModuleVO[]): Promise<AnimationImportModuleVO[]> {
 
-        let themes: AnimationThemeVO[] = await ModuleDAO.getInstance().getVos(AnimationThemeVO.API_TYPE_ID);
-        let modules_db: AnimationModuleVO[] = await ModuleDAO.getInstance().getVos(AnimationModuleVO.API_TYPE_ID);
+        let themes: AnimationThemeVO[] = await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>();
+        let modules_db: AnimationModuleVO[] = await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>();
 
         for (let module_data of module_datas) {
 
@@ -112,10 +112,10 @@ export default class ModuleAnimationImportModuleServer extends DataImportModuleB
             return false;
         }
 
-        let themes: AnimationThemeVO[] = await ModuleDAO.getInstance().getVos(AnimationThemeVO.API_TYPE_ID);
+        let themes: AnimationThemeVO[] = await query(AnimationThemeVO.API_TYPE_ID).select_vos<AnimationThemeVO>();
 
-        let modulesInDB: AnimationModuleVO[] = await ModuleDAO.getInstance().getVos(AnimationModuleVO.API_TYPE_ID);
-        let roles: RoleVO[] = await ModuleDAO.getInstance().getVos(RoleVO.API_TYPE_ID);
+        let modulesInDB: AnimationModuleVO[] = await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>();
+        let roles: RoleVO[] = await query(RoleVO.API_TYPE_ID).select_vos<RoleVO>();
 
         let succeeded = true;
         for (let i in moduleDatas) {

@@ -65,7 +65,7 @@ export default class InitUserLogPolicies implements IGeneratorWorker {
 
     private async get_roles_ids_by_name(): Promise<{ [role_name: string]: number }> {
         let roles_ids_by_name: { [role_name: string]: number } = {};
-        let roles: RoleVO[] = await ModuleDAO.getInstance().getVos<RoleVO>(RoleVO.API_TYPE_ID);
+        let roles: RoleVO[] = await query(RoleVO.API_TYPE_ID).select_vos<RoleVO>();
 
         for (let i in roles) {
             let role = roles[i];
@@ -78,7 +78,7 @@ export default class InitUserLogPolicies implements IGeneratorWorker {
 
     private async get_policies_ids_by_name(): Promise<{ [policy_name: string]: number }> {
         let policies_ids_by_name: { [role_name: string]: number } = {};
-        let policies: AccessPolicyVO[] = await ModuleDAO.getInstance().getVos<AccessPolicyVO>(AccessPolicyVO.API_TYPE_ID);
+        let policies: AccessPolicyVO[] = await query(AccessPolicyVO.API_TYPE_ID).select_vos<AccessPolicyVO>();
 
         for (let i in policies) {
             let policy = policies[i];

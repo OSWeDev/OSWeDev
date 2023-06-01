@@ -103,10 +103,10 @@ export default class AnimationImportQRAdminVue extends VueComponentBase {
 
         let promises = [];
         promises.push((async () => {
-            this.qrs = await ModuleDAO.getInstance().getVos(AnimationQRVO.API_TYPE_ID);
+            this.qrs = await query(AnimationQRVO.API_TYPE_ID).select_vos<AnimationQRVO>();
         })());
         promises.push((async () => {
-            this.modules = await ModuleDAO.getInstance().getVos(AnimationModuleVO.API_TYPE_ID);
+            this.modules = await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>();
         })());
 
         await all_promises(promises);

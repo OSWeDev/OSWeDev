@@ -50,6 +50,8 @@ import VueComponentBase from '../../../VueComponentBase';
 import CRUDComponentManager from '../../CRUDComponentManager';
 import CRUDFormServices from '../CRUDFormServices';
 import './CRUDComponentField.scss';
+import { query } from '../../../../../../shared/modules/ContextFilter/vos/ContextQueryVO';
+import DAOController from '../../../../../../shared/modules/DAO/DAOController';
 let debounce = require('lodash/debounce');
 
 @Component({
@@ -814,7 +816,7 @@ export default class CRUDComponentField extends VueComponentBase
             let options = this.getStoredDatas[manyToOne.targetModuleTable.vo_type];
 
             if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(options)) {
-                options = VOsTypesManager.vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(manyToOne.targetModuleTable.vo_type));
+                options = VOsTypesManager.vosArray_to_vosByIds(await query(manyToOne.targetModuleTable.vo_type).select_vos());
                 this.storeDatasByIds({ API_TYPE_ID: manyToOne.targetModuleTable.vo_type, vos_by_ids: options });
             }
 
@@ -910,7 +912,7 @@ export default class CRUDComponentField extends VueComponentBase
         }
     }
 
-    private async asyncLoadOptions(query: string) {
+    private async asyncLoadOptions(query_str: string) {
         if (!this.isLoadingOptions) {
             this.isLoadingOptions = true;
         }
@@ -935,7 +937,7 @@ export default class CRUDComponentField extends VueComponentBase
 
         let options = this.getStoredDatas[manyToOne.targetModuleTable.vo_type];
         if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(options)) {
-            options = VOsTypesManager.vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(manyToOne.targetModuleTable.vo_type));
+            options = VOsTypesManager.vosArray_to_vosByIds(await query(manyToOne.targetModuleTable.vo_type).select_vos());
             this.storeDatasByIds({ API_TYPE_ID: manyToOne.targetModuleTable.vo_type, vos_by_ids: options });
         }
         if (!!OneToMany.filterOptionsForUpdateOrCreateOnOneToMany) {
@@ -956,7 +958,7 @@ export default class CRUDComponentField extends VueComponentBase
         for (let index in ordered_option_array) {
             let option: IDistantVOBase = ordered_option_array[index];
 
-            if (manyToOne.dataToHumanReadable(option).toLowerCase().indexOf(query.toLowerCase()) >= 0) {
+            if (manyToOne.dataToHumanReadable(option).toLowerCase().indexOf(query_str.toLowerCase()) >= 0) {
 
                 if ((!this.select_options_enabled_by_id) || (this.select_options_enabled_by_id[option.id] != null)) {
                     newOptions.push(option.id);
@@ -970,7 +972,7 @@ export default class CRUDComponentField extends VueComponentBase
         this.select_options = newOptions;
     }
 
-    private asyncLoadEnumOptions(query: string) {
+    private asyncLoadEnumOptions(query_str: string) {
         if (!this.isLoadingOptions) {
             this.isLoadingOptions = true;
         }
@@ -989,7 +991,7 @@ export default class CRUDComponentField extends VueComponentBase
 
         for (let i in simpleField.moduleTableField.enum_values) {
 
-            if (simpleField.enumIdToHumanReadable(parseInt(i)).toLowerCase().indexOf(query.toLowerCase()) >= 0) {
+            if (simpleField.enumIdToHumanReadable(parseInt(i)).toLowerCase().indexOf(query_str.toLowerCase()) >= 0) {
 
                 if ((!this.select_options_enabled_by_id) || (this.select_options_enabled_by_id[parseInt(i)] != null)) {
                     newOptions.push(parseInt(i));
@@ -1028,7 +1030,7 @@ export default class CRUDComponentField extends VueComponentBase
             // à voir si c'est un souci mais pour avoir une version toujours propre et complète des options....
             let options = this.getStoredDatas[refrangesField.targetModuleTable.vo_type];
             if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(options)) {
-                options = VOsTypesManager.vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(refrangesField.targetModuleTable.vo_type));
+                options = VOsTypesManager.vosArray_to_vosByIds(await query(refrangesField.targetModuleTable.vo_type).select_vos());
                 this.storeDatasByIds({ API_TYPE_ID: refrangesField.targetModuleTable.vo_type, vos_by_ids: options });
             }
 
@@ -1057,7 +1059,7 @@ export default class CRUDComponentField extends VueComponentBase
             // à voir si c'est un souci mais pour avoir une version toujours propre et complète des options....
             let options = this.getStoredDatas[OneToManyField.targetModuleTable.vo_type];
             if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(options)) {
-                options = VOsTypesManager.vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(OneToManyField.targetModuleTable.vo_type));
+                options = VOsTypesManager.vosArray_to_vosByIds(await query(OneToManyField.targetModuleTable.vo_type).select_vos());
                 this.storeDatasByIds({ API_TYPE_ID: OneToManyField.targetModuleTable.vo_type, vos_by_ids: options });
             }
 
@@ -1085,7 +1087,7 @@ export default class CRUDComponentField extends VueComponentBase
             // à voir si c'est un souci mais pour avoir une version toujours propre et complète des options....
             let options = this.getStoredDatas[manyToManyField.targetModuleTable.vo_type];
             if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(options)) {
-                options = VOsTypesManager.vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(manyToManyField.targetModuleTable.vo_type));
+                options = VOsTypesManager.vosArray_to_vosByIds(await query(manyToManyField.targetModuleTable.vo_type).select_vos());
                 this.storeDatasByIds({ API_TYPE_ID: manyToManyField.targetModuleTable.vo_type, vos_by_ids: options });
             }
 
@@ -1113,7 +1115,7 @@ export default class CRUDComponentField extends VueComponentBase
             // à voir si c'est un souci mais pour avoir une version toujours propre et complète des options....
             let options = this.getStoredDatas[manyToOneField.targetModuleTable.vo_type];
             if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(options)) {
-                options = VOsTypesManager.vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(manyToOneField.targetModuleTable.vo_type));
+                options = VOsTypesManager.vosArray_to_vosByIds(await query(manyToOneField.targetModuleTable.vo_type).select_vos());
                 this.storeDatasByIds({ API_TYPE_ID: manyToOneField.targetModuleTable.vo_type, vos_by_ids: options });
             }
 

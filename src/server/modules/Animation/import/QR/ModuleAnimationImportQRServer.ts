@@ -56,8 +56,8 @@ export default class ModuleAnimationImportQRServer extends DataImportModuleBase<
 
     public async validate_formatted_data(qr_datas: AnimationImportQRVO[]): Promise<AnimationImportQRVO[]> {
 
-        let modules_db: AnimationModuleVO[] = await ModuleDAO.getInstance().getVos(AnimationModuleVO.API_TYPE_ID);
-        let qr_db: AnimationQRVO[] = await ModuleDAO.getInstance().getVos(AnimationQRVO.API_TYPE_ID);
+        let modules_db: AnimationModuleVO[] = await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>();
+        let qr_db: AnimationQRVO[] = await query(AnimationQRVO.API_TYPE_ID).select_vos<AnimationQRVO>();
 
         for (let qr_data of qr_datas) {
 
@@ -104,10 +104,10 @@ export default class ModuleAnimationImportQRServer extends DataImportModuleBase<
             return false;
         }
 
-        let modules: AnimationModuleVO[] = await ModuleDAO.getInstance().getVos(AnimationModuleVO.API_TYPE_ID);
+        let modules: AnimationModuleVO[] = await query(AnimationModuleVO.API_TYPE_ID).select_vos<AnimationModuleVO>();
 
-        let QRsInDB: AnimationQRVO[] = await ModuleDAO.getInstance().getVos(AnimationQRVO.API_TYPE_ID);
-        let filesInDB: FileVO[] = await ModuleDAO.getInstance().getVos(FileVO.API_TYPE_ID);
+        let QRsInDB: AnimationQRVO[] = await query(AnimationQRVO.API_TYPE_ID).select_vos<AnimationQRVO>();
+        let filesInDB: FileVO[] = await query(FileVO.API_TYPE_ID).select_vos<FileVO>();
 
         let succeeded = true;
         for (let i in QRDatas) {

@@ -699,7 +699,7 @@ export default class ContextQueryServerController {
                     }
                 });
 
-                let promise_pipeline = new PromisePipeline(Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL - 1)));
+                let promise_pipeline = new PromisePipeline(Math.max(1, Math.floor(ConfigurationService.node_configuration.MAX_POOL / 2)));
 
                 for (let i in vos_to_update) {
                     let vo_to_update = vos_to_update[i];

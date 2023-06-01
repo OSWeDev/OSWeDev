@@ -585,7 +585,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             lang_id = user.lang_id;
         }
 
-        let vos = await ModuleDAO.getInstance().getVos(api_type_id);
+        let vos = await query(api_type_id).select_vos();
         for (let i in vos) {
             let vo = this.get_xlsx_version(modultable, vos[i]);
             if (vo) {
