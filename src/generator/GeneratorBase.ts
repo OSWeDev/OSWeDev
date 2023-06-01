@@ -61,7 +61,6 @@ import Patch20230209AddColumnFormatDatesNombres from './patchs/premodules/Patch2
 import Patch20230512DeleteAllStats from './patchs/premodules/Patch20230512DeleteAllStats';
 import Patch20230517DeleteAllStats from './patchs/premodules/Patch20230517DeleteAllStats';
 import Patch20230428UpdateUserArchivedField from './patchs/premodules/Patch20230428UpdateUserArchivedField';
-import VendorBuilder from './vendor_builder/VendorBuilder';
 import VersionUpdater from './version_updater/VersionUpdater';
 
 export default abstract class GeneratorBase {
@@ -237,10 +236,6 @@ export default abstract class GeneratorBase {
          */
         console.log("saveDefaultTranslations...");
         await DefaultTranslationsServerManager.getInstance().saveDefaultTranslations(true);
-
-        // console.log("Generate Vendor: ...");
-        // await VendorBuilder.getInstance().generate_vendor();
-        // console.log("Generate Vendor: OK!");
 
         console.log("Code Generation DONE. Exiting ...");
         process.exit(0);
