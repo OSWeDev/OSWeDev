@@ -140,7 +140,7 @@ export default class ContextQueryFieldServerController {
                 return null_modifier + " as " + field_query_statement;
             }
 
-            case ContextQueryFieldVO.FIELD_MODIFIER_FIELD_AS_API_TYPE_ID:
+            case ContextQueryFieldVO.FIELD_MODIFIER_FIELD_AS_EXPLICIT_API_TYPE_ID:
                 const api_type_id = context_query_field.api_type_id;
 
                 return `('${api_type_id}')::text as ${field_query_statement}`;
