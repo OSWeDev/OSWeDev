@@ -7,6 +7,7 @@ import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import DAOController from '../../../shared/modules/DAO/DAOController';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import FeedbackVO from '../../../shared/modules/Feedback/vos/FeedbackVO';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 
 
 export default class InitPoliciesFeedback implements IGeneratorWorker {

@@ -4,6 +4,7 @@ import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO'
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
+import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import IVersionedVO from '../../../shared/modules/Versioned/interfaces/IVersionedVO';
 import ModuleVersioned from '../../../shared/modules/Versioned/ModuleVersioned';
@@ -18,6 +19,7 @@ import DAOPreDeleteTriggerHook from '../DAO/triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
+import ModuleParamsServer from '../Params/ModuleParamsServer';
 import ModuleTriggerServer from '../Trigger/ModuleTriggerServer';
 
 export default class ModuleVersionedServer extends ModuleServerBase {
@@ -55,6 +57,17 @@ export default class ModuleVersionedServer extends ModuleServerBase {
         }
     }
 
+    private async get_robot_user_id(): Promise<number> {
+        let robot_user_id: number = await ModuleParamsServer.getInstance().getParamValueAsInt(ModuleVersioned.PARAM_NAME_ROBOT_USER_ID, null, 3600000);
+
+        if (!robot_user_id) {
+            let robot_user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_text_eq('name', 'robot').exec_as_server().select_vo<UserVO>();
+            robot_user_id = robot_user ? robot_user.id : null;
+            await ModuleParamsServer.getInstance().setParamValue_as_server(ModuleVersioned.PARAM_NAME_ROBOT_USER_ID, robot_user_id.toString());
+        }
+
+        return robot_user_id;
+    }
 
     private async handleTriggerVOPreCreate(vo: IVersionedVO): Promise<boolean> {
         if (!vo) {
@@ -68,24 +81,18 @@ export default class ModuleVersionedServer extends ModuleServerBase {
         // TODO : ATTENTION par défaut c'est du without timezone en base, hors sur le serveur on a un timezone par défaut et sur les fullcalendar on est en without timezone par défaut ....
         let ts = Dates.now();
         let uid: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
-        let robot_user: UserVO = null;
+        if (!uid) {
+            uid = await this.get_robot_user_id();
+        }
 
         if (!vo.version_author_id) {
-            if (!robot_user) {
-                robot_user = await query(UserVO.API_TYPE_ID).filter_by_text_eq('name', 'robot').exec_as_server().select_vo<UserVO>();
-            }
-
-            vo.version_author_id = (!!uid) ? uid : ((robot_user) ? robot_user.id : null);
+            vo.version_author_id = uid;
         }
 
         vo.version_timestamp = ts;
 
         if (!vo.version_edit_author_id) {
-            if (!robot_user) {
-                robot_user = await query(UserVO.API_TYPE_ID).filter_by_text_eq('name', 'robot').exec_as_server().select_vo<UserVO>();
-            }
-
-            vo.version_edit_author_id = (!!uid) ? uid : ((robot_user) ? robot_user.id : null);
+            vo.version_edit_author_id = uid;
         }
 
         vo.version_edit_timestamp = ts;
@@ -116,8 +123,8 @@ export default class ModuleVersionedServer extends ModuleServerBase {
         if (!!uid) {
             vo_update_handler.post_update_vo.version_edit_author_id = uid;
         } else {
-            let robot_user: UserVO = await query(UserVO.API_TYPE_ID).filter_by_text_eq('name', 'robot').exec_as_server().select_vo<UserVO>();
-            vo_update_handler.post_update_vo.version_edit_author_id = robot_user ? robot_user.id : null;
+
+            vo_update_handler.post_update_vo.version_edit_author_id = await this.get_robot_user_id();
         }
 
         vo_update_handler.post_update_vo.version_edit_timestamp = Dates.now();

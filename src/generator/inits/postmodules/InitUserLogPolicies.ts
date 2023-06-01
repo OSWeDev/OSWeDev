@@ -9,6 +9,7 @@ import UserLogVO from '../../../shared/modules/AccessPolicy/vos/UserLogVO';
 import DAOController from '../../../shared/modules/DAO/DAOController';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import IGeneratorWorker from '../../IGeneratorWorker';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 
 export default class InitUserLogPolicies implements IGeneratorWorker {
 

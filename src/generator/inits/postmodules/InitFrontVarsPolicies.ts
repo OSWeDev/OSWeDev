@@ -6,6 +6,7 @@ import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolic
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
+import { query } from '../../../shared/modules/ContextFilter/vos/ContextQueryVO';
 
 
 export default class InitFrontVarsPolicies implements IGeneratorWorker {
