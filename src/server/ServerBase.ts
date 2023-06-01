@@ -83,6 +83,7 @@ export default abstract class ServerBase {
     protected static instance: ServerBase = null;
 
     public csrfProtection;
+    public version;
 
     protected db: IDatabase<any>;
     protected spawn;
@@ -90,7 +91,6 @@ export default abstract class ServerBase {
     protected port;
     protected uiDebug;
     protected envParam: EnvParam;
-    protected version;
     private connectionString: string;
     // private jwtSecret: string;
     private modulesService: ModuleServiceBase;

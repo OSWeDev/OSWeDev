@@ -1,5 +1,5 @@
 import { IDatabase } from 'pg-promise';
-import IGeneratorWorker from '../../../generator/IGeneratorWorker';
+import IGeneratorWorker from '../../IGeneratorWorker';
 import ModuleAccessPolicyServer from '../../../server/modules/AccessPolicy/ModuleAccessPolicyServer';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';

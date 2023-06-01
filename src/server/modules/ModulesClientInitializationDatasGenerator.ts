@@ -1,5 +1,5 @@
-import GeneratorBase from "../../generator/GeneratorBase";
 import Module from "../../shared/modules/Module";
+import ServerBase from "../ServerBase";
 import ConfigurationService from '../env/ConfigurationService';
 import ModuleFileServer from './File/ModuleFileServer';
 import ModuleServiceBase from "./ModuleServiceBase";
@@ -82,7 +82,7 @@ export default class ModulesClientInitializationDatasGenerator {
         fileContent += "    EnvHandler.COMPRESS = " + ((!!ConfigurationService.node_configuration.COMPRESS) ? 'true' : 'false') + ';\n';
         fileContent += "    EnvHandler.BASE_URL = '" + ConfigurationService.node_configuration.BASE_URL + "';\n";
         fileContent += "    EnvHandler.CODE_GOOGLE_ANALYTICS = '" + ConfigurationService.node_configuration.CODE_GOOGLE_ANALYTICS + "';\n";
-        fileContent += "    EnvHandler.VERSION = '" + GeneratorBase.getInstance().getVersion() + "';\n";
+        fileContent += "    EnvHandler.VERSION = '" + ServerBase.getInstance().version + "';\n";
         fileContent += "    EnvHandler.ACTIVATE_PWA = " + ((!!ConfigurationService.node_configuration.ACTIVATE_PWA) ? 'true' : 'false') + ';\n';
         fileContent += "    EnvHandler.MAX_POOL = " + ConfigurationService.node_configuration.MAX_POOL + ";\n";
         fileContent += "    EnvHandler.ZOOM_AUTO = " + ((!!ConfigurationService.node_configuration.ZOOM_AUTO) ? 'true' : 'false') + ';\n';
