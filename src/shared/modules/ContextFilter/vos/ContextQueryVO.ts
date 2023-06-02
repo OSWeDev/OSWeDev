@@ -29,6 +29,20 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
     public _type: string = ContextQueryVO.API_TYPE_ID;
 
     /**
+     * Durée de rétention (et donc de faîcheur) max de la requête en cache
+     *  - > 0 : cache de la durée indiquée
+     * On utilise le cache de la requête pour les requêtes de type select passées par le throttled query
+     *  et on active le cache requete par requete avec pour paramètre cette durée de rétention
+     *  et si on en voit plusieurs, on garde la valeur de rétention max
+     * Si on a dans le cache un résultat plus récent que la durée de rétention, on charge depuis le cache
+     *  sinon on relance la requête et on écrase le cache
+     * Le cache est vidé régulièremetn par le throttled query qui lance de temps à autres un clean_cache
+     *  qui vide le cache suivant les durées de rétention
+     */
+    public max_age_ms: number;
+
+
+    /**
      * Indicateur de select count()
      */
     public do_count_results: boolean = false;
@@ -956,6 +970,18 @@ export default class ContextQueryVO extends AbstractVO implements IDistantVOBase
     public exec_as_server(is_server = true): ContextQueryVO {
 
         this.is_server = is_server;
+
+        return this;
+    }
+
+    /**
+     * Paramétrer le max_age de la query (cf. commentaire max_age_ms pour le fonctionnement du cache)
+     * On accepte de charger de la data ancienne issue d'un cache, sans invalidation auto lors d'un update pour le moment
+     *  et donc potentiellement fausse vs bdd
+     */
+    public set_max_age_ms(max_age_ms: number): ContextQueryVO {
+
+        this.max_age_ms = max_age_ms;
 
         return this;
     }

@@ -77,6 +77,7 @@ import DAOPreDeleteTriggerHook from './triggers/DAOPreDeleteTriggerHook';
 import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
 import ThrottledSelectQueryParam from './vos/ThrottledSelectQueryParam';
+import DAOCacheHandler from './DAOCacheHandler';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -2334,6 +2335,27 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             continue;
                         }
                         param.semaphore = true;
+
+                        /**
+                         * On ajoute la gestion du cache ici
+                         */
+                        if (param.context_query.max_age_ms && DAOCacheHandler.has_cache(param.parameterized_full_query, param.context_query.max_age_ms)) {
+                            let res = DAOCacheHandler.get_cache(param.parameterized_full_query);
+                            if (ConfigurationService.node_configuration.DEBUG_THROTTLED_SELECT) {
+                                ConsoleHandler.log('throttled_select_query:do_throttled_select_query:cache:' + param.parameterized_full_query);
+                            }
+                            StatsController.register_stat_COMPTEUR('ModuleDAO', 'throttled_select_query', 'from_cache');
+
+                            let pms = [];
+                            for (let cbi in param.cbs) {
+                                let cb = param.cbs[cbi];
+
+                                pms.push(cb(res));
+                            }
+                            await all_promises(pms);
+                            continue;
+                        }
+                        StatsController.register_stat_COMPTEUR('ModuleDAO', 'throttled_select_query', 'not_from_cache');
 
                         /**
                          * On ne doit avoir que des select
@@ -5390,17 +5412,25 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 ConsoleHandler.log('do_throttled_select_query:results_of_index:' + index + ':' + (results_of_index ? JSON.stringify(results_of_index) : 'null'));
             }
 
+            /**
+             * Si on utilise plusieurs fois les mêmes datas résultantes de la query,
+             *  on clonait les résultats pour chaque cb, mais c'est très lourd.
+             *  Dont on va préférer les rendre non mutable, et on clone plus puisque la donnée ne peut plus changer
+             * On freeze aussi si on a un max_age_ms, car on ne veut pas que les données changent quand on les met en cache
+             */
+            if ((results_of_index && (param.cbs.length > 1)) || (param.context_query.max_age_ms)) {
+                Object.freeze(results_of_index);
+            }
+
+            /**
+             * On ajoute la gestion du cache - attention a freeze les données avant de les mettre en cache
+             */
+            if (param.context_query.max_age_ms) {
+                DAOCacheHandler.set_cache(param.parameterized_full_query, results_of_index, param.context_query.max_age_ms);
+            }
+
             for (let cbi in param.cbs) {
                 let cb = param.cbs[cbi];
-
-                /**
-                 * Si on utilise plusieurs fois les mêmes datas résultantes de la query,
-                 *  on clonait les résultats pour chaque cb, mais c'est très lourd.
-                 *  Dont on va préférer les rendre non mutable, et on clone plus puisque la donnée ne peut plus changer
-                 */
-                if (results_of_index && (param.cbs.length > 1)) {
-                    Object.freeze(results_of_index);
-                }
 
                 promises.push(cb(results_of_index ? results_of_index : null));
             }

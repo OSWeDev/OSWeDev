@@ -1,0 +1,3 @@
+=== Règles à respecter ===
+    Check - deps => on devrait jamais avoir:
+        - de deps du server / generator depuis le client/admin/login/vuejsclient/shared
