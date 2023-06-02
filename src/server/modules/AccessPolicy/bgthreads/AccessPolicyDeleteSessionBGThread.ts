@@ -57,9 +57,7 @@ export default class AccessPolicyDeleteSessionBGThread implements IBGThread {
 
             StatsController.register_stat_COMPTEUR('AccessPolicyDeleteSessionBGThread', 'work', 'IN');
 
-            let invalidate_sessions: IServerUserSession[] = ObjectHandler.getInstance().arrayFromMap(this.session_to_delete_by_sids);
-
-            if (!invalidate_sessions || !invalidate_sessions.length) {
+            if (!this.session_to_delete_by_sids || !ObjectHandler.getInstance().hasAtLeastOneAttribute(this.session_to_delete_by_sids)) {
                 this.stats_out('inactive', time_in);
                 return ModuleBGThreadServer.TIMEOUT_COEF_SLEEP;
             }

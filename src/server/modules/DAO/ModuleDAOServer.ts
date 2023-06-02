@@ -5573,7 +5573,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let time_before_insert = Dates.now_ms();
 
             if (sqls.length > 0) {
-                let query_uid = this.log_db_query_perf_start('insert_vos');
+                let query_uid = this.log_db_query_perf_start('insert_vos', 'ex: ' + sqls[0]);
                 results = await ModuleServiceBase.getInstance().db.tx(async (t) => {
 
                     let queries: any[] = [];
@@ -5589,11 +5589,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }).catch((reason) => {
                     StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'insert_vos', 'ERROR');
                     ConsoleHandler.error('insert_vos :' + reason);
-                    this.log_db_query_perf_end(query_uid, 'insert_vos');
+                    this.log_db_query_perf_end(query_uid, 'insert_vos', 'ex: ' + sqls[0]);
                     resolve(null);
                     resolved = true;
                 });
-                this.log_db_query_perf_end(query_uid, 'insert_vos');
+                this.log_db_query_perf_end(query_uid, 'insert_vos', 'ex: ' + sqls[0]);
             } else {
                 StatsController.register_stat_COMPTEUR('ModuleDAOServer', 'insert_vos', 'NO_SQLS');
                 ConsoleHandler.error('insert_vos : no sqls');

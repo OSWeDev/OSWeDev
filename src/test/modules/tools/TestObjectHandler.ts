@@ -7,7 +7,6 @@ import 'mocha';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
-import { range } from 'lodash';
 
 describe('ObjectHandler', () => {
 
@@ -21,18 +20,6 @@ describe('ObjectHandler', () => {
 
         expect(ObjectHandler.getInstance().sortObjectByKey(null, (n1: any, n2: any) => n1 < n2)).to.deep.equal({});
         expect(ObjectHandler.getInstance().sortObjectByKey({ null: 1, 7: 'b', 3: 'a' }, (n1: any, n2: any) => n1 < n2)).to.deep.equal({ 3: "a", 7: "b", null: 1 });
-
-    });
-
-    it('test arrayFromMap', () => {
-        expect(ObjectHandler.getInstance().arrayFromMap(
-            { 2: 'j', 7: 'b', 3: 'a' })
-        ).to.deep.equal(
-            ['j', 'a', 'b']
-        );
-
-        expect(ObjectHandler.getInstance().arrayFromMap(null)).to.deep.equal([]);
-        expect(ObjectHandler.getInstance().arrayFromMap({ 47: null, 7: 'b', 3: 'a' })).to.deep.equal(['a', 'b', null]);
 
     });
 

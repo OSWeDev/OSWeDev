@@ -62,6 +62,7 @@ import Patch20230512DeleteAllStats from './patchs/premodules/Patch20230512Delete
 import Patch20230517DeleteAllStats from './patchs/premodules/Patch20230517DeleteAllStats';
 import Patch20230428UpdateUserArchivedField from './patchs/premodules/Patch20230428UpdateUserArchivedField';
 import VersionUpdater from './version_updater/VersionUpdater';
+import PromisePipeline from '../shared/tools/PromisePipeline/PromisePipeline';
 
 export default abstract class GeneratorBase {
 
@@ -242,22 +243,33 @@ export default abstract class GeneratorBase {
     }
 
     private async execute_workers(workers: IGeneratorWorker[], db: IDatabase<any>): Promise<boolean> {
+
+        let workers_to_execute = [];
+        let promises_pipeline = new PromisePipeline(ConfigurationService.node_configuration.MAX_POOL - 1);
         for (let i in workers) {
             let worker = workers[i];
 
-            // On check que le patch a pas encore été lancé
-            try {
-                await db.one('select * from generator.workers where uid = $1;', [worker.uid]);
-                continue;
-            } catch (error) {
-                if ((!error) || ((error['message'] != "No data returned from the query.") && (error['code'] != '42P01'))) {
+            await promises_pipeline.push(async () => {
+                // On check que le patch a pas encore été lancé
+                try {
+                    await db.one('select * from generator.workers where uid = $1;', [worker.uid]);
+                    return;
+                } catch (error) {
+                    if ((!error) || ((error['message'] != "No data returned from the query.") && (error['code'] != '42P01'))) {
 
-                    console.warn('Patch :' + worker.uid + ': Erreur... [' + error + '], on tente de lancer le patch.');
-                } else {
-                    console.debug('Patch :' + worker.uid + ': aucune trace de lancement en base, lancement du patch...');
+                        console.warn('Patch :' + worker.uid + ': Erreur... [' + error + '], on tente de lancer le patch.');
+                    } else {
+                        console.debug('Patch :' + worker.uid + ': aucune trace de lancement en base, lancement du patch...');
+                    }
+                    workers_to_execute.push(worker);
+                    // Pas d'info en base, le patch a pas été lancé, on le lance
                 }
-                // Pas d'info en base, le patch a pas été lancé, on le lance
-            }
+            });
+        }
+        await promises_pipeline.end();
+
+        for (let i in workers_to_execute) {
+            let worker = workers_to_execute[i];
 
             // Sinon on le lance et on stocke l'info en base
             try {

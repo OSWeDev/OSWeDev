@@ -15,7 +15,7 @@ export default class WeightHandler {
     }
 
     public getSortedListFromWeightedVosByIds<T extends IWeightedItem>(vos_by_id: { [id: number]: T }): T[] {
-        let vos_list: T[] = ObjectHandler.getInstance().arrayFromMap(vos_by_id);
+        let vos_list: T[] = Object.values(vos_by_id);
         WeightHandler.getInstance().sortByWeight(vos_list);
         return vos_list;
     }

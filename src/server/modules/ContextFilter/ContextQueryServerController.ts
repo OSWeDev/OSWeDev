@@ -710,19 +710,19 @@ export default class ContextQueryServerController {
                         let sql: string = await ModuleDAOServer.getInstance().getqueryfor_insertOrUpdateVO(vo_to_update, preupdate_vo);
 
                         if (!sql) {
-                            ConsoleHandler.warn('Est-ce bien normal ? UpdateVO :(!sql):' + JSON.stringify(vo_to_update));
+                            ConsoleHandler.warn('Est-ce bien normal ? update_vos :(!sql):' + JSON.stringify(vo_to_update));
                             StatsController.register_stat_COMPTEUR('ContextQueryServerController', 'update_vos', 'no_sql');
                             return null;
                         }
                         let failed: boolean = false;
 
                         let bdd_version = moduleTable.get_bdd_version(vo_to_update);
-                        let query_uid = ModuleDAOServer.getInstance().log_db_query_perf_start('UpdateVO', 'type:' + vo_to_update._type);
+                        let query_uid = ModuleDAOServer.getInstance().log_db_query_perf_start('update_vos', 'type:' + vo_to_update._type);
                         let db_result = await ModuleServiceBase.getInstance().db.oneOrNone(sql, bdd_version).catch((reason) => {
-                            ConsoleHandler.error('UpdateVO :' + reason);
+                            ConsoleHandler.error('update_vos :' + reason);
                             failed = true;
                         });
-                        ModuleDAOServer.getInstance().log_db_query_perf_end(query_uid, 'UpdateVO', 'type:' + vo_to_update._type);
+                        ModuleDAOServer.getInstance().log_db_query_perf_end(query_uid, 'update_vos', 'type:' + vo_to_update._type);
 
                         let this_res: InsertOrDeleteQueryResult = new InsertOrDeleteQueryResult((db_result && db_result.id) ? parseInt(db_result.id.toString()) : null);
 
