@@ -2522,12 +2522,21 @@ export default class ModuleDAOServer extends ModuleServerBase {
                  */
                 if (vo.id) {
 
-                    if (DAOServerController.getInstance().pre_update_trigger_hook.has_trigger(vo._type) || DAOServerController.getInstance().post_update_trigger_hook.has_trigger(vo._type)) {
+                    if (
+                        DAOServerController.getInstance().pre_update_trigger_hook.has_trigger(vo._type) ||
+                        DAOServerController.getInstance().post_update_trigger_hook.has_trigger(vo._type)
+                    ) {
 
-                        let query_ = query(vo._type).filter_by_id(vo.id);
+                        let query_ = query(vo._type)
+                            .filter_by_id(vo.id);
+
                         if (moduleTable.is_segmented && moduleTable.table_segmented_field && (vo[moduleTable.table_segmented_field.field_id] != null)) {
-                            query_.filter_by_num_eq(moduleTable.table_segmented_field.field_id, moduleTable.get_segmented_field_value_from_vo(vo));
+                            query_.filter_by_num_eq(
+                                moduleTable.table_segmented_field.field_id,
+                                moduleTable.get_segmented_field_value_from_vo(vo)
+                            );
                         }
+
                         preUpdates[i] = await query_.select_vo();
 
                         if (!preUpdates[i]) {
@@ -2578,10 +2587,17 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 for (let i in results) {
 
                     if (isUpdates[i]) {
-                        await DAOServerController.getInstance().post_update_trigger_hook.trigger(vos[i]._type, new DAOUpdateVOHolder(preUpdates[i], vos[i]));
+                        // Add Trigger|Dispatch event on post Update (with the actual VO and the preUpdate VO)
+                        await DAOServerController.getInstance()
+                            .post_update_trigger_hook
+                            .trigger(vos[i]._type, new DAOUpdateVOHolder(preUpdates[i], vos[i]));
+
                     } else {
+                        // Add Trigger|Dispatch event on Create (with the actual VO)
                         vos[i].id = parseInt(results[i].id.toString());
-                        await DAOServerController.getInstance().post_create_trigger_hook.trigger(vos[i]._type, vos[i]);
+                        await DAOServerController.getInstance()
+                            .post_create_trigger_hook
+                            .trigger(vos[i]._type, vos[i]);
                     }
                 }
             }

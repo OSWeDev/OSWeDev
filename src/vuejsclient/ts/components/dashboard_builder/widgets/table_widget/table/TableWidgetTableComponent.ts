@@ -1920,9 +1920,17 @@ export default class TableWidgetTableComponent extends VueComponentBase {
             context_query.set_limit(0, 0);
         }
 
-        let export_name = this.dashboard_page.translatable_name_code_text ?
-            "Export-" + this.t(this.dashboard_page.translatable_name_code_text) + "-" + Dates.now() + ".xlsx" :
-            "Export-" + Dates.now() + ".xlsx";
+        let export_name: string = 'Export-';
+
+        if (!!this.dashboard?.translatable_name_code_text) {
+            export_name += 'Dashboard-' + this.t(this.dashboard.translatable_name_code_text) + '-';
+        }
+
+        if (!!this.dashboard_page?.translatable_name_code_text) {
+            export_name += 'Page-' + this.t(this.dashboard_page.translatable_name_code_text) + '-';
+        }
+
+        export_name += Dates.now() + ".xlsx";
 
         // The actual fields to be exported
         let fields: { [datatable_field_uid: string]: DatatableField<any, any> } = {};

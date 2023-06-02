@@ -131,14 +131,15 @@ export default class ContextQueryServerController {
 
         let moduletable = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
 
-        // Case when union_query => we need to take care of each res vo_type
+        // Case when union_query => we need to take care of each res vo_type 
+        // (as we should have _explicit_api_type_id)
         for (const i in query_res) {
             const data = query_res[i];
 
             data._type = moduletable.vo_type;
 
-            if (data.api_type_id) {
-                data._type = data.api_type_id;
+            if (data._explicit_api_type_id) {
+                data._type = data._explicit_api_type_id;
             }
         }
 
@@ -1204,17 +1205,16 @@ export default class ContextQueryServerController {
             }
 
             // We should order all fields in the same way of the given all_required_fields
-            // We should also add|specify vo_type_id field to retrieve it later
             if (all_required_fields?.length > 0) {
-                all_required_fields.push({ field_id: 'api_type_id' } as ModuleTableField<any>);
+                all_required_fields.push({ field_id: '_explicit_api_type_id' } as ModuleTableField<any>);
 
-                // We should also add|specify vo_type_id field to retrieve it later
+                // We should also add|specify _explicit_api_type_id field to retrieve it later
                 context_query.add_field(
-                    'api_type_id',
+                    '_explicit_api_type_id',
                     null,
                     null,
                     VarConfVO.NO_AGGREGATOR,
-                    ContextQueryFieldVO.FIELD_MODIFIER_FIELD_AS_API_TYPE_ID,
+                    ContextQueryFieldVO.FIELD_MODIFIER_FIELD_AS_EXPLICIT_API_TYPE_ID,
                 );
 
                 // We should order all fields in the same way of the given all_required_fields
@@ -1301,7 +1301,7 @@ export default class ContextQueryServerController {
             let field_full_name = query_wrapper.tables_aliases_by_type[context_field.api_type_id] + "." + context_field.field_id;
 
             if (
-                context_field.modifier === ContextQueryFieldVO.FIELD_MODIFIER_FIELD_AS_API_TYPE_ID ||
+                context_field.modifier === ContextQueryFieldVO.FIELD_MODIFIER_FIELD_AS_EXPLICIT_API_TYPE_ID ||
                 context_field.modifier === ContextQueryFieldVO.FIELD_MODIFIER_NULL_IF_NO_COLUMN
             ) {
                 field_full_name = context_field.field_id;
