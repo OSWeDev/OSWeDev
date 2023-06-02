@@ -131,7 +131,7 @@ export default class ContextQueryServerController {
 
         let moduletable = VOsTypesManager.moduleTables_by_voType[context_query.base_api_type_id];
 
-        // Case when union_query => we need to take care of each res vo_type 
+        // Case when union_query => we need to take care of each res vo_type
         // (as we should have _explicit_api_type_id)
         for (const i in query_res) {
             const data = query_res[i];

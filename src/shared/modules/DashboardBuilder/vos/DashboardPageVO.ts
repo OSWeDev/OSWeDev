@@ -20,6 +20,7 @@ export default class DashboardPageVO implements IDashboardPageVO, IDistantVOBase
         if (!this.id) {
             return null;
         }
+
         return DashboardBuilderController.PAGE_NAME_CODE_PREFIX + this.id + ".group_filters" + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     }
 
@@ -28,6 +29,7 @@ export default class DashboardPageVO implements IDashboardPageVO, IDistantVOBase
         if (!this.id) {
             return null;
         }
+
         return DashboardBuilderController.PAGE_NAME_CODE_PREFIX + this.id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     }
 }

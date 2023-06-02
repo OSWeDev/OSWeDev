@@ -30,15 +30,16 @@ import TranslatableTextController from '../InlineTranslatableText/TranslatableTe
 import { ModuleTranslatableTextAction } from '../InlineTranslatableText/TranslatableTextStore';
 import VueComponentBase from '../VueComponentBase';
 import DashboardBuilderBoardComponent from './board/DashboardBuilderBoardComponent';
-import './DashboardBuilderComponent.scss';
-import DroppableVoFieldsComponent from './droppable_vo_fields/DroppableVoFieldsComponent';
 import { ModuleDroppableVoFieldsAction } from './droppable_vo_fields/DroppableVoFieldsStore';
+import DroppableVoFieldsComponent from './droppable_vo_fields/DroppableVoFieldsComponent';
 import DashboardMenuConfComponent from './menu_conf/DashboardMenuConfComponent';
 import { ModuleDashboardPageAction, ModuleDashboardPageGetter } from './page/DashboardPageStore';
+import DashboardSharedFiltersComponent from './shared_filters/DashboardSharedFiltersComponent';
 import TablesGraphComponent from './tables_graph/TablesGraphComponent';
-import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsComponent';
 import DashboardBuilderWidgetsController from './widgets/DashboardBuilderWidgetsController';
+import DashboardBuilderWidgetsComponent from './widgets/DashboardBuilderWidgetsComponent';
 import IExportableWidgetOptions from './widgets/IExportableWidgetOptions';
+import './DashboardBuilderComponent.scss';
 
 @Component({
     template: require('./DashboardBuilderComponent.pug'),
@@ -48,7 +49,8 @@ import IExportableWidgetOptions from './widgets/IExportableWidgetOptions';
         Dashboardbuilderwidgetscomponent: DashboardBuilderWidgetsComponent,
         Dashboardbuilderboardcomponent: DashboardBuilderBoardComponent,
         Tablesgraphcomponent: TablesGraphComponent,
-        Dashboardmenuconfcomponent: DashboardMenuConfComponent
+        Dashboardmenuconfcomponent: DashboardMenuConfComponent,
+        Dashboardsharedfilterscomponent: DashboardSharedFiltersComponent,
     }
 })
 export default class DashboardBuilderComponent extends VueComponentBase {
@@ -103,6 +105,7 @@ export default class DashboardBuilderComponent extends VueComponentBase {
     private pages: DashboardPageVO[] = [];
     private page: DashboardPageVO = null;
 
+    private show_shared_filters: boolean = false;
     private show_build_page: boolean = false;
     private show_select_vos: boolean = true;
     private show_menu_conf: boolean = false;
@@ -828,22 +831,54 @@ export default class DashboardBuilderComponent extends VueComponentBase {
         });
     }
 
-    private select_vos() {
+    /**
+     * select_configuration_tab
+     * - Set the active tab by the given tab name
+     *
+     * @param {string} activate_tab
+     * @returns {void}
+     */
+    private select_configuration_tab(activate_tab: string): void {
+
+        if (!activate_tab) {
+            return;
+        }
+
+        this.show_shared_filters = false;
+        this.show_select_vos = false;
         this.show_build_page = false;
-        this.show_select_vos = true;
         this.show_menu_conf = false;
+
+        switch (activate_tab) {
+            case 'shared_filters':
+                this.show_shared_filters = true;
+                break;
+            case 'select_vos':
+                this.show_select_vos = true;
+                break;
+            case 'menu_conf':
+                this.show_menu_conf = true;
+                break;
+            case 'build_page':
+                this.show_build_page = true;
+                break;
+        }
+    }
+
+    private select_vos() {
+        this.select_configuration_tab('select_vos');
     }
 
     private build_page() {
-        this.show_build_page = true;
-        this.show_select_vos = false;
-        this.show_menu_conf = false;
+        this.select_configuration_tab('build_page');
     }
 
     private menu_conf() {
-        this.show_build_page = false;
-        this.show_select_vos = false;
-        this.show_menu_conf = true;
+        this.select_configuration_tab('menu_conf');
+    }
+
+    private select_shared_filters() {
+        this.select_configuration_tab('shared_filters');
     }
 
     private async add_api_type_id(api_type_id: string) {

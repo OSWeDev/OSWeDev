@@ -1,0 +1,12 @@
+.dashboard_menu_conf
+    .menus_switches(v-if='dashboard?.id && !is_loading')
+        template(v-for='app_name in app_names')
+            .menu_switch
+                .toggle_wrapper
+                    toggle-button(
+                        @change="switch_menu_app(app_name)" 
+                        :value="!!menu_app[app_name]" 
+                        :sync="false"
+                        :width="60"
+                        :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}")
+                .label {{ label('dashboard_menu_conf.menu_switch.label', { app_name : app_name } ) }}

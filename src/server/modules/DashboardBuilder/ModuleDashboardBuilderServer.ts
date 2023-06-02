@@ -230,6 +230,10 @@ export default class ModuleDashboardBuilderServer extends ModuleServerBase {
         }, 'dashboard_builder.menu_conf.___LABEL___'));
 
         DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
+            'fr-fr': '4 - Filtres Partagés'
+        }, 'dashboard_builder.shared_filters.___LABEL___'));
+
+        DefaultTranslationManager.registerDefaultTranslation(new DefaultTranslation({
             'fr-fr': 'Impossible de créer un nouveau Dashboard...'
         }, 'DashboardBuilderComponent.create_new_dashboard.ko.___LABEL___'));
 
