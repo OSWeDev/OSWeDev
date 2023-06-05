@@ -16,6 +16,8 @@ import FeedbackVO from '../../../shared/modules/Feedback/vos/FeedbackVO';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import Dates from '../../../shared/modules/FormatDatesNombres/Dates/Dates';
 import ModuleFormatDatesNombres from '../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
+import GPTConversationVO from '../../../shared/modules/GPT/vos/GPTConversationVO';
+import GPTMessageVO from '../../../shared/modules/GPT/vos/GPTMessageVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import StatsController from '../../../shared/modules/Stats/StatsController';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
@@ -30,6 +32,7 @@ import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerCont
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import ModuleFileServer from '../File/ModuleFileServer';
+import ModuleGPTServer from '../GPT/ModuleGPTServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
@@ -340,6 +343,10 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
 
             trello_message += await this.routes_to_string(feedback);
             trello_message += await this.console_logs_to_string(feedback);
+
+            // // TODO FIXME TEST DELETE
+            // let conversation = new GPTConversationVO();
+            // trello_message += 'GPT::' + (await ModuleGPTServer.getInstance().generate_response(conversation, GPTMessageVO.createNew(GPTMessageVO.GPTMSG_ROLE_TYPE_USER, feedback.user_id, feedback.message))).content + '::';
 
             if (ModuleParams.APINAME_feedback_activate_api_logs) { //Api_logs du message , désactivé par défaut.
                 trello_message += await this.api_logs_to_string(feedback);

@@ -52,4 +52,6 @@ export default class EnvParam implements IEnvParam {
      * ATTENTION : bien indiquer l'environnement principal de production. On bloque par exemple les comptes tests sur cet environnement.
      */
     public IS_MAIN_PROD_ENV: boolean = false;
+
+    public OPEN_API_API_KEY?: string = null;
 }

@@ -48,4 +48,5 @@ export default interface IEnvParam {
 
     IS_MAIN_PROD_ENV: boolean;
 
+    OPEN_API_API_KEY?: string;
 }
