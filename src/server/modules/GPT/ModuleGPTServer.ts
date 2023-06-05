@@ -25,6 +25,7 @@ import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import { OpenAIApi, Configuration } from "openai";
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import GPTAPIMessage from '../../../shared/modules/GPT/api/GPTAPIMessage';
 
 export default class ModuleGPTServer extends ModuleServerBase {
 
@@ -104,8 +105,7 @@ export default class ModuleGPTServer extends ModuleServerBase {
             conversation.messages.push(newPrompt);
 
             // Extract the currentMessages from the conversation
-            const currentMessages = conversation.messages;
-
+            const currentMessages = GPTAPIMessage.fromConversation(conversation);
             const result = await this.openai.createChatCompletion({
                 model: modelId,
                 messages: currentMessages,
